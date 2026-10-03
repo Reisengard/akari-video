@@ -31,14 +31,14 @@ function registryWithoutCloud() {
                 env: null,
                 models: { default: null, allowed: [] },
                 notes: {
-                    description: 'VOICEVOX ローカルエンジン。',
-                    workflows: ['42 AI 生成素材'],
-                    billing: '無償（ローカル実行）。',
-                    quota: 'なし。',
-                    scopes: ['音声合成'],
+                    description: 'VOICEVOX local engine.',
+                    workflows: ['42 AI-generated footage'],
+                    billing: 'Free (runs locally).',
+                    quota: 'None.',
+                    scopes: ['Speech synthesis'],
                     setup_url: 'https://voicevox.hiroshiba.jp/'
                 },
-                doctor: { last_checked: null, status: 'unchecked', detail: '未確認' }
+                doctor: { last_checked: null, status: 'unchecked', detail: 'Unchecked' }
             }
         ],
         policy: { currency: 'JPY', monthly_budget: null, approval_threshold: null },
@@ -50,7 +50,7 @@ function findCloud(registry) {
     return registry.providers.find(provider => provider.id === CLOUD_PROVIDER_ID);
 }
 
-test('withCloudConnectionOk: エントリ不在なら追加して doctor を ok にする', () => {
+test('withCloudConnectionOk: adds the entry and sets doctor to ok when it is missing', () => {
     const patch = withCloudConnectionOk(registryWithoutCloud(), NOW);
     assert.equal(patch.added, true);
     assert.equal(patch.registry.providers.length, 2);
@@ -58,7 +58,7 @@ test('withCloudConnectionOk: エントリ不在なら追加して doctor を ok 
     assert.deepEqual(cloud.doctor, {
         last_checked: NOW,
         status: 'ok',
-        detail: 'AI パートナーの接続を確認しました（ローカル CLI 接続の成立で判定、v0）。'
+        detail: 'Confirmed the AI partner connection (decided when the local CLI connection succeeds, v0).'
     });
     assert.equal(cloud.kind, 'genai');
     assert.equal(cloud.auth, 'login');
@@ -69,7 +69,7 @@ test('withCloudConnectionOk: エントリ不在なら追加して doctor を ok 
     assert.equal(patch.registry.providers[0].doctor.status, 'unchecked');
 });
 
-test('withCloudConnectionOk: 追加したエントリは connections.json スキーマを満たす', async () => {
+test('withCloudConnectionOk: the added entry satisfies the connections.json schema', async () => {
     const patch = withCloudConnectionOk(registryWithoutCloud(), NOW);
     const dir = await mkdtemp(path.join(tmpdir(), 'akari-connections-'));
     const target = path.join(dir, 'connections.json');
@@ -79,7 +79,7 @@ test('withCloudConnectionOk: 追加したエントリは connections.json スキ
     assert.match(output, /OK/);
 });
 
-test('withCloudConnectionOk: 既存エントリは doctor だけ差し替える（現行維持）', () => {
+test('withCloudConnectionOk: an existing entry only replaces doctor', () => {
     const registry = registryWithoutCloud();
     registry.providers.push({
         id: CLOUD_PROVIDER_ID,
@@ -88,14 +88,14 @@ test('withCloudConnectionOk: 既存エントリは doctor だけ差し替える�
         env: null,
         models: { default: null, allowed: ['keep-me'] },
         notes: {
-            description: '手で書かれた説明。',
-            workflows: ['42 AI 生成素材'],
-            billing: '契約に従う。',
-            quota: '上限に従う。',
-            scopes: ['生成機能'],
+            description: 'A note written by hand.',
+            workflows: ['42 AI-generated footage'],
+            billing: 'Follows the contract.',
+            quota: 'Follows the limit.',
+            scopes: ['Generation'],
             setup_url: null
         },
-        doctor: { last_checked: null, status: 'unchecked', detail: '未確認' }
+        doctor: { last_checked: null, status: 'unchecked', detail: 'Unchecked' }
     });
     const patch = withCloudConnectionOk(registry, NOW);
     assert.equal(patch.added, false);
@@ -105,23 +105,23 @@ test('withCloudConnectionOk: 既存エントリは doctor だけ差し替える�
     assert.equal(cloud.doctor.last_checked, NOW);
     // doctor 以外は書き換えない。
     assert.deepEqual(cloud.models.allowed, ['keep-me']);
-    assert.equal(cloud.notes.description, '手で書かれた説明。');
+    assert.equal(cloud.notes.description, 'A note written by hand.');
 });
 
-test('withCloudConnectionOk: providers が配列でなくてもエントリを作れる', () => {
+test('withCloudConnectionOk: can create an entry when providers is not an array', () => {
     const patch = withCloudConnectionOk({ policy: {} }, NOW);
     assert.equal(patch.added, true);
     assert.equal(findCloud(patch.registry).doctor.status, 'ok');
 });
 
-test('withCloudConnectionOk: レジストリの体を成さない値には触らない', () => {
+test('withCloudConnectionOk: leaves a value that is not a registry alone', () => {
     assert.equal(withCloudConnectionOk(undefined, NOW), undefined);
     assert.equal(withCloudConnectionOk(null, NOW), undefined);
     assert.equal(withCloudConnectionOk([], NOW), undefined);
     assert.equal(withCloudConnectionOk('{}', NOW), undefined);
 });
 
-test('repairCloudConnection: connections.json が無ければ何も書かない', async () => {
+test('repairCloudConnection: writes nothing when connections.json is missing', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'akari-project-'));
     const target = path.join(root, '.akari/connections.json');
     let writes = 0;
@@ -145,7 +145,7 @@ test('repairCloudConnection: connections.json が無ければ何も書かない'
     assert.deepEqual(await readdir(root), []);
 });
 
-test('repairCloudConnection: 実ファイルに対して追記し、読み返せる', async () => {
+test('repairCloudConnection: appends to a real file and can be read back', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'akari-project-'));
     const target = path.join(root, '.akari/connections.json');
     await mkdir(path.dirname(target), { recursive: true });
@@ -171,10 +171,10 @@ test('repairCloudConnection: 実ファイルに対して追記し、読み返せ
     assert.equal(JSON.parse(await readFile(target, 'utf8')).providers.length, 2);
 });
 
-test('repairCloudConnection: 壊れた JSON は skipped で書き戻さない', async () => {
+test('repairCloudConnection: broken JSON is skipped and not written back', async () => {
     let writes = 0;
     const outcome = await repairCloudConnection({
-        read: async () => '{ これは JSON ではない',
+        read: async () => '{ this is not JSON',
         write: async () => { writes++; }
     }, NOW);
     assert.equal(outcome, 'skipped');

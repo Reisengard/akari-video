@@ -16,12 +16,12 @@ export interface AkariPartnerConnectDialogProps extends DialogProps {
 }
 
 const STEP_LABELS: ReadonlyArray<{ step: ConnectDialogStep; label: string }> = [
-    { step: 'preparing', label: '① CLI 準備中' },
-    { step: 'login', label: '② ログイン（ブラウザ承認）' },
-    { step: 'complete', label: '③ 接続完了' }
+    { step: 'preparing', label: '1. Preparing the CLI' },
+    { step: 'login', label: '2. Sign in (approve in the browser)' },
+    { step: 'complete', label: '3. Connected' }
 ];
 
-const STALLED_NOTE = '進まない場合はターミナルを表示して画面の案内に従ってください。';
+const STALLED_NOTE = 'If this does not advance, show the terminal and follow the on-screen instructions.';
 
 /**
  * 接続ガイドダイアログ（task/2026-08-06-partner-connect-popup）。
@@ -87,8 +87,8 @@ export class AkariPartnerConnectDialog extends AbstractDialog<void> {
         // 表示順は task.md「下部に『キャンセル』と『ターミナルを表示』」どおり
         // （dialogControl は flex-end で末尾寄せなので、appendChild の順が
         // そのまま左→右の並びになる — 既存 Theia ダイアログの流儀と同じ）。
-        this.appendCloseButton('キャンセル');
-        const showTerminalButton = this.appendButton('ターミナルを表示', false);
+        this.appendCloseButton('Cancel');
+        const showTerminalButton = this.appendButton('Show terminal', false);
         showTerminalButton.addEventListener('click', () => {
             this.onShowTerminal();
             this.close();
@@ -147,16 +147,16 @@ export class AkariPartnerConnectDialog extends AbstractDialog<void> {
             : '';
 
         if (this.connected) {
-            this.statusLine.textContent = `${this.props.entry.name} 接続済み`;
-            this.detailLine.textContent = 'このダイアログを閉じて作業を始められます。';
+            this.statusLine.textContent = `${this.props.entry.name} connected`;
+            this.detailLine.textContent = 'You can close this dialog and start working.';
         } else if (this.currentFlow.state === 'failed') {
-            this.statusLine.textContent = this.currentFlow.status || `${this.props.entry.name} のセットアップに失敗しました`;
+            this.statusLine.textContent = this.currentFlow.status || `Setup failed for ${this.props.entry.name}`;
             this.detailLine.textContent = this.currentFlow.detail;
         } else if (this.currentFlow.state === 'complete') {
-            this.statusLine.textContent = this.currentFlow.status || `${this.props.entry.name} を開始しました`;
-            this.detailLine.textContent = 'ターミナルの案内に沿ってブラウザでログインを承認してください。承認が完了すると自動で③へ進みます。';
+            this.statusLine.textContent = this.currentFlow.status || `Started ${this.props.entry.name}`;
+            this.detailLine.textContent = 'Follow the terminal instructions and approve the sign-in in your browser. When approval finishes, this advances to step 3 on its own.';
         } else {
-            this.statusLine.textContent = this.currentFlow.status || 'CLI を準備しています…';
+            this.statusLine.textContent = this.currentFlow.status || 'Preparing the CLI…';
             this.detailLine.textContent = this.currentFlow.detail;
         }
 

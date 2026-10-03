@@ -116,8 +116,8 @@ export const PARTNER_TERMINAL_CSS = `
     mask-image: none;
     -webkit-mask-image: none;
 }
-/* サイドタブの background shorthand に画像を消させない。
-   48px のタブ領域内では他のアイコンと同じサイズで中央に配置する。 */
+/* Keep the side-tab background shorthand from clearing the image.
+   Center it at the same size as the other icons inside the 48px tab. */
 .lm-TabBar.theia-app-sides .lm-TabBar-tabIcon.akari-partner-antigravity-cli-icon {
     background-image: url("data:image/svg+xml;base64,${ANTIGRAVITY_MARK}") !important;
     background-size: var(--theia-private-sidebar-icon-size) !important;

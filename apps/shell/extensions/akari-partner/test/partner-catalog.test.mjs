@@ -6,7 +6,7 @@ import { PARTNER_TERMINAL_CSS } from '../lib/browser/partner-terminal-style.js';
 
 const catalogUrl = new URL('../src/common/partner-catalog.json', import.meta.url);
 
-test('Command Code CLI がパートナーカタログに一意な CLI として載る', async () => {
+test('Command Code CLI is a unique CLI entry in the partner catalog', async () => {
     const catalog = JSON.parse(await readFile(catalogUrl, 'utf8'));
     const matches = catalog.filter(entry => entry.agent === 'commandcode');
 
@@ -15,13 +15,13 @@ test('Command Code CLI がパートナーカタログに一意な CLI として�
         agent: 'commandcode',
         form: 'cli',
         name: 'Command Code CLI',
-        description: 'Command Code を PTY タブで直接使います',
+        description: 'Use Command Code directly in a PTY tab',
         recommended: false
     }]);
     assert.equal(catalog.filter(entry => entry.form === 'cli').length, 10);
 });
 
-test('Command Code アイコンは公式 16px favicon のバイト列を使う', () => {
+test('The Command Code icon uses the bytes of the official 16px favicon', () => {
     const rule = PARTNER_TERMINAL_CSS.match(/\.akari-partner-commandcode-cli-icon \{([\s\S]*?)\}/)?.[1];
     const encoded = rule?.match(/data:image\/png;base64,([A-Za-z0-9+/=]+)/)?.[1];
 
@@ -34,7 +34,7 @@ test('Command Code アイコンは公式 16px favicon のバイト列を使う',
     );
 });
 
-test('Pi と Devin がそれぞれ一意の CLI としてカタログに並ぶ', async () => {
+test('Pi and Devin each appear once as a CLI in the catalog', async () => {
     const catalog = JSON.parse(await readFile(catalogUrl, 'utf8'));
     for (const [agent, id, name] of [
         ['pi', 'earendil/pi-cli', 'Pi CLI'],
@@ -48,7 +48,7 @@ test('Pi と Devin がそれぞれ一意の CLI としてカタログに並ぶ',
     }
 });
 
-test('Pi と Devin の公式 favicon は単色マスクとして埋め込まれる', () => {
+test('The official Pi and Devin favicons are embedded as single-color masks', () => {
     for (const agent of ['pi', 'devin']) {
         const rule = PARTNER_TERMINAL_CSS.match(new RegExp(`\\.akari-partner-${agent}-cli-icon \\{([\\s\\S]*?)\\}`))?.[1];
         assert.ok(rule, agent);

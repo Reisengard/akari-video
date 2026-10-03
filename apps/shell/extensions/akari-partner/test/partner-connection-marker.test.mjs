@@ -15,7 +15,7 @@ import {
 
 const NOW = '2026-07-27T04:05:06.000Z';
 
-test('buildPartnerConnectionMarker: 契約どおりの形と値', () => {
+test('buildPartnerConnectionMarker: matches the contract shape and values', () => {
     const marker = buildPartnerConnectionMarker('claude', '/opt/akari/bin/claude', NOW);
     assert.deepEqual(marker, {
         schema: 1,
@@ -27,19 +27,19 @@ test('buildPartnerConnectionMarker: 契約どおりの形と値', () => {
     assert.deepEqual(Object.keys(marker), ['schema', 'status', 'agent', 'executablePath', 'connected_at']);
 });
 
-test('buildPartnerConnectionMarker: agent は接続したパートナーをそのまま持つ', () => {
+test('buildPartnerConnectionMarker: agent keeps the connected partner', () => {
     assert.equal(buildPartnerConnectionMarker('codex', '/x/codex', NOW).agent, 'codex');
 });
 
-test('resolveAkariHomeDir: AKARI_HOME があればそれ自体が AKARI ホーム', () => {
+test('resolveAkariHomeDir: AKARI_HOME itself is the AKARI home when it is set', () => {
     assert.equal(resolveAkariHomeDir({ AKARI_HOME: '/tmp/akari-home' }, '/Users/example'), '/tmp/akari-home');
 });
 
-test('resolveAkariHomeDir: 未設定ならホームディレクトリ配下の .akari', () => {
+test('resolveAkariHomeDir: without it, use .akari under the home directory', () => {
     assert.equal(resolveAkariHomeDir({}, '/Users/example'), path.join('/Users/example', '.akari'));
 });
 
-test('resolvePartnerConnectionMarkerPath: update-check.json と同じ場所に置く', () => {
+test('resolvePartnerConnectionMarkerPath: sits beside update-check.json', () => {
     assert.equal(
         resolvePartnerConnectionMarkerPath({ AKARI_HOME: '/tmp/akari-home' }, '/Users/example'),
         path.join('/tmp/akari-home', 'partner-connection.json')
@@ -50,7 +50,7 @@ test('resolvePartnerConnectionMarkerPath: update-check.json と同じ場所に�
     );
 });
 
-test('writePartnerConnectionMarker: 親ディレクトリごと作り、読み返せる JSON を書く', async () => {
+test('writePartnerConnectionMarker: creates the parent directory and writes JSON that can be read back', async () => {
     const home = await mkdtemp(path.join(tmpdir(), 'akari-home-'));
     // まだ存在しない AKARI_HOME を指しても書けること（初回接続の実態）。
     const akariHome = path.join(home, 'nested', '.akari');
@@ -67,7 +67,7 @@ test('writePartnerConnectionMarker: 親ディレクトリごと作り、読み�
     assert.equal(JSON.parse(raw).status, 'ok');
 });
 
-test('writePartnerConnectionMarker: 再接続時は上書きする', async () => {
+test('writePartnerConnectionMarker: overwrites on reconnect', async () => {
     const home = await mkdtemp(path.join(tmpdir(), 'akari-home-'));
     const target = resolvePartnerConnectionMarkerPath({ AKARI_HOME: home }, home);
     await writePartnerConnectionMarker(buildPartnerConnectionMarker('claude', '/a/claude', NOW), target);

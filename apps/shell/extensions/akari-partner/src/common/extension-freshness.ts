@@ -47,5 +47,5 @@ export function decideExtensionUpdate(input: ExtensionFreshnessInput): Extension
 }
 
 export function formatExtensionUpdateNotice(name: string, from: string, to: string): string {
-    return `${name} を ${from} → ${to} に更新しました。反映には再読み込みが必要です`;
+    return `Updated ${name} from ${from} to ${to}. Reload to apply it.`;
 }

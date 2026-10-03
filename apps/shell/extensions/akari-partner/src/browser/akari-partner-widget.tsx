@@ -155,8 +155,8 @@ export class AkariPartnerWidget extends ReactWidget {
     @postConstruct()
     protected init(): void {
         this.id = AkariPartnerWidget.ID;
-        this.title.label = 'パートナーを追加';
-        this.title.caption = 'パートナーを追加';
+        this.title.label = 'Add partner';
+        this.title.caption = 'Add partner';
         this.title.iconClass = 'codicon codicon-add';
         this.title.closable = false;
         this.node.setAttribute('data-akari-onboarding-target', 'partner');
@@ -287,7 +287,7 @@ export class AkariPartnerWidget extends ReactWidget {
         this.connectDialog?.close();
         this.connectDialogEntryId = entry.id;
         const dialog = new AkariPartnerConnectDialog(
-            { title: `${entry.name} へ接続`, entry },
+            { title: `Connect to ${entry.name}`, entry },
             () => this.revealTerminal()
         );
         this.connectDialog = dialog;
@@ -411,16 +411,16 @@ export class AkariPartnerWidget extends ReactWidget {
         if (this.extensionsModel.isInstalled(entry.extensionId)) {
             const outcome = await this.extensionUpdater.checkAndUpdate(entry, (status, detail) => this.setProgress(entry, status, detail));
             if (outcome.kind === 'updated') {
-                this.setComplete(entry, `${entry.name} を ${outcome.installedVersion} → ${outcome.latestVersion} に更新しました`, '再読み込みで反映されます');
+                this.setComplete(entry, `Updated ${entry.name} from ${outcome.installedVersion} to ${outcome.latestVersion}`, 'Reload to apply it');
                 const choice = await this.messageService.info(
-                    formatExtensionUpdateNotice(entry.name, outcome.installedVersion!, outcome.latestVersion!), '今すぐ再読み込み', '後で');
-                if (choice === '今すぐ再読み込み') {
+                    formatExtensionUpdateNotice(entry.name, outcome.installedVersion!, outcome.latestVersion!), 'Reload now', 'Later');
+                if (choice === 'Reload now') {
                     this.windowService.reload();
                     return;
                 }
-                this.setWarning(entry, '再読み込みするまで旧バージョンの拡張が動きます');
+                this.setWarning(entry, 'The previous extension version keeps running until you reload');
             } else if (outcome.kind === 'failed') {
-                this.setWarning(entry, `拡張の更新に失敗しました（${outcome.detail}）。現在のバージョンで開きます`);
+                this.setWarning(entry, `Extension update failed (${outcome.detail}). Opening the current version`);
             }
             await this.openExtension(entry);
             return;
@@ -431,16 +431,16 @@ export class AkariPartnerWidget extends ReactWidget {
     protected async beginCli(entry: PartnerCliCatalogEntry): Promise<void> {
         this.shell.activateWidget(this.id);
         this.selected = entry;
-        this.setProgress(entry, 'CLI を確認しています…', entry.id);
+        this.setProgress(entry, 'Checking the CLI…', entry.id);
         try {
             const roots = await this.workspaceService.roots;
             const cwd = roots[0]?.resource.toString();
 
-            this.setProgress(entry, 'CLI を確認しています…', '同梱ランタイムで実行中');
+            this.setProgress(entry, 'Checking the CLI…', 'Running on the bundled runtime');
             const bootstrap = await this.partnerServer.bootstrap(entry.agent, cwd);
             this.executablePath = bootstrap.executablePath;
             this.setProgress(entry,
-                bootstrap.reused ? 'インストール済みの CLI を検出しました' : 'CLI をダウンロード・インストールしました',
+                bootstrap.reused ? 'Found an installed CLI' : 'Downloaded and installed the CLI',
                 bootstrap.executablePath
             );
             if (entry.agent === 'claude') {
@@ -450,12 +450,12 @@ export class AkariPartnerWidget extends ReactWidget {
                 // claude branch, right before it emits the result JSON).
                 const wiringLog = bootstrap.log[bootstrap.log.length - 1];
                 if (wiringLog) {
-                    this.setProgress(entry, 'スキル配線を確認しています…', wiringLog);
+                    this.setProgress(entry, 'Checking skill wiring…', wiringLog);
                 }
             }
             await this.ensureCliProvisioned(entry);
             const launch = await this.partnerServer.prepareLaunch(entry.agent, bootstrap.executablePath);
-            this.setProgress(entry, 'パートナー PTY を起動しています…', `${bootstrap.runtimeMode}: ${bootstrap.runtimePath}`);
+            this.setProgress(entry, 'Starting the partner PTY…', `${bootstrap.runtimeMode}: ${bootstrap.runtimePath}`);
             const terminal = await this.terminalService.newTerminal({
                 title: entry.name,
                 iconClass: PARTNER_CLI_ICON_CLASSES[entry.agent],
@@ -479,7 +479,7 @@ export class AkariPartnerWidget extends ReactWidget {
             await this.shell.addWidget(terminal, { area: 'right', rank: 50 });
             await this.attachTerminal(terminal, entry);
         } catch (error) {
-            this.setFailure(entry, `${entry.name} のセットアップに失敗しました`, this.errorMessage(error));
+            this.setFailure(entry, `Setup failed for ${entry.name}`, this.errorMessage(error));
             console.error('[akari-partner] onboarding failed:', error);
         }
     }
@@ -491,32 +491,32 @@ export class AkariPartnerWidget extends ReactWidget {
      * 「未配備（接続は続行）」を出すだけで PTY 起動フロー自体は必ず続行する。
      */
     protected async ensureCliProvisioned(entry: PartnerCliCatalogEntry): Promise<void> {
-        this.setProgress(entry, 'AKARI CLI を準備しています…（約 46MB・初回のみ）', '同梱ランタイムで確認中');
+        this.setProgress(entry, 'Preparing the AKARI CLI… (about 46MB, first time only)', 'Checking on the bundled runtime');
         try {
             const cli = await this.partnerServer.ensureCli();
             const lastLog = cli.log[cli.log.length - 1] ?? '';
             if (cli.appVersionRelation === 'older') {
-                this.setWarning(entry, `AKARI Video の更新が必要です: CLI v${cli.version} / 本体 v${cli.appVersion} → 本体が古い。ターミナルで \`akari update\` を実行してください。`);
+                this.setWarning(entry, `AKARI Video needs an update: CLI v${cli.version} / app v${cli.appVersion}. The app is older. Run \`akari update\` in the terminal.`);
             } else if (cli.appVersionRelation === 'newer') {
-                this.setWarning(entry, `AKARI Video の版が一致しません: CLI v${cli.version} / 本体 v${cli.appVersion}。`);
+                this.setWarning(entry, `AKARI Video versions do not match: CLI v${cli.version} / app v${cli.appVersion}.`);
             }
             if (cli.status === 'ready') {
                 const versionStatus = cli.appVersion
-                    ? `CLI v${cli.version} / 本体 v${cli.appVersion}`
-                    : `AKARI CLI: ${cli.version ? `v${cli.version}` : 'dev'} 利用可能`;
+                    ? `CLI v${cli.version} / app v${cli.appVersion}`
+                    : `AKARI CLI: ${cli.version ? `v${cli.version}` : 'dev'} available`;
                 this.setProgress(entry, versionStatus, cli.shimDir ?? lastLog);
             } else {
                 const versions = cli.appVersion
-                    ? `CLI v${cli.version} / 本体 v${cli.appVersion}。`
+                    ? `CLI v${cli.version} / app v${cli.appVersion}. `
                     : '';
-                this.setWarning(entry, `AKARI CLI の配備に失敗しました: ${versions}${lastLog || '原因を取得できませんでした'}`);
-                this.setProgress(entry, 'AKARI CLI は未配備（接続は続行）', lastLog);
+                this.setWarning(entry, `AKARI CLI provisioning failed: ${versions}${lastLog || 'Could not read the cause'}`);
+                this.setProgress(entry, 'AKARI CLI is not provisioned (connection continues)', lastLog);
             }
         } catch (error) {
             // ensureCli() 自体は fail-soft（'failed'/'skipped' を返すだけ）だが、RPC 経路自体の
             // 想定外エラー（トランスポート断等）も同じ規律で握りつぶす — 接続フローは止めない。
-            this.setProgress(entry, 'AKARI CLI は未配備（接続は続行）', this.errorMessage(error));
-            this.setWarning(entry, `AKARI CLI の配備確認に失敗しました: ${this.errorMessage(error)}`);
+            this.setProgress(entry, 'AKARI CLI is not provisioned (connection continues)', this.errorMessage(error));
+            this.setWarning(entry, `Could not confirm AKARI CLI provisioning: ${this.errorMessage(error)}`);
             console.warn('[akari-partner] ensureCli failed:', error);
         }
     }
@@ -524,46 +524,46 @@ export class AkariPartnerWidget extends ReactWidget {
     protected async beginExtension(entry: PartnerExtensionCatalogEntry): Promise<void> {
         this.shell.activateWidget(this.id);
         this.selected = entry;
-        this.setProgress(entry, '拡張情報を確認しています…', entry.extensionId);
+        this.setProgress(entry, 'Checking the extension…', entry.extensionId);
 
         try {
             const extension = await this.extensionsModel.resolve(entry.extensionId);
             if (!extension.installed) {
-                this.setProgress(entry, '拡張をダウンロード・インストールしています…', entry.extensionId);
+                this.setProgress(entry, 'Downloading and installing the extension…', entry.extensionId);
                 await extension.install();
             }
 
             const platformKey = await this.partnerServer.getPlatformKey();
             const verification = entry.binaryVerification[platformKey];
             if (verification?.required) {
-                this.setProgress(entry, 'プラットフォーム用バイナリを検証しています…', platformKey);
+                this.setProgress(entry, 'Verifying the platform binary…', platformKey);
                 await this.verifyPlatformBinary(entry, verification);
             }
             await this.openExtension(entry);
         } catch (error) {
-            this.setFailure(entry, `${entry.name} のセットアップに失敗しました`, this.errorMessage(error));
+            this.setFailure(entry, `Setup failed for ${entry.name}`, this.errorMessage(error));
             console.error('[akari-partner] extension onboarding failed:', error);
         }
     }
 
     protected async openExtension(entry: PartnerExtensionCatalogEntry): Promise<void> {
         this.selected = entry;
-        this.setProgress(entry, `${entry.name} を開いています…`, entry.extensionId);
+        this.setProgress(entry, `Opening ${entry.name}…`, entry.extensionId);
         try {
             for (let attempt = 0; attempt < 20; attempt++) {
                 for (const containerId of entry.viewContainerIds) {
                     const widget = await this.pluginViewRegistry.openViewContainer(containerId);
                     if (widget) {
-                        this.setComplete(entry, `${entry.name} を開きました`, containerId);
+                        this.setComplete(entry, `Opened ${entry.name}`, containerId);
                         this.shell.activateWidget(widget.id);
                         return;
                     }
                 }
                 await new Promise(resolve => setTimeout(resolve, 250));
             }
-            throw new Error(`利用可能なビューコンテナが見つかりません: ${entry.viewContainerIds.join(', ')}`);
+            throw new Error(`No usable view container: ${entry.viewContainerIds.join(', ')}`);
         } catch (error) {
-            this.setFailure(entry, `${entry.name} を開けませんでした`, this.errorMessage(error));
+            this.setFailure(entry, `Could not open ${entry.name}`, this.errorMessage(error));
             console.error('[akari-partner] extension view open failed:', error);
         }
     }
@@ -578,7 +578,7 @@ export class AkariPartnerWidget extends ReactWidget {
             }
         }
         if (!packagePath) {
-            this.setWarning(entry, '拡張バイナリの配置先を取得できませんでした。拡張ビューの起動を続行します。');
+            this.setWarning(entry, 'Could not locate the extension binary. Continuing to open the extension view.');
             this.update();
             return;
         }
@@ -588,7 +588,7 @@ export class AkariPartnerWidget extends ReactWidget {
             platformTokens: verification.platformTokens
         });
         if (!result.found) {
-            this.setWarning(entry, `拡張のプラットフォーム用バイナリ検証: ${result.reason || '見つかりませんでした'}。拡張ビューの起動を続行します。`);
+            this.setWarning(entry, `Platform binary check: ${result.reason || 'not found'}. Continuing to open the extension view.`);
         }
     }
 
@@ -813,10 +813,10 @@ export class AkariPartnerWidget extends ReactWidget {
         this.toDispose.push(this.channel);
         this.setComplete(
             entry,
-            restored ? `${entry.name} を復元しました` : `${entry.name} を開始しました`,
+            restored ? `Restored ${entry.name}` : `Started ${entry.name}`,
             restored
-                ? '既存の PTY セッションへ再接続しました。'
-                : 'PTY の案内に沿ってログインしてください。ログイン後、そのまま作業を開始できます。'
+                ? 'Reconnected to the existing PTY session.'
+                : 'Sign in by following the PTY instructions. After you sign in, you can start working.'
         );
     }
     /**
@@ -1015,9 +1015,9 @@ export class AkariPartnerWidget extends ReactWidget {
 
     protected entryActionLabel(entry: PartnerCatalogEntry): string {
         if (this.entryIsOpen(entry)) {
-            return '開く';
+            return 'Open';
         }
-        return entry.form === 'extension' ? 'インストールして始める' : '始める';
+        return entry.form === 'extension' ? 'Install and start' : 'Start';
     }
 
     /**
@@ -1030,11 +1030,11 @@ export class AkariPartnerWidget extends ReactWidget {
         return (
             <div style={styles.container}>
                 <div style={styles.heroIcon}>✦</div>
-                <h2 style={styles.heading}>パートナー接続済み</h2>
+                <h2 style={styles.heading}>Partner connected</h2>
                 <div style={styles.statusCard} role='status' aria-live='polite' data-akari-flow-state={this.flowState}>
                     <div style={styles.statusRow}>
                         <span className='codicon codicon-pass-filled' style={{ color: 'var(--theia-successBackground)' }} />
-                        <strong>{this.selected?.name ?? ''} 接続済み</strong>
+                        <strong>{this.selected?.name ?? ''} connected</strong>
                     </div>
                     <div style={styles.detail}>{this.executablePath}</div>
                 </div>
@@ -1042,7 +1042,7 @@ export class AkariPartnerWidget extends ReactWidget {
                     className='theia-button main'
                     style={styles.primaryButton}
                     onClick={() => this.terminal && this.shell.activateWidget(this.terminal.id)}
-                >ターミナルを表示</button>
+                >Show terminal</button>
             </div>
         );
     }
@@ -1058,9 +1058,9 @@ export class AkariPartnerWidget extends ReactWidget {
             <div style={chatStyles.container}>
                 <div style={chatStyles.header}>
                     <span style={{ ...chatStyles.dot, background: 'var(--theia-successBackground)' }} />
-                    <strong>パートナー</strong>
+                    <strong>Partner</strong>
                     <span style={chatStyles.headerMeta}>
-                        {this.selected?.name ?? ''} 接続済み{this.devMode ? ' · 開発者モード（生ターミナルを表示中）' : ''}
+                        {this.selected?.name ?? ''} connected{this.devMode ? ' · Developer mode (raw terminal visible)' : ''}
                     </span>
                 </div>
                 <div style={chatStyles.log} ref={el => { if (el) { el.scrollTop = el.scrollHeight; } }}>
@@ -1074,8 +1074,8 @@ export class AkariPartnerWidget extends ReactWidget {
                     <input
                         type='text'
                         value={this.composerValue}
-                        placeholder='パートナーに話しかける…'
-                        aria-label='パートナーに話しかける'
+                        placeholder='Talk to the partner…'
+                        aria-label='Talk to the partner'
                         style={chatStyles.input}
                         onChange={event => { this.composerValue = event.target.value; this.update(); }}
                         onKeyDown={event => {
@@ -1089,9 +1089,9 @@ export class AkariPartnerWidget extends ReactWidget {
                     <button
                         className='theia-button main'
                         style={chatStyles.send}
-                        aria-label='送信'
+                        aria-label='Send'
                         onClick={() => this.submitComposer()}
-                    >送信</button>
+                    >Send</button>
                 </div>
             </div>
         );
@@ -1102,8 +1102,8 @@ export class AkariPartnerWidget extends ReactWidget {
         return (
             <div style={styles.container}>
                 <div style={styles.heroIcon}><span className='codicon codicon-add' /></div>
-                <h2 style={styles.heading}>パートナーを追加</h2>
-                <p style={styles.lead}>CLI または公式拡張を選んで、右パネルに追加します。</p>
+                <h2 style={styles.heading}>Add partner</h2>
+                <p style={styles.lead}>Choose a CLI or an official extension and add it to the right panel.</p>
 
                 <div style={styles.buttonStack}>
                     {PARTNER_CATALOG.reduce<Array<{
@@ -1148,11 +1148,11 @@ export class AkariPartnerWidget extends ReactWidget {
                                         <span style={styles.buttonLabel}>
                                             {entry.recommended ? <span style={styles.recommendedIconBacking}>{icon}</span> : icon}
                                             {entry.name}
-                                            {entry.recommended && <span style={styles.recommendedBadge}>推奨</span>}
-                                            {entry.form === 'cli' && entry.agent === chosenAgent && <span style={{ fontSize: 10, color: '#fb923c', border: '1px solid #fb923c88', borderRadius: 99, padding: '1px 5px' }}>前回選んだ</span>}
+                                            {entry.recommended && <span style={styles.recommendedBadge}>Recommended</span>}
+                                            {entry.form === 'cli' && entry.agent === chosenAgent && <span style={{ fontSize: 10, color: '#fb923c', border: '1px solid #fb923c88', borderRadius: 99, padding: '1px 5px' }}>Last chosen</span>}
                                         </span>
                                         <span style={styles.buttonAction}>
-                                            {flow.state === 'working' ? '処理中…' : this.entryActionLabel(entry)}
+                                            {flow.state === 'working' ? 'Working…' : this.entryActionLabel(entry)}
                                         </span>
                                     </button>
                                 </div>;
@@ -1163,10 +1163,10 @@ export class AkariPartnerWidget extends ReactWidget {
 
                 {this.extensionViewLost() && <div style={styles.resumeHint} data-akari-partner-resume-hint='true'>
                     <p style={{ margin: 0 }}>
-                        セッションが切れたときは、パートナー欄で /akari と打つと今の状況から続けられます。ターミナルからは akari --continue です。
+                        If the session drops, type /akari in the partner pane to continue from where you are. From the terminal, use akari --continue.
                     </p>
                     <p style={{ margin: '6px 0 0', opacity: 0.8 }}>
-                        詳しい手順: docs/how-to/resume-session.ja.md
+                        Full steps: docs/how-to/resume-session.ja.md
                     </p>
                 </div>}
 
@@ -1189,10 +1189,10 @@ export class AkariPartnerWidget extends ReactWidget {
                         className='theia-button secondary'
                         style={styles.retryButton}
                         onClick={() => this.selected && this.begin(this.selected)}
-                    >再試行</button>}
+                    >Retry</button>}
                 </div>}
 
-                <p style={styles.note}>インストール中も進捗を表示します。失敗した場合は原因をこの画面に表示します。</p>
+                <p style={styles.note}>Progress stays on screen during install. If it fails, the cause appears here.</p>
             </div>
         );
     }

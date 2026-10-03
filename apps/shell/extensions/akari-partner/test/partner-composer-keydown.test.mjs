@@ -29,7 +29,7 @@ function dispatch({ key = 'Enter', isComposing = false, keyCode = 13 } = {}) {
     return { sends, prevented };
 }
 
-test('IME 変換確定 Enter は送信せず、確定後の Enter は送信する', () => {
+test('Enter that confirms an IME composition does not send, and Enter after that does', () => {
     assert.deepEqual(dispatch({ isComposing: true }), { sends: 0, prevented: 0 });
     assert.deepEqual(dispatch({ keyCode: 229 }), { sends: 0, prevented: 0 });
     assert.deepEqual(dispatch(), { sends: 1, prevented: 1 });

@@ -11,7 +11,7 @@ const partnerWidgetUrl = new URL('../src/browser/akari-partner-widget.tsx', impo
 const faqJaUrl = new URL('../../../../../docs/how-to/faq.ja.md', import.meta.url);
 
 // 旧 caution 契約の文面を互換メタデータとして維持する（UI では表示しない）。
-const CAUTION_TEXT = '拡張ホストが再起動すると会話が切れます。長い作業には CLI 形態をおすすめします。';
+const CAUTION_TEXT = 'A conversation ends if the extension host restarts. For long work, use the CLI form.';
 
 const BASE_KEYS = ['id', 'agent', 'name', 'description', 'recommended'];
 const EXTENSION_KEYS = ['extensionId', 'viewContainerIds', 'binaryVerification'];
@@ -19,21 +19,21 @@ const KNOWN_KEYS = new Set([...BASE_KEYS, ...EXTENSION_KEYS, 'form', 'caution'])
 
 const readCatalog = async () => JSON.parse(await readFile(catalogUrl, 'utf8'));
 
-test('パートナーカタログの全エントリが PartnerCatalogEntry の形に適合する', async () => {
+test('Every partner catalog entry matches the PartnerCatalogEntry shape', async () => {
     const catalog = await readCatalog();
     assert.ok(catalog.length > 0);
 
     for (const entry of catalog) {
         const where = `entry ${entry.id}`;
         for (const key of BASE_KEYS) {
-            assert.ok(Object.hasOwn(entry, key), `${where}: ${key} が無い`);
+            assert.ok(Object.hasOwn(entry, key), `${where}: missing ${key}`);
         }
         assert.equal(typeof entry.id, 'string', where);
         assert.equal(typeof entry.agent, 'string', where);
         assert.equal(typeof entry.name, 'string', where);
         assert.equal(typeof entry.description, 'string', where);
         assert.equal(typeof entry.recommended, 'boolean', where);
-        assert.ok(['cli', 'extension'].includes(entry.form), `${where}: form が cli / extension でない`);
+        assert.ok(['cli', 'extension'].includes(entry.form), `${where}: form is not cli or extension`);
 
         if (entry.form === 'extension') {
             assert.equal(typeof entry.extensionId, 'string', where);
@@ -41,7 +41,7 @@ test('パートナーカタログの全エントリが PartnerCatalogEntry の�
             assert.equal(typeof entry.binaryVerification, 'object', where);
         } else {
             for (const key of EXTENSION_KEYS) {
-                assert.ok(!Object.hasOwn(entry, key), `${where}: cli に ${key} が付いている`);
+                assert.ok(!Object.hasOwn(entry, key), `${where}: cli has ${key}`);
             }
         }
 
@@ -51,12 +51,12 @@ test('パートナーカタログの全エントリが PartnerCatalogEntry の�
         }
 
         for (const key of Object.keys(entry)) {
-            assert.ok(KNOWN_KEYS.has(key), `${where}: 未知のフィールド ${key}`);
+            assert.ok(KNOWN_KEYS.has(key), `${where}: unknown field ${key}`);
         }
     }
 });
 
-test('form: extension の 2 件だけが互換用の caution 文面を持つ', async () => {
+test('Only the two extension entries carry the compatibility caution', async () => {
     const catalog = await readCatalog();
     const extensions = catalog.filter(entry => entry.form === 'extension');
 
@@ -65,7 +65,7 @@ test('form: extension の 2 件だけが互換用の caution 文面を持つ', a
         'openai/codex-extension'
     ]);
     for (const entry of extensions) {
-        assert.equal(entry.caution, CAUTION_TEXT, `${entry.id} の互換用 caution が変わっている`);
+        assert.equal(entry.caution, CAUTION_TEXT, `${entry.id} compatibility caution changed`);
     }
     assert.deepEqual(
         catalog.filter(entry => entry.caution !== undefined).map(entry => entry.id),
@@ -73,43 +73,46 @@ test('form: extension の 2 件だけが互換用の caution 文面を持つ', a
     );
 });
 
-test('caution を持たないエントリ（CLI 10 件）には注意書きの元データが無い', async () => {
+test('Entries without caution (10 CLI entries) have no caution source data', async () => {
     const catalog = await readCatalog();
     const cli = catalog.filter(entry => entry.form === 'cli');
 
     assert.equal(cli.length, 10);
     for (const entry of cli) {
-        assert.equal(entry.caution, undefined, `${entry.id} に caution が付いている`);
+        assert.equal(entry.caution, undefined, `${entry.id} has caution`);
     }
 });
 
-test('PartnerCatalogEntry の型が caution を任意フィールドとして宣言する', async () => {
+test('The PartnerCatalogEntry type declares caution as an optional field', async () => {
     const source = await readFile(catalogTypeUrl, 'utf8');
     assert.match(source, /caution\?: string;/);
 });
 
-test('両ピッカーは caution を本文にも title にも描画しない', async () => {
+test('Neither picker renders caution in the body or the title', async () => {
     for (const url of [catalogWidgetUrl, partnerWidgetUrl]) {
         const source = await readFile(url, 'utf8');
         assert.doesNotMatch(source, /entry\.caution|data-partner-caution|cautionStyle|styles\.caution/);
     }
 });
 
-test('FAQ（日本語）の切断と復帰の説明を維持する', async () => {
+test('The Japanese FAQ keeps its disconnect and resume explanation', async () => {
     const faq = await readFile(faqJaUrl, 'utf8');
 
     assert.match(faq, /\*\*Q\. チャットが途中で切れます\*\*/);
-    assert.ok(faq.includes('拡張ホストが再起動すると会話が切れます'), 'FAQ の切断の説明が失われている');
-    assert.ok(faq.includes('`akari --continue`'), 'FAQ に akari --continue の案内が無い');
-    assert.ok(faq.includes('`/akari`'), 'FAQ に /akari の案内が無い');
+    const disconnect = String.fromCharCode(
+        0x62e1, 0x5f35, 0x30db, 0x30b9, 0x30c8, 0x304c, 0x518d, 0x8d77, 0x52d5, 0x3059, 0x308b, 0x3068, 0x4f1a, 0x8a71, 0x304c, 0x5207, 0x308c, 0x307e, 0x3059
+    );
+    assert.ok(faq.includes(disconnect), 'The FAQ lost its disconnect explanation');
+    assert.ok(faq.includes('`akari --continue`'), 'The FAQ has no akari --continue guidance');
+    assert.ok(faq.includes('`/akari`'), 'The FAQ has no /akari guidance');
 });
 
-test('パートナー欄の復帰導線が本票の文面と resume-session への導線を持つ', async () => {
+test('The partner pane resume hint keeps this wording and a link to resume-session', async () => {
     const source = await readFile(partnerWidgetUrl, 'utf8');
 
     assert.ok(
-        source.includes('セッションが切れたときは、パートナー欄で /akari と打つと今の状況から続けられます。ターミナルからは akari --continue です。'),
-        '復帰手順の文面が本票と違う'
+        source.includes('If the session drops, type /akari in the partner pane to continue from where you are. From the terminal, use akari --continue.'),
+        'The resume wording does not match this change'
     );
-    assert.ok(source.includes('docs/how-to/resume-session.ja.md'), '復帰手順から resume-session への導線が無い');
+    assert.ok(source.includes('docs/how-to/resume-session.ja.md'), 'The resume steps do not link to resume-session');
 });

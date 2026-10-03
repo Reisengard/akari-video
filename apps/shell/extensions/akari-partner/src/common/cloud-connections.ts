@@ -15,7 +15,7 @@ export const CONNECTIONS_RELATIVE_PATH = '.akari/connections.json';
 export const CLOUD_PROVIDER_ID = 'akari-cloud';
 
 /** doctor.detail の文言（既存の実装から不変で引き継ぐ）。 */
-export const CLOUD_CONNECTED_DETAIL = 'AI パートナーの接続を確認しました（ローカル CLI 接続の成立で判定、v0）。';
+export const CLOUD_CONNECTED_DETAIL = 'Confirmed the AI partner connection (decided when the local CLI connection succeeds, v0).';
 
 export interface CloudDoctorEntry {
     last_checked: string;
@@ -68,11 +68,11 @@ function createCloudProviderEntry(doctor: CloudDoctorEntry): Record<string, unkn
             allowed: []
         },
         notes: {
-            description: 'Akari Cloud のログイン認証で生成機能を利用する接続。工程 42 の生成で使う。',
-            workflows: ['42 AI 生成素材'],
-            billing: 'Akari Cloud の契約と各生成機能の料金に従う。有償操作は事前承認が必要。',
-            quota: '契約プランの利用上限。doctor では照会しない。',
-            scopes: ['生成機能'],
+            description: 'A connection that uses generation through Akari Cloud sign-in. Used for step 42 generation.',
+            workflows: ['42 AI-generated footage'],
+            billing: 'Follows the Akari Cloud contract and the price of each generation feature. Paid actions need approval first.',
+            quota: 'The plan limit. The doctor does not look it up.',
+            scopes: ['Generation'],
             setup_url: null
         },
         doctor

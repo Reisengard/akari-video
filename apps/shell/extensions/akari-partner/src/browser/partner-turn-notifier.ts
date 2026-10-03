@@ -117,8 +117,8 @@ export class PartnerTurnNotifier implements FrontendApplicationContribution {
         }
         const agent = this.agentLabel(terminal);
         const title = kind === 'bell'
-            ? `${agent} が確認を待っています`
-            : `${agent} の処理が終わりました`;
+            ? `${agent} is waiting for you`
+            : `${agent} finished`;
         try {
             const notification = new Notification(title, {
                 body: this.projectLabel(),
@@ -130,7 +130,7 @@ export class PartnerTurnNotifier implements FrontendApplicationContribution {
                 notification.close();
             };
         } catch (error) {
-            console.warn('[akari-partner] OS 通知の表示に失敗しました:', error);
+            console.warn('[akari-partner] Failed to show the OS notification:', error);
         }
     }
 
@@ -139,7 +139,7 @@ export class PartnerTurnNotifier implements FrontendApplicationContribution {
             options?: { attributes?: Record<string, string | null> };
         }).options?.attributes ?? undefined;
         const agent = attributes?.['akari.partner'] ?? undefined;
-        return (agent && AGENT_LABELS[agent]) || agent || terminal.title.label || 'パートナー';
+        return (agent && AGENT_LABELS[agent]) || agent || terminal.title.label || 'Partner';
     }
 
     protected projectLabel(): string {

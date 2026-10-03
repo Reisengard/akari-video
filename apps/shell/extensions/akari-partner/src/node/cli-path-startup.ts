@@ -52,7 +52,7 @@ export class CliPathStartupContribution implements BackendApplicationContributio
             }
         }).catch(error => {
             const message = error instanceof Error ? error.message : String(error);
-            void this.logger.warn(`[akari CLI] 起動時の自動配備に失敗しました: ${message}`);
+            void this.logger.warn(`[akari CLI] Automatic provisioning at startup failed: ${message}`);
         });
     }
 }
