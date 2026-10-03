@@ -56,7 +56,7 @@ for (const catalog of ['docs/skills.md', 'docs/skills.ja.md']) {
 
 // 検査 3: 契約索引（docs/README.md・docs/README.ja.md）が docs/contract-*.md 全件へのリンクを持つか
 const contractFiles = readdirSync(join(root, 'docs'), { withFileTypes: true })
-  .filter((e) => e.isFile() && /^contract-.*\.md$/.test(e.name))
+  .filter((e) => e.isFile() && /^contract-.*\.md$/.test(e.name) && !e.name.endsWith('.ja.md'))
   .map((e) => e.name)
   .sort();
 

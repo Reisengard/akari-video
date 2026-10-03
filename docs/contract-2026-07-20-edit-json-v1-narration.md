@@ -1,26 +1,21 @@
-# edit.json v1 ナレーション音声データ契約
+**English** | [日本語](./contract-2026-07-20-edit-json-v1-narration.ja.md)
 
-- 日付: 2026-07-20
-- 状態: 実装ラウンドの SSOT（`audio.narration` フィールドのみ確定）
-- 前提: `contract-2026-07-14-edit-json-v1-audio.md`（`audio.bgm` / `audio.sfx` の確定契約。
-  本書はこれと同じ流儀で `audio.narration` を追加する）、
-  `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ進化・明示マイグレの三原則）
-- スコープ: edit.json の `audio.narration` フィールド（ナレーション音声）のみ。
-  `audio.bgm` / `audio.sfx` の既存契約は変更しない。ducking の実装（サイドチェイン入力の
-  切り替え）は**別タスク**。本書は正文化のみ
+# edit.json v1 narration audio contract
 
-## 0. version 運用（後方互換）
+- Date: 2026-07-20
+- Status: source of truth for the implementation round. Only the `audio.narration` field is fixed.
+- Depends on: `contract-2026-07-14-edit-json-v1-audio.md` (the fixed contract for `audio.bgm` and `audio.sfx`. This contract adds `audio.narration` in the same style) and `contract-2026-07-17-data-contract-versioning.md` (version required, additive evolution, and an explicit migration).
+- Scope: only the `audio.narration` field of edit.json. The existing contracts for `audio.bgm` and `audio.sfx` do not change. Switching the ducking sidechain input is a separate task. This document only writes the rule down.
 
-`contract-2026-07-14-edit-json-v1-audio.md` §0 と同じ運用を踏襲する。**`version` は bump しない。**
+## 0. How version is used
 
-- `audio.narration` は `audio` オブジェクト配下の**任意フィールド**（`Option`）。存在しなければ
-  従来（narration なし）と完全に同じ挙動
-- 既存の `audio`（`bgm` / `sfx`）契約・実装は無改変。`audio.narration` の追加により
-  既存の `edit.json`（`narration` フィールド無し）は一切影響を受けない
-- `contract-2026-07-17-data-contract-versioning.md` 原則 1（版必須・追加のみ進化）どおり、
-  任意フィールドの追加のみであり `version` の bump を要しない
+Backward compatible. Follow section 0 of `contract-2026-07-14-edit-json-v1-audio.md`. **Do not bump `version`.**
 
-## 1. 確定スキーマ
+- `audio.narration` is an optional field under the `audio` object. When it is absent, behavior matches the previous behavior exactly. There is no narration.
+- The existing `audio` contract and implementation (`bgm` and `sfx`) are not modified. Adding `audio.narration` does not affect an existing `edit.json` that has no `narration` field.
+- This is an optional field only, which is principle 1 of `contract-2026-07-17-data-contract-versioning.md` (a version is required, and evolution is additive). No `version` bump is required.
+
+## 1. Fixed schema
 
 ```jsonc
 {
@@ -28,28 +23,28 @@
   "output": { "width": 1280, "height": 720, "fps": 30 },
   "source": { "path": "sample.mp4", "proxy": null },
   "cuts": [ { "in": 5.0, "out": 10.0 } ],
-  "overlays": [ /* 既存のまま */ ],
+  "overlays": [ /* unchanged */ ],
 
   "audio": {
     "bgm": { "path": "assets/bgm.m4a", "gain_db": -18, "ducking": true },
-    "sfx": [ /* 既存のまま */ ],
+    "sfx": [ /* unchanged */ ],
 
-    "narration": [                       // 省略可。配列（シーン単位イベント。sfx と同じ思想）
+    "narration": [                       // optional. An array of per-scene events. The same idea as sfx
       {
-        "id": "n-0001",                  // 必須。^n-\d{4}$。edit.json 内で一意
-        "path": "out/narration/n-0001.mp3",  // 必須。edit.json からの相対パス
-        "t": 12.5,                       // 必須。タイムライン秒。0 以上
-        "in": 5.8,                       // 任意。素材秒。省略時 0
-        "out": 9.7,                      // 任意。素材秒。省略時 素材末尾
-        "gain_db": 0,                    // 任意。既定 0。[-60, 12]（bgm/sfx と同一。範囲外はエラー）
-        "script": "こんにちは、AKARI Videoです。",   // 任意。表示原稿（人間が読む正本）
-        "reading": "こんにちわ、あかりびでおです。", // 任意。読み原稿（かな化後・生成に使った実テキスト）
-        "provenance": {                  // 必須
-          "provider": "voicevox",        // 必須。voicevox | fal | elevenlabs | human を例示（enum 強制はしない）
-          "engine": "voicevox-0.25.2",   // 任意
-          "voice": "speaker:3",          // 任意。例: speaker:3 / profile:owner-ja
-          "credit": "VOICEVOX:ずんだもん", // provider が voicevox のとき必須（表記義務）。他は任意
-          "generated_at": "2026-07-20T09:00:00+09:00"  // 任意（human のときは録音日など）
+        "id": "n-0001",                  // required. ^n-\d{4}$. Unique inside edit.json
+        "path": "out/narration/n-0001.mp3",  // required. Relative to edit.json
+        "t": 12.5,                       // required. Timeline seconds. At least 0
+        "in": 5.8,                       // optional. Footage seconds. 0 when omitted
+        "out": 9.7,                      // optional. Footage seconds. The end of the footage when omitted
+        "gain_db": 0,                    // optional. Default 0. [-60, 12], the same as bgm and sfx. Out of range is an error
+        "script": "Hello, this is AKARI Video.",   // optional. Display script. The text a person reads
+        "reading": "hello this is akari video",    // optional. Pronunciation script. The text actually sent to generation
+        "provenance": {                  // required
+          "provider": "voicevox",        // required. Examples: voicevox, fal, elevenlabs, human. Not a forced enum
+          "engine": "voicevox-0.25.2",   // optional
+          "voice": "speaker:3",          // optional. Examples: speaker:3, profile:owner-ja
+          "credit": "VOICEVOX:Zundamon", // required when provider is voicevox (attribution). Optional otherwise
+          "generated_at": "2026-07-20T09:00:00+09:00"  // optional. For human, the recording date and similar
         }
       }
     ]
@@ -57,143 +52,92 @@
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 単位・座標系 |
+| Field | Type | Required | Default | Unit and coordinates |
 |---|---|---|---|---|
-| `audio.narration` | array \| 省略 | 否 | 省略 = ナレーションなし | — |
-| `audio.narration[].id` | string | 必須（要素内） | — | `^n-\d{4}$`。edit.json 内で一意 |
-| `audio.narration[].path` | string | 必須（要素内） | — | edit.json からの相対（`audio.sfx[].path` と同一規約） |
-| `audio.narration[].t` | number | 必須（要素内） | — | **タイムライン秒**（`audio.sfx[].t` / `overlays[].start` と同じ座標系）。0 以上 |
-| `audio.narration[].in` | number | 否 | `0` | 素材秒。再生窓 `[in, out)` の始点。0 以上 |
-| `audio.narration[].out` | number | 否 | 素材末尾 | 素材秒。再生窓 `[in, out)` の終点。0 より大きく `out > in` |
-| `audio.narration[].gain_db` | number | 否 | `0.0` | dB。クランプ範囲 `[-60, 12]`（`audio.bgm` / `audio.sfx` と同一） |
-| `audio.narration[].script` | string | 否 | — | 表示原稿（人間が読む正本。字幕連携等の元テキスト） |
-| `audio.narration[].reading` | string | 否 | — | 読み原稿（かな化後・TTS 生成に実際に使ったテキスト） |
-| `audio.narration[].provenance` | object | **必須** | — | 生成元メタデータ |
-| `audio.narration[].provenance.provider` | string | 必須 | — | `voicevox` / `fal` / `elevenlabs` / `human` を例示（enum 強制はしない） |
-| `audio.narration[].provenance.engine` | string | 否 | — | 例: `voicevox-0.25.2` |
-| `audio.narration[].provenance.voice` | string | 否 | — | 例: `speaker:3` / `profile:owner-ja` |
-| `audio.narration[].provenance.credit` | string | `provider === "voicevox"` のとき必須 | — | 表記義務（例: `VOICEVOX:ずんだもん`） |
-| `audio.narration[].provenance.generated_at` | string | 否 | — | ISO8601（`human` のときは録音日など） |
+| `audio.narration` | array, or omitted | No | Omitted means no narration | none |
+| `audio.narration[].id` | string | Required inside an element | none | `^n-\d{4}$`. Unique inside edit.json |
+| `audio.narration[].path` | string | Required inside an element | none | Relative to edit.json. The same rule as `audio.sfx[].path` |
+| `audio.narration[].t` | number | Required inside an element | none | Timeline seconds. The same coordinate system as `audio.sfx[].t` and `overlays[].start`. At least 0 |
+| `audio.narration[].in` | number | No | `0` | Footage seconds. Start of the playback window `[in, out)`. At least 0 |
+| `audio.narration[].out` | number | No | End of the footage | Footage seconds. End of the playback window `[in, out)`. Greater than 0, and `out > in` |
+| `audio.narration[].gain_db` | number | No | `0.0` | dB. Clamped to `[-60, 12]`, the same as `audio.bgm` and `audio.sfx` |
+| `audio.narration[].script` | string | No | none | Display script. The text a person reads. The source text for caption linking and similar uses |
+| `audio.narration[].reading` | string | No | none | Pronunciation script. The text actually sent to TTS after reading conversion |
+| `audio.narration[].provenance` | object | Required | none | Metadata about where it was generated |
+| `audio.narration[].provenance.provider` | string | Required | none | Examples: `voicevox`, `fal`, `elevenlabs`, `human`. Not a forced enum |
+| `audio.narration[].provenance.engine` | string | No | none | Example: `voicevox-0.25.2` |
+| `audio.narration[].provenance.voice` | string | No | none | Examples: `speaker:3`, `profile:owner-ja` |
+| `audio.narration[].provenance.credit` | string | Required when `provider === "voicevox"` | none | Required attribution. Example: `VOICEVOX:Zundamon` |
+| `audio.narration[].provenance.generated_at` | string | No | none | ISO 8601. For `human`, the recording date and similar |
 
-`audio.sfx` と同じく`narration` は**配列**（シーン単位イベントが複数あってよい）。
-`audio.bgm` が単数オブジェクトである設計とは対照的で、`contract-2026-07-14-edit-json-v1-audio.md`
-§6 の「BGM は全体 / SFX はシーン単位」という設計意図をナレーションにも継承する
-（ナレーションも `t` という 1 点情報を持つシーン単位の演出であり、BGM のような
-「プロジェクト全体で 1 本」という制約は当てはまらない）。
+Like `audio.sfx`, `narration` is an array. More than one per-scene event is allowed. That contrasts with `audio.bgm`, which is one object. Narration inherits the design intent in section 6 of `contract-2026-07-14-edit-json-v1-audio.md`, "BGM is the whole piece, sound effects are per scene". Narration is also a per-scene treatment that carries one point, `t`. The "one track for the whole project" constraint that BGM has does not apply.
 
-### 1.1 ナレーション素材のトリム
+### 1.1 Trim of narration footage
 
-`in` / `out` は `audio.sfx[]` と同じ素材秒の語彙を使う。再生区間は `[in, out)`、タイムライン上の
-開始は従来どおり `t` とする。`in` 省略時は 0、`out` 省略時は素材末尾まで再生する。
-`out <= in` は edit-lint が error とし、実尺との整合は render-cut が解決する。`in` が素材実尺以上なら
-0 にクランプして warning、`out` が素材実尺を超えれば素材末尾へクランプして warning、クランプ後に
-`out <= in` となる場合はその narration 要素だけを skip して warning とする。
+`in` and `out` use the same footage-second vocabulary as `audio.sfx[]`. Playback is `[in, out)`. The timeline start stays `t`. When `in` is omitted, it is 0. When `out` is omitted, playback runs to the end of the footage. edit-lint reports `out <= in` as an error. render-cut resolves agreement with the real duration. If `in` is at or past the real footage duration, clamp it to 0 and warn. If `out` is past the real footage duration, clamp it to the end of the footage and warn. If `out <= in` after the clamp, skip that narration element only and warn.
 
-## 2. パス解決規約
+## 2. Path resolution
 
-`audio.narration[].path` は `audio.bgm.path` / `audio.sfx[].path` と**同一規約**:
-edit.json の親ディレクトリを基準にした相対パス（絶対パスも許容）。音声専用の解決ロジックを
-新設しない（`contract-2026-07-14-edit-json-v1-audio.md` §2 を踏襲）。
+`audio.narration[].path` uses the same rule as `audio.bgm.path` and `audio.sfx[].path`. A path is relative to the directory that contains edit.json. An absolute path is also allowed. Do not add a resolver that exists only for audio. Follow section 2 of `contract-2026-07-14-edit-json-v1-audio.md`.
 
-## 3. ducking の主従
+## 3. Which track leads ducking
 
-2026-09-02 契約により sidechain 方式を廃止し、鍵を narration と speech の宣言区間の和集合とする
-決定論エンベロープ方式へ移行した。既定の鍵は両方であり、対象は `ducking:true` の bgm / sfx である。
+The contract of 2026-09-02 retired the sidechain method and moved to a deterministic envelope whose key is the union of the declared narration ranges and the declared speech ranges. The default key is both. The target is bgm and sfx with `ducking: true`.
 
-`contract-2026-07-14-edit-json-v1-audio.md` §4 は `audio.bgm.ducking: true` のサイドチェイン
-入力（トリガー）を「ダイアログ音声（source 由来の音声トラックそのもの）」と定義していた。
-本契約でナレーションが第一級データになったことに伴い、この入力の**主従**を以下のとおり正文化する:
+Section 4 of `contract-2026-07-14-edit-json-v1-audio.md` defined the sidechain input (the trigger) for `audio.bgm.ducking: true` as dialogue audio, the audio track that came from the source itself. Now that narration is first-class data, the lead and the fallback for that input are fixed as follows.
 
-1. **`audio.narration` が 1 件以上存在する場合**: 書き出しのサイドチェイン入力は
-   **narration トラック**（全 narration イベントを合流させた 1 本のトラック）が**主
-   (authoritative)** となる。ナレーションは「聞かせたい本体の声」そのものであり、
-   BGM を下げるべき対象を示す信号として、素材の生ダイアログよりも直接的で意図が明確なため
-2. **`audio.narration` が省略されている場合**: 既存契約
-   （`contract-2026-07-14-edit-json-v1-audio.md` §4）どおり、ダイアログ音声（source 由来）が
-   引き続きトリガーとなる（**従 (fallback)**。既存の `edit.json`（narration 無し）の
-   書き出し挙動を一切変えないため）
+1. When `audio.narration` has one or more elements, the export sidechain input is the narration track, one track that mixes every narration event. That track is authoritative. Narration is the voice the piece wants heard. As the signal that says what should push BGM down, it is more direct, and the intent is clearer, than the raw dialogue in the footage.
+2. When `audio.narration` is omitted, dialogue audio from the source stays the trigger, as in section 4 of `contract-2026-07-14-edit-json-v1-audio.md`. That is the fallback. An existing `edit.json` with no narration does not change its export behavior at all.
 
-いずれの場合も §4 の実装方式（`sidechaincompress`、`main` = BGM / `sidechain` = トリガー、
-初期パラメータ `threshold` ≈ -24dB・`ratio=8`・`attack=5ms`・`release=300ms`）は変更しない。
-変わるのは `sidechain` 入力に流し込むトラックの選択規則のみ。
+In either case the implementation method in section 4 does not change. `sidechaincompress`, `main` is BGM, `sidechain` is the trigger, and the initial parameters are `threshold` about -24 dB, `ratio=8`, `attack=5 ms`, and `release=300 ms`. The only change is the rule that chooses which track is fed to the `sidechain` input.
 
-**実装は別タスク。本契約は正文化のみ**（§0 のスコープ節を参照）。
+The implementation is a separate task. This contract only writes the rule down. See the scope note in section 0.
 
-## 4. 欠落ファイル・不正値時の劣化規約
+## 4. Degradation when a file is missing or a value is invalid
 
-`contract-2026-07-14-edit-json-v1-audio.md` §5「音声は装飾であり、映像本体の書き出し成否を
-左右してはならない」を narration にも適用する。
+Apply section 5 of `contract-2026-07-14-edit-json-v1-audio.md` to narration as well. Audio is decoration. It must not decide whether the picture itself exports.
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| `audio.narration` フィールドなし | 従来どおり（ナレーションなし）。エラーにしない |
-| `audio.narration[].path` を解決したファイルが存在しない | その narration 要素**のみ**無視
-  （warning ログ + 成果報告に明記）。他の narration / BGM / SFX / 映像本体には影響しない |
-| `audio.narration[].path` が壊れている（デコード失敗） | 同上。その要素のみ無視して継続 |
-| `gain_db` が `[-60, 12]` の範囲外（有限値） | `audio.bgm` / `audio.sfx` と同じくクランプ + warning
-  （§5 の「棄却ではなくクランプ」思想を踏襲） |
-| `gain_db` が非有限値（NaN/Infinity） | 該当要素を無視 + warning |
-| `t` が非有限値・負値・timeline 長以上 | その narration 要素を無視（鳴らす対象時間がない） |
+| No `audio.narration` field | As before. No narration. Not an error. |
+| The file resolved from `audio.narration[].path` does not exist | Ignore that narration element only. Log a warning and name it in the result report. Other narration, BGM, sound effects, and the picture are unaffected. |
+| `audio.narration[].path` is broken (decode fails) | Same as above. Ignore that element only, and continue. |
+| `gain_db` is finite but outside `[-60, 12]` | Clamp and warn, the same as `audio.bgm` and `audio.sfx`. Follow the section 5 choice to clamp rather than reject. |
+| `gain_db` is not finite (NaN or Infinity) | Ignore that element and warn. |
+| `t` is not finite, is negative, or is at or past the timeline length | Ignore that narration element. There is no time left to play it. |
 
-いずれの劣化も「その narration 要素だけを欠落させる」に留め、映像・オーバーレイ・他の音声要素の
-書き出しを巻き込んで失敗させない設計方針は BGM/SFX と共通である。
+Every degradation drops only that narration element. Do not fail the export of the picture, the overlays, or the other audio elements. That policy is shared with BGM and sound effects.
 
-## 5. script と reading を両方持つ理由
+## 5. Why both script and reading are stored
 
-`script`（表示原稿）と `reading`（読み原稿）は意図的に別フィールドとして持つ。理由は
-**読み前処理が非可逆**であるため: 表示原稿から読み原稿への変換（漢字のかな化、数字・記号の
-読み下し、ポーズ記号の挿入、TTS エンジン固有の発音制御タグの付与など）は多くの場合
-人手または非決定的なルールベース処理を経ており、`reading` から `script` を機械的に逆算できず、
-`script` だけを保存しても `reading`（実際に TTS へ渡した文字列）を再構成できない。
-再生成（同じ音声を再度合成する・別エンジンに差し替える等）や人間によるレビュー（表示原稿は
-読みやすい正本として、読み原稿は生成の実態を追跡する記録として）の両方に必要なため、
-両方を独立フィールドとして永続化する。
+`script` (the display script) and `reading` (the pronunciation script) are separate fields on purpose. The reading preprocess is not reversible. Converting a display script into a pronunciation script (reading kanji as kana, reading numbers and symbols out, inserting pause marks, adding pronunciation-control tags that belong to one TTS engine) usually passes through a person or through a non-deterministic rule. `script` cannot be computed back from `reading`, and saving only `script` cannot rebuild `reading`, the string actually sent to TTS. Both are needed to generate again (synthesize the same audio, or swap in another engine) and for a person to review (the display script is the readable source of truth, and the pronunciation script is the record of what generation actually used). Persist both as independent fields.
 
-## 6. 区間重複検出の限界
+## 6. The limit of overlap detection
 
-`audio.narration[].t` は単一時刻（開始点）のみを持ち、実際の音声ファイルの再生尺（duration）は
-edit.json 側のデータに含まれない。そのため、**実尺ベースの区間重複検出（ある narration の
-再生中に別の narration が重なって鳴るかどうかの判定）は本契約のスコープ外・将来課題**とする。
+`audio.narration[].t` is only one time, the start. The playback duration of the actual audio file is not in the edit.json data. Detecting overlap from real durations, whether another narration plays on top of one that is already playing, is out of scope and is a later problem.
 
-本契約で検証層（validate-edit / edit-lint）が検出するのは、**「同一 `t` の完全一致」**という
-弱い近似のみである: 2 件以上の narration 要素が寸分違わず同じ `t` を持つ場合に警告する。
-これは「同時刻に 2 本のナレーションを鳴らそうとしている」という明らかな入力ミスを拾うための
-簡易チェックであり、実際の再生尺を考慮した重なり判定（例: `t=10.0` の 3 秒の音声と
-`t=11.0` の音声が重なるかどうか）は行わない。実尺を考慮した重複検出が必要になった時点で、
-narration 音声ファイルの実尺解析（ffprobe 等）を要する別契約として設計する。
+What the validation layer (validate-edit and edit-lint) detects in this contract is only a weak approximation, an exact match on the same `t`. Warn when two or more narration elements have a `t` that matches to the digit. That catches an obvious input mistake, two narration tracks starting at the same instant. It does not judge overlap from the real duration. For example, it does not ask whether a 3 second clip at `t=10.0` overlaps a clip at `t=11.0`. When overlap detection that uses the real duration is needed, design it as another contract that has to measure the narration file (ffprobe or similar).
 
-## 7. プレビューと書き出しの扱い
+## 7. Preview and export
 
-`contract-2026-07-14-edit-json-v1-audio.md` §3 のサンドイッチ構造（プレビューは近似、
-正確さは書き出しが持つ）を narration にも適用する。narration の挿入・gain 適用・ducking の
-トリガー選択（§3）は BGM/SFX と同じ実装パターン（プレビュー側は composition track へ
-`t` の位置で挿入、書き出し側は `adelay` + `volume` フィルタで合成）を踏襲する想定であるが、
-**実装そのものは別タスク**であり、本契約はデータ構造と挙動の正文化のみを行う。
+Apply the sandwich in section 3 of `contract-2026-07-14-edit-json-v1-audio.md` to narration. Preview is the approximation. Export holds the exact result. Inserting narration, applying gain, and choosing the ducking trigger (section 3) are expected to follow the same implementation pattern as BGM and sound effects. Preview inserts into a composition track at `t`. Export mixes with `adelay` and a `volume` filter. The implementation itself is a separate task. This contract only writes down the data shape and the behavior.
 
-## 8. 検証
+## 8. Verification
 
-- `packages/schemas/edit.schema.json`: `audio.narration` の構造（型・`id` パターン・必須項目・
-  `gain_db` 範囲）を JSON Schema として定義する。`audio` フィールド自体が現行スキーマで
-  未定義（`bgm`/`sfx` を含め型定義がない）ため、narration の追加に必要な最小限のみを定義し、
-  `bgm`/`sfx` の型定義には踏み込まない（判断の詳細は本タスクの `report.md` を参照）
-- `packages/schemas/bin/validate-edit.mjs`: `audio.narration` があれば配列であること、各要素の
-  `id` 形式・一意性、`path` の非空文字列、`t` の範囲、`gain_db` の範囲、`provenance` 必須・
-  `provider` 必須・`provider === "voicevox"` のとき `credit` 必須を検証する。**`path` の
-  ファイル実在チェックはここでは行わない**（validate-edit は現状ファイルシステムを見ない設計を
-  踏襲する）
-- `packages/edit-lint`（`src/edit-lint.mjs`）: validate-edit と同じ構造チェック（エラー）に加え、
-  `path` のファイル実在チェック（欠落は**警告**。§4 の劣化規約に合わせる）、`t` がタイムライン尺
-  （`cuts` 合計）を超える場合の警告、同一 `t` 完全一致の narration が複数ある場合の警告を行う
+- `packages/schemas/edit.schema.json` defines the `audio.narration` structure as JSON Schema (types, the `id` pattern, required fields, and the `gain_db` range). The `audio` field itself is undefined in the current schema, including `bgm` and `sfx`, so define only the minimum narration needs. Do not add types for `bgm` and `sfx`. The detail of that decision is in this task's `report.md`.
+- `packages/schemas/bin/validate-edit.mjs` checks, when `audio.narration` is present, that it is an array, that each element's `id` has the right form and is unique, that `path` is a non-empty string, that `t` is in range, that `gain_db` is in range, that `provenance` is required, that `provider` is required, and that `credit` is required when `provider === "voicevox"`. It does not check that `path` exists on disk. validate-edit still does not look at the file system.
+- `packages/edit-lint` (`src/edit-lint.mjs`) does the same structural checks as validate-edit (those are errors) and also checks that `path` exists on disk (a missing file is a warning, matching the degradation rule in section 4), warns when `t` is past the timeline duration (the sum of `cuts`), and warns when more than one narration has the exact same `t`.
 
-## 9. 次段（本契約のスコープ外）
+## 9. Next stage
 
-- ducking のサイドチェイン入力を narration トラックへ切り替える実装（プレビュー/書き出し双方）
-- narration の実尺を考慮した区間重複検出（§6）
-- `audio.narration[].provenance.provider` の enum 強制（現状は文書上の例示のみ）
+Out of scope for this contract.
 
-## 追記 2026-09-22: `caption_ref`
+- Implement the switch of the ducking sidechain input onto the narration track, in both preview and export.
+- Overlap detection that uses the real narration duration (section 6).
+- Forcing `audio.narration[].provenance.provider` to an enum. Today the list is only examples in the document.
 
-ナレーションには、生成元の字幕 ID を表す任意の `caption_ref`（`c-` と 4 桁の数字）を追加できる。
-字幕は別ファイルなので参照先の存在確認は行わない。追加のみの進化であり、edit.json の `version` は変更しない。
+## Addendum, 2026-09-22. `caption_ref`
+
+A narration element may add an optional `caption_ref`, the caption id it was generated from. The form is `c-` plus four digits. Captions live in another file, so the reference is not checked for existence. The change is additive only. edit.json `version` does not change.

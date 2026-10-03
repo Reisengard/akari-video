@@ -1,45 +1,33 @@
-# recipe.json v0（レシピ凍結と好みの記憶）契約
+**English** | [日本語](./contract-2026-07-25-recipe-v0.ja.md)
 
-- 日付: 2026-07-25
-- 状態: **ドラフト・要オーナーレビュー**（データ契約の新設はオーナー裁定事項。本書はレビュー前提の起草。
-  特に §2 の置き場所 `~/.akari/recipes/` の新設は、プロジェクト外・ユーザーのホームディレクトリに
-  永続ファイルを作る初めての契約であり、**オーナー裁定事項**として明記する）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（三原則の正本）、
-  `contract-2026-07-25-plan-comments-v0.md`（直前の姉妹契約。文体・様式・ドラフト明記の先例）、
-  `packages/schemas/intake.schema.json`（`target` 等の既存語彙。§6 参照）、
-  `packages/schemas/edit.schema.json`（`narrationProvenance.engine`/`voice` の既存語彙）
-- 発端: 確認済み選好の凍結と再利用（確認済みのみ記録・出所付き推奨・レシピ採用は一括確認・
-  offer-once・初回記録の通知）をファイル契約として新設する。
-  判断根拠・出典調査は非公開の内部記録で管理する（本リポには置かない方針）
-- スコープ: `recipe.json` のデータ形・置き場所・記録規律・提示規律のみ。**学習・自動適用・
-  スコアリング・レシピの GUI は扱わない**（v0 は記録と提示のみ。§0・§9）
+# recipe.json v0 (freezing a recipe and remembering a preference)
 
-## 0. 位置づけ — 学習モデルではなくファイル契約
+- Date: 2026-07-25
+- Status: **draft, waiting on owner review**. A new data contract is an owner ruling. This document is drafted for that review. In particular, the location `~/.akari/recipes/` in section 2 is the first contract that creates a lasting file outside a project, in the user's home directory. It is marked as an owner ruling.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (the source of truth for the three principles), `contract-2026-07-25-plan-comments-v0.md` (the sister contract just before this one, the precedent for voice, form, and marking a draft), `packages/schemas/intake.schema.json` (existing vocabulary such as `target`. See section 6), and `packages/schemas/edit.schema.json` (the existing vocabulary of `narrationProvenance.engine` and `voice`).
+- Origin: freeze a confirmed preference and reuse it. Record only what was confirmed, recommend it with a source, confirm adoption of a recipe as a batch, offer the freeze once, and notify on the first record. This contract makes that a file contract. The judgment and the source research stay in a private internal record. They are not placed in this repository.
+- Scope: the data shape, the location, the recording rules, and the presentation rules of `recipe.json` only. This contract does not cover learning, automatic application, scoring, or a recipe GUI. v0 is record and present only (sections 0 and 9).
 
-本契約は「モデルがユーザーの好みを学習する」仕組みではない。**人間が承認チェックポイントで
-確認した選好の断面を、名前付きファイルとして凍結し、次のプロジェクトでスキルが読んで
-出所付きの推奨として提示するだけ**のファイル契約 + スキル規律である。
+## 0. Place
 
-- 推測やデフォルト採用で埋まった値は記録しない（§3 規律 1）。「ユーザーが推奨を見て受け入れた」
-  という行為だけが確認とみなされる
-- 記憶された値は今回の依頼を上書きしない。必須質問をスキップさせない（§3 規律 2）
-- 自動適用・スコアリング・学習モデルの類は本契約の非スコープ（§9）。v0 は記録（freeze）と
-  提示（recall）の 2 手順だけを持つ
+This is a file contract, not a learning model.
 
-版管理三原則（`contract-2026-07-17` §2、`contract-2026-07-25-plan-comments-v0.md` §0 に
-倣う）を新設契約として初版から適用する:
+This contract is not a mechanism by which a model learns a user's taste. It freezes, as a named file, the slice of preferences a person confirmed at an approval checkpoint. On the next project, a skill reads that file and presents it as a recommendation that names its source. That is the whole file contract, plus the skill discipline.
 
-- トップレベル `version` は**整数・0 起算**
-- 進化は**追加のみ**。読み手は**寛容リーダー**（`additionalProperties: true`。未知フィールドは
-  保持し、欠落は既定値で補う）
-- 既知より大きい `version` を見た読み手は推測変換せず **read-only で正直に停止する**
-  （`validate-recipe.mjs` 実装。§7）
-- フィールド命名は **snake_case**
+- Do not record a value that was filled by a guess or by adopting a default (item 1 of section 3). The only act that counts as confirmation is that the user saw the recommendation and accepted it.
+- A remembered value does not overwrite the current request. It does not let a skill skip a required question (item 2 of section 3).
+- Automatic application, scoring, and anything like a learning model are outside this contract (section 9). v0 has two procedures only, record (freeze) and present (recall).
 
-## 1. 確定スキーマ
+Apply the three versioning principles (section 2 of `contract-2026-07-17`, following section 0 of `contract-2026-07-25-plan-comments-v0.md`) from the first version, because this is a new contract.
 
-正本: `packages/schemas/recipe.schema.json`（`$id: urn:akari-video:schema:recipe:v0`）。
-実例: `packages/schemas/examples/recipe-v0-sample/<name>.json`。
+- The top-level `version` is an integer starting at 0.
+- Evolution is additive only. The reader is tolerant (`additionalProperties: true`). Keep unknown fields. Fill a missing field from its default.
+- A reader that sees a `version` higher than the one it knows stops read-only and does not guess a conversion. Implemented in `validate-recipe.mjs`. See section 7.
+- Field names are snake_case.
+
+## 1. Fixed schema
+
+Source of truth: `packages/schemas/recipe.schema.json` (`$id: urn:akari-video:schema:recipe:v0`). Example: `packages/schemas/examples/recipe-v0-sample/<name>.json`.
 
 ```jsonc
 {
@@ -67,153 +55,107 @@
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 単位・備考 |
+| Field | Type | Required | Unit and notes |
 |---|---|---|---|
-| `version` | integer (const 0) | 要 | — |
-| `name` | string | 要 | kebab-case。呼び出し名（§4 の「<名前>でもう一本」の対象）。`~/.akari/recipes/<name>.json` のファイル名と一致させる |
-| `frozen_at` | string (ISO8601) | 要 | 凍結（freeze 実行）時刻 |
-| `source_project` | string | 要 | プロジェクト名 + 日付の自由記述（例 `acme-product-launch-2026-07-20`）。**パスは書かない** — プロジェクトの移動・削除で壊れる参照を持たないため（§6） |
-| `workflow` | enum | 要 | `edit`（`skills/edit-plan` の選好）/ `research`（`skills/research-plan` の選好） |
-| `confirmed` | object | 要（最低 1 フィールド） | **確認済み選好のみ**。全フィールド任意・null 不可（確認されていない項目はキー自体を書かない。§3 規律 1） |
-| `confirmed.aspect` | enum | 任意 | `16:9` / `9:16` / `1:1`（既存カタログタグの慣用値。`catalog/scene3d/vintage-camera/meta.json` 等の `tags[]` に既出。§6） |
-| `confirmed.target_duration_band` | string | 任意 | 尺そのものではなく帯（例 `30-60s`）。素材が変われば正確な秒数は転用できないため帯で記録する（§6） |
-| `confirmed.caption_style_ref` | string | 任意 | 字幕スタイルを説明する自由記述。registry-backed profile key ではなく自動適用不可 |
-| `confirmed.bgm_profile` | string | 任意 | BGM の選好を指す自由記述（ジャンル・ムード・カタログ候補名等） |
-| `confirmed.overlay_kinds[]` | string[] | 任意 | 重複なし・最低 1 件。`skills/overlay-authoring/*.md` の kind 名（`telop`/`3d`/`table`/`motion`/`text-behind-person`/`thumbnail` 等）を目安にするが enum 強制はしない（overlay-authoring の追加に追従できるように。§6） |
-| `confirmed.narration` | object | 任意（最低 1 フィールド） | `engine`・`voice`（ともに任意・null 不可）。`edit.schema.json` の `narrationProvenance.engine`/`voice` と同じ自由記述語彙（enum 強制なし） |
-| `provenance` | object | 要（最低 1 フィールド） | `confirmed` に実在するキーと**過不足なく 1 対 1 対応**する。各エントリは `{ confirmed_by, at }` |
-| `provenance.<field>.confirmed_by` | enum | 要 | `intake` / `structure-confirm` / `edit-approval` / `render-approval`（§4 の対応） |
-| `provenance.<field>.at` | string (ISO8601) | 要 | 確認された時刻 |
+| `version` | integer (const 0) | Required | none |
+| `name` | string | Required | kebab-case. The calling name, the target of "<name>, one more" in section 4. It matches the file name `~/.akari/recipes/<name>.json`. |
+| `frozen_at` | string (ISO 8601) | Required | The time the freeze ran |
+| `source_project` | string | Required | Free text of a project name plus a date, for example `acme-product-launch-2026-07-20`. Do not write a path. A reference that breaks when the project is moved or deleted is not kept (section 6). |
+| `workflow` | enum | Required | `edit` (a preference of `skills/edit-plan`) or `research` (a preference of `skills/research-plan`) |
+| `confirmed` | object | Required, at least one field | Confirmed preferences only. Every field is optional, and null is not allowed. A key that was not confirmed is not written at all (item 1 of section 3). |
+| `confirmed.aspect` | enum | Optional | `16:9`, `9:16`, or `1:1`. The customary values of existing catalog tags. They already appear in `tags[]` of files such as `catalog/scene3d/vintage-camera/meta.json` (section 6). |
+| `confirmed.target_duration_band` | string | Optional | A band, not the duration itself, for example `30-60s`. An exact number of seconds cannot be reused when the footage changes, so the record is a band (section 6). |
+| `confirmed.caption_style_ref` | string | Optional | Free text that describes a caption style. It is not a registry-backed profile key, and it cannot be applied automatically. |
+| `confirmed.bgm_profile` | string | Optional | Free text that points at a BGM preference, such as a genre, a mood, or a catalog candidate name. |
+| `confirmed.overlay_kinds[]` | string array | Optional | No duplicates, and at least one item. Aim at the kind names in `skills/overlay-authoring/*.md` (Japanese), such as `telop`, `3d`, `table`, `motion`, `text-behind-person`, and `thumbnail`. Not a forced enum, so the list can follow additions to overlay-authoring (section 6). |
+| `confirmed.narration` | object | Optional, at least one field | `engine` and `voice`, both optional, null not allowed. The same free-text vocabulary as `narrationProvenance.engine` and `voice` in `edit.schema.json`. Not a forced enum. |
+| `provenance` | object | Required, at least one field | A one-to-one match with the keys that actually exist on `confirmed`, with nothing extra and nothing missing. Each entry is `{ confirmed_by, at }`. |
+| `provenance.<field>.confirmed_by` | enum | Required | `intake`, `structure-confirm`, `edit-approval`, or `render-approval` (the table in section 4) |
+| `provenance.<field>.at` | string (ISO 8601) | Required | The time it was confirmed |
 
-「要（最低 1 フィールド）」= キー自体は必須だが、中身が空の object（何も確認していない）は
-認めない。`confirmed` が空なら、そもそも freeze する理由がない（§3 規律 1・3）。
+"Required, at least one field" means the key itself is required, and an empty object (nothing confirmed) is not accepted. If `confirmed` is empty, there is no reason to freeze (items 1 and 3 of section 3).
 
-## 2. 置き場所
+## 2. Location
 
-> 2026-07-25 の裁定により `~/.akari/recipes/` のまま確定（正本は `contract-2026-07-13-asset-library.md` 末尾「ディレクトリ名の裁定」。経緯は非公開の内部記録で管理）
+> The ruling on 2026-07-25 keeps `~/.akari/recipes/`. The source of truth is the section "Directory name ruling" at the end of `contract-2026-07-13-asset-library.md`. The history is kept in a private internal record.
 
-**`~/.akari/recipes/<name>.json`**（プロジェクト横断の個人層。**オーナー裁定事項** — 本契約が
-新設する唯一のプロジェクト外置き場所）。
+**`~/.akari/recipes/<name>.json`.** A personal layer across projects. This is an owner ruling. It is the only location outside a project that this contract creates.
 
-- 名前は **kebab-case**。1 レシピ = 1 ファイル
-- プロジェクト内（`planning/` 等）には置かない。レシピはプロジェクトをまたいで呼び出される
-  ものであり、特定プロジェクトのライフサイクルに従属させない（`plan-comments.json` とは対照的な
-  設計 — あちらは 1 プロジェクト 1 ファイルの一時伝票、こちらは個人層の永続台帳）
-- 本タスクの検証は**リポ内 fixture で完結させ、実際の `~/.akari/recipes/` へは書き込まない**
-  （タスク制約）。スキル側の実運用でこのディレクトリへ書く際は、存在しなければ作成してよい
+- The name is kebab-case. One recipe is one file.
+- Do not place it inside a project, such as under `planning/`. A recipe is called across projects. It does not follow the lifecycle of one project. The design is the opposite of `plan-comments.json`. That file is a temporary slip, one file per project. This file is a lasting ledger in the personal layer.
+- Verification for this task finishes on fixtures inside the repository. Do not write to the real `~/.akari/recipes/`. That is a task constraint. When a skill writes this directory in real use, it may create the directory if it does not exist.
 
-## 3. データ規律 — 凍結（freeze）と提示（recall）
+## 3. Data rules
 
-1. **確認済みの値だけ記録する**。推測やデフォルト採用で埋まった値は記録しない
-   （ユーザーが推奨を見て受け入れた = 確認とみなす）。`confirmed` に書いてよいのは、
-   人間が明示承認したチェックポイントを通過した値だけである
-2. 記憶された値は**出所を名乗る推奨**として提示する。現在の依頼を**上書きしない**。
-   スキルは必須質問（intake の進め方フォーム等）を**スキップさせない** — レシピは
-   「前回はこうでした」という参考情報であり、承認ゲートの代替ではない
-3. レシピ（承認された一式の凍結）だけは別格: 採用の宣言（「<名前>でもう一本」「前回と同じで」）
-   自体が確認なので、`confirmed` に含まれるフィールドを一括で埋めてよい
-4. **freeze の提案は納品時に一度だけ**（offer-once）。同一プロジェクト内で繰り返し
-   凍結を提案しない。凍結できたら、呼び出し方まで教える確認文を人間に返す:
+Freeze and recall.
 
-   > **<名前>** として保存。次回は『<名前>でもう一本』か『前回と同じで』
+1. Record only a confirmed value. Do not record a value that was filled by a guess or by adopting a default. The user seeing a recommendation and accepting it counts as confirmation. The only values that may be written on `confirmed` are values that passed a checkpoint the person explicitly approved.
+2. Present a remembered value as a recommendation that names its source. Do not overwrite the current request. A skill does not skip a required question, such as the intake "how to proceed" form. A recipe is reference information that says "last time it was like this." It is not a substitute for an approval gate.
+3. A recipe, a freeze of one approved set, is the exception. The adoption statement itself ("<name>, one more" or "same as last time") is the confirmation, so the fields inside `confirmed` may be filled as a batch.
+4. Offer a freeze once, at delivery (offer-once). Do not offer a freeze again inside the same project. When the freeze succeeds, return a confirmation that also teaches the calling phrase:
 
-   名前はシステムが思い出させるものであり、ユーザーが暗記するものではない
-   （recall 手順は名前を尋ねず `~/.akari/recipes/` を列挙して提示する。§4）
-5. **初回記録時**（そのプロジェクトで初めてレシピを freeze する時）に「今後のために記憶する」旨を
-   一言、人間に通知する
+   > Saved as **<name>**. Next time, say "<name>, one more" or "same as last time."
 
-## 4. スキル配線と `confirmed_by` の対応
+   The system reminds the person of the name. The user does not memorize it. The recall procedure does not ask for the name. It lists `~/.akari/recipes/` and presents the list (section 4).
+5. On the first record, the first time that project freezes a recipe, tell the person in one sentence that this is remembered for later.
 
-| `confirmed_by` | 発生するチェックポイント | 対象スキル |
+## 4. Skill wiring and `confirmed_by`
+
+| `confirmed_by` | Checkpoint where it happens | Skill |
 |---|---|---|
-| `intake` | 進め方フォーム（`intake.json` 提出） | 全ワークフロー共通の入口 |
-| `structure-confirm` | 企画構成の確定決定カード | `skills/research-plan`（`workflow: "research"`） |
-| `edit-approval` | Checkpoint 1（方針）/ Checkpoint 2（素材計画） | `skills/edit-plan` |
-| `render-approval` | Checkpoint 3（実行 manifest） | `skills/edit-plan`（実行段の確定値。出力 aspect 等） |
+| `intake` | The "how to proceed" form (`intake.json` submitted) | The shared entrance of every workflow |
+| `structure-confirm` | The decision card that fixes the plan structure | `skills/research-plan` (Japanese), with `workflow: "research"` |
+| `edit-approval` | Checkpoint 1 (direction) and Checkpoint 2 (footage plan) | `skills/edit-plan` (Japanese) |
+| `render-approval` | Checkpoint 3 (the execution manifest) | `skills/edit-plan` (Japanese). Values fixed at the execution stage, such as the output aspect. |
 
-freeze / recall の実手順は [skills/edit-plan/recipe.md](../skills/edit-plan/recipe.md) が正本。
-`skills/edit-plan/SKILL.md` と `workflow.md` は方針決めの前段に recall を、完了処理に
-freeze の offer-once を、それぞれ数行で組み込み recipe.md へリンクする。
-`skills/research-plan/SKILL.md` と `ideate.md` はネタ出し・企画の冒頭で `workflow: "research"`
-レシピの recall を同じ規律で行い、recipe.md の recall 手順を参照する
-（`research-plan` 専用の freeze leaf は本契約のスコープ外 — 現状 freeze の実装は
-`skills/edit-plan/recipe.md` のみ。research 側の freeze は次段で検討する。§9）。
+The real freeze and recall procedure has its source of truth in [skills/edit-plan/recipe.md](../skills/edit-plan/recipe.md) (Japanese). `skills/edit-plan/SKILL.md` and `workflow.md` each add a few lines, recall before the direction is decided, and the offer-once freeze in completion handling, and they link to recipe.md. `skills/research-plan/SKILL.md` and `ideate.md` recall recipes with `workflow: "research"` at the start of ideation and planning, under the same rules, and they refer to the recall procedure in recipe.md. A freeze leaf dedicated to `research-plan` is outside this contract. Today the freeze implementation is only `skills/edit-plan/recipe.md`. A freeze on the research side is considered at the next stage (section 9).
 
-## 5. 劣化規約
+## 5. Degradation
 
-`recipe.json` は個人層の参考情報であり、検証失敗が編集・企画工程を巻き込んで失敗させない。
+`recipe.json` is reference material in the personal layer. A validation failure must not fail the edit or the plan with it.
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| `~/.akari/recipes/` が存在しない、または空 | 正当な状態。recall する対象がないだけで error にしない |
-| `workflow` が一致するレシピが無い | 推奨候補なしとして通常フローを続行する |
-| `confirmed` が空、または `provenance` とキーが不一致 | スキーマ検証エラー（読み手は使わない。§1） |
-| `version > 0` | read-only で正直に停止する（原則 3。`validate-recipe.mjs` 実装） |
-| レシピ採用後に今回の依頼と矛盾する指示が来た | 人間の直近の明示指示が常に優先する（`plan-comments.json` §3-6 と同型の優先順位） |
+| `~/.akari/recipes/` does not exist, or is empty | A valid state. There is nothing to recall. Not an error. |
+| No recipe matches `workflow` | Continue the normal flow with no recommendation candidate. |
+| `confirmed` is empty, or its keys do not match `provenance` | A schema validation error. The reader does not use the file (section 1). |
+| `version > 0` | Stop read-only. Principle 3. Implemented in `validate-recipe.mjs`. |
+| After a recipe is adopted, an instruction arrives that contradicts this request | The person's latest explicit instruction always wins. The same priority as item 6 of section 3 in `plan-comments.json`. |
 
-## 6. データ設計意図
+## 6. Why the data is shaped this way
 
-- **`source_project` にパスを書かない理由**: プロジェクトディレクトリは移動・削除されうる。
-  レシピは個人層でプロジェクトをまたいで生き続けるため、壊れる参照を持たせない
-  （名前 + 日付の自由記述のみ。「このレシピがどのプロジェクトの経験から来たか」を人間が
-  読める記録として残すだけで、機械的な参照解決はしない）
-- **`target_duration_band` が秒ではなく帯である理由**: `plan.schema.json` の
-  `slots[].target_duration_seconds` や `intake.schema.json` の `target.duration_s` は
-  「このプロジェクトの」厳密な尺だが、レシピは別プロジェクトへの転用が前提。次の素材の
-  尺は前回と同じにはならないため、厳密な秒数ではなく「30-60s」のような帯で好みを記録する
-- **`aspect` の enum が `16:9`/`9:16`/`1:1` の 3 値である理由**: 新しい語彙を作らず、
-  `catalog/scene3d/vintage-camera/meta.json` 等で既に使われているタグ慣用値をそのまま採用した
-  （`edit.schema.json` の `render.master` は width/height の実数で持つが、レシピは
-  「次はどの向きで作るか」という選好であり、具体的な解像度ではなく比率のカテゴリで十分）
-- **`overlay_kinds[]` を enum で縛らない理由**: `skills/overlay-authoring/` 配下のリーフは
-  今後も増える（`beats.md`/`emphasis-detection.md` 等、edit-plan 側の表現手段選定は既に
-  カタログ駆動で拡張可能な設計になっている）。レシピ側で enum を固定すると、新しい
-  overlay kind が増えるたびに本契約を改訂する結合が生まれるため、自由文字列の配列とする
-- **`narration.engine`/`voice` を enum で縛らない理由**: `edit.schema.json` の
-  `narrationProvenance.provider`/`engine`/`voice` が既に「契約文書で例示するのみで enum
-  強制はしない」設計になっている（voicevox/fal/elevenlabs/human 等）。レシピもこの既存の
-  緩さに揃える
-- **`provenance` をフィールド単位で持つ理由**: 1 つのレシピの中でも、`aspect` は実行承認
-  （render-approval）で確定し、`target_duration_band` は intake で確定する、というように
-  確認された瞬間はフィールドごとに異なる。ファイル全体で 1 つの `confirmed_by` を持たせると
-  この粒度が失われる
-- **状態を持たない理由**: `recipe.json` は凍結された断面（スナップショット）であり、
-  `plan.json` の `confidence` のような進行中の状態梯子は持たない。凍結後にレシピの中身が
-  「進行」することはない（再 freeze で別の断面に置き換わるだけ）
-- **学習・自動適用をしない理由**: v0 は「記録」と「出所付きの推奨提示」のみに限定する
-  ことで、確認ゲートを迂回する自動化を作らない（§0・§3 規律 2）。学習・スコアリングは
-  人間の意図しない適用を生みやすく、本契約のスコープでは扱わない（§9）
+- `source_project` does not hold a path because a project directory can be moved or deleted. A recipe lives across projects in the personal layer, so it does not keep a reference that breaks. It keeps only free text of a name plus a date. That leaves a record a person can read, of which project's experience the recipe came from. It does not resolve a reference by machine.
+- `target_duration_band` is a band, not a number of seconds, because `slots[].target_duration_seconds` in `plan.schema.json` and `target.duration_s` in `intake.schema.json` are the exact duration of this project. A recipe is meant to be reused on another project. The next footage will not have the same duration as the last, so the preference is recorded as a band such as "30-60s", not as an exact number of seconds.
+- `aspect` is the three values `16:9`, `9:16`, and `1:1` because this contract does not invent vocabulary. It adopts the customary tag values already used in files such as `catalog/scene3d/vintage-camera/meta.json`. `render.master` in `edit.schema.json` holds real width and height. A recipe is the preference "which orientation next time," and a ratio category is enough. A concrete resolution is not.
+- `overlay_kinds[]` is not bound to an enum because the leaves under `skills/overlay-authoring/` will keep growing (`beats.md`, `emphasis-detection.md`, and others). Choosing an expression on the edit-plan side is already designed to extend from a catalog. Fixing an enum on the recipe side would couple this contract to a revision every time a new overlay kind appears. The value is an array of free strings.
+- `narration.engine` and `voice` are not bound to an enum because `narrationProvenance.provider`, `engine`, and `voice` in `edit.schema.json` are already designed as examples in the contract document, not as a forced enum (`voicevox`, `fal`, `elevenlabs`, `human`, and others). A recipe matches that existing looseness.
+- `provenance` is per field because, inside one recipe, the moment of confirmation differs by field. `aspect` is fixed at execution approval (`render-approval`). `target_duration_band` is fixed at intake. One `confirmed_by` for the whole file would lose that grain.
+- The file has no state because `recipe.json` is a frozen slice, a snapshot. It does not have an in-progress status ladder like `confidence` on `plan.json`. After a freeze, the contents of a recipe do not "advance." A new freeze replaces the file with a different slice.
+- There is no learning and no automatic application because v0 is limited to recording and to presenting a recommendation that names its source. That avoids automation that bypasses the confirmation gate (section 0 and item 2 of section 3). Learning and scoring easily apply something the person did not intend. This contract does not cover them (section 9).
 
-## 7. よくある間違い
+## 7. Common mistakes
 
-- **推測やデフォルト採用の値を `confirmed` に書く** — 誤り。§3 規律 1。人間が明示承認した
-  値だけが確認済みである
-- **レシピの推奨値で今回の依頼を上書きする、または必須質問をスキップする** — 誤り。
-  §3 規律 2。レシピは参考情報であり承認ゲートの代替ではない
-- **同一プロジェクトで freeze を何度も提案する** — 誤り。§3 規律 4。offer-once
-- **`confirmed` に値はあるが `provenance` に対応エントリが無い（またはその逆）** — 誤り。
-  §1。1 対 1 対応が崩れている状態は検証エラー
-- **`~/.akari/recipes/` 以外の場所（プロジェクト内等）にレシピを置く** — 誤り。§2。
-  置き場所は本契約が定める 1 箇所のみ
-- **`target_duration_band` に前回プロジェクトの厳密な秒数をそのまま書く** — 誤り。§6。
-  レシピは転用前提のため帯で記録する
-- **レシピの採用宣言なしに `confirmed` の値を無言で今回の計画へ流用する** — 誤り。§3 規律 3。
-  一括充填が許されるのはレシピ採用の明示宣言があったときだけ
+- Writing a guessed value, or a value adopted from a default, onto `confirmed`. That is wrong. Item 1 of section 3. Only a value the person explicitly approved is confirmed.
+- Overwriting the current request with a recipe recommendation, or skipping a required question. That is wrong. Item 2 of section 3. A recipe is reference information. It is not a substitute for an approval gate.
+- Offering a freeze more than once in the same project. That is wrong. Item 4 of section 3. Offer once.
+- A value on `confirmed` with no matching `provenance` entry, or the reverse. That is wrong. Section 1. A broken one-to-one match is a validation error.
+- Placing a recipe somewhere other than `~/.akari/recipes/`, including inside a project. That is wrong. Section 2. This contract defines one location.
+- Writing the previous project's exact number of seconds into `target_duration_band`. That is wrong. Section 6. A recipe is recorded as a band because it is meant to be reused.
+- Pouring `confirmed` values into the current plan in silence, with no adoption statement. That is wrong. Item 3 of section 3. A batch fill is allowed only when there is an explicit statement that adopts the recipe.
 
-## 8. マイグレーション
+## 8. Migration
 
-（空欄 — `version` bump は発生していない。bump する場合はここに旧→新の機械実行可能な
-変換手順を必ず併記する。`contract-2026-07-17` 原則 2）
+Empty. `version` has not been bumped. A bump writes the old-to-new conversion here in a form a machine can run. Principle 2 of `contract-2026-07-17`.
 
-## 9. 次段（本契約のスコープ外）
+## 9. Next stage
 
-- 学習・自動適用・スコアリング（本契約は記録と出所付き提示のみ。§0）
-- レシピの GUI（一覧・編集・削除の専用ビューワー）
-- `~/.akari/recipes/` 以外の置き場所（プロジェクト内レシピ、チーム共有レシピ等）
-- `research-plan` 専用の freeze leaf（現状 freeze の実装導線は `skills/edit-plan/recipe.md` の
-  みで、research 側は recall のみを行う。research 成果物からの freeze 手順は次段で検討する）
-- `edit.json` / `intake.json` / `research-plan.json` 本体スキーマへの変更（本契約は
-  `recipe.json` 単体の新設のみ）
-- レシピ間の継承・差分マージ（複数レシピを組み合わせる機構は非スコープ）
+Outside this contract.
+
+- Learning, automatic application, and scoring. This contract is record and present-with-source only (section 0).
+- A recipe GUI. A dedicated viewer for listing, editing, and deleting.
+- A location other than `~/.akari/recipes/`. A recipe inside a project, a recipe shared by a team, and similar.
+- A freeze leaf dedicated to `research-plan`. Today the freeze implementation path is only `skills/edit-plan/recipe.md`. The research side only recalls. A freeze procedure from a research artifact is considered at the next stage.
+- Changes to the schemas of `edit.json`, `intake.json`, or `research-plan.json`. This contract only adds `recipe.json` by itself.
+- Inheritance between recipes, and a merge of differences. A mechanism that combines several recipes is out of scope.

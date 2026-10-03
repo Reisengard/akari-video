@@ -1,58 +1,38 @@
-# memory connection v0（外部参照記憶の接続宣言）契約
+**English** | [日本語](./contract-2026-07-25-memory-connection-v0.ja.md)
 
-- 日付: 2026-07-25
-- 状態: **ドラフト・要オーナーレビュー**（データ契約の新設はオーナー裁定事項。本書はレビュー前提の起草）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（三原則の正本）、
-  `contract-2026-07-25-recipe-v0.md`（直前の姉妹契約。文体・様式・ドラフト明記の先例）、
-  `packages/schemas/connections.schema.json`（拡張対象の現行形。`providers`/`policy` の
-  $defs の流儀を継承する）
-- 発端: オーナー対話（2026-07-25）。要旨: プロジェクトを事業 Wiki の中に入れるのは違うが
-  同期は要る／事業 Wiki は規模が大きすぎる（売上等は要らない）／外部参照させる記憶と
-  好み・スタイルの記憶は分けたい。内部裁定の全文脈は内部リポ（akari-video-internal）の
-  memory-and-style 契約 §0-§1 を正本とする（本書は同裁定のうち
-  **系統 A = 外部参照記憶**だけを公開契約化する。**系統 B = スタイルプロファイル**は別契約）
-- スコープ: `.akari/connections.json` への `memory` 接続タイプ追加（スキーマ・データ規律・
-  読む瞬間の規約）のみ。**書き戻し・リモートソース・インストール時デフォルト・intake
-  スキーマ変更・スタイル記憶は扱わない**（§9）
+# memory connection v0 (a connection declaration for external reference memory)
 
-## 0. 位置づけ — 格納ではなく接続宣言
+- Date: 2026-07-25
+- Status: **draft, waiting on owner review**. A new data contract is an owner ruling. This document is drafted for that review.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (the source of truth for the three principles), `contract-2026-07-25-recipe-v0.md` (the sister contract just before this one, the precedent for voice, form, and marking a draft), and `packages/schemas/connections.schema.json` (the current shape being extended. Inherit the style of the `providers` and `policy` `$defs`).
+- Origin: an owner conversation on 2026-07-25. The point was that a video project should not live inside the business wiki, but the two still need to sync. The business wiki is too large, and figures such as sales are not needed. Memory that is an external reference should stay separate from memory of taste and style. The full context of the internal ruling has its source of truth in sections 0 and 1 of the memory-and-style contract in the private repository akari-video-internal. This document publishes only family A, external reference memory, from that ruling. Family B, the style profile, is a separate contract.
+- Scope: adding a `memory` connection type to `.akari/connections.json` only. That covers the schema, the data rules, and the moments when a skill may read. This contract does not cover write-back, remote sources, an install-time default, a change to the intake schema, or style memory (section 9).
 
-本契約は「動画プロジェクトが記憶を保持する」仕組みではない。**プロジェクトが「どの外部知識
-（事業 Wiki 等）を記憶として読むか」を `.akari/connections.json` の `memory` 宣言として
-表明し、決まった読む瞬間（§4）にスキルがそこを読み、参照した記憶ファイルを出所として
-記録するだけ**のファイル契約 + スキル規律である。
+## 0. Place
 
-- 記憶ソースの本体（Wiki）はプロジェクトの外に留まる。動画プロジェクトの中へコピー・
-  格納しない
-- IPC・常駐サーバは持たない。読み取りはスキルがファイルシステムを直接読むだけ
-- v0 は**読み取り専用**（`read_policy: "read-only"` 固定）。書き戻し（完了時の要点サマリを
-  記憶ソースへ書く動作）は次段（§9）
+This is a connection declaration, not storage.
 
-版管理三原則（`contract-2026-07-17` §2）は、本契約が拡張する `connections.schema.json` 自体が
-トップレベル `version` フィールドを持たない既存スキーマであるため、次のとおり適用する:
+This contract is not a mechanism by which a video project holds memory. The project states, as a `memory` declaration in `.akari/connections.json`, which external knowledge (a business wiki, for example) it reads as memory. At the fixed read moments in section 4, a skill reads that declaration and records the memory files it consulted as sources. That is the whole file contract, plus the skill discipline.
 
-- **追加のみ進化**: `memory` はトップレベルの任意フィールドとして追加する。既存の
-  `providers`/`policy` の型・意味は変更しない。既存 connections.json（`memory` 無し）は
-  従来どおり valid のまま（受け入れ条件で実測する）
-- **寛容リーダー**: `memory` を持たない connections.json は「読む記憶が無い」正当な状態
-  として扱う（error にしない。§5）
-- **snake_case**: 新設フィールドはすべて snake_case（`root`/`entry`/`include`/`exclude`/
-  `read_policy`）
-- **原則 3（正直に停止する）の適用範囲**: `connections.schema.json` に整数 `version` が
-  無いため、本契約は破壊的変更時の bump 契約を新たに持たない。将来 `memory` に破壊的変更が
-  必要になった時点で、`connections.schema.json` 全体への `version` 導入を別途検討する
-  （本契約の非スコープ。§9）
+- The body of the memory source (the wiki) stays outside the project. Do not copy it into the video project and do not store it there.
+- There is no IPC and no resident server. A skill reads the file system directly.
+- v0 is read-only. `read_policy` is fixed at `"read-only"`. Write-back, writing a short summary into the memory source at completion, is the next stage (section 9).
 
-## 1. 確定スキーマ
+The three versioning principles (section 2 of `contract-2026-07-17`) apply as follows, because `connections.schema.json`, the schema this contract extends, is an existing schema with no top-level `version` field.
 
-正本: `packages/schemas/connections.schema.json`（`$id: urn:akari-video:schema:connections:v0`。
-既存 `$id` は変更しない — 追加のみの進化であり破壊的変更ではないため）。実例:
-`packages/schemas/examples/connections-v0-memory-valid/connections.json`。
+- Additive evolution only. Add `memory` as an optional top-level field. Do not change the type or the meaning of the existing `providers` and `policy`. An existing connections.json with no `memory` stays valid, as before. Measure that in the acceptance check.
+- A tolerant reader. A connections.json with no `memory` is a valid state that means there is no memory to read. Not an error (section 5).
+- snake_case. Every new field is snake_case: `root`, `entry`, `include`, `exclude`, `read_policy`.
+- Where principle 3 (stop honestly) applies. `connections.schema.json` has no integer `version`, so this contract does not add a new bump rule for a breaking change. When a breaking change to `memory` is actually required, consider adding `version` to the whole of `connections.schema.json` as a separate question. That is outside this contract (section 9).
+
+## 1. Fixed schema
+
+Source of truth: `packages/schemas/connections.schema.json` (`$id: urn:akari-video:schema:connections:v0`). Do not change the existing `$id`. This is additive evolution, not a breaking change. Example: `packages/schemas/examples/connections-v0-memory-valid/connections.json`.
 
 ```jsonc
 {
-  "providers": [ /* 既存どおり */ ],
-  "policy": { /* 既存どおり */ },
+  "providers": [ /* unchanged */ ],
+  "policy": { /* unchanged */ },
   "memory": [
     {
       "name": "kyo-kobo-wiki",
@@ -66,133 +46,92 @@
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 単位・備考 |
+| Field | Type | Required | Unit and notes |
 |---|---|---|---|
-| `memory[]` | array | 任意（トップレベル） | 省略可。既存 connections.json（`memory` キー無し）は従来どおり valid |
-| `memory[].name` | string | 要 | kebab-case（`providers[].id` と同じ pattern `^[a-z0-9]+(?:-[a-z0-9]+)*$`）。呼び名。配列内で重複不可 |
-| `memory[].root` | string | 要 | 記憶ソースのルートパス（空でない文字列。ローカルパスのみ — v0 はリモートソース非対応）。`~` 展開は読み手（スキル側）の責務とし、スキーマ・validator は展開しない |
-| `memory[].entry` | string | 任意 | 入口ファイル。省略時の既定 `INDEX.md` は本契約（§3）が定める運用規約であり、スキーマ自体はキー省略を許すだけで既定値を強制しない |
-| `memory[].include[]` | string[] | 任意 | 読む範囲を絞り込むパターン（重複なし。空文字不可） |
-| `memory[].exclude[]` | string[] | 任意 | 読まない範囲を絞り込むパターン（重複なし。例: `10_accounting/**` — 「売上は読まなくていい」をここで表現する） |
-| `memory[].read_policy` | string (const `"read-only"`) | 任意 | v0 は read-only 固定。省略時も read-only として扱う（§3） |
+| `memory[]` | array | Optional at the top level | May be omitted. An existing connections.json with no `memory` key stays valid, as before. |
+| `memory[].name` | string | Required | kebab-case. The same pattern as `providers[].id`, `^[a-z0-9]+(?:-[a-z0-9]+)*$`. A calling name. Must not repeat inside the array. |
+| `memory[].root` | string | Required | The root path of the memory source. A non-empty string. A local path only. v0 does not support a remote source. Expanding `~` is the reader's job, on the skill side. The schema and the validator do not expand it. |
+| `memory[].entry` | string | Optional | The entry file. The default `INDEX.md` when the key is omitted is an operating rule of this contract (section 3). The schema itself only allows the key to be omitted. It does not force the default. |
+| `memory[].include[]` | string array | Optional | Patterns that narrow what is read. No duplicates. An empty string is not allowed. |
+| `memory[].exclude[]` | string array | Optional | Patterns that narrow what is not read. No duplicates. Example: `10_accounting/**`, which is how "do not read sales" is expressed. |
+| `memory[].read_policy` | string, const `"read-only"` | Optional | v0 is fixed at read-only. An omitted value is also treated as read-only (section 3). |
 
-`providers[]` の $defs（`doctor` ブロック等）は `memory` には持ち込まない。`memory` は
-資格情報も課金状態も持たない読み取り専用の宣言であり、doctor が書き戻す永続状態
-（`doctor.status`/`last_checked`）を必要としない（§6 で詳述）。
+Do not bring the `$defs` of `providers[]`, such as the `doctor` block, onto `memory`. `memory` is a read-only declaration. It has no credentials and no billing state. It does not need the lasting state that doctor writes back (`doctor.status` and `last_checked`). Section 6 states why.
 
-## 2. 置き場所
+## 2. Location
 
-プロジェクト内の **`.akari/connections.json`** の `memory` 配列としてのみ宣言する。
+Declare `memory` only as the `memory` array of `.akari/connections.json` inside the project.
 
-- プロジェクト外の新規置き場所は設けない。`root` は既存の外部パス（例: 事業 Wiki の
-  リポジトリルート）を指すだけであり、本契約はどこにも新しいディレクトリを作らない
-- プロジェクト外の永続置き場所の基底ディレクトリ裁定（`~/.akari-video/` か `~/.akari/` か）は
-  `recipe.json` v0・スタイルプロファイル（系統 B）が新設する論点である。参照する場合は
-  `docs/contract-2026-07-13-asset-library.md` 末尾「ディレクトリ名の裁定」を指すが、**本タスクの
-  memory 接続はプロジェクト内 `.akari/connections.json` の宣言でありプロジェクト外置き場所は
-  新設しないため、この裁定の適用対象外**であることを明記する
-- 内部裁定の全文脈（系統 A / 系統 B の分離理由、4 層スコープとの整合）は
-  内部リポ（akari-video-internal）の memory-and-style 契約 §0-§1 を正本とする
+- Do not create a new location outside the project. `root` only points at an existing external path, for example the repository root of a business wiki. This contract creates no new directory anywhere.
+- The base-directory ruling for a lasting location outside the project, whether `~/.akari-video/` or `~/.akari/`, is a question that `recipe.json` v0 and the style profile (family B) open. When you need to cite it, cite the section "Directory name ruling" at the end of `docs/contract-2026-07-13-asset-library.md`. This task's memory connection is a declaration inside the project's `.akari/connections.json`. It does not create a location outside the project, so that ruling does not apply to it.
+- The full context of the internal ruling, why family A and family B are split, and how that lines up with the four scope layers, has its source of truth in sections 0 and 1 of the memory-and-style contract in akari-video-internal.
 
-## 3. データ規律 — 全文投入の禁止と出所記録
+## 3. Data rules
 
-1. **格納ではなく接続宣言**。`memory` は記憶ソースへのポインタであり、記憶ソースの中身を
-   `.akari/` 配下へコピー・キャッシュしない
-2. **読み取り専用**。v0 の `memory` 接続はサーバ・IPC を持たず、スキルがファイルシステムを
-   直接読むだけ。`read_policy` は `"read-only"` 固定（書き戻しは§9）
-3. **`entry` 起点**。記憶ソースの全文を読まない。`entry`（省略時 `INDEX.md`）から辿り、
-   `include`/`exclude` で絞った範囲だけを読む（LLM Wiki の frontmatter・相互リンクに乗る）
-4. **出所記録**。参照した記憶ファイルのパスは、読んだスキルの成果物（`research-plan.json`
-   の `sources[]`、`decision-log.md`、`interpretation.json` の `inputs.context` 等、各スキルの
-   既存語彙）に出所として記録する
-5. **接続が無いのは正当な状態**。`memory` キー自体が無い、または空配列の connections.json
-   は error にしない。読む記憶が無いだけとして通常フローを続行する（§5）
+No full-text dump, and record the source.
 
-## 4. スキル配線 — 読む瞬間
+1. A connection declaration, not storage. `memory` is a pointer to a memory source. Do not copy the contents of the memory source under `.akari/`, and do not cache them there.
+2. Read-only. A v0 `memory` connection has no server and no IPC. A skill reads the file system directly. `read_policy` is fixed at `"read-only"`. Write-back is section 9.
+3. Start from `entry`. Do not read the whole memory source. Follow from `entry` (default `INDEX.md` when omitted) and read only the range narrowed by `include` and `exclude`. Follow the frontmatter and the cross-links of the LLM wiki.
+4. Record the source. Record the path of each memory file that was consulted as a source on the artifact of the skill that read it. Use that skill's existing vocabulary, such as `sources[]` on `research-plan.json`, `decision-log.md`, or `inputs.context` on `interpretation.json`.
+5. No connection is a valid state. A connections.json with no `memory` key, or with an empty array, is not an error. There is simply no memory to read. Continue the normal flow (section 5).
 
-`memory` を読んでよい瞬間は 3 箇所に固定する。それ以外の工程では読まない。
+## 4. Where a skill reads
 
-| 読む瞬間 | 対象スキル | 実装箇所 |
+The moments when `memory` may be read are fixed at three. Do not read it in any other stage.
+
+| Read moment | Skill | Where it is implemented |
 |---|---|---|
-| ネタ出しの冒頭（方針立案前） | `skills/research-plan` | [SKILL.md](../skills/research-plan/SKILL.md) ハードルール（recipe recall の隣） |
-| 方針提示の前段 | `skills/edit-plan` | [SKILL.md](../skills/edit-plan/SKILL.md) 実行順（recipe recall の隣） |
-| 2 パス目の周辺プロジェクト文脈読み合わせ | `skills/analyze-project` | [SKILL.md](../skills/analyze-project/SKILL.md) ハードルール |
+| The start of ideation, before a direction is drafted | `skills/research-plan` | The hard rule in [SKILL.md](../skills/research-plan/SKILL.md) (Japanese), next to recipe recall |
+| The step before a direction is presented | `skills/edit-plan` | The execution order in [SKILL.md](../skills/edit-plan/SKILL.md) (Japanese), next to recipe recall |
+| The second pass, reading surrounding project context | `skills/analyze-project` | The hard rule in [SKILL.md](../skills/analyze-project/SKILL.md) (Japanese) |
 
-3 箇所とも同じ読み方をする: `.akari/connections.json` に `memory` 宣言があれば、`entry`
-起点で `include`/`exclude` の範囲だけを読み、参照したファイルパスを成果物に出所として
-記録する。全文投入は禁止。宣言が無ければ何もしない（error にしない）。
+All three read the same way. If `.akari/connections.json` has a `memory` declaration, start from `entry` and read only the `include` and `exclude` range, then record the consulted file paths as sources on the artifact. A full-text dump is forbidden. If there is no declaration, do nothing. That is not an error.
 
-## 5. 劣化規約
+## 5. Degradation
 
-`memory` はプロジェクトの参考情報であり、検証失敗や接続不備が編集・企画・分析工程を
-巻き込んで失敗させない。
+`memory` is reference material for the project. A validation failure or a bad connection must not fail the edit, the plan, or the analysis with it.
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| `memory` キーが無い、または空配列 | 正当な状態。読む記憶が無いだけで error にしない |
-| `entry` を省略 | 既定 `INDEX.md` として扱う |
-| `read_policy` を省略 | read-only として扱う |
-| `root` が指すパスに実際にアクセスできない | [manage-connections](../skills/manage-connections/SKILL.md) の doctor が無償・読み取り専用で報告するのみ。読む瞬間（§4）のスキル実行そのものは止めない — 到達できない記憶は「今回は参照できなかった」として通常フローを続行する |
-| `memory[].name` が配列内で重複 | スキーマ検証エラー（`validate-connections.mjs` が拒否する） |
+| No `memory` key, or an empty array | A valid state. There is no memory to read. Not an error. |
+| `entry` is omitted | Treat it as the default `INDEX.md`. |
+| `read_policy` is omitted | Treat it as read-only. |
+| The path `root` points at cannot actually be reached | [manage-connections](../skills/manage-connections/SKILL.md) (Japanese) reports it through doctor, free and read-only. Do not stop the skill run at the read moment (section 4). A memory that cannot be reached is "not consulted this time." Continue the normal flow. |
+| `memory[].name` repeats inside the array | A schema validation error. `validate-connections.mjs` rejects it. |
 
-## 6. データ設計意図
+## 6. Why the data is shaped this way
 
-- **`name` が `providers[].id` と同じ pattern を使う理由**: `memory` は「プロジェクトが
-  依存する外部」という点で generation provider・API キー参照と同格の接続であり、
-  `connections.json` の中で呼び名の規約を統一する（`manage-connections` が両方を同じ
-  レジストリとして管理するため。§0）
-- **`root` がローカルパスのみである理由**: リモートソース（git URL・API 等）への対応は
-  ネットワーク到達性・認証・キャッシュ戦略という別種の設計判断を要する。v0 は
-  「プロジェクトが事業 Wiki を読む」という最小のユースケースに絞り、非スコープと明記する
-  （§9）
-- **`memory` が `doctor` ブロックを持たない理由**: `providers[].doctor` は資格情報の認証
-  状態という永続すべき状態を持つ。`memory` は読み取り専用の存在チェックのみで、認証も
-  課金も発生しないため、書き戻すべき永続状態が無い（memory の doctor 表示は都度の
-  無償チェックに閉じる設計。§5・[manage-connections/SKILL.md](../skills/manage-connections/SKILL.md)）
-- **`include`/`exclude` を持つ理由**: 事業 Wiki はプロジェクトより遥かに大きい（例:
-  売上・経理データは動画プロジェクトに要らない）。`exclude` で `10_accounting/**` のような
-  範囲を宣言的に除外できるようにし、「全文投入」を構造的に不可能にする
-- **`entry` の既定を `INDEX.md` にする理由**: `_edit/CLAUDE.md` の LLM Wiki パターンにおいて
-  `INDEX.md` が各階層の背骨（目次 + 該当リポへのリンク + 状態）として運用されている。
-  記憶ソース側の既存の設計を前提にできるため、新しい入口の語彙を発明しない
-  （内部 memory-and-style 契約 §1 準拠）
-- **出所記録を義務化する理由**: Wiki 層の「主張は raw へリンクする」規律の鏡像。記憶を
-  読んで得た結論も、どのファイルを踏まえたかを追跡できなければ、後から検証も反証も
-  できない
+- `name` uses the same pattern as `providers[].id` because a memory source is an external thing the project depends on, in the same class as a generation provider and an API-key reference. Calling names inside `connections.json` follow one rule. `manage-connections` manages both as the same registry (section 0).
+- `root` is a local path only because a remote source (a git URL, an API, and similar) needs a different design, covering reachability, authentication, and a cache strategy. v0 is limited to the smallest use, a project reading a business wiki, and marks the rest out of scope (section 9).
+- `memory` has no `doctor` block because `providers[].doctor` holds lasting state, the authentication state of credentials. `memory` is only a read-only existence check. It has no authentication and no billing, so there is no lasting state to write back. The doctor display for memory stays a free check done at the moment it is needed (section 5 and [manage-connections/SKILL.md](../skills/manage-connections/SKILL.md) (Japanese)).
+- `include` and `exclude` exist because a business wiki is far larger than a project. Sales and accounting data, for example, are not needed by a video project. `exclude` can declaratively drop a range such as `10_accounting/**`, which makes a full-text dump structurally impossible.
+- The default for `entry` is `INDEX.md` because, in the LLM wiki pattern of `_edit/CLAUDE.md`, `INDEX.md` is operated as the spine of each level. It is a table of contents, links to the matching repository, and status. The memory source already has that design, so this contract does not invent a new entry vocabulary. This follows section 1 of the internal memory-and-style contract.
+- Recording the source is required because it mirrors the wiki-layer rule that a claim links back to raw material. A conclusion drawn from memory cannot be checked later, and cannot be challenged, unless the files it stood on can be traced.
 
-## 7. よくある間違い
+## 7. Common mistakes
 
-- **記憶ソースの全文を読み込む** — 誤り。§3 の 3。`entry` 起点で `include`/`exclude` の
-  範囲だけを読む
-- **`memory` 宣言が無いことを検証エラーにする** — 誤り。§3 の 5・§5。接続が無いのは
-  正当な状態
-- **参照した記憶ファイルのパスを成果物に記録しない** — 誤り。§3 の 4。出所を追跡できない
-  参照は本契約の目的（読んで得をする代わりに検証可能性を落とさない）に反する
-- **`root` が指すパスへ書き込む、または記憶ソースの中身を `.akari/` 配下へコピーする** —
-  誤り。§0・§3 の 1-2。v0 は読み取り専用の接続宣言のみ
-- **`memory` にリモート URL や API 参照を書く** — 誤り。§1・§6。v0 はローカルパスのみ
-- **`providers[].doctor` のような永続状態を `memory` に持たせようとする** — 誤り。§1・§6。
-  `memory` は doctor ブロックを持たない設計
-- **`root` へのアクセス不可を理由に読む瞬間（研究計画・編集方針・分析）そのものを
-  停止する** — 誤り。§5 の劣化規約。到達できない記憶は無視して通常フローを続行する
+- Reading the whole memory source. That is wrong. See item 3 of section 3. Start from `entry` and read only the `include` and `exclude` range.
+- Treating a missing `memory` declaration as a validation error. That is wrong. See item 5 of section 3 and section 5. No connection is a valid state.
+- Not recording the path of a consulted memory file on the artifact. That is wrong. See item 4 of section 3. A reference that cannot be traced works against the purpose of this contract, which is to gain from reading without losing the ability to check.
+- Writing to the path `root` points at, or copying the memory source under `.akari/`. That is wrong. See section 0 and items 1 and 2 of section 3. v0 is a read-only connection declaration only.
+- Writing a remote URL or an API reference in `memory`. That is wrong. See sections 1 and 6. v0 is local paths only.
+- Trying to give `memory` lasting state like `providers[].doctor`. That is wrong. See sections 1 and 6. `memory` is designed with no doctor block.
+- Stopping the read moment itself (a research plan, an edit direction, or analysis) because `root` cannot be reached. That is wrong. See the degradation rule in section 5. Ignore a memory that cannot be reached and continue the normal flow.
 
-## 8. マイグレーション
+## 8. Migration
 
-（空欄 — `connections.schema.json` の破壊的変更は発生していない。`memory` の追加は
-`$id` を変えない追加のみ進化。破壊的変更が必要になった場合はここに旧→新の機械実行可能な
-変換手順を必ず併記する。`contract-2026-07-17` 原則 2）
+Empty. `connections.schema.json` has had no breaking change. Adding `memory` is additive evolution that does not change `$id`. If a breaking change is required, write the old-to-new conversion here in a form a machine can run. Principle 2 of `contract-2026-07-17`.
 
-## 9. 次段（本契約のスコープ外）
+## 9. Next stage
 
-- 書き戻し（完了時に記憶ソースの Wiki 層へ要点サマリを書く動作。内部
-  memory-and-style 契約 §1「書き戻し」節が構想を持つが、本契約は
-  読み取りのみを扱う）
-- リモートソース対応（git URL・API 経由の記憶接続。v0 はローカルパスのみ）
-- インストール時デフォルト（setup-library first-run での既定記憶の質問）
-- `intake.schema.json` への質問追加（プロジェクト作成時にどの記憶へ紐づくかの選択）
-- スタイルプロファイル（系統 B。用語辞書・NG ワード・表記ルール・TTS 読み仮名等の
-  ブランド規範。internal 契約 §2 に構想があるが、性質が異なる別契約として起草する）
-- `connections.schema.json` 全体への `version` フィールド導入（§0 参照。`memory` の破壊的
-  変更が実際に必要になった時点で検討する）
+Outside this contract.
+
+- Write-back. At completion, write a short summary into the wiki layer of the memory source. Section 1 of the internal memory-and-style contract, under "write-back", holds the sketch. This contract covers reading only.
+- Remote sources. A memory connection through a git URL or an API. v0 is local paths only.
+- An install-time default. Asking for a default memory during setup-library first-run.
+- A question added to `intake.schema.json`. At project creation, choosing which memory the project attaches to.
+- The style profile, family B. A brand standard such as a term dictionary, forbidden words, spelling rules, and narration readings. Section 2 of the internal contract holds the sketch. Draft it as a separate contract, because the kind of data is different.
+- Adding a `version` field to the whole of `connections.schema.json`. See section 0. Consider it when a breaking change to `memory` is actually required.

@@ -1,123 +1,87 @@
-# R6 契約 — タイムライン配置原則・音源複数トラック化・音源トリム・ソーストリマー
+**English** | [日本語](./contract-2026-07-25-r6-audio-tracks-and-trim.ja.md)
 
-- 日付: 2026-07-25
-- 状態: draft（裁定は確定。実装と並走で approved 化）。本書は技術仕様のみ。
-  判断経緯・実装レーンの運用は非公開の内部記録で管理する（本リポには置かない方針）
-- 前提: `contract-2026-07-14-edit-json-v1-audio.md`（audio スキーマ正本）、
-  `contract-2026-07-17-data-contract-versioning.md`（三原則）
+# R6 contract. Timeline placement, multiple audio tracks, audio trim, and the source trimmer
 
-## 1. 確定事項（2026-07-25 裁定）
+- Date: 2026-07-25
+- Status: draft. The decision is final. The status becomes approved as implementation proceeds. This document is the technical spec only. The reasoning and the lane operations stay in private internal records. This repo does not hold them.
+- Depends on: `contract-2026-07-14-edit-json-v1-audio.md` (the audio schema source of truth) and `contract-2026-07-17-data-contract-versioning.md` (the three principles).
 
-1. **タイムライン配置原則 = Premiere 型を正式採用**:
-   - 音源グループは**最下段固定**（並べ替え不可）
-   - cuts 帯（Video）はその上の縦中心。上に layers / captions（重ね物）
-   - 映像系トラック内の縦順は従来どおり**上の行ほど前面**（z 順裁定は不変）
-   - ルーラー（メモリ）位置は現状のまま固定
-   - 既定スタック（下から audio→cuts→layers→captions）と整合。本裁定はこれを
-     「固定の配置原則」として明文化するもの
-2. **音源の重なり解消 = 複数音声トラック化**:
-   - sfx の `track` フィールド（schema 既存）を UI で解放し、音声もトラックを増やせるようにする
-   - 従来の「audio は当面 ref 0 固定（単一トラック）」運用を本裁定で変更
-   - `timelineTrack` は kind:'audio' の複数宣言を既に許容（schema 変更不要）。
-     音声トラック群は配置原則 1 により常に最下段グループ内で増減する
-3. **ソーストリマーの入口 = タイムラインのクリップ dblclick**:
-   - クリップをダブルクリック → カット外部分を薄く表示し、左右スライドで in/out 調整
-   - 素材ファイルの dblclick = 素のソース再生、とは両立（入口が別）
+## 1. Decisions fixed on 2026-07-25
 
-## 2. 音源トリム（schema 拡張）
+1. Timeline placement adopts the Premiere model.
+   - Audio groups stay pinned to the bottom. They cannot be reordered.
+   - The cuts band (Video) is the vertical center above that. Layers and captions, the stacked items, sit above the cuts.
+   - Inside picture tracks, a higher row is still in front. The z-order decision does not change.
+   - The ruler stays where it is.
+   - This matches the default stack from the bottom: audio, then cuts, then layers, then captions. This decision writes that stack down as a fixed placement rule.
+2. Overlapping audio becomes multiple audio tracks.
+   - The UI exposes the existing `track` field on sfx, so audio can add tracks.
+   - This decision ends the old practice that audio stays on ref 0, a single track, for now.
+   - `timelineTrack` already allows more than one declaration with `kind: 'audio'`. No schema change is required. Audio tracks grow and shrink only inside the bottom group from decision 1.
+3. The source trimmer opens when a timeline clip is double-clicked.
+   - Double-click a clip. Parts outside the cut draw dimmed. Slide the left or right edge to set in and out.
+   - Double-clicking a footage file still plays the raw source. That entrance is a different one.
 
-### schema
+## 2. Audio trim
 
-- `sfxItem` に optional `in` / `out` を追加（**素材秒**。`in` ≥ 0 省略時 0、
-  `out` > `in` 省略時 素材末尾）。再生区間 = 素材の [in, out)、
-  タイムライン上の開始は従来どおり `t`（timeline 秒）、表示尺 = out − in
-- `narrationItem` にも同じ optional `in` / `out` を追加する。再生区間・素材秒・既定値・
-  `out > in` の検証分担は sfx と同一で、タイムライン上の開始は narration の `t` とする
-- `bgm` に optional `in` を追加（BGM ファイル内の開始オフセット素材秒。ループ・全体尺
-  トリムの既存意味論は不変）
-- edit-lint: `out <= in` を error。実尺越えの検知は lint では行わない
-  （lint は ffprobe を持たない — クランプは消費側の責務）
-- cuts 側の語彙に倣い、$comment に意味論を明記する
+Schema extension.
 
-### 消費（render-cut + preview）
+### Schema
 
-- render-cut: sfx の [in, out) 切り出しを出力に反映。bgm の `in` オフセット反映
-- render-cut: narration の [in, out) 切り出しも出力に反映する。`in` が素材実尺以上なら 0 へ、
-  `out` が素材実尺を超えれば素材末尾へクランプして warning を出す。クランプ後に `out <= in` なら
-  その narration 要素だけを skip する。`in` / `out` の有無にかかわらず、各 narration 要素は
-  デコード可否の判定を兼ねて実尺を従来と同じ 1 回だけ probe し、デコードできなければ従来どおり
-  その要素だけを skip して warning を出す一方、両方省略された要素には `atrim` を前置きせず、
-  従来とバイト同一のフィルタ文字列を保つ
-- preview（previewAudio）: 同意味論で再生。実尺越え in/out は素材末尾へクランプ
+- Add optional `in` and `out` on `sfxItem`. The unit is footage seconds. `in` is at least 0, and the default is 0 when it is omitted. `out` is greater than `in`, and the default is the end of the footage when it is omitted. Playback is the footage interval `[in, out)`. The timeline start stays `t`, in timeline seconds. The displayed duration is `out` minus `in`.
+- Add the same optional `in` and `out` on `narrationItem`. The playback interval, the footage-second unit, the defaults, and the check that `out > in` match sfx. The timeline start is the narration `t`.
+- Add optional `in` on `bgm`. It is the start offset, in footage seconds, inside the BGM file. The existing meaning of loop and of full-length trim does not change.
+- edit-lint reports `out <= in` as an error. Lint does not detect a range past the real duration. Lint does not run ffprobe. The consumer clamps.
+- State the meaning in `$comment`, following the vocabulary used on cuts.
+
+### Consumers
+
+render-cut and preview.
+
+- render-cut applies the sfx slice `[in, out)` to the output. It applies the bgm `in` offset.
+- render-cut also applies the narration slice `[in, out)` to the output. If `in` is at or past the real footage duration, clamp `in` to 0. If `out` is past the real footage duration, clamp `out` to the end of the footage and emit a warning. If `out <= in` after the clamp, skip that narration item only. Whether or not `in` and `out` are present, probe each narration item once for its real duration, as today, and use that probe to decide whether it can be decoded. If it cannot be decoded, skip that item only and emit a warning, as today. When both `in` and `out` are omitted, do not prepend `atrim`. Keep the filter string byte-identical to the previous one.
+- preview (`previewAudio`) plays with the same meaning. An `in` or `out` past the real duration clamps to the end of the footage.
 
 ### UI
 
-- 音源バーの端ドラッグでトリム（in/out 書き戻し）。動画クリップのトリムと同じ操作感
-- 複数音声トラック行の表示・追加・アイテムのトラック間移動（裁定 2）
-- 配置原則（裁定 1）の実装: audio グループ最下段固定・cuts 縦中心・上に重ね物。ルーラー無移動
+- Drag the end of an audio bar to trim, and write `in` and `out` back. The gesture matches a video-clip trim.
+- Show multiple audio-track rows, add rows, and move items between tracks (decision 2).
+- Implement the placement rule (decision 1). Pin the audio group to the bottom, center the cuts vertically, and put stacked items above. Do not move the ruler.
 
-## 3. ソーストリマー
+## 3. Source trimmer
 
-- 入口: クリップ dblclick（裁定 3）。トリマーモード中はカット外を薄く表示し、
-  左右スライドで in/out を調整。解除は Esc / 再 dblclick / 他クリップ選択
-- サムネイルは素材全体のフィルムストリップを 1 回だけ焼き、窓移動は CSS
-  background-position のみで行う（トリム / スリップ操作で再焼成しない設計）
+- Entrance: double-click a clip (decision 3). While trimmer mode is on, parts outside the cut draw dimmed, and a left or right slide adjusts `in` and `out`. Leave the mode with Esc, a second double-click, or by selecting another clip.
+- Bake the filmstrip of the whole footage once. Moving the window changes only the CSS `background-position`. Trim and slip do not bake again.
 
-## 4. 受け入れの軸
+## 4. Acceptance
 
-- schema: schemas / edit-lint テスト全数 green
-- 消費: in/out 付き sfx の出力音声を ffprobe / 波形で実測（切り出し位置・尺一致）。
-  preview 側も同 fixture で聴感 + 実測。クランプ動作の実測
-- UI: 実機で (a) 配置原則どおりの表示 (b) 音声トラック追加とアイテム移動が edit.json に
-  書き戻る (c) 音源バー端ドラッグで in/out 書き戻り・リロード後保持 (d) トリマーの
-  表示・調整が機能 (e) 既存トラック UI・z 順の無退行
+- Schema. Every schemas test and every edit-lint test is green.
+- Consumers. Measure sfx output that has `in` and `out` with ffprobe and a waveform. The slice position and the duration match. Preview uses the same fixture for a listen and a measurement. Measure the clamp.
+- UI, on a real device. (a) The display matches the placement rule. (b) Adding an audio track and moving an item writes back to edit.json. (c) Dragging an audio-bar end writes `in` and `out`, and the values survive reload. (d) The trimmer displays and adjusts. (e) Existing track UI and z-order do not regress.
 
-## 5. §2 追記 — sfx フェード（audio-clip-fades, 2026-08-18・オーナー裁定「クリップ主義」T2）
+## 5. Addendum to section 2. sfx fades
 
-BGM をクリップ化する裁定（内部リポ `akari-video-internal` の該当タスク）に伴い、
-「音楽をクリップ（audio.sfx[]）として置いても BGM ベッドと同じフェード表現ができる」を
-満たすため、`sfxItem` に optional の `fade_in` / `fade_out`（秒・0 以上）を追加のみ拡張する
-（`version` 不変・`contract-2026-07-17-data-contract-versioning.md` の原則に従う）。
+`audio-clip-fades`, 2026-08-18. Owner decision T2, "a clip is the unit".
 
-### schema
+The decision to place BGM as a clip (the matching task in the private repo `akari-video-internal`) requires that music placed as a clip in `audio.sfx[]` can fade the same way a BGM bed can. Add optional `fade_in` and `fade_out` on `sfxItem`, in seconds, each at least 0. The extension is additive. `version` does not change. Follow `contract-2026-07-17-data-contract-versioning.md`.
 
-- `sfxItem.fade_in` / `fade_out`: 秒・省略時 0（フェードなし）。`audio.bgm.fadeIn` /
-  `fadeOut`（camelCase）とは異なり **snake_case**（既存の `gain_db` と同じ命名系列）
-- フェード対象はこのクリップの実効再生窓 `[t, t + 実効尺)`。実効尺は §2 の `[in, out)` が
-  既知なら `out − in`、`in`/`out` 省略時は素材尺（消費側が実尺を解決できた場合のみ）
-- クランプ規則は `audio.bgm.fadeIn`/`fadeOut` と同型: `fade_in`/`fade_out` それぞれ独立に
-  実効尺の半分までクランプ（render-cut が実装、edit-lint は `in`/`out` が両方既知のときだけ
-  警告できる — lint は ffprobe を持たないため実尺越えの検知は消費側の責務、という §2 本文の
-  既存原則をフェードにもそのまま適用）
+### Schema
 
-### 消費（render-cut + preview 3 面）
+- `sfxItem.fade_in` and `fade_out` are seconds. The omitted value is 0, which means no fade. Unlike `audio.bgm.fadeIn` and `fadeOut`, which are camelCase, these names are snake_case, the same series as the existing `gain_db`.
+- The fade applies to this clip's effective playback window `[t, t + effective duration)`. When section 2's `[in, out)` is known, the effective duration is `out - in`. When `in` and `out` are omitted, it is the footage duration, and only when the consumer could resolve the real duration.
+- The clamp matches `audio.bgm.fadeIn` and `fadeOut`. Clamp `fade_in` and `fade_out` independently, each to at most half the effective duration. render-cut implements the clamp. edit-lint can warn only when both `in` and `out` are known. Lint does not run ffprobe, so a range past the real duration stays the consumer's job. That rule from the body of section 2 applies to fades as well.
 
-- render-cut: sfx の afade を volume の直後・adelay の直前に挿入する（adelay 後だと
-  `st=0` が delay 由来の無音区間を指してしまうため）。`in`/`out` 併用時は atrim/asetpts で
-  尺をリセットした後の実効尺基準で afade を計算する
-- シェルプレビュー（akari-preview）: sfx は 1 回きりの `BufferSourceNode` 再生のため、
-  bgm の毎 tick 再計算（fadeMultiplier）ではなく、schedule 時点で
-  `gain.gain.setValueAtTime`/`linearRampToValueAtTime` によるブレークポイント列を組む
-  （`sfxFadeGainSchedule`、シーク再開時は経過秒からブレークポイントを再構成）
-- 同・会話音声（narration / 音声レーンの `role:'speech'`）: 2026-09-18 追記。上と同じ
-  ブレークポイント列の仕組みに乗せる（`buildWebAudioSchedule` は kind に依らず
-  `fadeGainEvents` を通す）。**窓の取り方だけが sfx と非対称**で、sfx は item の実効尺を
-  そのまま使う一方、narration は `min(track.durationSec, max(0, duration − track.t))` と
-  タイムライン末尾で切る。これは `render-cut/src/plan.mjs` の実際の扱いに合わせたもので、
-  揃えると sfx が書き出しと食い違う。クランプ規則（実効尺の半分まで独立に）は共通
-- なお cuts / layers の撮影素材音声（プレビューの kind `'speech'`）は宣言にフェード項目を
-  持たず、書き出し側も cut 音声に afade を掛けない。ここにフェードを足すと逆に
-  書き出しとの食い違いを作るため、**意図的に対象外**とする
-- Web UI（preview-server）: bgm と同じ毎 tick 再計算方式。ただしこの層は現状 sfx の
-  `in`/`out` トリム自体を未実装のため、フェードの実効尺は常にデコード済み素材全長を使う
-  （トリム実装時に合わせて見直す）
+### Consumers
 
-### インスペクター
+render-cut and the three preview surfaces.
 
-- akari-annotations: sfx 選択時に bgm と同じ「フェード」タブ（`fadeIn`/`fadeOut` ノブ）を出す。
-  ducking は bgm 概念のため sfx には出さない
-- 正本は `packages/edit-store`（edit.json テキスト手術）だが、本追記の実装レーン
-  （task 2026-08-18-audio-clip-fades）のファイル境界が `packages/edit-store` を含まないため、
-  書き戻りは `apps/shell/extensions/akari-annotations/src/common/sfx-fade-store.ts` に
-  境界内で完結する独立実装として置いた（`updateArrayElementByIndex` 等 edit-store の
-  export 済みユーティリティは再利用）。将来 edit-store 側の担当タスクが正本へ統合してよい
+- render-cut inserts the sfx `afade` immediately after volume and immediately before `adelay`. Placing it after `adelay` would make `st=0` point at the silence the delay inserted. When `in` and `out` are also set, compute `afade` from the effective duration after `atrim` and `asetpts` reset the duration.
+- Shell preview (`akari-preview`). sfx plays once through a `BufferSourceNode`, so it does not recompute a fade multiplier on every tick the way bgm does. At schedule time it builds a breakpoint list with `gain.gain.setValueAtTime` and `linearRampToValueAtTime` (`sfxFadeGainSchedule`). When a seek resumes playback, it rebuilds the breakpoints from the elapsed seconds.
+- Speech uses the same path. That means narration, or an audio-lane item with `role: 'speech'`. Added 2026-09-18. It uses the same breakpoint list. `buildWebAudioSchedule` passes `fadeGainEvents` no matter the kind. Only the window differs from sfx. sfx uses the item's effective duration as it is. Narration uses `min(track.durationSec, max(0, duration - track.t))` and cuts at the end of the timeline. That matches what `render-cut/src/plan.mjs` actually does. Using one window for both would make sfx disagree with export. The clamp rule is shared. Each fade clamps independently to half the effective duration.
+- Shot audio on cuts and layers (preview kind `'speech'`) has no fade field in the declaration, and export does not apply `afade` to cut audio. Adding a fade here would disagree with export, so it is left out on purpose.
+- The web UI (`preview-server`) recomputes every tick, the same way as bgm. This layer does not yet implement sfx `in` and `out` trim, so the fade's effective duration is always the full length of the decoded footage. Revisit that when trim is implemented.
+
+### Inspector
+
+- `akari-annotations` shows the same Fade tab as bgm (`fadeIn` and `fadeOut` knobs) when an sfx item is selected. Ducking is a bgm idea, so the tab does not show it for sfx.
+- The source of truth for a text edit of edit.json is `packages/edit-store`. The file boundary of the implementation lane for this addendum (task `2026-08-18-audio-clip-fades`) does not include `packages/edit-store`, so the write-back lives in `apps/shell/extensions/akari-annotations/src/common/sfx-fade-store.ts` as an implementation that stays inside that boundary. It reuses exported edit-store helpers such as `updateArrayElementByIndex`. A later edit-store task may fold this back into the source of truth.

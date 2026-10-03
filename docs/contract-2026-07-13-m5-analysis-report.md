@@ -1,160 +1,146 @@
-# M5 契約 v0 — 分析パイプライン + 編集判断レポート + 生成スキル
+**English** | [日本語](./contract-2026-07-13-m5-analysis-report.ja.md)
 
-- 日付: 2026-07-13
-- 状態: 設計確定（オーナーレビュー済み）。実装契約への昇格は
-  M1〜M4 安定後 + 内部 research の反映後
-- 先行例の参照方針: 外部先行実装は**パターン・構造の学習のみ。コード/文章の
-  転写禁止**（分析は非公開の内部 research で管理）。数値ノウハウは出典（TikTok Creator Portal 等の一次資料）まで遡って自前で組む
+# M5 contract v0. Analysis pipeline, editorial-judgment report, and generation skills
 
-## 全体像
+- Date: 2026-07-13
+- Status: design is fixed. The owner has reviewed it. It becomes an implementation contract after M1 through M4 are stable and after the internal research is folded in.
+- How to use earlier work. An external earlier implementation is a source of patterns and structure only. Do not copy its code or its prose. Analysis is managed in private internal research. Rebuild numeric craft from primary sources, such as the TikTok Creator Portal.
+
+## Shape of the pipeline
 
 ```
-素材群（録画 or 生成指示）
-   │  素材ごとに subagent 並列分析（オーケストレーション）
-   ▼
-analysis.json（素材ごと・機械可読の中間契約）
-   │  統合
-   ▼
-編集判断レポート（HTML・人間が読む顔。フレームアナリティクスラボ後継）
-   │  人間の承認（チェックポイント型）
-   ▼
-edit.json + オーバーレイ HTML + サムネ確定（実行形 = エンジンが食う）
+Footage set (a recording, or a generation brief)
+   |  one subagent analyzes each footage item, in parallel (orchestration)
+   v
+analysis.json (one machine-readable intermediate contract per footage item)
+   |  merge
+   v
+Editorial-judgment report (one HTML page a person reads. Successor of the frame-analytics lab)
+   |  human approval (checkpoint)
+   v
+edit.json + overlay HTML + a fixed thumbnail (the form the engine consumes)
 ```
 
-- レポートは**編集フローだけでなく生成フローにも使う**: 素材が録画なら「分析 → カット判断」、
-  ゼロから作るなら「リサーチ → 台本 → 生成計画」。エンジン（edit.json + オーバーレイ）は
-  クリップの出自（撮影/生成）を区別しないので、下流は共通
-- 実装形態は**スキル**（`.claude/skills/`）。アプリのコードにしない
-  （本体は合成だけ。判断は全部スキル側 = agent-native）
+- The report is used for an edit flow and for a generation flow. Recorded footage goes through analysis, then cut decisions. A piece made from nothing goes through research, then a script, then a generation plan. The engine (`edit.json` plus overlays) does not care whether a clip was shot or generated, so the downstream path is shared.
+- The implementation form is a skill under `.claude/skills/`. Do not put it in app code. The product only composites. Judgment stays on the skill side. That is the agent-native split.
 
-## analysis.json（素材ごとの中間契約）v0 素案
+## analysis.json v0 draft
+
+One intermediate contract per footage item.
 
 ```jsonc
 {
   "version": 0,
   "source": "raw/2026-07-13-recording.mp4",
-  "transcript": [ { "start": 1.2, "end": 3.4, "text": "…", "speaker": "A", "words": [...] } ],
-  "keyframes": [ { "t": 12.0, "path": "analysis/kf-0012.jpg", "note": "画面共有开始、資料タイトル表示" } ],
+  "transcript": [ { "start": 1.2, "end": 3.4, "text": "...", "speaker": "A", "words": [...] } ],
+  "keyframes": [ { "t": 12.0, "path": "analysis/kf-0012.jpg", "note": "screen share starts and the document title is on screen" } ],
   "events": [
     { "type": "filler", "start": 5.0, "end": 5.8 },
-    { "type": "trouble", "start": 40.0, "end": 55.0, "note": "音声途切れ" },
-    { "type": "chapter", "t": 60.0, "title": "セットアップ手順" },
+    { "type": "trouble", "start": 40.0, "end": 55.0, "note": "audio dropout" },
+    { "type": "chapter", "t": 60.0, "title": "Setup steps" },
     { "type": "hook", "start": 12.0, "end": 24.0, "score": { "hook": 4, "self_contained": 5, "emotion": 3, "density": 4, "punch": 3 } }
   ],
   "tracks": {
     "speakers": [ { "id": "A", "spans": [[0, 65]] } ],
-    "faces": [ { "speaker": "A", "t": 12.0, "box": [0.1, 0.2, 0.3, 0.5] } ],   // リフレーミング用
-    "person_matte": null    // 人物切り抜き（text-behind-person 用）を生成済みならパス
+    "faces": [ { "speaker": "A", "t": 12.0, "box": [0.1, 0.2, 0.3, 0.5] } ],   // for reframing
+    "person_matte": null    // path, once a person cutout for text-behind-person has been generated
   }
 }
 ```
 
-- フック候補の 5 軸スコアは claude-shorts の公開手法を参考（hook 強度/自己完結性/感情強度/
-  価値密度/オチ）。閾値は運用で調整
-- `tracks.faces` / `person_matte` は**リフレーミングと text-behind-person の共通基盤**。
-  人物セグメンテーションの手: Apple Vision Person Segmentation（ローカル・高速）または
-  Robust Video Matting。出力はアルファ付き HEVC（WKWebView が HW デコード可）
-- 分析タイミング: 取り込み時にプロキシ生成と同時に裏で走らせるのを基本とする
-  （粒度の適応・旧参照実装の分析研究の回収は実装時の TODO）
+- The five hook-candidate scores follow the published claude-shorts method: hook strength, self-containedness, emotion, value density, and punchline. Thresholds are tuned in operation.
+- `tracks.faces` and `person_matte` are the shared base for reframing and for text-behind-person. The hand for person segmentation is Apple Vision Person Segmentation (local, fast) or Robust Video Matting. The output is HEVC with alpha, which WKWebView can decode in hardware.
+- When to analyze. By default, run analysis in the background at ingest, at the same time as proxy generation. Adapting granularity, and recovering analysis research from the old reference implementation, are TODOs at implementation time.
 
-## 編集判断レポート規約
+## Editorial-judgment report
 
-**形式**: HTML 1 枚（フレームアナリティクスラボの後継）。章立てを固定する:
+The form is one HTML page, the successor of the frame-analytics lab. The chapter order is fixed.
 
-1. **サムネイル案**（複数、タイトル文字バリエーション付き）— 先頭に置く（CTR 直結・
-   人間が一番言いたい場所）
-2. **分析サマリ** — 素材ごとの要点、根拠フレーム・transcript へのリンク
-3. **編集方針** — 「こういう方向性でやります」+ 理由
-4. **カット判断一覧** — keep/drop と根拠（event 参照）
-5. **素材計画** — 全体で使うもの（BGM）とシーン単位（SFX / B ロール / テロップスタイル /
-   特殊表現）を分け、各枠に**三択判断**を明記:
-   - **あれば提案**: ライブラリ検索ヒット（プレビュー画像付き）
-   - **なければ生成**: 生成案（プロンプト + 生成済み画像）
-   - **だめなら使わない**: 無理に埋めない（明示的な非採用を許す）
-6. **decision_log** — 追記専用の決定記録（(category, subject) キー、後から書き換えない）
+1. Thumbnail proposals. Several, with title-text variants. This chapter is first. It is tied to click-through, and it is where a person most wants to speak.
+2. Analysis summary. The point of each footage item, with links to the supporting frames and to the transcript.
+3. Edit direction. The direction, and the reason for it.
+4. Cut decisions. Keep or drop, with the reason (an event reference).
+5. Footage plan. Split what the whole piece uses (BGM) from what a scene uses (sound effects, B-roll, caption style, and special treatment). Each slot states a three-way decision.
+   - If the library has it, propose it. A library search hit, with a preview image.
+   - If the library does not have it, generate it. A generation proposal, with the prompt and a generated image.
+   - If neither is good enough, do not use it. An explicit rejection is allowed. Do not force a fill.
+6. `decision_log`. An append-only decision record. The key is `(category, subject)`. Do not rewrite an entry later.
 
-**画像の扱い（確定ルール）**: **画像はレポートに込み、動画は承認後**。
-- 静止画（サムネ案・B ロール案・タイトルカード案）は生成してレポートに貼った状態で出す
-- i2v 動画生成・アバター等の高コスト生成は、対応する画像の承認後に実行
-- サムネは 2 経路 + 混成: 経路 A = 実フレーム + HTML 文字組（日本語タイポ精度・
-  Step 1 の「HTML シート → スクショ」技術）/ 経路 B = Codex 画像生成 /
-  混成 = B で背景生成 → A で文字組
+Images are in the report. Video waits for approval.
 
-**承認 UX**: チェックポイント型（方針 → 素材計画 → 実行、の段階承認。既定は明示承認）
+- Generate stills (thumbnail proposals, B-roll proposals, title-card proposals) and place them in the report before the report goes out.
+- Expensive generation, such as image-to-video or an avatar, runs after the matching image is approved.
+- Thumbnails have two paths, plus a mix. Path A is a real frame plus HTML type (Japanese type accuracy, and the step 1 technique of an HTML sheet captured as a screenshot). Path B is Codex image generation. The mix generates the background with B, then sets the type with A.
 
-**Decision Communication Contract**（先行例のパターンを自前実装）:
-- 有償/重い生成の前に「どの手・なぜ」を宣言してから実行
-- 選択肢が複数あるとき黙って既定を選ばない（両論併記）
-- 決定は decision_log に追記（監査可能）
+Approval is a checkpoint. The person approves direction, then the footage plan, then execution. The default is explicit approval.
 
-## 生成スキル契約
+Decision communication, implemented here from the pattern of earlier work:
 
-**手の優先順（確定）**:
-1. **Codex の画像生成** — Codex がプロジェクトディレクトリへ直接ファイルを書き出す。
-   認証は ChatGPT ログインに乗る（API キー管理問題が消える）
-2. **Akari Cloud API / MCP** — アプリ経由ではなくエージェント層から
-- **API キー直叩き（OpenAI / Gemini 等）はスコープ外**（漏洩リスクを個人に負わせない）
-- アプリ本体は生成サービスと一切通信しない（「本体は合成だけ、生成は手」）
-- すべての生成物に provenance（手・プロンプト・日時）を記録
-- 画像 → i2v の二段フロー（画像承認で構図・スタイルが固定されてから動かす）
+- Before a paid or heavy generation, declare which hand you will use and why, then run it.
+- When there is more than one choice, do not silently pick the default. State both.
+- Append the decision to `decision_log`. The log can be audited.
 
-## スキル群の構成（ルーター + リーフ）
+## Generation skill contract
+
+Hand order is fixed.
+
+1. Codex image generation. Codex writes the file straight into the project directory. Auth uses a ChatGPT login, so there is no API-key to manage.
+2. Akari Cloud API or MCP, from the agent layer, not through the app.
+- Calling an API key directly (OpenAI, Gemini, and the others) is out of scope. Do not put the leak risk on one person.
+- The app itself never talks to a generation service. The product only composites. Generation is a hand.
+- Every generated file records provenance: the hand, the prompt, and the time.
+- The flow is two steps, image then image-to-video. Composition and style are fixed by image approval before anything moves.
+
+## Skill set
+
+A router plus leaves.
 
 ```
 akari-video-skills/
-  SKILL.md                 ← ルーター（薄い。FORBIDDEN 級ハードルールのみ）
-  analyze-footage.md       ← 素材 1 本の分析 → analysis.json
-  edit-plan-report.md      ← 統合 → レポート → 承認 → edit.json
-  authoring/               ← オーバーレイ authoring 規約（CLAUDE.md の規約を skill 化）
+  SKILL.md                 # router. Thin. Only hard rules at the FORBIDDEN level
+  analyze-footage.md       # analyze one footage item, write analysis.json
+  edit-plan-report.md      # merge, report, approve, write edit.json
+  authoring/               # overlay authoring rules, the CLAUDE.md rules as skills
     telop.md / table.md / 3d.md / motion.md
-    thumbnail.md           ← 状況→型の対応表 + デザイン語彙 + 経路 A/B/混成の選択ルール
-    text-behind-person.md  ← 人物切り抜き + z 順（切り抜きは analysis の person_matte を使う）
-  harvest.md               ← 素材化（良い成果物 → ライブラリ収穫）
+    thumbnail.md           # situation-to-pattern table, design vocabulary, and the rule for path A, path B, or the mix
+    text-behind-person.md  # person cutout plus z-order. The cutout uses analysis person_matte
+  harvest.md               # turn a good result into a library asset
 ```
 
-- 書式は調査で確認した勝ちパターン: **原則 + 数値閾値 + 「よくある間違い」節**、
-  1 スキル = 1 判断領域、実知識はリーフに置き progressive disclosure
-- サブエージェントは必要なリーフだけ読み込んで並列制作
-- 外部公開する場合は単一エントリポイント（ルーター）の発見性に投資
-  （skills.sh 実測: ルーター 424.9K vs リーフ 2K の一極集中）
+- The shape that won in the survey is a principle, a numeric threshold, and a "common mistakes" section. One skill is one judgment area. Real knowledge lives in the leaves, disclosed as the reader goes deeper.
+- A subagent loads only the leaves it needs and produces in parallel.
+- If this is published outside, invest in making the single entry point (the router) easy to find. A skills.sh measurement showed the router at 424.9K and a leaf at 2K. The traffic sits on the router.
 
-## スコープ外（この契約では扱わない）
+## Out of scope
 
-- スタイル学習（蓄積された edit.json + レポート + 素材が学習素材になる。基盤が先）
-- ストック素材 API 統合（Pexels 等から段階的に。Storyblocks 系 EULA の
-  「AI/ML 利用禁止」条項に注意。音源は Epidemic Sound が**公式 MCP** を提供しており
-  BGM/SFX 枠の「ライセンス済み音源検索の手」の第一候補）
-- コミュニティ配布・販売（素材ライブラリ契約 v0 参照）
+- Style learning. Accumulated `edit.json`, reports, and footage become the learning material later. The base comes first.
+- Stock-footage API integration. Add sources such as Pexels in steps. Watch Storyblocks-style EULA terms that forbid AI and ML use. For audio, Epidemic Sound provides an official MCP and is the first candidate for a hand that searches licensed BGM and sound effects.
+- Community distribution and sales. See the asset library contract v0.
 
-## 追記（2026-07-14）— highlight event と transcript 駆動キーフレーム
+## Addendum (2026-07-14). Highlight events and transcript-driven keyframes
 
-長尺実素材（60 分級）での運用で判明した要求を受けた追加。analysis.json v0 の**後方互換を
-保つ追加語彙**とする（既存 4 種 event・keyframe 必須フィールドは不変。version は 0 据え置き）。
+Additions from operating on long real footage, about 60 minutes. The new vocabulary is backward compatible with analysis.json v0. The existing four event types and the required keyframe fields do not change. `version` stays 0.
 
-### highlight event（重要発言の汎用枠）
+### Highlight event
 
-hook はショート切り出し向けの「見せ場」に特化した物差しであり、決定事項・結論・数字・
-強い主張のような**地味だが編集判断に効く発言**の置き場がなかった。これを `highlight` として
-追加する。
+A general slot for an important line.
+
+A hook is a measure specialized for a "moment to show" in a short. There was no place for a plain line that still changes an edit decision, such as a decision, a conclusion, a number, or a strong claim. Add that place as `highlight`.
 
 ```jsonc
 { "type": "highlight", "start": 312.0, "end": 318.5,
-  "quote": "実発言に忠実な引用", "reason": "リリース日を明言（決定事項）", "importance": 4 }
+  "quote": "a quote faithful to the spoken line", "reason": "states the release date (a decision)", "importance": 4 }
 ```
 
-- `quote` は transcript の実発言に忠実（要約・創作禁止）。`reason` はなぜ重要か。
-  `importance` は 1〜5 の任意スコア
-- 下流の用途: カット判断の keep 根拠 / テロップ引用 / チャプター見出し / サムネ文言 /
-  ショート候補の種
-- transcript が空の素材では作らない（`quote` 必須のため）
+- `quote` stays faithful to the spoken line in the transcript. Do not summarize it and do not invent it. `reason` says why it matters. `importance` is an optional score from 1 to 5.
+- Downstream uses: a keep reason in a cut decision, a caption quote, a chapter title, thumbnail text, or the seed of a short candidate.
+- Do not create one when the transcript is empty. `quote` is required.
 
-### transcript 駆動キーフレーム（第 3 の抽出系統）
+### Transcript-driven keyframes
 
-キーフレーム抽出は従来 scene（映像変化）+ interval（一定間隔の保険）の映像側 2 系統のみで、
-「重要発言の瞬間の画」を狙って拾えなかった。highlight の時刻からフレームを抽出する
-第 3 系統を追加する。
+A third extraction family.
 
-- 効能: 発話と画の対応が取れる / interval を密にして取りこぼしを防ぐ必要が減り、
-  長尺素材での候補数爆発（実測: 62 分 × 10 秒間隔 = 374 候補）を緩和する
-- `keyframes[].origin`（`scene` / `interval` / `transcript`、任意）を追加し、
-  どの系統から採用したかのトレーサビリティを持たせる
+Keyframe extraction used to have only two picture-side families: scene (a visual change) and interval (a safety net at a fixed spacing). It could not aim at the frame of an important line. Add a third family that extracts a frame from a highlight time.
+
+- Effect. Speech and picture can be matched. You no longer need a dense interval to avoid misses, which eases the explosion of candidates on long footage. Measured: 62 minutes at a 10 second interval is 374 candidates.
+- Add optional `keyframes[].origin` (`scene`, `interval`, or `transcript`) so a reader can trace which family accepted the frame.

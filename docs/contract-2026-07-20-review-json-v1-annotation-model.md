@@ -1,35 +1,23 @@
-# review.json v1 注釈モデル（target 5 型）契約
+**English** | [日本語](./contract-2026-07-20-review-json-v1-annotation-model.ja.md)
 
-- 日付: 2026-07-20
-- 状態: 実装ラウンドの SSOT（`review.json` の `annotations[]` レコード形のみ確定）
-- 前提: レビュー第一 UI の方向性メモ §2（本契約はこの節を昇格したもの。
-  メモ原本は非公開の内部記録で管理）、
-  `contract-2026-07-18-edit-json-v1-sources.md` §3/§4（(src, source 秒) 永続化の鉄則と
-  review.json への `src` 伝搬）、`contract-2026-07-17-data-contract-versioning.md`（三原則）、
-  `contract-2026-07-14-edit-json-v1-crop.md`（座標系 rationale と劣化規約の先例）
-- スコープ: `review.json` の `annotations[]` レコード形のみ。キャプチャ UI（矩形描画・
-  ペン・音声同時注釈・asset picker）は扱わない（§9 次段）
+# review.json v1 annotation model (five target kinds)
 
-## 0. version 運用（後方互換）
+- Date: 2026-07-20
+- Status: source of truth for the implementation round. Only the shape of an `annotations[]` record in `review.json` is fixed.
+- Depends on: section 2 of the direction memo for the first review UI, which this contract promotes. The memo itself stays in private internal records. Also sections 3 and 4 of `contract-2026-07-18-edit-json-v1-sources.md` (the rule that `(src, source seconds)` is what gets persisted, and the spread of `src` into review.json), `contract-2026-07-17-data-contract-versioning.md` (the three principles), and `contract-2026-07-14-edit-json-v1-crop.md` (the precedent for the coordinate rationale and for degradation).
+- Scope: only the shape of an `annotations[]` record in `review.json`. The capture UI (drawing a rectangle, a pen, a spoken annotation at the same time, an asset picker) is not covered (section 9).
 
-**data `version` は `0` のまま据え置く。**bump しない。本契約の追加フィールドはすべて
-レコードの**任意フィールド**（`Option`）であり、存在しなければ従来と完全に同じ挙動になる。
+## 0. How version is used
 
-- 契約名の「v1」は edit-json v1 系（crop / audio / sources）と同じ**wave 通称**であり、
-  data の `version: 0` とは**別軸**（`contract-2026-07-14-edit-json-v1-audio.md` §0 と同じ扱い）。
-  schema `$id` の `urn:akari-video:schema:review:v1` も同様に通称側
-- 進化は**追加のみ**・読み手は**寛容リーダー**（未知フィールドを保持し、欠落は既定値で
-  補う）。読み手が既知より大きい `version` を見たときは推測変換せず read-only で正直に
-  停止する（原則 3。`annotation-store.ts` の `parseReview` / `validate-review.mjs` /
-  `edit-lint` の三箇所で実装済み）
-- 予約フィールド `strokes` の有効化は追加的変更である: 旧実装は読み取り時に警告つきで
-  null 化するだけで、**既存行を書き換える経路を持たない**（追記とステータス行置換のみ）
-  ため、旧リーダーが新データを破壊するラウンドトリップは発生しない
+Backward compatible. **The data `version` stays `0`.** Do not bump it. Every field this contract adds is an optional field on the record. When it is absent, behavior matches the previous behavior exactly.
 
-## 1. 確定スキーマ
+- The "v1" in the contract name is a wave nickname, the same as the edit.json v1 family (crop, audio, sources). It is a different axis from the data `version: 0`. The same treatment as section 0 of `contract-2026-07-14-edit-json-v1-audio.md`. The schema `$id` `urn:akari-video:schema:review:v1` is on the nickname side as well.
+- Evolution is additive only. The reader is tolerant. Keep unknown fields. Fill a missing field from its default. When a reader sees a `version` higher than the one it knows, it does not guess a conversion. It stops in read-only and says so (principle 3). This is implemented in three places: `parseReview` in `annotation-store.ts`, `validate-review.mjs`, and `edit-lint`.
+- Turning on the reserved field `strokes` is an additive change. An old implementation only nulls it, with a warning, when it reads. It has no path that rewrites an existing row (it only appends, and it only replaces a status row). An old reader therefore does not destroy new data on a round trip.
 
-正本: `packages/schemas/review.schema.json`（`$id: urn:akari-video:schema:review:v1`、
-`additionalProperties: true`）。実例: `packages/schemas/examples/review-v1-sample/review.json`。
+## 1. Fixed schema
+
+Source of truth: `packages/schemas/review.schema.json` (`$id: urn:akari-video:schema:review:v1`, `additionalProperties: true`). Example: `packages/schemas/examples/review-v1-sample/review.json`.
 
 ```jsonc
 {
@@ -39,29 +27,29 @@
       "id": "a-0007",
       "createdAt": "2026-07-20T09:12:00.000Z",
 
-      // --- 時間アンカー（既存。意味変更なし） ---
-      "src": "s1",                 // 任意。edit.json v1 sources[].id 参照。null/省略 = 単一ソース互換
-      "sourceT": 12.4,             // 必須。source 秒（cuts[].in/out と同一座標系）
-      "sourceRange": [12.4, 15.0], // 任意。[start, end) source 秒。null = 瞬間
+      // Time anchor. Existing. The meaning does not change.
+      "src": "s1",                 // optional. A reference to edit.json v1 sources[].id. null or omitted = single-source compatibility
+      "sourceT": 12.4,             // required. Source seconds. The same coordinate system as cuts[].in and out
+      "sourceRange": [12.4, 15.0], // optional. [start, end) in source seconds. null = an instant
 
-      // --- 対象の分類（新規・追加のみ） ---
-      "targetKind": "region",      // 任意。"instant"|"range"|"region"|"asset"|"insert"|null
-                                   // null = 旧レコード（sourceRange の有無で instant/range を解釈）
-      "region": { "box": [0.62, 0.08, 0.30, 0.22] }, // 任意。[x,y,w,h] 正規化 0〜1・source フレーム基準
-      "strokes": null,             // 予約フィールドを有効化。§1.1 の object stroke 配列
-      "refs": null,                // 任意。[{ "src": "s2" } | { "path": "assets/broll/city.mp4" }]
-      "insertPosition": null,      // 任意。"before"|"after"|null（targetKind insert 用）
+      // What the note is about. New. Additive only.
+      "targetKind": "region",      // optional. "instant" | "range" | "region" | "asset" | "insert" | null
+                                   // null = an old record. Interpret instant or range from whether sourceRange is present
+      "region": { "box": [0.62, 0.08, 0.30, 0.22] }, // optional. Normalized [x, y, w, h], 0 to 1, against the source frame
+      "strokes": null,             // the reserved field, now active. An array of object strokes. Section 1.1
+      "refs": null,                // optional. [{ "src": "s2" } or { "path": "assets/broll/city.mp4" }]
+      "insertPosition": null,      // optional. "before" | "after" | null. For targetKind insert
 
-      // --- 意図と本文（メモ §2 の 4 つ組の残り） ---
-      "intent": "reframe",         // 任意。自由文字列（推奨語彙は §3）
-      "text": "顔がフレームアウトしてる、ここに寄って",  // 既存フィールド = 本文
+      // Intent and body. The rest of the four-part set in memo section 2.
+      "intent": "reframe",         // optional. A free string. The recommended vocabulary is section 3
+      "text": "The face is out of frame. Move in here.",  // existing field. The body
 
-      // --- 既存フィールド（挙動変更なしのもの） ---
-      "timelineT": null,           // 非推奨（§2）。新規書き込みは常に null
-      "target": null,              // 旧フィールド。本ラウンドでは意味を与えない（§5）
+      // Existing fields whose behavior does not change.
+      "timelineT": null,           // deprecated (section 2). A new write is always null
+      "target": null,              // the old field. This round gives it no meaning (section 5)
       "input": "typed",
       "audio": null,
-      "poses": null,               // 予約のまま（実演キャプチャ・別機能）
+      "poses": null,               // still reserved. A performance capture. A different feature
       "status": "open",
       "response": null
     }
@@ -69,161 +57,128 @@
 }
 ```
 
-### フィールド表（新規・変更分のみ。既存フィールドは従来どおり）
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 単位・座標系 |
+New and changed fields only. Existing fields stay as they were.
+
+| Field | Type | Required | Default | Unit and coordinates |
 |---|---|---|---|---|
-| `src` | string \| null | 否 | null | edit.json v1 `sources[].id` 参照（contract-2026-07-18 §4 の昇格） |
-| `targetKind` | enum \| null | 否 | null（= 旧レコード解釈） | `instant` / `range` / `region` / `asset` / `insert` |
-| `region` | `{ box: [x,y,w,h] }` \| null | 否 | null | 正規化 0〜1・**source フレーム基準**。`faceBox` / `crop.box` と同一形式。`x+w<=1` かつ `y+h<=1` |
-| `strokes` | `stroke[]` \| null | 否 | null | §1.1 の object stroke。points は正規化 0〜1、1 ストローク 2 点以上 |
-| `refs` | `[{src} \| {path}][]` \| null | 否 | null | 1 エントリにつき `src` / `path` 排他。`path` はプロジェクト相対 |
-| `insertPosition` | `"before"` \| `"after"` \| null | 否 | null | アンカー (src, sourceT) の timeline 射影位置の前/後 |
-| `intent` | string \| null | 否 | null | 自由文字列（§3 推奨語彙。enum 強制しない） |
-| `timelineT` | number \| null | 否 | null | **非推奨**（§2）。新規書き込みは常に null |
+| `src` | string or null | No | null | A reference to edit.json v1 `sources[].id`. Promoted from section 4 of the 2026-07-18 sources contract |
+| `targetKind` | enum or null | No | null, which means the old-record interpretation | `instant`, `range`, `region`, `asset`, or `insert` |
+| `region` | `{ box: [x, y, w, h] }` or null | No | null | Normalized 0 to 1, against the source frame. The same form as `faceBox` and `crop.box`. `x + w <= 1` and `y + h <= 1` |
+| `strokes` | `stroke[]` or null | No | null | An object stroke from section 1.1. Points are normalized 0 to 1. One stroke has at least two points |
+| `refs` | an array of `{src}` or `{path}`, or null | No | null | `src` and `path` are exclusive inside one entry. `path` is relative to the project |
+| `insertPosition` | `"before"`, `"after"`, or null | No | null | Before or after the timeline projection of the anchor `(src, sourceT)` |
+| `intent` | string or null | No | null | A free string. Recommended vocabulary in section 3. Not a forced enum |
+| `timelineT` | number or null | No | null | Deprecated (section 2). A new write is always null |
 
-### 1.1 review session / document surface rider
+### 1.1 Review session and document-surface rider
 
-実装済みの追加契約を全 consumer で同じ形に固定する。
+Pin the additions that are already implemented, so every consumer uses the same shape.
 
-- `input` は `"typed" | "voice" | "session"`。
-- `status` は `"open" | "addressed" | "resolved"`。`addressed` は AI の対応済みであって
-  人間確認済みではなく、未解決として扱う。`resolved` だけが人間確認済みである。
-- `target` が `doc:<path>#<block-id>`、`image:<path>`、`canvas:<c-NNNN>` のときだけ
-  `sourceT:null` を許容する。動画面では従来どおり 0 以上の source 秒が必要である。
-- `strokes[]` は `{tool:"pen", space, points, ...}` の object。`content-rect` は
-  `frame:{sourceT,cutIndex?}` と `sessionRef` が必須、`image-rect` / `canvas-rect` は
-  `frame` を持たない。後二者の `sessionRef` / `canvasRef` は任意である。
+- `input` is `"typed"`, `"voice"`, or `"session"`.
+- `status` is `"open"`, `"addressed"`, or `"resolved"`. `addressed` means the AI has responded. It does not mean a person has confirmed it. Treat it as unresolved. Only `resolved` means a person has confirmed it.
+- `sourceT: null` is allowed only when `target` is `doc:<path>#<block-id>`, `image:<path>`, or `canvas:<c-NNNN>`. On a video surface, a source second of at least 0 is still required.
+- `strokes[]` is an object `{tool: "pen", space, points, ...}`. `content-rect` requires `frame: {sourceT, cutIndex?}` and `sessionRef`. `image-rect` and `canvas-rect` have no `frame`. For those two, `sessionRef` and `canvasRef` are optional.
 
-実行可能仕様は `packages/schemas/fixtures/review/` に一元化し、`validate-review` と
-`edit-lint` が同じ valid / invalid 全件を消費する。片方だけの専用 fixture で契約差を
-覆い隠してはならない。
+The executable specification lives in one place, `packages/schemas/fixtures/review/`. `validate-review` and `edit-lint` both consume every valid case and every invalid case. A fixture that only one of them owns must not hide a contract difference.
 
-## 2. 座標系
+## 2. Coordinates
 
-### 時間 — (src, source 秒) で永続化する
+### Time
 
-`contract-2026-07-18` §3 の鉄則をそのまま踏襲する: 注釈は `(src, sourceT/sourceRange)` で
-永続化し、**timeline 秒へ変換した結果を永続化してはならない**。表示のたびに、その時点の
-`cuts[]` から timeline 秒へ射影する。cut の並べ替え・トリム・同一区間再利用で注釈が
-ズレることを防ぐ。
+Persist `(src, source seconds)`.
 
-`timelineT` はこの鉄則より前に生まれた旧フィールドであり、**deprecate-in-place** とする:
-追加のみ原則によりフィールド削除はしない（型は残る）が、書き込み実装は常に `null` を
-書き、非 null を読んだリーダーは警告を出し**値を根拠にしない**。
+Follow the rule in section 3 of the 2026-07-18 sources contract as it is. Persist an annotation as `(src, sourceT or sourceRange)`. Do not persist the timeline seconds you got by converting them. On each display, project onto timeline seconds from the `cuts[]` of that moment. That stops an annotation from drifting when cuts are reordered, trimmed, or reused.
 
-### 空間 — source フレーム正規化 0〜1
+`timelineT` is an old field from before that rule. Deprecate it in place. The additive-only principle means the field is not deleted. The type stays. A write always writes `null`. A reader that sees a non-null value warns and does not use the value as evidence.
 
-`region.box` / `strokes` の座標は **source フレーム基準**の正規化 0〜1。出力（合成後）
-フレーム基準にしない理由は crop 契約 §2 と同型: 出力基準で永続化すると、当該カットの
-`crop` キーフレームが後から変わった瞬間に座標が黙って腐る。source 基準なら下流の
-リフレーミング判断と独立に安定する。`box` の形式は `analysis.schema.json` の `faceBox` /
-`crop.keyframes[].box` と**同一**（`[x, y, w, h]`、`x+w<=1` かつ `y+h<=1`）で、契約を
-またいだ矩形表現を 1 つに揃える。
+### Space
 
-## 3. targetKind の整合と解決規則
+Normalized 0 to 1 against the source frame.
 
-`targetKind` は判別子であり、型ごとの期待フィールドは**助言レベル**（warning。エラーに
-しない）。null / 省略は旧レコードで、従来どおり `sourceRange` の有無で instant / range を
-解釈する。
+Coordinates in `region.box` and `strokes` are normalized 0 to 1 against the source frame. They are not against the output frame after compositing. The reason matches section 2 of the crop contract. If you persist output coordinates, the coordinates rot quietly the moment that cut's `crop` keyframe changes later. Source coordinates stay stable, independent of a later reframing decision. The form of `box` is the same as `faceBox` in `analysis.schema.json` and `crop.keyframes[].box`: `[x, y, w, h]`, with `x + w <= 1` and `y + h <= 1`. One rectangle form across the contracts.
 
-| `targetKind` | 期待するフィールド | 欠落時 |
+## 3. How targetKind agrees, and how it resolves
+
+`targetKind` is a discriminator. The fields each kind expects are advice. A miss is a warning, not an error. Null or omitted means an old record. Interpret instant or range from whether `sourceRange` is present, as before.
+
+| `targetKind` | Expected fields | When they are missing |
 |---|---|---|
-| `instant` | （`sourceT` のみで十分） | — |
-| `range` | `sourceRange` 非 null | warning |
-| `region` | `region` または `strokes` 非 null（両方あれば `region.box` が勝ち + warning） | warning |
-| `asset` | `refs` 非 null・非空 | warning |
-| `insert` | `insertPosition` あり | warning |
+| `instant` | `sourceT` alone is enough | none |
+| `range` | `sourceRange` is not null | warning |
+| `region` | `region` or `strokes` is not null. If both are present, `region.box` wins, and warn | warning |
+| `asset` | `refs` is not null and not empty | warning |
+| `insert` | `insertPosition` is present | warning |
 
-### 挿入アンカーの解決（targetKind: insert）
+### Resolving an insert anchor
 
-- アンカーは `(src, sourceT)` + `insertPosition`。「この source 瞬間に対応する timeline
-  位置の before / after に挿入する」という意味。先頭挿入 = 最初に生き残る瞬間 + `before`、
-  末尾挿入 = 最後に生き残る瞬間 + `after`
-- アンカーが現在の `cuts[]` に覆われていない（カットで落ちた）場合、注釈は**破棄しない**
-  （人間の意図を消さない）。自動配置は未解決とし、`edit-lint` が warning
-  `review.insert-anchor-unresolved` を出す
-- 同一 `(src, sourceT)` が複数 cut に覆われる場合（v1 の 1 対多写像）は **`cuts[]` 配列順で
-  最初にマッチした cut** を採用し、warning `review.insert-anchor-ambiguous` を出す
-  （crop 契約 §4「配列順そのままの 0 番目」の先例踏襲）
-- v1（マルチソース）で `src` が無い insert アンカーは解決不能 → warning
+`targetKind` is `insert`.
 
-### intent の推奨語彙（enum 強制しない）
+- The anchor is `(src, sourceT)` plus `insertPosition`. It means "insert before or after the timeline position that corresponds to this source instant". An insert at the start is the first instant that survives, plus `before`. An insert at the end is the last instant that survives, plus `after`.
+- When the anchor is not covered by the current `cuts[]` (a cut dropped it), do not discard the annotation. Do not erase a person's intent. Leave automatic placement unresolved, and edit-lint warns with `review.insert-anchor-unresolved`.
+- When the same `(src, sourceT)` is covered by more than one cut (the v1 one-to-many map), use the first cut that matches in `cuts[]` array order, and warn with `review.insert-anchor-ambiguous`. This follows section 4 of the crop contract, which uses index 0 in array order.
+- On v1 (more than one source), an insert anchor with no `src` cannot be resolved. Warn.
 
-`cut / keep / reframe / insert / replace / reorder / fix / pace / mute / caption /
-question / praise / other`。UI・AI のヒント用であり、validator は「空でない文字列」のみ
-検査する。語彙追加に version 変更は不要。
+### Recommended intent vocabulary
 
-## 4. 劣化規約
+Not a forced enum.
 
-注釈は**助言データ**であり、書き出し・プレビュー・lint 全体の成否を左右してはならない
-（crop 契約 §6・M5「だめなら使わない」と同じ哲学）。読み手（`annotation-store.ts`）は
-壊れた要素だけを警告つきで無視し、ファイル全体を落とさない。
+`cut`, `keep`, `reframe`, `insert`, `replace`, `reorder`, `fix`, `pace`, `mute`, `caption`, `question`, `praise`, `other`. These are hints for the UI and for the AI. The validator checks only that the string is non-empty. Adding a word does not require a version change.
 
-| 状況 | 挙動 |
+## 4. Degradation
+
+An annotation is advice. It must not decide whether export, preview, or lint as a whole succeeds. The same idea as section 6 of the crop contract and the M5 rule "if it is no good, do not use it". The reader (`annotation-store.ts`) ignores only the broken element, with a warning, and does not drop the whole file.
+
+| Situation | Behavior |
 |---|---|
-| `targetKind` が未知の値 | null 扱い + warning（レコード自体は表示する） |
-| `region` / `strokes` が不正形 | 当該フィールドのみ null + warning |
-| `strokes` の一部ストロークが不正 | 不正なストロークだけ捨てて残りを使う + warning |
-| `refs` の一部エントリが不正（src/path 両方・両方なし等） | 不正エントリだけ捨てる + warning |
-| `refs[].path` の実体ファイルが無い | edit-lint warning `review.refs-file`（エラーにしない） |
-| insert アンカーがカットで落ちている | 自動配置を未解決化 + warning（§3。注釈は残す） |
-| `timelineT` 非 null | 警告 + 値は使わない（cuts[] から再射影） |
-| `poses` 非 null | 予約フィールドとして無視 + warning（従来どおり） |
-| `version > 0` | **read-only で正直に停止**（原則 3）。「新しい形式です。スキル / アプリを更新してください」 |
+| `targetKind` is an unknown value | Treat it as null and warn. Still show the record. |
+| `region` or `strokes` has a bad shape | Null only that field, and warn. |
+| Some strokes inside `strokes` are invalid | Drop only the invalid strokes, keep the rest, and warn. |
+| Some `refs` entries are invalid (both `src` and `path`, or neither) | Drop only the invalid entries, and warn. |
+| The file named by `refs[].path` does not exist | edit-lint warning `review.refs-file`. Not an error. |
+| An insert anchor was dropped by a cut | Leave automatic placement unresolved and warn (section 3). Keep the annotation. |
+| `timelineT` is not null | Warn, and do not use the value. Project again from `cuts[]`. |
+| `poses` is not null | Ignore it as a reserved field, and warn. As before. |
+| `version > 0` | Stop in read-only and say so (principle 3). The file uses a newer format. Update the skill or the app. |
 
-## 5. データ設計意図
+## 5. Why the data is shaped this way
 
-- **フラットな任意フィールド + 判別子であり、ネスト union（`target: {kind, ...}`）に
-  しない理由**: 既存レコードが `sourceT` / `sourceRange` をフラットに持っており、
-  `annotation-store.ts` の行単位手術編集（1 レコード = 1 行、`serializeAnnotationLine` の
-  フィールド逐次連結）と整合する。旧レコード（判別子なし）がそのまま有効であり続ける
-- **旧 `target: string | null` フィールドに触らない理由**: 実装上一度も非 null を書かれた
-  ことがなく、文書化された意味も無い。改名は破壊的変更（bump 必須）になるため今回は
-  据え置き、`targetKind` との名前衝突をここに開示するに留める。将来の整理は次段
-- **`refs` にカタログ参照（category/id/scope）を持たせない理由**: 素材ライブラリ契約の
-  copy-don't-link 規律により、注釈が具体参照を持てる時点で対象はプロジェクト内の実体
-  パスか `sources[].id` になっている。スコープ解決の語彙をサイドカーへ持ち込まない
-- **本メモ §2 の 4 つ組との対応**: 対象 = (`src`, `sourceT`, `sourceRange`, `targetKind`,
-  `region`, `strokes`, `refs`, `insertPosition`) の束、意図 = `intent`、本文 = `text`
-  （改名しない）、参照 = `refs`
+- The record is flat optional fields plus a discriminator, not a nested union such as `target: {kind, ...}`. Existing records already hold `sourceT` and `sourceRange` flat, and that matches the line-level surgical edit in `annotation-store.ts` (one record is one line, and `serializeAnnotationLine` concatenates fields in order). An old record, with no discriminator, stays valid as it is.
+- The old `target: string | null` field is left alone. Nothing has ever written a non-null value, and no documented meaning exists. Renaming it would be a breaking change and would require a bump, so this round leaves it. This section only discloses the name collision with `targetKind`. Cleaning it up is the next stage.
+- `refs` does not carry a catalog reference (`category`, `id`, `scope`). The asset library's rule is copy, do not link. By the time an annotation can point at something concrete, the target is a body path inside the project or a `sources[].id`. Do not bring scope-resolution vocabulary into the sidecar.
+- Correspondence with the four-part set in memo section 2. The subject is the bundle of `src`, `sourceT`, `sourceRange`, `targetKind`, `region`, `strokes`, `refs`, and `insertPosition`. The intent is `intent`. The body is `text`, which is not renamed. The reference is `refs`.
 
-## 6. よくある間違い
+## 6. Common mistakes
 
-- **`target` と `targetKind` を混同する** — `target` は旧・実質未使用フィールド（§5）。
-  対象分類は `targetKind`
-- **`region.box` / `strokes` を出力（合成後）フレーム座標で書く** — 誤り。source フレーム
-  基準（§2）。キャプチャ UI は表示座標から **crop 変換の逆写像**を通してから永続化する
-  こと（crop が効いたプレビュー上の描画をそのまま保存すると腐る）
-- **`timelineT` に値を書く** — 誤り。timeline 位置は表示のたびに `cuts[]` から射影する
-- **`intent` を閉じた enum として検証する** — 誤り。自由文字列 + 推奨語彙（§3）
-- **`refs[].src` が edit.json v0（単一 source）でも解決されると期待する** — `src` 参照の
-  整合検査は edit.json v1 のときのみ（captions の `src` と同じ扱い）
-- **`sourceRange` の end を含む区間だと誤解する** — `[start, end)`（`cuts[].in/out` と同じ）
+- Mixing up `target` and `targetKind`. `target` is the old field, effectively unused (section 5). The subject classification is `targetKind`.
+- Writing `region.box` or `strokes` in output-frame coordinates, after compositing. That is wrong. They are against the source frame (section 2). The capture UI persists a displayed coordinate only after the inverse of the crop transform. Saving a drawing on a preview that already has crop, as-is, rots the coordinate.
+- Writing a value into `timelineT`. That is wrong. Project the timeline position from `cuts[]` on every display.
+- Validating `intent` as a closed enum. That is wrong. It is a free string plus a recommended vocabulary (section 3).
+- Expecting `refs[].src` to resolve on edit.json v0, a single source. The reference check runs only for edit.json v1. The same treatment as `src` on captions.
+- Reading the end of `sourceRange` as included. It is `[start, end)`, the same as `cuts[].in` and `out`.
 
-## 7. マイグレーション
+## 7. Migration
 
-（空欄 — `version` bump は発生していない。bump する場合はここに旧→新の機械実行可能な
-変換手順を必ず併記する。`contract-2026-07-17` 原則 2）
+Empty. No `version` bump has happened. When a bump happens, write the machine-runnable old-to-new conversion here in the same change. Principle 2 of `contract-2026-07-17-data-contract-versioning.md`.
 
-## 8. 検証責務
+## 8. Who checks what
 
-| 層 | 実体 | 責務 |
+| Layer | Where | Duty |
 |---|---|---|
-| 参照文書 | `packages/schemas/review.schema.json` | 形の SSOT（`additionalProperties: true` の寛容リーダー） |
-| 単一ファイル検査 | `packages/schemas/bin/validate-review.mjs` | 構造・値域・id 一意性。targetKind 整合は warning（stderr）で exit code に影響しない |
-| 横断検査 | `packages/edit-lint`（`validateReview`） | `src` / `refs[].src` の edit.json v1 参照整合、insert アンカー解決、`refs[].path` 実在、fixtures = 実行可能仕様 |
-| アプリ読み書き | `annotation-store.ts` | 寛容パース（劣化規約 §4）と行単位手術書き込み。version ガード |
+| Reference document | `packages/schemas/review.schema.json` | Source of truth for the shape. A tolerant reader, `additionalProperties: true` |
+| One-file check | `packages/schemas/bin/validate-review.mjs` | Structure, ranges, and unique ids. `targetKind` agreement is a warning on stderr and does not change the exit code |
+| Cross-file check | `packages/edit-lint` (`validateReview`) | edit.json v1 reference checks for `src` and `refs[].src`, insert-anchor resolution, whether `refs[].path` exists, and fixtures as the executable specification |
+| App read and write | `annotation-store.ts` | A tolerant parse (degradation in section 4) and a line-level surgical write. A version guard |
 
-validate-review と edit-lint の検査重複は意図的（validate-edit / edit-lint の既存関係と
-同じ。単体はスキーマ隣接の速い門番、edit-lint はプロジェクト横断の門番）。
+The overlap between validate-review and edit-lint is on purpose. It is the same relationship as validate-edit and edit-lint. The single-file check is the fast gate next to the schema. edit-lint is the gate across the project.
 
-## 9. 次段（本契約のスコープ外）
+## 9. Next stage
 
-- キャプチャ UI: 矩形描画・フリーハンドペン・音声同時注釈・asset picker（本契約の
-  フィールドを埋める側。逆写像の注意は §6）
-- `poses` の有効化（実演キャプチャ — 別機能）
-- 旧 `target` フィールドの整理（bump を伴うため独立判断）
-- `.akari/events` の `annotation-created` イベントへの targetKind メタデータ付与
-- 応答 3 チャネル（decisions.json / review.json / git diff）との関係整理の深掘り
-  （`response` フィールドの現行挙動は変更していない）
+Out of scope for this contract.
+
+- Capture UI. Drawing a rectangle, a freehand pen, a spoken annotation at the same time, and an asset picker. That side fills the fields in this contract. The inverse-map warning is in section 6.
+- Turning `poses` on. Performance capture. A different feature.
+- Cleaning up the old `target` field. It needs a bump, so it is a separate decision.
+- Adding `targetKind` metadata to the `annotation-created` event under `.akari/events`.
+- A deeper pass on how this relates to the three response channels (decisions.json, review.json, and git diff). The current behavior of the `response` field is unchanged.

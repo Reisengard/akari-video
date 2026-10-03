@@ -1,73 +1,68 @@
-# 3D ベイクレシピ契約 v0（Blender 経路）
+**English** | [日本語](./contract-2026-07-14-3d-bake-recipe.ja.md)
 
-- 日付: 2026-07-14
-- 状態: 実装済み（同日の実証ラウンドで全ゲート通過。§実装状態を参照）
-- 関連: `contract-2026-07-13-asset-library.md`（meta.json v0 / 入庫基準 / コピーして使う規律）、
-  `.claude/skills/overlay-authoring/3d.md`（経路 A の authoring 規約）
+# 3D bake recipe contract v0 (Blender path)
 
-## 経路の振り分け（本書の位置づけ）
+- Date: 2026-07-14
+- Status: implemented. The same day's proof round passed every gate. See "Implementation status".
+- Related: `contract-2026-07-13-asset-library.md` (`meta.json` v0, intake rules, and the copy-to-use rule) and `.claude/skills/overlay-authoring/3d.md` (the authoring rules for path A).
 
-3D には 2 経路あり、本書は**経路 B（ベイク）**の契約。
+## Which path this contract is
 
-| 経路 | 用途 | ランタイム | 契約 |
+3D has two paths. This contract is path B, the bake.
+
+| Path | Use | Runtime | Contract |
 |---|---|---|---|
-| A: Three.js オーバーレイ | 映像の**上に重なる**ライブ 3D（ロゴ回転・VideoTexture スクリーン等） | 透明 WebView（seek hook 等は未実装ゲートあり） | `overlay-authoring/3d.md` |
-| B: Blender ベイク | 3D シーンを動かして**映像素材（クリップ）そのもの**を作る | なし（焼いた mp4 は通常素材） | 本書 |
+| A. Three.js overlay | Live 3D stacked on top of the picture (a spinning logo, a VideoTexture screen, and similar) | A transparent WebView. Some gates, such as the seek hook, are not implemented | `overlay-authoring/3d.md` |
+| B. Blender bake | Move a 3D scene and produce the picture footage itself, a clip | None. The baked mp4 is ordinary footage | This contract |
 
-- 判定基準: タイムライン上でクリップ（映像そのもの）として置くなら B。映像の上のオーバーレイ表現なら A
-- **B はエンジン無改修**: 焼いた mp4 は edit.json の通常クリップとして既存の preview / export を
-  そのまま通る。映像そのものが真実なので WYSIWYG は構造的に成立する
-- **エディタ内に 3D シーンオーサリング機能は作らない**（スコープ外）。小さな DCC の自作は
-  恒久的な開発負担になる。オーサリングは Blender（bpy スクリプト = エージェントが書く）に寄せる
+- Test. If it sits on the timeline as a clip, the picture itself, use B. If it is an overlay expression on top of the picture, use A.
+- B does not change the engine. The baked mp4 passes through the existing preview and export as an ordinary edit.json clip. The picture itself is the truth, so what you see is what you get, by structure.
+- Do not build a 3D scene authoring feature inside the editor. That is out of scope. A small homemade DCC becomes a permanent development cost. Authoring stays in Blender. The agent writes the bpy script.
 
-## 思想: レシピ = SSOT、ベイク = 再生成可能キャッシュ
+## Recipe is the source of truth. The bake is a cache
 
-- **レシピ（`scene.py` + params + アセット参照）が正典**。焼いた映像は派生物
-- ベイク出力は再生成可能キャッシュとして扱う。レシピ + params + Blender バージョンが
-  provenance に残っていれば、いつ消しても再生成できる
-- エージェントは**スクリプトを直接編集**する（ツールコールの積み重ねはしない）。
-  edit.json / オーバーレイ HTML と同じ規律をシーン記述にも適用する
+- The recipe (`scene.py`, plus params, plus asset references) is canonical. The baked picture is a derivative.
+- Treat bake output as a cache that can be generated again. If the recipe, the params, and the Blender version are in provenance, you can delete the bake at any time and generate it again.
+- The agent edits the script directly. It does not stack tool calls. The same rule as edit.json and overlay HTML applies to the scene description.
 
-## レシピ構造（素材ライブラリ契約 v0 準拠）
+## Recipe layout
+
+This follows asset library contract v0.
 
 ```
 assets/scene3d/<id>/
-  meta.json          ← knobs は param で宣言（cssVar の代わり）
-  scene.py           ← 実体。bpy スクリプト（シーン構築 or .blend 読み込み + param 適用 + レンダー設定）
-  *.glb / *.hdr      ← 参照アセット（ライセンス確認のうえコピー。catalog 参照配布の規律に従う）
-  preview.png        ← 低解像度ベイクの静止プレビュー（最小 3 点セットの一角）
-  preview.mp4        ← 任意。動きが本質のレシピは短尺の動画プレビューを推奨
+  meta.json          # knobs are declared with param, instead of cssVar
+  scene.py           # the body. A bpy script that builds the scene, or loads a .blend, applies params, and sets the render
+  *.glb / *.hdr      # referenced assets. Copy them after a license check. Follow the catalog's reference-distribution rule
+  preview.png        # a still preview of a low-resolution bake. One of the minimum three files
+  preview.mp4        # optional. A recipe whose point is motion should ship a short video preview
 ```
 
-- **実体判定**: `3d` カテゴリの素材は `fragment.html`（経路 A）か `scene.py`（経路 B）の
-  どちらかを実体に持つ。両方は持たない
-- `requires` に `"blender"` を宣言する（経路 A の `"three.js"` に相当）
-- 入庫基準は素材ライブラリ契約と同じ: 「生成コストが高い、または生成不能なものだけ」。
-  シーン構築・ライティング・カメラワークの設計コストが高いレシピだけを入れる
+- Which file is the body. A footage item in the `3d` category has either `fragment.html` (path A) or `scene.py` (path B) as its body. It does not have both.
+- Declare `"blender"` in `requires`. That matches `"three.js"` on path A.
+- Intake matches the asset library contract. Admit only what is expensive to generate, or impossible to generate. Admit a recipe only when the scene, the lighting, or the camera design is expensive.
 
-## knobs（ツマミ宣言）
+## Knobs
 
-- meta.json v0 の knobs 型システム（`text` / `color` / `slider` / `dropdown` / `checkbox` /
-  `media`）をそのまま使い、`cssVar` の代わりに **`param`（snake_case）** でスクリプト引数へ
-  バインドする
+Use the `meta.json` v0 knob types as they are (`text`, `color`, `slider`, `dropdown`, `checkbox`, `media`). Bind a knob to a script argument with `param` (snake_case) instead of `cssVar`.
 
 ```jsonc
 {
   "knobs": [
-    { "param": "camera_orbit_deg", "type": "slider", "min": -180, "max": 180, "unit": "deg", "group": "pose", "label": "カメラ周回角" },
-    { "param": "hdri_rotation_deg", "type": "slider", "min": 0, "max": 360, "unit": "deg", "group": "light", "label": "環境光の向き" },
-    { "param": "body_color", "type": "color", "group": "style", "label": "ボディ色" },
-    { "param": "screen_src", "type": "media", "group": "content", "label": "画面に映す動画" }
+    { "param": "camera_orbit_deg", "type": "slider", "min": -180, "max": 180, "unit": "deg", "group": "pose", "label": "Camera orbit" },
+    { "param": "hdri_rotation_deg", "type": "slider", "min": 0, "max": 360, "unit": "deg", "group": "light", "label": "Environment light direction" },
+    { "param": "body_color", "type": "color", "group": "style", "label": "Body color" },
+    { "param": "screen_src", "type": "media", "group": "content", "label": "Video on the screen" }
   ]
 }
 ```
 
-- `scene.py` は**宣言された param 以外の外部入力を持たない**: 環境変数・wall-clock・
-  暗黙 seed の乱数・ネットワーク取得を禁止（オーバーレイの wall-clock 禁止と同じ思想）
-- schema は `schemas/asset-meta.schema.json` に後方互換で追加（knob は `cssVar` か `param` の
-  どちらか一方を必須とする）
+- `scene.py` has no external input other than the declared params. Environment variables, wall-clock time, an implicit random seed, and network fetches are forbidden. This is the same idea as the overlay ban on wall-clock time.
+- The schema adds this to `schemas/asset-meta.schema.json` in a backward-compatible way. A knob requires exactly one of `cssVar` or `param`.
 
-## 実行契約（ヘッドレスベイク）
+## Run contract
+
+Headless bake.
 
 ```
 blender -b -P scene.py -- \
@@ -76,74 +71,58 @@ blender -b -P scene.py -- \
   --set camera_orbit_deg=30 --set body_color=#1a1a2e ...
 ```
 
-- **決定性**: 同じレシピ + 同じ params + 同じ Blender バージョン → 同じ映像。
-  乱数は固定 seed。物理・パーティクルは seed 固定またはベイク済みキャッシュを使う
-- **品質 2 段**:
-  - `draft` = EEVEE + 低解像度（ツマミ調整の反復用。数秒〜数十秒で回す）
-  - `final` = 出力解像度（必要なら Cycles）。書き出し直前だけ
-  - プロファイルは param ではなく実行フラグ。**同じ scene.py が両方を通る**
-    （プレビューは近似・書き出しが正確、と同じ心的モデル）
-- fps はプロジェクトの fps に合わせる。時間はフレーム番号の関数として求める
+- Determinism. The same recipe, the same params, and the same Blender version produce the same picture. Random numbers use a fixed seed. Physics and particles use a fixed seed or a baked cache.
+- Two quality steps.
+  - `draft` is EEVEE at low resolution. Use it to iterate on knobs. A pass takes seconds to tens of seconds.
+  - `final` is output resolution, and Cycles when you need it. Run it only just before export.
+  - The profile is a run flag, not a param. The same `scene.py` passes through both. Preview is the approximation. Export is exact. That is the same mental model.
+- Match fps to the project fps. Compute time as a function of the frame number.
 
-## 容量規律（ディスクを焼かない）
+## Disk discipline
 
-容量を食う真犯人は Blender 本体（約 0.5GB・一回きり）ではなく、連番レンダーとパック .blend。
-以下を規律とする:
+Do not fill the disk.
 
-1. **連番静止画をデフォルトで残さない**。Blender の動画出力または ffmpeg 直結で mp4 へ直書き。
-   中間連番が必要な場合（EXR 合成等）も合成後に削除する
-2. **.blend にアセットをパックしない**（参照リンク）。アセット実体は素材ディレクトリに 1 つだけ
-3. **draft は低解像度・短尺**で回す。フル解像度ベイクは書き出し直前の 1 回
-4. ベイク出力は再生成可能キャッシュ（前掲）。ディスクが逼迫したら bakes/ から消してよい
+The thing that eats space is not the Blender application itself (about 0.5 GB, once). It is image sequences and packed `.blend` files. The rules:
 
-## 使用規律（プロジェクトへの採用）
+1. Do not keep an image sequence by default. Write an mp4 directly from Blender's video output, or straight into ffmpeg. When an intermediate sequence is required, such as an EXR composite, delete it after the composite.
+2. Do not pack assets into the `.blend`. Link them. Keep one copy of each asset body in the footage directory.
+3. Run `draft` at low resolution and short duration. A full-resolution bake is one run, just before export.
+4. Bake output is a cache that can be generated again, as above. If disk is tight, delete files under `bakes/`.
 
-素材ライブラリ契約の「**コピーして使う。リンクしない**」をレシピにも適用する:
+## How a project adopts a recipe
+
+Apply the asset library rule. Copy it. Do not link it.
 
 ```
-<project>/assets/scene3d/<id>/     ← レシピ一式を複製（scene.py + 参照アセット + meta.json）
-  bakes/                      ← ベイク出力（再生成可能・削除可）
+<project>/assets/scene3d/<id>/     # a copy of the recipe set (scene.py, referenced assets, meta.json)
+  bakes/                      # bake output. Can be generated again. Safe to delete
     <id>-draft.mp4
     <id>-final.mp4
 ```
 
-- 採用 = レシピ一式をプロジェクトへ複製 → params 上書き → ベイク → mp4 を edit.json に
-  クリップ配置。ライブラリが消えても過去案件が再現できる（自己完結）
-- provenance にプロジェクト側で記録: レシピ id / 取得元と版 / 適用 params / Blender バージョン /
-  出力プロファイル。これが揃っていれば bakes/ は消してよい
-- 編集プレビューは 720p プロキシ第一の既存原則に従う（draft ベイク自体を 720p 以下にすれば
-  プロキシ生成は不要）
+- Adopting a recipe means copying the recipe set into the project, overriding params, baking, and placing the mp4 as a clip in edit.json. A past project can still be reproduced after the library is gone. The project is self-contained.
+- Record provenance on the project side: recipe id, where it was taken from and which version, the params applied, the Blender version, and the output profile. When that set is complete, `bakes/` may be deleted.
+- Edit preview follows the existing rule that a 720p proxy comes first. If the draft bake itself is 720p or below, you do not need to generate a proxy.
 
-## 道具としての Blender
+## Blender as a tool
 
-- ffmpeg / HyperFrames と同格の「手」（外部 CLI）。**エンジンに組み込まない・バンドルしない**
-- setup スキルの道具チェック対象に追加する（未導入なら導入を案内。ffmpeg と同じ扱い）
-- bpy スクリプトはテキストなので、エージェントが直接書ける・git で差分管理できる・
-  レシピとして配布できる（カタログの参照配布とも整合: scene.py はテキストだから同梱できる。
-  重い .glb / .hdr は catalog の `source` 経由で各自取得）
+- Blender is a hand, an external CLI, at the same rank as ffmpeg and HyperFrames. Do not build it into the engine. Do not bundle it.
+- Add it to the tool check in the setup skill. If it is missing, guide the install. Treat it the way ffmpeg is treated.
+- A bpy script is text, so an agent can write it directly, git can diff it, and it can be distributed as a recipe. That matches the catalog's reference distribution. `scene.py` is text, so it can ship with the catalog. A heavy `.glb` or `.hdr` is fetched by each person through the catalog `source`.
 
-## 実装状態（2026-07-14 実証ラウンドで全ゲート通過）
+## Implementation status
 
-- [x] `schemas/asset-meta.schema.json` / `scripts/validate-asset.mjs` に knob `param` を
-      後方互換で追加（既存 meta.json 12 件の検証通過を確認）
-- [x] bake スキル: `.claude/skills/bake-3d/SKILL.md`（scene.py authoring 契約・実行・検証・
-      入庫までの手順）
-- [x] setup スキルの道具チェックに Blender を追加（条件付き道具。常設 3 道具に影響させない）
-- [x] 最初のレシピ: `assets/scene3d/vintage-camera-turntable/`（catalog の vintage-camera +
-      studio-hdri を取得し、glTF 2k を単一 .glb へ梱包。validate-asset.mjs 通過）
-- [x] EEVEE ヘッドレス実測（Blender 5.1.2 / macOS / Apple Silicon）: 720p・16 samples で
-      約 0.55 秒/フレーム。4 秒素材（120 フレーム）のドラフトが約 66 秒
-- 5.x API 注意（実測で確定）: エンジン ID は `BLENDER_EEVEE`（`_NEXT` 廃止）。動画出力は
-  `image_settings.media_type = "VIDEO"` を先に立ててから `file_format = "FFMPEG"`
-  （4.x に media_type は無いため hasattr で分岐する）
+Every gate passed in the proof round on 2026-07-14.
 
-### 残タスク（同日ラウンド 2 で消化）
+- [x] `schemas/asset-meta.schema.json` and `scripts/validate-asset.mjs` gained knob `param`, backward compatible. The existing 12 `meta.json` files still validate.
+- [x] Bake skill: `.claude/skills/bake-3d/SKILL.md`. The steps cover the `scene.py` authoring contract, the run, verification, and intake.
+- [x] The setup skill's tool check now includes Blender. It is a conditional tool. The three always-on tools are unchanged.
+- [x] First recipe: `assets/scene3d/vintage-camera-turntable/`. It fetches the catalog's vintage-camera and studio-hdri and packs the glTF 2k into one `.glb`. `validate-asset.mjs` passes.
+- [x] Headless EEVEE measurement (Blender 5.1.2, macOS, Apple Silicon). About 0.55 seconds per frame at 720p and 16 samples. A draft of 4 seconds of footage (120 frames) is about 66 seconds.
+- 5.x API notes, fixed by measurement. The engine id is `BLENDER_EEVEE` (`_NEXT` is gone). For video output, set `image_settings.media_type = "VIDEO"` first, then `file_format = "FFMPEG"`. 4.x has no `media_type`, so branch with `hasattr`.
 
-- [x] final プロファイル実測（1080p / 64 samples）: 約 3.83 秒/フレーム、4 秒素材 = 約 7.7 分
-      （draft の約 7 倍）。運用は「ツマミ調整は draft で反復、final は書き出し直前の 1 回」で確定
-- [x] プロジェクト採用フロー実戦: レシピ複製 → params 上書き → ベイク → edit.json 配置 →
-      構造検証まで通過。mp4 書き出しの実機確認のみ GUI アプリ起動が必要なため未実施（既知ギャップ）
-- [x] レシピ 2 本目 `assets/scene3d/smartphone-mockup/`: media 型ツマミ（`screen_src`）の実証。
-      スクリーン面のみ Emission 差し替え、動画差し込み時のフレーム同期も ImageUser 経由で
-      frame の純関数（wall-clock 不使用）。取得元は CC0（OpenGameArt）、catalog に
-      `modern-smartphone` として取得先索引も追加
+### Remaining tasks, finished in round 2 the same day
+
+- [x] `final` profile measurement (1080p, 64 samples). About 3.83 seconds per frame. 4 seconds of footage is about 7.7 minutes, about 7 times the draft. Operation is fixed. Iterate knobs on draft. Run final once, just before export.
+- [x] The project adoption flow was run for real. Copy the recipe, override params, bake, place it in edit.json, and pass structural verification. A live check of the mp4 export was not done, because it needs the GUI app to start. That gap is known.
+- [x] Second recipe, `assets/scene3d/smartphone-mockup/`. It proves a `media` knob (`screen_src`). Only the screen surface swaps its Emission. When a video is inserted, frame sync goes through ImageUser and is a pure function of the frame. It does not use wall-clock time. The source is CC0 (OpenGameArt). The catalog also gained a fetch index entry named `modern-smartphone`.

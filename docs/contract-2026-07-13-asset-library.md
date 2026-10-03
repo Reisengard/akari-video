@@ -1,176 +1,156 @@
-# 素材ライブラリ契約 v0
+**English** | [日本語](./contract-2026-07-13-asset-library.ja.md)
 
-ライブラリの置き場は既定で作業場の `library/`。作業場が無いときは従来の `~/.akari/assets/` を使う。
-`akari-assets list`（または `akari assets list`）の先頭行で実際の置き場を確認する。
-以下の `<ライブラリの置き場>` はその表示先を指し、音源はその下の `audio/` に入る。
+# Asset library contract v0
 
-- 日付: 2026-07-13
-- 状態: 設計確定
-- 前提: 本体（エンジン）は合成だけ。素材とその知識は全部外側に置く
+The library lives in the workplace `library/` by default. When there is no workplace, use the previous `~/.akari/assets/`. Confirm the real location on the first line of `akari-assets list` (or `akari assets list`). `<library root>` below means that displayed location. Audio goes in `audio/` under it.
 
-## 思想
+- Date: 2026-07-13
+- Status: design fixed
+- Depends on: the engine only composites. Assets, and what is known about them, all live outside it.
 
-- **Pool 等の外部基盤に依存しない。ゼロベースのファイルベース**。git リポジトリが正典
-- **LLM Wiki の単純さ**: AI は INDEX.md を読む → カテゴリを深掘る → meta.json を読む、で
-  完結。人間も同じ道を歩ける。検索エンジンは当面持たない
-- 実証済みの型を踏襲する: shadcn レジストリ方式（コピーして手元で改変・JSON スキーマ）。
-  先行のコンポーネント配布エコシステムが動画コンポーネントで同型を実証済み
+## Principles
 
-## 入庫基準（最重要）
+- Do not depend on an external platform such as Pool. A file base, from zero. The git repository is the source of truth.
+- The simplicity of an LLM wiki. The AI reads INDEX.md, goes deeper into a category, and reads meta.json. That finishes the job. A person can walk the same path. There is no search engine for now.
+- Follow a shape that is already proven. The shadcn registry method, copy it and change it locally, with a JSON schema. An earlier component-distribution ecosystem has already shown the same shape for video components.
 
-**「生成コストが高い、または生成不能なものだけ」を入れる。**
+## What may enter
 
-- 入れる: 3D モデル（スマホモックアップ等）、多要素の複雑モーション、デザイン完成度の
-  高いテロップ/サムネ構図、音源、B ロール素材
-- 入れない: 単純な字幕スタイル・素朴なアニメーション（自然言語で毎回生成できるものは
-  ライブラリを肥やさない）
-- ユーザーが保存するマイスタイルは別契約の `styles/` に置き、この入庫基準の対象外とする。
-- 数は増やしすぎない。INDEX.md ナビが成立する規模を保つ
+The most important rule.
 
-## 構造
+**Admit only what is expensive to generate, or impossible to generate.**
+
+- Admit a 3D model (a phone mockup, for example), a complex motion with many parts, a highly finished caption or thumbnail composition, audio, and B-roll footage.
+- Do not admit a simple caption style or a plain animation. Anything natural language can generate each time does not grow the library.
+- A user's saved "my style" lives in `styles/` under a separate contract. It is outside this admission rule.
+- Do not grow the count too far. Keep a size where INDEX.md navigation still works.
+
+## Structure
 
 ```
-assets/                     ← 当面はローカルディレクトリ。コミュニティ化で独立リポへ昇格
-  INDEX.md                  ← 背骨。カテゴリごと 1 行説明
+assets/                     For now, a local directory. A community step promotes it to its own repository.
+  INDEX.md                  The spine. One line of description per category.
   scene3d/
-    INDEX.md                ← 「smartphone-mockup — 手に持てる iPhone 風。製品紹介向け」
+    INDEX.md                "smartphone-mockup. A phone you can hold, in an iPhone-like shape. For a product intro."
     smartphone-mockup/
       meta.json
-      fragment.html         ← 実体（Three.js + glTF 参照、authoring 規約準拠）
+      fragment.html         The file itself. Three.js plus a glTF reference, following the authoring rules.
       model.glb
       preview.png
-  overlay/  （telop / board / mockup / motion を tags で区別）
-  still/    （サムネ構図など）
-  audio/    （bgm / sfx を tags で区別）
+  overlay/                  telop, board, mockup, and motion are distinguished by tags
+  still/                    thumbnail compositions and similar
+  audio/                    bgm and sfx are distinguished by tags
   broll/
   font/
 ```
 
-> カテゴリ名は 2026-07-29 に主題軸（`3d` / `motion` / `telop` / `thumbnail`）から**配布物の形**へ
-> 切り替えた。以下本文に残る旧名は歴史的記述であり、正となる語彙は §カテゴリ軸の再定義（本書末尾）。
+> On 2026-07-29 the category names switched from a subject axis (`3d`, `motion`, `telop`, `thumbnail`) to the shape of the distributed file. Old names that remain in the body below are historical. The vocabulary that is in force is the section "Category axis" at the end of this document.
 
-- **階層はカテゴリ → 素材の 2 段で打ち止め**（Fab がカテゴリ縮退した教訓）。
-  横断軸（雰囲気・シーン種別・アスペクト）は tags に逃がす
-- 1 素材 = 1 ディレクトリ。実体 + meta.json + preview.png が最小 3 点セット
+- Stop the hierarchy at two levels, category then asset. The lesson from Fab collapsing its categories. A cross-cutting axis (mood, scene kind, aspect) goes into tags.
+- One asset is one directory. The file itself, meta.json, and preview.png are the minimum set of three.
 
-## meta.json スキーマ v0
+## meta.json schema v0
 
 ```jsonc
 {
   "id": "smartphone-mockup",
-  "category": "scene3d",                  // ディレクトリと一致（単一。複数カテゴリ禁止）
-  "title": "スマホ 3D モックアップ",
-  "description": "手に持てる iPhone 風モックアップ。画面に任意動画/画像を差し込める",  // 検索用
-  "when_to_use": "アプリ紹介・製品デモ・UI 解説のシーン",   // AI 検索の主シグナル
+  "category": "scene3d",                  // matches the directory. One category. Several categories are forbidden.
+  "title": "Phone 3D mockup",
+  "description": "An iPhone-like mockup you can hold. Any video or image can be placed on the screen.",  // for search
+  "when_to_use": "A scene that introduces an app, demos a product, or explains a UI.",   // the main signal for AI search
   "tags": ["product-demo", "tech", "16:9", "9:16"],
-  "knobs": [                              // .mogrt Essential Graphics の型システムを踏襲
-    { "cssVar": "--screen-src", "type": "media", "group": "content", "label": "画面に映す動画" },
+  "knobs": [                              // follows the .mogrt Essential Graphics type system
+    { "cssVar": "--screen-src", "type": "media", "group": "content", "label": "Video on the screen" },
     { "cssVar": "--rotate-y", "type": "slider", "min": -45, "max": 45, "unit": "deg", "group": "pose" },
     { "cssVar": "--body-color", "type": "color", "group": "style" }
   ],
-  "ai_usage": "画面テクスチャと角度・色は自由に変えてよい。ベゼル形状のジオメトリは崩さない",  // 先行例の AI Usage 節を踏襲
+  "ai_usage": "The screen texture, the angle, and the color may change freely. Do not break the bezel geometry.",  // follows the AI Usage section of the earlier example
   "requires": ["three.js", "gltf"],
-  "provenance": { "origin": "案件 xxx / 2026-07-01", "generator": null },  // 生成物なら手とプロンプト
+  "provenance": { "origin": "Project xxx / 2026-07-01", "generator": null },  // for a generated file, the hand and the prompt
   "author": "akari",
   "license": { "spdx": "MIT", "scope": "commercial-ok", "attribution_required": false,
-               "ai_training_allowed": true },   // Fab の NoAI タグに相当する予約（市場化で必ず問われる）
-  "price": null                           // 予約フィールド（null = 無料。将来のマーケットプレイス用）
+               "ai_training_allowed": true },   // a reserved equivalent of Fab's NoAI tag. A market will always ask.
+  "price": null                           // a reserved field. null means free. For a future marketplace.
 }
 ```
 
-- `license` / `author` / `price` は**最初から予約**（後の販売プラットフォーム化で再梱包不要に）
-- **`knobs.unit` は「値に付く CSS 単位」**（2026-07-29 明確化）。`px` / `s` のように実際に
-  値へ付く単位だけを書き、**無単位の倍率・比率（短辺比など）では `unit` を省略する**。
-  意味は `label` に書く（例「木枠の太さ（短辺比。0 で枠なし）」）。この規律により、
-  ツールが `--var board-width=940` を `940px` へ、比率のツマミは数値のまま渡せる
-  （HTML 素材のパラメータ展開）。ここを混ぜると `width: 940` という無効な CSS が生まれ、
-  **絵は変わるが「効いた」のではなく「壊れた」**という誤検知が検査側にも起きる
-- `knobs.type` の語彙: `text` / `color` / `slider` / `dropdown` / `checkbox` / `media`
-  （.mogrt と同じ心的モデル。世界中のモーションデザイナーが既に知っている語彙）
-- `.mogrt` フォーマット自体は**採用しない**（AE ランタイム前提の専有コンテナ。実行不能）。
-  型システムだけ借りる。将来「.mogrt → 本パッケージ」変換スキルの余地は残る
+- `license`, `author`, and `price` are reserved from the start, so a later sales platform does not have to repack the file.
+- **`knobs.unit` is the CSS unit attached to the value** (clarified 2026-07-29). Write only a unit that is actually attached to the value, such as `px` or `s`. Omit `unit` for a unitless scale or ratio, such as a short-side ratio. Write the meaning in `label`, for example "Frame thickness (short-side ratio. 0 means no frame)." Under this rule a tool can pass `--var board-width=940` as `940px`, and can pass a ratio knob as a bare number. That is how parameters expand on an HTML asset. Mixing the two produces invalid CSS such as `width: 940`. The picture changes, and the check can misread a break as "it took effect."
+- The vocabulary of `knobs.type` is `text`, `color`, `slider`, `dropdown`, `checkbox`, and `media`. The same model as `.mogrt`, vocabulary motion designers already know.
+- Do not adopt the `.mogrt` format itself. It is a proprietary container that assumes an After Effects runtime, and it cannot run here. Borrow only the type system. Leave room for a future skill that converts `.mogrt` into this package.
 
-## 使用規律
+## How an asset is used
 
-- **コピーして使う。リンクしない**: 採用 = プロジェクトの `overlays/` へ複製 + 変数上書き。
-  edit.json の自己完結（ライブラリが消えても過去案件が再現できる）を守る
-- 使用時に provenance をプロジェクト側に記録（どのライブラリのどの版から来たか）
+- Copy it. Do not link it. Adopting an asset means copying it into the project's `overlays/` and overriding variables. Keep edit.json self-contained, so a past job can still be reproduced after the library is gone.
+- On use, record provenance on the project side. Which library, and which version, it came from.
 
-## 検索の段階計画
+## Search, in stages
 
-1. **今**: INDEX.md + grep（LLM ネイティブ。これで足りる規模を保つ）
-2. **増えたら**: `catalog.json` を自動生成（Generated Wiki 層。機械フィルタ用）
-3. **コミュニティ化**: 静的サイト + JSON インデックス（shadcn レジストリ同型）。
-   MCP は**検索窓口としてのみ**後付け（正典は常に git リポ。Descript の
-   「Don't ship your API as an MCP」の教訓）
+1. Now. INDEX.md plus grep. Native to an LLM. Keep the library at a size where this is enough.
+2. When it grows. Generate `catalog.json` automatically. A generated wiki layer, for machine filtering.
+3. When it becomes a community. A static site plus a JSON index, the same shape as the shadcn registry. Add MCP only as a search window, later. The source of truth is always the git repository. The lesson from Descript is "Don't ship your API as an MCP."
 
-## 収穫フライホイール（素材化スキル）
+## Harvest
 
-案件で作った良い成果物を、メタデータ付きパッケージにしてライブラリへ収穫する
-「素材化」スキルを用意する。使うほどライブラリが肥える。これがスタイル学習の前段。
+A skill that turns a good result from a job into a package with metadata and harvests it into the library. The library grows as it is used. This is the step before style learning.
 
-- **導出可能な値は自動抽出する**（Fab が 3D ファイルから頂点数等を自動抽出するのと同型）:
-  fragment 内の CSS 変数一覧 → knobs 候補、`<script>` 依存 → requires、サイズ等は
-  スキルが解析して埋め、人間/エージェントには判断が要る欄（when_use / ai_usage）だけ書かせる
-- 将来の単一ファイル配布は dotLottie 方式（ZIP + manifest、仕様公開）を手本に
-  `.akari-asset` として検討（今はディレクトリのまま）
+- Extract a value that can be derived. The same shape as Fab extracting a vertex count and similar facts from a 3D file. The list of CSS variables inside a fragment becomes knob candidates. A `<script>` dependency becomes `requires`. The skill analyzes size and similar facts and fills them in. A person or an agent writes only the fields that need a judgment (`when_to_use` and `ai_usage`).
+- A future single-file distribution takes the dotLottie method as the model, a ZIP plus a manifest, with a public spec, and is considered as `.akari-asset`. For now it stays a directory.
 
-## コミュニティ（将来。今は作らない）
+## Community
 
-- 投稿 = PR（git がそのまま受け皿）。品質はレビューステータス可視化 + 採用実績の自然選別
+Later. Not built now.
 
-## カタログと取得スキル（2026-07-14 追記）
+- A submission is a pull request. Git is the inbox as it stands. Quality is a visible review status, plus which submissions actually get used.
 
-### 素材の3層モデル
+## Catalog and the fetch skill (added 2026-07-14)
+
+### Three layers of assets
 
 ```
-① assets/   ローカル・個人ライブラリ（本書の本文）。実体をコピーして使う
-② catalog/  クラウド管理のカタログ。配布するのは「メタデータ + 取得先 URL」のみ。
-             バイナリそのものはホストしない
-③ setup / fetch スキル  catalog/ を読み、ユーザー自身に取得元から入手させて ① へ落とす
+1. assets/          A local, personal library. The body of this document. Copy the file and use it.
+2. catalog/         A cloud-managed catalog. What is distributed is metadata plus a fetch URL only.
+                    The binary itself is not hosted.
+3. setup / fetch    A skill that reads catalog/, has the user obtain the file from the source,
+                    and drops it into layer 1.
 ```
 
-- `catalog/` は `assets/` と同じ meta.json v0 契約を使う。バイナリを持たない代わりに
-  `source` ブロックと `remote: true` を持つ
-- 取得の実行主体は常にユーザー（またはユーザーに代わって動くエージェント）。カタログ自身は
-  素材を配布・保管しない
+- `catalog/` uses the same meta.json v0 contract as `assets/`. Instead of a binary it has a `source` block and `remote: true`.
+- The actor that fetches is always the user, or an agent acting for the user. The catalog itself does not distribute or store the asset.
 
-### catalog エントリのスキーマ
+### Schema of a catalog entry
 
-meta.json v0 の必須フィールド一式に加えて、以下を持つ:
+In addition to the required fields of meta.json v0, an entry has the following.
 
 ```jsonc
 {
-  // ...meta.json v0 の必須フィールドはそのまま...
+  // the required fields of meta.json v0, unchanged
   "remote": true,
   "source": {
-    "url": "https://example.com/asset/123",       // 取得先ページ、または直接ファイル URL
-    "acquisition": "direct",                        // direct | login | purchase
-    "license_at_source": "CC0 1.0",                  // 取得元が明示するライセンス表記（原文ベース）
-    "attribution_required": false,                   // 取得元での帰属表示要否
-    "preview_url": "https://example.com/asset/123/preview.jpg"  // 任意。外部ホストのプレビュー画像
+    "url": "https://example.com/asset/123",       // the fetch page, or a direct file URL
+    "acquisition": "direct",                        // direct, login, or purchase
+    "license_at_source": "CC0 1.0",                  // the license text the source states, based on the original wording
+    "attribution_required": false,                   // whether the source requires attribution
+    "preview_url": "https://example.com/asset/123/preview.jpg"  // optional. A preview image on an external host.
   }
 }
 ```
 
-- `source.acquisition` の語彙: `direct`（そのまま DL 可能）/ `login`（会員登録が要る）/
-  `purchase`（購入が要る）
-- `remote: true` のエントリは実体ファイル（fragment.html / preview.png / バイナリ等）を
-  一切持たない。`source` ブロックが実体の代わりに立つ
-- スキーマは `schemas/asset-meta.schema.json` に後方互換で追加済み。`source` / `remote` は
-  任意フィールドなので、既存の `assets/` 側 meta.json は無改修で有効なまま
+- The vocabulary of `source.acquisition` is `direct` (a download as it stands), `login` (an account is required), and `purchase` (a purchase is required).
+- An entry with `remote: true` has no real files at all. No fragment.html, no preview.png, no binary. The `source` block stands in for the file.
+- The schema was added with backward compatibility in `schemas/asset-meta.schema.json`. `source` and `remote` are optional fields, so an existing meta.json on the `assets/` side stays valid with no edit.
 
-### catalog/ の構造
+### Structure of catalog/
 
-`assets/` と同型（カテゴリ→エントリの2段 + INDEX.md 背骨）:
+The same shape as `assets/`. Two levels, category then entry, plus an INDEX.md spine.
 
 ```
 catalog/
-  INDEX.md              ← 背骨。カテゴリごと1行説明
+  INDEX.md              The spine. One line of description per category.
   3d/
     INDEX.md
     <id>/
-      meta.json          ← 実体ファイルは持たない
+      meta.json          No real file is stored.
   font/
     INDEX.md
     <id>/
@@ -178,283 +158,208 @@ catalog/
   ...
 ```
 
-- 階層は `assets/` と揃えてカテゴリ→エントリの2段で打ち止め（同じ心的モデルで辿れることを
-  優先する）
-- **font カテゴリを新設する**: 特定の書体は入庫基準（「生成コストが高い、または生成不能な
-  ものだけ」）に厳密に適合する。自然言語生成では特定フォントのグリフそのものは再現できない
-  ため、常に取得元からの入手が前提になる。フォントはバイナリを直接同梱せず、常に
-  `remote: true` として扱う（再配布ライセンスは取得元次第のため）
-- category enum は `3d` / `motion` / `telop` / `audio` / `broll` / `font` に拡張する
-  （後方互換。既存カテゴリの意味は変えない）
+- Stop the hierarchy at two levels, category then entry, lined up with `assets/`. The priority is that a person can walk it with the same model.
+- Add a font category. A specific typeface fits the admission rule strictly, "only what is expensive to generate, or impossible to generate." Natural-language generation cannot reproduce the glyphs of a specific font, so obtaining it from a source is always the premise. Do not bundle a font binary directly. Always treat it as `remote: true`, because the redistribution license depends on the source.
+- Extend the category enum to `3d`, `motion`, `telop`, `audio`, `broll`, and `font`. Backward compatible. The meaning of an existing category does not change.
 
-### パッケージマネージャ同型
+### The same shape as a package manager
 
-catalog は「取得先の索引」であって「配布そのもの」ではない。Homebrew の formula や npm の
-`package.json` が実体を持たず取得手順だけを記述するのと同じ型を踏襲する。各自の環境に
-「取らせる」ことで、バイナリの再配布・著作権の問題を構造的に回避する。
+A catalog is an index of where to fetch, not the distribution itself. Follow the same shape as a Homebrew formula or an npm `package.json`, which holds no file and describes only how to obtain it. Having each environment fetch the file avoids, by structure, redistributing a binary and the copyright problem that comes with it.
 
-### CC0 ファースト方針
+### CC0 first
 
-catalog に載せる素材は、取得元のライセンスが CC0 相当（帰属表示不要・商用利用可・改変可）の
-ものを優先する。帰属表示が必要な素材も載せてよいが、その場合は必ず
-`source.attribution_required: true` を立てる。
+Prefer assets whose source license is equivalent to CC0 (no attribution required, commercial use allowed, modification allowed) when placing them in the catalog. An asset that requires attribution may also be listed. In that case set `source.attribution_required: true`.
 
-### attribution_required → 将来のクレジット自動挿入
+### attribution_required, reserved for automatic credit insertion
 
-`source.attribution_required` は現時点では表示用のフラグに留まるが、将来は書き出し時の
-クレジット欄（エンドロール等）へ自動挿入する仕組みへ接続する設計余地として予約する。
+`source.attribution_required` is only a display flag for now. It is reserved as a design seat that later connects to automatic insertion into a credit line at export, such as an end roll.
 
-### remote エントリでの preview の扱い
+### Preview on a remote entry
 
-`remote: true` のエントリは実体もサムネイルも同梱しない。かわりに `source.preview_url`
-（任意フィールド）に、取得元がホストするプレビュー画像の URL を記録できる。ビューワー /
-エージェントはこの URL を参照専用で表示し、AKARI Video 側では画像を保持・再配布しない。
-`preview_url` を欠くエントリは `source.url` のページ自体をプレビュー代わりに開く運用でよい。
+An entry with `remote: true` bundles neither the file nor a thumbnail. Instead, `source.preview_url` (an optional field) may record the URL of a preview image the source hosts. A viewer and an agent display that URL as a reference only. AKARI Video does not keep the image and does not redistribute it. An entry that lacks `preview_url` may open the page at `source.url` itself in place of a preview.
 
-## アセットのスコープ階層（2026-07-14 追記）
+## Asset scope layers
 
-素材はディレクトリなので、設定ファイルの階層探索（プロジェクト → 上位 → ユーザーグローバル）と
-同じスコープモデルが成立する。層ごとに生存範囲を分ける。
+Added 2026-07-14.
 
-| 層 | 場所 | 生存範囲 |
+An asset is a directory, so the same scope model as a settings-file walk works. Project, then parents, then the user global. Each layer has its own reach.
+
+| Layer | Place | Applies to |
 |---|---|---|
-| `local` | `<プロジェクト>/assets/` | そのプロジェクトのみ |
-| `shared` | プロジェクトから上位へ辿った各ディレクトリの `.akari/assets/`（2026-07-25 第三裁定で確定） | そのディレクトリ配下の全プロジェクト（事業・組織単位。複数層可） |
-| `user` | `<ライブラリの置き場>/`（2026-07-25 第三裁定で確定） | そのマシンの全プロジェクト |
-| `builtin` | 本リポの `assets/` | 製品出荷デフォルト |
-| `catalog` | 本リポの `catalog/`（remote） | 取得して任意の層へ入庫 |
+| `local` | `<project>/assets/` | That project only |
+| `shared` | `.akari/assets/` in each directory walked upward from the project (fixed by the third ruling on 2026-07-25) | Every project under that directory. A business or an organization. Several layers are allowed. |
+| `user` | `<library root>/` (fixed by the third ruling on 2026-07-25) | Every project on that machine |
+| `builtin` | `assets/` in this repository | The product's shipped default |
+| `catalog` | `catalog/` in this repository (remote) | Fetch it, then admit it into any layer |
 
-- **検索順序**: `local` → `shared`（近い順）→ `user` → `builtin` → `catalog`。
-  同一 id が複数層にあるときは**近い層が勝つ**（shadowing）
-- 全層が**同じ構造**（`<category>/<id>/` + 層直下の `INDEX.md`）と同じ meta.json v0 を使う。
-  `validate-asset.mjs` も層を問わず同じものを使う
-- **「コピーして使う」原則は不変**: どの層から採用してもプロジェクトの `overlays/` へ複製する。
-  スコープは検索範囲の話であり、層をまたぐ参照・symlink は作らない
-- **harvest（素材化）は登録先の層を必ず人間に確認する**。判断の目安:
-  プロジェクト固有の文言・素材が残る → `local` / 事業・チーム内で再利用 → `shared` /
-  どのプロジェクトでも使う自分の定番 → `user`。`builtin` への昇格は PR 経路
-  （コミュニティ化と同じ道）
-- ~~ディレクトリ名 `.akari-video/` は初期案（要オーナー確認。`.akari` 等への変更余地あり）~~ →
-  ~~2026-07-25 の同日再裁定で `.akari-video` のまま確定~~ →
-  **2026-07-25 第三裁定で `.akari` に再確定**（末尾「ディレクトリ名の裁定」追記を参照）
-- 編集後のフィードバックが入口になる: 「このテロップよかった、登録して」→ harvest スキルが
-  発動し、スコープを聞いて入庫する。コーナーキャプションやサムネ構図
-  （HTML 文字組テンプレ）も同様に登録できるよう、category に `thumbnail` を追加する
+- Search order is `local`, then `shared` (nearest first), then `user`, then `builtin`, then `catalog`. When the same id exists in several layers, the nearer layer wins (shadowing).
+- Every layer uses the same structure (`<category>/<id>/` plus an `INDEX.md` directly under the layer) and the same meta.json v0. `validate-asset.mjs` is the same regardless of layer.
+- The principle "copy it, do not link it" does not change. Whichever layer an asset is adopted from, copy it into the project's `overlays/`. Scope is about the search range. Do not make a reference or a symlink across layers.
+- Harvest must ask the person which layer to register into. A guide for the judgment: wording or footage that stays specific to the project goes to `local`. Reuse inside a business or a team goes to `shared`. A personal standard used on every project goes to `user`. Promotion to `builtin` is a pull request, the same path as becoming a community.
+- ~~The directory name `.akari-video/` was the initial proposal (needs owner confirmation, with room to change to `.akari` and similar).~~ Then ~~the same-day re-ruling on 2026-07-25 kept `.akari-video`.~~ Then **the third ruling on 2026-07-25 settled `.akari` again.** See the addendum "Directory name ruling" at the end.
+- Feedback after an edit is the entrance. "This caption was good, register it." The harvest skill starts, asks the scope, and admits the asset. A corner caption and a thumbnail composition (an HTML type template) can be registered the same way, so add `thumbnail` to category.
 
-## ディレクトリ名の裁定（2026-07-25 追記・第三裁定で確定）
+## Directory name ruling
 
-~~**確定裁定（2026-07-25 再裁定）: プロジェクト外の置き場所は `~/.akari-video/` をベースに
-統一する。** 初期案保留（旧「`.akari-video/` は初期案」項）はこれで解消。~~
+Added 2026-07-25. Fixed by the third ruling.
 
-**履歴（2026-07-25 第三裁定）: 当時の user 素材は `~/.akari/` 直下だった。2026-09-21 から素材は作業場 `library/` に移行し、マシン状態のみ `~/.akari/` に残す。**
-`~/.akari/` 直下には他ソフトウェアの既存物が併存する場合があるため、共存規約
-（本節末尾を参照）を必ず守る。
+~~**Fixed ruling (the re-ruling on 2026-07-25). Locations outside a project are unified on `~/.akari-video/` as the base.** The held initial proposal (the old item "`.akari-video/` is the initial proposal") is resolved by this.~~
 
-同日中に裁定が三転した経緯（第一〜第三裁定の変遷と撤回理由）は、
-オーナーのローカル環境の詳細を含むため非公開の内部記録で管理する（本リポには置かない方針）。
+History, the third ruling on 2026-07-25. User assets at that time lived directly under `~/.akari/`. From 2026-09-21, assets moved to the workplace `library/`, and only machine state remains in `~/.akari/`. Other software's existing files may sit directly under `~/.akari/`, so keep the coexistence rules in the next section.
 
-確定事項（2026-07-25 第三裁定で更新。カッコ内は第二裁定時点の値）:
+The story of the ruling turning three times on the same day, the first through third rulings and why each was withdrawn, includes detail of the owner's local environment. It is kept in a private internal record. It is not placed in this repository.
 
-- `user` 層: `<ライブラリの置き場>/`（第二裁定時点: `~/.akari-video/assets/`）
-- `shared` 層: 上位ディレクトリの `.akari/assets/`（第二裁定時点: `.akari-video/assets/`）
-- レシピ: `~/.akari/recipes/`（recipe v0 の現行表記のまま・変更不要。出所は
-  `docs/contract-2026-07-25-recipe-v0.md` §2 に追記）
-- ドロップフォルダ既定: `~/.akari/audio-drop/`（`~/.config/akari-video/audio-drop` から変更。
-  XDG 系ツリーも基底へ寄せる裁定は維持し、向き先のみ第三裁定に追従）
-- 以後のプロジェクト外置き場所（styles 等）もすべて `~/.akari/` 配下に置く
+What is fixed (updated by the third ruling on 2026-07-25. The value in parentheses is the value at the second ruling):
 
-残作業（本タスク `2026-07-25-akari-home-base-alignment`〔第三裁定版〕で実施）:
+- The `user` layer is `<library root>/` (at the second ruling, `~/.akari-video/assets/`).
+- The `shared` layer is `.akari/assets/` in a parent directory (at the second ruling, `.akari-video/assets/`).
+- Recipes are `~/.akari/recipes/`. The current wording of recipe v0 is unchanged, and no change is required. The source is added as one line in section 2 of `docs/contract-2026-07-25-recipe-v0.md`.
+- The default drop folder is `~/.akari/audio-drop/`. Changed from `~/.config/akari-video/audio-drop`. The ruling that pulls an XDG-style tree onto the base is kept. Only the destination follows the third ruling.
+- Later locations outside a project, including styles, all live under `~/.akari/`.
 
-1. recipe v0 のパス参照: 置換は行わない（現状 `~/.akari/recipes/` のまま = 第三裁定下では
-   正しい）。`docs/contract-2026-07-25-recipe-v0.md` §2 に出所リンクを 1 行追記する
-2. `register-drop-folder.mjs` の `dropDir` 既定値を `~/.akari/audio-drop/` へ
-3. 射程外（現状維持）: `~/.config/akari-video/` の `credentials.env` / `voice-profiles`
-   （認証情報の置き場は別論点。本裁定では動かさない）
-4. 第二裁定時点の基底（`~/.akari-video/`）に残る既存実データの移設はオーナーが別途実施
+Remaining work (done in this task, `2026-07-25-akari-home-base-alignment`, the third-ruling edition):
 
-## `~/.akari/` の共存規約（2026-07-25 第三裁定で新設）
+1. Path references in recipe v0. Do not substitute. The current `~/.akari/recipes/` is already correct under the third ruling. Add one source link in section 2 of `docs/contract-2026-07-25-recipe-v0.md`.
+2. Change the `dropDir` default in `register-drop-folder.mjs` to `~/.akari/audio-drop/`.
+3. Out of range, leave as it is. `credentials.env` and `voice-profiles` under `~/.config/akari-video/`. Where credentials live is a separate question. This ruling does not move them.
+4. Moving existing real data that remains on the second ruling's base (`~/.akari-video/`) is done separately by the owner.
 
-`~/.akari/` 直下には他ソフトウェアの既存物が併存する場合がある。AKARI Video が
-`~/.akari/` 直下で行ってよいのは**自分が所有する新規サブディレクトリ（`recipes/` `assets/`
-`audio-drop/` 等）の作成と管理のみ**とする。
+## Coexistence rules for `~/.akari/`
 
-- **不可触**: `~/.akari/` 直下にある自分の所有物以外のファイル・ディレクトリには
-  読み書きとも一切手を出さない
-- **予約名の禁止**: home レベル（`~/.akari/` 直下）で `cache/` という名前は将来も
-  使わない（他ソフトウェアの所有名と衝突するため）。AKARI Video 自身のキャッシュは
-  プロジェクト内 `.akari/cache/` に置く（project-structure v0 契約を参照）
-- **既存物の扱い**: 併存する既存物の整理・移設は AKARI Video 側の契約・タスクの射程外
+Created by the third ruling on 2026-07-25.
 
-## 素材の版と互換性（2026-07-30 導入）
+Other software's existing files may sit directly under `~/.akari/`. The only thing AKARI Video may do directly under `~/.akari/` is create and manage a new subdirectory that it owns, such as `recipes/`, `assets/`, and `audio-drop/`.
 
-`docs/contract-2026-07-17-data-contract-versioning.md` §3 の棚卸しで「`.meta.json` は `version`
-無し → 任意フィールドとして追加」と残っていた宿題を果たす。任意フィールドを 2 つ足す。
+- Do not touch. Do not read or write a file or a directory directly under `~/.akari/` that AKARI Video does not own.
+- No reserved name. Do not use the name `cache/` at home level, directly under `~/.akari/`, in the future either. It collides with a name another piece of software owns. AKARI Video's own cache lives in `.akari/cache/` inside the project. See the project-structure v0 contract.
+- Existing files. Tidying or moving coexisting files is outside the range of an AKARI Video contract or task.
+
+## Asset version and compatibility
+
+Introduced 2026-07-30.
+
+This completes a leftover in the inventory of section 3 of `docs/contract-2026-07-17-data-contract-versioning.md`. "`.meta.json` has no `version`, so add it as an optional field." Add two optional fields.
 
 ```jsonc
-"version": 1,               // 素材の版。整数。初版は 1
-"min_app_version": "0.5.0"  // 任意。この素材が要求する AKARI Video の最低版
+"version": 1,               // the asset's version. An integer. The first version is 1.
+"min_app_version": "0.5.0"  // optional. The minimum AKARI Video version this asset requires.
 ```
 
-### なぜ必要か
+### Why it is needed
 
-**過去案件は壊れない**（「コピーして使う・リンクしない」原則により、採用時にプロジェクトへ
-複製されるため）。版が要るのは次の 3 場面である。
+A past job does not break. The principle "copy it, do not link it" copies the asset into the project at adoption time. A version is needed in the next three situations.
 
-1. **新しい版へ乗り換えるとき** — ツマミが改名・削除されていると `edit.json.overlays[].vars` の
-   指定が**黙って効かなくなる**。エラーにならないのが最も危ない
-2. **買った人へ更新を届けるとき** — 何が変わり、どの指定が壊れるかを伝える手段が要る
-3. **道具と素材の相性** — 古い版のアプリ / CLI で新しい素材を開いたときに、推測せず
-   正直に止まるため（versioning 契約 原則 3 と同型）。要求が無い素材では `min_app_version` を省略する
+1. When switching to a new version. If a knob was renamed or deleted, a setting in `edit.json.overlays[].vars` stops taking effect in silence. The dangerous case is the one that is not an error.
+2. When delivering an update to someone who bought the asset. There has to be a way to say what changed, and which setting breaks.
+3. When a tool and an asset do not match. An old app or CLI that opens a new asset stops honestly, without guessing. The same shape as principle 3 of the versioning contract. Omit `min_app_version` on an asset that states no requirement.
 
-### bump の基準
+### When to bump
 
-| 破壊的（`version` を上げる） | 破壊的ではない |
+| Breaking. Raise `version`. | Not breaking. |
 |---|---|
-| ツマミの削除・改名 | ツマミの追加 |
-| `type` の変更 | `label` / `description` / `tags` の更新 |
-| `unit` の変更・付け外し | `ai_usage` / `provenance` の更新 |
-| `min` / `max` の範囲縮小 | 範囲の拡大 |
-| `id` / `category` の変更 | プレビュー・デモの差し替え |
-| クラス名・スロット構造の変更 | 見た目の微調整（既定値を変えない範囲） |
+| Deleting or renaming a knob | Adding a knob |
+| Changing `type` | Updating `label`, `description`, or `tags` |
+| Changing `unit`, or adding or removing it | Updating `ai_usage` or `provenance` |
+| Narrowing the `min` or `max` range | Widening the range |
+| Changing `id` or `category` | Replacing a preview or a demo |
+| Changing a class name or a slot structure | A small visual adjustment that does not change the default |
 
-改名は「削除 + 追加」として現れる。**改名したら必ず bump し、`ai_usage` に旧名を書き残す**。
+A rename shows up as a deletion plus an addition. If you rename, bump, and write the old name into `ai_usage`.
 
-### 機械で bump 漏れを止める
+### Stop a missed bump by machine
 
-工房側に `harness/knob-diff.mjs` を置く（内部リポ）。git の前版 `meta.json` と比較して破壊的
-変更を列挙し、`version` が上がっていなければ exit 1 で止める。**人の記憶に頼らない**のが要点で、
-実際に 2026-07-30 の `unit` 宣言 15 個の削除は、手作業では破壊的と気づかないまま通っていた
-（このツールを後から同じ履歴に当てると 7 件を破壊的として検出する）。
+Place `harness/knob-diff.mjs` on the workshop side (the internal repository). Compare with the previous git version of `meta.json`, list the breaking changes, and exit 1 if `version` did not rise. The point is not to rely on a person's memory. In fact, the deletion of 15 `unit` declarations on 2026-07-30 passed by hand without being noticed as breaking. Running this tool later on the same history detects 7 of them as breaking.
 
-将来 `edit-lint` 側へ、プロジェクトが採用した素材の版と現行版を突き合わせる検査を足す
-（採用時の版をプロジェクトへ記録する仕組みが前提。本契約「使用規律」の provenance 記録を実装してから）。
+Later, add a check on the `edit-lint` side that compares the version of an asset the project adopted with the current version. That assumes a mechanism that records the adopted version on the project. Implement the provenance record in "How an asset is used" first.
 
-## 同梱基準 — 何をリポに置き、何を取りに行かせるか（2026-07-29 オーナー裁定）
+## What is placed in the repository, and what is fetched
 
-**原則: 取得はオンライン、使用はローカル。** レンダー時に外部から実体を引く経路は作らない。
+Owner ruling on 2026-07-29.
 
-- オンラインでやるのは**検索・プレビュー表示・購入/ライセンス検証・更新通知**まで
-- 実体は取得時にローカル層（`local` / `shared` / `user`）へ固定し、**使用は常にローカル**
-- 理由 3 点: (1) `edit.json` 自己完結の決定論が壊れる（素材が更新・削除されると過去案件を再現できない）
-  (2) レンダー中に外部 GET を挟む経路を作らない (3) 第三者素材は再配布不可のものがあり、
-  ユーザー自身の環境に取得させる構造（`remote: true`）が権利面の解でもある
-- この原則により、将来マーケットプレイス化しても**本契約の構造は変わらない**。`catalog/` が
-  外部化されるだけで、`meta.json` がそのまま API の形になる
+**The principle. Fetch online. Use locally.** Do not make a path that pulls a file from outside at render time.
 
-### builtin（本リポ `assets/`）に同梱してよいもの
+- What happens online is search, showing a preview, purchase and license checks, and an update notice.
+- At fetch time, fix the file into a local layer (`local`, `shared`, or `user`). Use is always local.
+- Three reasons. (1) The determinism of a self-contained `edit.json` breaks. If an asset is updated or deleted, a past job cannot be reproduced. (2) Do not make a path that inserts an external GET during a render. (3) Some third-party assets cannot be redistributed, and a structure that has the user fetch into their own environment (`remote: true`) is also the rights answer.
+- Under this principle, a future marketplace does not change the structure of this contract. Only `catalog/` moves outside, and `meta.json` becomes the shape of the API as it stands.
 
-1. 素材ゼロでも製品が動くための最小シード
-2. **環境差を吸収するために必要なもの** — 書体がこれに当たる。Mac / Windows でグリフを揃える
-   土台であり、`packages/render-cut/src/captions.mjs` が焼き込みキャプションで `@font-face` 固定する。
-   実測 32 MB あるが**同梱のまま維持する**（2026-07-29 裁定）
-3. 目安: 1 素材 5 MB 以下 / builtin 合計 50 MB 程度まで。超えるものは `catalog/` へ
+### What may be bundled in builtin (`assets/` in this repository)
 
-### `catalog/`（取得先索引）へ出すもの
+1. The minimum seed so the product runs with zero assets.
+2. What is required to absorb an environment difference. A typeface is this case. It is the base that lines up glyphs on Mac and Windows, and `packages/render-cut/src/captions.mjs` pins `@font-face` for burned-in captions. It measures 32 MB, and it stays bundled (ruling on 2026-07-29).
+3. A guide. One asset at 5 MB or under, and the builtin total around 50 MB. What exceeds that goes to `catalog/`.
 
-重く、かつ環境差の吸収に不要なもの —— 3D モデル・HDRI・音源・B ロール。
+### What goes to `catalog/` (an index of where to fetch)
 
-- 実測（2026-07-29）: `assets/scene3d/` は 20 MB で、うち `studio-2k.hdr`（6.4 MB）が
-  2 エントリに**同一内容で重複同梱**されている
-- **外出しは `asset_dependencies`（素材間依存の宣言）の導入とセットで行う。** 現行の自己完結契約
-  （validator が素材ディレクトリ外への参照を fail させる）のままバイナリだけ抜くと検証が壊れる。
-  依存を宣言できるようになれば、共有 HDRI を 1 本にまとめたうえで取得スキルが依存を先に解決できる
+What is heavy, and is not needed to absorb an environment difference. A 3D model, an HDRI, audio, and B-roll.
 
-### テンプレートのサンプル出力
+- Measured on 2026-07-29. `assets/scene3d/` is 20 MB, of which `studio-2k.hdr` (6.4 MB) is bundled twice, the same contents, in two entries.
+- Moving it out is done together with introducing `asset_dependencies`, a declaration of dependencies between assets. If only the binary is removed while the current self-contained contract stays (the validator fails a reference outside the asset directory), validation breaks. Once a dependency can be declared, a shared HDRI can be one file, and the fetch skill can resolve the dependency first.
 
-`templates/<name>/sample-project/` の見本 mp4・ナレーション wav は**同梱を許容する**（2026-07-29 裁定。
-実測 5 MB）。テンプレートは今後増える見込みだが、「複製してすぐ動く・完成形が見える」価値が
-数 MB のコストを上回るという判断。ただし 1 テンプレあたりの見本は最小限に保つ。
+### Sample output of a template
 
-## カテゴリ軸の再定義（2026-07-29）
+A sample mp4 and a narration wav under `templates/<name>/sample-project/` may be bundled (ruling on 2026-07-29, measured at 5 MB). Templates are expected to grow, and the judgment is that "copy it and it runs, and the finished form is visible" is worth more than a cost of a few MB. Keep the sample per template to a minimum.
 
-`category` を**主題**（何を表すか）から**配布物の形**（どう配られ、どう消費されるか）へ切り替える。
-主題は無限に増えて enum が追いつかないため（実際 `lut` が enum 外に生え、`assets/` 側は 4 カテゴリが
-空のまま新カテゴリ要求が発生していた）、増えない軸へ移す。
+## Category axis
 
-| v1 category | 形の定義 | 判定 | 旧 category |
+Redefined 2026-07-29.
+
+Switch `category` from the subject (what it depicts) to the shape of the distributed file (how it is distributed, and how it is consumed). A subject grows without limit and an enum cannot keep up. In fact `lut` grew outside the enum, and on the `assets/` side four categories stayed empty while a new category was requested. Move to an axis that does not grow.
+
+| v1 category | Definition of the shape | How to judge | Old category |
 |---|---|---|---|
-| `overlay` | 時間を持つ HTML 断片 | `fragment.html` + `data-start` / `data-duration` を持ち `overlays[]` から合成 | `telop` / `motion` |
-| `still` | 時間を持たない HTML シート | `fragment.html`。決定的スクショで画像に焼く | `thumbnail` |
-| `scene3d` | 3D モデル + 表示断片、またはベイクレシピ | `fragment.html` + glTF、または `scene.py` | `3d` |
-| `audio` | 音声トラックに載るバイナリ | `edit.json` の `audio.bgm` / `sfx` が参照 | `audio`（変更なし） |
-| `broll` | 映像トラックに載る実写バイナリ | `sources[]` が参照 | `broll`（変更なし） |
-| `font` | 書体バイナリ | `@font-face` / 焼き込みが参照 | `font`（変更なし） |
+| `overlay` | An HTML fragment that has time | Has `fragment.html` plus `data-start` and `data-duration`, and is composited from `overlays[]` | `telop`, `motion` |
+| `still` | An HTML sheet that has no time | `fragment.html`. Burned to an image by a deterministic screenshot. | `thumbnail` |
+| `scene3d` | A 3D model plus a display fragment, or a bake recipe | `fragment.html` plus glTF, or `scene.py` | `3d` |
+| `audio` | A binary that sits on an audio track | Referenced by `audio.bgm` or `sfx` in `edit.json` | `audio` (unchanged) |
+| `broll` | Live-action binary that sits on a picture track | Referenced by `sources[]` | `broll` (unchanged) |
+| `font` | A typeface binary | Referenced by `@font-face` or by a burn-in | `font` (unchanged) |
 
-- **主題は `tags` に逃がす**。`lower-third` / `board` / `chalkboard` / `frame` / `mockup` /
-  `thumbnail` / `motion` / `bgm` / `sfx` などはすべて tags であり、カテゴリにしない
-- **カテゴリを増やさない**のが本改訂の要点である。新しい主題（ホワイトボード、ノート風、付箋…）は
-  既存カテゴリ + tags で表す。カテゴリ追加を提案するときは「既存 6 つのどの形にも当てはまらない
-  配布・消費のされ方か」を先に示す
-- `audio` を `media` に畳む案は見送った。`<ライブラリの置き場>/audio/`（user 層）に実データがあり、
-  リポ外のユーザー資産の移設を伴うため。`audio` と `broll` は消費経路（音声トラック / 映像トラック）が
-  異なるので、形の軸としても分けたままで筋が通る
-- 移行時の実績: `assets/` 3 件・`catalog/` 3 件のディレクトリ移動と `category` 値の書き換え、
-  検証は `validate-asset.mjs` を全エントリで再実行
+- A subject goes into `tags`. `lower-third`, `board`, `chalkboard`, `frame`, `mockup`, `thumbnail`, `motion`, `bgm`, and `sfx` are all tags. They are not categories.
+- Not adding a category is the point of this revision. A new subject (a whiteboard, a notebook look, a sticky note) is an existing category plus tags. When proposing a new category, first show a way of being distributed and consumed that fits none of the existing six shapes.
+- Folding `audio` into `media` was declined. Real data exists in `<library root>/audio/` (the user layer), and moving it would move user assets outside the repository. `audio` and `broll` also stay split as a shape axis, because the consumption path differs (an audio track, a picture track).
+- What the move actually did. Three directories under `assets/` and three under `catalog/` were moved, and the `category` values were rewritten. Validation reran `validate-asset.mjs` on every entry.
 
-## `presets/` — 本契約の対象外（2026-07-29 新設）
+## `presets/` is outside this contract
 
-リポ直下の `presets/` は**素材ライブラリではない**。本契約（meta.json v0）の対象外であり、
-`validate-asset.mjs` も走らせない。
+Created 2026-07-29.
 
-| | `assets/` `catalog/`（本契約） | `presets/`（対象外） |
+`presets/` at the repository root is not an asset library. It is outside this contract (meta.json v0), and `validate-asset.mjs` does not run on it.
+
+| | `assets/` and `catalog/` (this contract) | `presets/` (outside) |
 |---|---|---|
-| 使い方 | 人 / AI が選び、プロジェクトへ**コピーする** | **名前で参照し続ける**（コピーしない） |
-| 改変 | コピー先で自由に改変する | 改変しない。差し替えるか再生成する |
-| 解決の主体 | 人 / AI（INDEX.md → meta.json を読む） | **コード**（解決パスが実装に埋まっている） |
-| 記述形式 | `meta.json` v0 | 各表の形式（`template.json` / `.cube` + `index.jsonl`） |
+| How it is used | A person or an AI chooses it and copies it into the project | Code keeps referring to it by name. It is not copied. |
+| Changes | Change it freely at the copy destination | Do not change it. Replace it, or generate it again. |
+| Who resolves it | A person or an AI, by reading INDEX.md then meta.json | Code. The resolution path is embedded in the implementation. |
+| Description form | `meta.json` v0 | Each table's form (`template.json`, or `.cube` plus `index.jsonl`) |
 
-現在の収録:
+What is held now:
 
-- ATF テロップの参照表と描画器は退役。HTML 素材版は Lab で取得する。既存の baked は再生互換を維持する。
-- `presets/luts/` — 3D LUT 2 件（自前生成）。`packages/render-cut/src/plan.mjs` が
-  `edit.json` の `output.look.lut`（区切り文字を含まない名前）から
-  `presets/luts/<id>/<id>.cube` を解決する
+- The ATF caption reference table and renderer are retired. Obtain the HTML asset version from Lab. Existing baked output keeps playback compatibility.
+- `presets/luts/` holds two 3D LUTs, generated in-house. `packages/render-cut/src/plan.mjs` resolves `output.look.lut` in `edit.json` (a name that contains no separator) to `presets/luts/<id>/<id>.cube`.
 
-### 移設の経緯
+### Why they moved
 
-両者はもともと `catalog/` 配下にあったが、`catalog/` の契約（`remote: true` で**実体を持たない**
-取得先索引）と実体が矛盾していた。テロップは `meta.json` を持たない別形式、LUT は実ファイルを
-同梱したうえで本契約に合わない `meta.json` を持たされており、`validate-asset.mjs` が 1 件あたり
-8 件の赤を出していた（`category: "lut"` が enum 外・`knobs` が文字列配列・`license.spdx` が null・
-`remote: false` なのに `source` を持つ 等）。LUT 側の `meta.json` は移設に伴い
-`presets/luts/index.jsonl` へ置き換えた。
+Both originally lived under `catalog/`, and the files contradicted the `catalog/` contract, which is an index of where to fetch and holds no file when `remote: true`. Captions were a different form with no `meta.json`. LUTs bundled real files and were given a `meta.json` that did not fit this contract. `validate-asset.mjs` produced 8 failures per entry. `category: "lut"` was outside the enum, `knobs` was an array of strings, `license.spdx` was null, and `remote: false` still had a `source`, among others. The LUT `meta.json` was replaced by `presets/luts/index.jsonl` as part of the move.
 
-### 新しい表を足すときの判定
+### How to judge a new table
 
-**人が選んでコピーするか / コードが id で引くか**で置き場を決める。前者は `assets/` か `catalog/`、
-後者は `presets/`。後者をここへ足すときは、解決するコードのパスと 1:1 で対応させ、その参照箇所を
-表の INDEX.md に明記する。
+Decide the place by whether a person chooses and copies, or whether code looks the item up by id. The first is `assets/` or `catalog/`. The second is `presets/`. When adding the second here, correspond 1:1 with the path of the code that resolves it, and write that reference in the table's INDEX.md.
 
+## Registering assets you already have (2026-09-22)
 
-## 手持ち素材の登録（2026-09-22）
+`akari-assets add --plan` and `--apply` copy the user's raw files into the library location. Record the origin in the existing tags of meta.json. Do not grow the schema.
 
-`akari-assets add --plan / --apply` は利用者の生ファイルを置き場へ複製する。
-出どころは meta.json の既存 tags に記録し、スキーマは増やさない。
-
-| 機械用タグ | 意味 |
+| Machine tag | Meaning |
 | --- | --- |
-| `origin:own` / `origin:site` | ローカル取り込み / サイトからの取り込み |
-| `site:<id>` | サイト識別子 |
-| `folder:<名前>` | 取り込み元として渡されたフォルダ名 |
-| `license:subscription` | サブスクリプション由来 |
-| `pack:<id>` | 素材セット。置き場直下の packs.json は catalog/packs.json と同型 |
+| `origin:own` and `origin:site` | A local import, and an import from a site |
+| `site:<id>` | A site identifier |
+| `folder:<name>` | The folder name that was passed as the import source |
+| `license:subscription` | Came from a subscription |
+| `pack:<id>` | An asset set. packs.json directly under the library location has the same shape as catalog/packs.json |
 
-一覧ではこれらを `machineTags` に分け、表示・検索用の `tags` に残さない。
-出どころはカタログ掲載（lab）、明示 origin タグ（site / own）、AKARI 配布元の source.url（lab）、
-その他の source.url あり（site）、それ以外（own）の順で決める。
-AKARI 配布元は URL を解析し、ホスト github.com かつパスの最初のセグメントが AkariLabs、
-またはホスト akari.video とそのサブドメインで判定する。移行期間中は旧公式ホストとそのサブドメインも受け入れる。壊れた URL は site とする。
-素材ディレクトリの `CREDIT.txt` はクレジット文面 1 行。文面がある場合は
-`license.attribution_required: true`、source がある場合はその attribution_required も true にする。
+A listing splits these into `machineTags` and does not leave them in `tags` for display and search. The origin is decided in this order. A catalog listing (lab), an explicit origin tag (site or own), a source.url from an AKARI distributor (lab), some other source.url (site), and anything else (own). An AKARI distributor is detected by parsing the URL. The host is github.com and the first path segment is AkariLabs, or the host is akari.video or a subdomain of it. During the migration, the previous official host and its subdomains are also accepted. A broken URL counts as site. `CREDIT.txt` in the asset directory is one line of credit text. When that text is present, set `license.attribution_required: true`. When a source is present, set that attribution_required to true as well.
 
-取り込みの既定は `license.scope: "private-owned"`、`spdx: "LicenseRef-user-owned"`、
-`ai_training_allowed: false`、`price: 0`。利用者の手持ち素材として保管するための値であり、
-素材そのものの著作権帰属・商用可否・再配布権を認定するものではない。
-サイト由来は source ブロックに配布ページと元の利用条件を残す。
+The import default is `license.scope: "private-owned"`, `spdx: "LicenseRef-user-owned"`, `ai_training_allowed: false`, and `price: 0`. Those values store the file as an asset the user already holds. They do not certify the copyright ownership, the commercial permission, or the redistribution right of the asset itself. A site origin keeps the distribution page and the original terms in the source block.
 
-ローカル取り込みは全カテゴリに preview.png を置く。音は ffmpeg の波形、映像は先頭フレームを使い、
-ffmpeg 不在・失敗時は Node 組み込みの zlib で生成した決定的なプレースホルダ PNG にする。
-PNG の画像は元画像を複製し、その他の画像・font・scene3d はプレースホルダを使う。
-still は画像を相対参照する fragment.html、scene3d はモデルを参照する data-akari-3d-scene 宣言の
-fragment.html を生成する。これらを含む素材全体が validate-asset の exit 0 を通った場合だけ登録し、
-非 0 の場合は failures に記録して素材を残さない。title は元ファイル名から拡張子を除いたものにする。
+A local import places preview.png in every category. Audio uses an ffmpeg waveform. Video uses the first frame. When ffmpeg is missing or fails, use a deterministic placeholder PNG generated with Node's built-in zlib. A PNG image is a copy of the original image. Other images, font, and scene3d use the placeholder. A still generates a fragment.html that references the image with a relative path. A scene3d generates a fragment.html with a `data-akari-3d-scene` declaration that references the model. Register only when the whole asset, including these files, passes `validate-asset` with exit 0. On a non-zero exit, record the asset in failures and do not keep it. `title` is the original file name with the extension removed.
