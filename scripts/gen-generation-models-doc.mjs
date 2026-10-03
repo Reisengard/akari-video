@@ -1,18 +1,12 @@
 #!/usr/bin/env node
-// Rebuild the English and Japanese generation-model guides from packages/schemas/gen-models.json.
-// Replace only the text between the marker comments. With --check, report drift and write nothing.
-// Japanese labels live in docs/guides/generation-models.ja.md. This script is an English wording
-// budget, so those labels cannot be string literals here.
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BLOCK_START = '<!-- BEGIN GENERATED generation-models';
-export const BEGIN = '<!-- BEGIN GENERATED generation-models. scripts/gen-generation-models-doc.mjs generates this block. Do not edit it by hand. -->';
+export const BEGIN = '<!-- BEGIN GENERATED generation-models -->';
 export const END = '<!-- END GENERATED generation-models -->';
-const WORDS_START = '<!-- BEGIN generation-model-words';
-const WORDS_END = 'END generation-model-words -->';
 
 const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const markerPattern = new RegExp(`${escapeRegExp(BLOCK_START)}[\\s\\S]*?${escapeRegExp(END)}`);
@@ -47,13 +41,11 @@ const needString = (words, key) => {
   }
 };
 
-const loadJaWords = (markdown) => {
-  const start = markdown.indexOf(WORDS_START);
-  const end = markdown.indexOf(WORDS_END);
-  if (start < 0 || end < start) throw new Error('Japanese generation-model words are missing');
+const loadJaWords = () => {
+  const raw = readFileSync(join(root, 'docs/guides/generation-model-words.ja.json'), 'utf8');
   let words;
   try {
-    words = JSON.parse(markdown.slice(start + WORDS_START.length, end).trim());
+    words = JSON.parse(raw);
   } catch (error) {
     throw new Error(`Japanese generation-model words are not JSON: ${error.message}`);
   }
@@ -78,9 +70,9 @@ const loadJaWords = (markdown) => {
   return words;
 };
 
-const wordsFor = (current, locale) => {
+const wordsFor = (locale) => {
   if (locale === 'en') return englishWords;
-  if (locale === 'ja') return loadJaWords(current);
+  if (locale === 'ja') return loadJaWords();
   throw new Error(`unsupported locale: ${locale}`);
 };
 
@@ -176,7 +168,7 @@ export const buildGeneratedBlock = (models, w) => {
 
 export const renderDocument = (current, models, locale) => {
   if (!markerPattern.test(current)) throw new Error('generation-models markers not found');
-  return `${current.replace(markerPattern, buildGeneratedBlock(models, wordsFor(current, locale))).replace(/\n*$/, '')}\n`;
+  return `${current.replace(markerPattern, buildGeneratedBlock(models, wordsFor(locale))).replace(/\n*$/, '')}\n`;
 };
 
 const fail = (msg) => { console.error(`gen-generation-models-doc: ${msg}`); process.exit(1); };

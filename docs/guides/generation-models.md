@@ -9,7 +9,7 @@ Check each row's `price_url` manually for current pricing.
 Treat a row as WARN after 90 days from `as_of`, and manually revisit its `source_url`.
 Price is outside drift detection, so check `price_url` manually.
 
-<!-- BEGIN GENERATED generation-models. scripts/gen-generation-models-doc.mjs generates this block. Do not edit it by hand. -->
+<!-- BEGIN GENERATED generation-models -->
 
 ## Video models
 
