@@ -1,14 +1,11 @@
 #!/usr/bin/env node
-// Budgets live in scripts/english-wording/EN-*.json. A file outside every glob is ignored,
-// which is why terms.json can keep Japanese keys. With no budget files, name each file
-// whose counted text is non-zero so a fixture can fail on one literal.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SKIP_DIRS = new Set([
   'node_modules', 'dist', 'generated', 'evidence',
-  '.git', // not source, and the object store makes the walk slow
+  '.git',
 ]);
 const LOCKFILES = new Set([
   'package-lock.json',
@@ -199,7 +196,15 @@ function isIdentPart(code) {
   return isIdentStart(code) || (code >= 48 && code <= 57);
 }
 
-function readTemplate(source, i) {
+function isSpace(code) {
+  return code === 32 || code === 9 || code === 10 || code === 13 || code === 12 || code === 11;
+}
+
+function isLt(code) {
+  return code === '<'.charCodeAt(0);
+}
+
+function readTemplate(source, i, jsx) {
   const end = source.length;
   let count = 0;
   while (i < end) {
@@ -212,7 +217,7 @@ function readTemplate(source, i) {
     }
     if (code === 96) return { i: i + 1, count };
     if (code === 36 && source.charCodeAt(i + 1) === 123) {
-      const inner = scanJs(source, i + 2, true);
+      const inner = scanJs(source, i + 2, true, jsx);
       i = inner.i;
       count += inner.count;
       continue;
@@ -223,7 +228,7 @@ function readTemplate(source, i) {
   return { i, count };
 }
 
-function scanJs(source, i, stopBrace) {
+function scanJs(source, i, stopBrace, jsx) {
   const end = source.length;
   let count = 0;
   let slashIsDivision = false;
@@ -251,8 +256,7 @@ function scanJs(source, i, stopBrace) {
         i = Math.min(end, i + 2);
         continue;
       }
-      // A slash after `<` closes a JSX tag (`</div>`). It is not a regex.
-      if (!slashIsDivision && lastNonWs !== 60) {
+      if (!slashIsDivision && !isLt(lastNonWs)) {
         i = readRegex(source, i);
         slashIsDivision = true;
         lastWord = '';
@@ -275,7 +279,7 @@ function scanJs(source, i, stopBrace) {
       continue;
     }
     if (code === 96) {
-      const template = readTemplate(source, i + 1);
+      const template = readTemplate(source, i + 1, jsx);
       i = template.i;
       count += template.count;
       slashIsDivision = true;
@@ -360,6 +364,15 @@ function scanJs(source, i, stopBrace) {
       lastNonWs = code;
       continue;
     }
+    if (jsx && isLt(code) && !slashIsDivision && jsxTagFollows(source, i)) {
+      const element = readJsxElement(source, i);
+      i = element.i;
+      count += element.count;
+      slashIsDivision = true;
+      lastWord = '';
+      lastNonWs = 62;
+      continue;
+    }
     i++;
     slashIsDivision = false;
     lastWord = '';
@@ -368,12 +381,148 @@ function scanJs(source, i, stopBrace) {
   return { i, count };
 }
 
-function countJs(source) {
+function countJs(source, jsx) {
   let start = 0;
   if (source.startsWith('#!')) {
     while (start < source.length && source.charCodeAt(start) !== 10) start++;
   }
-  return scanJs(source, start, false).count;
+  return scanJs(source, start, false, jsx).count;
+}
+
+function jsxTagFollows(source, i) {
+  const next = source.charCodeAt(i + 1);
+  return next === '>'.charCodeAt(0)
+    || next === '/'.charCodeAt(0)
+    || next === '!'.charCodeAt(0)
+    || isIdentStart(next);
+}
+
+function readJsxName(source, i) {
+  const end = source.length;
+  const start = i;
+  if (!isIdentStart(source.charCodeAt(i))) return { i, name: '' };
+  i++;
+  while (i < end) {
+    const code = source.charCodeAt(i);
+    if (isIdentPart(code) || code === 45 || code === 58) {
+      i++;
+      continue;
+    }
+    if (code === 46 && isIdentStart(source.charCodeAt(i + 1))) {
+      i++;
+      continue;
+    }
+    break;
+  }
+  return { i, name: source.slice(start, i) };
+}
+
+function readJsxAttributes(source, i) {
+  const end = source.length;
+  let count = 0;
+  while (i < end) {
+    const code = source.charCodeAt(i);
+    if (isSpace(code)) {
+      i++;
+      continue;
+    }
+    if (code === 62) return { i: i + 1, count, selfClosing: false };
+    if (code === 47 && source.charCodeAt(i + 1) === 62) return { i: i + 2, count, selfClosing: true };
+    if (code === 123) {
+      const inner = scanJs(source, i + 1, true, true);
+      i = inner.i;
+      count += inner.count;
+      continue;
+    }
+    if (isIdentStart(code)) {
+      i++;
+      while (i < end) {
+        const part = source.charCodeAt(i);
+        if (isIdentPart(part) || part === 45 || part === 58) i++;
+        else break;
+      }
+      while (i < end && isSpace(source.charCodeAt(i))) i++;
+      if (source.charCodeAt(i) !== 61) continue;
+      i++;
+      while (i < end && isSpace(source.charCodeAt(i))) i++;
+      const value = source.charCodeAt(i);
+      if (value === 34 || value === 39) {
+        const quoted = readQuoted(source, i, value);
+        i = quoted.i;
+        count += quoted.count;
+        continue;
+      }
+      if (value === 123) {
+        const inner = scanJs(source, i + 1, true, true);
+        i = inner.i;
+        count += inner.count;
+      }
+      continue;
+    }
+    i++;
+  }
+  return { i, count, selfClosing: false };
+}
+
+function readJsxElement(source, i) {
+  const end = source.length;
+  let count = 0;
+  i++;
+  const head = source.charCodeAt(i);
+  if (head === 33) {
+    if (source.startsWith('!--', i)) {
+      const close = source.indexOf('-->', i + 3);
+      return { i: close < 0 ? end : close + 3, count: 0 };
+    }
+    while (i < end && source.charCodeAt(i) !== 62) i++;
+    return { i: i < end ? i + 1 : i, count: 0 };
+  }
+  if (head === 47) {
+    const named = readJsxName(source, i + 1);
+    i = named.i;
+    while (i < end && source.charCodeAt(i) !== 62) i++;
+    return { i: i < end ? i + 1 : i, count: 0 };
+  }
+  const named = readJsxName(source, i);
+  const name = named.name;
+  i = named.i;
+  const attrs = readJsxAttributes(source, i);
+  i = attrs.i;
+  count += attrs.count;
+  if (attrs.selfClosing) return { i, count };
+  const lower = name.toLowerCase();
+  if (lower === 'script' || lower === 'style') {
+    const closeAt = indexOfClose(source, i, lower);
+    if (lower === 'script') count += countJs(source.slice(i, closeAt));
+    let j = closeAt;
+    if (isLt(source.charCodeAt(j))) j = skipTag(source, j);
+    return { i: j, count };
+  }
+  while (i < end) {
+    const code = source.charCodeAt(i);
+    if (isLt(code) && source.charCodeAt(i + 1) === 47) {
+      const closeName = readJsxName(source, i + 2);
+      if (closeName.name !== name) return { i, count };
+      let j = closeName.i;
+      while (j < end && source.charCodeAt(j) !== 62) j++;
+      return { i: j < end ? j + 1 : j, count };
+    }
+    if (isLt(code) && jsxTagFollows(source, i)) {
+      const child = readJsxElement(source, i);
+      count += child.count;
+      i = child.i;
+      continue;
+    }
+    if (code === 123) {
+      const inner = scanJs(source, i + 1, true, true);
+      i = inner.i;
+      count += inner.count;
+      continue;
+    }
+    if (isCounted(code)) count++;
+    i++;
+  }
+  return { i, count };
 }
 
 function skipTag(source, i) {
@@ -502,7 +651,7 @@ function countFile(root, rel) {
   if (ext === '.md') return countText(text);
   if (ext === '.json') return countJson(text);
   if (ext === '.html' || ext === '.htm') return countHtml(text);
-  return countJs(text);
+  return countJs(text, ext === '.tsx' || ext === '.jsx');
 }
 
 function expandBraces(pattern) {

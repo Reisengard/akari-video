@@ -165,3 +165,39 @@ test('kana outside a budget glob passes', (t) => {
   write(root, 'app.js', 'const label = "あ";\n');
   assertOk(run(root));
 });
+
+test('JSX text fails and names the file', (t) => {
+  const root = tree(t);
+  write(root, 'text.tsx', 'const view = <span>あ</span>;\n');
+  assertHit(run(root), /^text\.tsx$/m);
+});
+
+test('a JSX attribute string fails and names the file', (t) => {
+  const root = tree(t);
+  write(root, 'attr.tsx', 'const view = <span title="あ" />;\n');
+  assertHit(run(root), /^attr\.tsx$/m);
+});
+
+test('a comparison is not JSX', (t) => {
+  const root = tree(t);
+  write(root, 'cmp.tsx', 'const n = a < b; // あ\n');
+  assertOk(run(root));
+});
+
+test('a generic is not JSX and a later string counts', (t) => {
+  const root = tree(t);
+  write(root, 'generic.tsx', 'const xs: Array<string> = []; const label = "あ";\n');
+  assertHit(run(root), /^generic\.tsx$/m);
+});
+
+test('a typescript generic arrow is not JSX', (t) => {
+  const root = tree(t);
+  write(root, 'clone.ts', 'const clone = <T>(value: T): T => value; // あ\n');
+  assertOk(run(root));
+});
+
+test('an optional type argument is not JSX', (t) => {
+  const root = tree(t);
+  write(root, 'row.ts', 'const row = target?.closest?.<HTMLElement>(selector); // あ\n');
+  assertOk(run(root));
+});

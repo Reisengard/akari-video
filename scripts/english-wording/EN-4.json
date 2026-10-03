@@ -1,5 +1,5 @@
 {
   "id": "EN-4",
   "glob": "{apps/shell/extensions/akari-surfaces/**,packages/schemas/intake.schema.json,packages/intake-form/**}",
-  "max": 28963
+  "max": 29650
 }
