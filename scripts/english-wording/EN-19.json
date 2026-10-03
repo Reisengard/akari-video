@@ -1,0 +1,5 @@
+{
+  "id": "EN-19",
+  "glob": "skills/{export-nle,generate-media,generate-narration,harvest-asset,manage-connections,overlay-authoring,render-cut,research-plan,setup-audio-library,setup-chat-approval,setup-library,setup-remote,verify}/**",
+  "max": 75465
+}

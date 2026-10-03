@@ -1,0 +1,5 @@
+{
+  "id": "EN-20",
+  "glob": "{templates/**,packages/project-scaffold/**,apps/shell/resources/onboarding-sample/**}",
+  "max": 10928
+}

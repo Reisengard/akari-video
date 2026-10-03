@@ -1,0 +1,8 @@
+{
+  "id": "EN-12",
+  "glob": "{packages/schemas/**,packages/akari-tools/**}",
+  "exclude": [
+    "packages/schemas/intake.schema.json"
+  ],
+  "max": 67156
+}
