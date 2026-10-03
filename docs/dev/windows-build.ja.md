@@ -98,8 +98,7 @@ npm install --no-workspaces
 #     postinstall が zip 展開（extract-zip → yauzl）の read stream 停止により
 #     「無音 exit 0」し、node_modules\electron\dist が生成されないことがある。
 #     このまま進むと theia build が一見無関係なエラーで死ぬため、ここで dist を確認し、
-#     無ければ公式リリース zip を直接配置する（CI windows-build.yml と同じ手当て。
-#     ARM64 機は zip 名の x64 を arm64 に読み替え）
+#     無ければ公式リリース zip を直接配置する（CI windows-build.yml と同じ手当て）。
 #
 #     上流の状況（2026-07-28 時点・issue #7 で追跡）: 正本は yauzl#176
 #     （thejoshwolfe/yauzl#177 は duplicate として close）。yauzl 3.3.1 より前は
@@ -110,7 +109,8 @@ npm install --no-workspaces
 #     したがってこの直接配置は暫定ではなく恒久の手当てとして扱う
 if (-not (Test-Path node_modules/electron/dist/electron.exe)) {
   $v = node -p "require('./node_modules/electron/package.json').version"
-  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-x64.zip"
+  $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
+  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-$arch.zip"
   if (Test-Path node_modules/electron/dist) { Remove-Item -Recurse -Force node_modules/electron/dist }
   Expand-Archive electron.zip -DestinationPath node_modules/electron/dist -Force
   Remove-Item electron.zip

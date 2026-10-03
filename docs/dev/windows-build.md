@@ -70,7 +70,6 @@ npm install --no-workspaces
 #     If you continue, the Theia build dies on an error that looks unrelated.
 #     Check dist here. If it is missing, place the official release zip
 #     directly. The same fix is in CI, windows-build.yml.
-#     On an ARM64 machine, read x64 in the zip name as arm64.
 #
 #     Upstream, as of 2026-07-28, tracked in issue #7. The source of truth is
 #     yauzl#176. thejoshwolfe/yauzl#177 was closed as a duplicate. Before
@@ -82,7 +81,8 @@ npm install --no-workspaces
 #     Treat this direct placement as the lasting fix, not a temporary one.
 if (-not (Test-Path node_modules/electron/dist/electron.exe)) {
   $v = node -p "require('./node_modules/electron/package.json').version"
-  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-x64.zip"
+  $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
+  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-$arch.zip"
   if (Test-Path node_modules/electron/dist) { Remove-Item -Recurse -Force node_modules/electron/dist }
   Expand-Archive electron.zip -DestinationPath node_modules/electron/dist -Force
   Remove-Item electron.zip
