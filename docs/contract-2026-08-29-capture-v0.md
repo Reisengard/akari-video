@@ -1,34 +1,28 @@
-# `akari capture` 契約 v0 — 今の edit.json の完成フレームを、書き出さずに見る
+**English** | [Japanese](./contract-2026-08-29-capture-v0.ja.md)
 
-- 日付: 2026-08-29
-- 状態: **v0（オーナー裁定済み 2026-08-29・実装未）**。実装タスクで判明した齟齬は追記で解消する
-- 前提:
-  - `contract-2026-08-02-preview-parity.md`（プレビュー・書き出しの一致。本契約は**第 3 の出口**を加える）
-  - `contract-2026-07-22-render-basics.md`（render-cut の合成順序・ffmpeg 実装の制約）
-  - `contract-2026-07-25-project-structure-v0.md`（`.akari/reports/` = 検証証跡）
-  - `contract-2026-08-29-media-inspect-cli-v0.md` §1.1（コンタクトシートの共通仕様）
-- スコープ: プロジェクトの `edit.json`（+ captions.json + overlays + layers + fx + LUT）を、タイムライン時刻 T で合成した
-  **完成フレーム**を静止画で返す CLI。音声は扱わない
-- 姉妹契約: `contract-2026-08-29-media-inspect-cli-v0.md`（素材そのものを見る `akari media`）
+# `akari capture` contract v0. See the finished frame of the current edit.json without exporting
 
-## 0. 位置づけ — 一言で言い切る
+- Date: 2026-08-29
+- Status: **v0 (owner ruling on 2026-08-29, not implemented yet).** A mismatch found in the implementation task is resolved by appending.
+- Depends on:
+  - `contract-2026-08-02-preview-parity.md` (preview and export agree. This contract adds a **third exit**).
+  - `contract-2026-07-22-render-basics.md` (render-cut composite order and the limits of the ffmpeg implementation).
+  - `contract-2026-07-25-project-structure-v0.md` (`.akari/reports/` is verification evidence).
+  - `contract-2026-08-29-media-inspect-cli-v0.md` §1.1 (the shared contact-sheet spec).
+- Scope: a CLI that returns a still of the **finished frame** composited at timeline time T from the project's `edit.json` (plus captions.json, overlays, layers, fx, and LUT). It does not handle audio.
+- Sister contract: `contract-2026-08-29-media-inspect-cli-v0.md` (`akari media`, which looks at the footage itself).
 
-**「出力としてこう見えている」を、人間も AI も、書き出さずに確認できる状態にする。**
+## 0. Place in the system
 
-render-cut は完成 MP4 を作る道具で、数分〜数十分かかる。字幕・オーバーレイ・PiP・FX が**重なった**結果を確かめたいだけの
-ときに全部書き出すのは重すぎるし、エージェントが「今のカットはこう見えます」と示す手段も無かった
-（`akari internal beat-sync-probe-frame` はオーバーレイ層だけを撮る）。`capture` は時刻を渡すと完成フレームを返す。
-副次用途として、`--full` のフル解像度 1 枚は**サムネイルの元絵・切り抜き素材**になる（オーナー 2026-08-29）。
+**Make "this is how the output looks" checkable by a person and by an AI, without exporting.**
 
-### 一致の物差し（この契約の中心）
+render-cut is the tool that makes the finished MP4, and it takes minutes to tens of minutes. Exporting the whole thing only to check the **stacked** result of captions, overlay, PiP, and FX is too heavy, and the agent had no way to show "the current cut looks like this" (`akari internal beat-sync-probe-frame` shoots the overlay layer only). `capture` takes a time and returns the finished frame. As a side use, one full-resolution frame from `--full` becomes **the source picture for a thumbnail, or footage to crop** (owner, 2026-08-29).
 
-**`capture` が返すフレーム ≡ 書き出し（render-cut）がエンコーダに渡すフレーム**。
+### The measure of agreement (the center of this contract)
 
-preview-parity 契約は「どちらの UI でも同じ入力は同じ見た目」を定めている。本契約はそこに
-**capture を第 3 の出口として加える**: プレビュー / 書き出し / capture の 3 つは同じ時刻 T に同じ絵を返す。
-エンジン v2（「時刻 T → 完成フレーム」の評価関数を 1 つだけ持つ構想）では capture はその関数の出口そのもので、
-一致は構成上自動になる。v0 は render-cut の経路で同じ合成を 1 フレームだけ行うことで一致を作る（§3）。
-以後、capture と書き出しの差はバグとして扱う。
+**The frame `capture` returns is the frame export (render-cut) hands to the encoder.**
+
+The preview-parity contract says the same input looks the same in either UI. This contract **adds capture as a third exit**. Preview, export, and capture return the same picture at the same time T. In engine v2 (the plan of one evaluator from "time T to a finished frame"), capture is that function's exit, and agreement is automatic by construction. v0 makes the agreement by running the same composite for one frame on the render-cut path (§3). After that, a difference between capture and export is a bug.
 
 ## 1. CLI
 
@@ -36,143 +30,116 @@ preview-parity 契約は「どちらの UI でも同じ入力は同じ見た目�
 akari capture [-p <project>] (-t <time…> | --auto) [--separate] [--full] [--per-sheet <n>] [--out <dir>] [--edit <path>]
 ```
 
-| 引数 | 意味 |
+| Argument | Meaning |
 |---|---|
-| `-p <project>` | プロジェクト root（既定: cwd から `.akari/` を祖先に探す） |
-| `-t <time…>` | **タイムライン秒**（書き出し結果の時刻。source 秒ではない）。1 個以上。`MM:SS(.fff)` も可 |
-| `--auto` | render-cut と同じ代表時刻を決定論で導出（`deriveContactSheetTimestamps`: 冒頭・各カット境界の直後・各オーバーレイ / 字幕区間の中点・終盤）。`-t` と併用可（和集合） |
-| `--separate` | 時刻ごとに 720p 高さの PNG 1 枚 |
-| `--full` | 時刻ごとに**出力解像度（`output.width × height`）の PNG 1 枚**。ラベルの焼き込み無し・sRGB・不透明。サムネイル / 切り抜き用 |
-| `--per-sheet <n>` | シート 1 枚あたりのコマ数（1〜12） |
-| `--out <dir>` | 出力先（既定 `.akari/reports/capture/<stamp>/`） |
-| `--edit <path>` | 既定 `<project>/edit.json` 以外を合成したいとき（比較用） |
+| `-p <project>` | Project root (default: walk ancestors from cwd looking for `.akari/`) |
+| `-t <time…>` | **Timeline seconds** (a time in the export result, not a source second). One or more. `MM:SS(.fff)` is also allowed |
+| `--auto` | Derive the same representative times as render-cut, deterministically (`deriveContactSheetTimestamps`: the start, just after each cut boundary, the midpoint of each overlay or caption span, and the end). May be combined with `-t` (the union) |
+| `--separate` | One PNG per time, 720p tall |
+| `--full` | **One PNG per time at the output resolution (`output.width` by `height`)**. No burned-in label. sRGB. Opaque. For a thumbnail or a crop |
+| `--per-sheet <n>` | Frames per sheet (1 to 12) |
+| `--out <dir>` | Output directory (default `.akari/reports/capture/<stamp>/`) |
+| `--edit <path>` | Composite something other than the default `<project>/edit.json` (for comparison) |
 
-- stdout は JSON Lines（1 行 1 画像）。stderr は人間向け。exit `0` / `1` は `akari media` と同じ規約
+- stdout is JSON Lines (one image per line). stderr is for a person. Exit `0` and `1` follow the same rule as `akari media`.
 
 ```jsonc
 { "kind": "sheet", "timecode": "0f-11s", "times_s": [0, 4.5, 11], "path": ".akari/reports/capture/20260829T100000Z/0f-11s.png" }
 { "kind": "frame", "timecode": "04s15f", "time_s": 4.5, "path": ".akari/reports/capture/20260829T100000Z/04s15f-full.png", "width": 1920, "height": 1080 }
 ```
 
-- 出力ディレクトリに `capture.json` を 1 つ書く: 上記の全行 + `edit_sha256` + `captions_sha256` + 使った素材の `sha256` +
-  `renderer`（`render-cut@<version>` / 将来 `engine-v2@…`）+ `generated_at`。**どの edit.json から撮ったか**を後から突合できるようにする
-- 実装は `packages/akari-tools/bin/capture.mjs`（render-cut / puppeteer 依存側）。launcher は `capture-command.mjs` から遅延解決して子プロセス起動
+- Write one `capture.json` in the output directory. It holds every line above, plus `edit_sha256`, `captions_sha256`, the `sha256` of the footage used, `renderer` (`render-cut@<version>`, or later `engine-v2@…`), and `generated_at`. A later check can tell **which edit.json the picture was taken from**.
+- The implementation is `packages/akari-tools/bin/capture.mjs` (the side that depends on render-cut and puppeteer). The launcher resolves it lazily from `capture-command.mjs` and starts a child process.
 
-## 2. 何が映るか（= render-cut が時刻 T で合成する全部）
+## 2. What is in the picture (everything render-cut composites at time T)
 
-| 要素 | 扱い |
+| Element | Treatment |
 |---|---|
-| カット（`cuts[]`）と source 写像 | タイムライン秒 T → (`src`, source 秒) は render-cut と同じ写像（`cut-timeline.mjs`）。フリーズ・尺伸びも同じ |
-| 画角（crop / transform / perspective）・レイヤー・キーフレーム | render-cut と同じ数式（`cut-framing` / `layer-keyframes` / `perspective-homography`） |
-| 字幕（captions.json）・強調語・カラオケ | 時刻 T で表示されるべき状態を、書き出しと同じラスタライズで |
-| オーバーレイ HTML（overlays[]） | `renderOverlaySheet` / `captureWithPuppeteer` と同じ経路。アニメーションは**シーク同期**（CSS animation pause + `currentTime` 手動セット）で T の状態を撮る |
-| FX・LUT・トランジション・マスク | render-cut と同じフィルタ。近似バッジ付きの FX はそのまま近似（書き出しと同じ絵であることが要件） |
-| 音声 | **扱わない** |
-| 未保存の編集 | 扱わない。shell のタイムライン編集は shell が `edit.json` に保存してから（保存前の状態を撮る機能は後続） |
+| Cuts (`cuts[]`) and the source map | Timeline second T to (`src`, source second) uses the same map as render-cut (`cut-timeline.mjs`). Freeze and duration stretch match too |
+| Framing (crop, transform, perspective), layers, and keyframes | The same formulas as render-cut (`cut-framing`, `layer-keyframes`, `perspective-homography`) |
+| Captions (captions.json), emphasis words, and karaoke | The state that should be visible at time T, with the same rasterization as export |
+| Overlay HTML (overlays[]) | The same path as `renderOverlaySheet` and `captureWithPuppeteer`. Animation is **seek-synced** (CSS animation pause, plus `currentTime` set by hand) so the picture is the state at T |
+| FX, LUT, transition, and mask | The same filters as render-cut. An FX that carries an approximation badge stays an approximation (the requirement is the same picture as export) |
+| Audio | **Not handled** |
+| An unsaved edit | Not handled. A timeline edit in the shell is captured after the shell saves `edit.json` (capturing the pre-save state is later) |
 
-## 3. 実装 v0（render-cut 経路）と v2 への継ぎ目
+## 3. Implementation v0 (the render-cut path) and the seam to v2
 
-- render-cut の中に **「時刻 T の完成フレームを 1 枚返す」関数**を切り出す（例: `packages/render-cut/src/frame-at.mjs` の
-  `renderFrameAt({ plan, timeS, outputPath })`）。既存の書き出し経路（`renderProject` → `rasterizeAndComposite`）が持つ
-  合成順序・フィルタ式・enable 窓（`enableWindowExpr` の半開区間）を**共有**し、単一フレームは同じ式に
-  `-ss <T>` / `-frames:v 1` を当てるだけにする。**式を二重に持たない**（二重化は preview-parity 契約が既に払った請求書）
-- オーバーレイは `probe-frame.mjs` が既にやっている「本番と同じオーバーレイシートを時刻 T で 1 枚」を流用し、
-  素材フレーム + 字幕 + オーバーレイ + FX を同じフィルタチェーンで合成する
-- `renderFrameAt` は**エンジン v2 の継ぎ目**でもある。v2 では同じシグネチャの実装が GPU コンポジタに差し替わり、
-  capture / プレビュー / 書き出しが同じ関数を呼ぶ
-- `akari internal beat-sync-probe-frame` は本コマンド実装後に **1 リリース互換を残して退役**（beat-sync-edit スキルの参照を `capture` へ）
-- コンタクトシートは `contact-sheet.mjs` を共用（`akari media` 契約 §1.1）
+- Cut a function out of render-cut that **returns one finished frame at time T** (for example `renderFrameAt({ plan, timeS, outputPath })` in `packages/render-cut/src/frame-at.mjs`). **Share** the composite order, the filter expressions, and the enable window (the half-open interval of `enableWindowExpr`) that the existing export path (`renderProject` to `rasterizeAndComposite`) already has. A single frame only applies `-ss <T>` and `-frames:v 1` to the same expression. **Do not keep the expression twice** (duplication is the bill the preview-parity contract already paid).
+- For overlays, reuse what `probe-frame.mjs` already does: one frame of the same overlay sheet as production, at time T. Composite the footage frame, captions, overlay, and FX on the same filter chain.
+- `renderFrameAt` is also **the seam to engine v2**. In v2, an implementation with the same signature is swapped for the GPU compositor, and capture, preview, and export call the same function.
+- After this command is implemented, `akari internal beat-sync-probe-frame` **stays for one release of compatibility and then retires** (point the beat-sync-edit skill at `capture`).
+- The contact sheet shares `contact-sheet.mjs` (`akari media` contract §1.1).
 
-## 4. 一致の検収（受け入れ条件の核）
+## 4. Acceptance of agreement (the core of the acceptance conditions)
 
-- フィクスチャ（カット 3 + 字幕 + オーバーレイ 1 + レイヤー 1 + FX 1 を含む小さな edit.json）で、
-  **同じ T の capture と render-cut 出力フレームを比較**する。比較先は書き出しの非可逆劣化を除くため、
-  render-cut を可逆または高品質設定（ProRes 4444 / `-crf 0` / PNG 連番のいずれか。タスクで決めて記録）で回した中間物から抜く
-- 合格線: 平均絶対差 ≤ 2/255 かつ最大差のある画素が 0.1% 未満（サブピクセルのラスタライズ差を許容）。
-  それを超える差は**バグ**として原因を特定して直すか、既知差分として契約に追記する（preview-parity 契約 §2.4 と同じ流儀）
-- 同じ入力で 2 回撮って**バイト一致**（決定論）
-- `--auto` の時刻列が render-cut の `render.json` `contact_sheet.timestamps_seconds` と一致する
+- On a fixture (a small edit.json with 3 cuts, captions, 1 overlay, 1 layer, and 1 FX), **compare capture at the same T with a render-cut output frame**. The comparison target is taken from an intermediate of a render-cut run in a lossless or high-quality setting (ProRes 4444, `-crf 0`, or a PNG sequence. The task picks one and records it), so the lossy degradation of the export is left out.
+- Pass line: mean absolute difference at most 2/255, and pixels that hold the maximum difference are under 0.1 percent (allow a sub-pixel rasterization difference). A larger difference is a **bug**. Find the cause and fix it, or append it to this contract as a known difference (the same style as preview-parity §2.4).
+- Two captures of the same input are **byte-identical** (determinism).
+- The time list from `--auto` matches `contact_sheet.timestamps_seconds` in render-cut's `render.json`.
 
-## 5. 帳面との関係
+## 5. Relation to the ledger
 
-- capture は**素材**ではなく**編集（edit.json）**の観察なので、素材の帳面（analysis.json）には書かない。
-  記録は `capture.json`（§1）と、呼び出したスキル側のレポート（`critique-cut` の `critique.md` 等）が持つ
-- `.akari/reports/capture/` は検証証跡（project-structure v0 §1）。再生成可能だが自動削除はしない（render-report と同じ扱い）
+- capture observes the **edit (edit.json)**, not the **footage**, so it does not write the footage ledger (analysis.json). The record lives in `capture.json` (§1) and in the report of the skill that called it (for example `critique.md` from `critique-cut`).
+- `.akari/reports/capture/` is verification evidence (project-structure v0 §1). It can be regenerated, but it is not deleted automatically (the same treatment as a render report).
 
-## 6. 非スコープ
+## 6. Out of scope
 
-- 音声・動画クリップの書き出し（render-cut の仕事）
-- shell の「この時刻を撮る」ボタン（後続。CLI が先）
-- 未保存編集の撮影
-- プレビュー側（Web UI / shell）との一致検収は preview-parity 契約の既存手順に委ねる。本契約が検収するのは capture ≡ 書き出し
+- Export of audio or of a video clip (render-cut's job).
+- A "capture this time" button in the shell (later. The CLI comes first).
+- Capturing an unsaved edit.
+- Agreement with the preview side (Web UI or shell) is left to the existing preview-parity procedure. What this contract accepts is capture equals export.
 
-## 7. 受け入れ条件（実装タスクの物差し）
+## 7. Acceptance conditions (the measure for the implementation task)
 
-- `akari capture -t 0 4.5 11` がフィクスチャで 3 コマのシート 1 枚と `capture.json` を返し、stdout が JSON Lines のみ
-- `--separate` / `--full` / `--per-sheet` / `--auto` / `--edit` がそれぞれ契約どおり
-- §4 の一致検収がテストとして存在し全緑（比較方式・許容値をテスト内に明記）
-- `renderFrameAt` が render-cut 本体からも呼ばれ、書き出し経路と capture 経路で合成式の定義箇所が 1 つであること
-  （grep で `enableWindowExpr` 以外に enable 式の組み立てが増えていない）
-- 既存の render-cut テスト（295 件規模）が全緑・書き出しの成果物が変わらない（既存フィクスチャの SHA-256 不変）
-- launcher: `akari capture --help` / akari-tools 不在時の案内 / Chrome 不在時の案内（`findChromePath` の既存メッセージを再利用）
+- `akari capture -t 0 4.5 11` returns one 3-frame sheet and `capture.json` on the fixture, and stdout is JSON Lines only.
+- `--separate`, `--full`, `--per-sheet`, `--auto`, and `--edit` each behave as this contract says.
+- The agreement check in §4 exists as a test and is fully green (the comparison method and the tolerance are written in the test).
+- `renderFrameAt` is also called from render-cut itself, and the composite expression is defined in one place for the export path and the capture path (a grep shows no new assembly of an enable expression other than `enableWindowExpr`).
+- The existing render-cut tests (on the order of 295) are fully green, and the export artifact does not change (SHA-256 of existing fixtures is unchanged).
+- Launcher: `akari capture --help`, the guidance when akari-tools is absent, and the guidance when Chrome is absent (reuse the existing message from `findChromePath`).
 
-## 9. v1 改訂（2026-08-30）— v2 経路への載せ替え
+## 9. v1 revision (2026-08-30). Move onto the v2 path
 
-> **現況（2026-09-27）:** 以下の legacy 分岐と非 macOS フォールバックは当時の設計記録。現在の書き出しは全 OS で `auto` が GPU 適格性により GPU / OSR を選び、`--engine legacy` は拒否する。
+> **Current state (2026-09-27).** The legacy branch and the non-macOS fallback below are the design record of that time. Export today has `auto` choose GPU or OSR by GPU eligibility on every OS, and `--engine legacy` is rejected.
 
-### 9.1 なぜ改訂するか（確定事実）
+### 9.1 Why revise (settled facts)
 
-- v0 の実装は `packages/akari-tools/src/capture/run.mjs` が `renderProject(…, { engine: "legacy" })` を**固定**で呼び、
-  `packages/render-cut/src/frame-at.mjs` が旧 ffmpeg フィルタグラフの `plan.commands` を先頭から対象フレームまで回す
-  （オーバーレイの段は `captureWithPuppeteer` で 0..T の全コマを撮る）。**v2（osr / gpu）を通っていない**
-- 2026-08-28 #90 で**書き出しの既定は v2**になった（`resolveEngineChoice("auto")` = macOS は GPU 直結〔適格時〕/ OSR、非 macOS は legacy）。
-  §0 の物差し「capture ≡ 書き出し」は、既定の書き出し = v2 に対して取り直さなければ意味を失う
-- 実案件（v2・トラックあり・Three.js オーバーレイ入り・11 秒）で v0 は **18 分 50 秒**（critique-cut 1 周の 98.7%）。
-  §0「書き出さずに見る」の目的に反する
+- The v0 implementation has `packages/akari-tools/src/capture/run.mjs` call `renderProject(…, { engine: "legacy" })` as a **fixed** engine. `packages/render-cut/src/frame-at.mjs` runs `plan.commands` of the old ffmpeg filter graph from the start through the target frame (the overlay stage shoots every frame from 0 through T with `captureWithPuppeteer`). **It does not go through v2 (osr or gpu).**
+- On 2026-08-28, #90 made **v2 the default export** (`resolveEngineChoice("auto")` is direct GPU on macOS when eligible, otherwise OSR, and legacy off macOS). The measure in §0, "capture equals export", loses its meaning unless it is taken again against the default export, which is v2.
+- On a real job (v2, with tracks, a Three.js overlay, 11 seconds) v0 took **18 minutes 50 seconds** (98.7 percent of one critique-cut pass). That fights the §0 purpose, "look without exporting".
 
-### 9.2 v1 の仕様（§1〜§7 に対する差分。書いていない項目は v0 のまま）
+### 9.2 v1 spec (the delta against §1 through §7. An item not written here stays v0)
 
-- **`--engine auto|osr|gpu|legacy`** を追加（既定 `auto`）。解決は render-cut の `resolveEngineChoice` / GPU 適格判定を**同じ関数で**行い、
-  書き出しの `auto` と必ず同じエンジンに落ちる（capture が書き出しと違うエンジンを選ぶことは無い）
-- **v2 経路 = 書き出しと同じページを組み、フレーム N だけを評価して 1 枚にする。0..N を回さない**
-  - ページは render-cut が `exportWithOsr` / `exportWithGpu` に渡すものと同一（`page-builder` の入力 = edit / captions / overlays / width / height / fps）
-  - osr: `osr-export/src/electron-main.mjs` のフレームループ（seek → capturePaint → verifyStamp → 書き込み）を**フレーム N の 1 回**だけ回し、
-    エンコードせずに `stripStampRow` 後のビットマップを PNG に落とす。verify（stamp 一致 = N）は省略しない
-  - gpu: `gpu-export` の page-runtime にフレーム N の単発評価（frame-engine `evaluateFrame` 1 回）+ 読み戻し（`frame-engine/src/exits/readback.ts`）→ PNG。
-    字幕スプライト・HTML-in-Canvas・3D は書き出しと同じ経路を通す（不適格なら `auto` は書き出しと同様に osr へ落ちる）
-  - 複数時刻はページ起動を 1 回にして N を順に評価する（Chrome / Electron を時刻ごとに立ち上げない）
-- **legacy 経路（frame-at.mjs）は `--engine legacy` 明示時と非 macOS のフォールバックだけ**。削除しない
-- **`capture.json`** に `engine`（requested / resolved / fallback）と `renderer`（`osr-export@<version>` / `gpu-export@<version>` / `render-cut@<version>`）を書く。
-  **同じページ・同じランタイムを通ったこと**を receipt で示す（osr / gpu の receipt から stamp / verify の結果を写す）
-- **コンタクトシートは `contact-sheet.mjs` の `renderLabeledContactSheet`（media 契約 §1.1・≤ 2576×1456）へ差し替える**。
-  v0 独自タイラー（1 コマ 720p 固定・上限なし → 4×3 で 5120×2160）は廃止
-- 性能目標（受け入れ条件）: v2 の fieldtest 案件（内部リポ `fieldtest/2026-08-29-critique-cut-v2`・11 秒・1080p・HTML オーバーレイ 2〔Three.js 含む〕・字幕・LUT）で
-  **1 枚 ≤ 10 秒、3 枚 ≤ 20 秒**（ページ起動込み）。**尺に比例しない**こと（同案件の尺を 2 倍にしても ±2 秒以内）
+- Add **`--engine auto|osr|gpu|legacy`** (default `auto`). Resolution uses render-cut's `resolveEngineChoice` and the GPU eligibility check **as the same functions**, and it always lands on the same engine as export's `auto`. capture does not pick an engine different from export.
+- **The v2 path builds the same page as export, evaluates only frame N, and makes one picture. It does not run 0 through N.**
+  - The page is the same one render-cut passes to `exportWithOsr` or `exportWithGpu` (`page-builder` input is edit, captions, overlays, width, height, and fps).
+  - osr runs the frame loop in `osr-export/src/electron-main.mjs` (seek, then capturePaint, then verifyStamp, then write) **once, for frame N only**, and writes the bitmap after `stripStampRow` to PNG without encoding. Do not skip verify (stamp match means N).
+  - gpu does a one-shot evaluation of frame N in the `gpu-export` page runtime (one `evaluateFrame` in frame-engine), then a readback (`frame-engine/src/exits/readback.ts`), then PNG. Caption sprites, HTML-in-canvas, and 3D go through the same path as export (if ineligible, `auto` falls through to osr, the same as export).
+  - For several times, start the page once and evaluate N in order. Do not start Chrome or Electron per time.
+- **The legacy path (frame-at.mjs) is only for an explicit `--engine legacy` and for the non-macOS fallback.** Do not delete it.
+- **`capture.json`** records `engine` (requested, resolved, and fallback) and `renderer` (`osr-export@<version>`, `gpu-export@<version>`, or `render-cut@<version>`). The receipt shows that **the same page and the same runtime were used** (copy the stamp and verify result from the osr or gpu receipt).
+- **Replace the contact sheet with `renderLabeledContactSheet` in `contact-sheet.mjs`** (media contract §1.1, at most 2576 by 1456). Retire the v0-only tiler (one frame fixed at 720p, no cap, so 4 by 3 became 5120 by 2160).
+- Performance target (acceptance): on the v2 field-test job (internal repo `fieldtest/2026-08-29-critique-cut-v2`, 11 seconds, 1080p, 2 HTML overlays including Three.js, captions, and a LUT), **one frame is at most 10 seconds, and three frames are at most 20 seconds**, including page startup. It **does not scale with duration** (doubling that job's duration stays within ±2 seconds).
 
-### 9.3 一致の物差し（v1）
+### 9.3 The measure of agreement (v1)
 
-- **capture(engine, N) ≡ 書き出し(同じ engine) のフレーム N**。
-  **第一基準（2026-08-30 改訂）= 可逆比較**: 書き出しが**エンコーダへ渡す直前の生フレーム**（osr は `stripStampRow` 後の BGRA・
-  `AKARI_OSR_DUMP_FRAMES` で dump できる）と capture の PNG を突き合わせ、**MAD 0・maxDelta 0・差分画素 0%**（bit 一致）を要求する。
-  これが §0 の物差しそのもの
-- **参考値 = mp4 由来の比較**: 同じ `--engine` で書き出した mp4 からフレーム N を抜いた比較は、H.264 4:2:0 の符号化損失を
-  含むため**合否基準にしない**（実測: 彩度最大のカラーバー素材で overlay 矩形 MAD 2.9〜3.5・全画面 1.1〜1.7 が符号化損失だけで出る。
-  可逆比較は同時に MAD 0）。report には参考として載せる
-- gpu 側に生フレームの dump 機構が無い間は、①mp4 由来 MAD が osr と同レンジ ②2 走バイト一致 ③overlay 無しフレームで osr capture と
-  SHA 一致、の 3 点で代替してよい（dump 機構の新設は別票）
-- **同一性の構造的証明**: capture と書き出しが**同じ page-builder・同じ page-runtime・同じ verify**を通ることをコードで示す
-  （capture 専用の合成式・専用のページを持たない）。`grep` で capture が `plan.commands` を参照しないこと（legacy 経路以外）
-- 決定論: 同じ入力で 2 回撮ってバイト一致（osr は GPU 依存の差が出うるため、既存の osr 決定論基準〔HW 2 走 SHA〕に従う）
+- **capture(engine, N) equals frame N of an export on the same engine.**
+  **The primary bar (revised 2026-08-30) is a lossless comparison.** Compare the **raw frame immediately before export hands it to the encoder** (for osr, BGRA after `stripStampRow`, which `AKARI_OSR_DUMP_FRAMES` can dump) with the capture PNG. Require **MAD 0, maxDelta 0, and 0 percent differing pixels** (a bit match). That is the §0 measure itself.
+- **A reference value is the comparison taken from an mp4.** A comparison that pulls frame N from an mp4 exported with the same `--engine` includes H.264 4:2:0 coding loss, so it is **not a pass or fail bar** (measured: on a color-bar footage at maximum saturation, the overlay rectangle is MAD 2.9 to 3.5 and the full frame is 1.1 to 1.7 from coding loss alone. The lossless comparison is MAD 0 at the same time). Put it in the report as a reference.
+- While the gpu side has no raw-frame dump, a substitute of three points is allowed. (1) MAD taken from the mp4 is in the same range as osr. (2) Two passes are byte-identical. (3) A frame with no overlay matches the SHA of an osr capture. Adding a dump mechanism is a separate ticket.
+- **Structural proof of identity.** Show in code that capture and export go through the **same page-builder, the same page runtime, and the same verify** (capture has no composite expression of its own and no page of its own). A grep shows capture does not reference `plan.commands` except on the legacy path.
+- Determinism: two captures of the same input are byte-identical. osr may differ by GPU dependence, so it follows the existing osr determinism bar (SHA of two hardware passes).
 
-### 9.4 非スコープ
+### 9.4 Out of scope
 
-- page-runtime の新機能（字幕・HTML・3D の到達範囲は #120b〜f の契約が決める。capture はそれに乗るだけ）
-- GPU 適格判定の変更
-- プレビュー（shell / Web UI）からのスクショ機能（エンジン v2 では同じ関数になるため不要）
-- v0 の legacy 経路の高速化（`--engine legacy` は現状維持）
+- New page-runtime features (how far captions, HTML, and 3D reach is decided by the #120b through #120f contracts. capture only rides them).
+- Changing GPU eligibility.
+- A screenshot feature from preview (shell or Web UI). In engine v2 it is the same function, so it is not needed.
+- Speeding up the v0 legacy path (`--engine legacy` stays as it is).
 
-## 8. 変更履歴
+## 8. Change history
 
-- 2026-08-30（同日 2 回目）: §9.3 の一致基準を改訂 — 可逆比較（エンコーダ入力の生フレームと bit 一致）を第一基準に、mp4 由来の MAD ≤ 1.0 は符号化損失で機能しないため参考値へ（実装レーン `2026-08-30-capture-v2-engine` の実測）
-- 2026-08-30: §9 v1 改訂 — v2 経路（osr / gpu の page runtime でフレーム N を単発評価）へ載せ替え。v0 が legacy 固定だった事実と実案件 18m50s を記録。シートは media の共用関数へ
-- 2026-08-29: v0 起草（オーナー裁定「render-cut を呼ばずに重なった完成絵を確認したい」「サムネイルにも」を反映。裁定の経緯は非公開の内部記録で管理）
+- 2026-08-30 (the second change that day). §9.3 revises the agreement bar. The primary bar is a lossless comparison (a bit match with the raw frame at the encoder input). MAD at most 1.0 taken from an mp4 does not function, because of coding loss, so it becomes a reference value (measured on implementation lane `2026-08-30-capture-v2-engine`).
+- 2026-08-30. §9 v1 revision. Move onto the v2 path (a one-shot evaluation of frame N in the osr or gpu page runtime). Record the fact that v0 was fixed to legacy, and the 18m50s on a real job. The sheet moves to the shared function from media.
+- 2026-08-29. v0 draft (reflects the owner ruling "I want to check the stacked finished picture without calling render-cut" and "for thumbnails too". The history of the ruling stays in a private internal record).

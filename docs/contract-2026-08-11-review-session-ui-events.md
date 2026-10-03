@@ -1,102 +1,74 @@
-# レビューセッション UI イベント（events.jsonl 拡張 + 記録中インジケータ）契約
+**English** | [Japanese](./contract-2026-08-11-review-session-ui-events.ja.md)
 
-- 日付: 2026-08-11
-- 状態: 実装ラウンドの SSOT（events.jsonl の追加イベント形・target 語彙・インジケータ挙動を確定）
-- 前提: `contract-2026-07-20-review-json-v1-annotation-model.md`（review.json v1・寛容リーダー三原則）、
-  レビューセッション記録（`review/sessions/s-XXXX/` = audio.wav + events.jsonl + strokes.json +
-  edit.snapshot.json。実装: `apps/shell/extensions/akari-preview/src/node/review-session-writer.ts`）。
-  判断根拠のメモ原本は非公開の内部記録で管理（doc-image-annotations / canvas-surface と同方式）
-- スコープ: 記録セッション中の **UI イベント（受動記録）** と**記録中インジケータ**、および
-  ツールモードイベントの**語彙予約**。review.json 側の `ui:` target の着地（注釈レコード化）は
-  次段の実装契約で確定する（§6 予約のみ）
+# Review-session UI events (events.jsonl extension and the recording indicator)
 
-## 0. version 運用（後方互換）
+- Date: 2026-08-11
+- Status: source of truth for this implementation round. It fixes the added event shapes in events.jsonl, the target vocabulary, and the indicator behavior.
+- Depends on `contract-2026-07-20-review-json-v1-annotation-model.md` (review.json v1 and the three principles of a lenient reader), and on review-session recording (`review/sessions/s-XXXX/` is audio.wav, events.jsonl, strokes.json, and edit.snapshot.json. Implementation: `apps/shell/extensions/akari-preview/src/node/review-session-writer.ts`). The original note of the decision basis is kept as a private internal record, the same way as doc-image-annotations and canvas-surface.
+- Scope: **UI events (passive recording)** during a recording session, the **recording indicator**, and a **vocabulary reservation** for tool-mode events. Landing a `ui:` target on the review.json side (turning it into an annotation record) is fixed by the next implementation contract. This contract only reserves it in §6.
 
-- `session.json` の manifest `version: 1` は据え置く。本契約の追加はすべて events.jsonl の
-  **新規イベント type の追加**であり、既存イベント（`start` / トランスポート系）の形は変えない
-- 読み手（compile-review-session 等）は**未知の type を無視して処理を続行する**こと（寛容
-  リーダー）。既存セッションに新イベントが無いのは正常（欠落 = その情報なし）
-- `review-session-writer.ts` の `appendEvent` は `recT` 検証のみの汎用追記であり変更不要。
-  本契約の実装は**発行側（browser）**に閉じる
+## 0. Version policy (backward compatible)
 
-## 1. 追加イベント形（正本）
+- The manifest `version: 1` in `session.json` stays. Every addition in this contract is a **new event type** in events.jsonl. The shape of existing events (`start` and the transport family) does not change.
+- A reader (compile-review-session and the rest) **ignores an unknown type and continues** (lenient reader). An existing session with no new events is normal. Missing means that information is absent.
+- `appendEvent` in `review-session-writer.ts` is a generic append that only validates `recT`. It does not need to change. The implementation of this contract stays on the **emitting side (browser)**.
 
-すべて 1 行 1 JSON（JSONL）。`recT` = 録音開始からの経過秒（既存イベントと同一基準）。
+## 1. Added event shapes (canonical)
 
-| type | 形 | 発火条件 | 段 |
+Each line is one JSON object (JSONL). `recT` is seconds since recording started, the same base as existing events.
+
+| type | Shape | When it fires | Stage |
 |---|---|---|---|
-| `ui.click` | `{recT, type: "ui.click", target, label, intent?}` | 登録済み UI 要素（§2）へのクリック | M1 |
-| `ui.tab` | `{recT, type: "ui.tab", target, label}` | アクティブタブの変化 | M1 |
-| `ui.panel` | `{recT, type: "ui.panel", target, label}` | アクティブパネルの変化（フォーカス移動） | M1 |
-| `tool.mode` | `{recT, type: "tool.mode", mode}` | 注釈ツールモードの切替 | M2（語彙のみ本契約で予約） |
+| `ui.click` | `{recT, type: "ui.click", target, label, intent?}` | A click on a registered UI element (§2) | M1 |
+| `ui.tab` | `{recT, type: "ui.tab", target, label}` | The active tab changes | M1 |
+| `ui.panel` | `{recT, type: "ui.panel", target, label}` | The active panel changes (focus moves) | M1 |
+| `tool.mode` | `{recT, type: "tool.mode", mode}` | The annotation tool mode changes | M2 (this contract reserves the vocabulary only) |
 
-- `target`: §2 の語彙に従う安定 id 文字列。必須
-- `label`: 人間可読名（例: `"素材パネル"`）。必須。文字起こしとの突合で発話中の呼称と
-  照合するために使う（id だけでは「左上の素材パネル」という発話と結べない）
-- `intent`: 任意 boolean。選択ツール（M2）が有効なときのクリックにのみ `true` を付ける。
-  省略 = 受動記録（意図マーカーなし）
-- `mode`: `"neutral" | "pen" | "rect" | "select"`。M2 実装まで発行されない（予約）
+- `target` is a stable id string from the §2 vocabulary. Required.
+- `label` is a human-readable name (for example `"Footage panel"`). Required. Transcription matching uses it to line up with what was said. An id alone cannot join the utterance "the footage panel at the top left".
+- `intent` is an optional boolean. Set `true` only on a click while the select tool (M2) is active. Omitted means passive recording, with no intent marker.
+- `mode` is `"neutral"`, `"pen"`, `"rect"`, or `"select"`. It is not emitted until the M2 implementation (reserved).
 
-## 2. target 語彙 v1
+## 2. Target vocabulary v1
 
-**クリックした要素だけを記録する。全 DOM 追跡はしない。**
+**Record only the element that was clicked. Do not trace the whole DOM.**
 
-| 形 | 意味 | 例 |
+| Shape | Meaning | Example |
 |---|---|---|
-| `panel:<id>` | シェルの主要パネル | `panel:assets` / `panel:inspector` / `panel:review` / `panel:timeline` |
-| `tab:<id>` | タブ | `tab:assets-builtin` |
-| `timeline:cut:<n>` | タイムラインのカット（cuts[] index） | `timeline:cut:3` |
-| `timeline:item:<id>` | v2 タイムラインのカット（tracks[].items[].id。compile 時に legacy cuts[] index へ射影） | `timeline:item:cut-4` |
-| `timeline:overlay:<id>` | タイムラインのオーバーレイ | `timeline:overlay:o-0002` |
-| `asset:<path>` | 素材（プロジェクト相対 or カタログ id） | `asset:assets/broll/city.mp4` |
-| `asset:<category>/<id>` | 素材（カタログ由来カード。key = `<category>/<id>`） | `asset:still/br-typing-laptop` |
+| `panel:<id>` | A main panel of the shell | `panel:assets`, `panel:inspector`, `panel:review`, `panel:timeline` |
+| `tab:<id>` | A tab | `tab:assets-builtin` |
+| `timeline:cut:<n>` | A cut on the timeline (cuts[] index) | `timeline:cut:3` |
+| `timeline:item:<id>` | A cut on the v2 timeline (`tracks[].items[].id`. At compile time, project it to a legacy cuts[] index) | `timeline:item:cut-4` |
+| `timeline:overlay:<id>` | An overlay on the timeline | `timeline:overlay:o-0002` |
+| `asset:<path>` | Footage (project-relative, or a catalog id) | `asset:assets/broll/city.mp4` |
+| `asset:<category>/<id>` | Footage from a catalog card. The key is `<category>/<id>` | `asset:still/br-typing-laptop` |
 
-- **登録機構**: 記録対象の要素は `data-akari-ui="<target-id>"` 属性で opt-in する。
-  クリック解決は capture-phase のリスナー 1 本で行い、**最近傍の登録済み祖先**に丸める。
-  登録要素の外のクリックはイベントを発行しない
-- 語彙の追加は additive（新しい `<prefix>:` を足すのは自由。既存の意味変更は禁止）
-- `label` は属性 or 登録側が供給する（DOM テキストの機械抽出に頼らない）
+- **Registration.** An element that should be recorded opts in with the attribute `data-akari-ui="<target-id>"`. Resolve the click with one capture-phase listener, and round to the **nearest registered ancestor**. A click outside a registered element emits no event.
+- Adding vocabulary is additive. A new `<prefix>:` is free to add. Changing the meaning of an existing one is forbidden.
+- `label` comes from an attribute or from the registering side. Do not rely on extracting DOM text by machine.
 
-## 3. 発火条件
+## 3. When events fire
 
-- UI イベントの記録は**レビューセッション記録中のみ**。セッション外では リスナー自体を
-  外すか no-op にする（常時監視をしない）
-- 発行は既存の `appendEvent` RPC 経由。順序は発行順（recT 単調増加は既存規約どおり）
+- Record UI events **only while a review session is recording**. Outside a session, remove the listener or no-op it. Do not watch all the time.
+- Emit through the existing `appendEvent` RPC. Order is emit order. Monotonic `recT` stays the existing rule.
 
-## 4. 記録中インジケータ
+## 4. Recording indicator
 
-- セッション記録中、**レビュー（注釈）パネルを除く画面全体をオレンジ系の枠で囲う**。
-  グロー（にじみ）のかかった質感。画面収録の「録画中」の視覚言語に寄せる
-- 実装は `pointer-events: none` のオーバーレイ。**クリック・操作を一切奪わない**
-- 点滅アニメーションはしない（緩やかな明滅までは実装裁量）。受け入れ基準 =
-  「一目で記録中と分かるが、作業の邪魔をしない」
-- 表示はセッション開始と同時、非表示は終了と同時。録音ボタンの状態と常に一致すること
+- While a session is recording, **draw an orange-family frame around the whole screen except the review (annotation) panel**. The edge has a glow. Aim at the visual language of "recording" in a screen capture.
+- Implement it as an overlay with `pointer-events: none`. **It takes no clicks and no other input.**
+- Do not blink. A slow pulse is an implementation choice. Acceptance is that a person can tell recording is on at a glance, and that the frame does not get in the way of the work.
+- Show it at the same moment the session starts. Hide it at the same moment the session ends. It always matches the record button's state.
 
-## 5. 検証
+## 5. Verification
 
-- L0: 既存テスト全件 + ビルド
-- 発行側の単体テスト: 登録要素クリック → 期待形のイベント / 未登録要素 → 発行なし /
-  セッション外 → 発行なし
-- 実機: 記録開始 → 素材パネルクリック → タブ切替 → 終了、で events.jsonl に該当行が
-  recT 順で入ることを実測。インジケータはスクリーンショットで証跡
-- 回帰: 新イベント入りの events.jsonl を旧読み手（compile-review-session の手順）が
-  処理してもエラーにならないこと
+- L0. Every existing test, plus the build.
+- Unit tests on the emitting side. A click on a registered element produces the expected event. An unregistered element emits nothing. Outside a session, nothing is emitted.
+- On a real device, start recording, click the footage panel, switch tabs, and stop. Measure that the matching lines land in events.jsonl in `recT` order. The indicator's evidence is a screenshot.
+- Regression. An old reader (the compile-review-session procedure) processes an events.jsonl that contains the new events and does not error.
 
-## 6. 注釈の着地契約
+## 6. Where an annotation lands
 
-- review.json `annotations[].target` の **`ui:<element-id>`** は、選択ツール経由の UI 要素注釈に
-  使う。§2 と同一の id 空間を使い、たとえばオーバーレイは
-  `ui:timeline:overlay:<id>` に着地する
-- render-cut は検証に成功した書き出し成果物を、edit.json v1 の `sources[]` へ自動追記する。
-  `path` はプロジェクトルート相対、`proxy` は `null` とし、同じ `path` が既にあれば追記しない。
-  既存 id と衝突しない出力 stem 由来の id を使い、既存フィールドと整形は書き換えない。
-  edit.json を再読込・パースできない場合は警告だけを残し、書き出し成功を取り消さない。
-  v0 は schema 上 `sources` を持てないため自動追記せず、同様に警告する
-- `sources[].path` に一致する動画ファイルを raw preview で開き、そのタブがフォーカスされて
-  いる間の注釈は、`src = sources[].id` と raw preview の現在再生位置を source 秒とする
-  `sourceT` に着地する。コンポーザーは対象を `🎞 <source id>` チップで表示する。
-  一致しないファイルは従来どおり `src: null` の通常注釈とし、新しい target 種は作らない
-- 音の素材区間は新しい `audio:` target を作らず、`src = sources[].id` と半開区間
-  `sourceRange: [start, end)` を使う。BGM 等のオーバーレイ音は既存の `overlay:<id>` または
-  `ui:timeline:overlay:<id>` で扱う。音声ファイルは専用 audio preview で開かれるため、raw video
-  preview の現在位置接続とは別であり、区間選択 UI は本契約の対象外とする
+- **`ui:<element-id>`** on `annotations[].target` in review.json is for a UI-element annotation that comes through the select tool. It uses the same id space as §2. An overlay, for example, lands on `ui:timeline:overlay:<id>`.
+- render-cut appends a verified export artifact to `sources[]` of edit.json v1. `path` is relative to the project root, and `proxy` is `null`. If the same `path` is already present, do not append. Use an id derived from the output stem that does not collide with an existing id. Do not rewrite existing fields or formatting. If edit.json cannot be reread or parsed, leave a warning only. Do not undo a successful export. v0 cannot hold `sources` in the schema, so do not auto-append, and warn in the same way.
+- While a video file that matches `sources[].path` is open in the raw preview and that tab is focused, an annotation lands on `src = sources[].id` and on `sourceT`, the raw preview's current playback position in source seconds. The composer shows the target as a chip `🎞 <source id>`. A file that does not match stays a normal annotation with `src: null`, as before. Do not invent a new target kind.
+- A footage range of sound does not create a new `audio:` target. It uses `src = sources[].id` and a half-open `sourceRange: [start, end)`. Overlay sound such as BGM uses the existing `overlay:<id>` or `ui:timeline:overlay:<id>`. An audio file opens in a dedicated audio preview, separate from the current-position link of the raw video preview. The range-selection UI is out of scope for this contract.

@@ -126,14 +126,14 @@ All contracts follow the
 
 | File | Contents |
 |---|---|
-| [contract-2026-08-02-preview-parity.md](./contract-2026-08-02-preview-parity.md) | Engine v2 parity — one `T → frame` evaluator, two preview containers, one OSR exit, and a single golden-frame acceptance suite (Japanese) |
+| [contract-2026-08-02-preview-parity.md](./contract-2026-08-02-preview-parity.md) | Engine v2 parity — one `T → frame` evaluator, two preview containers, one OSR exit, and a single golden-frame acceptance suite |
 | [contract-2026-09-03-preview-playback-rate-v1.md](./contract-2026-09-03-preview-playback-rate-v1.md) | Preview playback rate v1 — 0.5×–3× transport presets, widget-lifetime state, output-timeline clock semantics, and pitch preservation across frame-engine and legacy audio paths (Japanese) |
 | [contract-2026-09-03-clip-adjust-v0.md](./contract-2026-09-03-clip-adjust-v0.md) | Clip adjust v0 — per-item basic correction, LUT references, and section bypass (Japanese) |
 | [contract-2026-09-05-clip-adjust-v1.md](./contract-2026-09-05-clip-adjust-v1.md) | Clip adjust v1 — RGB curves, CDL wheels, hue curves, and fixed bake order (Japanese) |
 | [contract-2026-08-01-export-nle-beta.md](./contract-2026-08-01-export-nle-beta.md) | export-nle: one-way export to other NLEs (FCPXML / FCP7 XML / SRT) — **BETA, untested against real NLEs** |
-| [contract-2026-08-28-osr-export-v0.md](./contract-2026-08-28-osr-export-v0.md) | Whole-page Electron OSR export v0 — page layers, seek/paint verification handshake, launcher fallback, and memory limits (Japanese) |
-| [contract-2026-08-28-gpu-export-v0.md](./contract-2026-08-28-gpu-export-v0.md) | GPU-direct export v0 — eligibility, zero-readback WebCodecs path, incremental MP4 mux (moov reserved up front, no temp file, no ffmpeg process), fallback, and determinism gates (Japanese) |
-| [contract-2026-08-28-v2-approximation-ledger.md](./contract-2026-08-28-v2-approximation-ledger.md) | Engine v2 approximation ledger — resolved items with golden or measured evidence, retained approximations, and separately tracked work (Japanese) |
+| [contract-2026-08-28-osr-export-v0.md](./contract-2026-08-28-osr-export-v0.md) | Whole-page Electron OSR export v0 — page layers, seek/paint verification handshake, launcher fallback, and memory limits |
+| [contract-2026-08-28-gpu-export-v0.md](./contract-2026-08-28-gpu-export-v0.md) | GPU-direct export v0 — eligibility, zero-readback WebCodecs path, incremental MP4 mux (moov reserved up front, no temp file, no ffmpeg process), fallback, and determinism gates |
+| [contract-2026-08-28-v2-approximation-ledger.md](./contract-2026-08-28-v2-approximation-ledger.md) | Engine v2 approximation ledger — resolved items with golden or measured evidence, retained approximations, and separately tracked work |
 | [contract-2026-09-06-vgpu-layer-v0.md](./contract-2026-09-06-vgpu-layer-v0.md) | vgpu layer v0 — pure WebGPU fragment passes, shared overlay sheet, preview scaling, GPU-direct export, eligibility, and failure handling (Japanese) |
 
 ### Assets & personal layer
@@ -146,8 +146,8 @@ All contracts follow the
 | [contract-2026-07-25-memory-connection-v0.md](./contract-2026-07-25-memory-connection-v0.md) | memory connection v0 (declaring external reference-memory connections in connections.json) |
 | [contract-2026-07-26-avatar-registry-v0.md](./contract-2026-07-26-avatar-registry-v0.md) | Avatar registry v0 (avatar.json / rendition.json / staged read-out) |
 | [contract-2026-08-13-avatar-drive-v0.md](./contract-2026-08-13-avatar-drive-v0.md) | 2D avatar sprite drive v0 (audio-envelope mouth states / deterministic blinking / baked alpha clip) |
-| [contract-2026-08-14-avatar-vrm-v0.md](./contract-2026-08-14-avatar-vrm-v0.md) | VRM avatar backend v0 (VRM 0.x/1.0 expressions / headless baked alpha clip) (Japanese) |
-| [contract-2026-08-18-v1-render-parity.md](./contract-2026-08-18-v1-render-parity.md) | v1 render path parity — cuts[].at explicit placement (gaps) and cuts[].track compositing on the sources[] path (Japanese) |
+| [contract-2026-08-14-avatar-vrm-v0.md](./contract-2026-08-14-avatar-vrm-v0.md) | VRM avatar backend v0 (VRM 0.x/1.0 expressions / headless baked alpha clip) |
+| [contract-2026-08-18-v1-render-parity.md](./contract-2026-08-18-v1-render-parity.md) | v1 render path parity — cuts[].at explicit placement (gaps) and cuts[].track compositing on the sources[] path |
 | [contract-2026-08-28-v2-audio-roles-v0.md](./contract-2026-08-28-v2-audio-roles-v0.md) | v2 audio roles v0 — Web Audio supplies the frame-engine preview (bgm / narration / sfx, kernel ducking, AudioContext clock as master); ffmpeg mastering stays the export truth; measured preview-vs-export deltas and the items to settle before the default switch |
 | [contract-2026-08-29-media-inspect-cli-v0.md](./contract-2026-08-29-media-inspect-cli-v0.md) | `akari media` observation commands v0 — probe / grab / filmstrip / waveform / transcribe (pull-driven analysis: look when you want to, results stay on disk) |
 | [contract-2026-08-29-capture-v0.md](./contract-2026-08-29-capture-v0.md) | `akari capture` v0 — render finished frames of the current edit.json without exporting |
@@ -182,6 +182,38 @@ managed in private internal records.
 | [notes-2026-07-16-qa-lint-and-transcript-ui.md](./notes-2026-07-16-qa-lint-and-transcript-ui.md) | Direction for the self-verification loop and transcript-editing UI (the prototype of edit-lint) |
 | [notes-2026-08-28-engine-v2-open-items.md](./notes-2026-08-28-engine-v2-open-items.md) | Remaining engine v2 work — platform validation, deterministic seeking, OSR isolation, exact verification, and legacy retirement gates (Japanese) |
 | [notes-2026-09-05-bake-layer-retired.md](./notes-2026-09-05-bake-layer-retired.md) | Retirement of bake-layer / ATF telop rasterization — what was removed, the `kind:"telop"` compatibility rules, and what stays out of scope (Japanese) |
+
+### August 2026 Japanese siblings
+
+The tables above open the English canonical pages for the August 2026 contracts. These links open the Japanese siblings.
+
+- [Japanese](./contract-2026-08-01-export-nle-beta.ja.md)
+- [Japanese](./contract-2026-08-02-creator-root-v1.ja.md)
+- [Japanese](./contract-2026-08-02-preview-parity.ja.md)
+- [Japanese](./contract-2026-08-02-setup-remote-v0.ja.md)
+- [Japanese](./contract-2026-08-03-caption-display-encoding-qc-v1.ja.md)
+- [Japanese](./contract-2026-08-03-cut-candidate-bridge-v1.ja.md)
+- [Japanese](./contract-2026-08-05-fx-v0.ja.md)
+- [Japanese](./contract-2026-08-09-transform-keyframes-v0.ja.md)
+- [Japanese](./contract-2026-08-11-analysis-vision-tracks-v0.ja.md)
+- [Japanese](./contract-2026-08-11-review-session-ui-events.ja.md)
+- [Japanese](./contract-2026-08-12-chat-approval-v0.ja.md)
+- [Japanese](./contract-2026-08-12-color-range-normalization-v0.ja.md)
+- [Japanese](./contract-2026-08-12-region-filter-layer-v0.ja.md)
+- [Japanese](./contract-2026-08-12-still-image-cut-source-v0.ja.md)
+- [Japanese](./contract-2026-08-13-avatar-drive-v0.ja.md)
+- [Japanese](./contract-2026-08-14-avatar-vrm-v0.ja.md)
+- [Japanese](./contract-2026-08-18-v1-render-parity.ja.md)
+- [Japanese](./contract-2026-08-23-captions-emphasis-words-v0.ja.md)
+- [Japanese](./contract-2026-08-23-stroke-persistence.ja.md)
+- [Japanese](./contract-2026-08-28-gpu-export-v0.ja.md)
+- [Japanese](./contract-2026-08-28-osr-export-v0.ja.md)
+- [Japanese](./contract-2026-08-28-v2-approximation-ledger.ja.md)
+- [Japanese](./contract-2026-08-28-v2-audio-roles-v0.ja.md)
+- [Japanese](./contract-2026-08-29-capture-v0.ja.md)
+- [Japanese](./contract-2026-08-29-media-inspect-cli-v0.ja.md)
+- [Japanese](./contract-2026-08-30-edit-json-v2-object-tree-v0.ja.md)
+- [Japanese](./contract-2026-08-30-motion-and-keyframes-v0.ja.md)
 
 ## For developers
 

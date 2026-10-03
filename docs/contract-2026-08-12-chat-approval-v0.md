@@ -1,99 +1,85 @@
-# chat-approval 契約 v0（チャット通知 + ボタン承認）
+**English** | [Japanese](./contract-2026-08-12-chat-approval-v0.ja.md)
 
-- 日付: 2026-08-12
-- 状態: **v0 ドラフト・要オーナーレビュー**
-- 前提: `contract-2026-08-02-setup-remote-v0.md`（tailnet 限定の閲覧経路。レポート URL の供給元）、
-  `contract-2026-07-25-project-structure-v0.md`（承認レポートの実体）、
-  `packages/decision-cards/report-helper.mjs`（`decisions.json` の read / write / commit の唯一の実装）、
-  `skills/manage-connections`（接続レジストリと credentials の唯一の入口）
-- スコープ: 承認ゲート到達を**チャットへ通知**し、**ボタンのタップだけで**承認を返せるようにする
-- 非スコープ: チャットからの自由文指示、エージェントの起動・操作、素材のチャット搬送、
-  複数チャネル対応（v0 は Telegram 1 本）
+# chat-approval contract v0 (chat notification and button approval)
 
-## 0. 位置づけ — 一言で言い切る
+- Date: 2026-08-12
+- Status: **v0 draft. Needs owner review.**
+- Depends on `contract-2026-08-02-setup-remote-v0.md` (the tailnet-only viewing path, which supplies the report URL), `contract-2026-07-25-project-structure-v0.md` (the approval-report artifact), `packages/decision-cards/report-helper.mjs` (the only implementation of read, write, and commit for `decisions.json`), and `skills/manage-connections` (the only entry for the connection registry and credentials).
+- Scope: **notify chat** when an approval gate is reached, and return an approval **only by tapping a button**.
+- Out of scope: free-text instructions from chat, starting or driving an agent, carrying footage through chat, and more than one channel. v0 is Telegram only.
 
-**チャットは配管であって頭脳ではない。** 運ぶのは「できました」という通知・レポートへのリンク・
-画像・そして**列挙可能な承認の返事**だけ。編集の判断は従来どおり AKARI のパイプラインが持ち、
-承認の記録は `decisions.json` が持つ。チャット層は SSOT を一切持たない。
+## 0. Place in the system
 
-## 1. 決定事項
+**Chat is a pipe, not a brain.** It carries a "ready" notice, a link to the report, images, and **an approval reply from a closed list**. The AKARI pipeline still owns the edit decision. `decisions.json` still owns the approval record. The chat layer owns no source of truth.
 
-| 論点 | 決定 |
+## 1. Decisions
+
+| Question | Decision |
 |---|---|
-| 何を足すか | **通知と承認だけ**。エージェントをチャットから起動しない（別契約） |
-| 書き込み経路 | ブリッジは `decisions.json` を**自分で書かない**。report-helper の HTTP API（`POST /api/state` / `POST /api/commit`）を 127.0.0.1 経由で叩く。書き込みの原子性・検証・`0600`・二重確定の 409 は既存実装のまま効く |
-| 受信方式 | **long polling**（`getUpdates`）。公開エンドポイント・webhook・トンネルを作らない（受信口をインターネットに開けない） |
-| 入力語彙 | **閉じた語彙のみ**。`callback_data` が既定の集合に一致するものだけ処理し、自由文は処理しない |
-| チャネル | Telegram のみ（v0）。実装は `packages/chat-bridge/` に置き、後で LINE / Discord を足せる形にする |
+| What to add | **Notification and approval only.** Do not start an agent from chat. That is a separate contract. |
+| Write path | The bridge **does not write `decisions.json` itself**. It calls the report-helper HTTP API (`POST /api/state` and `POST /api/commit`) through 127.0.0.1. Atomic write, validation, mode `0600`, and the 409 on a double commit stay as the existing implementation already does them. |
+| Receive path | **Long polling** (`getUpdates`). Do not create a public endpoint, a webhook, or a tunnel. Do not open an inbound port to the internet. |
+| Input vocabulary | **A closed vocabulary only.** Process a `callback_data` only when it matches the defined set. Do not process free text. |
+| Channel | Telegram only (v0). The implementation lives in `packages/chat-bridge/`, in a shape that can add LINE or Discord later. |
 
-## 2. なぜ自由文を入れないか（この契約の中心）
+## 2. Why free text stays out (the center of this contract)
 
-自由文をエージェントへ通すと、`planning`（非公開）の信頼境界契約が扱う prompt injection の
-窓口がそのまま開く。ボタンの `callback_data` は**発行側が定義した有限集合**であり、
-受信側は集合に無い値を捨てるだけでよい。v0 はこの性質を設計の土台にする。
+Passing free text through to an agent opens the prompt-injection window that the trust-boundary contract in `planning` (private) already covers. A button's `callback_data` is a **finite set defined by the sender**. The receiver only has to drop a value that is not in the set. v0 builds on that property.
 
-- 差し戻しは「確定しない + レポートを開くリンクを返す」で表現する。理由の自由記述はレポート側で行う
-- 自由文メッセージを受けたら、処理せず「レポートで操作してください」と定型文を返す
+- Express a send-back as "do not commit, and return a link that opens the report". Free-text reasons belong on the report.
+- If a free-text message arrives, do not process it. Reply with the fixed line "Use the report".
 
-## 3. 安全規律（ハードルール）
+## 3. Safety rules (hard rules)
 
-1. **トークンを git 管理下・レポート・ログ・会話に出さない。** 置き場は
-   `~/.akari/credentials.env`（`600`）のみ。エージェントは値を読まず、KEY 名だけ案内する
-2. **チャット ID の許可リストを必須にする。** 登録済み chat ID 以外からの update は
-   一切処理せず破棄する（bot のユーザー名は誰でも到達できるため、これが無いと第三者が承認できる）
-3. **ブリッジはポートを listen しない。** 送信も受信も outbound の long polling のみ
-4. **`decisions.json` を直接書かない**（§1 の決定）。report-helper 経由のみ
-5. **update の重複処理をしない。** `update_id` で冪等化する（Telegram は再配信しうる）
-6. **送ってよいのはレポートの画像とテキストのみ。** 撮影素材の原本・secrets・パスの内部構造を送らない
-7. **疎通確認（実機への通知到達 + ボタンで `decisions.json` 更新）が取れるまで完了と言わない**
+1. **Do not put the token under git, in a report, in a log, or in a conversation.** The only place is `~/.akari/credentials.env` (mode `600`). The agent does not read the value. It names the KEY only.
+2. **An allowlist of chat IDs is required.** Drop every update from a chat ID that is not registered. Do not process it. Anyone can reach the bot's username, so without this list a third party could approve.
+3. **The bridge does not listen on a port.** Send and receive are outbound long polling only.
+4. **Do not write `decisions.json` directly** (the decision in §1). Go through report-helper only.
+5. **Do not process an update twice.** Make it idempotent on `update_id`. Telegram may deliver again.
+6. **Send only the report's images and text.** Do not send original camera footage, secrets, or the internal shape of paths.
+7. **Do not call it done until a live check passes.** The notice must reach a real device, and a button tap must update `decisions.json`.
 
-## 4. 構成要素
+## 4. Pieces
 
-| 要素 | 置き場 | 役割 |
+| Piece | Place | Role |
 |---|---|---|
-| ブリッジ本体 | `packages/chat-bridge/telegram.mjs` | 通知送信 + long polling + report-helper API 呼び出し |
-| セットアップスキル | `skills/setup-chat-approval/` | doctor → BotFather 案内（人間手番）→ chat ID 取得 → 疎通確認。`setup-remote` と同じ型 |
-| 接続登録 | `.akari/connections.json` | `manage-connections` の管轄（§5 の判断待ち） |
+| Bridge | `packages/chat-bridge/telegram.mjs` | Send the notice, long-poll, call the report-helper API |
+| Setup skill | `skills/setup-chat-approval/` | doctor, then BotFather guidance (a human step), then obtain the chat ID, then the live check. Same shape as `setup-remote` |
+| Connection registration | `.akari/connections.json` | Owned by `manage-connections` (waiting on the choice in §5) |
 
-### 送るメッセージの形
+### Message shape
 
 ```
-🎬 <プロジェクト名> — 承認をお願いします
-<要約 1〜2 行>
-[キーフレーム画像 数枚]
+<project name>. Approval needed.
+<summary, 1 or 2 lines>
+[a few keyframe images]
 
-[ レポートを開く (URL) ] [ おまかせで確定 ] [ あとで ]
+[ Open report (URL) ] [ Commit with defaults ] [ Later ]
 ```
 
-- 「レポートを開く」は URL ボタン（tailnet 限定 URL。Telegram のサーバーからは到達できないため
-  リンクプレビューは出ない → `disable_web_page_preview` を付ける）
-- 「おまかせで確定」は全カード既定値のまま `POST /api/commit`（レポート側の `accept-all` と同義）
-- v1 の拡張余地: カードごとに選択肢ボタンを展開する（`data-option` は有限集合なので §2 と両立する）
+- "Open report" is a URL button. The URL is tailnet-only. Telegram's servers cannot reach it, so there is no link preview. Set `disable_web_page_preview`.
+- "Commit with defaults" calls `POST /api/commit` with every card left at its default. That is the same action as `accept-all` on the report.
+- Room for v1: expand a choice button per card. `data-option` is a finite set, so this still fits §2.
 
-## 5. 判断待ち — `connections.json` の `kind` 拡張
+## 5. Waiting on a decision. Extending `kind` in `connections.json`
 
-現行スキーマの `kind` は `genai / image / video / tts / music / sns / analytics` の閉じた enum で、
-**通知系の枠が無い**。`manage-connections` のハードルール 7（レジストリに無い接続を使わない）を
-守るには、いずれかを選ぶ必要がある:
+`kind` in the current schema is a closed enum: `genai`, `image`, `video`, `tts`, `music`, `sns`, `analytics`. **There is no slot for notification.** Hard rule 7 of `manage-connections` says not to use a connection that is absent from the registry. Pick one of the following.
 
-| 案 | 内容 | 評価 |
+| Option | What it does | Assessment |
 |---|---|---|
-| **A. `notify` を enum に追加** | スキーマ + 検証 + 例 + `apps/shell` 側ミラーを更新 | **推奨**。通知は既存のどの kind とも性質が違う（発信ではなく往復）。将来の LINE / Discord も同じ枠に入る |
-| B. 既存の `sns` を流用 | 変更ゼロ | `sns` は「SNS へ投稿する」枠であり、承認の往復とは別物。意味が濁る |
-| C. レジストリに載せない | credentials.env だけで完結 | ハードルール 7 違反。採らない |
+| **A. Add `notify` to the enum** | Update the schema, validation, examples, and the mirror on the `apps/shell` side | **Preferred.** Notification is unlike every existing kind. It is a round trip, not a post outward. Future LINE and Discord use the same slot. |
+| B. Reuse the existing `sns` | Zero schema change | `sns` is the slot for posting to an SNS. An approval round trip is a different thing. The meaning gets muddy. |
+| C. Leave it off the registry | Finish with credentials.env alone | Breaks hard rule 7. Do not take this option. |
 
-## 6. 成果物と受け入れ基準
+## 6. Artifacts and acceptance
 
-- **L0**: スキル lint / スキーマ検証 / 既存テストが green
-- **L1**: 決定論の単体テスト — 許可外 chat ID の破棄・未知の `callback_data` の破棄・
-  `update_id` の冪等化・自由文の非処理・トークンが出力に混じらないこと
-- **L2**: 実機 — スマホへ通知が届き、ボタンのタップで `decisions.json` が更新される
+- **L0.** Skill lint, schema validation, and existing tests are green.
+- **L1.** Deterministic unit tests. Drop a chat ID that is not allowed. Drop an unknown `callback_data`. Idempotency of `update_id`. Free text is not processed. The token does not leak into output.
+- **L2.** A real device. The notice arrives on a phone, and a button tap updates `decisions.json`.
 
-## 7. 将来（非スコープの明示）
+## 7. Later (called out as out of scope)
 
-- カードごとの選択肢ボタン展開（v1）
-- 複数チャネル（LINE / Discord / Slack）
-- チャットからのエージェント起動・自由文指示（信頼境界の別契約が前提。常駐エージェント
-  = Hermes 等の検討もここに属する）
-- 承認待ちのエージェント側の再開機構（現状は人間が「続けて」と言う前提。ファイル待ちの
-  ポーリングを挟む設計は別途）
+- Choice buttons per card (v1).
+- More channels (LINE, Discord, Slack).
+- Starting an agent from chat, or free-text instructions. That needs a separate trust-boundary contract. A resident agent, such as Hermes, belongs here too.
+- A resume mechanism on the agent side while approval is pending. Today a person says "continue". A design that polls a file in between is separate.

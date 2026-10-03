@@ -1,140 +1,128 @@
-# `akari media` 観察コマンド契約 v0 — probe / grab / filmstrip / waveform / transcribe
+**English** | [Japanese](./contract-2026-08-29-media-inspect-cli-v0.ja.md)
 
-- 日付: 2026-08-29
-- 状態: **v0（オーナー裁定済み 2026-08-29・実装未）**。実装タスクで判明した齟齬は追記で解消する
-- 前提:
-  - `notes-2026-08-08-cli-consolidation.md`（launcher = 依存ゼロ / akari-tools = 外部依存側。launcher は
-    パスを遅延解決して子プロセス起動）
-  - `contract-2026-07-25-project-structure-v0.md`（`.akari/sidecars/` `.akari/reports/` `.akari/cache/` の置き場）
-  - `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ・寛容リーダー）
-  - `contract-2026-07-13-m5-analysis-report.md`（analysis.json v0）と
-    `contract-2026-08-11-analysis-vision-tracks-v0.md` §0（**分析はプル駆動**・未生成 = キー無し）
-  - `contract-2026-07-18-edit-json-v1-sources.md`（観察結果は (`src`, source 秒) で永続化する）
-- スコープ: 素材 1 本を**見る**ための 5 コマンドの入出力・置き場・帳面（analysis.json）への追記規約。
-  LLM を呼ぶ判断（何を見るか・所見・採点）は**スキル側**（`analyze-footage` / `critique-cut`）の仕事で本契約の外
-- 姉妹契約: `contract-2026-08-29-capture-v0.md`（edit.json の完成フレームを見る `akari capture`）
+# `akari media` observation-command contract v0. probe, grab, filmstrip, waveform, transcribe
 
-## 0. 位置づけ — 一言で言い切る
+- Date: 2026-08-29
+- Status: **v0 (owner ruling on 2026-08-29, not implemented yet).** A mismatch found in the implementation task is resolved by appending.
+- Depends on:
+  - `notes-2026-08-08-cli-consolidation.md` (launcher means zero dependencies, akari-tools means the side with external dependencies. The launcher resolves a path lazily and starts a child process).
+  - `contract-2026-07-25-project-structure-v0.md` (where `.akari/sidecars/`, `.akari/reports/`, and `.akari/cache/` live).
+  - `contract-2026-07-17-data-contract-versioning.md` (version required, append only, lenient reader).
+  - `contract-2026-07-13-m5-analysis-report.md` (analysis.json v0) and `contract-2026-08-11-analysis-vision-tracks-v0.md` §0 (**analysis is pull-driven**. Not generated means the key is absent).
+  - `contract-2026-07-18-edit-json-v1-sources.md` (an observation result is persisted as (`src`, source seconds)).
+- Scope: input, output, placement, and the append rules into the ledger (analysis.json) for five commands that **look at** one piece of footage. The judgment that calls an LLM (what to look at, the finding, the score) is the **skill's** job (`analyze-footage` and `critique-cut`) and is outside this contract.
+- Sister contract: `contract-2026-08-29-capture-v0.md` (`akari capture`, which looks at the finished frame of edit.json).
 
-**観察は CLI、判断はスキル。** 素材について「何が入っている / 何を喋っている / どこが静か / この時刻の絵は」に、
-1 つの問いに 1 つのコマンドで答える。事前パス（全部分析）を前提にしない。LLM を呼ばない。決定論で速い。
-結果はプロジェクト内なら**自動で帳面（analysis.json）に追記**され、次のセッションは帳面から始まる。
+## 0. Place in the system
 
-現状、この面は存在しない。観察相当のコードは `akari internal beat-sync-probe-frame` /
-`beat-sync-beatmap` の裏に 2 本あるだけで、probe / filmstrip / waveform / transcribe はスキルの手順書の中で
-ffmpeg / ffprobe / whisper.cpp を直接叩いている。本契約はそれを 1 か所に寄せ、公開面にする。
-コマンド名 `media` は仮称（外部の `dapi media` に寄せた）。改名しても本契約の意味は変わらない。
+**Observation is a CLI. Judgment is a skill.** For footage, answer "what is in it", "what is being said", "where it is quiet", and "what the picture is at this time", one question per command. Do not assume a pass that analyzes everything first. Do not call an LLM. Be deterministic and fast. If the target is inside a project, the result is **appended to the ledger (analysis.json) automatically**, and the next session starts from the ledger.
 
-## 1. 共通規約
+That surface does not exist today. The only observation-like code is two commands behind `akari internal beat-sync-probe-frame` and `beat-sync-beatmap`. probe, filmstrip, waveform, and transcribe are skills calling ffmpeg, ffprobe, and whisper.cpp directly from a procedure doc. This contract gathers that into one place and makes it a public surface. The command name `media` is provisional (aligned with the external `dapi media`). Renaming it does not change the meaning of this contract.
 
-| 項目 | 規約 |
+## 1. Shared rules
+
+| Item | Rule |
 |---|---|
-| 呼び出し | `akari media <sub> <target> [options]`。`<target>` はローカルファイルのパス、または開いているプロジェクトの `sources[].id` |
-| stdout | **JSON のみ**。結果が 1 個なら JSON 1 値、複数なら 1 行 1 個の JSON Lines（配列で包まない） |
-| stderr | 人間向けの進捗・警告・エラー。機械は読まない |
-| exit | `0` 成功 / `1` 失敗（ファイル無し・ffmpeg 不在・不正引数・書き込み失敗）。部分成功は無い |
-| 決定論 | 同じ入力・同じオプションは同じ出力（PNG の寸法・コマ割り・時刻ラベルまで）。乱数・現在時刻を結果に混ぜない（`generated_at` を除く） |
-| LLM | 呼ばない。クラウドも既定で呼ばない（`transcribe` の承認制クラウドのみ例外・§2.5） |
-| 時刻の入力 | 秒（`12.5`）または `MM:SS(.fff)`。負値・尺超過は exit 1 |
-| 時刻の出力 | 常に **source 秒**（数値）。タイムコード文字列はラベル用の付加情報 |
-| 置き場 | 実装は `packages/akari-tools/bin/`（ffmpeg / ffprobe 依存側）。launcher は `internal-command.mjs` と同じ様式で `repo-assets.mjs` からパスを遅延解決し、子プロセスで起動する。launcher 自身は akari-tools を import しない |
-| ffmpeg / ffprobe | `packages/render-cut/src/render-cut.mjs` の `resolveFfmpeg()` / `resolveFfprobe()` を再利用（探索規則を二重化しない） |
-| プロジェクト外 | `.akari/` を祖先に持たないパスも受け付ける（インストール直後の「ちょっと見る」）。帳面が無いので出力だけ（§3） |
+| Invocation | `akari media <sub> <target> [options]`. `<target>` is a path to a local file, or a `sources[].id` of the open project |
+| stdout | **JSON only.** One JSON value when there is one result. JSON Lines, one object per line, when there are several. Do not wrap them in an array |
+| stderr | Progress, warnings, and errors for a person. A machine does not read it |
+| exit | `0` success. `1` failure (missing file, ffmpeg absent, bad argument, write failure). There is no partial success |
+| Determinism | The same input and the same options produce the same output, down to PNG dimensions, frame layout, and time labels. Do not mix a random number or the current time into the result (`generated_at` is the exception) |
+| LLM | Do not call one. Do not call the cloud by default. The only exception is the approval-gated cloud of `transcribe` (§2.5) |
+| Time input | Seconds (`12.5`) or `MM:SS(.fff)`. A negative value, or a time past the duration, is exit 1 |
+| Time output | Always **source seconds** (a number). A timecode string is extra information for a label |
+| Placement | The implementation lives in `packages/akari-tools/bin/` (the side that depends on ffmpeg and ffprobe). The launcher resolves the path lazily from `repo-assets.mjs`, in the same style as `internal-command.mjs`, and starts a child process. The launcher itself does not import akari-tools |
+| ffmpeg and ffprobe | Reuse `resolveFfmpeg()` and `resolveFfprobe()` from `packages/render-cut/src/render-cut.mjs`. Do not duplicate the search rule |
+| Outside a project | A path that has no `.akari/` ancestor is accepted (a quick look right after install). There is no ledger, so the command only prints output (§3) |
 
-### 1.1 コンタクトシート（grab / filmstrip / capture が返す画像の共通仕様）
+### 1.1 Contact sheet (shared spec for images returned by grab, filmstrip, and capture)
 
-- 1 枚 **≤ 2576×1456 px**、**最大 12 コマ**。vision model が全解像度で読める上限に合わせる（12 時刻を画像 1 枚で読ませ、
-  キーフレームを 1 枚ずつ読むより画像トークンを 1/12 にするのが目的）
-- グリッドは「各コマが最大になる」ものを選ぶ。16:9 素材の目安:
+- One image is **at most 2576 by 1456 px**, and **at most 12 frames**. Match the limit a vision model can read at full resolution. The point is to have the model read 12 times from one image, which is 1/12 of the image tokens of reading keyframes one by one.
+- Pick the grid that makes each frame as large as possible. A guide for 16:9 footage:
 
-| コマ数 | グリッド | 1 コマ |
+| Frame count | Grid | One frame |
 |---|---|---|
-| 1 | 1×1 | 1920×1080 |
-| 2〜4 | 2×1 / 2×2 | 1280×720 |
-| 5〜9 | 3×2 / 3×3 | 850×478 |
-| 10〜12 | 4×3 | 636×357 |
+| 1 | 1 by 1 | 1920 by 1080 |
+| 2 to 4 | 2 by 1, or 2 by 2 | 1280 by 720 |
+| 5 to 9 | 3 by 2, or 3 by 3 | 850 by 478 |
+| 10 to 12 | 4 by 3 | 636 by 357 |
 
-- 13 コマ以上は複数枚に**均等割り**（13 → 7 + 6。12 + 1 にしない）。`--per-sheet <n>`（1〜12）で 1 枚あたりのコマ数を指定できる
-- 各コマ左下にタイムコードラベル（`08s10f` / `01m05s` のようにゼロの単位を落とした形。フレームは 30fps 換算）。
-  シート名は覆う範囲（`0f-11s.png`）
-- 背景（コマ間の溝・透明部分）は不透明の中間グレー。素材が 1080p 未満なら 1080p 高さまで拡大、それ以上は拡大しない
-- 実装は `packages/render-cut/src/contact-sheet.mjs`（`contactSheetGridDimensions` / `renderContactSheet`）を拡張して共用する。
-  render-cut が書き出し後に自動生成する `.akari/reports/contact-sheet.png` と同じ描画コードにする（二重実装しない）
+- 13 frames or more split **evenly** across several sheets (13 becomes 7 plus 6, not 12 plus 1). `--per-sheet <n>` (1 to 12) sets the frame count per sheet.
+- Each frame has a timecode label at the bottom left (`08s10f` or `01m05s`, dropping a zero unit. Frames are converted at 30 fps). The sheet name is the span it covers (`0f-11s.png`).
+- The background (the gutter between frames, and any transparent part) is opaque mid-gray. Footage under 1080p is scaled up to a 1080p height. Footage above that is not scaled up.
+- Extend and share `packages/render-cut/src/contact-sheet.mjs` (`contactSheetGridDimensions` and `renderContactSheet`). Use the same drawing code as the `.akari/reports/contact-sheet.png` that render-cut generates automatically after export. Do not implement it twice.
 
-## 2. コマンド
+## 2. Commands
 
 ### 2.1 `akari media probe <target>`
 
-何が入っているファイルかを、デコードせずに答える。
+Answer what is in the file, without decoding.
 
 ```jsonc
 {
-  "path": "assets/interview.mov",          // 与えたパス（プロジェクト内なら root 相対）
-  "sha256": "…",                           // 内容ハッシュ（transcribe キャッシュの鍵と同じ）
+  "path": "assets/interview.mov",          // the given path (root-relative if inside a project)
+  "sha256": "…",                           // content hash (the same key as the transcribe cache)
   "size_bytes": 1234567,
   "container": "mov",
   "duration_s": 754.2,
-  "video": { "width": 3840, "height": 2160, "fps": 29.97, "codec": "hevc", "rotation": 0 } , // 無ければ null
-  "audio": { "codec": "aac", "channels": 2, "sample_rate": 48000 },                          // 無ければ null
+  "video": { "width": 3840, "height": 2160, "fps": 29.97, "codec": "hevc", "rotation": 0 }, // null if absent
+  "audio": { "codec": "aac", "channels": 2, "sample_rate": 48000 },                          // null if absent
   "tool": { "ffprobe": "7.1" },
   "generated_at": "2026-08-29T10:00:00Z"
 }
 ```
 
-- 目安コスト: 一瞬。帳面には `probe` として追記（§3）
+- Rough cost: an instant. Append to the ledger as `probe` (§3).
 
 ### 2.2 `akari media grab <target> -t <time…> [--separate] [--per-sheet <n>] [--out <dir>]`
 
-指定時刻の絵を返す。既定はコンタクトシート、`--separate` で時刻ごとに 720p 高さの PNG 1 枚。
+Return the picture at the given times. The default is a contact sheet. `--separate` writes one PNG per time, 720p tall.
 
 ```jsonc
 { "kind": "sheet", "timecode": "0f-11s", "times_s": [0, 4.5, 11], "path": ".akari/reports/media/interview/grab-20260829T100000Z/0f-11s.png" }
 ```
 
-- `-t` は 1 個以上必須。時刻はソースの秒（カット後のタイムラインではない — それは `capture`）
-- 出力先の既定: プロジェクト内は `.akari/reports/media/<source-stem>/grab-<stamp>/`、プロジェクト外は OS の一時ディレクトリに
-  `akari-grab-*` を新設（互いに上書きしない）
-- 目安コスト: 秒。画像を読むトークンはシート 1 枚ぶん
+- `-t` is required, one or more. Times are source seconds. They are not the timeline after the cut. That is `capture`.
+- Default output. Inside a project, `.akari/reports/media/<source-stem>/grab-<stamp>/`. Outside a project, create `akari-grab-*` in the OS temp directory (they do not overwrite each other).
+- Rough cost: seconds. The tokens to read the image are one sheet.
 
 ### 2.3 `akari media filmstrip <target> [--count <n> | --every <sec> | --scenes [<threshold>]] [--per-sheet <n>] [--out <dir>]`
 
-素材全体の絵の流れを返す。出力形は grab と同じ（シートの JSON Lines）。
+Return the flow of pictures across the whole footage. The output shape matches grab (JSON Lines of sheets).
 
-- 既定は `--count 12`（等間隔 12 コマ = シート 1 枚）。`--every` は等間隔秒、`--scenes` は ffmpeg の scene 検出
-  （閾値既定 0.3）でカット点を拾う。`--scenes` と `--count` の併用時は scene 点を優先して上限まで
-- 目安コスト: 秒〜十数秒（長尺の `--scenes` はデコードを伴う）
+- The default is `--count 12` (12 frames at even spacing, which is one sheet). `--every` is even spacing in seconds. `--scenes` picks cut points with ffmpeg scene detection (default threshold 0.3). When `--scenes` and `--count` are combined, scene points win, up to the cap.
+- Rough cost: seconds to tens of seconds. A long `--scenes` pass decodes.
 
 ### 2.4 `akari media waveform <target> [--silence-db <dB>] [--min-silence <sec>] [--out <dir>]`
 
-音がどこにあるかを返す。PNG（波形。無音区間を色分け）と JSON。
+Return where the sound is. A PNG (the waveform, with silent spans colored) and JSON.
 
 ```jsonc
 {
   "path": "assets/interview.mov",
   "duration_s": 754.2,
   "png": ".akari/reports/media/interview/waveform.png",
-  "silences": [ { "start": 12.4, "end": 13.6 }, … ],   // source 秒・閉区間ではなく [start, end)
-  "speech_likely": true,                                 // 発話らしさの粗い判定（§4 の L1 ゲート）
+  "silences": [ { "start": 12.4, "end": 13.6 } ],   // source seconds. Not a closed interval. [start, end)
+  "speech_likely": true,                             // a coarse guess that speech is present (the L1 gate in §4)
   "loudness": { "integrated_lufs": -19.8, "peak_dbfs": -1.2 },
   "params": { "silence_db": -35, "min_silence_s": 0.6 },
   "generated_at": "…"
 }
 ```
 
-- 既定: `--silence-db -35`、`--min-silence 0.6`（analyze-footage の pause 候補と同じ値に揃える。違えばそちらに合わせる）
-- `speech_likely` は「無音でない区間の割合と帯域エネルギー」の粗い判定でよい。**確度は出さない**（宣言のない能力は存在しない）。
-  transcribe の要否を決めるゲートに使い、字幕の根拠にはしない
-- 目安コスト: 秒。帳面には `tracks.waveform` として追記（§3）
+- Defaults: `--silence-db -35` and `--min-silence 0.6` (line up with the pause candidates in analyze-footage. If those differ, follow them).
+- `speech_likely` may be a coarse judgment of "the share of non-silent spans, and the band energy". **Do not emit a confidence.** A capability that is not declared does not exist. Use it as the gate that decides whether to transcribe. Do not use it as evidence for captions.
+- Rough cost: seconds. Append to the ledger as `tracks.waveform` (§3).
 
 ### 2.5 `akari media transcribe <target> [--in <time> --out <time>] [--backend <name>] [--lang <code>] [--no-unrecognized] [--unrecognized-min-gap <sec>] [--unrecognized-min-voiced <sec>] [--no-word-book] [--word-book <path>]`
 
-何を喋っているかを、語ごとの時刻つきで返す。
+Return what is being said, with a time on each word.
 
 ```jsonc
 {
   "path": "assets/interview.mov",
-  "range": { "in": 0, "out": 754.2 },         // 指定なしは全体
-  "backend": "speech-analyzer",                 // speech-analyzer | whisper-cpp | cloud:<connection-id>
+  "range": { "in": 0, "out": 754.2 },         // the whole file when not specified
+  "backend": "speech-analyzer",                 // speech-analyzer, whisper-cpp, or cloud:<connection-id>
   "no_speech": false,
   "segments": [ { "start": 1.2, "end": 3.4, "text": "…", "words": [ { "text": "…", "start": 1.2, "end": 1.5 } ] } ],
   "cache": { "hit": false, "key": "<sha256>-0-754.2-speech-analyzer-ja" },
@@ -142,43 +130,33 @@ ffmpeg / ffprobe / whisper.cpp を直接叩いている。本契約はそれを 
 }
 ```
 
-- `segments[]` の形は analysis.json v0 の `transcript[]` と同一（そのまま写せる）。時刻は **source 秒**
-- 各 segment は任意の `unrecognized: [{ start, end }]` に「音はあるが文字にできなかった区間」を持てる。既定は語の隙間 0.45 秒以上から無音を引いた残り 0.3 秒以上を採用し、`--unrecognized-min-gap` / `--unrecognized-min-voiced` で閾値を変え、`--no-unrecognized` で検出を止める。キャッシュ key は従来どおりで、古い cache hit に `unrecognized` が無い場合は仕様どおりそのまま返し、再 transcribe で付与する
-- 既定では STT 直後に作業場基底の単語帳を語境界で適用する。`--no-word-book` で無効化し、`--word-book <path>` で project より近い検証用の層を追加できる。文字起こしキャッシュは置換前の生出力を保存し、単語帳プリパスは cache hit / miss ともキャッシュ読み出し後・analysis.json 記録前に毎回適用する
-- バックエンドは analyze-footage の 3 層と同じ優先順: macOS SpeechAnalyzer（26+・swiftc 可）→ whisper.cpp → クラウド。
-  **クラウドは `--backend cloud:<connection-id>` を明示したときだけ**で、`.akari/connections.json` に doctor `ok` で
-  登録済みの接続に限る。既定で外部に音声を送らない。キーの値を stdout / stderr / 出力ファイルに出さない
-- どのバックエンドも使えなければ推測せず exit 1（理由を stderr に）。喋りが検出できなければ `no_speech: true` +
-  `segments: []` で **exit 0**（失敗ではない）
-- **キャッシュは内容ハッシュ**: `.akari/cache/transcribe/<sha256>-<in>-<out>-<backend>-<lang>.json`。同じ音声を二度起こさない。
-  プロジェクト外は OS 一時領域の同名ディレクトリ
-- 目安コスト: 実時間の 0.1〜1 倍（バックエンド依存）。帳面には `transcript` として追記（§3）
+- The shape of `segments[]` is the same as `transcript[]` in analysis.json v0 (it can be copied as it is). Times are **source seconds**.
+- Each segment may hold an optional `unrecognized: [{ start, end }]` for "a span that has sound but could not be turned into text". The default takes a word gap of 0.45 seconds or more, subtracts the silence, and keeps a remainder of 0.3 seconds or more. `--unrecognized-min-gap` and `--unrecognized-min-voiced` change the thresholds. `--no-unrecognized` stops detection. The cache key stays as before. An old cache hit that has no `unrecognized` is returned as the spec says, and a later transcribe adds it.
+- By default, apply the workspace-base word book at word boundaries immediately after STT. `--no-word-book` disables it. `--word-book <path>` can add a verification layer closer than the project. The transcription cache stores the raw output from before replacement. The word-book pre-pass runs on every cache hit and every cache miss, after the cache read and before the analysis.json write.
+- Backend priority matches the three layers of analyze-footage: macOS SpeechAnalyzer (26 and later, swiftc available), then whisper.cpp, then the cloud. **The cloud runs only when `--backend cloud:<connection-id>` is explicit**, and only for a connection registered in `.akari/connections.json` with doctor `ok`. Do not send audio outside by default. Do not print the key's value to stdout, stderr, or an output file.
+- If no backend can be used, do not guess. Exit 1, with the reason on stderr. If no speech is detected, return `no_speech: true` and `segments: []` with **exit 0** (that is not a failure).
+- **The cache is a content hash:** `.akari/cache/transcribe/<sha256>-<in>-<out>-<backend>-<lang>.json`. Do not transcribe the same audio twice. Outside a project, use a directory of the same name in the OS temp area.
+- Rough cost: 0.1 to 1 times real time (depends on the backend). Append to the ledger as `transcript` (§3).
 
-## 3. 帳面（analysis.json）への追記
+## 3. Appending to the ledger (analysis.json)
 
-### 3.1 いつ追記するか
+### 3.1 When to append
 
-- **プロジェクト内で、対象がプロジェクトの素材のとき、既定で追記する**（オーナー裁定 2026-08-29「見た結果は analysis.json に
-  入れて全然大丈夫」）。抑止は `--no-record`
-- プロジェクト外のファイル、または `.akari/` を祖先に持たない場所では**出力だけ**（帳面が無い）
-- 帳面の場所は analyze-footage `workflow.md` の正典パス `.akari/sidecars/<source-relative-path>.analysis/analysis.json`。
-  無ければ**最小の妥当な文書**を作る: `{ "version": 0, "source": "<path>", "transcript": [], "keyframes": [], "events": [],
-  "tracks": { "speakers": [], "faces": [], "person_matte": null } }`。キーが無い = **まだ見ていない**（「無かった」ではない）
+- **Inside a project, when the target is the project's footage, append by default** (owner ruling 2026-08-29, "putting what you looked at into analysis.json is completely fine"). `--no-record` suppresses it.
+- A file outside a project, or a place with no `.akari/` ancestor, is **output only** (there is no ledger).
+- The ledger path is the canonical path in analyze-footage `workflow.md`: `.akari/sidecars/<source-relative-path>.analysis/analysis.json`. If it is missing, create a **minimal valid document**: `{ "version": 0, "source": "<path>", "transcript": [], "keyframes": [], "events": [], "tracks": { "speakers": [], "faces": [], "person_matte": null } }`. A missing key means **not looked at yet**. It does not mean "there was none".
 
-### 3.2 何を書くか（スキーマは additive・`version: 0` 据え置き）
+### 3.2 What to write (the schema is additive, and `version: 0` stays)
 
-正本は `packages/schemas/analysis.schema.json` のみを変える（`additionalProperties: false` のため、追加キーはスキーマ側に
-宣言しないと analyze-footage の検証で落ちる）。`apps/shell/lib/schemas/analysis.schema.json` は**追跡対象外のビルド生成物**
-（`apps/shell/.gitignore` の `/lib/`）で、ビルドが正本から生成する。手で写しを編集・コミットしない
-（2026-08-29 訂正: 起草時は「両写しに同じ変更」と書いていたが、写しは git に無い。実装レーンの実測による）。
+Change only the canonical `packages/schemas/analysis.schema.json`. Because of `additionalProperties: false`, an added key that is not declared on the schema side fails analyze-footage validation. `apps/shell/lib/schemas/analysis.schema.json` is a **build artifact that is not tracked** (`/lib/` in `apps/shell/.gitignore`). The build generates it from the canonical file. Do not edit or commit a hand copy. (Corrected 2026-08-29. The draft said "the same change on both copies", but the copy is not in git. Measured on the implementation lane.)
 
-| コマンド | 書き先 | 形 |
+| Command | Where it writes | Shape |
 |---|---|---|
-| probe | 新設 optional `probe`（object） | §2.1 の JSON から `path` / `generated_at` を除いたもの |
-| waveform | 新設 optional `tracks.waveform` | `visionTrackPointer` と同型のポインタ `{ path, tool, generated_at }`（path は §2.4 の JSON。analysis.json のディレクトリ基準の相対） |
-| transcribe | 既存 `transcript[]` | 全体なら置換。`--in/--out` 付きなら **その範囲の segments を差し替え**（範囲外は保持）。バックエンドは `observations[]` に残す |
-| grab / filmstrip | `keyframes[]` には**書かない**（`note` は視認した者が書く分析であって観察ではない） | 生成した PNG は `observations[]` に載せるだけ |
-| 全コマンド | 新設 optional `observations[]` | 下記 |
+| probe | new optional `probe` (object) | the §2.1 JSON without `path` and `generated_at` |
+| waveform | new optional `tracks.waveform` | a pointer of the same type as `visionTrackPointer`, `{ path, tool, generated_at }` (path is the §2.4 JSON, relative to the analysis.json directory) |
+| transcribe | existing `transcript[]` | Replace the whole thing for a full pass. With `--in` and `--out`, **replace the segments in that range** and keep the rest. Leave the backend in `observations[]` |
+| grab and filmstrip | **do not write** `keyframes[]` (`note` is analysis written by whoever looked, not an observation) | Put the generated PNG on `observations[]` only |
+| every command | new optional `observations[]` | below |
 
 ```jsonc
 "observations": [
@@ -190,49 +168,44 @@ ffmpeg / ffprobe / whisper.cpp を直接叩いている。本契約はそれを 
 ]
 ```
 
-- `observations[]` は**追記のみ**（並べ替え・削除しない）。「何をいつ見たか」の台帳であり、レポートの「未観察」表示と
-  次セッションの出発点の根拠になる
-- 書き込みは原子的（tmp → rename）。同時実行で壊さない。既存の未知フィールドは保持する（寛容リーダー）
+- `observations[]` is **append only** (do not reorder and do not delete). It is the ledger of what was looked at, and when. It is the basis for an "not yet observed" mark in a report, and for where the next session starts.
+- The write is atomic (tmp, then rename). Concurrent runs do not corrupt it. Keep existing unknown fields (lenient reader).
 
-### 3.3 レポート側の約束
+### 3.3 Promise on the report side
 
-`analyze-project` と分析レポートは**その時点で帳面にあるもの**から描き、無い章は「未観察」と正直に出す。
-全章が埋まっている前提を置かない（これは本契約でなく `analyze-footage` / `analyze-project` の改訂で担う）。
+`analyze-project` and the analysis report draw from **what is in the ledger at that moment**. A missing chapter is honestly "not yet observed". Do not assume every chapter is filled. That duty belongs to a revision of `analyze-footage` and `analyze-project`, not to this contract.
 
-## 4. 分析レベルと既定（`analyze-footage` の改訂方針。本契約は語彙を定義する）
+## 4. Analysis levels and the default (the revision direction for `analyze-footage`. This contract defines the vocabulary)
 
-| レベル | 見るもの | コマンド | 要る案件 |
+| Level | What it looks at | Command | Which jobs need it |
 |---|---|---|---|
-| **L0 メタ** | 尺・解像度・音声の有無 | probe | 全部 |
-| **L1 音** | 文字起こし・無音・ビート | waveform → transcribe / `internal beat-sync-beatmap` | 字幕・喋り物・音先行 |
-| **L2 絵** | キーフレーム・フィルムストリップ（視認は人間 / スキル） | grab / filmstrip | カット判断・切り抜き・B ロール選定 |
-| **L3 人物** | person matte / face landmarks / hand pose | 既存サイドカー（vision-tracks 契約） | 人物演出を使う素材の使う区間だけ |
+| **L0 metadata** | Duration, resolution, whether audio exists | probe | All of them |
+| **L1 sound** | Transcription, silence, beats | waveform, then transcribe or `internal beat-sync-beatmap` | Captions, talking footage, sound-first |
+| **L2 picture** | Keyframes and a filmstrip (a person or a skill does the looking) | grab or filmstrip | Cut decisions, crops, B-roll selection |
+| **L3 people** | person matte, face landmarks, hand pose | Existing sidecars (the vision-tracks contract) | Only the used span of footage that uses a person performance |
 
-- **既定は L0 + L1**（オーナー裁定 2026-08-29「音ぐらいは入れていい」）。L1 の既定手順: `waveform` を常に（秒で終わる）→
-  `speech_likely` が真のときだけ `transcribe`。喋りの無い B ロール PV で無駄に起こさない
-- L2 / L3 は案件と頼まれたことで決める。案件の型は**例示**であって閉じた列挙ではない（intake に「案件タイプ」は持たない）
-- どのレベルで見ても結果は帳面へ（§3）
+- **The default is L0 plus L1** (owner ruling 2026-08-29, "sound, at least, is fine to include"). The default L1 procedure is always `waveform` (it finishes in seconds), then `transcribe` only when `speech_likely` is true. Do not transcribe a B-roll PV that has no speech.
+- L2 and L3 are decided by the job and by what was asked. A job shape is an **example**, not a closed list (intake does not have a "job type").
+- Whatever level was used, the result goes to the ledger (§3).
 
-## 5. 非スコープ
+## 5. Out of scope
 
-- マルチモーダルモデルに「聴かせる / 見せる」コマンド（外部の `listen` 相当）。判断はスキルの仕事
-- GUI（shell の素材パネルからの呼び出し）。後続
-- 複数素材の一括（`analyze-project` の仕事）
-- edit.json の完成フレーム（`capture` 契約）
+- A command that "plays it" or "shows it" to a multimodal model (the external equivalent of `listen`). Judgment is the skill's job.
+- A GUI (calling it from the shell's footage panel). Later.
+- A batch of several footage items (`analyze-project`'s job).
+- The finished frame of edit.json (the `capture` contract).
 
-## 6. 受け入れ条件（実装タスクの物差し）
+## 6. Acceptance conditions (the measure for the implementation task)
 
-- 5 コマンドがフィクスチャ（`packages/schemas/fixtures/` または akari-tools の小さな mp4 / wav）で契約どおりの JSON を返す。
-  stdout に JSON 以外を出さない（launcher 経由でも）
-- コンタクトシートの割付（コマ数 → グリッド・均等割り・寸法上限）に**純関数のユニットテスト**がある
-- waveform: 合成 wav（無音 2 秒 + トーン 3 秒 + 無音 1 秒）で `silences` が期待区間 ±1 フレームに収まる
-- transcribe: 同じファイルの 2 回目がキャッシュヒット（`cache.hit: true`・バックエンド未起動）。バックエンド不在で exit 1
-- 帳面: プロジェクト内で `probe` → `waveform` → `transcribe` の順に実行した analysis.json が正本スキーマで妥当（ビルド生成の shell 写しがあればそれでも）。
-  `--no-record` で無変更。プロジェクト外で `.akari/` を作らない
-- launcher: `akari media --help` が 5 サブコマンドを列挙し、akari-tools 不在時は「インストール方法」を示して exit 1
-- 既存テスト（akari-launcher / akari-tools / schemas）が全緑
+- The five commands return JSON as this contract says, on a fixture (`packages/schemas/fixtures/`, or a small mp4 or wav in akari-tools). stdout contains nothing but JSON, including through the launcher.
+- The contact-sheet layout (frame count to grid, even split, and the size cap) has a **pure-function unit test**.
+- waveform: on a synthetic wav (2 seconds of silence, 3 seconds of tone, 1 second of silence), `silences` lands in the expected span within ±1 frame.
+- transcribe: the second run on the same file is a cache hit (`cache.hit: true`, and the backend does not start). If the backend is absent, exit 1.
+- Ledger: an analysis.json produced by running `probe`, then `waveform`, then `transcribe` inside a project is valid against the canonical schema (and against the shell copy too, if the build generated one). `--no-record` changes nothing. Outside a project, do not create `.akari/`.
+- Launcher: `akari media --help` lists the five subcommands. When akari-tools is absent, it shows how to install and exits 1.
+- Existing tests (akari-launcher, akari-tools, schemas) are fully green.
 
-## 7. 変更履歴
+## 7. Change history
 
-- 2026-08-29: v0 起草（内部の判断メモ「分析をプル駆動にする」のオーナー裁定を反映。裁定内容は非公開の内部記録で管理）
-- 2026-08-29: §3.2 / §6 訂正 — shell 側スキーマは追跡外のビルド生成物なので正本 1 本だけを変える（実装レーン `2026-08-29-media-inspect-cli` の実測）
+- 2026-08-29. v0 draft (reflects the owner ruling on the internal decision note "make analysis pull-driven". The ruling itself stays in a private internal record).
+- 2026-08-29. §3.2 and §6 corrected. The shell-side schema is an untracked build artifact, so only the one canonical file changes (measured on implementation lane `2026-08-29-media-inspect-cli`).

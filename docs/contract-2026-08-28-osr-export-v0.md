@@ -1,50 +1,45 @@
-# ページ全体 OSR 書き出し v0 契約
+**English** | [Japanese](./contract-2026-08-28-osr-export-v0.ja.md)
 
-## 1. 適用範囲
+# Whole-page OSR export contract v0
 
-この契約は `render-cut --engine osr` が生成する映像ページと、そのページを Electron オフスクリーン描画で駆動するプロトコルを定める。
+## 1. Scope
 
-**2026-09-01 改訂:** `--engine` の既定は `auto` とし、全 platform で同じ規則に解決する。
-`legacy` は廃止済みで、OSR launcher の tier 3 は明示エラーになる。
+This contract defines the picture page that `render-cut --engine osr` builds, and the protocol that drives that page with Electron offscreen rendering.
 
-| platform | `auto` の解決 | 備考 |
+**Revised 2026-09-01.** The default of `--engine` is `auto`, and every platform resolves it with the same rule. `legacy` is abolished. OSR launcher tier 3 is an explicit error.
+
+| platform | `auto` resolution | Note |
 |---|---|---|
-| darwin | 適格なら `gpu`、不適格なら `osr` | GPU 実行体なしは OSR、OSR 実行体なしはエラー |
-| win32 | 適格なら `gpu`、不適格なら `osr` | GPU 実行体なしは OSR、OSR 実行体なしはエラー |
-| linux | 適格なら `gpu`、不適格なら `osr` | GPU 実行体なしは OSR、OSR 実行体なしはエラー |
+| darwin | `gpu` when eligible, otherwise `osr` | No GPU executable means OSR. No OSR executable means an error. |
+| win32 | `gpu` when eligible, otherwise `osr` | No GPU executable means OSR. No OSR executable means an error. |
+| linux | `gpu` when eligible, otherwise `osr` | No GPU executable means OSR. No OSR executable means an error. |
 
-`.akari/render.json` の provenance は、指定値を `engine_requested`、解決後の実走値を `engine` に
-記録する。OSR launcher が tier 3 の場合は、Electron の入手方法（アプリ同梱 / `npm install electron` /
-`AKARI_OSR_ELECTRON`）を示して exit 2 で停止し、render.json や `engine_fallback` は書かない。
-`engine_fallback` は gpu → osr の 1 種だけで、`auto` が `gpu` に解決した後、その launcher が
-tier 3 の場合に `{ from: "gpu", reason: <launcher.reason> }` を記録する。
+Provenance in `.akari/render.json` records the requested value as `engine_requested` and the resolved run as `engine`. When the OSR launcher is tier 3, show how to obtain Electron (the app bundle, `npm install electron`, or `AKARI_OSR_ELECTRON`), stop with exit 2, and do not write `render.json` or `engine_fallback`. `engine_fallback` has only one shape, gpu to osr. After `auto` resolves to `gpu`, if that launcher is tier 3, record `{ from: "gpu", reason: <launcher.reason> }`.
 
-## 2. ページ契約
+## 2. Page contract
 
-ページは出力幅 `W`、映像高 `H` に検証用1行を加えた `W × (H + 1)` で構成する。映像領域の重ね順は下から次の4層である。
+The page is output width `W` and picture height `H`, plus one verification row, so `W` by `(H + 1)`. The picture region stacks four layers from bottom to top.
 
-1. frame-engine canvas。cuts、layers、transition、matte、LUTを評価する。
-2. `captions.json` から生成したDOM字幕。
-3. `edit.json` の自由HTML。
-4. 自由HTML内のThree.js canvas。
+1. The frame-engine canvas. It evaluates cuts, layers, transition, matte, and LUT.
+2. DOM captions generated from `captions.json`.
+3. Free HTML from `edit.json`.
+4. The Three.js canvas inside the free HTML.
 
-字幕、自由HTML、3Dは render-cut と同じ overlay sheet 生成器により、透明な同一オリジン iframe として canvas 上へ置く。無効なトラックは最初からDOMへ入れず、活性区間ごとのDOM再構築は行わない。
+Captions, free HTML, and 3D sit on the canvas as a transparent same-origin iframe, produced by the same overlay-sheet generator as render-cut. Invalid tracks never enter the DOM. The DOM is not rebuilt per active span.
 
-ページは次のAPIを公開する。
+The page exposes these APIs.
 
-- `window.__akariReady`: フォント、画像、動画、3D、frame-engineのprime完了を表すPromise。
-- `window.__akariSeek(seconds, frameNumber)`: frame-engine評価、overlay sheetのシーク、スタンプ更新、2回の`requestAnimationFrame`待機を順に完了する。
-- `window.__akariSettle()`: 検証不一致時に2回の`requestAnimationFrame`を進める。
+- `window.__akariReady`. A Promise for fonts, images, video, 3D, and frame-engine prime.
+- `window.__akariSeek(seconds, frameNumber)`. Completes, in order, frame-engine evaluation, the overlay-sheet seek, the stamp update, and two `requestAnimationFrame` waits.
+- `window.__akariSettle()`. Advances two `requestAnimationFrame` frames when verification disagrees.
 
-CSS animationはpauseし、`currentTime`を合成時刻へ設定する。Three.jsは対象区間のローカル時刻で描画する。動画要素は提示フレームの確定まで待つ。`frameNumber`はmainから明示的に渡し、秒から再計算しない。
+CSS animation is paused, and `currentTime` is set to the composite time. Three.js draws at the local time of the span. Video elements wait until the presented frame is fixed. `frameNumber` is passed from main. It is not recomputed from seconds.
 
-overlay sheet は各シークで活性区間の自由 HTML 容器へ `data-akari-active` を付与し、非活性区間では
-除去する。`#stage` の `data-no-timeline` は後方互換のため維持し、どちらの発火ゲートを使う断片も
-OSR で同じタイムライン時刻に同期する。
+On each seek, the overlay sheet sets `data-akari-active` on the free-HTML container of the active span and removes it when the span is inactive. `#stage` keeps `data-no-timeline` for compatibility. A fragment that uses either firing gate stays on the same timeline time under OSR.
 
-## 3. スタンプ行
+## 3. Stamp row
 
-最下1行はフレーム番号 `n mod 65536` を次で符号化する。
+The bottom row encodes frame number `n mod 65536` as follows.
 
 ```text
 R = n & 255
@@ -53,260 +48,193 @@ B = 0x55
 A = 255
 ```
 
-BGRA bitmapでは `[0x55, G, R, 255]` となる。左端、中央、右端の3画素を復号し、期待番号との全点一致を要求する。確認後、ffmpegへ渡す前に `buffer.subarray(0, W * H * 4)` で最下行を除く。
+In a BGRA bitmap that is `[0x55, G, R, 255]`. Decode the left, center, and right pixels, and require all three to match the expected number. After the check, strip the bottom row with `buffer.subarray(0, W * H * 4)` before handing the buffer to ffmpeg.
 
-`--verify stamp|hash|off` を持ち、既定は `stamp` とする。`hash` は直前の映像領域と同じSHA-256ならsettle後に再取得し、上限は8回かつ`OSR_STAMP_RETRY_BUDGET_MS`、待ちは伸ばさない。静止画で上限へ達した場合は曖昧件数を記録して受理する。`off` は比較計測用である。通常書き出しではverifyを無効にしない。
+`--verify stamp|hash|off` exists. The default is `stamp`. For `hash`, if the SHA-256 matches the previous picture region, recapture after settle. The cap is 8 times and `OSR_STAMP_RETRY_BUDGET_MS`. Do not stretch the wait. If a still image hits the cap, record the ambiguous count and accept it. `off` is for comparison measurement. Do not disable verify on a normal export.
 
-## 4. 駆動プロトコル
+## 4. Drive protocol
 
-各コマは次の順で処理する。
+Each frame is processed in this order.
 
 ```text
-seek → ready → invalidate → paint → verify → write
+seek -> ready -> invalidate -> paint -> verify -> write
 ```
 
-`paint`が既定10秒以内に届かなければ失敗として記録する。bitmapは必ず `W × (H + 1)` と照合する。不一致時はsettleして再度`invalidate`し、最大8回で停止する。
+If `paint` does not arrive within the default 10 seconds, record a failure. The bitmap must be `W` by `(H + 1)`. On a mismatch, settle and `invalidate` again, and stop at 8 attempts.
 
-映像領域のBGRAは深さ3を既定とするbounded queueへ渡す。ffmpeg stdinの`write()`がfalseなら必ず`drain`を待つ。無制限のpre-bufferは禁止する。v0は先頭から末尾まで連番1 workerで評価する。
+BGRA of the picture region goes to a bounded queue whose default depth is 3. If ffmpeg stdin `write()` returns false, always wait for `drain`. An unbounded pre-buffer is forbidden. v0 evaluates sequential frames with 1 worker from the start to the end.
 
-`run.json` はseek、paint、toBitmap、verify、writeのp50/p95、1000コマ区切りmedian、先頭と末尾のdriftRatio、paint timeout、verify retry、verify前delta histogram、backpressure、メモリ、ffprobe結果を記録する。
+`run.json` records p50 and p95 of seek, paint, toBitmap, verify, and write, a median every 1000 frames, `driftRatio` at the head and the tail, paint timeout, verify retry, the pre-verify delta histogram, backpressure, memory, and the ffprobe result.
 
-**2026-09-28 追記（#113 / #88）**: stampの再試行は時間予算3000 msと回数上限32の先に達した方で失敗する。2回目からsettleの前に16、32、64、…最大500 msを追加で待つ。並走実測では再試行1回が約33〜40 ms、2〜3本並走でも最大2回、1コマ平均が212〜312 msだった。従来の固定8回は約0.3秒で諦めていたため、3秒は並走中の平均1コマの約10倍の猶予とする。失敗文は従来の先頭、読めたstamp値と分類、活性オーバーレイとCSS機能、予算、再実行の案内を順に含む。`run.json` の `verify.budget` / `verify.retryElapsedMs` は完了・失敗の両方に、`verify.failure` はstamp失敗時だけに記録する。
+**Appended 2026-09-28 (#113 / #88).** A stamp retry fails at the earlier of a 3000 ms time budget or 32 attempts. From the second try, wait an extra 16, 32, 64, and so on, up to 500 ms, before settle. Measured under concurrency, 1 retry is about 33 to 40 ms. Even with 2 to 3 concurrent runs, retries stay at most 2, and the mean per frame is 212 to 312 ms. The old fixed cap of 8 gave up in about 0.3 seconds, so 3 seconds is about 10 times the mean frame while concurrent. The failure text keeps the old prefix, then the stamp value that was read and its class, the active overlays and CSS features, the budget, and how to rerun. `run.json` records `verify.budget` and `verify.retryElapsedMs` on both completion and failure. `verify.failure` is recorded only on a stamp failure.
 
 ## 5. LUT
 
-`output.look` のLUTはframe-engine canvas内のsampler3Dで適用する。ページ全体へCSS filterを掛けない。したがって字幕、自由HTML、3DはLUTの外にあり、映像canvasだけが色変換の対象となる。
+The `output.look` LUT is applied by `sampler3D` inside the frame-engine canvas. Do not put a CSS filter on the whole page. Captions, free HTML, and 3D stay outside the LUT. Only the video canvas is color-converted.
 
-## 6. Electronの器
+## 6. Electron host
 
-起動は次の3段で解決する。
+Launch resolves in three tiers.
 
-1. インストール済みAKARI VideoのElectron実行体を`--render`付きで再利用する。
-2. npm optionalDependencyの`electron`を使う。`dist`のライセンス2ファイル、version、プラットフォーム実行体が揃うことを検査する。
-3. Electronが無ければ警告を出し、現行render-cut経路へフォールバックする。
+1. Reuse the installed AKARI Video Electron executable with `--render`.
+2. Use the npm `optionalDependency` `electron`. Check that the two license files in `dist`, the version, and the platform executable are all present.
+3. If Electron is missing, warn and fall back to the current render-cut path.
 
-第1段・第2段とも、実プロセスのコマンドラインに`--force-device-scale-factor=1`、`--force-color-profile=srgb`、background throttling無効化スイッチを渡す。npm Electronではスクリプトパスを`argv[1]`に保ち、その後へChromiumスイッチを置く。ソフト描画時は加えてGPU無効化とSwiftShaderスイッチを渡す。
+Tiers 1 and 2 both pass `--force-device-scale-factor=1`, `--force-color-profile=srgb`, and the background-throttling disable switch on the real process command line. npm Electron keeps the script path at `argv[1]` and puts Chromium switches after it. Soft draw also passes the GPU-disable and SwiftShader switches.
 
-第1段・第2段とも`--user-data-dir`を渡し、本体アプリの単一インスタンスロック（userData単位）と分離する。既定は`launchElectronExport`が書き出しごとに`os.tmpdir()`直下へ`mkdtemp("akari-osr-")`で作る短い一意なディレクトリで、子のclose後に`finally`で削除する。呼び出し側が`userDataDir`を明示した場合はそれを使い、作らず消さない。これによりアプリ起動中でも書き出せる。子がexit 0で終了して出力を作らなかった場合は、launcherが失敗として扱う。**2026-09-28 改訂（#114）**: 出力の隣に置くとプロジェクトのパス長とChromiumのキャッシュ階層がWindowsのMAX_PATHを超え、キャッシュ作成エラーがstderrに出ていた。
+Tiers 1 and 2 both pass `--user-data-dir`, separate from the app's single-instance lock (per `userData`). The default is a short unique directory that `launchElectronExport` creates per export with `mkdtemp("akari-osr-")` under `os.tmpdir()`, deleted in `finally` after the child `close`. If the caller passes `userDataDir`, use it, and do not create or delete it. Export can run while the app is running. If the child exits 0 without producing output, the launcher treats it as failure. **Revised 2026-09-28 (#114).** Putting the directory next to the output made the project path plus the Chromium cache exceed Windows `MAX_PATH`, and cache-create errors went to stderr.
 
-**Windows のアプリ別 GPU 設定の一時上書き（2026-09-01 追記・§11.7）**: `platform === "win32"` かつソフト描画でないとき、第1段・第2段とも launcher（`launchElectronExport`・gpu / osr 共通の spawn 点）は、`auto` では GPU 出口（`options.exit === "gpu"`・gpu-export の electron-main）のときだけ、`force` では OSR 出口でも、spawn の直前に `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` へ「値名 = 実行体のフルパス（`path.win32.resolve` で正規化）・REG_SZ `GpuPreference=2;`」を書き、子の `close` 後（exit code に関わらず・spawn エラーでも）に `finally` で必ず 1 回復元する（無かったなら削除・あったなら元の値へ）。方針は呼び出し側の `gpuPreference` → env `AKARI_EXPORT_GPU_PREFERENCE` → `auto` の順に解決し、`auto` は利用者が明示した値（`GpuPreference=1;` 等）を黙って上書きしない（`force` だけが上書き + 復元する）。書く前に sidecar `<AKARI_HOME ?? ~/.akari>/gpu-preference-override.json` を置き、復元後に削除する。`launchElectronExport` は毎回冒頭で sidecar があれば先に復元する。記録は戻り値の `gpuPreference`（`exit` 込み）と receipt の `provenance.gpu_preference`。OSR 出口を `auto` で外す根拠は §11.7（2026-09-02 改訂）。他 OS はバイト同一の no-op（記録に `reason: platform` だけ残す）。開発用に `AKARI_EXPORT_ALLOW_DESKTOP=0` で第1段（インストール済みアプリ）を候補から外せる（明示引数 `allowDesktop` が env より優先）。
+**Temporary per-app GPU preference on Windows (appended 2026-09-01, §11.7).** When `platform === "win32"` and the draw is not soft, tiers 1 and 2, at the shared spawn point `launchElectronExport` (gpu and osr), write `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` immediately before spawn. The value name is the executable full path normalized with `path.win32.resolve`, and the `REG_SZ` data is `GpuPreference=2;`. Under `auto` this write happens only for the GPU exit (`options.exit === "gpu"`, gpu-export `electron-main`). Under `force` it also happens for the OSR exit. After the child `close` (any exit code, and on a spawn error), `finally` always restores exactly once. Delete the value if it was absent. Restore the old value if it was present. Policy resolves in order: the caller's `gpuPreference`, then env `AKARI_EXPORT_GPU_PREFERENCE`, then `auto`. `auto` does not silently overwrite a value the user set explicitly (`GpuPreference=1;` and similar). Only `force` overwrites and restores. Before writing, place the sidecar `<AKARI_HOME ?? ~/.akari>/gpu-preference-override.json`, and delete it after restore. At the start of every call, `launchElectronExport` restores a leftover sidecar first. The record is the return value `gpuPreference` (including `exit`) and receipt `provenance.gpu_preference`. The reason the OSR exit is excluded under `auto` is §11.7 (revised 2026-09-02). Other operating systems are a byte-identical no-op (the record keeps only `reason: platform`). For development, `AKARI_EXPORT_ALLOW_DESKTOP=0` drops tier 1 (the installed app) from the candidates. An explicit `allowDesktop` argument beats the env var.
 
-`--render`は`package.json`の`main`（`electron-entry.js`）がTheiaより前に捕捉する。backend fork・初期ウィンドウ・contribution・単一インスタンスロックを起動せず、`--akari-main`で指定したランタイム（既定はosr-export、gpu-exportも指定可能）へ直行するため、スプラッシュは表示されない。通常起動で`--render`が無い場合は従来どおりTheiaを起動する。
+`--render` is caught by `package.json` `main` (`electron-entry.js`) before Theia. It does not start the backend fork, the initial window, a contribution, or the single-instance lock. It goes straight to the runtime named by `--akari-main` (default `osr-export`, and `gpu-export` is also allowed), so no splash is shown. A normal launch without `--render` still starts Theia.
 
-Linux v0は第3段を使用する。将来の差し替え席として、Chrome headlessと`HeadlessExperimental.beginFrame`を使うlauncherを第1段と第2段の間へ追加できるものとする。この契約では実装しない。
+Linux v0 uses tier 3. A future seat between tier 1 and tier 2 may add a Chrome headless launcher that uses `HeadlessExperimental.beginFrame`. This contract does not implement it.
 
-## 7. エンコード、音声、照合
+## 7. Encode, audio, and check
 
-ffmpeg入力は `-f rawvideo -pixel_format bgra -video_size WxH -framerate fps -i -` とする。品質とエンコーダはrender-cutの`master|high|standard|light`および`auto|videotoolbox|x264`を使用する。映像は1世代だけH.264へ圧縮し、その後の音声処理とmuxでは映像をcopyする。
+The ffmpeg input is `-f rawvideo -pixel_format bgra -video_size WxH -framerate fps -i -`. Quality and encoder use render-cut's `master|high|standard|light` and `auto|videotoolbox|x264`. Video is compressed to H.264 for one generation only. Later audio processing and mux copy the video.
 
-ffprobe timeoutは `max(120000, frames × 100)` msとする。尺、フレーム数、解像度をplanと照合する。
+The ffprobe timeout is `max(120000, frames * 100)` ms. Match duration, frame count, and resolution to the plan.
 
-## 8. メモリと長尺
+## 8. Memory and long duration
 
-- GPU描画の警戒線: 768 MiB / export、hard stop: 1,024 MiB / export（1080p 基準）。
-- ソフト描画（SwiftShader）は1080pで1.1 GiB台に達するため、警戒線1,536 MiB / hard stop 2,048 MiBの別枠を使う。
-- 既定の hard stop は「解像度スケール + 物理メモリ 25% 下限 / 50% 上限」で決める（gpu / soft 共用の式）:
-  `hard stop = min(max(基準値 × ピクセル比, floor(totalmem × 0.25)), floor(totalmem × 0.5))`（MiB 単位。ピクセル比は切り上げ、下限 / 上限は切り捨て）。
-  - 出力ピクセル数が 1080p（1920×1080）を超えるときは基準値をその比で増やす（4K = 4 倍）。warning も同じ比で増やす。
-  - 物理メモリの 25% を下限とする（解像度に関係なく常に適用。15.7 GB 機 → 4,021 MiB、8 GB 機 → 2,048 MiB、7 GB runner → 1,792 MiB）。
-    下限が効いたときは warning を hard stop の 75% に置き、`memory.machine_floor: true` を receipt に残す。基準値と同値のときは false。
-  - 物理メモリの 50% を上限とし、超えるときは切り詰めて warning を hard stop の 75% に置く（`memory.machine_capped`）。
-    下限 < 上限は比率上つねに成立し、上限で切り詰まるのはスケール側だけである。
-  - receipt / run.json の `memory` に `budget_scale`、`machine_floor`、`machine_capped`、`total_memory_bytes`（物理メモリ）を記録する。
-  - 2026-09-01 改訂（解像度スケール + 50% 上限）。同日追補: 720p / 1080p 出力でも入力素材（4K HEVC 長尺 × 複数本）の大きさで RSS が膨らみ
-    1 GiB 固定に当たった実機報告（issue #28）を受け、「1080p 以下の既定値は機種に関係なく変えない」を撤回して下限を入れた。
-    4K の係数は予測値で未較正 — 初回の実測 peak で較正する。
-- `AKARI_OSR_MEMORY_WARN_MIB` / `AKARI_OSR_MEMORY_HARD_STOP_MIB`で正の整数MiBへ上書きでき（絶対値・スケールも下限も上限も受けない）、
-  適用値はwarning < hard stopを必須とする。hard stop だけを上書きし既定 warning がそれ以上になるときは warning を hard stop の 75% に追従させる。
-  同じ変数を GPU 直結出口（gpu-export）も読む。
-- 書き出しは厳密に前方順で過去フレームを読み直さないため、**評価 plan から外れたカットのデコーダセッションは解放する**
-  （`StreamReaper`。frame-engine が `plan.base` / `plan.layers` の `streamId` を集め、最後に使ったフレームから 1 秒ぶんの
-  猶予を過ぎたものを `LookaheadFrameSource.releaseStream` で落とす）。解放しないとカット本数ぶんのセッションが最後まで
-  積み上がり、RSS が単調に伸びて長尺ほど後ろで hard stop に当たる（2026-09-04 追加・issue #52。
-  244 秒 / 7,320 コマの実機報告で 98% 地点・RSS 4.01 GB）。トランジション中の送出カットは plan に載るので残る。
-- receipt / run.json の `memory.decoderSessions` に生存セッション数（`live`）と累計解放数（`released`）を記録する。
-  RSS はセッション数に比例するため、ランプの原因を後から突き合わせられるようにする（同・issue #52。
-  #28 の時点で比例は分かっていたが記録が無く、再発時にまた手探りになった）。
-- hard stop に当たった GPU 直結出口の失敗は reasonCode `memory-hard-stop` とし、`--engine auto` のときは OSR で
-  走り直して完走させる（`FALLBACK_REASONS`。同・issue #52。それまでは成果物ゼロで終わり、前版で出せていたものが
-  出せない退行になっていた）。`--engine gpu` 明示は従来どおり fail-closed。
-- 並列予算1 worker = 1 GiBはGPU前提の値である。v0のworker数は1。
-- 10秒ごとにRSSを記録し、ウィンドウ破棄後も採る。
-- 固定Nコマごとのページ再生成は行わない。再生成を許すのはページ境界、renderer crash、watchdog回復時だけである。
+- GPU draw warning line: 768 MiB per export. Hard stop: 1,024 MiB per export (1080p baseline).
+- Soft draw (SwiftShader) reaches about 1.1 GiB at 1080p, so it uses a separate frame. Warning 1,536 MiB, hard stop 2,048 MiB.
+- The default hard stop is "resolution scale, plus 25% of physical memory as a floor and 50% as a cap" (one formula shared by gpu and soft). `hard stop = min(max(baseline * pixel ratio, floor(totalmem * 0.25)), floor(totalmem * 0.5))`, in MiB. The pixel ratio rounds up. The floor and the cap round down.
+  - When the output pixel count exceeds 1080p (1920 by 1080), scale the baseline by that ratio (4K is 4 times). The warning scales by the same ratio.
+  - 25% of physical memory is the floor, always, regardless of resolution. A 15.7 GB machine goes to 4,021 MiB. An 8 GB machine goes to 2,048 MiB. A 7 GB runner goes to 1,792 MiB. When the floor applies, set the warning to 75% of the hard stop and record `memory.machine_floor: true` on the receipt. When the value equals the baseline, record false.
+  - 50% of physical memory is the cap. When the scaled value exceeds it, clamp, and put the warning at 75% of the hard stop (`memory.machine_capped`). Floor is always less than cap by the ratio. Only the scale side is clamped by the cap.
+  - `memory` on the receipt and on `run.json` records `budget_scale`, `machine_floor`, `machine_capped`, and `total_memory_bytes` (physical memory).
+  - Revised 2026-09-01 (resolution scale plus the 50% cap). Same-day supplement. Even at 720p or 1080p output, RSS grew with the size of the input footage (long 4K HEVC, several files) and hit the fixed 1 GiB (issue #28). The rule "defaults at or below 1080p do not change by machine" was withdrawn, and the floor was added. The 4K coefficient is a prediction and is uncalibrated. Calibrate it on the first measured peak.
+- `AKARI_OSR_MEMORY_WARN_MIB` and `AKARI_OSR_MEMORY_HARD_STOP_MIB` can override to a positive integer MiB. The override is absolute. It does not take the scale, the floor, or the cap. Applied values require warning less than hard stop. If only the hard stop is overridden and the default warning is at or above it, follow the warning to 75% of the hard stop. The GPU direct exit (gpu-export) reads the same variables.
+- Export is strictly forward and does not reread past frames, so a decoder session for a cut that has left the evaluation plan is released (`StreamReaper`). frame-engine collects `streamId` from `plan.base` and `plan.layers` and drops those past 1 second of grace after the last used frame via `LookaheadFrameSource.releaseStream`. Without release, one session per cut stacks to the end, RSS grows monotonically, and a longer job hits the hard stop later (added 2026-09-04, issue #52). A machine report of 244 seconds and 7,320 frames was at the 98% point with RSS 4.01 GB. An outgoing cut during a transition stays on the plan, so it stays.
+- `memory.decoderSessions` on the receipt and on `run.json` records the live session count (`live`) and the cumulative releases (`released`). RSS is proportional to the session count, so a later ramp can be matched against the record (same issue #52). At the time of #28 the proportion was known, but there was no record, and a recurrence meant probing by hand again.
+- A GPU direct-exit failure that hits the hard stop uses reasonCode `memory-hard-stop`. With `--engine auto` it reruns on OSR to completion (`FALLBACK_REASONS`, same issue #52). Until then the result was zero artifacts, a regression versus the previous version that could export. An explicit `--engine gpu` stays fail-closed.
+- The parallel budget of 1 worker = 1 GiB is a GPU-assumption value. The v0 worker count is 1.
+- Record RSS every 10 seconds, including after the window is destroyed.
+- Do not regenerate the page every fixed N frames. Regeneration is allowed only at a page boundary, a renderer crash, or watchdog recovery.
 
-非連番seekは描画履歴が変わり得るため、チャンク分割・並列化はbyte再現モードと両立しない。将来導入する場合は先頭からのwarm-up履歴または完成画の別検収を必要とする。
+A non-sequential seek can change draw history, so chunking and parallelism do not coexist with byte-reproduction mode. A future introduction needs a warm-up history from the start, or a separate acceptance of the finished picture.
 
-## 9. 検収
+## 9. Acceptance
 
-完成画の検収は[エンジン v2 パリティ契約](./contract-2026-08-02-preview-parity.md) §4 に一本化する。
-frame-engine は golden の全点 `diff 0`、OSR は本節のソフト描画 2 走・全コマ SHA-256 一致を必須とし、
-GPU は同一マシン一致率を診断値として記録するが byte-exact を合否条件にはしない。
+Finished-picture acceptance is unified into the [engine v2 parity contract](./contract-2026-08-02-preview-parity.md) §4. frame-engine requires a golden all-points `diff 0`. OSR requires the soft-draw two runs in this section, with an all-frame SHA-256 match. GPU records the same-machine match rate as a diagnostic and does not make byte-exact a pass or fail.
 
-CIはソフト描画の連番2走について全コマSHA-256一致を要求する。製品はGPUを既定とし、同一マシン2走の一致率、`differingPixels`、`maxDelta`を診断値として記録する。GPUのbyte-exactは合否条件にしない。差分調査はH.264を再デコードした画像ではなく、捕捉時のraw BGRAを使用する。
+CI requires an all-frame SHA-256 match for two sequential soft-draw runs. The product defaults to GPU and records the same-machine two-run match rate, `differingPixels`, and `maxDelta` as diagnostics. GPU byte-exact is not pass or fail. Diff investigation uses the raw BGRA captured at the time, not an image redecoded from H.264.
 
-legacyとの比較は字幕、自由HTML、3Dの各指定時刻についてMADと`differingPixels`を記録する。
+Comparison with legacy records MAD and `differingPixels` at each specified time for captions, free HTML, and 3D.
 
-OSR の起動直後 warm-up（§11.8）が出力に影響しないことも受け入れに含める: 同じ fixture・同じ GPU で `warm_up.empty_attempts > 0` の走行と `0` の走行（無ければ同じ GPU の複数走行）の frameHashes が全コマ SHA-256 一致すること（2026-09-02 追記。iGPU ↔ dGPU の間は GPU 依存の丸め差で一致しないので比較は同じ GPU 内で行う）。
+OSR warm-up immediately after launch (§11.8) must not affect output, and that is part of acceptance. On the same fixture and the same GPU, `frameHashes` of a run with `warm_up.empty_attempts > 0` and a run with `0` (or, if there is no zero run, several runs on the same GPU) match SHA-256 on every frame (appended 2026-09-02). Between iGPU and dGPU the frames do not match, because of GPU-dependent rounding, so compare only inside the same GPU.
 
-## 10. 使用しない中間規律
+## 10. Intermediate rules the OSR path does not use
 
-OSR経路では次を使用しない。
+The OSR path does not use any of the following.
 
-- アルファ付き中間動画。
-- PNG連番。
-- ffmpeg overlay。
-- 二重の映像エンコード。
-- 3Dの別キャプチャ。
-- 字幕の活性区間ごとのDOM再構築。
-- 静止コマの重複除去。
-- 固定Nコマごとのページ再生成。
+- An alpha intermediate video.
+- A PNG sequence.
+- An ffmpeg overlay.
+- A second video encode.
+- A separate 3D capture.
+- A DOM rebuild of captions per active span.
+- Dropping duplicate still frames.
+- Page regeneration every fixed N frames.
 
-## 11. 既知の限界
+## 11. Known limits
 
-### 11.1 Bフレーム素材の並べ替え遅延（2026-08-28 改訂・根治済み）
+### 11.1 B-frame reorder delay (revised 2026-08-28, root-fixed)
 
-負の DTS で始まる B フレーム素材の並べ替え遅延は、main `b30057de` で
-`elst.media_time` を補正して根治した。`has_b_frames=2` の素材でも、提示時刻を edit list の
-media time に合わせて評価するため、従来の一定 2 コマ手前になるずれは残らない。
+The reorder delay of B-frame footage that starts with a negative DTS was root-fixed on main `b30057de` by correcting `elst.media_time`. Even footage with `has_b_frames=2` is evaluated with presentation time aligned to the edit-list media time, so the old constant shift of 2 frames early does not remain.
 
-### 11.2 legacyとの全画面画素差
+### 11.2 Full-frame pixel difference versus legacy
 
-同じraw BGRAを比較した場合、ffmpegが未タグ素材へ既定で使うbt601換算に対してMAD 9.28 / maxDelta 155、bt709換算に対してMAD 0.886であった。残差はクロマ補間による。エンジンは`bt709-limited`で合成する。
-**G3 裁定（2026-08-28）:** v2 の `bt709-limited` を正とし、legacy の bt601 換算側を近似として扱う。
+Comparing the same raw BGRA, against the bt601 conversion ffmpeg uses by default for untagged footage, MAD was 9.28 and maxDelta was 155. Against bt709, MAD was 0.886. The residual is chroma interpolation. The engine composites at `bt709-limited`. **G3 ruling (2026-08-28).** v2 `bt709-limited` is canonical, and legacy's bt601 side is treated as an approximation.
 
-ベースを単色にしたfixtureでlegacyとOSRの最終MP4を比較すると、MAD 0.019〜0.345 / maxDelta 7〜78であった。字幕・自由HTML・3Dの描画は一致し、全画面差の主因はベース映像のYUV→RGB変換である。オーバーレイ層の突き合わせは単色ベースで行う。
+On a fixture whose base is a solid color, comparing the final MP4 of legacy and OSR gave MAD 0.019 to 0.345 and maxDelta 7 to 78. Captions, free HTML, and 3D drawing match. The main cause of the full-frame difference is the base video's YUV to RGB conversion. Match the overlay layers on a solid-color base.
 
-### 11.3 ソフト描画の前提（2026-08-28 追記）
+### 11.3 Soft-draw premise (appended 2026-08-28)
 
-ソフト描画（`AKARI_OSR_SOFT=1`）は Electron 同梱 `libffmpeg.dylib` に H.264 デコーダが含まれていることを前提とする。`apps/shell` のビルドは `@theia/ffmpeg` によって非プロプライエタリ版へ差し替えるため、ビルド済みの作業ツリーではソフト描画の `VideoDecoder.configure` が全指定で失敗する（GPU 描画は VideoToolbox を使うので影響しない）。ソフト描画の diff 0 条件はこの前提のもとでのみ成立する。判定は `libffmpeg.dylib` に `H264 Decoder` 文字列があるかで行う（`isConfigSupported()` は差し替え版でも true を返すため当てにならない）。
+Soft draw (`AKARI_OSR_SOFT=1`) assumes the Electron-bundled `libffmpeg.dylib` contains an H.264 decoder. The `apps/shell` build replaces it with the non-proprietary build via `@theia/ffmpeg`, so in a built work tree soft-draw `VideoDecoder.configure` fails for every config. GPU draw uses VideoToolbox, so it is unaffected. The soft-draw diff-0 condition holds only under this premise. Judge by whether `libffmpeg.dylib` contains the string `H264 Decoder`. `isConfigSupported()` returns true even on the replaced build, so it is not reliable.
 
-### 11.4 アプリ起動中の第1段（2026-08-28 根治）
+### 11.4 Tier 1 while the app is running (root-fixed 2026-08-28)
 
-v0.1.24以前はTheiaの`singleInstance`により、AKARI Videoデスクトップアプリの起動中に第1段を開始すると、子プロセスがexit 0・無出力で終了していた。launcherが出力を検査しなかったため、後続処理ではこの失敗がffmpegのENOENTに化けていた。runごとにuserDataを分離し、exit 0でも出力が無い場合を失敗として扱うことで根治した。Windowsのelectron-builder NSIS per-user既定導入先は`%LOCALAPPDATA%\Programs\@akari-videoshell`である。
+Before v0.1.24, Theia's `singleInstance` made a child started as tier 1, while the AKARI Video desktop app was running, exit 0 with no output. The launcher did not inspect output, so later this failure masqueraded as ffmpeg `ENOENT`. It was root-fixed by separating `userData` per run and treating exit 0 with no output as failure. The Windows electron-builder NSIS per-user default install path is `%LOCALAPPDATA%\Programs\@akari-videoshell`.
 
-v0.1.25では、contribution方式がランタイムの同梱漏れに遭遇すると、起動途中の`app.exit(1)`がSIGTRAP / Windowsの`0x80000003`に化けた。同梱が揃っていても、Theiaの`window-all-closed`から始まるquitとOSRランタイムのウィンドウ生成が競合し得る構造だった。2026-08-29に`electron-entry.js`方式へ移行し、`--render`をTheia起動前に捕捉してこの競合を除去した。
+In v0.1.25, when the contribution method hit a missing bundled runtime, an in-startup `app.exit(1)` masqueraded as `SIGTRAP` or Windows `0x80000003`. Even with the bundle complete, Theia's quit that starts from `window-all-closed` could race the OSR runtime's window creation. On 2026-08-29 the move to `electron-entry.js` caught `--render` before Theia starts and removed that race.
 
-### 11.5 インストール済みアプリ経由の第 1 段は起動処理と競合して落ちる（2026-08-29 追記）
+### 11.5 Installed-app tier 1 crashes by racing startup (appended 2026-08-29)
 
-v0.1.26 の実ビルド（署名有効・未改変）で実証: インストール済みの AKARI Video を `--render` 付きで起動すると、
-`akari-osr-export` contribution が初期ウィンドウを destroy した直後に Theia の `handleMainCommand` →
-`openDefaultWindow` が destroy 済みウィンドウへ `loadURL` して `TypeError: Object has been destroyed`（未処理 rejection）→
-V8 fatal → SIGTRAP（exit 133 / Windows `0x80000003`）となり、PROGRESS 0 行で終わる。§11.4 の単一インスタンスロック解消後も
-残る、contribution 方式の構造的な競合（`window-all-closed` → `app.quit()` とも競合し得る）。この経路（tier 1 の既定候補）は
-fieldtest / 検収に receipt が 1 件も無く、一度も動いていない。
+Demonstrated on a real v0.1.26 build (signing on, unmodified). Launching installed AKARI Video with `--render`, the `akari-osr-export` contribution destroys the initial window, then Theia's `handleMainCommand` to `openDefaultWindow` calls `loadURL` on the destroyed window and throws `TypeError: Object has been destroyed` (unhandled rejection), then a V8 fatal, then `SIGTRAP` (exit 133 or Windows `0x80000003`), ending with 0 `PROGRESS` lines. This remains after the §11.4 single-instance fix. It is a structural race of the contribution method. It can also race `window-all-closed` to `app.quit()`. This path (the default tier-1 candidate) has not one receipt in fieldtest or acceptance, and it has never run.
 
-v0.1.27 からの挙動: `resolveOsrLauncher`（製品入口）はインストール済みアプリを既定で候補から外す
-（`allowInstalledDesktop: false`）。`AKARI_OSR_ELECTRON` の明示指定は従来どおり tier 1。npm Electron（tier 2）が無い
-当時のパッケージ版では tier 3 = legacy へ警告付きで落ちていた。現在は legacy へフォールバックせず、OSR の Electron が見つからない場合は書き出しを拒否する。
-根本修正 = `--render` を Theia より前に捕捉する書き出し専用の Electron 入口（別票）。入口が入ったら既定を戻す。
+Behavior from v0.1.27. `resolveOsrLauncher` (the product entry) drops the installed app from candidates by default (`allowInstalledDesktop: false`). An explicit `AKARI_OSR_ELECTRON` stays tier 1 as before. Packaged builds of that time with no npm Electron (tier 2) fell to tier 3, which was legacy, with a warning. Now there is no fallback to legacy. If OSR's Electron cannot be found, the export is refused. The root fix is an export-only Electron entry that catches `--render` before Theia (a separate ticket). Restore the default once that entry lands.
 
-**2026-08-29 追記（根治）**: 書き出し専用の入口 `apps/shell/electron-entry.js` が合流した（§6 / §11.4）。`resolveOsrLauncher` の既定を戻し、インストール済みアプリを再び tier 1 の候補にする（v0.1.28〜）。`allowInstalledDesktop: false` は明示の opt-out として残す。
+**Appended 2026-08-29 (root-fixed).** The export-only entry `apps/shell/electron-entry.js` landed (§6 and §11.4). The default of `resolveOsrLauncher` was restored, and the installed app is a tier-1 candidate again (v0.1.28 onward). `allowInstalledDesktop: false` remains an explicit opt-out.
 
-### 11.6 親の `ELECTRON_RUN_AS_NODE` が Electron 子プロセスへ継承される（2026-08-29 追記・#27）
+### 11.6 The parent's `ELECTRON_RUN_AS_NODE` is inherited by the Electron child (appended 2026-08-29, #27)
 
-v0.1.28 実機（macOS Apple Silicon / Windows RTX 5060）で実証: shell 配布の `akari` shim
-（`ELECTRON_RUN_AS_NODE=1 exec <同梱 Electron> akari.mjs`）・アプリ内書き出し・パートナー CLI サーバーは、同梱 Electron を
-node として使うためにこの変数を立てる。`launchElectronExport` が親の環境をそのまま子へ渡していたため、tier 1 の AKARI Video は
-Chromium スイッチを `bad option` で拒否して exit 9、tier 2 の npm Electron は `electron-main.mjs` を素の Node で実行して
-`app` が undefined になり、いずれも PROGRESS 0 行で終わる。GPU 出口（§12）も同じ launcher を共有するため同時に落ちる。
-§11.4 / §11.5 の解消後に露出した、起動環境の問題。
+Demonstrated on v0.1.28 machines (macOS Apple Silicon and Windows RTX 5060). The shell-distributed `akari` shim (`ELECTRON_RUN_AS_NODE=1 exec <bundled Electron> akari.mjs`), in-app export, and the partner CLI server set this variable in order to use the bundled Electron as node. `launchElectronExport` passed the parent's environment through, so tier-1 AKARI Video rejected Chromium switches as `bad option` and exited 9, and tier-2 npm Electron ran `electron-main.mjs` as plain Node, `app` was undefined, and both ended with 0 `PROGRESS` lines. The GPU exit (§12) shares the launcher, so it fails at the same time. This is a launch-environment problem exposed after §11.4 and §11.5 were fixed.
 
-修正後: `spawnAndWait` は `electronChildEnvironment(env)` を通した環境で起動する
-（`ELECTRON_CHILD_ENV_BLOCKLIST = ["ELECTRON_RUN_AS_NODE"]`、名前は Windows に合わせ大文字小文字非区別で比較）。
-他の変数（`AKARI_OSR_*` / `AKARI_FFMPEG_BIN` / `PATH` 等）は従来どおり継承する。shim 側で変数を外す案は採らない
-（shim の外で立てられた変数には効かず、書き出し側で一律に守るのが唯一の境界）。
+After the fix, `spawnAndWait` starts with the environment from `electronChildEnvironment(env)` (`ELECTRON_CHILD_ENV_BLOCKLIST = ["ELECTRON_RUN_AS_NODE"]`, compared case-insensitively to match Windows). Other variables (`AKARI_OSR_*`, `AKARI_FFMPEG_BIN`, `PATH`, and the rest) are still inherited. Do not adopt the idea of unsetting the variable on the shim side. A variable set outside the shim would survive, and guarding it uniformly on the export side is the only boundary.
 
-### 11.7 Windows のハイブリッド GPU 機では書き出し子プロセスが iGPU に載る（2026-09-01 追記）
+### 11.7 On a Windows hybrid-GPU machine the export child lands on the iGPU (appended 2026-09-01)
 
-RTX 5060 Laptop + Intel UHD の Windows 11 機で、HKCU の値が無い tier 2 `electron.exe`（Electron 39.8.7 / Chromium 142）を
-非表示 BrowserWindow + `file://` ページで起動し、`app.getGPUInfo("complete")` と `VideoEncoder.isConfigSupported` を取った実測:
+Measured on a Windows 11 machine with RTX 5060 Laptop plus Intel UHD, launching a tier-2 `electron.exe` with no HKCU value (Electron 39.8.7 / Chromium 142) as a hidden `BrowserWindow` plus a `file://` page, and reading `app.getGPUInfo("complete")` and `VideoEncoder.isConfigSupported`.
 
-| 起動 | active adapter（`gpuPreference`） | `prefer-hardware` 4K `avc1.640033` 3840×2160@30 45 Mbps / 1080p `avc1.640028` 12 Mbps | `prefer-software` |
+| Launch | Active adapter (`gpuPreference`) | `prefer-hardware` 4K `avc1.640033` 3840 by 2160 at 30, 45 Mbps / 1080p `avc1.640028` 12 Mbps | `prefer-software` |
 |---|---|---|---|
-| 既定（スイッチなし） | Intel UHD Graphics（2） | **false / false** | true / true |
-| `--force_high_performance_gpu` | NVIDIA GeForce RTX 5060 Laptop GPU（3） | **false / false** | true / true |
-| `--use-adapter-luid=<RTX の LUID・10 進>` | RTX（3） | **false / false** | true / true |
-| HKCU `Software\Microsoft\DirectX\UserGpuPreferences` に値名 = exe フルパス・`GpuPreference=2;` を spawn 直前に書き、終了後に削除 | RTX（2） | **true / true** | true / true |
+| Default (no switch) | Intel UHD Graphics (2) | **false / false** | true / true |
+| `--force_high_performance_gpu` | NVIDIA GeForce RTX 5060 Laptop GPU (3) | **false / false** | true / true |
+| `--use-adapter-luid=<RTX LUID in decimal>` | RTX (3) | **false / false** | true / true |
+| HKCU `Software\Microsoft\DirectX\UserGpuPreferences`, value name = exe full path and `GpuPreference=2;`, written just before spawn and deleted after exit | RTX (2) | **true / true** | true / true |
 
-事実: Chromium のスイッチは ANGLE / WebGL を dGPU に載せるが Media Foundation の H.264 エンコーダは iGPU 側のまま → プロセス内の切替は不可。
-OS のアプリ別 GPU 設定だけが効き、プロセス生成時に評価されるので spawn 直前に書けば再起動・管理者権限とも不要。削除すれば元のまま。
-製品の Windows では書き出し子プロセス = `AKARI Video.exe` 自身（tier 1）で、値は exe 単位なので残すとアプリ本体まで次回起動から dGPU
-（ノート PC のバッテリー）になる → 一時上書き + 復元が筋。`gpuDevice[]`（`vendorId / deviceId / deviceString / active / gpuPreference`）で
-「どの GPU に載ったか」は子プロセス内で判る。Intel UHD（ドライバ 32.0.101.5972）は 1080p でも `prefer-hardware` が false。
+Fact. Chromium switches put ANGLE and WebGL on the dGPU, but the Media Foundation H.264 encoder stays on the iGPU, so an in-process switch is impossible. Only the OS per-app GPU setting works, and it is evaluated at process creation, so writing just before spawn needs neither a reboot nor admin. Deleting restores the previous state. On product Windows the export child process is `AKARI Video.exe` itself (tier 1), and the value is per exe, so leaving it would put the app itself on the dGPU from the next launch (a laptop's battery). Temporary override plus restore is the right shape. Which GPU it landed on is known inside the child from `gpuDevice[]` (`vendorId`, `deviceId`, `deviceString`, `active`, `gpuPreference`). Intel UHD (driver 32.0.101.5972) has `prefer-hardware` false even at 1080p.
 
-裁定（実装 = `packages/osr-export/src/gpu-preference.mjs` / `gpu-adapters.mjs`、`packages/gpu-export/src/gpu-diagnostics.mjs`）:
+Ruling. Implementation is `packages/osr-export/src/gpu-preference.mjs`, `gpu-adapters.mjs`, and `packages/gpu-export/src/gpu-diagnostics.mjs`.
 
-1. **適用点（2026-09-02 改訂・feedback-r1）**: `launchElectronExport`（gpu / osr 共通の spawn 点）。`platform === "win32"` かつ `options.soft` でないときだけ動く。他 OS / soft は no-op（記録に理由だけ残す）。**`auto` は GPU 出口だけ**（gpu-export の electron-main を起動する launch = export / capture。`launchGpuExport` が `options.exit = "gpu"` を渡す）。OSR 出口（osr-export の electron-main = export / capture。`exportWithOsr` / `captureFramesWithOsr` が `exit: "osr"` を渡す）は `auto` では書かず（skip・reason `not-gpu-exit`）、**`force` のときだけ**書く（終了後の復元は同じ）。`exit` 未指定は `"osr"` 扱い（保守的）。
-2. **方針値 `gpuPreference`**: `"auto"`（既定）| `"off"` | `"force"`。解決順 = 呼び出し側の `options.gpuPreference` → env `AKARI_EXPORT_GPU_PREFERENCE` → `"auto"`。不正値は許容値を含むメッセージで throw。render-cut は `--gpu-preference auto|off|force`。
-3. **対象 exe** = `launcher.executable` を `path.win32.resolve` で正規化（`/` → `\`、Windows 設定アプリが書く形式）。レジストリは `HKCU\Software\Microsoft\DirectX\UserGpuPreferences`、値名 = exe フルパス、REG_SZ `GpuPreference=2;`。読み書きは `%SystemRoot%\System32\reg.exe`（`query` / `add ... /f` / `delete ... /f`）を `spawnSync` で叩く。ネイティブモジュール禁止・管理者権限不要・`reg query` は値の部分（ASCII）だけ parse する。`registry` 依存 `{ read, write, remove }` は注入可能。
-4. **判定は純関数** `planGpuPreference({ platform, policy, soft, current, exit })` → `{ action: "write" | "skip", value, restore, reason }`: platform ≠ win32 → skip `platform` / soft → skip `soft` / off → skip `policy-off` / **auto かつ exit ≠ gpu → skip `not-gpu-exit`（2026-09-02 改訂）** / current === `GpuPreference=2;` → skip `already-high-performance` / current === null → write + 終了後 remove / current がそれ以外（`GpuPreference=1;` 等）: `auto` → skip `user-preference-respected`（利用者の明示設定を黙って上書きしない）、`force` → write + 終了後 current へ戻す。defensive な skip 理由 4 つ（いずれも stderr に warning を出して spawn は続ける・r0 受理）: `executable-missing`（正規化後の exe が存在しない）/ `registry-unavailable`（`reg query` を spawn できない）/ `sidecar-unavailable`（sidecar が書けないのでレジストリも書かない）/ `write-failed`（`reg add` 失敗・sidecar を消して続行）。
-5. **順序と復元**: write → spawn → 子の `close`（exit code に関わらず・spawn エラーでも）→ `finally` で restore を必ず 1 回。復元に失敗したら stderr に `[gpu-preference] restore failed: ...` を出し記録に `restored: false` を残す（throw しない）。
-6. **クラッシュ耐性**: write の直前に sidecar `<AKARI_HOME ?? ~/.akari>/gpu-preference-override.json`（`{ version: 1, executable, previous, written_at }`）を書き、restore 完了後に削除。`launchElectronExport` は毎回冒頭で sidecar があれば先に復元（previous null → remove、else write previous）してから進む（記録に `recovered_stale: true`）。`AKARI_HOME` の解決は `env.AKARI_HOME || ~/.akari` を自前で持つ（akari-launcher は import しない）。
-7. **記録**: `launchElectronExport` の戻り値に `gpuPreference: { platform, policy, exit, executable, applied, previous, restored, reason, recovered_stale }`。gpu / osr の receipt に `provenance.gpu_preference`（snake_case: `applied / previous / restored / reason / recovered_stale / policy / exit`）。子プロセスは `app.whenReady()` 後に `app.getGPUInfo("complete")` を 3 秒で打ち切って `gpuDevice` を run.json `gpu.devices`（`vendor_id / device_id / device_string / active / gpu_preference`）に記録する（completed / failed とも・export / capture の 4 経路）。失敗時の日本語 1 行（GPU 出口）は GPU 契約 §8.1 を正とする。
+1. **Apply point (revised 2026-09-02, feedback-r1).** `launchElectronExport`, the shared spawn for gpu and osr. It runs only when `platform === "win32"` and `options.soft` is false. Other operating systems and soft are no-ops (record the reason only). **`auto` applies only to the GPU exit** (a launch that starts gpu-export's `electron-main`, which is export or capture. `launchGpuExport` passes `options.exit = "gpu"`). The OSR exit (osr-export `electron-main`, which is export or capture. `exportWithOsr` and `captureFramesWithOsr` pass `exit: "osr"`) does not write under `auto` (skip, reason `not-gpu-exit`) and writes only under `force` (restore after exit is the same). An unspecified `exit` is treated as `"osr"` (conservative).
+2. **Policy value `gpuPreference`.** `"auto"` (default), `"off"`, or `"force"`. Resolve order is the caller's `options.gpuPreference`, then env `AKARI_EXPORT_GPU_PREFERENCE`, then `"auto"`. An illegal value throws a message that includes the allowed values. render-cut has `--gpu-preference auto|off|force`.
+3. **Target exe** is `launcher.executable` normalized with `path.win32.resolve` (slash to backslash, the form the Windows Settings app writes). The registry is `HKCU\Software\Microsoft\DirectX\UserGpuPreferences`, the value name is the exe full path, and the `REG_SZ` data is `GpuPreference=2;`. Read and write by spawning `%SystemRoot%\System32\reg.exe` (`query`, `add ... /f`, `delete ... /f`) with `spawnSync`. No native module. No admin. `reg query` parses only the value portion (ASCII). The `registry` dependency `{ read, write, remove }` is injectable.
+4. **The judgment is a pure function** `planGpuPreference({ platform, policy, soft, current, exit })` returning `{ action: "write" | "skip", value, restore, reason }`. Platform other than win32 skips with `platform`. Soft skips with `soft`. `off` skips with `policy-off`. **`auto` and exit other than gpu skips with `not-gpu-exit` (revised 2026-09-02).** `current === GpuPreference=2;` skips with `already-high-performance`. `current === null` writes and removes after exit. Any other current (`GpuPreference=1;` and similar): `auto` skips with `user-preference-respected` (do not silently overwrite the user's explicit setting), and `force` writes and restores `current` after exit. Four defensive skip reasons (each warns on stderr and continues the spawn; r0 accepted): `executable-missing` (the normalized exe does not exist), `registry-unavailable` (cannot spawn `reg query`), `sidecar-unavailable` (the sidecar cannot be written, so the registry is not written either), `write-failed` (`reg add` failed, delete the sidecar and continue).
+5. **Order and restore.** Write, then spawn, then the child's `close` (any exit code, and on a spawn error), then `finally` always restores once. If restore fails, print `[gpu-preference] restore failed: ...` on stderr and record `restored: false` (do not throw).
+6. **Crash tolerance.** Just before write, write the sidecar `<AKARI_HOME ?? ~/.akari>/gpu-preference-override.json` (`{ version: 1, executable, previous, written_at }`) and delete it after restore completes. If a sidecar exists at the start of every call, `launchElectronExport` restores it first (`previous` null means remove, otherwise write `previous`) and then continues (record `recovered_stale: true`). `AKARI_HOME` resolution is held locally as `env.AKARI_HOME || ~/.akari` (do not import akari-launcher).
+7. **Records.** The `launchElectronExport` return value includes `gpuPreference: { platform, policy, exit, executable, applied, previous, restored, reason, recovered_stale }`. gpu and osr receipts include `provenance.gpu_preference` (snake_case: `applied`, `previous`, `restored`, `reason`, `recovered_stale`, `policy`, `exit`). The child, after `app.whenReady()`, cuts `app.getGPUInfo("complete")` at 3 seconds and records `gpuDevice` on `run.json` `gpu.devices` (`vendor_id`, `device_id`, `device_string`, `active`, `gpu_preference`) on both completed and failed, and on all four paths of export and capture. The one Japanese failure line on the GPU exit is owned by GPU contract §8.1.
 
-**裁定 1 改訂の根拠（2026-09-02・feedback-r1）**: OSR 出口は ffmpeg で符号化するので dGPU を要さない一方、RTX 上では起動直後の offscreen paint が空 bitmap を返す過渡があり、`captureNonEmptyBitmap` の上限 8 回に収まるかが走行ごとに割れる（本実装 4 走中 3 勝・pre-T5 コード 4 走中 1 勝・tier 2 で回した実 render 約 40 回中 10 回失敗・iGPU では 0 回）。所要秒も RTX 17〜19 s / iGPU 17.3 s で利点が無い。露出させるのは本機能なので、OSR の warm-up 修正（`paint-bitmap.mjs`・別タスク）が入るまで OSR は従来どおり iGPU を既定にし、`force` のときだけ書く。
+**Basis for revising ruling 1 (2026-09-02, feedback-r1).** The OSR exit encodes with ffmpeg, so it does not need the dGPU. On RTX, the offscreen paint just after launch has a transient that returns an empty bitmap, and whether it fits inside `captureNonEmptyBitmap`'s cap of 8 splits per run (this implementation, 3 of 4 wins; pre-T5 code, 1 of 4 wins; about 10 failures in about 40 real renders run on tier 2; 0 on iGPU). Elapsed time is also RTX 17 to 19 s versus iGPU 17.3 s, so there is no benefit. Because exposing it is this feature, until the OSR warm-up fix (`paint-bitmap.mjs`, a separate task) lands, OSR keeps the iGPU as the default and writes only under `force`.
 
-範囲外: Theia の設定 UI、`akari doctor` の行、hardware 不可のときの OSR 自動フォールバック（GPU 契約 §12.3 の fail-closed を維持）、値の永続化（利用者の設定は常に元へ戻す）。
+Out of scope. Theia's settings UI, a line in `akari doctor`, automatic OSR fallback when hardware is unavailable (keep GPU contract §12.3 fail-closed), and persisting the value (the user's setting is always restored).
 
-### 11.8 起動直後の空 paint と warm-up（2026-09-02 追記）
+### 11.8 Empty paint just after launch, and warm-up (appended 2026-09-02)
 
-RTX 5060 Laptop + Intel UHD の Windows 11 機（Electron 39.8.7 / Chromium 142・tier 2 `electron.exe`・HKCU 無変更 = Intel）で、
-同一 fixture（`templates/project-default` 複製 + testsrc2 1280×720 / 30 fps / 10 s の v2 edit.json）を `exportWithOsr` の直接呼びで回した実測
-（司令塔 2026-09-02・修正前 main 2db19275 / 82bbcb99 で **8/8 失敗**。実装者は同日、修正前コードで直接呼び 17 走 + render-cut 経由 6 走 = **23/23 失敗**。
-RTX 上でも同型。更新後のインストール済みアプリ v0.1.32 の OSR 実レンダー 26 件失敗も同型）:
+Measured on the same Windows 11 machine with RTX 5060 Laptop plus Intel UHD (Electron 39.8.7 / Chromium 142, tier-2 `electron.exe`, HKCU unchanged, so Intel), calling `exportWithOsr` directly on the same fixture (a copy of `templates/project-default` plus testsrc2 at 1280 by 720, 30 fps, 10 s, v2 `edit.json`). Control tower 2026-09-02. Pre-fix main `2db19275` / `82bbcb99` failed 8 of 8. The implementer, the same day, on pre-fix code, 17 direct calls plus 6 via render-cut, failed 23 of 23. The same shape on RTX. 26 failed real OSR renders of the updated installed app v0.1.32 are the same shape.
 
-- 失敗文は `frame 0: offscreen paint returned an empty bitmap 8 times`。run.json は `status: "failed"`・`emptyPaints: [{ frame: 0, attempts: 8 }]`・`paintTimeouts: []`・
-  viewport `requested 1280x721 = measured`・`emulated: false`（T5 の resize / emulation 経路は動いていない）・所要 1.0〜1.8 秒で終了。
-- 仕組み: `capturePaint` = `webContents.invalidate()` → `paint` イベント 1 回待ち（timeout 10 s）。`paint` は来るが image が 0×0 または bitmap 長 0
-  （`readPaintBitmap` の `empty: true`）。従来の `captureNonEmptyBitmap` は `maximumEmptyAttempts = 8` を `settle()`（`window.__akariSettle()`）を挟んで
-  数えるだけで約 1 秒以内に諦める。iGPU / dGPU とも起動直後の合成器が空フレームを返す過渡（本機 12〜15 回・約 0.4〜0.5 秒）があり、8 回に収まるかで成否が割れる。
-- user-data-dir の使い回しは原因ではない（毎回新規でも失敗）。render-cut 経由（cut フェーズの後に起動）は通りやすいが同じ型で落ち得る。
-- 成功した走行の frameHashes / 出力は決定論（§9）。warm-up は出力に影響してはならない。
+- The failure text is `frame 0: offscreen paint returned an empty bitmap 8 times`. `run.json` is `status: "failed"`, `emptyPaints: [{ frame: 0, attempts: 8 }]`, `paintTimeouts: []`, viewport `requested 1280x721 = measured`, `emulated: false` (the T5 resize and emulation path is not running), and it ends in 1.0 to 1.8 seconds.
+- Mechanism. `capturePaint` is `webContents.invalidate()` then a wait for one `paint` event (timeout 10 s). `paint` arrives, but the image is 0 by 0 or the bitmap length is 0 (`readPaintBitmap` `empty: true`). The old `captureNonEmptyBitmap` only counted `maximumEmptyAttempts = 8` with `settle()` (`window.__akariSettle()`) between them and gave up within about 1 second. Both iGPU and dGPU have a transient where the compositor returns empty frames just after launch (on this machine, 12 to 15 times, about 0.4 to 0.5 seconds), and success splits on whether it fits in 8.
+- Reusing `user-data-dir` is not the cause (a fresh directory still fails). Via render-cut (started after the cut phase) it passes more often, but it can still fail in the same shape.
+- `frameHashes` and output of a successful run are deterministic (§9). Warm-up must not affect output.
 
-裁定（実装 = `packages/osr-export/src/paint-bitmap.mjs` / `electron-main.mjs` / `receipt.mjs` / `index.mjs`）:
+Ruling. Implementation is `packages/osr-export/src/paint-bitmap.mjs`, `electron-main.mjs`, `receipt.mjs`, and `index.mjs`.
 
-1. **warm-up 段**: export / capture の両経路で `settleWindowViewport` の直後・frame 0 の seek の前に、`capturePaint` → `readPaintBitmap` を非空 bitmap が
-   1 枚取れるまで繰り返す（間に `settle`）。予算 `OSR_WARM_UP_BUDGET_MS = 5000`。結果を run.json `warm_up: { attempts, empty_attempts, elapsed_ms, satisfied }`
-   に記録（running / completed / failed とも）。予算超過は `offscreen paint warm-up: ${empty_attempts} empty paints over ${elapsed_ms} ms（GPU: ${active_device ?? "unknown"}）`
-   で fail-closed。warm-up の bitmap は捨てる（frame 0 は従来どおり seek → capture）。純関数部分は `warmUpOffscreenPaint({ capture, settle, readBitmap, budgetMs, now })`（electron 非依存）。
-2. **`captureNonEmptyBitmap` は時間予算**: 引数 `emptyPaintBudgetMs`（既定 `2000`）を追加し、`maximumEmptyAttempts`（既定 `8` → `64`）と両方を上限にする
-   （どちらかに達したら throw）。`settle` の所要は予算に含める。戻り値と `onEmpty(frame)` は不変。失敗文は
-   `frame ${frame}: offscreen paint returned an empty bitmap ${attempts} times over ${elapsedMs} ms（GPU: ${active_device ?? "unknown"}）` — `active_device` は
-   run.json `gpu.devices` の active（`gpu-adapters.mjs` の `summarizeGpuAdapters`）から electron-main が文字列で渡す（`paint-bitmap.mjs` は electron 非依存のまま）。
-3. **記録**: `emptyPaints` の要素を `{ frame, attempts, elapsed_ms }` に拡張（既存 `attempts` の意味は不変・`elapsed_ms` は capture 呼び出しの開始からの経過で、
-   同じ frame の stamp / hash 再試行は足し込む）。receipt（`buildOsrReceipt({ warmUp })`）に `warm_up`（snake_case・無ければ null）を載せる。
-   `exportWithOsr`（`index.mjs`）が run.json の `warm_up` を `buildOsrReceipt` へ渡し、`captureFramesWithOsr` の receipt（`provenance` ブロック無し）にも正規化した
-   `warm_up` キーを並べる（2026-09-02 r1・feedback-r1 で所有欄に `index.mjs` / `test/index.test.mjs` を追加）。render-cut の `.akari/render.json` では `provenance.osr.warm_up`。
-4. **決定論**: warm-up は seek 前に終わるので frameHashes / 出力に影響しない。受け入れで「warm-up の `empty_attempts > 0` の走行」と「`0` の走行」（無ければ同じ GPU の
-   複数走行）の frameHashes 同一を要求する（§9）。iGPU ↔ dGPU の間は GPU 依存の丸め差で一致しない（下表 L1-e）ので比較は同じ GPU 内で行う。
-5. **時計は注入可能**（`now = () => performance.now()`）にして単体テストで進める。`settle` / `capture` も従来どおり注入。
+1. **Warm-up stage.** On both export and capture, immediately after `settleWindowViewport` and before the frame-0 seek, repeat `capturePaint` then `readPaintBitmap` until one non-empty bitmap is obtained (`settle` between them). Budget `OSR_WARM_UP_BUDGET_MS = 5000`. Record `run.json` `warm_up: { attempts, empty_attempts, elapsed_ms, satisfied }` on running, completed, and failed. Exceeding the budget is fail-closed with `offscreen paint warm-up: ${empty_attempts} empty paints over ${elapsed_ms} ms (GPU: ${active_device ?? "unknown"})`. Discard the warm-up bitmap. Frame 0 stays seek then capture, as before. The pure-function part is `warmUpOffscreenPaint({ capture, settle, readBitmap, budgetMs, now })` and does not depend on electron.
+2. **`captureNonEmptyBitmap` becomes a time budget.** Add argument `emptyPaintBudgetMs` (default `2000`) and cap both it and `maximumEmptyAttempts` (the default `8` becomes `64`). Throw when either is reached. The time `settle` takes is inside the budget. The return value and `onEmpty(frame)` stay unchanged. The failure text is `frame ${frame}: offscreen paint returned an empty bitmap ${attempts} times over ${elapsedMs} ms (GPU: ${active_device ?? "unknown"})`. `active_device` is passed as a string by electron-main from the active entry of `run.json` `gpu.devices` (`summarizeGpuAdapters` in `gpu-adapters.mjs`). `paint-bitmap.mjs` stays free of electron.
+3. **Records.** Extend `emptyPaints` elements to `{ frame, attempts, elapsed_ms }`. The meaning of the existing `attempts` is unchanged. `elapsed_ms` is elapsed from the start of the capture call, and stamp or hash retries of the same frame are added in. The receipt (`buildOsrReceipt({ warmUp })`) carries `warm_up` (snake_case, null if absent). `exportWithOsr` (`index.mjs`) passes `run.json` `warm_up` to `buildOsrReceipt`, and the receipt of `captureFramesWithOsr` (no `provenance` block) also lines up a normalized `warm_up` key (2026-09-02 r1; feedback-r1 added `index.mjs` and `test/index.test.mjs` to the ownership column). In render-cut's `.akari/render.json` it is `provenance.osr.warm_up`.
+4. **Determinism.** Warm-up finishes before seek, so it does not affect `frameHashes` or output. Acceptance requires the same `frameHashes` between a run whose warm-up `empty_attempts` is greater than 0 and a run whose is 0 (or, if there is no zero run, several runs on the same GPU) (§9). Between iGPU and dGPU the frames do not match, because of GPU-dependent rounding (table L1-e), so compare inside the same GPU.
+5. **The clock is injectable** (`now = () => performance.now()`) so a unit test can advance it. `settle` and `capture` stay injectable as before.
 
-実測（2026-09-02・実装者 L1・同一 fixture・tier 2・`AKARI_EXPORT_ALLOW_DESKTOP=0` 相当の直接呼び / render-cut）:
+Measurement on 2026-09-02, implementer L1, same fixture, tier 2, a direct call equivalent to `AKARI_EXPORT_ALLOW_DESKTOP=0`, and render-cut.
 
-| 走行 | コード | 載った GPU | 結果 |
+| Run | Code | GPU it landed on | Result |
 |---|---|---|---|
-| L1-a `exportWithOsr` 直接呼び 5 走 | 修正前（main 82bbcb99 と同じ paint 経路） | Intel UHD（auto） | **5/5 失敗**・`emptyPaints [{ frame: 0, attempts: 8 }]`・1.0〜1.3 s で終了（同日追加の直接呼び 12 走・render-cut 6 走も全敗） |
-| L1-b 直接呼び 10 走連続 | 修正後 | Intel UHD（auto） | **10/10 完走**・`warm_up` attempts 14〜16 / empty_attempts 13〜15 / elapsed_ms 461〜510 / satisfied・frame ループ `emptyPaints []`・所要 17.6〜23.5 s |
-| L1-c 直接呼び 5 走連続 | 修正後 | NVIDIA RTX 5060（`AKARI_EXPORT_GPU_PREFERENCE=force`） | **5/5 完走**・attempts 13〜15 / empty_attempts 12〜14 / elapsed_ms 399〜469・`emptyPaints []`・16.9〜19.7 s・実行後 HKCU 値なし |
-| L1-d render-cut `--engine osr` 3 走 | 修正後 | Intel UHD（auto） | **3/3** exit 0・所要 22 / 18 / 20 s・ffprobe 1280×720 / 30 fps / 300 コマ / 10.000 s・`.akari/osr-run.json` の `warm_up` empty_attempts 12〜13 / 418〜434 ms・`emptyPaints []`・receipt `provenance.osr.warm_up` は r0 では null（配線が境界外）→ r1 で配線後の 1 走（exit 0・21 s・300 コマ / 10.000 s）は `{ attempts: 12, empty_attempts: 11, elapsed_ms: 366, satisfied: true }` で `.akari/osr-run.json` と一致 |
-| L1-e 決定論 | 修正後 | Intel 13 走 / RTX 5 走 | 同じ GPU では全 300 コマ SHA-256 が一致（Intel = 直接呼び 10 + render-cut 3・empty_attempts 12〜15、RTX = 5 走・12〜14）。`empty_attempts = 0` の走行は本機では出ない。Intel ↔ RTX は全コマ不一致だが PSNR 平均 48.2 dB（min 46.8）・MSE 0.2〜0.7 の GPU 依存の丸め差で、seek 前に捨てる warm-up は原因ではない |
+| L1-a `exportWithOsr` direct, 5 runs | Pre-fix (same paint path as main `82bbcb99`) | Intel UHD (`auto`) | **5 of 5 failed.** `emptyPaints [{ frame: 0, attempts: 8 }]`. Ended in 1.0 to 1.3 s. The same day's extra 12 direct calls and 6 render-cut runs also all failed. |
+| L1-b direct, 10 runs in a row | After the fix | Intel UHD (`auto`) | **10 of 10 completed.** `warm_up` attempts 14 to 16, empty_attempts 13 to 15, elapsed_ms 461 to 510, satisfied. Frame loop `emptyPaints []`. Elapsed 17.6 to 23.5 s. |
+| L1-c direct, 5 runs in a row | After the fix | NVIDIA RTX 5060 (`AKARI_EXPORT_GPU_PREFERENCE=force`) | **5 of 5 completed.** attempts 13 to 15, empty_attempts 12 to 14, elapsed_ms 399 to 469. `emptyPaints []`. 16.9 to 19.7 s. No HKCU value after the run. |
+| L1-d render-cut `--engine osr`, 3 runs | After the fix | Intel UHD (`auto`) | **3 of 3** exit 0. Elapsed 22 / 18 / 20 s. ffprobe 1280 by 720, 30 fps, 300 frames, 10.000 s. `.akari/osr-run.json` `warm_up` empty_attempts 12 to 13, 418 to 434 ms. `emptyPaints []`. Receipt `provenance.osr.warm_up` was null in r0 (the wiring was outside the boundary). After r1 wiring, one run (exit 0, 21 s, 300 frames, 10.000 s) was `{ attempts: 12, empty_attempts: 11, elapsed_ms: 366, satisfied: true }` and matched `.akari/osr-run.json`. |
+| L1-e determinism | After the fix | Intel 13 runs / RTX 5 runs | On the same GPU all 300 frames match SHA-256 (Intel is 10 direct plus 3 render-cut, empty_attempts 12 to 15; RTX is 5 runs, 12 to 14). A run with `empty_attempts = 0` does not appear on this machine. Intel versus RTX mismatches every frame, but mean PSNR is 48.2 dB (min 46.8) and MSE is 0.2 to 0.7, a GPU-dependent rounding difference. The warm-up discarded before seek is not the cause. |
 
-範囲外: 空 paint の根本原因（合成器の起動過渡）の解明、gpu-export 側、paint timeout（10 s）の変更、render-cut 側のリトライ追加。
+Out of scope. Explaining the root cause of the empty paint (the compositor's startup transient), the gpu-export side, changing the paint timeout (10 s), and adding a retry on the render-cut side.
 
-## 12. GPU 直結出口との共有境界（2026-08-28 追記）
+## 12. Shared boundary with the GPU direct exit (appended 2026-08-28)
 
-[GPU 直結書き出し v0](./contract-2026-08-28-gpu-export-v0.md) は、本契約の launcher 3 段、static
-server、page builder の入力解決、memory guard、ffprobe、音声 mux、receipt の語彙を再利用する。
-省略可能引数の既定値は本契約の OSR 挙動を維持する。GPU 出口の適格性、readback 禁止、mp4box direct
-mux、fail-closed 条件は GPU 契約を正本とし、OSR の seek/paint/stamp 経路へ逆流させない。
-§1 の darwin `auto → osr` は GPU 出口追加前の記述であり、GPU 契約の適格性を満たさない場合、
-または GPU launcher が利用できない場合の選択として読む。適格時の `auto → gpu` は GPU 契約を優先する。
+[GPU direct export v0](./contract-2026-08-28-gpu-export-v0.md) reuses this contract's 3-tier launcher, static server, page-builder input resolution, memory guard, ffprobe, audio mux, and receipt vocabulary. Defaults of optional arguments keep this contract's OSR behavior. GPU-exit eligibility, the readback ban, mp4box direct mux, and fail-closed conditions are owned by the GPU contract and must not flow back into the OSR seek, paint, and stamp path. The darwin `auto` to `osr` in §1 is a description from before the GPU exit was added. Read it as the choice when GPU-contract eligibility is not met, or when the GPU launcher is unavailable. When eligible, `auto` to `gpu` prefers the GPU contract.
 
-## 13. v2 の cut 音声中間物（2026-08-29 追記）
+## 13. v2 cut-audio intermediates (appended 2026-08-29)
 
-OSR 経路の映像は `edit.sources` をページ側で直接読み、`cut.mp4` の映像を使用しない。そのため
-cut 段は `cut-audio.mp4`、尺延長が必要な場合は続けて `cut-audio-tail-padded.mp4` を生成し、
-音声ストリームだけを最終 mux へ渡す。両コマンドは `-vn` とし、映像のデコード・フィルタ・
-エンコードを行わない。音声の trim、速度、freeze 無音、transition、gap、AAC 48 kHz の意味論は
-従来の映像込み cut / tail-pad と同じである。legacy 経路は従来どおり映像込み中間物を使用する。
-音声入力は cut ごとに入力側シーク（`-ss` / `-t`）し、cut 頭 0.5 s の先読みガード（AAC の overlap-add 用）を設け、cut 段の費用を素材長に依存させない。
+OSR-path video reads `edit.sources` directly on the page and does not use the video of `cut.mp4`. The cut stage therefore generates `cut-audio.mp4`, and when the duration must be extended it then generates `cut-audio-tail-padded.mp4`, and passes only the audio stream to the final mux. Both commands use `-vn` and do not decode, filter, or encode video. The semantics of audio trim, speed, freeze silence, transition, gap, and AAC 48 kHz match the old cut and tail-pad that included video. The legacy path still uses intermediates that include video. Audio input seeks on the input side per cut (`-ss` / `-t`), sets a 0.5 s lookahead guard at the head of the cut (for AAC overlap-add), and does not make the cut-stage cost depend on the footage length.

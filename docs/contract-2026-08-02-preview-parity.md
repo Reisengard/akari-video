@@ -1,409 +1,263 @@
-# エンジン v2 パリティ契約 — ゴールデンフレーム検収
+**English** | [Japanese](./contract-2026-08-02-preview-parity.ja.md)
 
-> **2026-08-28 v2 改訂。** 本契約は面ごとに独立した描画実装を比較する契約から、単一の
-> frame-engine を二つの器と二つの出口が消費する契約へ改訂した。互換経路は §4.3 だけが扱い、
-> 仕様の正本には含めない。
+# Engine v2 parity contract. Golden-frame acceptance
 
-## 改訂履歴
+> **Revised 2026-08-28, v2.** This contract changed from comparing a separate draw implementation per surface to one frame-engine consumed by two containers and two exits. Only §4.3 covers the compatibility path. It is not part of the canonical spec.
 
-| 日付 | 版 | 内容 |
+## Revision history
+
+| Date | Version | Contents |
 |---|---|---|
-| 2026-08-02 | v0 | Web UI と shell の挙動仕様を統合 |
-| 2026-08-28 | v2 | `packages/frame-engine` の意味論へ統合し、検収をゴールデンフレームへ一本化。出口を OSR と GPU 直結の 2 本に固定し、互換経路を退役節へ移動 |
-| 2026-08-31 | v2.1 | §5.2 に断片 CSS の `vw` / `vh` 系単位の出力サイズ基準化（`viewport-units.js`。プレビューがウィンドウ幅基準で解いていた実機報告の修正）を追記 |
-| 2026-09-02 | v2.2 | §2.8 に字幕時計の規約（active cue の判定は両プレビューとも出力秒。共有カーネル `caption-clock`）を追記。Web UI を shell に揃えた 4 点（字幕時計・字幕フォント名・`slot-params.js` の差し込み・最下段 cut の track 規則）の記録 |
-| 2026-09-10 | v2.3 | §5.8 に shell 合成面の内部解像度（auto / 手動倍率・停止時等倍）と構図一致の許容差を追加 |
+| 2026-08-02 | v0 | Combined the behavior spec of the Web UI and the shell |
+| 2026-08-28 | v2 | Unified onto the semantics of `packages/frame-engine`, and unified acceptance onto golden frames. Fixed the exits at two, OSR and GPU direct, and moved the compatibility path into the retirement section |
+| 2026-08-31 | v2.1 | Appended to §5.2. Fragment CSS `vw` and `vh` units are resolved against the output size (`viewport-units.js`. A fix for a machine report that the preview resolved them against the window width) |
+| 2026-09-02 | v2.2 | Appended the caption-clock rule to §2.8 (both previews judge the active cue in output seconds. Shared kernel `caption-clock`). Recorded the four points that aligned the Web UI with the shell (caption clock, caption font name, the `slot-params.js` insert, and the track rule for the bottom cut) |
+| 2026-09-10 | v2.3 | Added to §5.8 the shell composite surface's internal resolution (auto, a manual scale, and 1x while stopped) and the tolerance for composition agreement |
 
-## 1. 役割分担
+## 1. Role split
 
-### 1.1 エンジン
+### 1.1 Engine
 
-エンジンは `packages/frame-engine` だけである。宣言済みの edit、source、sidecar と時刻 `T` を入力し、
-その時刻の完成フレームを返す **`T → frame` の評価関数一個**を意味論の正本とする。cut、layer、
-transition、matte、LUT、freeze、framing、keyframe の評価順序や時刻写像を器側へ複製しない。
+The engine is only `packages/frame-engine`. It takes a declared edit, source, sidecar, and time `T`, and returns the finished frame at that time. One evaluation function, **`T` to frame**, is the canonical semantics. Do not copy cut, layer, transition, matte, LUT, freeze, framing, keyframe evaluation order, or the time mapping into a container.
 
-音声は同じ決定論的予定表から開始、trim、loop、gain、fade、ducking 対象区間を得る。ただし即時再生と
-納品マスターの処理差は [v2 音声処理の役割分担](./contract-2026-08-28-v2-audio-roles-v0.md) に従う。
+Audio gets start, trim, loop, gain, fade, and the ducking span from the same deterministic schedule. The processing difference between immediate playback and the delivery master follows [v2 audio role split](./contract-2026-08-28-v2-audio-roles-v0.md).
 
-### 1.2 器
+### 1.2 Containers
 
-器は次の二つである。器の責務は入力のロード、再生クロック、seek、frame-engine の呼び出し、完成フレームと
-DOM overlay の提示、診断値の表示に限る。
+There are two containers. A container loads input, owns the playback clock, seeks, calls frame-engine, presents the finished frame and the DOM overlay, and shows diagnostic values. That is the whole duty.
 
-| 器 | 実体 | 責務 |
+| Container | Body | Duty |
 |---|---|---|
-| Web UI | `packages/preview-server` | ブラウザ内の対話プレビュー、scrub、編集操作、frame-engine の評価結果の提示 |
-| shell | `apps/shell` の `akari-preview` | Theia webview 内の対話プレビュー、scrub、編集操作、同じ frame-engine の評価結果の提示 |
+| Web UI | `packages/preview-server` | Interactive preview in the browser, scrub, edit operations, and presenting the frame-engine result |
+| shell | `akari-preview` in `apps/shell` | Interactive preview in the Theia webview, scrub, edit operations, and presenting the same frame-engine result |
 
-器は独自の画素意味論を持たない。器の差はホスト、入力手段、UI chrome、フレーム提示時の転送方式だけである。
+A container has no pixel semantics of its own. The difference between containers is the host, the input method, the UI chrome, and the transfer used when presenting a frame.
 
-### 1.3 出口
+### 1.3 Exits
 
-出口は `packages/osr-export` の OSR と `packages/gpu-export` の GPU 直結の 2 本である。OSR は
-frame-engine の完成フレームと同じ DOM 規約の overlay sheet をページ全体で捕捉する。GPU 直結は、
-適格な DOM 層を engine canvas 上のスプライトへ移し、完成 canvas を `VideoFrame` と WebCodecs へ直接渡す。
-OSR の page/stamp/seek-paint は [ページ全体 OSR 書き出し v0](./contract-2026-08-28-osr-export-v0.md)、
-GPU の適格性/readback/mux は [GPU 直結書き出し v0](./contract-2026-08-28-gpu-export-v0.md) を正本とする。
+The exits are two. OSR in `packages/osr-export`, and GPU direct in `packages/gpu-export`. OSR captures, as a whole page, the frame-engine finished frame and an overlay sheet that uses the same DOM rules. GPU direct moves an eligible DOM layer onto a sprite on the engine canvas, and passes the finished canvas straight to a `VideoFrame` and WebCodecs. OSR page, stamp, and seek-paint are owned by [whole-page OSR export v0](./contract-2026-08-28-osr-export-v0.md). GPU eligibility, readback, and mux are owned by [GPU direct export v0](./contract-2026-08-28-gpu-export-v0.md).
 
-## 2. エンジンの意味論
+## 2. Engine semantics
 
-### 2.1 cuts と時刻
+### 2.1 Cuts and time
 
-`cuts[]` は `at` の明示配置、track、source の `in` / `out`、speed、gap を解決した出力タイムラインとして
-評価する。指定時刻 `T` に有効な cut がなければ背景を返す。同一 track の重なり、異なる track の積層、
-cut 境界の選択は宣言順ではなく解決済みタイムラインと z-order で決める。
+`cuts[]` is evaluated as an output timeline that has resolved explicit `at` placement, track, source `in` and `out`, speed, and gap. If no cut is active at the requested time `T`, return the background. Overlap on the same track, stacking of different tracks, and the choice at a cut boundary are decided by the resolved timeline and z-order, not by declaration order.
 
-**検収:** base parity **28 点**、layer parity **36 点**、frame lifetime **1000 コマ**を raw frame
-`diff 0` で判定する。
+**Acceptance.** Base parity **28 points**, layer parity **36 points**, and frame lifetime **1000 frames**, judged by raw frame `diff 0`.
 
-### 2.2 framing、transform、opacity、freeze、keyframes
+### 2.2 Framing, transform, opacity, freeze, and keyframes
 
-> **2026-09-22 — 非等方スケール v1**: `transform.scaleX` / `scaleY` は独立した正数。
-> 有効値は `(scaleX ?? scale ?? 1, scaleY ?? scale ?? 1)`。負値・0 は不可。
-> `source.kind === 'group'` は軸別指定を持てず、親は常に等比とする。
-> 等比親との合成は子の各有効値に親の `scale` を掛け、逆変換は同じ値で割る。
-> 書き込み時に両軸の有効値が等しければ `scale` に畳む。既存の `scale` だけの宣言は変更しない。
-> keyframes は端点を各軸の有効値へ解決してから補間する（`scale` と `scaleX` の混在も可）。
-> overlay の CSS は `translate(...) rotate(...) scale(sx, sy)`。overlay も素材も
-> 各軸で伸ばしてから回転する（R·S）。素材は crop の幅・高さへ各軸を掛ける。四隅 resize は両軸へ同じ倍率を掛け、縦横比を維持する。
+> **2026-09-22. Non-uniform scale v1.** `transform.scaleX` and `scaleY` are independent positive numbers. The effective value is `(scaleX ?? scale ?? 1, scaleY ?? scale ?? 1)`. A negative value and 0 are not allowed. `source.kind === 'group'` cannot specify per axis. The parent is always uniform. Composition with a uniform parent multiplies each of the child's effective values by the parent's `scale`, and the inverse divides by the same value. On write, if the two axes' effective values are equal, fold them into `scale`. An existing declaration of `scale` alone is not changed. Keyframes resolve the endpoints to each axis's effective value, then interpolate (mixing `scale` and `scaleX` is allowed). Overlay CSS is `translate(...) rotate(...) scale(sx, sy)`. Both an overlay and footage stretch on each axis and then rotate (`R*S`). Footage multiplies each axis into the crop width and height. A four-corner resize applies the same factor to both axes and keeps the aspect ratio.
 
-- `framing.crop` は fit 済みフレームを窓抜きして出力寸法へ再拡大する。
-- `framing.keyframes`、transform keyframes は cut 内の出力秒で評価し、hold / linear / ease-in-out の
-  指定補間を使う。
-- `cuts[].transform` は出力中央を基準に scale、rotate、x / y を適用し、`opacity` は合成前の alpha に掛ける。
-- framing と transform は一つの評価グラフで順序を固定する。器の CSS pivot や要素箱へ意味論を委ねない。
-- v2 media item（edit-store が `cuts` へ投影するもの）の `crop`（静的）と `keyframes[]` の `transform` / `crop` /
-  `opacity` は **layer-style**（ソース実寸 × scale の box、crop 窓、box 中心の rotate。§2.3 の layer と同じ幾何）で
-  評価し、frame-engine の base 経路が GPU / OSR 書き出しへそのまま描く（issue #39・2026-09-01）。`keyframes[].t` は
-  cut の出力ローカル秒（freeze 中も進む）。`crop` / `perspective` / 2 点以上の `keyframes` を持たない cut は従来の
-  fit 基準のままバイト同一。`perspective` は base 経路では未適用で、
-  `cut <id>: perspective is not applied by the frame-engine base path yet (issue #39)` を warning に出す（無警告で捨てない）。
-- `freeze = {at_sec, duration_sec}` は指定 frame を保持し、cut の出力尺を `duration_sec` だけ伸ばして
-  後続の逐次 cut を移動する。freeze の画と独立音声予定表を混同しない。
-- **`output.geometry`（幾何の基準。2026-09-02 追記）**: 未指定 = **fit 互換**（cut は出力へ contain fit した後に
-  transform。上記の従来どおり）、`"source"` = **実寸基準**（ソース実寸 × scale の box。layer・layer-style cut と同じ幾何）。
-  語彙は `"source"` の 1 つだけで、マーカーが立つのは「今 fit 基準で描かれている全 media item に `scale × fit`
-  （`fit = min(outputW / srcW, outputH / srcH)`・srcW / srcH は表示回転後）を一度だけ焼き込んだ」ことを意味する
-  （部分適用は禁止。移行は `packages/edit-store/bin/normalize-geometry.mjs`）。x / y / rotate は両基準で同じ意味なので触らない。
-  **「ソース実寸」= 原本の論理寸法（表示回転後）であり、復号フレームの画素寸法ではない（2026-09-18 追記）**。
-  プロキシを復号していてもこの基準は動かない。ここが曖昧だったため、ベースカットのクロップ計算が
-  復号フレーム＝プロキシ寸法を使い、追加レイヤーと寸法基準が食い違っていた（不具合メモ 第10項:
-  1920×1080 原本 / 960×540 プロキシで crop 幅 0.5・scale 1 が 960×1080 ではなく 480×540 になる）。
-  frame-engine 側は `NativeFrameSource.logicalSize` の宣言を基準に使い、宣言が無い / 壊れている
-  ときだけ復号寸法へ退避する（`compositionSourceSize`）。したがってプロキシを復号し得る呼び出し側は
-  原本メタデータから `logicalSize` を宣言する責務を負う。宣言を足すのと、プロキシ差し替えに伴う
-  倍率補償を外すのは、二重補正を避けるため**同一の作業単位**で行う。
-  **G1（マーカー・移行・lint の warning `geometry.fit-compat`）ではエンジンはこのマーカーを読まず、描画は 1 バイトも変わらない。
-  描画へ反映するのは G2**。cross ref: `docs/contract-2026-07-22-render-basics.md` §4-1（#6 画角操作）。
+- `framing.crop` windows the fitted frame and scales it back up to the output size.
+- `framing.keyframes` and transform keyframes are evaluated in output seconds inside the cut, using the declared interpolation of hold, linear, or ease-in-out.
+- `cuts[].transform` applies scale, rotate, and x / y around the output center. `opacity` multiplies the alpha before composite.
+- Framing and transform fix their order in one evaluation graph. Do not leave the semantics to a container's CSS pivot or element box.
+- For a v2 media item (what edit-store projects onto `cuts`), static `crop` and `transform`, `crop`, and `opacity` on `keyframes[]` are evaluated as **layer-style** (a box of source size times scale, a crop window, rotate around the box center. The same geometry as a layer in §2.3). The frame-engine base path draws that straight into GPU and OSR export (issue #39, 2026-09-01). `keyframes[].t` is the cut's output-local seconds (it keeps advancing during a freeze). A cut that has no `crop`, no `perspective`, and fewer than 2 `keyframes` stays byte-identical to the old fit basis. `perspective` is not applied on the base path yet, and a warning is emitted, `cut <id>: perspective is not applied by the frame-engine base path yet (issue #39)` (it is not dropped without a warning).
+- `freeze = {at_sec, duration_sec}` holds the specified frame, extends the cut's output duration by `duration_sec`, and shifts the following sequential cuts. Do not confuse the freeze picture with the independent audio schedule.
+- **`output.geometry` (the geometry basis. Appended 2026-09-02).** Unset means **fit compatible** (a cut is contain-fitted to the output, then transformed, as above). `"source"` means **source-size basis** (a box of source size times scale. The same geometry as a layer and a layer-style cut). The vocabulary is only `"source"`. The marker means "every media item that is currently drawn on the fit basis had `scale * fit` baked in once" (`fit = min(outputW / srcW, outputH / srcH)`, and srcW / srcH are after display rotation). A partial apply is forbidden. Migration is `packages/edit-store/bin/normalize-geometry.mjs`. x, y, and rotate mean the same thing on both bases, so they are not touched. **"Source size" is the original's logical size (after display rotation), not the decoded frame's pixel size (appended 2026-09-18).** Decoding a proxy does not move this basis. The ambiguity made a base cut's crop use the decoded frame, which is the proxy size, so the size basis disagreed with an added layer (bug note item 10. A 1920 by 1080 original and a 960 by 540 proxy, with crop width 0.5 and scale 1, became 480 by 540 instead of 960 by 1080). The frame-engine side uses the `NativeFrameSource.logicalSize` declaration as the basis, and falls back to the decoded size only when the declaration is absent or broken (`compositionSourceSize`). A caller that may decode a proxy therefore owns declaring `logicalSize` from the original metadata. Adding the declaration and removing the scale compensation that came with the proxy swap are **the same unit of work**, so the correction is not applied twice. **Under G1 (the marker, the migration, and lint warning `geometry.fit-compat`) the engine does not read this marker, and drawing does not change by one byte. Drawing picks it up at G2.** Cross ref: `docs/contract-2026-07-22-render-basics.md` §4-1 (item 6, framing operations).
 
-**検収:** framing / transform / opacity / freeze を含む base parity **28 点**、freeze をまたぐ
-frame lifetime **1000 コマ**、故意の **1 px** 差分を必ず FAIL させる否定点で判定する。
+**Acceptance.** Base parity **28 points** including framing, transform, opacity, and freeze. Frame lifetime **1000 frames** across a freeze. A negative point that must FAIL on a deliberate **1 px** difference.
 
-### 2.3 layers と keyframes
+### 2.3 Layers and keyframes
 
-`layers[]` は base より上、字幕・overlay より下へ z-order 順に積層する。source trim、loop、crop、
-transform、opacity、corner-pin perspective、各 keyframe を指定時刻 `T` で評価する。crop の錨点、
-perspective の四隅、rotate 後の bounding box は frame-engine 内の同じ座標系で解決する。
+`layers[]` stack in z-order above the base and below captions and overlays. Source trim, loop, crop, transform, opacity, corner-pin perspective, and each keyframe are evaluated at the requested time `T`. The crop anchor, the four corners of perspective, and the bounding box after rotate are resolved in the same coordinate system inside frame-engine.
 
-**検収:** layer parity **36 点**を `diff 0` で判定する。
+**Acceptance.** Layer parity **36 points**, judged by `diff 0`.
 
-### 2.4 transition
+### 2.4 Transition
 
-cut 間の `dissolve`、`fade-black`、`fade-white`、`reveal-down`、`reveal-up` は、transition 区間に
-前後二つの source frame を同時評価して合成する。境界、進捗率、カーブ、色 plate、reveal 方向は
-frame-engine の意味論に固定する。器や ffmpeg 固有の xfade 擬似乱数へ依存しない。
+`dissolve`, `fade-black`, `fade-white`, `reveal-down`, and `reveal-up` between cuts evaluate the two source frames, before and after, at the same time during the transition span and composite them. The boundary, the progress ratio, the curve, the color plate, and the reveal direction are fixed in frame-engine semantics. Do not depend on a container, or on an ffmpeg-specific xfade pseudo-random sequence.
 
-**検収:** transition parity **90 点**、transition semantics **30 点**を `diff 0` で判定する。
+**Acceptance.** Transition parity **90 points** and transition semantics **30 points**, judged by `diff 0`.
 
-### 2.5 matte と chroma key
+### 2.5 Matte and chroma key
 
-人物 matte と chroma key は source / layer の alpha を生成し、色補正後・積層前の定められた位置で適用する。
-matte の frame number は完成画と同じ `T` から得て、非同期応答や前回 frame を流用しない。人物の後ろへ置く
-DOM 表現も、この alpha と同じ frame stamp へ同期する。
+A person matte and a chroma key generate alpha for the source or the layer, and apply it at the fixed place after color correction and before stacking. The matte frame number comes from the same `T` as the finished picture. Do not reuse an async response or the previous frame. A DOM expression placed behind a person stays in sync with the same frame stamp as this alpha.
 
-アルファ付き WebM / MOV は器と出口の入力境界で H.264 の straight color と
-`gray-h264-fullrange` mask へ取り込み、frame-engine 自体にはこの 2 入力だけを渡す。同一素材の変換は
-冪等かつ同時呼び出しを一つへ合流し、失敗時は該当 layer を警告付きで省略して base の評価を継続する。
-互換 `<video>` と legacy filtergraph はこの変換の対象外である。
+Alpha WebM and MOV are ingested at the container and exit input boundary into H.264 straight color and a `gray-h264-fullrange` mask. Only these two inputs are passed to frame-engine itself. Conversion of the same footage is idempotent, and concurrent calls join into one. On failure, omit that layer with a warning and continue evaluating the base. A compatible `<video>` and the legacy filtergraph are outside this conversion.
 
-**検収:** matte parity **3 点以上**、matte sync **300 コマ・mismatches 0**を要求する。
-alpha 素材の取り込み形と、事前に color + mask へ分離した形の完成画は 3 点以上で比較し、
-channel absolute difference の mean **1.0 以下**、p99.9 **3 以下**を要求する。
+**Acceptance.** Matte parity **3 points or more**, and matte sync **300 frames with mismatches 0**. Compare the finished picture of the ingested alpha footage with the form split into color plus mask ahead of time, at 3 points or more. Require mean channel absolute difference **at most 1.0**, and p99.9 **at most 3**.
 
-### 2.6 LUT と output look
+### 2.6 LUT and output look
 
-`output.look` は chroma / alpha の意味論を壊さない位置で LUT を適用し、`intensity` は未適用と全適用の
-線形混合とする。色変換は `bt709-limited` を正とし、未タグ素材を bt601 とする legacy の換算へ合わせない。
+`output.look` applies the LUT at a place that does not break chroma and alpha semantics. `intensity` is a linear mix of not applied and fully applied. Color conversion treats `bt709-limited` as canonical, and does not match legacy's conversion that treats untagged footage as bt601.
 
-**検収:** look parity **20 点**を `diff 0` で判定する。色裁定の実測は OSR §11.2 の
-bt601 MAD **9.28** / maxDelta **155**、bt709 MAD **0.886** を根拠とする。
+**Acceptance.** Look parity **20 points**, judged by `diff 0`. The color ruling's measurement is grounded in OSR §11.2. bt601 MAD **9.28** and maxDelta **155**. bt709 MAD **0.886**.
 
-### 2.7 GOP、B フレーム、末尾 frame
+### 2.7 GOP, B frames, and the final frame
 
-seek は keyframe から対象時刻まで decode し、presentation timestamp と edit list の media time を反映する。
-負の DTS、B フレーム並べ替え遅延、GOP 末尾でも直前 frame や 2 コマ手前を返してはならない。source 末尾は
-宣言 duration と実在する最終 presentation frame の双方を扱う。
+A seek decodes from the keyframe up to the target time, and reflects the presentation timestamp and the edit-list media time. Even with a negative DTS, a B-frame reorder delay, or the end of a GOP, do not return the previous frame or a frame 2 early. The end of a source handles both the declared duration and the last presentation frame that actually exists.
 
-**検収:** gopTail **9 点**、bFrame **160 行**（summary **10**）、bFrameTail **24 行**、
-`test:seek` の requestCount **94**、bFrame.rows **720**（coverage full）、bFrameTail.rows **24**、
-finalFrameNumber **239**、lookahead hits **8**を要求する。
+**Acceptance.** gopTail **9 points**. bFrame **160 rows** (summary **10**). bFrameTail **24 rows**. `test:seek` requestCount **94**. bFrame.rows **720** (coverage full). bFrameTail.rows **24**. finalFrameNumber **239**. lookahead hits **8**.
 
-### 2.8 字幕
+### 2.8 Captions
 
-字幕は `captions.json` の active cue、style、safe area、word timing を一つの DOM 規約へ正規化する。Web UI と
-shell のプレビューでは DOM 層として提示し、書き出しでは同じ DOM 規約から overlay sheet を構成する。
-器専用の字幕 HTML や出口専用の再レイアウトを持たない。
+Captions normalize the active cue, style, safe area, and word timing of `captions.json` into one DOM rule. The Web UI and shell previews present them as a DOM layer. Export builds the overlay sheet from the same DOM rule. There is no container-specific caption HTML, and no exit-specific re-layout.
 
-行用 `style_vars` は `packages/edit-store/src/caption-display.ts` の
-`resolveCaptionLineStyleVars` / `mergeCaptionLineTextStyles` をカーネル単一定義とし、shell、Web UI、
-render-cut、`display_policy` の 4 面が同じ関数を呼ぶ。`display_policy` 経路の stroke も
-`-webkit-text-stroke` として `width_px × 2` を出し、`paint-order: stroke fill` で描く
-（2026-09-13 裁定）。
+Line `style_vars` have a single kernel definition, `resolveCaptionLineStyleVars` and `mergeCaptionLineTextStyles` in `packages/edit-store/src/caption-display.ts`. The shell, the Web UI, render-cut, and `display_policy`, four surfaces, call the same functions. Stroke on the `display_policy` path also emits `-webkit-text-stroke` as `width_px * 2`, drawn with `paint-order: stroke fill` (ruling 2026-09-13).
 
-active cue の判定は両プレビューとも**出力秒**で行う。source 秒の cue（`time_domain: "source"` と未宣言の
-legacy）は共有カーネル `packages/edit-store/src/caption-clock.ts` の `normalizeCaptionClock` が cut map
-で出力秒へ射影し、削除区間をまたぐ cue は 1 本ずつに分割する（`<id>-output-<n>`、元 id は
-`sourceCueId`）。shell は `normalizePreviewCaptionClock`、Web UI は `updateCaption` がこの正規化済み表を
-読み、描画層は domain 判定を行わない（2026-09-02。それまで Web UI は source 秒で判定していた）。
+Both previews judge the active cue in **output seconds**. A source-seconds cue (`time_domain: "source"`, and undeclared legacy) is projected to output seconds by `normalizeCaptionClock` in the shared kernel `packages/edit-store/src/caption-clock.ts`, using the cut map. A cue that crosses a deleted span is split one by one (`<id>-output-<n>`, and the original id is `sourceCueId`). The shell's `normalizePreviewCaptionClock` and the Web UI's `updateCaption` read this normalized table. The draw layer does not judge the domain (2026-09-02. Until then the Web UI judged in source seconds).
 
-**検収:** OSR ソフト描画の同一 fixture 2 走について、字幕を含む全コマ raw BGRA の SHA-256 一致を要求する。
+**Acceptance.** For two soft-draw OSR runs of the same fixture, require SHA-256 agreement of the raw BGRA of every frame, including captions.
 
-### 2.9 overlays
+### 2.9 Overlays
 
-`overlays[]` の自由 HTML、表、グラフ、2D / 3D 表現は同じ DOM 規約と同じ時刻 stamp で評価する。Web UI と
-shell では DOM 層、OSR では overlay sheet として載せる。活性区間ごとに DOM を再構築せず、状態を固定した
-ページを seek-safe に更新する。
+Free HTML, tables, graphs, and 2D or 3D expressions in `overlays[]` are evaluated with the same DOM rule and the same time stamp. They are a DOM layer on the Web UI and the shell, and an overlay sheet on OSR. Do not rebuild the DOM per active span. Update a page whose state is fixed, in a seek-safe way.
 
-**検収:** OSR ソフト描画の同一 fixture 2 走について、overlay sheet を含む全コマ raw BGRA の
-SHA-256 一致を要求する。GPU は同一マシン一致率を診断値として記録する。
+**Acceptance.** For two soft-draw OSR runs of the same fixture, require SHA-256 agreement of the raw BGRA of every frame, including the overlay sheet. GPU records the same-machine match rate as a diagnostic.
 
-### 2.10 音声
+### 2.10 Audio
 
-開始、trim、loop、gain、fade、ducking 対象区間は映像と同じ決定論的予定表から求める。器は Web Audio で
-即時再生し、出口は ffmpeg で acrossfade、mix、`afftdn`、`loudnorm`、true peak guard を含む納品マスターを
-作る。-12 dB 矩形 ducking とマスター処理省略は宣言済みの近似であり、画素パリティへ混ぜない。
+Start, trim, loop, gain, fade, and the ducking span come from the same deterministic schedule as the picture. A container plays immediately with Web Audio. An exit builds the delivery master with ffmpeg, including acrossfade, mix, `afftdn`, `loudnorm`, and a true-peak guard. A -12 dB rectangular duck and skipping master processing are declared approximations. Do not mix them into pixel parity.
 
-**検収:** 5 分通し再生 29 点と 30 回 seek の計 59 点で最大 drift **16.667 ms**、p95 **6.666 ms**、
-上限 **33 ms**。音量差は audio-roles §3.2 の I / LRA / TP と ducking 実測を診断値として残す。
+**Acceptance.** 29 points of a 5 minute straight play, plus 30 seeks, 59 points in total. Maximum drift **16.667 ms**, p95 **6.666 ms**, cap **33 ms**. Loudness difference leaves the I, LRA, and TP of audio-roles §3.2, and the measured ducking, as diagnostics.
 
-## 3. 適合状況
+## 3. Conformance
 
-凡例: ✅ = 本契約の経路、🟡 = 契約された近似または実機残課題、— = その境界の責務ではない。
+Legend. `check` is a path of this contract. `partial` is a contracted approximation or a remaining machine issue. `n/a` is not this boundary's duty.
 
-| 機能 | エンジン (`frame-engine`) | Web UI 器 (`preview-server`) | shell 器 (`akari-preview`) | OSR 出口 (`osr-export`) | GPU 出口 (`gpu-export`) |
+| Feature | Engine (`frame-engine`) | Web UI container (`preview-server`) | shell container (`akari-preview`) | OSR exit (`osr-export`) | GPU exit (`gpu-export`) |
 |---|---|---|---|---|---|
-| 時刻 `T`、cuts、gap、track | ✅ 評価 | ✅ 呼び出し・提示 | ✅ 呼び出し・提示 | ✅ 連番駆動 | ✅ 連番駆動 |
-| framing / transform / opacity / freeze | ✅ 評価 | ✅ 完成 frame を提示 | ✅ 完成 frame を提示 | ✅ 完成 frame を捕捉 | ✅ canvas を直結 |
-| layers / perspective / keyframes | ✅ 評価 | ✅ 完成 frame を提示 | ✅ 完成 frame を提示 | ✅ 完成 frame を捕捉 | ✅ canvas を直結 |
-| cuts の crop / transform / opacity keyframes（v2 media item・layer-style） | ✅ 評価（2026-09-01） | 🟡 `public/frame-engine.bundle.js` の再生成待ち | ✅ DOM 層（`applyLayerStyleMediaLayout`） | ✅ 完成 frame を捕捉 | ✅ canvas を直結 |
-| cuts の perspective | 🟡 未適用・warning のみ（issue #39） | 🟡 同左 | ✅ DOM 層 | 🟡 warning を run.json へ（seek の warning を回収） | 🟡 warning を run.json へ |
-| 5 transitions | ✅ 評価 | ✅ 完成 frame を提示 | ✅ 完成 frame を提示 | ✅ 完成 frame を捕捉 | ✅ canvas を直結 |
-| matte / chroma key | ✅ 評価 | ✅ stamp 同期 | ✅ stamp 同期 | ✅ stamp 同期・捕捉 | ✅ 同一 frame 評価 |
-| アルファ層の取り込み（`.webm` / `.mov` → color + mask mp4） | — 入力境界の外（media-bin `alpha-intake` が正本） | ✅ サーバ側 `prepareAlphaLayers`（`frameEngine.intake`） | ✅ node RPC `prepareAlphaIntake`（同一 media-bin・同一派生物、2026-09-02） | ✅ page-builder | ✅ page-builder |
-| LUT / `bt709-limited` | ✅ 評価 | ✅ 提示 | ✅ 提示 | ✅ 捕捉・encode | ✅ LUT 後 canvas を直結 |
-| 字幕 | — DOM 規約へ active state を供給 | ✅ DOM 層 | ✅ DOM 層 | ✅ 同規約の overlay sheet | 🟡 適格 cue を sprite 化 |
-| overlays / 3D | — DOM 規約へ時刻を供給 | ✅ DOM 層 | ✅ DOM 層 | ✅ 同規約の overlay sheet | 🟡 static / 宣言型 3D のみ |
-| 音声予定表 | ✅ 区間評価 | 🟡 Web Audio 近似 | 🟡 Web Audio 近似 | ✅ ffmpeg 納品マスター | ✅ carrier 後に同じ master |
-| Windows 実機 | ✅ platform-neutral | — Web browser | 🟡 実機残課題 | 🟡 実機残課題 | — v0 非対応 |
+| Time `T`, cuts, gap, track | check. Evaluates | check. Calls and presents | check. Calls and presents | check. Sequential drive | check. Sequential drive |
+| framing / transform / opacity / freeze | check. Evaluates | check. Presents the finished frame | check. Presents the finished frame | check. Captures the finished frame | check. Canvas goes direct |
+| layers / perspective / keyframes | check. Evaluates | check. Presents the finished frame | check. Presents the finished frame | check. Captures the finished frame | check. Canvas goes direct |
+| crop / transform / opacity keyframes on cuts (v2 media item, layer-style) | check. Evaluates (2026-09-01) | partial. Waiting to regenerate `public/frame-engine.bundle.js` | check. DOM layer (`applyLayerStyleMediaLayout`) | check. Captures the finished frame | check. Canvas goes direct |
+| perspective on cuts | partial. Not applied, warning only (issue #39) | partial. Same as the cell to the left | check. DOM layer | partial. Warning goes to run.json (seek warnings are collected) | partial. Warning goes to run.json |
+| 5 transitions | check. Evaluates | check. Presents the finished frame | check. Presents the finished frame | check. Captures the finished frame | check. Canvas goes direct |
+| matte / chroma key | check. Evaluates | check. Stamp sync | check. Stamp sync | check. Stamp sync and capture | check. Same-frame evaluation |
+| Alpha-layer intake (`.webm` / `.mov` to color plus mask mp4) | n/a. Outside the input boundary (media-bin `alpha-intake` is canonical) | check. Server-side `prepareAlphaLayers` (`frameEngine.intake`) | check. Node RPC `prepareAlphaIntake` (the same media-bin and the same derivative, 2026-09-02) | check. page-builder | check. page-builder |
+| LUT / `bt709-limited` | check. Evaluates | check. Presents | check. Presents | check. Captures and encodes | check. The canvas after the LUT goes direct |
+| Captions | n/a. Supplies active state to the DOM rule | check. DOM layer | check. DOM layer | check. Overlay sheet of the same rule | partial. An eligible cue becomes a sprite |
+| overlays / 3D | n/a. Supplies time to the DOM rule | check. DOM layer | check. DOM layer | check. Overlay sheet of the same rule | partial. Static and declarative 3D only |
+| Audio schedule | check. Evaluates spans | partial. Web Audio approximation | partial. Web Audio approximation | check. ffmpeg delivery master | check. The same master after the carrier |
+| Windows on a real machine | check. platform-neutral | n/a. Web browser | partial. Remaining machine issue | partial. Remaining machine issue | n/a. Unsupported in v0 |
 
-未完項目の移管先は [エンジン v2 残課題](./notes-2026-08-28-engine-v2-open-items.md)、近似の判定正本は
-[エンジン v2 恒久近似清算表](./contract-2026-08-28-v2-approximation-ledger.md) とする。
-フィールド単位の適合性の正本は `packages/schemas/engine-capabilities.json` とし、`edit-lint --engine` が読む。
+Open items move to [engine v2 open items](./notes-2026-08-28-engine-v2-open-items.md). The canonical judgment of approximations is [engine v2 approximation ledger](./contract-2026-08-28-v2-approximation-ledger.md).
 
-## 4. 検収と退役
+Field-level conformance is owned by `packages/schemas/engine-capabilities.json`, which `edit-lint --engine` reads.
 
-### 4.1 ゴールデンフレーム検収
+## 4. Acceptance and retirement
 
-エンジンの画素検収は `packages/frame-engine/test/golden` 一本に統一する。器別に別の完成画を作って
-目視比較する方法は合否判定に使わない。
+### 4.1 Golden-frame acceptance
 
-| 検収群 | 点数・実測値 | 合格条件 |
+The engine's pixel acceptance is unified into `packages/frame-engine/test/golden`. Building a separate finished picture per container and comparing by eye is not used as pass or fail.
+
+| Acceptance group | Points or measured value | Pass condition |
 |---|---:|---|
-| base parity | 28 点 | preview / export raw frame `diff 0` |
-| layer parity | 36 点 | `diff 0` |
-| matte parity | 3 点以上 | `diff 0` |
-| transition parity | 90 点 | `diff 0` |
-| transition semantics | 30 点 | `diff 0` |
-| look parity | 20 点 | `diff 0` |
-| GOP tail | 9 点 | 対象 presentation frame と一致 |
-| B frame | 160 sampled 行、summary 10 | 対象 presentation frame と一致 |
-| B frame tail | 24 行 | 末尾 frame と一致 |
-| frame lifetime | 1000 コマ | 全コマ完走、stale frame なし |
-| matte sync | 300 コマ | mismatches 0 |
-| negative | 故意の差分 1 px | 必ず FAIL |
-| `test:seek` | request 94、B frame 720 行、tail 24 行 | coverage full、finalFrameNumber 239、lookahead hits 8 |
+| base parity | 28 points | preview and export raw frame `diff 0` |
+| layer parity | 36 points | `diff 0` |
+| matte parity | 3 points or more | `diff 0` |
+| transition parity | 90 points | `diff 0` |
+| transition semantics | 30 points | `diff 0` |
+| look parity | 20 points | `diff 0` |
+| GOP tail | 9 points | Matches the target presentation frame |
+| B frame | 160 sampled rows, summary 10 | Matches the target presentation frame |
+| B frame tail | 24 rows | Matches the final frame |
+| frame lifetime | 1000 frames | Every frame completes, no stale frame |
+| matte sync | 300 frames | mismatches 0 |
+| negative | a deliberate 1 px difference | Must FAIL |
+| `test:seek` | 94 requests, 720 B-frame rows, 24 tail rows | coverage full, finalFrameNumber 239, lookahead hits 8 |
 
-### 4.2 許容差
+### 4.2 Tolerance
 
-| 境界 | 許容差 | 合否 |
+| Boundary | Tolerance | Pass or fail |
 |---|---|---|
-| frame-engine golden | raw frame `diff 0` | 1 px でも不合格 |
-| OSR ソフト描画 | 同じ入力の 2 走で全コマ raw BGRA SHA-256 一致 | 不一致 1 コマでも不合格 |
-| OSR GPU・同一マシン | 2 走の一致率、`differingPixels`、`maxDelta` を記録 | byte-exact は診断値であり合否条件にしない |
-| OSR GPU・別マシン | #14 Windows 実機を含む platform 差を記録 | 共通 byte-exact は要求しない |
-| GPU 直結・engine 区間 | OSR decode 比較の per-frame MAD ≤ 1.0 | 超過は不合格 |
-| GPU 直結・字幕 | cue 代表 5 時刻の下半分 MAD ≤ 1.0 | 超過は不合格 |
-| GPU 直結・3D | 3D active 区間 MAD ≤ 1.0 | 超過は不合格 |
-| GPU 直結・DOM 層 | overlay 外接矩形内 MAD ≤ 1.0、t=0 を含む代表 5 時刻 | いずれかの超過または sentinel 不一致は不合格 |
+| frame-engine golden | raw frame `diff 0` | Even 1 px fails |
+| OSR soft draw | All-frame raw BGRA SHA-256 matches across 2 runs of the same input | Even 1 disagreeing frame fails |
+| OSR GPU, same machine | Record the 2-run match rate, `differingPixels`, and `maxDelta` | byte-exact is a diagnostic, not pass or fail |
+| OSR GPU, another machine | Record the platform difference, including the #14 Windows machine | A shared byte-exact is not required |
+| GPU direct, engine span | per-frame MAD against the OSR decode comparison is at most 1.0 | Over the cap fails |
+| GPU direct, captions | Lower-half MAD at 5 representative cue times is at most 1.0 | Over the cap fails |
+| GPU direct, 3D | MAD on the 3D-active span is at most 1.0 | Over the cap fails |
+| GPU direct, DOM layer | MAD inside the overlay bounding box is at most 1.0, at 5 representative times including t=0 | Any excess, or a sentinel mismatch, fails |
 
-OSR の比較は H.264 を再 decode した画像ではなく捕捉時の raw BGRA を使う。ソフト描画の検収と GPU の
-診断値を混同しない。
+OSR comparison uses the raw BGRA captured at the time, not an image redecoded from H.264. Do not confuse soft-draw acceptance with GPU diagnostic values.
 
-### 4.3 互換経路の残置と退役スケジュール
+### 4.3 What stays of the compatibility path, and the retirement schedule
 
-Web UI と shell に残る `<video>` ベースのプレビュー、および render-cut の ffmpeg filtergraph による
-> **2026-09-01 退役:** 以下の互換期間の記述は履歴記録であり、現在の書き出し出口は GPU / OSR のみ。
+The `<video>`-based preview that remains in the Web UI and the shell, and render-cut's legacy composite path through the ffmpeg filtergraph,
 
-legacy 合成経路は、移行中の既存利用者と Windows を支えるための**互換期間の残置**だった。どちらも
-エンジン意味論や完成画の仕様の正本ではない。
+> **Retired 2026-09-01.** The compatibility-period text below is a historical record. The current export exits are GPU and OSR only.
 
-- `<video>` ベースの二つの互換プレビューは、各器で frame-engine が既定になった後 **2 リリース**保持する。
-- 当時は legacy 書き出しを明示的な互換選択で残す計画だった。現在は廃止済み。
-- legacy 削除（#100b）は、#14 の Windows 実機で OSR が PASS するか、Windows でも OSR を既定にする
-  オーナー裁定がある場合にだけ開始する。
-- 退役前も新しい意味論を互換経路へ追加しない。差は清算表へ記録し、v2 の合否は §4.1 と §4.2 で決める。
+were a **compatibility-period leftover** to support existing users during the migration, and to support Windows. Neither is canonical for engine semantics or for the finished-picture spec.
 
-## 5. 器の規約（エンジン意味論の外）
+- The two `<video>`-based compatibility previews are kept for **2 releases** after frame-engine becomes the default in each container.
+- At the time, the plan was to keep legacy export as an explicit compatibility choice. It is abolished now.
+- Legacy deletion (#100b) starts only when OSR PASSes on the #14 Windows machine, or when an owner ruling makes OSR the default on Windows too.
+- Even before retirement, do not add new semantics to the compatibility path. Record the difference on the ledger. v2 pass or fail is decided by §4.1 and §4.2.
 
-### 5.1 字幕 DOM の既定
+## 5. Container rules (outside engine semantics)
 
-字幕の見た目と行分割の正本は、器と overlay sheet が共有する §2.8 の字幕 DOM 規約である。
+### 5.1 Caption DOM defaults
 
-- 縁取りは shadow ではなく実ストロークとし、既定を
-  `-webkit-text-stroke: 0.14em rgba(0,0,0,.9)` と `paint-order: stroke fill` にする。
-  `text_style.stroke.width_px` は**外側に見える太さ**を表すため、CSS の実ストローク幅には指定値の
-  2 倍を渡す。
-- 座布団（plate）の既定は無しとし、`--plate-bg: transparent` を使う。背景は明示指定された場合だけ
-  opt-in で描く。
-- `output.height > output.width` を縦長、それ以外を横長として次の既定を選ぶ。
+The look of captions and the line breaks are owned by the §2.8 caption DOM rule, shared by the containers and the overlay sheet.
 
-| 項目 | 横長 | 縦長 |
+- The edge is a real stroke, not a shadow. The default is `-webkit-text-stroke: 0.14em rgba(0,0,0,.9)` and `paint-order: stroke fill`. `text_style.stroke.width_px` is the **thickness that looks outside**, so the CSS stroke width is twice the specified value.
+- The plate default is none, using `--plate-bg: transparent`. A background is drawn opt-in, only when it is specified.
+- Treat `output.height > output.width` as portrait, and everything else as landscape, and pick the following defaults.
+
+| Item | Landscape | Portrait |
 |---|---:|---:|
-| フォントサイズ | 38 px | `round(output.width × 0.06)` px |
-| 1 行の文字数予算 | 20 | 10 |
-| 無指定で複数行になる字幕 | 全行を静的表示 | `words[]` があれば reveal へ自動昇格し、無ければ静的表示 |
+| Font size | 38 px | `round(output.width * 0.06)` px |
+| Character budget per line | 20 | 10 |
+| A caption that becomes multiple lines with no specification | Show every line statically | If `words[]` exists, auto-promote to reveal. Otherwise show statically |
 
-- 行分割は **明示改行 → 「。」の直後（行末を除く）**で区切る。各区間が文字数予算を超える場合だけ、
-  **「、」の直後（予算内で最も後ろ）→ 空白 → 文節境界 → 文字上限**の順に折り返し候補を選ぶ。
-  予算内なら「、」を含んでも 1 行のままとし、word の途中の分割点は最寄りの word 境界へスナップする。
-  2026-10-02 改訂: オーナー指示により、「、」で短い字幕が 2 行になるのをやめる。
-- style、サイズ、行数、表示方式などの明示指定は、常に上記の既定より優先する。
+- Line breaks split on **an explicit newline, then immediately after `。` (except at the end of a line)**. Only when a span exceeds the character budget, pick a wrap candidate in this order. **Immediately after `、` (the rightmost one that stays inside the budget), then a space, then a phrase boundary, then the character cap.** If it fits the budget, keep it on one line even when it contains `、`. A split point in the middle of a word snaps to the nearest word boundary. Revised 2026-10-02. By owner instruction, stop letting `、` turn a short caption into two lines.
+- An explicit specification of style, size, line count, display mode, and similar always wins over the defaults above.
 
-### 5.2 overlays の解決
+### 5.2 Resolving overlays
 
-`overlays[].html` は、値が `<` で始まればインライン HTML、それ以外は
-`edit.json` のあるディレクトリからの相対ファイルパスとして解決する。`vars` は `--` で始まるキーだけを
-CSS カスタムプロパティとして overlay root へ適用し、それ以外のキーは DOM や JavaScript へ注入しない。
+If `overlays[].html` starts with `<`, it is inline HTML. Otherwise it resolves as a file path relative to the directory that holds `edit.json`. `vars` applies only keys that start with `--` as CSS custom properties on the overlay root. Other keys are not injected into the DOM or into JavaScript.
 
-断片 CSS の `vw` / `vh` / `vmin` / `vmax`（`dvw` 等の接頭辞付き・`vi` / `vb` 含む）は**出力サイズ基準**で
-解決する（`1vw` = `output.width / 100` px）。書き出しは出力サイズちょうどの viewport で overlay sheet を
-描くので素のままで正しいが、器のプレビューはステージを `scale()` でペインへ収めるため素の `vw` は
-ウィンドウ幅基準になってしまう。器は mount 時に `packages/overlay-runtime/src/viewport-units.js` で
-`<style>` / `style=""` の `<数値><単位>` を `calc(<数値> * var(--akari-vw, 1vw))` へ書き換え、ステージ要素に
-`--akari-vw` 等（出力サイズ / 100 px）を定義して一致させる（2026-08-31。shell / Web 共通。`@media` 等の
-プレリュード・文字列・`url()` は書き換えない）。
+`vw`, `vh`, `vmin`, and `vmax` in fragment CSS (including prefixed forms such as `dvw`, and including `vi` and `vb`) resolve **against the output size** (`1vw` = `output.width / 100` px). Export draws the overlay sheet in a viewport that is exactly the output size, so the raw unit is already correct. A container preview fits the stage into the pane with `scale()`, so a raw `vw` would resolve against the window width. On mount, the container rewrites `<number><unit>` inside `<style>` and `style=""` through `packages/overlay-runtime/src/viewport-units.js` into `calc(<number> * var(--akari-vw, 1vw))`, and defines `--akari-vw` and the rest (output size / 100 px) on the stage element so they agree (2026-08-31. Shared by shell and Web. A prelude such as `@media`, a string, and `url()` are not rewritten).
 
-### 5.3 書き込み経路
+### 5.3 Write path
 
-UI、API、RPC の別を問わず、`edit.json` / `captions.json` へのすべての書き込みは edit-lint ゲートを通す。
-lint 実行系が見つからない場合は **fail-open**（2026-08-02 オーナー裁定）とし、警告を表示・記録したうえで
-保存を続行する。書き込みは tmp ファイルへの出力と rename による atomic 更新とする。実装は
-`packages/edit-store` に一本化し、器や入口ごとの独自書き込み実装を追加してはならない。
+Every write to `edit.json` or `captions.json`, whether it comes from the UI, an API, or RPC, passes the edit-lint gate. If the lint runner cannot be found, **fail-open** (owner ruling 2026-08-02). Show and record a warning, then continue the save. A write is an atomic update by writing a tmp file and renaming. The implementation is unified in `packages/edit-store`. Do not add a container-specific or entry-specific write implementation.
 
-本編 cut の `crop` 書き戻し（選択枠の辺バー）は **edit.json version 2 の文書だけ**が対象で、legacy の
-`cuts[]` schema には席が無いため読み込み層が拒否する。`output.geometry` を宣言していない文書では、crop の
-無い cut は出力キャンバスへ contain fit されて描かれるので、**初回の crop と同一 patch で `transform.scale`
-へ fit 係数を焼き込む**（ソース実寸基準の layer-style へ移っても画面上の位置・大きさが変わらないため）。
+Writing back `crop` on a main cut (the edge bars of the selection frame) applies **only to an edit.json version 2 document**. The legacy `cuts[]` schema has no seat for it, so the load layer refuses it. On a document that does not declare `output.geometry`, a cut with no crop is drawn contain-fitted to the output canvas, so **the first crop and the same patch bake the fit factor into `transform.scale`** (so that moving to source-size layer-style does not change the on-screen position or size).
 
-### 5.4 ペン
+### 5.4 Pen
 
-ペン描画の単一正本は `packages/pen-visuals` の `PEN_TUNING` と描画プリミティブである。器や overlay
-sheet が独自の補間、太さ、透明度、消去規則を持ってはならない。フェード時間は **600ms** を正とする
-（2026-08-02 オーナー裁定）。
+The single canonical source for pen drawing is `PEN_TUNING` and the draw primitives in `packages/pen-visuals`. A container or an overlay sheet must not own its own interpolation, thickness, opacity, or erase rule. The fade time is **600 ms** (owner ruling 2026-08-02).
 
-### 5.5 プレビュー用プロキシの規格
+### 5.5 Preview proxy spec
 
-frame-engine がランダムアクセスするプレビュー用プロキシは、H.264 High Profile の 8bit
-`yuv420p`、GOP 1 秒以下、B フレームなし、faststart とする。GOP はソースの実測 fps を丸めた
-フレーム数を使い、`-g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0` を指定する。変換後も尺と
-コマ数はソースと一致させる。
-29.97 fps の GOP は 30 コマで 1.001 秒になるため、doctor / lint などで機械照合するときの閾値は 1.05 秒に置く。
+A preview proxy that frame-engine random-accesses is H.264 High Profile, 8-bit `yuv420p`, GOP of 1 second or less, no B frames, and faststart. The GOP uses the source's measured fps rounded to a frame count, and specifies `-g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0`. After conversion, duration and frame count still match the source. A 29.97 fps GOP is 30 frames, which is 1.001 seconds, so the threshold for a machine check in doctor or lint is 1.05 seconds.
 
-生成経路は shell の HEVC フォールバックと preview-server の HEVC プロキシの 2 系統であり、
-いずれも `packages/media-bin/src/proxy-recipe.mjs` を唯一の定義として使う。レシピ版
-`gop1s-v1` は shell のキャッシュキーと preview-server の出力名へ含め、旧規格のキャッシュを
-次回参照時に再利用しない。
+There are two generation paths, the shell's HEVC fallback and preview-server's HEVC proxy. Both use `packages/media-bin/src/proxy-recipe.mjs` as the only definition. Recipe version `gop1s-v1` is included in the shell's cache key and in preview-server's output name, so an old-spec cache is not reused on the next lookup.
 
-### 5.6 読み込み予算と原本 / proxy の選択規則
+### 5.6 Load budget, and the original versus proxy selection rule
 
-frame-engine のソース読み込み予算は、`Content-Length` が得られる場合
-`max(10 秒, bytes / 8 MiB毎秒)` とする。予算を超えても受信進捗が続く間は打ち切らず、進捗が
-5 秒間止まった場合に失敗とする。同一 URL の fetch はセッションにつき 1 回に限り、再試行では
-取得済みバイトと解析済み moov / キーフレーム索引を再利用する。
+frame-engine's source load budget, when `Content-Length` is available, is `max(10 seconds, bytes / 8 MiB per second)`. While receive progress continues past the budget, do not abort. Fail when progress stops for 5 seconds. A fetch of the same URL is once per session. A retry reuses the bytes already fetched and the parsed moov and keyframe index.
 
-v2 プレビューの既定選択は次の順序とする。
+The default v2 preview selection is this order.
 
-1. 宣言済み proxy があれば proxy を使う（`declared`）
-2. proxy が無ければ codec をプローブし、`hw || any` で扱える場合は原本を使う
-   （`hardware-ok` / `decoder-ok`）
-3. 扱えない場合は preview-server に自動プロキシを要求し、生成中は非致命の通知を表示する
-   （`auto-proxy`）
+1. If a declared proxy exists, use the proxy (`declared`).
+2. If there is no proxy, probe the codec. If `hw || any` can handle it, use the original (`hardware-ok` / `decoder-ok`).
+3. If it cannot be handled, ask preview-server for an automatic proxy, and show a non-fatal notice while it generates (`auto-proxy`).
 
-Web UI の `?frameEngineSource=original`、または shell の
-`AKARI_FRAME_ENGINE_SOURCE=original` では 1 を飛ばして器の実力判定へ進む。`=proxy` では従来どおり
-proxy を無条件に優先する。
-`AKARI_FRAME_ENGINE_FORCE_SW=1` はハードウェアデコード不可を模擬するテスト用スイッチである。
-HEVC は `prefer-software` が通らないため、codec プローブが `sw=false` を返した系列について
-ClipSessionPool はソフトウェア退避を学習しない。ソフトウェア退避の学習対象は H.264 のみとする。
+The Web UI's `?frameEngineSource=original`, or the shell's `AKARI_FRAME_ENGINE_SOURCE=original`, skips step 1 and goes to the container's capability judgment. `=proxy` prefers the proxy unconditionally, as before. `AKARI_FRAME_ENGINE_FORCE_SW=1` is a test switch that simulates hardware decode being unavailable. HEVC does not pass `prefer-software`, so ClipSessionPool does not learn a software fallback for a series whose codec probe returned `sw=false`. The software-fallback learner covers H.264 only.
 
-tkhd に 90 / 180 / 270 度の回転を持つ素材は、既定でデコーダ出力を毎フレームの
-OffscreenCanvas へ焼き直さない。frame-engine は回転メタをフレームへ付帯し、compositor の
-UV 逆写像で表示回転を 1 回だけ適用する。crop、framing、keyframe、既存 transform / perspective は
-回転後の論理空間を基準とし、90 / 270 度では coded width / height を入れ替えた論理寸法を使う。
-この規則は VideoFrame の直接 upload と copyTo の両経路に共通である。
+Footage whose tkhd has a 90, 180, or 270 degree rotation does not, by default, rebake the decoder output onto an OffscreenCanvas every frame. frame-engine attaches the rotation metadata to the frame, and the compositor's UV inverse map applies the display rotation once. crop, framing, keyframe, and the existing transform and perspective use the logical space after rotation. At 90 and 270 degrees, the logical size swaps coded width and height. This rule is shared by the VideoFrame direct upload path and the copyTo path.
 
-デコーダエラーは window 全域イベントで飛ぶため、他クリップの失敗と区別できない。frame-engine は
-検出後 `decoderErrorGraceMs`（既定 1 秒）だけ自分の操作の成功を待ち、期限内に成功した場合はその
-エラーを無視する。prime がフレームを返さず、かつエラーを観測した場合だけ、その試行を失敗とする。
+A decoder error is thrown as a window-wide event, so it cannot be told apart from another clip's failure. After detection, frame-engine waits `decoderErrorGraceMs` (default 1 second) for its own operation to succeed, and ignores that error if success arrives in time. The attempt fails only when prime returns no frame and an error was observed.
 
-### 5.7 映像ソースの読み方とパリティ
+### 5.7 How a video source is read, and parity
 
-frame-engine が MP4 を全体ストリームとして読むか、`ftyp` / `moov` の索引と必要な圧縮サンプルの
-Range として読むかは、完成画の意味論に影響しない。どちらの読み込み経路も同じ presentation 時刻の
-VideoFrame を §4.1 の評価点へ供給し、`elst.media_time`、B フレームの並べ替え、メディア終端を含めて
-golden の `diff 0` を満たさなければならない。ソース取得方法の変更をパリティ差の許容理由にしてはならない。
+Whether frame-engine reads an MP4 as a whole stream, or as an `ftyp` and `moov` index plus the compressed samples it needs by Range, does not affect finished-picture semantics. Both read paths must supply a VideoFrame at the same presentation time to the evaluation points of §4.1, and must meet golden `diff 0`, including `elst.media_time`, B-frame reorder, and the end of the media. A change in how the source is fetched is not an allowed reason for a parity difference.
 
-### 5.8 プレビュー内部解像度（render scale）
+### 5.8 Preview internal resolution (render scale)
 
-shell の frame-engine 合成面は、辺あたり倍率 `s ∈ {1, 0.5, 0.25}` を使える。
-設定 `akari.preview.renderScale` の語彙は `'auto' | '1' | '0.5' | '0.25'`、既定は `'auto'`。
-環境変数 `AKARI_FRAME_ENGINE_RENDER_SCALE` は設定より優先し、不正値は `auto` とする。
-設定項目のみとし、専用ボタンやポップアップは設けない。
+The shell's frame-engine composite surface may use a per-side scale `s` in `{1, 0.5, 0.25}`. The vocabulary of setting `akari.preview.renderScale` is `'auto' | '1' | '0.5' | '0.25'`. The default is `'auto'`. The environment variable `AKARI_FRAME_ENGINE_RENDER_SCALE` beats the setting. An illegal value is `auto`. It is a setting only. There is no dedicated button or popup.
 
-`auto` は canvas の `getBoundingClientRect()` に `devicePixelRatio` を掛けた表示寸法に対し、
-`output.width × s ≥ 表示幅` かつ `output.height × s ≥ 表示高` を満たす最小の倍率を選ぶ。
-上限は `1`、表示寸法が 0 の場合も `1` とする。canvas の `ResizeObserver` と
-`matchMedia('(resolution: <dpr>dppx)')` の change で再評価し、100 ms デバウンスする。
-内部寸法は各辺を `roundEven(output寸法 × s)`（最寄りの偶数へ丸め、中間は上へ）とし、下限は 2 px。
+`auto` picks the smallest scale that satisfies `output.width * s` at least the display width and `output.height * s` at least the display height, against the display size of the canvas `getBoundingClientRect()` times `devicePixelRatio`. The cap is `1`. A display size of 0 is also `1`. Re-evaluate on the canvas `ResizeObserver` and on a change of `matchMedia('(resolution: <dpr>dppx)')`, debounced by 100 ms. The internal size is `roundEven(output size * s)` on each side (round to the nearest even, and round a tie up), with a floor of 2 px.
 
-`auto` では再生停止・スクラブ終了から 250 ms 後に `s = 1` で 1 コマ描き直し、
-再生・スクラブの再開で表示寸法に応じた倍率へ戻す。手動倍率は停止中も固定し、停止による追加描画はしない。
-倍率変更は scheduler・評価 plan・compose が共有する `renderOutput` の width / height を in-place で更新する。
-scheduler を作り直して warmup を捨てず、停止中の寸法更新は 1 コマの再描画へ反映する。
-developerMode の計測パネルに倍率・内部寸法・等倍寸法・モードを 1 行表示する。
+Under `auto`, 250 ms after playback stops or a scrub ends, redraw one frame at `s = 1`, and return to the scale that matches the display size when playback or scrub resumes. A manual scale stays fixed while stopped, and stopping does not draw an extra frame. A scale change updates the width and height of the shared `renderOutput` in place, the one the scheduler, the evaluation plan, and compose share. Do not rebuild the scheduler and throw away warmup. A size update while stopped is reflected as a one-frame redraw. The developerMode measurement panel shows scale, internal size, 1x size, and mode on one line.
 
-エンジンのレイヤー / layer-style cut の幾何は出力 px 基準（box = crop × 素材 px × scale、
-出力中心 + (x, y)）なので、shell は評価 plan の px 基準の transform（x / y、および px 基準の scale）を
-`s` で射影してから合成する。fit 基準の通常 cut の scale と正規化座標は不変とし、入力 plan を変更せず、
-`plan.output` は共有参照を保つ。エンジン・ゴールデン検収・書き出しは不変。
+Layer and layer-style cut geometry in the engine is in output px (box = crop times footage px times scale, output center plus (x, y)), so the shell projects the evaluation plan's px-basis transform (x / y, and a px-basis scale) by `s` before composing. The scale of an ordinary fit-basis cut, and normalized coordinates, stay unchanged. The input plan is not modified. `plan.output` keeps the shared reference. The engine, golden acceptance, and export are unchanged.
 
-一致条件は**構図一致 = 位置・大きさ・時刻・ツマミ値の一致**であり、内部画素数は異なってよい。
-[vgpu レイヤー契約 §4](./contract-2026-09-06-vgpu-layer-v0.md#4-api解像度ツマミ) の例外を
-shell の合成面全体へ拡張する。等倍の完成画を縮小した画像と縮小倍率で描いた画像を比較し、
-`packages/frame-engine/src/metrics/frame-diff.ts` の MAD で **≤ 2.0 / 255** を要求する。
-粒状ノイズ FX と dissolve 区間はこの比較から除外する。DOM 層（字幕 / overlay / 3D / ペン）、
-`summary.output`、`frameScale`、当たり判定、インスペクター、書き込み経路の規約は不変。
+The agreement condition is **composition agreement, meaning position, size, time, and knob values agree**. The internal pixel count may differ. Extend the exception in [vgpu layer contract §4](./contract-2026-09-06-vgpu-layer-v0.md) to the whole shell composite surface. Compare an image that was drawn at 1x and then scaled down with an image drawn at the reduced scale, and require MAD **at most 2.0 / 255** from `packages/frame-engine/src/metrics/frame-diff.ts`. Grain-noise FX and the dissolve span are excluded from this comparison. The DOM layer (captions, overlay, 3D, pen), `summary.output`, `frameScale`, hit testing, the inspector, and the write-path rules are unchanged.
 
-**書き出しとゴールデン検収は常に等倍で、本設定の対象外**。GPU / OSR の page-runtime、
-書き出し receipt、§4.1・§4.2 のゴールデンと許容差、`packages/frame-engine` とその生成バンドルは変更しない。
-Web UI の合成面、デコード解像度、vgpu 固有の `previewScale`、3D の `PREVIEW_3D_MAX_RENDER_SIZE` も対象外とする。
+**Export and golden acceptance are always 1x, and they are outside this setting.** Do not change the GPU or OSR page-runtime, the export receipt, the golden and the tolerance of §4.1 and §4.2, or `packages/frame-engine` and its generated bundle. The Web UI composite surface, decode resolution, the vgpu-specific `previewScale`, and 3D `PREVIEW_3D_MAX_RENDER_SIZE` are also out of scope.

@@ -1,177 +1,102 @@
+**English** | [Japanese](./contract-2026-08-12-still-image-cut-source-v0.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-08-12
 updated: 2026-08-12
 ---
 
-# 静止画 cut ソース契約 v0
+# Still-image cut source contract v0
 
-> **読み替え注記**: 表題の `-v0` は本契約文書自身のリビジョンであり、edit.json の
-> スキーマ版（`version`）とは別物。本契約が対象とするのは edit v0 の `source.path` と
-> edit v1 の `sources[].path` の両方（語彙の区別は
-> [contract-2026-07-17-data-contract-versioning.md](./contract-2026-07-17-data-contract-versioning.md) §5）。
+> **How to read the title.** The `-v0` in the title is the revision of this contract document. It is not the edit.json schema `version`. This contract covers both `source.path` on edit v0 and `sources[].path` on edit v1. The vocabulary split is [contract-2026-07-17-data-contract-versioning.md](./contract-2026-07-17-data-contract-versioning.md) §5.
 
-- 日付: 2026-08-12
-- 状態: **ドラフト**（v0 実装と同時に確定させる。実装で判明した齟齬は追記で解消）
-- 前提:
-  - `contract-2026-07-22-render-basics.md`（cuts[] の speed/freeze/framing/transition_out の残裁定。
-    本契約はそのうち speed/freeze の適用範囲を静止画ソースへ拡張する）
-  - `contract-2026-08-10-image-layer-parity.md` 相当の司令塔裁定（`layers[].src` の拡張子判定。
-    本契約はそれを `cuts[]`（メイン時間軸）へ輸入する）
-  - `contract-2026-08-02-preview-parity.md`（render/Web UI/shell 3 面パリティの原則。本契約が
-    更新する適合状況表は同ファイル §3）
-  - `contract-2026-07-17-data-contract-versioning.md`（version 整数・追加のみ・寛容リーダーの三原則）
-- スコープ: `edit.json` の `cuts[]` がメイン時間軸で静止画ソース（png/jpg/jpeg/webp/bmp/gif）を
-  直接読めるようにする。**新しいスキーマフィールドは作らない**（判定は拡張子のみ）
-- 2026-08-31 追記（issue #30）: frame-engine 経路（`--engine gpu` / `osr`、および v2 プレビュー）でも同じ
-  意味論で描く。runtime が拡張子で `CachedStillImageSource` として登録した素材を、`plan.ts` が
-  `kind: 'image'` の base 層（`sourceTimeUs` は常に 0・尺は `out - in`・transform / crop / keyframes は
-  動画 cut と同じ・トランジションの outgoing / incoming にもなれる）として評価し、compositor は
-  layers と同じ texture cache を base の RGBA 経路へ結ぶ。それまでは `layerFromPlacement` が
-  `decode` 持ちしか受けず `no video frame source registered` で落ちていた（legacy との受理差）
+- Date: 2026-08-12
+- Status: **draft** (fix it at the same time as the v0 implementation. A mismatch found in implementation is resolved by appending).
+- Depends on:
+  - `contract-2026-07-22-render-basics.md` (the remaining rulings for speed, freeze, framing, and transition_out on cuts[]. This contract extends the reach of speed and freeze to a still-image source).
+  - The control-tower ruling equivalent to `contract-2026-08-10-image-layer-parity.md` (extension detection on `layers[].src`. This contract imports that onto `cuts[]`, the main timeline).
+  - `contract-2026-08-02-preview-parity.md` (the principle of parity across render, Web UI, and shell. The conformance table this contract updates is §3 of that file).
+  - `contract-2026-07-17-data-contract-versioning.md` (the three principles: integer version, append only, lenient reader).
+- Scope: `cuts[]` in `edit.json` can read a still-image source (png, jpg, jpeg, webp, bmp, gif) directly on the main timeline. **Do not add a new schema field.** Detection is the extension only.
+- Added 2026-08-31 (issue #30). The frame-engine path (`--engine gpu` or `osr`, and the v2 preview) draws with the same semantics. When the runtime registers footage as `CachedStillImageSource` by extension, `plan.ts` evaluates it as a base layer with `kind: 'image'` (`sourceTimeUs` is always 0, the duration is `out - in`, transform, crop, and keyframes match a video cut, and it can be the outgoing or incoming side of a transition). The compositor ties the same texture cache used by layers into the base RGBA path. Before that, `layerFromPlacement` accepted only a source that has `decode`, and it failed with `no video frame source registered` (an acceptance gap against legacy).
 
-## 0. 背景
+## 0. Background
 
-これまで `cuts[]` は「時間軸を持つ動画」だけを前提にしていた。画像をタイムラインに置きたい場合、
-利用者は画像群を先に 1 本の動画へ連結してから `edit.json` に載せる遠回りを強いられていた
-（実機報告 2026-08-12）。旧参照実装 `akari-video-on-os` には 2026-05-09 から静止画クリップの経路
-（`isStatic` フラグ + `-loop 1 -t 尺` + `anullsrc` 無音合成）が実運用されており、新実装への
-「輸入漏れ」だった。`layers[]`（PinP・B-roll レイヤー）は 2026-08-10 の image-layer-parity で
-既に拡張子判定の静止画対応が入っている。本契約はその判定方式をメイン時間軸の `cuts[]` へ
-輸入する。
+Until now `cuts[]` assumed only "a video that has a timeline". To put an image on the timeline, the user had to join the images into one video first and then place that video in `edit.json` (reported on a real machine, 2026-08-12). The old reference implementation `akari-video-on-os` has run a still-image clip path in production since 2026-05-09 (`isStatic` flag, `-loop 1 -t <duration>`, and silent mix with `anullsrc`). The new implementation had missed that import. `layers[]` (PinP and B-roll layers) already gained extension-based still-image support in image-layer-parity on 2026-08-10. This contract imports that detection onto `cuts[]` on the main timeline.
 
-## 1. 判定規則（司令塔裁定）
+## 1. Detection rule (control-tower ruling)
 
-- **判定は拡張子のみ**: v1 `sources[].path` / v0 `source.path` が
-  `/\.(png|jpe?g|webp|bmp|gif)$/i` に一致したら静止画ソースとして扱う。
-- スキーマに `isStatic` 等の新フィールドは**足さない**。`edit.schema.json` の `cutV0`/`cutV1`/
-  `sourceV0`/`sourceV1` の形は不変（`$comment` の追記のみ）
-- この正規表現は `packages/render-cut/src/layers.mjs` の `IMAGE_LAYER_SOURCE_PATTERN`
-  （画像レイヤーの先行裁定）と同一集合。判定ロジックの実体は 3 箇所で個別に持つ
-  （パッケージをまたいだ import はしない方針 — 各パッケージが単体でビルド/型チェック完結する
-  構成を崩さないため。`packages/render-cut/src/plan.mjs`/`render-cut.mjs` だけは同一パッケージ内
-  なので `layers.mjs` の `isImageLayerSource` をそのまま import する）:
-  - `packages/render-cut/src/layers.mjs`（`isImageLayerSource`。既存・本契約は変更しない）
-  - `packages/edit-lint/src/edit-lint.mjs`（`IMAGE_CUT_SOURCE_PATTERN`）
-  - `packages/preview-engine/src/clipSession.ts`（`STILL_IMAGE_SOURCE_PATTERN`）
-  - `packages/preview-server/src/edit-to-timeline.mjs` / `public/app.js`（後者は既存の
-    `IMAGE_LAYER_SRC_PATTERN`/`isImageLayerSrc` を cuts 判定にも再利用する）
+- **Detection is the extension only.** If v1 `sources[].path` or v0 `source.path` matches `/\.(png|jpe?g|webp|bmp|gif)$/i`, treat it as a still-image source.
+- **Do not add** a new schema field such as `isStatic`. The shapes of `cutV0`, `cutV1`, `sourceV0`, and `sourceV1` in `edit.schema.json` stay unchanged. Only a `$comment` is appended.
+- This regular expression is the same set as `IMAGE_LAYER_SOURCE_PATTERN` in `packages/render-cut/src/layers.mjs` (the earlier image-layer ruling). The detection logic itself lives in three places, separately. Do not import across packages. Each package must still build and typecheck alone. `packages/render-cut/src/plan.mjs` and `render-cut.mjs` are inside the same package, so they import `isImageLayerSource` from `layers.mjs` as it is.
+  - `packages/render-cut/src/layers.mjs` (`isImageLayerSource`. Existing. This contract does not change it).
+  - `packages/edit-lint/src/edit-lint.mjs` (`IMAGE_CUT_SOURCE_PATTERN`).
+  - `packages/preview-engine/src/clipSession.ts` (`STILL_IMAGE_SOURCE_PATTERN`).
+  - `packages/preview-server/src/edit-to-timeline.mjs` and `public/app.js` (the latter reuses the existing `IMAGE_LAYER_SRC_PATTERN` and `isImageLayerSrc` for cut detection too).
 
-## 2. レンダー（render-cut）
+## 2. Render (render-cut)
 
-### 2.1 ffmpeg レシピ
+### 2.1 ffmpeg recipe
 
-静止画ソースへの入力は `-loop 1` を付けて動画化する（旧参照実装 `akari-video-on-os` が
-2026-05 から実運用したレシピと同じ発想。`source.chroma_key.background` の画像背景が既に
-同じ `-loop 1` パターンをこのリポで使っている）。`-loop 1` は image2 デマルチプレクサを
-無限長ストリームにするだけで、実際の表示区間は既存の `trim=start=<in>:end=<out>` フィルタが
-決める（cut ごとに毎回この trim を通す設計は動画ソースと共通のため、静止画専用の別経路を
-新設する必要がなかった）。フレームレートは明示指定せず、既存の `fps=<output.fps>` 正規化フィルタ
-（動画ソースに対しても既に全経路にある）にそのまま乗せる。
+A still-image input is turned into video with `-loop 1` (the same idea as the recipe the old reference implementation `akari-video-on-os` has run since 2026-05. The image background of `source.chroma_key.background` already uses the same `-loop 1` pattern in this repo). `-loop 1` only makes the image2 demuxer an infinite stream. The visible span is still decided by the existing `trim=start=<in>:end=<out>` filter. Every cut already passes through this trim, the same as a video source, so a separate still-image path was not needed. Do not set the frame rate explicitly. Ride the existing `fps=<output.fps>` normalization filter, which is already on every path for a video source too.
 
-対象 3 経路（すべて `packages/render-cut/src/plan.mjs`）:
-- `buildCutCommand`（v0 既定の逐次連結パス）
-- `buildGapAwareCutCommand`（v0 の明示 at/track 配置パス）
-- `buildMultiSourceCutCommand`（v1。ソースごとに拡張子判定するため、動画と静止画が
-  `sources[]` に混在してよい）
+Three target paths, all in `packages/render-cut/src/plan.mjs`:
 
-### 2.2 音声
+- `buildCutCommand` (the v0 default sequential-join path).
+- `buildGapAwareCutCommand` (the v0 explicit at and track placement path).
+- `buildMultiSourceCutCommand` (v1. It detects the extension per source, so video and stills may mix in `sources[]`).
 
-静止画には音声ストリームが無い。`hasAudio`/`source.hasAudio` は ffprobe が音声ストリームを
-検出しないことで自然に `false` になり、**3 経路とも既存の「無音源」分岐（`anullsrc` の無音
-stereo を合成する分岐）がそのまま発火する**。この分岐は静止画専用に新設したものではなく、
-音声トラックを持たない動画ソース（無音動画）に対して既に存在していた既定動作である。
-静止画区間の音声は無音・動画区間は元音声が残る、という裁定はこの既存分岐の副産物として
-自動的に成立する。
+### 2.2 Audio
 
-### 2.3 duration probe の例外
+A still image has no audio stream. `hasAudio` and `source.hasAudio` become `false` naturally because ffprobe finds no audio stream. **On all three paths, the existing "no audio source" branch fires as it is** (the branch that mixes silent stereo from `anullsrc`). That branch was not added for still images. It was already the default for a video source that has no audio track (a silent video). The ruling that a still span is silent and a video span keeps its original audio falls out of this existing branch.
 
-ffprobe は素の静止画ファイルに対して `format.duration` を報告しない（`-loop 1` を付けて
-probe しても同じ。実測確認済み）。`packages/render-cut/src/render-cut.mjs` の
-`measureCapabilities` は元々この欠落を「ffprobe が正の尺を返さなかった」エラーとして
-即座に reject していたため、静止画ソースを渡すと duration probe の時点で必ず落ちていた。
-静止画ソースだけ duration の positivity チェックを skip し、`sourceDuration`/
-`sourceInputs[].duration` は `null` のまま通す（§2.4 の理由により、この `null` が実際に
-参照される経路は存在しない）。
+### 2.3 Duration-probe exception
 
-### 2.4 v0「cuts 空 = source 全体」の不成立
+ffprobe does not report `format.duration` for a raw still-image file (the same when probed with `-loop 1`. Confirmed by measurement). `measureCapabilities` in `packages/render-cut/src/render-cut.mjs` used to reject that absence immediately as "ffprobe did not return a positive duration", so passing a still-image source always failed at the duration probe. Skip the duration positivity check for a still-image source only. Leave `sourceDuration` and `sourceInputs[].duration` as `null` (for the reason in §2.4, no path actually reads this `null`).
 
-v0 は歴史的に `cuts` が空配列のとき「source 全体を 1 カットとして扱う」省略記法を持つ
-（`predictedDuration` が `sourceDuration` をそのまま尺として返す）。静止画には尺という概念が
-無いため、この省略記法は成立しない。**静止画ソースで `cuts` が空の場合は edit-lint がエラーで
-止める**（§3.3）。`packages/render-cut/src/plan.mjs` の `buildPlan` にも同じ条件の防御的
-バックストップを置いてある（lint を経由しない直接呼び出し向け。`buildTrackStackPlan` の
-`transition_out` バックストップと同じ姿勢）。
+### 2.4 v0 "empty cuts means the whole source" does not hold
 
-## 3. in/out・freeze・speed の意味論（edit-lint が検証）
+v0 historically has a shorthand: when `cuts` is an empty array, treat the whole source as one cut (`predictedDuration` returns `sourceDuration` as the duration). A still image has no notion of duration, so the shorthand does not hold. **If the source is a still image and `cuts` is empty, edit-lint stops with an error** (§3.3). `buildPlan` in `packages/render-cut/src/plan.mjs` also has a defensive backstop for the same condition (for a direct call that does not go through lint. The same posture as the `transition_out` backstop in `buildTrackStackPlan`).
 
-### 3.1 in/out
+## 3. Semantics of in, out, freeze, and speed (edit-lint checks them)
 
-静止画 cut の表示尺は `out - in`。`in` は素材内の「どこから」に対応する概念が静止画には無いため
-**0 を推奨**する。0 以外を指定してもレンダーは `out - in` の尺だけを使い、`in` 自体の値は
-（trim の開始オフセットとしては使われるが、無限長ループの中のどの一点から始めても絵は同じなので）
-見た目に影響しない。0 以外は edit-lint が **警告**（`cuts.still-image-in`）を出す。
+### 3.1 in and out
 
-### 3.2 freeze / speed
+The visible duration of a still-image cut is `out - in`. A still image has no notion of "where inside the footage" `in` points, so **0 is recommended**. If a value other than 0 is set, the render still uses only the duration `out - in`. The value of `in` itself does not change the picture (it is used as the trim start offset, but every point inside an infinite loop looks the same). A value other than 0 makes edit-lint emit a **warning** (`cuts.still-image-in`).
 
-- `cuts[].freeze` は静止画には視覚的な no-op（すでに静止している画に「静止」を足しても変化が
-  無い）。尺だけが `freeze.duration_sec` ぶん伸びる。動作はする（クラッシュしない）が意図が
-  紛れやすいため edit-lint が**警告**（`cuts.still-image-freeze`）を出す。同じ尺の延長を
-  得たいなら `out` を直接伸ばす方が素直、という代替案をメッセージに含める
-- `cuts[].speed` も同様に視覚効果が無い（静止画にコマ送りの概念が無い）。表示尺を
-  `(out - in) / speed` へ再スケールするだけなので動作はするが、edit-lint が**警告**
-  （`cuts.still-image-speed`）を出す
+### 3.2 freeze and speed
 
-### 3.3 v0 空 cuts の拒否
+- `cuts[].freeze` is a visual no-op on a still image (adding "hold still" to a picture that is already still changes nothing). Only the duration grows by `freeze.duration_sec`. It runs (it does not crash), but the intent is easy to mix up, so edit-lint emits a **warning** (`cuts.still-image-freeze`). The message includes the alternative: to get the same longer duration, extend `out` directly.
+- `cuts[].speed` likewise has no visual effect (a still image has no frame-step). It only rescales the visible duration to `(out - in) / speed`. It runs, and edit-lint emits a **warning** (`cuts.still-image-speed`).
 
-`source.path` が静止画で `cuts` が空のとき、edit-lint は**エラー**
-（`cuts.still-image-cuts-required`）で止める（§2.4）。
+### 3.3 Reject empty cuts on v0
 
-### 3.4 duration probe skip
+When `source.path` is a still image and `cuts` is empty, edit-lint stops with an **error** (`cuts.still-image-cuts-required`) (§2.4).
 
-`source.path`（v0）が静止画のとき、edit-lint は `probeDuration` の呼び出し自体を skip する
-（§2.3 と同じ理由 — ffprobe が duration を返さないため。skip しないと edit-lint 自体が
-`ExecutionError` で落ちて PASS/FAIL の verdict を返せなくなる）。`skipped[]` に理由を記録する。
+### 3.4 Skip the duration probe
 
-## 4. スキーマ
+When `source.path` (v0) is a still image, edit-lint skips the `probeDuration` call itself (the same reason as §2.3. ffprobe does not return a duration. Without the skip, edit-lint itself dies with `ExecutionError` and cannot return a PASS or FAIL verdict). Record the reason in `skipped[]`.
 
-`edit.schema.json` の `sourceV0`/`sourceV1` に `$comment` を追記した（判定規則と cuts 側の
-意味論への参照）。`cutV0`/`cutV1` 自体の構造は変更なし。`packages/schemas/examples/
-edit-cuts-still-image-source-valid/` に mp4 + png 混在の v1 valid 例を追加した。
+## 4. Schema
 
-## 5. プレビュー（Web UI）
+A `$comment` was appended to `sourceV0` and `sourceV1` in `edit.schema.json` (a pointer to the detection rule and to the cut-side semantics). The structure of `cutV0` and `cutV1` is unchanged. A v1 valid example that mixes mp4 and png was added at `packages/schemas/examples/edit-cuts-still-image-source-valid/`.
 
-### 5.1 preview-engine（2026-08-28 改訂）
+## 5. Preview (Web UI)
 
-`packages/preview-engine` は 2026-08-28 に削除済み。後継のプレビュー合成基盤は
-`packages/frame-engine` とし、静止画 cut の現行プレビュー実装は §5.2 を正とする。
+### 5.1 preview-engine (revised 2026-08-28)
 
-### 5.2 preview-server（Web UI 本体）
+`packages/preview-engine` was deleted on 2026-08-28. The successor preview composite base is `packages/frame-engine`. The current preview implementation of a still-image cut takes §5.2 as canonical.
 
-`packages/preview-server/public/index.html` に `<video id="preview-video">` と同じ位置・
-サイズで重なる `<img id="preview-image">` を追加した（既定 `display: none`）。
-`app.js` は現在のセグメントが静止画のとき `<video>` を `pause()` して隠し、`<img>` の `src` を
-セグメントの画像へ合わせて表示する（`showStillImageForSegment`/`showVideoBase`）。`<video>`
-要素自体は作り直さない — `MediaElementAudioSourceNode` は生成元の要素に紐付くため、要素を
-差し替えると音声グラフが壊れる。`playedCutLocalSeconds`（`framing`/`freeze` の判定に使う
-カット内経過秒）は静止画区間では `video.currentTime` の代わりにマスタークロック
-`outputTime` から直接算出する（画像はシークしないため `video.currentTime` が更新されない）。
+### 5.2 preview-server (the Web UI itself)
 
-### 5.3 apps/shell（スコープ外）
+An `<img id="preview-image">` was added to `packages/preview-server/public/index.html`. It overlaps `<video id="preview-video">` at the same position and size (default `display: none`). When the current segment is a still image, `app.js` calls `pause()` on `<video>`, hides it, and shows `<img>` with `src` set to that segment's image (`showStillImageForSegment` and `showVideoBase`). Do not rebuild the `<video>` element. `MediaElementAudioSourceNode` is tied to the element that created it, so replacing the element breaks the audio graph. `playedCutLocalSeconds` (the elapsed seconds inside the cut, used to judge `framing` and `freeze`) is computed directly from the master clock `outputTime` during a still span, instead of from `video.currentTime` (the image does not seek, so `video.currentTime` does not update).
 
-Electron シェル本体（`apps/shell`）のプレビュー対応は本タスクのスコープ外。`layers[]` の
-image-layer-parity ではシェル側 webview も同時対応していたが、本タスクの司令塔裁定でシェルは
-別タスクへ切り出されている。§3 の適合状況表にシェル列は `❌`（未対応）として記録する。
+### 5.3 apps/shell (out of scope)
 
-**追記（2026-08-17）**: 切り出されていたシェル対応を task/2026-08-17-shell-still-image-cut-preview
-で実装した。方式は Web UI（§5.2）と同型 — `#preview-still`（`<img>`）を `#preview-video` に重ね、
-静止画セグメントのクロックは gap セグメントと同じ壁時計原点を共用する。カットの
-transform / framing / 選択ドラッグは video 要素のインラインスタイルを毎フレーム鏡写しにする
-ことで既存レールをそのまま流用。タイムライン（akari-annotations）の静止画フィルムストリップも
-同タスクで是正（`probeForFilmstrip` の duration>0 必須ガードが、ffprobe が duration を報告しない
-静止画〔§2.3〕で既存の isImage 分岐を dead code 化していた）。適合状況はパリティ契約 §3 を参照。
+Preview support in the Electron shell itself (`apps/shell`) is out of scope for this task. image-layer-parity for `layers[]` also updated the shell webview at the same time, but the control-tower ruling for this task split the shell into a separate task. The shell column of the conformance table in §3 is recorded as not supported.
 
-## 6. 適合状況の更新
+**Added (2026-08-17).** The split-out shell support was implemented in task/2026-08-17-shell-still-image-cut-preview. The method matches the Web UI (§5.2). Stack `#preview-still` (`<img>`) on `#preview-video`. The clock for a still segment shares the wall-clock origin used by a gap segment. Cut transform, framing, and selection drag mirror the video element's inline style every frame, so the existing rail is reused as it is. The still-image filmstrip on the timeline (akari-annotations) was also corrected in the same task. The `duration>0` guard in `probeForFilmstrip` had turned the existing isImage branch into dead code for a still image, because ffprobe does not report a duration (§2.3). Conformance is in §3 of the parity contract.
 
-`contract-2026-08-02-preview-parity.md` §3 の適合状況表に `cuts[].static-image-source` 行を
-追加した（Web UI / shell 列）。
+## 6. Conformance update
+
+A `cuts[].static-image-source` row was added to the conformance table in `contract-2026-08-02-preview-parity.md` §3 (Web UI and shell columns).

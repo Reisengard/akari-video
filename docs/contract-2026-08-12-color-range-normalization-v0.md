@@ -1,59 +1,61 @@
+**English** | [Japanese](./contract-2026-08-12-color-range-normalization-v0.ja.md)
+
 # Color range normalization v0
 
-## 1. 背景と目的
+## 1. Background and purpose
 
-full-range（`color_range=pc` / `yuvj420p`）の入力をそのまま H.264 出力へ伝播させると、配信向けの limited range を期待する再生・検証環境で階調とメタデータが一致しない。本契約は Render の全エンコード工程を limited range（FFmpeg の `tv`）へ正規化し、最終成果物と中間生成物の一貫性を保証する。
+Passing a full-range input (`color_range=pc` or `yuvj420p`) straight through to H.264 output makes the levels and the metadata disagree with players and verifiers that expect limited range for delivery. This contract normalizes every Render encode stage to limited range (FFmpeg `tv`) and keeps the final artifact consistent with the intermediate artifacts.
 
-この不具合の起点と再現条件は [公開 issue #21](https://github.com/AkariLabs/akari-video/issues/21) を参照する。
+The origin of the bug and the reproduction conditions are in [public issue #21](https://github.com/AkariLabs/akari-video/issues/21).
 
-## 2. 最終出力の保証
+## 2. Final-output guarantee
 
-MP4 / H.264 の最終映像ストリームは次を満たさなければならない。
+The final picture stream of an MP4 or H.264 file must satisfy both of the following.
 
-- pixel format は `yuv420p`
-- `color_range` は `tv`（limited range）
+- The pixel format is `yuv420p`.
+- `color_range` is `tv` (limited range).
 
-この組み合わせを AKARI Video の配信標準出力とする。
+That pair is the AKARI Video delivery output.
 
-## 3. 値変換とメタデータの不変条件
+## 3. Invariant for value conversion and metadata
 
-色域レンジの正規化は、画素値の変換と映像ストリームへのメタデータのタグ付けを常に対で行う。
+Color-range normalization always does both steps together. It converts the pixel values, and it tags that metadata on the picture stream.
 
-- 各 video filter chain は出力直前に `scale=out_range=tv` 相当の値変換を行う。
-- 各 H.264 encode は `-color_range tv` 相当のメタデータを付ける。
-- full-range の画素値を残したまま `tv` タグだけを付けることを禁止する。
-- 値だけを limited range へ変換し、タグ付けを省略することも禁止する。
+- Each video filter chain converts values immediately before output, equivalent to `scale=out_range=tv`.
+- Each H.264 encode tags metadata equivalent to `-color_range tv`.
+- Tagging `tv` while leaving full-range pixel values is forbidden.
+- Converting the values to limited range and omitting the tag is also forbidden.
 
-入力がすでに tv range の場合、`scale=out_range=tv` はレンジ変換について no-op として扱う。
+When the input is already tv range, `scale=out_range=tv` is a no-op for the range conversion.
 
-## 4. 工程不変
+## 4. Stage invariant
 
-cut、tail padding、track stack、layers、overlay composite を含む各エンコード工程の出力フレームは常に tv range とする。これは最終成果物だけでなく、後続工程へ渡す中間生成物にも適用する。
+The output frame of every encode stage is tv range. That includes cut, tail padding, track stack, layers, and overlay composite. The rule applies to the final artifact and to every intermediate artifact passed to a later stage.
 
-複数ソースの cut では、ソースごとの前処理チェーンで tv range へ正規化してから concat / transition へ入力する。これにより pc / tv range が混在したフレームを同じ concat へ直接渡さない。さらに、LUT や合成後の工程出力も終端で tv range に正規化する。
+For a multi-source cut, each source's preprocess chain normalizes to tv range before the frames enter concat or a transition. Do not pass a mix of pc-range and tv-range frames straight into the same concat. Stages after a LUT or a composite also normalize to tv range at their end.
 
-映像を再エンコードしない audio-only mux と、alpha を運ぶ非 H.264 overlay 中間生成物は本契約の対象外とする。
+An audio-only mux that does not re-encode the picture, and a non-H.264 overlay intermediate that carries alpha, are out of scope.
 
-## 5. Probe と provenance
+## 5. Probe and provenance
 
-入力ソースの `pix_fmt` と `color_range` を ffprobe の映像ストリームから取得し、既存の duration、audio 有無、width、height、fps と同じ provenance 情報として記録する。ffprobe が入力の `color_range` を報告しない場合は `null` として記録し、推測値で置き換えない。
+Read the input source's `pix_fmt` and `color_range` from the ffprobe picture stream. Record them as provenance next to the existing duration, audio presence, width, height, and fps. If ffprobe does not report the input `color_range`, record `null`. Do not replace it with a guess.
 
-## 6. Verify 契約
+## 6. Verify contract
 
-レンダープランの期待値へ `color_range: "tv"` を追加し、official verify は `verify.color-range` を報告する。
+Add `color_range: "tv"` to the render plan's expected values. Official verify reports `verify.color-range`.
 
-- 実測 `color_range` が `pc` の場合は error とする。
-- 実測が `tv` の場合は pass とする。
-- ffprobe が `color_range` を報告しない場合は、H.264 の仕様既定（未指定は limited range）に従って tv とみなし pass とする。
+- If the measured `color_range` is `pc`, that is an error.
+- If the measurement is `tv`, that is a pass.
+- If ffprobe does not report `color_range`, treat it as tv and pass. The H.264 default for an unspecified range is limited range.
 
-`verify.pixel-format` の期待値 `yuv420p` は維持し、`verify.color-range` と独立に判定する。
+Keep the `verify.pixel-format` expectation of `yuv420p`. Judge it independently of `verify.color-range`.
 
-## 7. 予約（今回のスコープ外）
+## 7. Reserved, out of scope for v0
 
-次の事項は別契約で扱い、本契約 v0 では実装しない。
+The following belong to other contracts. v0 does not implement them.
 
-- BT.601 から BT.709 などの colorspace 変換
-- `-colorspace` / `-color_primaries` / `-color_trc` による colorspace メタデータの正規化
-- 10bit および HDR 入力の変換、tone mapping、出力形式
+- Colorspace conversion, such as BT.601 to BT.709.
+- Colorspace metadata normalization with `-colorspace`, `-color_primaries`, or `-color_trc`.
+- Conversion, tone mapping, and output format for 10-bit and HDR input.
 
-本契約の `tv` 正規化は color range のみに限定され、上記の色域・伝達特性変換を暗黙に保証しない。
+`tv` normalization in this contract covers color range only. It does not silently promise the gamut or transfer conversions above.

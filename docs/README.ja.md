@@ -178,6 +178,38 @@
 | [notes-2026-08-28-engine-v2-open-items.md](./notes-2026-08-28-engine-v2-open-items.md) | エンジン v2 残課題 — 実機条件、決定論的 seek、OSR 隔離、±0 検収、legacy 退役条件の移管先 |
 | [notes-2026-09-05-bake-layer-retired.md](./notes-2026-09-05-bake-layer-retired.md) | bake-layer / ATF テロップ描画の退役 — 消したもの・`kind:"telop"` の後方互換・対象外の線引き |
 
+### 2026年8月契約の日本語版
+
+上の表は英語の正典を開く。次のリンクは日本語版を開く。
+
+- [日本語](./contract-2026-08-01-export-nle-beta.ja.md)
+- [日本語](./contract-2026-08-02-creator-root-v1.ja.md)
+- [日本語](./contract-2026-08-02-preview-parity.ja.md)
+- [日本語](./contract-2026-08-02-setup-remote-v0.ja.md)
+- [日本語](./contract-2026-08-03-caption-display-encoding-qc-v1.ja.md)
+- [日本語](./contract-2026-08-03-cut-candidate-bridge-v1.ja.md)
+- [日本語](./contract-2026-08-05-fx-v0.ja.md)
+- [日本語](./contract-2026-08-09-transform-keyframes-v0.ja.md)
+- [日本語](./contract-2026-08-11-analysis-vision-tracks-v0.ja.md)
+- [日本語](./contract-2026-08-11-review-session-ui-events.ja.md)
+- [日本語](./contract-2026-08-12-chat-approval-v0.ja.md)
+- [日本語](./contract-2026-08-12-color-range-normalization-v0.ja.md)
+- [日本語](./contract-2026-08-12-region-filter-layer-v0.ja.md)
+- [日本語](./contract-2026-08-12-still-image-cut-source-v0.ja.md)
+- [日本語](./contract-2026-08-13-avatar-drive-v0.ja.md)
+- [日本語](./contract-2026-08-14-avatar-vrm-v0.ja.md)
+- [日本語](./contract-2026-08-18-v1-render-parity.ja.md)
+- [日本語](./contract-2026-08-23-captions-emphasis-words-v0.ja.md)
+- [日本語](./contract-2026-08-23-stroke-persistence.ja.md)
+- [日本語](./contract-2026-08-28-gpu-export-v0.ja.md)
+- [日本語](./contract-2026-08-28-osr-export-v0.ja.md)
+- [日本語](./contract-2026-08-28-v2-approximation-ledger.ja.md)
+- [日本語](./contract-2026-08-28-v2-audio-roles-v0.ja.md)
+- [日本語](./contract-2026-08-29-capture-v0.ja.md)
+- [日本語](./contract-2026-08-29-media-inspect-cli-v0.ja.md)
+- [日本語](./contract-2026-08-30-edit-json-v2-object-tree-v0.ja.md)
+- [日本語](./contract-2026-08-30-motion-and-keyframes-v0.ja.md)
+
 ## 開発者向け
 
 | ページ | 内容 |

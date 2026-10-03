@@ -1,44 +1,39 @@
+**English** | [Japanese](./contract-2026-08-09-transform-keyframes-v0.ja.md)
+
 ---
 lifecycle: implemented
 created: 2026-08-09
 updated: 2026-08-30
 ---
 
-# 変形キーフレーム契約 v0（`layers[].keyframes` / v2 `items[].keyframes`）— 2026-08-30 復元
+# Transform keyframes v0 (`layers[].keyframes` and v2 `items[].keyframes`), restored 2026-08-30
 
-> **復元の注記（2026-08-30）**: 本契約は `packages/schemas/edit.schema.json`（`layerKeyframe` / `layerItem` / `keyframeV2` の `$comment`）・
-> `packages/schemas/bin/validate-edit.mjs`・`packages/render-cut/src/layer-keyframes.mjs` ほか 10 箇所から参照されていたが、
-> 実ファイルがどのブランチの履歴にも存在しなかった。スキーマの `$comment` に残っていた意味論からそのまま再構成した。
-> **後継 = `contract-2026-08-30-motion-and-keyframes-v0.md` §2**（opacity の追加・easing 語彙の拡張・`motion/` 袋への参照形）。
-> 本ファイルは v0 の意味論の記録であり、これ以上追記しない。
+> **Restoration note (2026-08-30).** `packages/schemas/edit.schema.json` (the `$comment` on `layerKeyframe`, `layerItem`, and `keyframeV2`), `packages/schemas/bin/validate-edit.mjs`, `packages/render-cut/src/layer-keyframes.mjs`, and 10 other places referenced this contract, but the file was missing from every branch history. This text is rebuilt from the semantics that remained in those `$comment`s.
+> **Successor.** [`contract-2026-08-30-motion-and-keyframes-v0.md`](./contract-2026-08-30-motion-and-keyframes-v0.md) §2 adds opacity, extends the easing vocabulary, and adds the `motion/` bag reference.
+> This file records the v0 semantics. Do not append to it.
 
-- 日付: 2026-08-09（実装済み・`contract-2026-07-22-render-basics.md` §4-4 に要約あり）
-- 状態: implemented（v1 `layers[].keyframes`・v2 `items[].keyframes` の両方で有効）
+- Date: 2026-08-09. Implemented. `contract-2026-07-22-render-basics.md` §4-4 has a summary.
+- Status: implemented. Active for both v1 `layers[].keyframes` and v2 `items[].keyframes`.
 
-## 1. 意味論
+## 1. Semantics
 
-> **2026-09-22 — 非等方スケール v1**: `transform.scaleX` / `scaleY` は独立した正数。
-> 有効値は `(scaleX ?? scale ?? 1, scaleY ?? scale ?? 1)`。負値・0 は不可。
-> `source.kind === 'group'` は軸別指定を持てず、親は常に等比とする。
-> 等比親との合成は子の各有効値に親の `scale` を掛け、逆変換は同じ値で割る。
-> 書き込み時に両軸の有効値が等しければ `scale` に畳む。既存の `scale` だけの宣言は変更しない。
-> keyframes は端点を各軸の有効値へ解決してから補間する（`scale` と `scaleX` の混在も可）。
-> overlay の CSS は `translate(...) rotate(...) scale(sx, sy)`。overlay も素材も
-> 各軸で伸ばしてから回転する（R·S）。素材は crop の幅・高さへ各軸を掛ける。四隅 resize は両軸へ同じ倍率を掛け、縦横比を維持する。
+> **2026-09-22, non-uniform scale v1.** `transform.scaleX` and `scaleY` are independent positive numbers.
+> The effective value is `(scaleX ?? scale ?? 1, scaleY ?? scale ?? 1)`. Negative values and 0 are invalid.
+> `source.kind === 'group'` cannot specify axes separately. The parent is always uniform.
+> Composition with a uniform parent multiplies each child effective value by the parent's `scale`. The inverse divides by that same value.
+> On write, if the two axes have equal effective values, fold them into `scale`. An existing `scale`-only declaration is left unchanged.
+> Keyframes resolve each endpoint to that axis's effective value, then interpolate. Mixing `scale` and `scaleX` is allowed.
+> Overlay CSS is `translate(...) rotate(...) scale(sx, sy)`. Overlay and footage both stretch on each axis and then rotate (R·S). Footage multiplies each axis into the crop width and height. A four-corner resize multiplies both axes by the same factor and keeps the aspect ratio.
 
-- `keyframes[]` はレイヤー / アイテムの `transform` / `crop` / `perspective` を時間で動かす共通機構
-- `t` は**ローカル時間**: v1 `layers[].keyframes[].t` はレイヤー内秒（`layerItem.t` を 0 とする。`cuts[].framing.keyframes[].t` と同じ規約）、
-  v2 `items[].keyframes[].t` は**アイテム内の整数フレーム**（`item.at` を 0 とする）
-- `transform` / `crop` / `perspective` はそれぞれ**独立の任意プロパティ**（プロパティごとの別トラックにはしない — 1 点で複数プロパティを同時に動かせる）
-- ある区間の両端点が同じプロパティを持てばその間は**線形補間**。片方の端点にしか無ければ直近の宣言値を**保持（hold）**
-- どの点にも一度も宣言されないプロパティは、レイヤー / アイテム直下の**静的値**（省略時は各 `$def` の既定値）を全区間で保持する
-- `easing` は点ごとに設定し、**その点へ入る区間**（1 つ前の点からこの点まで）の補間カーブを決める。先頭点の `easing` は無視。省略時 `linear`。語彙は `linear` / `ease-in-out`
-- 2 点以上・`t` 昇順・重複禁止（`validate-edit.mjs` で検証）。`keyframes` が無い、または使える点が 2 点未満のときは既存の静的値のみが効く（回帰なし・バイト等価）
-- render-cut は cuts 合成後のベース映像へ `t` 順に合成する。プレビューは同じ補間を CSS / WebGL で再現する（`contract-2026-08-02-preview-parity.md`）
+- `keyframes[]` is the shared mechanism that moves a layer or item `transform`, `crop`, and `perspective` over time.
+- `t` is **local time**. For v1, `layers[].keyframes[].t` is seconds inside the layer. `layerItem.t` is 0. This is the same rule as `cuts[].framing.keyframes[].t`. For v2, `items[].keyframes[].t` is an integer frame inside the item. `item.at` is 0.
+- `transform`, `crop`, and `perspective` are separate optional properties. They are not one track per property. One point can move several properties at once.
+- If both endpoints of a span declare the same property, that span uses **linear interpolation**. If only one endpoint declares the property, the span **holds** the nearest declared value.
+- A property that no point ever declares holds the **static value** directly on the layer or item for the whole span. If that static value is omitted, the span holds the default of the matching `$def`.
+- Each point sets `easing` for the **span that arrives at that point**, from the previous point to this point. The first point's `easing` is ignored. The default is `linear`. The vocabulary is `linear` and `ease-in-out`.
+- A track needs two or more points, ascending `t`, and no duplicate `t`. `validate-edit.mjs` checks this. If `keyframes` is absent, or fewer than two points are usable, only the existing static values apply. There is no regression. The output stays byte-equivalent.
+- render-cut composites keyframes onto the base picture after cut compositing, in `t` order. Preview reproduces the same interpolation with CSS or WebGL. See `contract-2026-08-02-preview-parity.md`.
 
-## 2. 参照元（復元時点）
+## 2. Referenced from, at restoration
 
-`packages/schemas/edit.schema.json` / `packages/schemas/bin/validate-edit.mjs` / `packages/render-cut/src/layer-keyframes.mjs` / `packages/render-cut/src/layers.mjs` /
-`packages/render-cut/test/layer-keyframes.test.mjs` / `packages/preview-server/test/layer-keyframes-visual.test.mjs` /
-`apps/shell/extensions/akari-preview/src/common/edit-summary-fields.ts` / `apps/shell/extensions/akari-preview/src/common/layer-keyframes-visual.ts` /
-`apps/shell/extensions/akari-preview/src/browser/akari-preview-open-handler.ts` とそのテスト
+`packages/schemas/edit.schema.json`, `packages/schemas/bin/validate-edit.mjs`, `packages/render-cut/src/layer-keyframes.mjs`, `packages/render-cut/src/layers.mjs`, `packages/render-cut/test/layer-keyframes.test.mjs`, `packages/preview-server/test/layer-keyframes-visual.test.mjs`, `apps/shell/extensions/akari-preview/src/common/edit-summary-fields.ts`, `apps/shell/extensions/akari-preview/src/common/layer-keyframes-visual.ts`, `apps/shell/extensions/akari-preview/src/browser/akari-preview-open-handler.ts`, and that handler's test.

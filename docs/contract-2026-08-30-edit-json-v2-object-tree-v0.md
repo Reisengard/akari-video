@@ -1,76 +1,76 @@
+**English** | [Japanese](./contract-2026-08-30-edit-json-v2-object-tree-v0.ja.md)
+
 ---
 lifecycle: accepted
 created: 2026-08-30
 updated: 2026-08-30
 ---
 
-# edit.json v2 オブジェクトツリー契約 v0 — 木は edit.json だけが持つ・中身は袋・人間は JSON を触らない
+# edit.json v2 object tree contract v0. Only edit.json holds the tree, the contents live in bags, and a person does not touch the JSON
 
-- 日付: 2026-08-30
-- 状態: **v0（オーナー裁定済み 2026-08-29〜30・実装未）**。実装タスクで判明した齟齬は追記で解消する
-- 前提:
-  - `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ進化。**本契約は `version: 2` を据え置く**）
-  - `packages/schemas/edit.schema.json` の `editV2` / `itemV2` / `trackV2`（v2 の現行形。08-18 の 5 段〔schema → 内部モデル → 描画 → 書き込み / 移行 → 語彙〕は合流済み）
-  - `contract-2026-08-02-preview-parity.md`（プレビュー / osr / gpu の 3 出口で同じ絵）
-  - `contract-2026-07-25-project-structure-v0.md`（プロジェクト直下の正本ファイル。`motion/` を本日追記）
-  - `contract-2026-07-22-render-basics.md` §4-4（`keyframes` の既存意味論）
-- スコープ: edit.json v2 の**木の再帰（グループ）・袋（HTML / captions.json / motion/）からの写し・部品アイテム・段の不変条件・保存形式・読み書き規約・edit-store のスクリプト API**。UI（タイムラインの木行・インスペクター・フォーカスモード）は別契約
-- 姉妹契約: `contract-2026-08-30-motion-and-keyframes-v0.md`（動きの 4 段階・`motion/` 袋・L2 アニメーター）
-- 設計の正本（非公開）: 内部リポ `akari-video-internal` の判断メモ「オブジェクトツリー / タイムライン / インスペクター設計ラウンド（2026-08-29）」。
-  他エディタ（Diffusion Studio・HyperFrames Studio・Theatre.js・Lottie）は**設計参照のみ・コード移植なし**
+- Date: 2026-08-30
+- Status: **v0 (owner ruling 2026-08-29 to 2026-08-30, not implemented yet).** A mismatch found in the implementation task is resolved by appending.
+- Depends on:
+  - `contract-2026-07-17-data-contract-versioning.md` (a version is required, and evolution is additive only. **This contract keeps `version: 2`.**)
+  - `editV2`, `itemV2`, and `trackV2` in `packages/schemas/edit.schema.json` (the current v2 shape. The Aug 18 five stages, schema, internal model, draw, write and migrate, vocabulary, have landed.)
+  - `contract-2026-08-02-preview-parity.md` (preview, osr, and gpu, the three exits, draw the same picture)
+  - `contract-2026-07-25-project-structure-v0.md` (canonical files directly under the project. `motion/` was appended today.)
+  - `contract-2026-07-22-render-basics.md` §4-4 (the existing `keyframes` semantics)
+- Scope: for edit.json v2, **tree recursion (groups), the projection from a bag (HTML, captions.json, motion/), part items, track invariants, the save format, the read and write rules, and the edit-store script API.** The UI (timeline tree rows, the inspector, focus mode) is another contract.
+- Sibling contract: `contract-2026-08-30-motion-and-keyframes-v0.md` (the four levels of motion, the `motion/` bag, and the L2 animator)
+- Design source (private): the decision note in the internal repo `akari-video-internal`, "object tree, timeline, and inspector design round (2026-08-29)". Other editors (Diffusion Studio, HyperFrames Studio, Theatre.js, Lottie) are **design references only. No code is ported.**
 
-## 0. 位置づけ — 一言で言い切る
+## 0. Place in the system
 
-**正本は edit.json。木（段 → アイテム → アイテム…）は edit.json だけが持ち、量が出る中身は袋に置く。人間は JSON を触らない。**
+**edit.json is canonical. The tree (track, then item, then item, and so on) lives only in edit.json. Contents that grow in volume live in a bag. A person does not touch the JSON.**
 
-- 木 = `tracks[]`（段）→ `items[]`（アイテム）→ `items[]`（子）… **アイテムは再帰**する。グループの入れ子・順序・時間は全部 edit.json
-- 袋 = HTML 断片 / `captions.json` / `motion/<group-id>.json`。袋の中身（部品・字幕行・キーフレーム曲線）は edit.json に**書かない**。
-  edit.json には**判断に要る情報だけ**（構造・時間・変形の静的値・プリセット・参照 + 件数）を載せる。既存の作り（HTML 断片・captions.json・analysis.json が外にあり edit.json は参照するだけ）と同じ規則の一般化
-- **人間は JSON を一切触らない**。AI が読み書きし、人間はツマミと UI だけを触る。書式は AI の grep / Edit と git diff のためだけに決める（§5）
-- 素材ファイル（HTML / captions.json / 3D）は編集操作で**書き換えない**。分離・グループ化・時間ずらしは木の操作であって袋の操作ではない
+- The tree is `tracks[]` (a track), then `items[]` (an item), then `items[]` (a child), and so on. **Items recurse.** Group nesting, order, and time all live in edit.json.
+- A bag is an HTML fragment, `captions.json`, or `motion/<group-id>.json`. The inside of a bag (parts, caption rows, keyframe curves) is **not written** into edit.json. edit.json carries **only what a decision needs** (structure, time, static transform values, presets, references, plus a count). This generalizes the existing shape, where HTML fragments, captions.json, and analysis.json live outside and edit.json only refers to them.
+- **A person does not touch the JSON at all.** The AI reads and writes it. A person touches only knobs and the UI. The format exists for the AI's grep and Edit, and for git diff (§5).
+- Footage files (HTML, captions.json, 3D) are **not rewritten** by an edit operation. Detach, group, and a time shift are tree operations, not bag operations.
 
-## 1. データ模型（`version: 2` のまま追加のみ）
+## 1. Data model (additive only, `version: 2` stays)
 
-**新しいサブスキーマはここに列挙した以外増やさない。** 部品も字幕行もグループも「普通のアイテム」で、共通フィールド（`id` / `at` / `duration` / `transform` / `opacity` / `blend` / `crop` / `perspective` / `keyframes`）をそのまま使う。
+**Do not add a new subschema beyond the ones listed here.** A part, a caption row, and a group are all an ordinary item, and they use the common fields as they are (`id`, `at`, `duration`, `transform`, `opacity`, `blend`, `crop`, `perspective`, `keyframes`).
 
-### 1.1 再帰 — アイテムは `items[]` を持てる
+### 1.1 Recursion. An item may have `items[]`
 
 ```jsonc
-{ "id": "g-hook", "name": "フック", "at": 0, "duration": 90,
+{ "id": "g-hook", "name": "Hook", "at": 0, "duration": 90,
   "source": { "kind": "group" },
   "items": [
-    { "id": "h-title", "at": 0,  "duration": 90, "source": { "kind": "telop", "preset": "ref3_title", "params": { "text": "…" } } },
+    { "id": "h-title", "at": 0,  "duration": 90, "source": { "kind": "telop", "preset": "ref3_title", "params": { "text": "..." } } },
     { "id": "h-logo",  "at": 12, "duration": 78, "source": { "kind": "html", "path": "overlays/logo.html" } }
   ] }
 ```
 
-- 全アイテムに任意 `items: itemV2[]`。**子の `at` は親相対の整数フレーム**（親の `at` を 0 とする）。子は親の `[0, duration)` に収まる（lint error）
-- 子の変形・不透明度は親のものと**合成**される（親の transform を適用した座標系の中に子が置かれる。`opacity` は乗算）
-- **`items[]` の順 = z 順（後ろが手前）**。グループの子は 1 つずつが独立した「行」で、子同士の時間重なりに制約は無い（段の不変条件 §2 は**最上段の `tracks[]` にだけ**かかる。木の形は最上段の入れ物を「段」と呼ぶ点だけが違う）
-- 深さに上限は設けない（lint は循環と自己参照を弾く。JSON なので構造上は起きない）
+- Every item may have `items: itemV2[]`. **A child's `at` is an integer frame relative to the parent** (the parent's `at` is 0). A child fits in the parent's `[0, duration)` (lint error otherwise).
+- A child's transform and opacity **compose** with the parent's (the child sits in the coordinate system after the parent's transform is applied. `opacity` multiplies).
+- **The order of `items[]` is z order (later is in front).** Each child of a group is an independent row. There is no constraint on time overlap among children. The track invariants of §2 apply **only to the top-level `tracks[]`.** The tree shape differs only in that the top-level container is called a track.
+- There is no depth cap (lint rejects a cycle and a self-reference. JSON cannot express them structurally).
 
-### 1.2 純グループ `source.kind: "group"`
+### 1.2 A pure group, `source.kind: "group"`
 
-- 中身の無い入れ物。`name` 任意。自身も `at` / `duration` / `transform` / `opacity` / `blend` / `keyframes` / `motion` を持つ（= 小さなコンポジション）
-- 「まとめる」（§3.2）が作るのはこれ。変形を持たないグループで包む → 座標・時間は不変
+- A container with no contents of its own. `name` is optional. It still has `at`, `duration`, `transform`, `opacity`, `blend`, `keyframes`, and `motion` (a small composition).
+- "Group" (§3.2) creates this. Wrap in a group that has no transform, and coordinates and time stay unchanged.
 
-### group の子の描画の規則（2026-09-25 追記）
+### Draw rules for a group's children (appended 2026-09-25)
 
-- 子の絶対時刻は祖先の `at` の和。子自身の時間区間と全祖先の `[at, at + duration)` の積集合だけを描く。終端は含めない。
-- 見た目は祖先から順に `transform` を合成する。位置には親の拡縮・回転を適用し、拡縮は乗算、回転は加算する。不透明度も祖先と子の積にする。
-- 重なり順は親の段の位置に子の配列順を差し込む。入れ子も同じ規則で展開する。字幕の袋や、袋から出した行も親の段の位置を使う。
-- media の子は描画用の旧ビューでは絶対時刻の layer に投影する。元の `edit.json` の木と素材ファイルは変更しない。
-- captions の袋で `source.exclude` に含めた行を子の caption item として置いた場合、元の袋からは描かず、子を 1 回だけ描く。
-- group 内の caption item は段直下と同じ字幕 HTML（字体、既定 fade、フォント参照）を使う。現行の既定フォント参照と fade は GPU 適格判定で `degraded` となる既存制約がある。`render-cut --engine auto` はどちらも OSR を選び、明示的な GPU 出口は適格性エラーで拒否する。group に入れたことを理由に字幕 HTML や判定を変えない。
-- group 自身の `keyframes` / `motion` はこの静的な合成の対象外。動きが必要なら描画される子へ宣言する。
+- A child's absolute time is the sum of the ancestors' `at`. Draw only the intersection of the child's own time span and every ancestor's `[at, at + duration)`. The end is exclusive.
+- The look composes `transform` from the ancestors outward. Position applies the parent's scale and rotation. Scale multiplies. Rotation adds. Opacity is the product of the ancestors and the child.
+- Overlap order inserts the child's array order at the parent's track position. Nesting expands with the same rule. A captions bag, and a row detached from a bag, also use the parent's track position.
+- A media child is projected to an absolute-time layer in the old view used for drawing. The tree in the original `edit.json` and the footage files are not changed.
+- When a captions bag places a row that is listed in `source.exclude` as a child caption item, the original bag does not draw it, and the child is drawn once.
+- A caption item inside a group uses the same caption HTML as one directly under a track (typeface, the default fade, the font reference). The current default font reference and fade have an existing constraint that the GPU eligibility check marks `degraded`. `render-cut --engine auto` chooses OSR for both, and an explicit GPU exit refuses with an eligibility error. Putting the item in a group is not a reason to change the caption HTML or the check.
+- The group's own `keyframes` and `motion` are outside this static composition. If motion is needed, declare it on a child that is drawn.
 
-### 1.3 袋グループ — `html` / `captions` のアイテムに `items[]` を持たせたもの
+### 1.3 A bag group. An `html` or `captions` item that has `items[]`
 
-**袋 = 名札つき部品の入れ物**。HTML 断片の名札は `data-akari-part="<id>"`、`captions.json` の名札は行 `id`。将来の 3D（glTF ノード名）/ Lottie（レイヤー名）も同じ形で足す（本契約では未定義・語彙予約のみ）。
+**A bag is a container of name-tagged parts.** The name tag of an HTML fragment is `data-akari-part="<id>"`. The name tag of `captions.json` is the row `id`. A future 3D (glTF node name) or Lottie (layer name) is added in the same shape (undefined in this contract, vocabulary reserved only).
 
 ```jsonc
-// HTML 袋（取り込み時点で常にこの形。折りたたみは UI の表示状態であってデータではない）
-{ "id": "s01", "name": "オープニング", "at": 0, "duration": 120,
+// An HTML bag (always this shape at import. Collapse is a UI display state, not data).
+{ "id": "s01", "name": "Opening", "at": 0, "duration": 120,
   "source": { "kind": "html", "path": "overlays/s01.html", "exclude": ["C"] },
   "items": [
     { "id": "s01.B", "at": 6, "duration": 114, "transform": { "y": -40 },
@@ -78,144 +78,144 @@ updated: 2026-08-30
   ] }
 ```
 
-- **見える子 = 袋の名札から写す（projection）**。edit.json には書かない。上の例で `s01.html` に部品 A / B / C があれば、A は写し（触っていない・既定の時間 = 袋と同じ）、B は明示（触ったので `items[]` に居る）、C は `exclude`（袋の中では表示しない = 別の場所へ「出した」か、消した）
-- **触った子だけ明示アイテムになる**。明示アイテムは袋の子として `items[]` に置くか、木の別の場所に置く（= 分離 §3.1）。どちらでも袋側は `source.exclude` に id を持つ
-- **袋の中では並びを変えない・ばらさない**（HTML の DOM 順 / captions.json の行順が正）。変えたい部品は出す
-- 名札の無い断片は「袋ごと 1 アイテム」（`part` 無し・`items` 無し）。既存の overlays はこれ（**回帰なし**）
-- 名札の読み取り（HTML の走査）は**描画・プレビュー側の仕事**（§4）。edit.json の読み込み層は袋を「子を持ち得るアイテム」として扱うだけ
+- **A visible child is a projection from the bag's name tags.** It is not written into edit.json. In the example, if `s01.html` has parts A, B, and C, then A is a projection (untouched, default time equals the bag), B is explicit (it was touched, so it lives in `items[]`), and C is `exclude` (not shown inside the bag, which means it was detached to another place, or removed).
+- **Only a touched child becomes an explicit item.** An explicit item is placed in `items[]` as a child of the bag, or placed somewhere else in the tree (detach, §3.1). Either way the bag side holds the id in `source.exclude`.
+- **Inside a bag, do not reorder and do not ungroup** (HTML DOM order, or captions.json row order, is canonical). A part you want to change is detached.
+- A fragment with no name tag is "one item for the whole bag" (no `part`, no `items`). Existing overlays are this (**no regression**).
+- Reading name tags (walking the HTML) is **the draw and preview side's job** (§4). The edit.json load layer only treats a bag as an item that may have children.
 
-### 1.4 部品アイテム `source: { kind: "html", path, part }`
+### 1.4 A part item, `source: { kind: "html", path, part }`
 
-- 既存 `itemSourceHtmlV2` に任意キーを 3 つ足す: `part: string`（名札）/ `style: { "<css-prop>": "<value>" }`（部品ルートの inline style。開いた map・lint は CSS 値を検証しない）/ `text: string`（本文の差し替え）
-- `vars` / `params`（既存のツマミ経路）は部品アイテムでも使える。`style` / `text` は「設計済みのツマミが無い所を直す」ための逃げ道で、これで HTML を書き換えずに見た目の自由度を持つ
-- 部品アイテムの `at` / `duration` / `transform` / `opacity` / `keyframes` は共通フィールド。**部品専用のサブスキーマは無い**
+- Add 3 optional keys to the existing `itemSourceHtmlV2`. `part: string` (the name tag). `style: { "<css-prop>": "<value>" }` (inline style on the part root. An open map. Lint does not validate CSS values). `text: string` (a replacement for the body text).
+- `vars` and `params` (the existing knob path) work on a part item too. `style` and `text` are the escape hatch for fixing a place that has no designed knob, so the look can change without rewriting the HTML.
+- A part item's `at`, `duration`, `transform`, `opacity`, and `keyframes` are the common fields. **There is no part-specific subschema.**
 
-### 1.5 字幕 = 袋グループ（専用トラックの廃止）
+### 1.5 Captions are a bag group (the dedicated track is abolished)
 
 ```jsonc
-{ "id": "captions", "name": "字幕", "at": 0, "duration": 5400,
+{ "id": "captions", "name": "Captions", "at": 0, "duration": 5400,
   "source": { "kind": "captions", "path": "captions.json", "exclude": ["c-0042"] },
   "items": [] }
 ```
 
-- 字幕は**専用の段ではなくグループ**。HTML 袋と同じ形（袋 = captions.json・子 = 行）。畳める・前後へ動かせる・別グループの中に入れられる・行を「出す」は部品と同じ操作。段は全部無名になる（§2）
-- 子（行）の時間は captions.json の**ソース秒**のまま（既存契約）。写しの `at` / `duration` は読み込み層がタイムライン写像で導出する（edit.json に焼かない）
-- **行の分離**: `{ "id": "cap-42", "at": 1210, "duration": 48, "transform": { "y": -120 }, "source": { "kind": "caption", "path": "captions.json", "id": "c-0042" } }`。文字・スタイルは captions.json の行が正本のまま、位置と時間だけ木の側で上書きする
-- **テロップに変換**: `source: { "kind": "telop", "preset": "…", "params": { "text": "…" }, "from": "captions.json#c-0042" }`。以後は独立したテロップ（`from` は来歴。元の行は `exclude`） **追記**: 「テロップに変換」は GUI の操作としては 2026-09-21 に撤去。`kind:"telop"` の器と `baked` の再生は後方互換で残す。
-- 同時刻に 2 行あるときの表示（副行）は描画側の規則であってデータではない。編集ミスの重なりは lint warning
-- **旧形 `tracks[].content: { from: "captions.json" }` は読める（tolerant reader）が deprecated**。読み込み層は袋グループと同じ内部表現に落とす。書き手（shell / スキル）は袋グループ形を出し、`akari migrate` が旧形を袋グループ形に正規化する。lint は旧形に warning `v2.captions-content-deprecated`
+- Captions are **a group, not a dedicated track.** The shape matches an HTML bag (the bag is captions.json, a child is a row). It can collapse, move forward and back, sit inside another group, and a row can be detached, with the same operations as a part. Every track becomes unnamed (§2).
+- A child's (a row's) time stays in **source seconds** of captions.json (the existing contract). The projection's `at` and `duration` are derived by the load layer's timeline mapping (they are not baked into edit.json).
+- **Detaching a row.** `{ "id": "cap-42", "at": 1210, "duration": 48, "transform": { "y": -120 }, "source": { "kind": "caption", "path": "captions.json", "id": "c-0042" } }`. Text and style stay canonical on the captions.json row. Only position and time are overridden on the tree side.
+- **Convert to telop.** `source: { "kind": "telop", "preset": "...", "params": { "text": "..." }, "from": "captions.json#c-0042" }`. After that it is an independent telop (`from` is provenance. The original row is `exclude`). **Append.** "Convert to telop" was removed as a GUI operation on 2026-09-21. The `kind:"telop"` seat and `baked` playback stay for backward compatibility.
+- How two rows at the same time are shown (a secondary row) is a draw-side rule, not data. An overlap that is an edit mistake is a lint warning.
+- **The old shape `tracks[].content: { from: "captions.json" }` can be read (tolerant reader) but is deprecated.** The load layer lowers it to the same internal form as a bag group. Writers (the shell and skills) emit the bag-group shape, and `akari migrate` normalizes the old shape into the bag-group shape. Lint warns on the old shape with `v2.captions-content-deprecated`.
 
-### 1.6 切り出し `source.derivedFrom`
+### 1.6 Extract, `source.derivedFrom`
 
-- 分離（§3.1）は台紙 1 枚のまま（クローンマスク §4）。**切り出し**は明示操作で、部品を派生ファイル `overlays/s01.C.html` に書き出し、`source.path` を差し替え、`source.derivedFrom: "overlays/s01.html#C"` を来歴として残す。元 HTML は不変。以後その部品は独立 HTML として自由に書き直せる（元との連動は切れる）
+- Detach (§3.1) stays on one sheet (the clone mask, §4). **Extract** is an explicit operation. It writes the part out to a derived file `overlays/s01.C.html`, replaces `source.path`, and leaves `source.derivedFrom: "overlays/s01.html#C"` as provenance. The original HTML is unchanged. After that the part can be rewritten freely as independent HTML (the link to the original is cut).
 
-### 1.7 アイテム共通の任意フィールド（追加）
+### 1.7 Optional fields common to every item (added)
 
-| キー | 型 | 意味 |
+| Key | Type | Meaning |
 |---|---|---|
-| `name` | string | 表示名（グループ・袋・任意のアイテム）。無ければ UI が `source` から導出 |
-| `hidden` | boolean | 描画しない（プレビュー・書き出しとも。「見えるもの = 出力されるもの」）|
-| `locked` | boolean | UI で動かせない。描画には影響しない |
-| `items` | itemV2[] | 子（§1.1）|
-| `motion` | object | L0 プリセット動き（姉妹契約 §1）|
-| `animator` | object[] | L2 アニメーター（姉妹契約 §4）|
-| `keyframes` | array **or** `{ path, count }` | L1。inline 配列（既存 `keyframeV2[]`）または `motion/` 袋への参照（姉妹契約 §2-§3）|
-| `anchor` | `{ caption, range?, offset?, duration? }` | 字幕行または source 秒の部分区間に時刻を従属させる（[行アンカー契約](contract-2026-09-02-item-caption-anchor-v0.md)）|
+| `name` | string | Display name (a group, a bag, or any item). If absent, the UI derives it from `source`. |
+| `hidden` | boolean | Do not draw (preview and export both. "What you see is what is output.") |
+| `locked` | boolean | The UI cannot move it. Drawing is unaffected. |
+| `items` | itemV2[] | Children (§1.1) |
+| `motion` | object | L0 preset motion (sibling contract §1) |
+| `animator` | object[] | L2 animator (sibling contract §4) |
+| `keyframes` | array **or** `{ path, count }` | L1. An inline array (the existing `keyframeV2[]`) or a reference to a `motion/` bag (sibling contract §2 through §3). |
+| `anchor` | `{ caption, range?, offset?, duration? }` | Tie the time to a caption row, or to a partial span of source seconds ([caption-row anchor contract](contract-2026-09-02-item-caption-anchor-v0.md)) |
 
-- 折りたたみ・選択・フォーカス中のスコープは**表示状態**で、edit.json に保存しない
-- `id` は木全体で一意（袋から写した子の id は `<袋 id>.<名札>` を UI が合成する。明示アイテムにした時点でその id が edit.json に書かれる）
+- Collapse, selection, and the in-focus scope are **display state**. They are not saved in edit.json.
+- `id` is unique across the whole tree (the UI composes a projected child's id as `<bag id>.<name tag>`. Once it becomes an explicit item, that id is written into edit.json).
 
-### 1.8 語彙と提示（2026-09-01・オーナー裁定）: 「グループ」は純グループだけを指す
+### 1.8 Vocabulary and presentation (2026-09-01, owner ruling). "Group" means only a pure group
 
-データ模型は §1.2（**純グループ** = 人間が ⌘G で作る）と §1.3（**袋グループ** = 取り込み時にデータ由来でできる）を既に分けている。**UI ではこの 2 つを同じ語で呼ばない。**
+The data model already separates §1.2 (**pure group**, what a person makes with Cmd+G) from §1.3 (**bag group**, what the data produces at import). **The UI does not call these two by the same word.**
 
-| | 純グループ（§1.2） | 袋（§1.3） |
+| | Pure group (§1.2) | Bag (§1.3) |
 |---|---|---|
-| 誰が作るか | 人間が ⌘G で作る | データがそうなっている（勝手にできる） |
-| UI での呼び名 | **「グループ」** | 素材の種類で呼ぶ（「字幕」「オーバーレイ」「SFX」）。**グループとは呼ばない** |
-| 展開トグル | **出す** | **出さない** |
-| ばらす（⌘⇧G） | できる | **できない**（§3.3 で既定済み） |
+| Who makes it | A person, with Cmd+G | The data is already that way (it appears on its own) |
+| Name in the UI | **"Group"** | Call it by the footage kind ("Captions", "Overlay", "SFX"). **Do not call it a group.** |
+| Expand toggle | **Show it** | **Do not show it** |
+| Ungroup (Cmd+Shift+G) | Allowed | **Not allowed** (already fixed in §3.3) |
 
-- **1 トラック = 常に 1 行。** 葉のアイテム（子を持たないもの）は帯の中のチップであって、ヘッダ列の行ではない。ヘッダ列の行になるのは (a) 子を持つ純グループ (b) 展開中の純グループの子 だけ
-- **袋の子へ届く経路は 2 つ**: (a) 帯のチップを直接クリックして選ぶ (b) ダブルクリックでフォーカスモードに入る（§7 の「中に入る」）。袋を段の上で展開する操作は**無い**
-- 畳んだ帯に子の位置を刻みで示すのは従来どおり（どこに何があるかは帯で分かる）
-- 「出す」（§3.1）・「テロップに変換」（§1.5）は**帯のチップに対する操作**として従来どおり使える（行が無くても届く） **追記**: 「テロップに変換」は GUI の操作としては 2026-09-21 に撤去。`kind:"telop"` の器と `baked` の再生は後方互換で残す。
+- **One track is always one row.** A leaf item (one with no children) is a chip inside the bar, not a row in the header column. A header-column row is only (a) a pure group that has children, or (b) a child of a pure group that is expanded.
+- **Two paths reach a bag's child.** (a) Click the chip on the bar directly to select it. (b) Double-click to enter focus mode ("go inside", §7). There is **no** operation that expands a bag on top of a track.
+- Marks on a collapsed bar that show where children sit stay as they are (the bar tells you what is where).
+- "Detach" (§3.1) and "convert to telop" (§1.5) stay usable as **operations on a bar chip** (they are reachable even when there is no row). **Append.** "Convert to telop" was removed as a GUI operation on 2026-09-21. The `kind:"telop"` seat and `baked` playback stay for backward compatibility.
 
-**根拠**: 袋は「データがそうなっている入れ物」で、人間が作ったものでも、ばらせるものでもない。それを UI で「グループ」と呼ぶと「ではばらせるのか」「展開する必要があるのか」という**答えのない問い**が立つ。実案件（SFX 30・字幕 30 行）で葉まで行にした結果ヘッダ列が 71 行に膨らみ、この混同が破綻として顕在化した。
+**Basis.** A bag is a container the data already is. A person did not make it, and it cannot be ungrouped. Calling it a "group" in the UI raises questions that have no answer, such as "can it be ungrouped" and "does it need to expand". On a real job (30 SFX, 30 caption rows) making every leaf a row swelled the header column to 71 rows, and this mix-up showed up as a break.
 
-**変わるのは提示だけ**（§1.3 の「折りたたみは UI の表示状態であってデータではない」は維持。データ形式・直列化・lint は不変）。
+**Only the presentation changes** (§1.3's "collapse is a UI display state, not data" stays. The data format, serialization, and lint are unchanged).
 
-## 2. 段（`tracks[]`）の不変条件
+## 2. Track (`tracks[]`) invariants
 
-| # | 不変条件 | 破ったとき |
+| # | Invariant | When it breaks |
 |---|---|---|
-| 1 | **1 段に 2 つは重ねない** — 同じ段の `items[]` は出力時間 `[at, at+duration)` が互いに重ならない | lint **error**（書き手が守る。edit-store の操作は重なる場所へ置くとき段を生やす）|
-| 2 | **重なるなら段が生える** — 重なる位置へ置く操作は、その段の**上**に新しい段を作って置く（隣を削って詰めない）| edit-store の操作規則（データ変換）|
-| 3 | **空の段は消える** — `items` が空の段は保存時に削除し、番号を下から V1, V2, … と詰め直す（表示名は無名。`name` は任意の注記に過ぎない）| edit-store が保存時に正規化 |
-| 4 | **上の段ほど手前** — `tracks[]` 配列順 = 下から上 = z 順（既存 v2 裁定）。グループ内は `items[]` 順 = z 順で同じ | 描画規則（既存）|
+| 1 | **Two items do not overlap on one track.** `items[]` of the same track do not overlap in output time `[at, at+duration)`. | lint **error** (the writer keeps it. An edit-store operation grows a track when it would place something on an overlap.) |
+| 2 | **An overlap grows a track.** An operation that places something on an overlap creates a new track **above** that track and places it there (it does not trim the neighbor to pack). | An edit-store operation rule (a data transform) |
+| 3 | **An empty track disappears.** A track whose `items` are empty is deleted on save, and numbers are packed from the bottom as V1, V2, and so on (the display name is unnamed. `name` is only an optional note). | edit-store normalizes on save |
+| 4 | **A higher track is in front.** `tracks[]` array order is bottom to top, which is z order (the existing v2 ruling). Inside a group, `items[]` order is z order, the same way. | A draw rule (existing) |
 
-- 段は無名（V1..Vn は表示上の番号）。`lane`（visual / audio）は既存のまま
-- 分離（§3.1）は不変条件 1 の帰結として**必ず新しい段を生やす**（同じ段に重ねられないため）。戻せば（⌘Z）段は消える
-- 音声段も同じ 4 条件に従う（既存の重なり禁止と同じ）
+- Tracks are unnamed (V1 through Vn are display numbers). `lane` (`visual` / `audio`) stays as it is.
+- Detach (§3.1) **always grows a new track**, as a consequence of invariant 1 (it cannot overlap on the same track). Undo (Cmd+Z) removes the track.
+- Audio tracks follow the same 4 conditions (the same as the existing overlap ban).
 
-**総尺の後退規則**: 映像本体（visual レーンの `media` / `telop` / `filter`）の最大終端が 0 より大きい間はその値を総尺の正本とし、その終端が 0 のときだけ、visual レーンの `html` / `group` / `captions` / `caption`（入れ子を含む）と audio レーンの narration / SFX の最大終端から総尺を導出する。BGM は総尺に合わせて切られる素材なので後退対象には含めず、後退対象の最大終端も 0 なら総尺は 0 とする。
+**Total-duration retreat rule.** While the maximum end of the picture body (`media`, `telop`, and `filter` on the visual lane) is greater than 0, that value is the canonical total duration. Only when that end is 0 is the total duration derived from the maximum end of `html`, `group`, `captions`, and `caption` on the visual lane (including nesting) and of narration and SFX on the audio lane. BGM is footage that is cut to the total duration, so it is not a retreat target. If the maximum end of the retreat targets is also 0, the total duration is 0.
 
-### 2-5 追記（2026-08-31・オーナー裁定）: 字幕にも特別な z 規則を置かない
+### 2-5 append (2026-08-31, owner ruling). Captions get no special z rule either
 
-- **字幕（袋グループ・分離した行・テロップ変換後）も z は段どおり**。「字幕は常に一番上」という特別規則は**廃止**する（描画側の `generatedFrom` による無条件最上段寄せも撤去）
-- 取り込み時に字幕袋が最前面の段に乗るのは**既定の置き場**であって規則ではない。ユーザー / AI は字幕の段を自由に前後へ動かせる
-- 狙い: 種別ごとの特別規則を増やさない（§2 の 4 不変条件だけで全種別が説明できる状態を保つ）。プレビュー / osr / gpu / render-cut の 4 出口で同時に切り替え、パリティで担保する
+- **Captions (a bag group, a detached row, and the result after convert-to-telop) also take z from the track.** The special rule "captions are always on top" is **abolished** (the draw side's unconditional push to the top track via `generatedFrom` is removed too).
+- A captions bag landing on the front-most track at import is a **default placement**, not a rule. The user and the AI can move the captions track forward and back freely.
+- Aim. Do not grow a special rule per kind (keep the state where the 4 invariants of §2 explain every kind). Switch preview, osr, gpu, and render-cut, the four exits, at the same time, and hold it with parity.
 
-## 3. 操作の意味論（データ変換として定義。UI のコマンド・キー割り当ては別契約）
+## 3. Operation semantics (defined as data transforms. UI commands and key bindings are another contract)
 
-操作は **出す / まとめる / ばらす** の 3 つ + 切り出し・テロップに変換。**「戻す」は無い**（⌘Z のみ。再グループ化は「まとめる」で足りる）。 **追記**: 「テロップに変換」は GUI の操作としては 2026-09-21 に撤去。`kind:"telop"` の器と `baked` の再生は後方互換で残す。
+The operations are the three **detach, group, and ungroup**, plus extract and convert to telop. **There is no "put back"** (Cmd+Z only. Regrouping is just "group"). **Append.** "Convert to telop" was removed as a GUI operation on 2026-09-21. The `kind:"telop"` seat and `baked` playback stay for backward compatibility.
 
-### 3.1 出す（detach）
+### 3.1 Detach
 
-- 入力: 子アイテム 1 個（写しでも明示でもよい）と、置き先（段 or 別グループ）
-- 変換: (1) 写しなら明示アイテム化（袋の既定値を書き出す）(2) `at` を親相対 → 置き先相対（段なら絶対）に変換。親の `transform` / `opacity` を焼き込む（§3.3 と同じ式）(3) 袋なら袋の `source.exclude` に id を追加 (4) 置き先が段で重なるなら段を生やす（§2-2）
-- 出した部品は 1 個のアイテム = 1 個のグループと同等（再度まとめられる）
+- Input. One child item (a projection or an explicit item) and a destination (a track, or another group).
+- Transform. (1) If it is a projection, make it an explicit item (write out the bag's defaults). (2) Convert `at` from parent-relative to destination-relative (absolute if the destination is a track). Bake in the parent's `transform` and `opacity` (the same formula as §3.3). (3) If it came from a bag, add the id to the bag's `source.exclude`. (4) If the destination is a track and it overlaps, grow a track (§2-2).
+- A detached part is one item, equal to one group (it can be grouped again).
 
-### 3.2 まとめる（group）
+### 3.2 Group
 
-- 入力: 同じ場所（同じ段の上どうし / 同じグループの中どうし）にある複数アイテム。混ざっていたら先に出す（lint / UI が拒む）
-- 変換: 変形を持たない `source.kind: "group"` の親で包む。親の `at` = 最小 `at`、`duration` = 最大 `at+duration` − 最小 `at`。子の `at` は親相対に書き換え。**座標・時間・見え方は不変**（変換前後で描画計画が一致することがテスト）
-- **離れた段のものをまとめたとき**: 新しいグループは**いちばん手前のメンバーがいた段**に置き、他のメンバーはそこまで上がる（メンバー同士の前後は保つ）。間に挟まっていた別の帯（時間が重なるもの）は上がったメンバーの奥に回る = 見え方が変わる。**やるが「○○ の前後が変わりました」を通知し、⌘Z で戻せる**（通知の実装は UI 契約）
-- 入れ子可（グループの中にグループ）。「出した部品 A + 残りの袋」を同時に選んでまとめれば、グループの中にグループになる
+- Input. Several items that sit in the same place (siblings on the same track, or siblings inside the same group). If they are mixed, detach first (lint and the UI refuse).
+- Transform. Wrap them in a parent of `source.kind: "group"` that has no transform. The parent's `at` is the minimum `at`. `duration` is the maximum `at+duration` minus the minimum `at`. A child's `at` is rewritten to be parent-relative. **Coordinates, time, and look are unchanged** (the test is that the draw plan matches before and after the transform).
+- **When items on separate tracks are grouped.** The new group is placed on **the track where the front-most member was**, and the other members rise to there (order among members is kept). Another bar that was sandwiched between them (one whose time overlaps) goes behind the members that rose, so the look changes. **Do it, notify that something's order changed, and Cmd+Z can undo** (the notification implementation is the UI contract).
+- Nesting is allowed (a group inside a group). Selecting "detached part A plus the remaining bag" and grouping them puts a group inside a group.
 
-### 3.3 ばらす（ungroup）
+### 3.3 Ungroup
 
-- 入力: グループ 1 個
-- 変換: 親の `at` / `transform` / `opacity` を各子へ**焼き込み**、子を親の場所（段 or 上位グループ）へ出す。焼き込みの式: `at' = parent.at + child.at`、`transform' = compose(parent.transform, child.transform)`（x / y は親の scale・rotate を適用してから加算、scale は乗算、rotate は加算）、`opacity' = parent.opacity × child.opacity`。親の `keyframes` / `motion` / `animator` は**焼き込めない**（lint error にして拒む。先に「キーフレームに展開」してから）
-- 出た子は各自の段へ（§2-2 により段が生える）。袋グループは**ばらせない**（袋の中の並びは袋が正。写しの子を全部出したいときは 1 個ずつ出す）
+- Input. One group.
+- Transform. **Bake** the parent's `at`, `transform`, and `opacity` into each child, and place the children where the parent was (a track, or a higher group). The bake formula is `at' = parent.at + child.at`, `transform' = compose(parent.transform, child.transform)` (x and y add after the parent's scale and rotate are applied, scale multiplies, rotate adds), and `opacity' = parent.opacity * child.opacity`. The parent's `keyframes`, `motion`, and `animator` **cannot be baked** (make it a lint error and refuse. Expand to keyframes first).
+- The children that come out go to their own tracks (a track grows, by §2-2). A bag group **cannot be ungrouped** (order inside the bag is owned by the bag. To detach every projected child, detach them one by one).
 
-### 3.4 切り出し（§1.6）/ テロップに変換（§1.5）
+### 3.4 Extract (§1.6) and convert to telop (§1.5)
 
-> 追記: 「テロップに変換」は GUI の操作としては 2026-09-21 に撤去。`kind:"telop"` の器と `baked` の再生は後方互換で残す。以下は撤去前の意味論の記録。
+> Append. "Convert to telop" was removed as a GUI operation on 2026-09-21. The `kind:"telop"` seat and `baked` playback stay for backward compatibility. The rest of this section records the semantics from before the removal.
 
-- どちらも一方通行。元ファイルは不変・来歴（`derivedFrom` / `from`）を残す
+- Both are one way. The original file is unchanged, and provenance (`derivedFrom` or `from`) stays.
 
-## 4. 描画 — クローンマスク
+## 4. Drawing. The clone mask
 
-- **部品アイテム 1 つにつき断片全体を 1 回マウント**し、当該 `part` 以外の名札付き要素を `visibility: hidden` にする（`display: none` ではない — レイアウトと CSS の継承を壊さない）。各マウントが自分の時計（アイテム相対時間）・変形・z を持つ
-- 袋グループの写しの子（触っていない部品）は、時間・位置が袋と揃っている限り**1 マウントにまとめる**（エンジン側の最適化。データは不変）。`exclude` の部品は `visibility: hidden`
-- `source.style` は部品ルート要素の inline style として適用、`source.text` は部品ルートの textContent を差し替える（子要素を持つ部品に `text` を指定したら lint warning・描画は最初のテキストノードだけ差し替え）
-- 部品内の CSS / GSAP アニメ（L3）は部品アイテムの時計で seek する（既存の HTML seek 規約のまま）
-- **プレビュー / osr / gpu の 3 出口で同じ規則**（`contract-2026-08-02-preview-parity.md`）。「見えるもの = 出力されるもの」
-- コスト: 分離した部品の数だけマウントが増える（典型 2〜5 個・現行の overlays 数と同程度）
-- 名札の走査は描画側（overlay-runtime / frame-engine の HTML 層）が行う。**edit.json の読み込み層は HTML を読まない**
+- **Mount the whole fragment once per part item**, and set `visibility: hidden` on name-tagged elements other than that `part` (not `display: none`, so layout and CSS inheritance stay intact). Each mount has its own clock (item-relative time), transform, and z.
+- Projected children of a bag group (untouched parts) are **combined into one mount** as long as their time and position line up with the bag (an engine-side optimization. The data is unchanged). An `exclude` part is `visibility: hidden`.
+- `source.style` is applied as inline style on the part root element. `source.text` replaces the part root's textContent (if `text` is set on a part that has child elements, lint warns, and the draw replaces only the first text node).
+- CSS or GSAP animation inside a part (L3) seeks on the part item's clock (the existing HTML seek rule, unchanged).
+- **The same rule on the three exits, preview, osr, and gpu** (`contract-2026-08-02-preview-parity.md`). "What you see is what is output."
+- Cost. Mounts grow by the number of detached parts (typically 2 to 5, about the same as the current overlay count).
+- Walking name tags is done by the draw side (the HTML layer of overlay-runtime and frame-engine). **The edit.json load layer does not read HTML.**
 
-## 5. 保存形式と読み書き規約
+## 5. Save format and read and write rules
 
-### 5.1 正規直列化（canonical serializer）— edit-store が所有
+### 5.1 Canonical serialization. edit-store owns it
 
-人間が JSON を触らないので「手書きの整形を保つテキスト手術」は不要になる。**edit-store が唯一の直列化器**を持ち、保存のたびに次の形へ正規化する。edit.json / captions.json / motion/*.json すべて同じ規則。
+A person does not touch the JSON, so "text surgery that keeps hand-written formatting" is no longer needed. **edit-store is the only serializer**, and every save normalizes to the following shape. edit.json, captions.json, and motion/*.json all use the same rule.
 
-- **1 レコード 1 行**: アイテム・字幕行・キーフレームは 1 行。配列とオブジェクトの**外枠だけ縦**に開く
-- グループ（子を持つアイテム）は「自分のフィールドを 1 行 + `"items": [` + 子を 1 行ずつ（インデント +2）+ `]}`」。**レコード = アイテム自身のフィールド**。各行は `"id"` で始まる
-- inline の `keyframes`（≤ 8 点）はアイテムの行に含める。それ以上は袋（姉妹契約 §2-3）に出すので行は長くならない
-- キー順（固定）: `id, name, at, duration, hidden, locked, transform, opacity, blend, crop, perspective, motion, animator, keyframes, source, items`。`source` 内は `kind` 先頭・残りは宣言順。トップレベルは `version, output, sources, audio, tracks, …`（未知キーは末尾に保持 — tolerant reader）
-- インデント 2 スペース・行内区切りは `, ` と `: `・Unicode は escape しない・末尾改行 1 つ・数値は JS 既定表記
+- **One record, one line.** An item, a caption row, and a keyframe are one line. Only the **outer frame** of an array or an object opens vertically.
+- A group (an item that has children) is "its own fields on one line, plus `"items": [`, plus each child on one line (indent plus 2), plus `]}"`. **A record is the item's own fields.** Each line starts with `"id"`.
+- Inline `keyframes` (8 points or fewer) stay on the item's line. More than that goes to a bag (sibling contract §2-3), so the line does not grow long.
+- Key order (fixed): `id, name, at, duration, hidden, locked, transform, opacity, blend, crop, perspective, motion, animator, keyframes, source, items`. Inside `source`, `kind` is first and the rest follow declaration order. The top level is `version, output, sources, audio, tracks, ...` (an unknown key is kept at the end, tolerant reader).
+- Indent is 2 spaces. In-line separators are `, ` and `: `. Unicode is not escaped. One trailing newline. Numbers use the JS default notation.
 
 ```jsonc
 {
@@ -230,7 +230,7 @@ updated: 2026-08-30
       { "id": "c2", "at": 195, "duration": 210, "source": { "kind": "media", "src": "main", "in": 40, "out": 47 } }
     ] },
     { "id": "v2", "lane": "visual", "items": [
-      { "id": "s01", "name": "オープニング", "at": 0, "duration": 120, "source": { "kind": "html", "path": "overlays/s01.html", "exclude": ["C"] }, "items": [
+      { "id": "s01", "name": "Opening", "at": 0, "duration": 120, "source": { "kind": "html", "path": "overlays/s01.html", "exclude": ["C"] }, "items": [
         { "id": "s01.B", "at": 6, "duration": 114, "transform": { "y": -40 }, "source": { "kind": "html", "path": "overlays/s01.html", "part": "B" } }
       ] }
     ] },
@@ -238,99 +238,98 @@ updated: 2026-08-30
       { "id": "s01.C", "at": 30, "duration": 60, "keyframes": { "path": "motion/s01.json", "count": 14 }, "source": { "kind": "html", "path": "overlays/s01.html", "part": "C" } }
     ] },
     { "id": "v4", "lane": "visual", "items": [
-      { "id": "captions", "name": "字幕", "at": 0, "duration": 405, "source": { "kind": "captions", "path": "captions.json", "exclude": [] }, "items": [] }
+      { "id": "captions", "name": "Captions", "at": 0, "duration": 405, "source": { "kind": "captions", "path": "captions.json", "exclude": [] }, "items": [] }
     ] }
   ]
 }
 ```
 
-- 保存 = **lint ゲート（write-gate）通過時のみ**実ファイルへ（既存）。edit.json・captions.json・motion/*.json は 1 回の保存でまとめて原子的に書く（captions.json で既に同方式）
-- 1 レコード 1 行化は**書式の変更だけ**（意味不変）。既存プロジェクトは次の保存で正規形になる（差分が大きく出るのは 1 回だけ）
+- A save writes the real file **only when the lint gate (write-gate) passes** (existing). edit.json, captions.json, and motion/*.json are written atomically together in one save (captions.json already works this way).
+- One record per line is **a format change only** (meaning unchanged). An existing project becomes canonical on the next save (a large diff happens only once).
 
-#### 5.1 追記（2026-08-30・実装タスク A2 の逸脱報告を受けて）
+#### 5.1 append (2026-08-30, after the implementation task A2 deviation report)
 
-- 例に無いトップレベル（`audio` / `captions` / `thumbnail` 等）の直列化規則: **値のどれかが空でない配列であるオブジェクトは外枠を縦に開き、中身へ同じ規則を再帰適用する。そうでないオブジェクトは 1 行**。
-  `output` は 1 行のまま（例どおり）。決定論・冪等はテストで固定する
-- 「触ったファイル」= 正規直列化後のバイトが元ファイルと異なるファイル。正規形のプロジェクトを無編集で `save()` すると何も書かない（lint も走らない）。非正規形は無編集でも正規形に書き換わる（「次の保存で正規形になる」の実装）
-- 空の段の削除（§2-3）により後続トラックの `orderIndex` は詰まる。これは正規化の帰結で、ffmpeg コマンド列が一致すれば「意味不変」
+- Serialization rule for a top-level key that is not in the example (`audio`, `captions`, `thumbnail`, and similar). **An object whose value includes a non-empty array opens its outer frame vertically, and the same rule applies recursively to the inside. Any other object is one line.** `output` stays one line (as in the example). Determinism and idempotence are fixed by tests.
+- "A file that was touched" is a file whose bytes after canonical serialization differ from the original file. `save()` on a canonical project with no edits writes nothing (lint does not run either). A non-canonical form is rewritten to canonical even with no edits (the implementation of "the next save becomes canonical").
+- Deleting an empty track (§2-3) packs the following tracks' `orderIndex`. That is a consequence of normalization. If the ffmpeg command sequence matches, the meaning is unchanged.
 
-### 5.2 AI の読み方（スキル規約 — SKILL.md へ反映する）
+### 5.2 How the AI reads (a skill rule, to be reflected in SKILL.md)
 
-1. **edit.json / captions.json / motion/*.json を全文 Read しない**。`grep -n '"id": "<id>"'` → 該当行だけ Read → Edit。木の構造を見たいときは `grep -n '"kind": "group"\|"items": \['` のように外枠だけ読む
-2. 書き込みは (a) edit-store のスクリプト API（§6）経由、または (b) 該当行の直接 Edit + 保存時 lint（write-gate 相当を CLI で通す）。**どちらでも lint ゲートは必ず通る**
-3. 一括操作（「1:00 以降の字幕を 0.5 秒ずらす」等）は**AI がスクリプトを書く**（§6 の API を import）。前もって一括コマンドを用意しない
-4. 動きを書くときは L0 プリセット / L2 アニメーターを既定にする（数個の値で済む）。L1 の手打ちキーフレームは主に人間がフォーカスモードで作る
-5. **観察・手術のための CLI コマンド（`akari edit tree` / `move` / `group` …）は作らない**（オーナー裁定 2026-08-30。ファイルが API）
+1. **Do not Read the whole of edit.json, captions.json, or motion/*.json.** `grep -n '"id": "<id>"'`, then Read only that line, then Edit. To see the tree structure, read only the outer frame, as in `grep -n '"kind": "group"\|"items": \['`.
+2. A write goes (a) through the edit-store script API (§6), or (b) a direct Edit of that line plus lint on save (pass the write-gate equivalent on the CLI). **Either way the lint gate always runs.**
+3. A bulk operation ("shift captions after 1:00 by 0.5 seconds", and similar) is **a script the AI writes** (import the §6 API). Do not prepare a bulk command ahead of time.
+4. When writing motion, default to an L0 preset or an L2 animator (a few values are enough). Hand-authored L1 keyframes are mainly what a person makes in focus mode.
+5. **Do not build observation or surgery CLI commands (`akari edit tree`, `move`, `group`, and so on)** (owner ruling 2026-08-30. The file is the API).
 
-## 6. edit-store のスクリプト API（実装タスク A2 の仕様）
+## 6. edit-store script API (the spec of implementation task A2)
 
-`@akari-video/edit-store`（現行 8,044 行・テキスト手術 + lint ゲート）を **AI のスクリプトが import する公開 API** に作り直す。
+Rebuild `@akari-video/edit-store` (currently 8,044 lines, text surgery plus the lint gate) into **a public API that an AI script imports.**
 
 ```ts
 import { openProject } from '@akari-video/edit-store';
 const p = await openProject('/path/to/project');
-p.edit.tracks;                          // 型付き（スキーマから生成した TS 型）
+p.edit.tracks;                          // typed (TS types generated from the schema)
 p.captions.rows;                        // captions.json
-const m = await p.motion('s01');        // motion/s01.json（無ければ空の袋）
-// 直す（普通のオブジェクト操作。id で引く。index 指定は廃止）
+const m = await p.motion('s01');        // motion/s01.json (an empty bag if absent)
+// Fix it (ordinary object operations. Look up by id. Index arguments are abolished).
 const item = p.edit.find('s01.B');
 item.at += 15;
 for (const row of p.captions.rows) if (row.start >= 60) { row.start += 0.5; row.end += 0.5; }
-// 木の操作（不変条件つき: 段が生える・焼き込み）
+// Tree operations (with invariants: a track grows, values are baked)
 p.edit.detach('s01.C', { track: 'above' });
-p.edit.group(['s01', 's01.C'], { name: 'フック' });
+p.edit.group(['s01', 's01.C'], { name: 'Hook' });
 p.edit.ungroup('g-hook');
-await p.save();                         // 正規直列化 → lint ゲート → 原子的書き込み（3 ファイルまとめて）
+await p.save();                         // canonical serialization, then the lint gate, then an atomic write (the 3 files together)
 ```
 
-- 入口は `openProject(dir)` の 1 つ。`save()` が §5.1 の正規直列化・§2 の正規化（空の段の削除・番号詰め）・lint ゲートを担う
-- **id 指定に統一**（v2 は全アイテムに id）。cut / layer の index 指定は廃止
-- README（`packages/edit-store/README.md`）+ スクリプト例 2 本（`examples/shift-captions-after.mjs` = 1:00 以降の字幕を 0.5 秒ずらす / `examples/speed-up-group.mjs` = グループの子の尺を半分に）。SKILL.md はこれを参照する
-- shell / preview-server も同じ API に乗り換える（テキスト手術は段階的に退役。退役完了までは両方が同じ正規形を出す）
+- The only entry is `openProject(dir)`. `save()` owns the §5.1 canonical serialization, the §2 normalization (delete empty tracks, pack numbers), and the lint gate.
+- **Unify on id arguments** (v2 gives every item an id). Index arguments for a cut or a layer are abolished.
+- A README (`packages/edit-store/README.md`) plus two script examples (`examples/shift-captions-after.mjs`, shift captions after 1:00 by 0.5 seconds, and `examples/speed-up-group.mjs`, halve the duration of a group's children). SKILL.md refers to these.
+- The shell and preview-server move onto the same API (text surgery is retired in stages. Until retirement is complete, both emit the same canonical form).
 
-## 7. lint（保存時ゲートに足す不変条件）
+## 7. Lint (invariants added to the save-time gate)
 
-| check | severity | 条件 |
+| check | severity | Condition |
 |---|---|---|
-| `v2.id-unique` | error | 木全体で id 一意（既存を再帰に拡張）|
-| `v2.child-in-parent` | error | 子の `[at, at+duration)` が親の `[0, duration)` に収まる |
-| `v2.track-no-overlap` | error | 同一段の items が時間で重ならない（既存 → 明文化）|
-| `v2.group-bake-blocked` | error | `keyframes` / `motion` / `animator` を持つグループを ungroup しようとした（edit-store の操作時）|
-| `v2.part-ref` | warning | `source.part` / `source.exclude` の id が袋に存在するか（**文字列レベル**: HTML は `data-akari-part="…"` の grep、captions は行 id）|
-| `v2.captions-content-deprecated` | warning | 旧形 `tracks[].content` を使っている |
-| `v2.caption-overlap` | warning | 分離した字幕行と袋の写しが同時刻に重なる |
-| `v2.keyframes-ref` | error | `keyframes: { path, count }` の袋が無い / `count` が実数と違う |
-| `v2.empty-track` | info | 空の段（保存時に自動削除される旨）|
-| `engine.unsupported-field` | error | 選択した GPU / OSR 出口が `ignored` とするフィールドを item が宣言している |
-| `engine.partial-field` | warning | 選択した出口でフィールドが近似・部分対応（`partial`）になる |
-| `engine.capability-unknown` | warning | 正準キーに対応する `path` / `applies_to` がエンジン適合性表に無い |
+| `v2.id-unique` | error | id is unique across the whole tree (extend the existing check to recursion) |
+| `v2.child-in-parent` | error | A child's `[at, at+duration)` fits in the parent's `[0, duration)` |
+| `v2.track-no-overlap` | error | items on the same track do not overlap in time (existing, now written down) |
+| `v2.group-bake-blocked` | error | An ungroup was attempted on a group that has `keyframes`, `motion`, or `animator` (at edit-store operation time) |
+| `v2.part-ref` | warning | Whether an id in `source.part` or `source.exclude` exists in the bag (**string level.** HTML is a grep of `data-akari-part="..."`. Captions are row ids.) |
+| `v2.captions-content-deprecated` | warning | The old shape `tracks[].content` is in use |
+| `v2.caption-overlap` | warning | A detached caption row and a bag projection overlap at the same time |
+| `v2.keyframes-ref` | error | The bag for `keyframes: { path, count }` is missing, or `count` differs from the real count |
+| `v2.empty-track` | info | An empty track (it says it will be deleted automatically on save) |
+| `engine.unsupported-field` | error | The item declares a field that the selected GPU or OSR exit treats as `ignored` |
+| `engine.partial-field` | warning | On the selected exit the field is approximate or partial (`partial`) |
+| `engine.capability-unknown` | warning | The engine conformance table has no `path` or `applies_to` for a canonical key |
 
-## 8. 版管理・移行
+## 8. Versioning and migration
 
-- **`version: 2` 据え置き**。§1 の追加は全部任意フィールド（版管理契約 原則 1）。既存の v2 プロジェクトは 1 ビットも変わらず読める（実装タスクの受け入れ条件）
-- deprecated: `tracks[].content`（§1.5）。`akari migrate` が袋グループ形へ正規化する（意味不変・描画計画一致がテスト）
-- 1 レコード 1 行化は書式のみ。migrate は不要（次の保存で正規形）
-- v0 / v1 は本契約の対象外（既存の migrate で v2 に上げてから）
+- **`version: 2` stays.** Every addition in §1 is an optional field (versioning contract, principle 1). An existing v2 project reads with not one bit changed (an acceptance condition of the implementation task).
+- Deprecated: `tracks[].content` (§1.5). `akari migrate` normalizes it to the bag-group shape (meaning unchanged, and the draw plan matches, which is the test).
+- One record per line is format only. migrate is not required (the next save is canonical).
+- v0 and v1 are outside this contract (raise them to v2 with the existing migrate first).
 
-## 9. 実装段取り（タスク列・依存）
+## 9. Implementation sequence (task list and dependencies)
 
-| # | タスク | 内容 | 依存 |
+| # | Task | Contents | Depends on |
 |---|---|---|---|
-| A1 | `v2-object-tree-schema` | スキーマ追加（§1）・読み込み層の再帰（親相対 → 絶対）・lint（§7）・fixtures。**HTML は読まない・描画は触らない** | 本契約 |
-| A2 | `edit-store-script-api` | §6 の API・正規直列化（§5.1）・段の正規化（§2）・木の操作 3 つ（§3）・README + 例 | A1 |
-| A3 | `object-tree-render` | クローンマスク（§4）を 3 出口（preview / osr / gpu）に・名札の走査・`style` / `text` | A1 |
-| A4 | `object-tree-write-and-migrate` | shell / preview-server / スキルの書き込みを A2 の API へ・`content` → 袋グループの migrate・1 レコード 1 行での保存 | A2, A3 |
-| D | タイムライン木行 | 折りたたみ / D&D 再親化 / ⌘G ⌘⇧G / 段の自動生成・消滅（UI 契約） | A2 |
-| F | 字幕 = 袋グループ（UI） | 専用段の廃止・畳んだ帯の刻み表示・行を出す / テロップに変換。**追記**: 「テロップに変換」は GUI の操作としては 2026-09-21 に撤去。`kind:"telop"` の器と `baked` の再生は後方互換で残す | D, A3 |
-| H | フォーカスモード | 姉妹契約 §7 | D + 姉妹契約 |
-| I | SKILL.md 読み方規約 | §5.2 を edit-plan / address-review / analyze-project へ | A2 |
+| A1 | `v2-object-tree-schema` | Schema additions (§1), load-layer recursion (parent-relative to absolute), lint (§7), fixtures. **Do not read HTML. Do not touch drawing.** | This contract |
+| A2 | `edit-store-script-api` | The §6 API, canonical serialization (§5.1), track normalization (§2), the three tree operations (§3), README and examples | A1 |
+| A3 | `object-tree-render` | The clone mask (§4) on the three exits (preview, osr, gpu), walking name tags, `style` and `text` | A1 |
+| A4 | `object-tree-write-and-migrate` | Point shell, preview-server, and skill writes at the A2 API, migrate `content` to a bag group, and save as one record per line | A2, A3 |
+| D | Timeline tree rows | Collapse, drag-and-drop reparent, Cmd+G and Cmd+Shift+G, automatic create and destroy of tracks (the UI contract) | A2 |
+| F | Captions as a bag group (UI) | Abolish the dedicated track, tick marks on a collapsed bar, detach a row, convert to telop. **Append.** "Convert to telop" was removed as a GUI operation on 2026-09-21. The `kind:"telop"` seat and `baked` playback stay for backward compatibility. | D, A3 |
+| H | Focus mode | Sibling contract §7 | D plus the sibling contract |
+| I | SKILL.md read rules | Put §5.2 into edit-plan, address-review, and analyze-project | A2 |
 
-- 各段で**既存プロジェクト（fieldtest の v2 実案件）の描画計画・出力バイトが等価**であることを回帰で担保する（08-18 の 5 段と同じ物差し）
+- At each stage, a regression holds that **the draw plan and the output bytes of an existing project (a real v2 job from fieldtest) are equivalent** (the same yardstick as the Aug 18 five stages).
 
-## 10. 非スコープ / 後回し
+## 10. Out of scope, or later
 
-- タイムラインの帯の canvas 化（D の後に描画側の性能を測ってから別票。オーナー裁定 2026-08-30）
-- 3D（glTF ノード名）/ Lottie（レイヤー名）/ 音を袋グループに入れること（語彙予約のみ）
-- 観察・手術の CLI コマンド（作らない。§5.2-5）
-- 種類ごとに違うグループ（sequence / scene 等）— 「段」と「グループ」の 2 つだけ
-- 文字ごとのキーフレーム（姉妹契約 §8）
+- Making the timeline bar a canvas (a separate ticket, after measuring draw-side performance following D. Owner ruling 2026-08-30).
+- Putting 3D (glTF node name), Lottie (layer name), or audio into a bag group (vocabulary reserved only).
+- Observation or surgery CLI commands (do not build them. §5.2 item 5).
+- A different group per kind (sequence, scene, and similar). Only the two words "track" and "group".
+- Per-character keyframes (sibling contract §8).

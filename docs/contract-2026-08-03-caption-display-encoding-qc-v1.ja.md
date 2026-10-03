@@ -1,4 +1,4 @@
-**English** | [Japanese](./contract-2026-08-03-caption-display-encoding-qc-v1.ja.md)
+[English](./contract-2026-08-03-caption-display-encoding-qc-v1.md) | **日本語**
 
 # caption display / encoding / audio QC v1 contract
 
@@ -25,7 +25,7 @@ resolved zero display cues, while gpu-export and osr-export never consulted `dis
 and re-split captions through the legacy overlay generator. A consumer that calls the kernel
 directly, or rebuilds any of those front-half steps, is a deviation.
 
-**Known remaining deviation in the shell backend.** `AkariPreviewService.resolveCaptionDisplay`
+**Known remaining deviation — the shell backend.** `AkariPreviewService.resolveCaptionDisplay`
 (`apps/shell/extensions/akari-preview/src/node/akari-preview-service.ts`) still calls the kernel
 directly and rebuilds the front half on its own: its own preset resolution, its own cut
 normalization (`captionCompatibleCuts`, computed in frames off `internal.tracks` rather than the
@@ -163,21 +163,21 @@ keep a content-addressed artifact and receipt when structurally possible, leave 
 
 The `filter_report.normalized.output_tp` loudnorm reports for the PCM stage is not the artifact's
 real true peak: the AAC re-encode that follows can measurably overshoot it (a real render measured
-`filter_report` at -1.00 dBTP against a decoded artifact at +0.23 dBFS, about +1.2 dB of
+`filter_report` at -1.00 dBTP against a decoded artifact at +0.23 dBFS — about +1.2 dB of
 codec-introduced overshoot; `planning/notes-2026-08-17-mac-fresh-install-bug-reports.md` #05). Two
-additive mitigations apply to explicit `true_peak_dbtp` in `audio.master`. The -1.5
+additive mitigations apply to explicit `true_peak_dbtp` in `audio.master` — the -1.5
 dBTP default is unchanged and unmargined:
 
 - **Applied margin.** Only when the output audio codec is AAC (h264 / hevc),
   `packages/render-cut/src/plan.mjs` hands loudnorm `configured -
   AAC_TRUE_PEAK_OVERSHOOT_MARGIN_DBTP` (1.5 dB, `packages/render-cut/src/audio-qc.mjs`) instead of
-  the raw configured value. The margin applies so the decoded artifact, after AAC
-  re-encode, has a better chance of landing under what the caller asked for. The receipt records both under an additive
+  the raw configured value, so the *decoded* artifact — not just the PCM stage — has a better chance
+  of landing under what the caller asked for. The receipt records both under an additive
   `audio_qc.true_peak_margin: { overshoot_margin_dbtp, applied_true_peak_dbtp, reason: "aac_reencode_overshoot", audio_codec: "aac" }` field;
   `audio_qc.configured.true_peak_dbtp` is unchanged and still reports the caller's original value.
   PCM output (prores422 / png → `pcm_s16le`) passes the configured target directly to loudnorm
   and has no `audio_qc.true_peak_margin` field (#122, 2026-09-28).
-  The margin is a fixed mitigation, not a guarantee. Real-render testing found synthetic
+  The margin is a fixed mitigation, not a guarantee — real-render testing found synthetic
   high-transient material where even the margined target still decodes above 0 dBFS (this is what
   the next mitigation exists to catch).
 - **Overshoot detection.** When `decoded_measurement.normalized.input_tp` exceeds
@@ -204,6 +204,6 @@ Executable specifications live in the edit-store, schemas, edit-lint, render-cut
 shell preview, and launcher test suites. The external A4 verifier accepts an explicitly supplied
 project root and independent manifest; absence of the frozen local fixture is a skip, not a pass.
 
-## Wrap width of placed text (added 2026-09-25)
+## 置いた文字の折り返し幅（2026-09-25 追記）
 
-`captions[].text_style.wrap_width_pct` is the wrap width of the glyphs as a percent of the output frame width. It is greater than 0 and at most 100. When it is omitted, the previous width is used. Dragging the left or right edge changes only this value. It does not change `scale` or `size_px`. `max_width_pct` is the plate width. `max_characters` breaks the line by character count. Both are independent of this value. Preview today applies it to placed text (`time_domain: output`). Until export handles it, the preview width and the export width differ.
+`captions[].text_style.wrap_width_pct` は出力画面幅に対する文字の折り返し幅（0 より大きく 100 以下）を表す。省略時は従来の幅を使う。左右の辺の操作はこの値だけを変更し、`scale` と `size_px` を変更しない。`max_width_pct` は座布団の幅、`max_characters` は文字数による改行であり、この値とは独立する。現在のプレビューは置いた文字（`time_domain: output`）に適用する。書き出し側の対応が入るまではプレビューと書き出しの幅が異なる。
