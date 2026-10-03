@@ -1,109 +1,95 @@
-# エンジン v2 残課題
+**English** | [Japanese](./notes-2026-08-28-engine-v2-open-items.ja.md)
 
-更新日: 2026-08-28
+# Open items for engine v2
 
-## 1. 位置づけ
+Updated: 2026-08-28
 
-エンジン v2 のゴールデンフレーム検収へ統合した後も残る、公開可能な技術課題の一覧である。
-現在の合否条件を弱めるための例外一覧ではない。各項目は独立して完了条件を満たし、契約と検収を
-同時に更新して閉じる。
+## 1. Where this list sits
 
-## 2. 実機・プラットフォーム
+This is the list of technical items that remain public after engine v2 was folded into golden-frame acceptance. It is not a list of exceptions that weaken the current pass rule. Each item closes on its own. It meets its own completion condition, and the contract and the acceptance check are updated in the same change.
 
-### #14 Windows 実機 OSR
+## 2. Machines and platforms
 
-- Windows 実機で OSR の連番捕捉、エンコード、音声 mux、最終照合を通す。
-- ソフト描画は 2 走の全コマ SHA-256 一致、GPU は同一マシン 2 走の一致率を診断値として記録する。
-- 別マシン間の GPU byte-exact は要求しない。Windows で OSR を既定にできることを実機結果で裁定する。
+### #14 OSR on a Windows machine
 
-### Theia 実ブート `--render`
+- On a Windows machine, run OSR through sequential capture, encode, audio mux, and the final compare.
+- For software rendering, two runs match on SHA-256 for every frame. For the GPU, record the match rate of two runs on the same machine as a diagnostic value.
+- Do not require a GPU result that is byte-exact across different machines. Use the on-device result to decide whether OSR can be the default on Windows.
 
-- パッケージ化した Theia / Electron から `--render` を起動し、OSR のストレージ、終了コード、成果物の
-  引き渡しまでを実ブートで検証する。
-- 開発時の直接起動だけを合格根拠にしない。
+### A real Theia boot of `--render`
 
-### ソフト描画の前提と検証環境の両立
+- Start `--render` from packaged Theia and Electron. On that real boot, check OSR storage, the exit code, and handoff of the artifacts.
+- A direct launch during development is not enough to call the item a pass.
 
-- 2026-08-28 の実測により、失敗は macOS 固有の条件やデコード実装側の回帰ではなく、worktree ごとの
-  Electron 同梱 `libffmpeg.dylib` の差に起因すると確定した。`apps/shell` の `npm run build` は
-  `@theia/ffmpeg` 経由で非プロプライエタリ版へ差し替える既知の副作用がある。
-- 差し替え版は 1,203,568 B で `H264 Decoder` 文字列がなく、SwiftShader / `AKARI_OSR_SOFT=1` では
-  `VideoDecoder.configure()` が全指定で失敗する。GPU 描画は VideoToolbox を使うため影響しない。
-  `VideoDecoder.isConfigSupported()` は差し替え版でも `prefer-software` に `true` を返すため、判定には
-  使用しない。
-- 検証 / CI 環境では、`libffmpeg.dylib` に `H264 Decoder` 文字列がある stock 版
-  （2,160,944 B・SHA-256 `5651a2ba1e9d2a57a9dc684729bff4cfb9460ed8be64aed74e8025ba8c12de9f`）
-  であることを機械判定し、差し替え版を検出したら原因と復旧方法を示して fail-closed にする。
-- 詳細は [OSR 書き出し契約](./contract-2026-08-28-osr-export-v0.md) §11.3「ソフト描画の前提」を参照する
-  （本ブランチにはまだ §11.3 がなく、公開 main の合流後に同ファイルへ現れる）。
-- 検証専用 worktree では `apps/shell` を build しない。build した場合は stock 版へ戻し、shell build 済みの
-  ツリーをソフト描画の検収に使わない。CI は `npm ci` 直後の stock 版で検収を実行する。
+### Software-render assumptions, and a verification environment that can hold them
 
-## 3. デコード・決定論・性能
+- A measurement on 2026-08-28 fixed the cause. The failure is not a macOS-only condition, and it is not a regression on the decoder side. It comes from a per-worktree difference in the Electron-bundled `libffmpeg.dylib`. `npm run build` in `apps/shell` has a known side effect. It replaces that library with the non-proprietary build through `@theia/ffmpeg`.
+- The replacement is 1,203,568 bytes and does not contain the string `H264 Decoder`. Under SwiftShader, or with `AKARI_OSR_SOFT=1`, `VideoDecoder.configure()` fails for every requested config. GPU rendering uses VideoToolbox, so the replacement does not affect it. `VideoDecoder.isConfigSupported()` still returns `true` for `prefer-software` on the replacement, so do not use that call as the check.
+- In verification and in CI, decide by machine that `libffmpeg.dylib` is the stock build. The stock build contains the string `H264 Decoder`, is 2,160,944 bytes, and has SHA-256 `5651a2ba1e9d2a57a9dc684729bff4cfb9460ed8be64aed74e8025ba8c12de9f`. If the check finds the replacement, name the cause and how to restore the stock build, then fail closed.
+- Detail is in section 11.3, "Software-render assumptions", of the [OSR export contract](./contract-2026-08-28-osr-export-v0.md). This branch does not have section 11.3 yet. The section appears in that file after it merges to public main.
+- Do not build `apps/shell` in a worktree used only for verification. If you did build it, put the stock build back. Do not use a tree whose shell has already been built when you accept software rendering. CI runs acceptance on the stock build from immediately after `npm ci`.
 
-### #16 非連番 seek と決定論
+## 3. Decode, determinism, and performance
 
-- 非連番 seek、チャンク分割、並列化を導入しても完成画が履歴に依存しない方式を定める。
-- 候補は先頭または同期点からの warm-up 履歴固定と、完成画に対する独立ゴールデン検収。
-- 連番 2 走の byte-exact 条件を暗黙に非連番へ拡張しない。
+### #16 Non-sequential seek and determinism
 
-### #70 WebCodecs デコード先読み
+- Define a method whose finished picture does not depend on history, even after non-sequential seek, chunk splits, and parallel work are added.
+- The candidates are a fixed warm-up history from the start or from a sync point, and an independent golden acceptance of the finished picture.
+- Do not silently extend the byte-exact rule from two sequential runs to the non-sequential case.
 
-- GOP 距離に応じた warm-up と lookahead の上限、cache 破棄規則、長尺時のメモリ上限を決める。
-- 現在の基準値 `test:seek requestCount = 94`、`bFrame.rows = 720`、
-  `performance.lookahead.hits = 8` を回帰基準として保つ。
+### #70 WebCodecs decode read-ahead
 
-### #70 stdin バックプレッシャ
+- Set the warm-up and lookahead caps for a given GOP distance, the cache discard rule, and the memory cap on a long duration.
+- Keep the current baselines as the regression baselines. They are `test:seek requestCount = 94`, `bFrame.rows = 720`, and `performance.lookahead.hits = 8`.
 
-- raw BGRA を encoder stdin へ渡す際に、`write()` の戻り値と `drain` を尊重する。
-- producer の無制限先行、pipe 終了前の成功扱い、末尾フレーム欠落を失敗として検出する。
+### #70 Backpressure on stdin
 
-### GPU→CPU 往復の解消
+- When raw BGRA is passed to the encoder on stdin, honor the return value of `write()` and honor `drain`.
+- Treat these as failures. The producer runs ahead with no limit. The run is treated as a success before the pipe ends. Frames at the end are missing.
 
-- GPU 合成結果を CPU の raw BGRA へ readback してから再び encoder へ渡す往復をなくす。
-- 将来の WebCodecs `VideoEncoder` で GPU surface を直接扱える経路を調査し、色空間、timestamp、
-  B フレーム、音声 mux、決定論の検収を別々に定める。
+### Remove the GPU-to-CPU round trip
 
-## 4. OSR の隔離と検収精度
+- Stop reading a GPU composite back to raw BGRA on the CPU and then handing that buffer to the encoder again.
+- Look for a future WebCodecs `VideoEncoder` path that takes a GPU surface directly. Set acceptance separately for color space, timestamps, B frames, audio mux, and determinism.
 
-### OSR Electron のストレージ隔離
+## 4. OSR isolation and how exact acceptance is
 
-- 同時実行する OSR ごとに user data / origin / OPFS を隔離し、fixture や中間状態の衝突を防ぐ。
-- 二つの render を並行実行し、互いの frame、manifest、終了処理へ干渉しないことを検収する。
+### Isolate storage for each OSR Electron
 
-### verify の 1 コマ遅れ撤廃
+- Give each OSR that runs at the same time its own user data, origin, and OPFS, so fixtures and intermediate state do not collide.
+- Run two renders in parallel. Accept the setup only when they do not touch each other's frames, manifest, or shutdown.
 
-- 捕捉要求時刻、DOM commit、GPU raster 完了、raw BGRA 取得の境界を同じ frame number へ揃える。
-- matte 同期の現行基準 `300` コマ・mismatches `0` を維持し、補正のための暗黙 `+1 frame` をなくす。
+### Remove the one-frame lag in verify
 
-### render-cut verify の ±3 を OSR で ±0 へ
+- Line up the capture-request time, the DOM commit, the end of GPU raster, and the raw BGRA read on the same frame number.
+- Keep the current matte-sync baseline of `300` frames and `0` mismatches. Remove the implicit `+1 frame` that was used as a correction.
 
-- legacy 由来のフレーム許容幅 ±3 を OSR 出口には持ち込まない。
-- OSR は要求 frame number と捕捉 frame number の一致を ±0 で判定し、不一致を失敗にする。
+### Move render-cut verify from plus or minus 3 to plus or minus 0 on OSR
 
-## 5. 表現と音声の別票
+- Do not carry the legacy frame tolerance of plus or minus 3 into the OSR exit.
+- OSR passes only when the requested frame number and the captured frame number match at plus or minus 0. A mismatch is a failure.
 
-### screen FX 3 種の決定論的カーネル化
+## 5. Separate tickets for picture treatment and for audio
 
-- `noise` / `particles` / `flare` を同じ時刻・seed・色空間から評価できるようにする。
-- 3 種それぞれに固定時刻の positive 点と 1 px 改変の negative 点を追加してから近似を解消する。
+### Turn the three screen effects into deterministic kernels
 
-### v2 器への静止画 cut 統合と img 分岐退役
+- Make `noise`, `particles`, and `flare` evaluable from the same time, the same seed, and the same color space.
+- For each of the three, add a positive point at a fixed time and a negative point that changes 1 px. Remove the approximation only after those points exist.
 
-- 互換 `<video>` 器の `<img>` 切替に依存せず、frame-engine の source として静止画を評価する。
-- framing、transform、freeze、連続 seek、動画 cut との境界をゴールデンに追加してから分岐を退役する。
+### Bring still-image cuts into the v2 container, and retire the img branch
 
-### ducking 共通エンベロープ
+- Evaluate a still image as a frame-engine source. Do not depend on switching the compatibility `<video>` container over to `<img>`.
+- Add framing, transform, freeze, a run of seeks, and the boundary with a video cut to the golden set. Retire the branch only after those cases are in the set.
 
-- 2026-09-02 契約で実施した。固定矩形と `sidechaincompress` を廃止し、深さ、対象、
-  narration / speech 鍵、attack / release を共通決定論エンベロープへ統合した。
+### One shared envelope for ducking
 
-## 6. legacy 退役（#100b）
+- Done under the 2026-09-02 contract. The fixed rectangle and `sidechaincompress` are gone. Depth, the target, the narration key, the speech key, attack, and release now live in one shared deterministic envelope.
 
-legacy 合成経路のコードとテストは互換期間中そのまま残す。削除へ進める条件は次のいずれかである。
+## 6. Legacy retirement, #100b
 
-1. #14 の Windows 実機で OSR が PASS する。
-2. Windows でも OSR を既定にするオーナー裁定がある。
+Leave the legacy composite path, both code and tests, in place through the compatibility period. Move on to deletion when either condition below is true.
 
-条件成立後に、legacy engine 選択、ffmpeg filtergraph 合成、互換 `<video>` プレビュー、専用検収を
-参照ごと棚卸しする。条件成立前の削除、到達不能化、テスト無効化は行わない。
+1. OSR passes on a Windows machine under #14.
+2. The owner decides that OSR is the default on Windows too.
+
+After a condition is met, inventory every reference. The inventory covers legacy engine selection, ffmpeg filtergraph compositing, the compatibility `<video>` preview, and the dedicated acceptance. Before a condition is met, do not delete that code, do not make it unreachable, and do not disable its tests.

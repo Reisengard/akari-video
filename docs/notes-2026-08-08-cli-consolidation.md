@@ -1,30 +1,25 @@
-# CLI 寄せの判定基準（2026-08-08）
+**English** | [Japanese](./notes-2026-08-08-cli-consolidation.ja.md)
 
-## 判定基準
+# Rule for what moves to the CLI, 2026-08-08
 
-複数のスキルまたはアプリから呼ばれる実行コードだけを、CLI の `akari-launcher` または
-`akari-tools` へ寄せる。1 スキルだけが使う `bin/` は、そのスキルのディレクトリに残す。
+## The rule
 
-`akari-launcher` は Node.js 組み込みモジュールだけで動く依存ゼロ側とする。外部 npm 依存が
-必要な実行コードは `akari-tools` に置き、launcher からはパスを遅延解決して子プロセスとして
-起動する。launcher 自身は `akari-tools` や `puppeteer-core` を import しない。
+Move execution code to the CLI `akari-launcher` or `akari-tools` only when more than one skill, or the app, calls it. A `bin/` that only one skill uses stays in that skill's directory.
 
-## 今回の移設
+`akari-launcher` is the zero-dependency side. It runs on Node.js built-in modules only. Put execution code that needs an external npm dependency in `akari-tools`. The launcher resolves that path lazily and starts it as a child process. The launcher itself does not import `akari-tools` or `puppeteer-core`.
 
-| 元のスキル | 公開入口 | 実装の移設先 |
+## What moved this time
+
+| Skill it came from | Public entry | Where the implementation moved |
 |---|---|---|
 | `create-project` | `akari new` | `packages/akari-launcher/src/new-command.mjs` |
 | `generate-narration` | `akari narration generate` | `packages/akari-launcher/src/narration-command.mjs` |
-| `beat-sync-edit` | `akari internal beat-sync-*` | `packages/akari-tools/bin/` の `beatmap.mjs`・`probe-frame.mjs`・`render-when-idle.sh` |
+| `beat-sync-edit` | `akari internal beat-sync-*` | `beatmap.mjs`, `probe-frame.mjs`, and `render-when-idle.sh` under `packages/akari-tools/bin/` |
 
-移設対象は 3 スキル分で、依存ゼロ側の launcher に 2 本、依存あり側の tools に 1 組
-（実行ファイルは 3 本）を置いた。各スキルから `bin/` は撤去し、手順書から上記 `akari`
-コマンドを呼ぶ形に統一した。
+The move covered three skills. Two commands went to the zero-dependency launcher. One group went to the tools package that has dependencies, and that group is three executables. Each of those skills lost its `bin/`. Procedure docs now call the `akari` commands above.
 
-残り 18 スキルには触れていない。このうち自己完結した `bin/` を持つ 6 スキルも、判定基準どおり
-スキルディレクトリに残した。
+The other 18 skills were not touched. Six of them have a self-contained `bin/`. Those six stayed in the skill directory, which is what the rule says.
 
-## 2026-09-05 追記
+## Added 2026-09-05
 
-ATF 描画 CLI は退役しました。テロップは Lab 配布の HTML 素材版を使います。
-既存の baked 再生と開発者ツールの Chrome 利用は維持します。
+The ATF rendering CLI is retired. Captions use the HTML footage build that Lab distributes. Playback of an existing baked file stays, and so does Chrome use in the developer tools.

@@ -1,14 +1,14 @@
-# edit.json v1 拡張メモ
+**English** | [Japanese](./notes-2026-07-13-edit-json-v1.ja.md)
 
-- 日付: 2026-07-13
-- 状態: 方向性メモ（v0 は `contract-2026-07-13-m1-m4.md` で確定・実装済み。
-  v1 は M5 の要求が固まった時点で契約に昇格させる）
-  （追記 2026-07-14: §5 音声は contract-2026-07-14-edit-json-v1-audio.md へ昇格）
-- 原則: `version` フィールドで段階進化。v0 の後方互換を壊さない
+# Notes on edit.json v1 extensions
 
-## v1 で入れる候補
+- Date: 2026-07-13
+- Status: direction note. v0 is fixed and implemented in `contract-2026-07-13-m1-m4.md`. Promote v1 to a contract once the M5 requirements are firm. Added 2026-07-14. Section 5, audio, was promoted to `contract-2026-07-14-edit-json-v1-audio.md`.
+- Rule: step forward with the `version` field. Do not break compatibility with v0.
 
-### 1. 出力プロファイル複数化（ショート対応）
+## Candidates for v1
+
+### 1. Several output profiles, including shorts
 
 ```jsonc
 "outputs": [
@@ -17,63 +17,56 @@
 ]
 ```
 
-1 つの分析・素材計画から 16:9 マスターと 9:16 ショートを両方出す。
-ショート側はフック候補（analysis.json の events.hook）から半自動生成。
+One analysis and one footage plan produce both a 16:9 master and a 9:16 short. The short is generated semi-automatically from hook candidates in `events.hook` in analysis.json.
 
-### 2. カット単位の crop（リフレーミング）
+### 2. A per-cut crop, for reframing
 
 ```jsonc
 "cuts": [
   { "in": 5.0, "out": 10.0,
-    "crop": { "keyframes": [ { "t": 0.0, "box": [0.2, 0.0, 0.56, 1.0] } ] } }  // 正規化座標
+    "crop": { "keyframes": [ { "t": 0.0, "box": [0.2, 0.0, 0.56, 1.0] } ] } }  // normalized coordinates
 ]
 ```
 
-- 顔/人物トラック（analysis.json の tracks.faces）から生成、平滑化済みの軌跡を持つ
-- プレビュー = AVFoundation video composition の transform / 書き出し = ffmpeg crop。
-  サンドイッチ構造は不変
-- 対談横長 → 縦 2 段のような複数矩形は「レイアウト」（下記）で扱う
+- Generate the crop from face and person tracks in `tracks.faces` in analysis.json. The track is already smoothed.
+- Preview uses the transform on an AVFoundation video composition. Export uses an ffmpeg crop. The sandwich stays as it is.
+- Several rectangles, such as a wide conversation stacked into two vertical panes, are a layout. See the next section.
 
-### 3. レイアウト（複数ソース矩形配置）
+### 3. Layout, several source rectangles
 
 ```jsonc
 "layout": { "regions": [
-  { "source_crop": [0.0, 0.1, 0.5, 0.8], "dest": [0.0, 0.0, 1.0, 0.5] },   // 話者 A → 上段
-  { "source_crop": [0.5, 0.1, 0.5, 0.8], "dest": [0.0, 0.5, 1.0, 0.5] }    // 話者 B → 下段
+  { "source_crop": [0.0, 0.1, 0.5, 0.8], "dest": [0.0, 0.0, 1.0, 0.5] },   // speaker A, top pane
+  { "source_crop": [0.5, 0.1, 0.5, 0.8], "dest": [0.0, 0.5, 1.0, 0.5] }    // speaker B, bottom pane
 ] }
 ```
 
-対談の縦長化などの定番。レポートで配置モック画像を提示 → 承認 → 反映のフロー。
+A usual case is making a conversation vertical. The report shows a placement mock, the person approves it, and the result is stored.
 
-### 4. 断片内 `<video>` の時刻同期（text-behind-person 等）
+### 4. Time sync for a `<video>` inside a fragment, including text behind a person
 
-- M2 ランタイムの tick に「`data-akari-sync` の付いた `<video>` 要素の currentTime を
-  タイムラインへ同期」を追加（現状はアニメーションのみ同期）
-- 用途: 人物切り抜きアルファ動画（HEVC alpha）を DOM 最前面に重ね、テキストを
-  人物の後ろに入れる表現。スキーマ変更は不要（HTML 断片内で完結）だが
-  ランタイム拡張が要るためここに記録
+- On the M2 runtime tick, set `currentTime` on every `<video>` that has `data-akari-sync`, so the element follows the timeline. Today only animations stay in sync.
+- Use this for a person cutout, an HEVC-alpha video, placed at the front of the DOM, with text behind the person. The HTML fragment holds the whole effect, so the schema does not change. The runtime still needs the extension, which is why this note records it.
 
-### 5. 音声スキーマ（素材計画の実行形）
+### 5. Audio schema, the executable form of the footage plan
 
 ```jsonc
 "audio": {
-  "bgm": { "path": "assets/bgm.m4a", "gain_db": -18, "ducking": true },   // 全体トラック
-  "sfx": [ { "path": "assets/pop.m4a", "t": 12.3, "gain_db": -6 } ]        // シーン単位
+  "bgm": { "path": "assets/bgm.m4a", "gain_db": -18, "ducking": true },   // global track
+  "sfx": [ { "path": "assets/pop.m4a", "t": 12.3, "gain_db": -6 } ]        // per scene
 }
 ```
 
-「BGM は全体 / SFX はシーン単位」を**スキーマとして明示**する（説明可能性 =
-なぜこの素材がここにあるかをデータが語れるようにする）。
+State in the schema that BGM is global and sound effects are per scene. The data should be able to say why this footage is here.
 
-### 6. サムネイル確定枠
+### 6. A settled thumbnail slot
 
 ```jsonc
 "thumbnail": { "path": "thumbnail.png", "source": "report:candidate-2" }
 ```
 
-レポートで承認された案を確定保存。provenance としてどの候補由来かを持つ。
+Store the option the report approved. Keep which candidate it came from, as provenance.
 
-## 実装順の目安
+## A likely implementation order
 
-音声（5）→ crop（2）→ 出力プロファイル（1）→ レイアウト（3）の順が依存関係として自然。
-（4）はスキーマ非依存なので M2 ランタイムの改修としていつでも入れられる。
+Audio, item 5, then crop, item 2, then output profiles, item 1, then layout, item 3. That order follows the dependencies. Item 4 does not depend on the schema. It can land whenever the M2 runtime is revised.

@@ -1,77 +1,54 @@
-# 字幕とカット編集の方向性メモ
+**English** | [Japanese](./notes-2026-07-14-captions-and-cut-editing.ja.md)
 
-- 日付: 2026-07-14
-- 状態: 方向性メモ（オーナーとの設計会話の記録。契約への昇格は各項の実装着手時）
-- 前提: analysis.json の `transcript[].words`（単語タイムスタンプ）が全項目の共通基盤。
-  analyze-footage スキルは words を**原則出力**するよう改訂済み（2026-07-14）
+# Direction note for captions and cut editing
 
-## 基盤: 単語タイムスタンプ（words）
+- Date: 2026-07-14
+- Status: direction note. It records a design conversation with the owner. Promote each item to a contract when implementation of that item starts.
+- Premise: `transcript[].words` in analysis.json, the word timestamps, is the shared base for every item. The analyze-footage skill was revised on 2026-07-14 so that it writes `words` as a rule.
 
-whisper.cpp の full JSON（token 単位時刻）から word 単位の `{ start, end, text }` を復元する
-（手順は `.claude/skills/analyze-footage/media-and-transcript.md`）。segment 単位（一塊の字幕）
-では粗すぎて、以下の全機能が成立しない。
+## Base: word timestamps, `words`
 
-> **追記（2026-07-14）**: 「レポート = 決定レベル / アプリ = セグメント単位の操作」の線引きを
-> 字幕にも正式適用した。**字幕の方針（付ける/付けない・スタイル・カットとの従属関係・
-> 分割規則・修正運用・カラオケ/強調の採否）は編集判断レポートの素材計画に全体枠として書く**。
-> セグメント一覧はレポートに載せず、アプリの字幕リストで確認・修正する
-> （report-guide.md §5 に反映済み）。
+Restore word-level `{ start, end, text }` from the full JSON of whisper.cpp, which stores time per token. The steps are in `.claude/skills/analyze-footage/media-and-transcript.md`. Segment-level timing, one block of captions, is too coarse. None of the features below hold up on it.
 
-## 1. word 精度のカット提案 — 提示はアプリ内、レポートは決定レベルまで
+> **Added 2026-07-14.** The split "the report owns decisions, the app owns per-segment edits" now applies to captions too. Write the caption policy as one frame in the footage plan of the edit-decision report. The policy covers whether to add captions, the style, how captions follow cuts, the split rules, how corrections work, and whether karaoke or emphasis is in. Do not put the segment list in the report. Review and correct segments in the app's caption list. This is already reflected in report-guide.md, section 5.
 
-- カット候補（filler、言いよどみ、重複）を **word 境界**で提案できるようにする
-- **提示の場はレポート HTML ではなくアプリ内**とする。word 単位の候補は量が膨大
-  （実測: 62 分素材で transcript 1,143 segment）で、1 枚 HTML に並べるとレポートの
-  役割（意思決定）が破綻する
-  - レポート: 章立て・ハイライト・カット判断一覧など**決定レベル**まで
-  - アプリ（ビューワー）: transcript と edit.json cuts の対応を表示し、
-    **編集前 / 編集後をトグル**で見比べながら word 単位の採否を直接操作する
-    （M3 インタラクション層の延長。DOM 操作 → データ書き戻しの既存原則に乗る）
-- 将来: `cut-plan` 的な専用スキルが analysis.json（words + filler / highlight）から
-  cuts 候補を生成し、edit.json 案として出す
+## 1. Word-accurate cut proposals. Show them in the app. Keep the report at decision level.
 
-## 2. 字幕（captions）の第一級化
+- Propose cut candidates at a **word boundary**. Candidates include fillers, hesitations, and repeats.
+- **Show them in the app, not in the report HTML.** Word-level candidates are too many. A measured 62 minutes of footage produced 1,143 transcript segments. A single HTML page of them stops the report from doing its job, which is a decision.
+  - Report: go as far as **decision level**. That includes chapter structure, highlights, and the list of cut decisions.
+  - App, the viewer: show how the transcript lines up with edit.json cuts. A **before-edit and after-edit toggle** lets the person accept or reject each word while comparing the two. This extends the M3 interaction layer. It follows the existing rule that a DOM edit writes back to data.
+- Later, a dedicated skill in the style of `cut-plan` can read analysis.json, both `words` and filler or highlight marks, and emit cut candidates as a draft edit.json.
 
-現状の字幕はオーバーレイ HTML の一種でしかない。transcript 由来の字幕を
-edit.json v1.x の `captions` スキーマとして持つことを検討する（テキスト・時刻・
-表示スタイルを分離。words への参照を保つ）。→ 実装時に v1 契約群
-（`contract-2026-07-14-edit-json-v1-*.md`）の流儀で契約化する。
+## 2. Make captions first-class
 
-## 3. 字幕修正（整え）機能
+Today a caption is only one kind of overlay HTML. Consider storing transcript-backed captions as a `captions` schema on edit.json v1.x. Separate the text, the times, and the display style. Keep the reference to `words`. When you implement it, write the contract in the style of the v1 contract set, `contract-2026-07-14-edit-json-v1-*.md`.
 
-ASR は完璧ではない前提で、**タイムスタンプを保ったままテキストだけを直す**機能。
+## 3. Caption correction
 
-- 直す主体は 2 系統: エージェント（全体の文脈を理解した上での誤字修正・整文）と
-  人間（ビューワーの contenteditable）
-- 修正で word 数が変わる場合の時刻の再割り当て規約が必要
-  （初期案: 元 words の時間幅を文字数比で按分。要検証）
-- 「タイムスタンプのズレが出ない」ことが成立条件。segment の start/end は不変とし、
-  word 内部だけを再配分する
+ASR is not perfect. The feature **corrects the text and keeps the timestamps**.
 
-## 4. カラオケ表示（word 追従ハイライト）
+- Two parties correct text. The agent fixes typos and smooths wording after it reads the whole context. The person edits in the viewer's contenteditable field.
+- If a correction changes the word count, you need a rule for assigning time again. The first proposal splits the original word's time span in proportion to character counts. That proposal still needs a check.
+- The correction is valid only when timestamps do not drift. Keep the segment `start` and `end`. Redistribute time only inside the words.
 
-- 発話に合わせて文字がリアルタイムに追従ハイライトされる表示。**既定は OFF** のオプション
-- words の時刻をそのまま使い、M2 ランタイムの時間駆動原則（Web Animations /
-  CSS 変数、wall-clock 禁止、シーク再現可）に乗せる
-- 実装形はテロップテンプレの一種（素材ライブラリ telop カテゴリ）として整備し、
-  knob で ON/OFF・色・追従スタイルを切り替えられるようにする
+## 4. Karaoke display, a highlight that follows each word
 
-## 5. 選択的字幕・強調字幕
+- Characters highlight in real time as the line is spoken. **The default is off.** It is an option.
+- Use the word times as they are. Follow the M2 runtime rule for time. Use Web Animations and CSS variables. Do not use a wall clock. A seek must reproduce the same frame.
+- Ship it as one captions template in the footage library, in the `telop` category. A knob switches it on or off, and sets the color and the follow style.
 
-- 全文字幕だけでなく「**重要なところだけ出す**」モードを持つ
-  （要約字幕・文脈を理解した上で出す字幕。highlight event が選定根拠になる）
-- **強調ポップ**: 感嘆・決め台詞など特定の word だけを通常字幕から切り離し、
-  大きく表示する（例:「おお、マジか」の「マジか」だけをボンと出す）。
-  word 単位の時刻があるから正確なタイミングで出せる
-- どの発言を強調するかの根拠は highlight / hook / words を突き合わせて決め、
-  decision_log に記録する
+## 5. Selective captions and emphasis captions
 
-## 実装順の目安
+- Add a mode that **shows only the important lines**, not every line. These are summary captions, chosen with the context in view. A highlight event is the reason for the choice.
+- **Emphasis pop.** Lift one word, such as an exclamation or a punch line, out of the normal caption and show it large. In a two-word exclamation, only the second word pops. Word-level times are what make that pop land on the right frame.
+- Choose which line to emphasize by comparing highlight, hook, and words. Record the reason in `decision_log`.
 
-1. words 出力（**済** — analyze-footage スキル改訂 2026-07-14）
-2. word 精度カット提案（cut-plan スキル + ビューワーの編集前/編集後トグル）
-3. captions スキーマ + 字幕修正（エージェント整え → contenteditable）
-4. カラオケ・強調テンプレ（telop テンプレとして。既定 OFF）
+## A likely implementation order
 
-1 → 2 は analysis.json だけで進められる。3 以降は edit.json v1.x とランタイム拡張が絡むため、
-音声・crop（実装済み）の次の v1.x 候補として扱う。
+1. Word output. **Done.** The analyze-footage skill was revised on 2026-07-14.
+2. Word-accurate cut proposals. A `cut-plan` skill, plus a before-edit and after-edit toggle in the viewer.
+3. The `captions` schema, plus caption correction. The agent smooths the line first, then contenteditable.
+4. Karaoke and emphasis templates. Ship them as captions templates. The default is off.
+
+Steps 1 and 2 need only analysis.json. From step 3 on, the work touches edit.json v1.x and the runtime. Treat that work as the next v1.x candidate after audio and crop, which are already implemented.
