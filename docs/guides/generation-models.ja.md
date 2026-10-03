@@ -9,7 +9,42 @@
 `as_of` から 90 日を過ぎた行は WARN 扱いとし、人が `source_url` を見直します。
 価格はドリフト検査の対象外なので、人が `price_url` を確認します。
 
-<!-- BEGIN GENERATED generation-models — scripts/gen-generation-models-doc.mjs が生成。手で編集しない -->
+<!-- BEGIN generation-model-words
+{
+  "videoHeading": "動画モデル",
+  "imageHeading": "画像モデル",
+  "videoHeaders": ["id", "family", "provider", "最初のフレーム", "最後のフレーム", "参照画像 max", "参照動画 max", "参照音声 max", "尺", "解像度", "音声出力", "seed", "価格", "as_of", "verified", "較正"],
+  "imageHeaders": ["id", "family", "provider", "参照画像 max", "解像度", "価格", "as_of", "verified"],
+  "format": "書式",
+  "default": "既定",
+  "noDefault": "既定なし",
+  "integer": "整数",
+  "string": "文字列",
+  "stringSuffix": "文字列（8s 形式）",
+  "stringAuto": "文字列（auto 可）",
+  "resolutions": "解像度",
+  "aspects": "縦横比",
+  "notSpecified": "指定なし",
+  "audioTrue": "切替可",
+  "audioAlways": "常に付く",
+  "audioFalse": "なし",
+  "yes": "あり",
+  "no": "なし",
+  "units": {
+    "usd_per_second": "$/秒",
+    "usd_per_image": "$/画像",
+    "usd_per_clip": "$/クリップ"
+  },
+  "audioMultiplier": "音声",
+  "calibrationUnit": "件",
+  "calibrationSeparator": "、",
+  "rangeDash": "〜",
+  "rangeOpen": "（step ",
+  "rangeClose": "）"
+}
+END generation-model-words -->
+
+<!-- BEGIN GENERATED generation-models. scripts/gen-generation-models-doc.mjs generates this block. Do not edit it by hand. -->
 
 ## 動画モデル
 
