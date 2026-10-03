@@ -1,33 +1,37 @@
-# 設計契約 — 拡張キット v0（技術契約）
+**English** | [Japanese](./contract-2026-09-13-extension-kit-v0.ja.md)
 
-## 1. 定義と構成
+# Extension kit v0
 
-拡張キットは、公開されている AKARI Video の器へスキル・テンプレート・素材・説明書を追加するコンテキスト束である。既存の `akari store install <productId>` が次へ展開する。
+Technical contract.
+
+## 1. Definition and layout
+
+An extension kit is a context bundle that adds skills, templates, footage, and docs to the published AKARI Video shell. The existing `akari store install <productId>` expands into this tree.
 
 ```text
 ~/.akari/assets/store/<productId>/
 ├── manifest.json
 ├── skills/<skill-name>/SKILL.md
 ├── templates/<name>.json
-├── assets/<category>/<id>/{meta.json, …}
+├── assets/<category>/<id>/{meta.json, ...}
 ├── docs/*.md
 ├── README.md
 ├── LICENSE.md
 └── checksums.txt
 ```
 
-`productId` は Store の商品 id、`version` は商品の整数版である。キット全体のライセンスは `LicenseRef-AKARI-Assets-v0` とし、各素材の `meta.json` も個別の `license` を持つ。
+`productId` is the Store product id. `version` is the product's integer version. The kit license is `LicenseRef-AKARI-Assets-v0`. Each footage item's `meta.json` also has its own `license`.
 
 ## 2. `manifest.json`
 
-`schemaVersion: 1` の manifest は additive-only とする。例:
+A manifest with `schemaVersion: 1` is additive only. Example:
 
 ```json
 {
   "schemaVersion": 1,
   "id": "world-kit",
   "kind": "kit",
-  "name": "ワールドキット",
+  "name": "World kit",
   "version": 1,
   "requires": {
     "cli": ">=0.1.70",
@@ -35,46 +39,45 @@
     "products": ["akari-pop-motion-set"]
   },
   "skills": [{ "dir": "skills/design-world", "name": "design-world" }],
-  "templates": [{ "path": "templates/paper-to-browser.json", "for": "world-map", "label": "紙の地図 → ブラウザの中" }],
+  "templates": [{ "path": "templates/paper-to-browser.json", "for": "world-map", "label": "Paper Map into the browser" }],
   "assets": [{ "category": "overlay", "id": "world-far-bands" }],
-  "docs": [{ "path": "docs/world-hen.md", "label": "ワールド編（抜粋）" }],
+  "docs": [{ "path": "docs/world-hen.md", "label": "World chapter, excerpt" }],
   "license": "LicenseRef-AKARI-Assets-v0",
   "provenance": { "author": "AKARI Labs", "source": "example:world-kit" }
 }
 ```
 
-必須フィールドは `schemaVersion`、`id`、`kind`、`name`、`version`、`requires.cli`、`license`。`kind` は v0 では `kit` のみ。`validate-kit-manifest.mjs` はスキル実体、素材メタデータ、テンプレート用途語彙を含めて検査する。
+Required fields are `schemaVersion`, `id`, `kind`, `name`, `version`, `requires.cli`, and `license`. In v0, `kind` is only `kit`. `validate-kit-manifest.mjs` also checks skill files, footage metadata, and the template-use vocabulary.
 
-## 3. 展開
+## 3. Install
 
-`akari store install <productId>` は従来の entitlement 確認、zip 取得、checksum 照合、展開を終えたあと、`manifest.json` がある商品だけ次を行う。
+After the usual entitlement check, zip fetch, checksum check, and extract, `akari store install <productId>` does the following only for a product that has `manifest.json`.
 
-1. manifest と `requires` を検査する。CLI または runtime の不足は fail-closed、依存商品の不足は警告と導入案内にする。
-2. `assets[]` を `~/.akari/assets/<category>/<id>` へ相対 symlink で公開する。各素材はリンク前に `validate-asset.mjs` で検査する。
-   素材の実体ファイルと checksum は `~/.akari/assets/installed.json` にも登録し、素材 id から解決できるようにする。
-3. `skills[]` を `~/.akari/kits/plugin/skills/<name>` へ相対 symlink で公開する。
-4. `~/.akari/kits/installed.json` に id、version、導入日時、展開先、スキル、素材を記録する。
-5. `templates[]` は移動せず、CLI が各展開先の manifest を列挙して読む。
+1. Check the manifest and `requires`. A missing CLI or runtime fails closed. A missing dependency product is a warning plus install guidance.
+2. Publish `assets[]` as relative symlinks at `~/.akari/assets/<category>/<id>`. Each item is checked with `validate-asset.mjs` before it is linked. The footage files and checksums are also registered in `~/.akari/assets/installed.json`, so a footage id can resolve.
+3. Publish `skills[]` as relative symlinks at `~/.akari/kits/plugin/skills/<name>`.
+4. Record id, version, install time, extract path, skills, and footage in `~/.akari/kits/installed.json`.
+5. `templates[]` are not moved. The CLI lists each extract path and reads that manifest.
 
-manifest が無い商品は従来の素材商品として扱う。検査器や runtime registry が npm 配布物に同梱されておらず照合できない場合は、その検査だけを警告付きでスキップする。`akari store uninstall <productId>` は台帳に記録した symlink と台帳エントリを外し、再導入用の展開ディレクトリは残す。
+A product with no manifest stays a footage product, as before. When a checker or the runtime registry is not in the npm package and cannot be verified, only that check is skipped with a warning. `akari store uninstall <productId>` removes the symlinks and the ledger entry that were recorded. The extract directory stays, so the kit can be installed again.
 
-## 4. スキルの発見
+## 4. Skill discovery
 
-Claude Code 向けには `~/.akari/kits` を directory marketplace として生成する。`plugin/skills/` は全キットの合成ディレクトリで、名前空間は純正の `akari:` と分離した `akari-kits:` になる。初回だけ次を実行する。
+For Claude Code, `~/.akari/kits` is generated as a directory marketplace. `plugin/skills/` is the composed directory of every kit. Its namespace is `akari-kits:`, separate from the built-in `akari:`. Run this once.
 
 ```sh
 claude plugin marketplace add ~/.akari/kits
 claude plugin install akari-kits@akari-kits
 ```
 
-`claude` が PATH に無い場合は、Claude Code のプラグイン設定で `~/.akari/kits` を marketplace として追加する。SessionStart hook は導入済みキットがあり、`enabledPlugins` に `akari-kits@akari-kits` が無い場合だけこの案内を 1 行表示し、設定を変更しない。
+When `claude` is not on PATH, add `~/.akari/kits` as a marketplace in the Claude Code plugin settings. The SessionStart hook prints this guidance as one line only when an installed kit exists and `enabledPlugins` does not contain `akari-kits@akari-kits`. It does not change settings.
 
-Codex、Cursor、opencode では、プロジェクトの `.agents/.codex/.cursor/.opencode/skills` へキットスキルも合成する。同名があれば純正スキルを優先する。plugin が利用できない環境でも `~/.akari/kits/plugin/skills/<name>/SKILL.md` を直接読める。
+Codex, Cursor, and opencode also compose kit skills into the project's `.agents/.codex/.cursor/.opencode/skills`. A name clash prefers the built-in skill. Where the plugin cannot be used, `~/.akari/kits/plugin/skills/<name>/SKILL.md` can still be read directly.
 
-## 5. アプリ（ホームの拡張キットカード）
+## 5. App (the extension-kit card on Home)
 
-ホームの AKARI Store カードの隣に拡張キットカードを 1 枚出し、未接続では出さず、導入済みは id・version・スキル名・素材数の一覧と未有効化時の有効化案内、購入済み・未導入は `akari store install <id>` の案内、未購入は Lab の商品ページの案内（Lifetime パス対象）、という 3 状態とする（アプリはコマンドを実行せず、コピーと外部ブラウザ起動だけを行う）。
+One extension-kit card sits beside the AKARI Store card on Home. It is hidden when the user is not connected. An installed kit lists id, version, skill names, and footage count, plus enable guidance when the kit is not enabled. A purchased kit that is not installed shows guidance for `akari store install <id>`. An unpurchased kit shows guidance to the Lab product page, including Lifetime pass coverage. The app does not run the command. It only copies text and opens an external browser.
 
-## 6. 更新と版
+## 6. Updates and version
 
-キットの版は Store の整数版とする。`akari store status` が導入済みの id、version、スキル名、素材数を表示し、同じ `akari store install` で新版へ置換する。
+A kit version is the Store's integer version. `akari store status` shows the installed id, version, skill names, and footage count. The same `akari store install` replaces the kit with a new version.

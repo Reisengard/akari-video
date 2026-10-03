@@ -1,91 +1,65 @@
-# 音声エンベロープ・カーネル v1
+**English** | [Japanese](./contract-2026-09-02-audio-envelope-v1.ja.md)
 
-- 日付: 2026-09-02
-- 状態: 実装契約
-- 対象: legacy `audio.*`、v2 audio item、Web Audio プレビュー、render-cut
+# Audio envelope kernel v1
 
-## 1. 共通 primitive
+- Date: 2026-09-02
+- Status: implementation contract
+- Applies to: legacy `audio.*`, v2 audio items, Web Audio Preview, and render-cut
 
-`EnvelopePoint` は `{ t, gainDb, easing? }` とし、`t` はクリップ先頭を 0 とする秒、`gainDb` は
-基準ゲインへ加える dB である。点の前後は端点値を保持し、点間は overlay keyframe と同じ easing
-係数で dB 補間する。`hold` は前値保持、既定は `linear` とする。
+## 1. Shared primitive
 
-エンベロープ同士は dB 加算する。非線形区間は最大 20 ms 間隔の折線へ展開する。Web Audio では
-dB 線形区間を `exponentialRampToValueAtTime` へ変換し、線形ゲインの下限を `1e-4`（-80 dB）とする。
-書き出しでは同じ評価関数を 48 kHz の mono f32le に標本化する。
+An `EnvelopePoint` is `{ t, gainDb, easing? }`. `t` is seconds with the clip start as 0. `gainDb` is dB added to the base gain. Before the first point and after the last point, the endpoint value holds. Between points, dB is interpolated with the same easing factor as an Overlay keyframe. `hold` keeps the previous value. The default is `linear`.
 
-## 2. 音量キーフレーム
+Envelopes add in dB. A non-linear span is expanded to a polyline with at most 20 ms between samples. Web Audio turns a dB-linear span into `exponentialRampToValueAtTime`, and the linear-gain floor is `1e-4` (-80 dB). Export samples the same evaluate function as 48 kHz mono f32le.
 
-| 形式 | 宣言 | 時刻 | 範囲 |
+## 2. Volume keyframes
+
+| Form | Declaration | Time | Range |
 |---|---|---|---|
-| v2 audio item | `keyframes[].gain_db` | item 相対の整数フレーム | `[-60, 12]` dB |
-| legacy bgm / sfx / narration | `keyframes[].gain_db` | クリップ相対秒 | `[-60, 12]` dB |
+| v2 audio item | `keyframes[].gain_db` | Integer frames relative to the item | `[-60, 12]` dB |
+| legacy bgm, sfx, narration | `keyframes[].gain_db` | Seconds relative to the clip | `[-60, 12]` dB |
 
-v2 の visual 用キーは audio item では無視し、lint warning を出す。legacy view は v2 のフレームを
-`output.fps` で秒へ変換する。キーフレーム値はクリップの `gain_db` に加算し、fade と ducking とは
-独立に線形領域で乗算する。
+A visual key is ignored on a v2 audio item, and lint warns. The legacy view converts v2 frames to seconds with `output.fps`. A keyframe value is added to the clip `gain_db`. Fade and ducking multiply in the linear domain, separate from that sum.
 
-## 3. ダッキング
+## 3. Ducking
 
-| キー | 型・範囲 | 既定 | 意味 |
+| Key | Type and range | Default | Meaning |
 |---|---|---|---|
-| `ducking` | boolean | `false` | bgm / sfx を対象にする |
-| `duck_db` | `[-40, 0]` dB | `-12` | 減衰量 |
-| `duck_attack` | `[0, 2]` 秒 | `0.3` | 鍵開始前の下降時間 |
-| `duck_release` | `[0, 5]` 秒 | `0.8` | 鍵終了後の復帰時間 |
-| `audio.duck_keys` | `narration` / `speech` の配列 | 両方 | 鍵の選択 |
+| `ducking` | boolean | `false` | Applies to bgm and sfx |
+| `duck_db` | `[-40, 0]` dB | `-12` | Attenuation |
+| `duck_attack` | `[0, 2]` seconds | `0.3` | Fall time before a key starts |
+| `duck_release` | `[0, 5]` seconds | `0.8` | Return time after a key ends |
+| `audio.duck_keys` | An array of `narration` and `speech` | Both | Which keys are selected |
 
-2026-09-02 のオーナー実機フィードバック「切り替わりが急」を受け、既定の attack / release をよりなだらかに変更した。
+Owner feedback on 2026-09-02 said the switch was abrupt, so the default attack and release were made smoother.
 
-`narration` 鍵は配置時刻とデコード／probe 実尺から作る。`speech` 鍵はプロジェクト直下の
-`analysis.json` にある source 秒の transcript を、cut の in / out / speed と timeline map で写像する。
-source は analysis.json の所在ディレクトリ基準で正規化し、`sources[].path` と一致する cut だけを使う。
-350 ms 未満の発話間隔は結合し、150 ms 未満の孤立区間は捨てる。analysis 不在・空・source 不一致は
-空の鍵と warning 1 行へ劣化する。
+A `narration` key is built from the placed time and the decoded or probed duration. A `speech` key maps source-second transcript entries in the project-root `analysis.json` through the cut's in, out, speed, and timeline map. The source path is normalized against the directory that holds analysis.json, and only a cut whose `sources[].path` matches is used. Speech gaps under 350 ms are merged. An isolated span under 150 ms is dropped. Missing analysis, empty analysis, or a source mismatch degrades to an empty key and one warning line.
 
-鍵区間の隙間が `attack + release` 未満なら結合する。各区間 `[s,e)` は `s-attack` の 0 dB から
-`s` の `duck_db` へ下降し、`e` まで保持して `e+release` で 0 dB に戻る。負時刻は 0 に固定し、
-対象クリップへ相対化して範囲外を切り詰める。実効ゲインは
-`gain_db + keyframes(t) + duck(t)` を線形化した値に fade を掛けたものとする。
+Key spans whose gap is less than `attack + release` are merged. Each span `[s,e)` falls from 0 dB at `s-attack` to `duck_db` at `s`, holds until `e`, and returns to 0 dB at `e+release`. A negative time is clamped to 0. The span is made relative to the target clip and clipped to the clip. Effective gain is fade applied to the linearized value of `gain_db + keyframes(t) + duck(t)`.
 
-## 4. プレビュー
+## 4. Preview
 
-`audio-schedule` は全音声 kind に `envelopeEvents` を出す。frame-engine はイベントがある場合だけ
-第 2 GainNode を作り、`setValueAtTime` または `exponentialRampToValueAtTime` で適用する。
-`duckIntervals` は UI 表示互換のため残す。
+`audio-schedule` emits `envelopeEvents` for every audio kind. frame-engine creates a second GainNode only when events exist, and applies them with `setValueAtTime` or `exponentialRampToValueAtTime`. `duckIntervals` remain for UI display compatibility.
 
-現版では preview-server へ speech interval を供給する配線はスコープ外である。入力が無い場合は
-narration 鍵だけで動作し、共通カーネル自体と render-cut の speech 写像を正とする。
+Supplying speech intervals to preview-server is out of scope in this version. With no such input, only narration keys run. The shared kernel itself, and render-cut's speech map, are the source of truth.
 
-## 5. 書き出し
+## 5. Export
 
-`sidechaincompress` と narration 分岐用 `asplit` は使用しない。keyframe または実際の duck 区間を持つ
-対象だけに `env-<label>.f32` を作り、48 kHz mono f32le 入力として読む。対象音声は `amultiply` の直前に
-`aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo` で stereo/fltp に揃え、mono 素材には
-既定 rematrix の mono→stereo 係数を適用する。env は
-`aformat=sample_fmts=fltp:sample_rates=48000,pan=stereo|c0=c0|c1=c0` で左右へ単位ゲインの等倍複製を行う。
-これにより `amultiply` は素材のチャンネル数によらず常に stereo×stereo になる。挿入位置は `volume` と
-`afade` の後、`adelay` の前とする。全区間 0 dB なら envelope 入力を作らず、従来 filtergraph を維持する。
+`sidechaincompress` and the narration-branch `asplit` are not used. An `env-<label>.f32` is built only for a target that has keyframes or a real duck span, and it is read as 48 kHz mono f32le. Target audio is aligned to stereo fltp just before `amultiply` with `aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo`. Mono footage gets the default rematrix mono-to-stereo coefficients. The envelope is copied to left and right at unity gain with `aformat=sample_fmts=fltp:sample_rates=48000,pan=stereo|c0=c0|c1=c0`. `amultiply` is therefore always stereo by stereo, whatever the footage channel count. The insert sits after `volume` and `afade`, and before `adelay`. An all-zero-dB span does not create an envelope input, and the previous filtergraph stays.
 
-音声クリップ FX v1 を持つ入力では、チェーンを `atrim` → `highpass` → `afftdn` / `anlmdn` →
-`rubberband` → `volume` → `afade` → envelope `amultiply` → `adelay` の順に固定する。したがって
-clip FX は envelope の前段に入り、speed 適用後の実効尺を envelope と duck のクリップ窓に使う。
+On an input that has audio clip FX v1, the chain is fixed as `atrim`, then `highpass`, then `afftdn` or `anlmdn`, then `rubberband`, then `volume`, then `afade`, then envelope `amultiply`, then `adelay`. Clip FX therefore sits before the envelope. The effective duration after speed is the clip window for the envelope and for duck.
 
-run / receipt の provenance は `audio.envelope` に `duck_keys`、`speech_intervals`、`ducked_items`、
-`keyframed_items` を記録する。plan は配列そのものを保持せず、path と点数だけを JSON 化する。
+Run and receipt provenance records `duck_keys`, `speech_intervals`, `ducked_items`, and `keyframed_items` on `audio.envelope`. A plan does not keep the arrays themselves. It JSON-encodes only the path and the point count.
 
-## 6. 検証と互換
+## 6. Checks and compatibility
 
-schema と reader は型・範囲・時刻順を error にする。lint は実効尺超過、narration の
-`ducking:true`、v2 audio keyframe の visual キーを warning にする。legacy の
-`STATIC_DUCK_GAIN_DB`、`computeDuckIntervals`、`isWithinDuckInterval` は既存 shell 消費者の移行まで
-互換面として残す。
+The schema and the reader make type, range, and time-order failures errors. Lint warns on a value past the effective duration, on narration with `ducking:true`, and on a visual key in v2 audio keyframes. Legacy `STATIC_DUCK_GAIN_DB`, `computeDuckIntervals`, and `isWithinDuckInterval` stay as a compatibility face until existing shell consumers move.
 
-| 処理 | プレビュー | 書き出し |
+| Step | Preview | Export |
 |---|---|---|
-| keyframe / duck 補間 | 共通 dB envelope → exponential automation | 共通 dB envelope → f32le → `amultiply` |
-| fade | base GainNode | `afade` |
-| 鍵実尺 | decode 実尺 | ffprobe 実尺 |
-| 許容する差 | デコーダとサンプル境界 | デコーダとサンプル境界 |
+| Keyframe and duck interpolation | Shared dB envelope, then exponential automation | Shared dB envelope, then f32le, then `amultiply` |
+| Fade | Base GainNode | `afade` |
+| Key duration | Decoded duration | ffprobe duration |
+| Difference that is allowed | Decoder and sample boundary | Decoder and sample boundary |
 
-afftdn、loudnorm、true peak guard は最終マスターだけの責務であり、プレビューには実装しない。
+afftdn, loudnorm, and the true-peak guard belong only to the final master. Preview does not implement them.

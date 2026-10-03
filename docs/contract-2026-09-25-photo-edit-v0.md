@@ -1,43 +1,46 @@
-# 写真の非破壊編集 v0
+**English** | [Japanese](./contract-2026-09-25-photo-edit-v0.ja.md)
 
-写真の編集は `edit.json` v2 の media item に宣言する。線と採用マスクは、EXIF の向きを直した素材の切り抜き前の座標に結び付く。
+# Non-destructive photo edits v0
 
-## 保存
+A photo edit is declared on an `edit.json` v2 media item. Strokes and the adopted mask are tied to footage coordinates after EXIF orientation is corrected and before crop.
 
-- `mask` は `sources[].id`。静止画では白が表示、黒が透明の 8bit グレー PNG を参照する。動画では従来のグレースケール動画を参照する。
-- 採用マスクは `assets/masks/<sha256>.png` に作り、上書きしない。同名の `.meta.json` に `inputSha256`, `engine`, `request`, `os`, `parameters`, `createdAt`, `width`, `height` を記録する。
-- `erase` は順序を持つ線の配列。各線は `{ mode: "erase" | "restore", points: [[x,y], …], size, hardness }`。点は素材の幅・高さを 1 とする座標、`size` は素材短辺に対する直径の比、`hardness` は 0..1。
-- `flip` は `{ h?: boolean, v?: boolean }`。切り抜き後、素材から画面への写像で適用する。
-- `crop` は既存の `{x,y,w,h}`（EXIF 補正後の素材の 0..1 座標）に `rotate?: number` を加える。`rotate` は −45..45 度、時計回りの写真補正で、切り抜き窓の中心を軸に**素材を回してから窓で切る**。配置の `transform.rotate` とは独立する。窓が素材外を参照した画素は透明にする。縦横比の選択は編集 UI の状態であり、保存値は窓の四数値だけに展開する。
-- 写真の `frame` は `{ stroke?: { color: "#RRGGBB", width: 0..100 }, cornerRadius?: 0..100 }`。線幅は出力幅 1920px 基準の px（出力幅に比例）で、見える端の内側に描く。`cornerRadius` は短辺の半分に対する割合で、伸縮後の実寸で真円の角を計算する。省略時は枠も角丸も無い。
-- 合成したラスタは消去可能なキャッシュであり、保存の正本ではない。再読込・書き出しは PNG と宣言から再構成する。
+## Stored form
 
-## 処理の順
+- `mask` is a `sources[].id`. A still points at an 8-bit gray PNG where white is shown and black is transparent. A video points at the existing grayscale video.
+- The adopted mask is written to `assets/masks/<sha256>.png` and is not overwritten. The sibling `.meta.json` records `inputSha256`, `engine`, `request`, `os`, `parameters`, `createdAt`, `width`, and `height`.
+- `erase` is an ordered array of strokes. Each stroke is `{ mode: "erase" | "restore", points: [[x, y], ...], size, hardness }`. A point uses coordinates where the footage width and height are 1. `size` is the diameter as a fraction of the short side. `hardness` is 0 to 1.
+- `flip` is `{ h?: boolean, v?: boolean }`. It is applied after crop, in the map from footage to the screen.
+- `crop` is the existing `{x, y, w, h}` in 0 to 1 coordinates on the EXIF-corrected footage, plus optional `rotate`. `rotate` is -45 to 45 degrees of clockwise photo correction. The footage rotates around the crop window center, and the window cuts after that rotation. This is independent of placement `transform.rotate`. A pixel the window reads outside the footage is transparent. Aspect-ratio choice is edit-UI state. The saved value expands to the window's four numbers only.
+- A photo `frame` is `{ stroke?: { color: "#RRGGBB", width: 0..100 }, cornerRadius?: 0..100 }`. Stroke width is px at a 1920 px output width, and it scales with output width. The stroke is drawn inside the visible edge. `cornerRadius` is a fraction of half the short side. The corner is a true circle in the size after scale. When the field is omitted, there is no stroke and no rounded corner.
+- The composed raster is a cache that can be deleted. It is not the saved source of truth. Reload and Export rebuild from the PNG and the declaration.
 
-**色 → マスク → 消しゴムの線 → 切り抜き → 反転 → 仕上げ**で固定する。色は画像全体の item `adjust` を先に適用し、続けて `regions` の補正・ぼかし・フィルターを配列順に重ねる。マスクには背景透過と `maskFeather` を含む。切り抜きには `crop.rotate` を含む。仕上げは写真の `frame`（枠線・角の丸み）である。
+## Process order
 
-## 合成
+The order is fixed: **color, then mask, then eraser strokes, then crop, then flip, then finish**. Color applies the image-wide item `adjust` first, then stacks `regions` correction, blur, and filter in array order. The mask includes background removal and `maskFeather`. Crop includes `crop.rotate`. Finish is the photo `frame` (stroke and corner radius).
 
-`composeStillMask` は整数演算で各線を記載順に合成する。マスクが無い場合の初期値は全面 255。消す線は透明へ、戻す線は元画像のアルファを上限として表示へ寄せる。マスクの読み込みでは色変換を行わない。画像、マスク、線は同じ素材座標で読み、切り抜き（回転を含む）と反転はその後に適用する。枠線と角の丸みは反転後の窓の見える端に適用し、マスク・消しゴムの透明度を維持する。
+## Composite
 
-## 端末で背景を消す
+`composeStillMask` composites each stroke in listed order with integer math. With no mask, the initial value is 255 across the frame. An erase stroke moves toward transparent. A restore stroke moves toward visible, capped by the original image alpha. Loading a mask does not convert color. The image, the mask, and the strokes are read in the same footage coordinates. Crop, including rotation, and flip run after that. Stroke and corner radius apply to the visible edge of the window after flip, and they keep mask and eraser opacity.
 
-対応する Mac では Apple Vision の前景インスタンスを使い、古い macOS では人物の分離を使う。推論の出力は確定した PNG として保存し、素材のハッシュまたは item id が変わった結果は適用しない。補助が使えない場合はアプリを続行し「この Mac では使えません」と表示する。保存済み PNG の再生には補助もネットワークも要らない。
+## Remove the background on the device
 
-## 背景透過とエリアの層
+A supported Mac uses an Apple Vision foreground instance. An older macOS uses person segmentation. Inference output is saved as a settled PNG. A result is not applied when the footage hash or the item id has changed. When the helper is unavailable, the app continues and shows "Not available on this Mac". Playing a saved PNG needs neither the helper nor a network.
 
-- `maskFeather?: number` はマスク境界のなめらかさ（素材画素で 0..100）。`composeStillMask` がマスクをぼかした後で `erase` の線を順に重ねる。省略時は 0。
-- `regions?: [{ id, name?, maskRef, invert?, enabled?, adjust?, filter?, blur? }]` は静止画 media item だけの順序付き配列（最大 32）。`id` は item 内で一意。`name` は候補から採用した表示名（非空文字列）で、省略時は「エリア」の番号を表示する。`maskRef` は `sources[].id` で、元写真と同じ向き・寸法の 8bit グレー PNG を指す。`invert: true` はマスクの反対側、`enabled: false` は値を残して描画だけを止める。`adjust.basic` は露出・コントラスト・彩度・色温度の 4 項目。`blur` は 0..50 画素。`filter` は `{ lut: id, intensity?: 0..1 }` で、id と画面名は既存の LUT 棚に合わせる。
-- 画像全体の補正は従来の同じ item の `adjust` が正本。「色」と「写真を編集」の画像全体はここを共用し、別の全体補正を持たない。`output.look` は別の動画全体の設定で、この窓から変更しない。エリア補正は画像全体の補正後に `regions` の配列順で適用する。
-- 選んだエリアのプリセット LUT は `assets/luts/photo-region/<id>.cube` に初回使用時に写し、そこを不変の参照先として描画する。元の `presets/luts` は変更しない。採用したマスクと LUT があれば、推論キャッシュを消しても再生・書き出しを再構成できる。
+## Background removal and region layers
 
-## 候補と確定物
+- `maskFeather?: number` is mask-edge softness in footage pixels, from 0 to 100. `composeStillMask` blurs the mask, then stacks `erase` strokes in order. The default is 0.
+- `regions?: [{ id, name?, maskRef, invert?, enabled?, adjust?, filter?, blur? }]` is an ordered array on a still media item only, with at most 32 entries. `id` is unique inside the item. `name` is a non-empty display name taken from a candidate. When it is omitted, the UI shows "Region" plus a number. `maskRef` is a `sources[].id` that points at an 8-bit gray PNG with the same orientation and size as the original photo. `invert: true` uses the other side of the mask. `enabled: false` keeps the values and stops drawing. `adjust.basic` is exposure, contrast, saturation, and color temperature. `blur` is 0 to 50 pixels. `filter` is `{ lut: id, intensity?: 0..1 }`. The id and the screen name match the existing LUT shelf.
+- Image-wide correction stays on that same item's `adjust`. Color and Edit photo share this image-wide value. There is no second image-wide correction. `output.look` is a separate whole-video setting, and this window does not change it. Region correction runs after the image-wide correction, in `regions` array order.
+- The first use of a region preset LUT copies it to `assets/luts/photo-region/<id>.cube`. Draw treats that copy as the immutable reference. The original `presets/luts` is not changed. When the adopted mask and LUT are present, playback and Export can be rebuilt after the inference cache is deleted.
 
-Vision の「自動」は前景全体と被写体ごとの候補、「人物だけ」は人物全体と人物ごとの候補を返す。候補の表示名は「人物 1」「被写体 1」のような番号だけで、写真の内容を推測した名前を付けない。候補は `.akari/cache/photo-masks/<入力 SHA-256>/` に置き、押して採用した候補、または選択した候補の合成結果だけを `assets/masks/<PNG SHA-256>.png` と同名の `.meta.json` に確定する。複数候補は画素ごとの最大値で合成し、「人物以外」はその反転を確定する。meta には元素材のハッシュ、エンジン、要求、OS、パラメータ、日時、寸法を残す。
+## Candidates and settled files
 
-クリック分割は Apple 配布の SAM 2.1 tiny Core ML float16（画像・点・マスクの 3 モデル、合計約 79.7 MB）を使う。配布元は [Apple のモデルカード](https://huggingface.co/apple/coreml-sam2.1-tiny)、ライセンスは Apache-2.0。アプリにはモデルを同梱しない。初回にモデルカードの 3 つの `.mlpackage` を取得してユーザーの `~/Library/Caches/AKARI Video/photo-models/sam2.1-tiny/` に置き、コンパイル済みの `.mlmodelc` もその下の `compiled/` に置く。事前に置く場合は各 `.mlpackage` の `Manifest.json`、`Data/com.apple.CoreML/model.mlmodel`、`Data/com.apple.CoreML/weights/weight.bin` を同じ階層にそろえる。補助プロセスは `.cpuAndGPU` だけでモデルを一度読み、写真選択後に特徴量を準備し、クリック時は点とマスクを実行する。EXIF の向きを適用した PNG を画像エンコーダへ渡し、画像制約に従う 1024 入力への変換と 0..1 のクリック位置×1024 は同じ素材座標を使う。256 画素のロジットは元写真寸法へ双線形で拡大してから 0 で二値化する。3 候補は面積順で「狭く / 中間 / 広く」を選べる。ホバーは既に得た PNG の表示だけを行う。取得・推論が使えない Mac では編集を続け、「この Mac では使えません」と示す。
+Vision "Auto" returns the whole foreground and one candidate per subject. "People only" returns all people and one candidate per person. A candidate display name is only a number, such as "Person 1" or "Subject 1". It is not a name guessed from the photo. Candidates live in `.akari/cache/photo-masks/<input SHA-256>/`. Only a candidate the user adopts, or the composite of the selected candidates, is settled to `assets/masks/<PNG SHA-256>.png` and the sibling `.meta.json`. Several candidates composite by the per-pixel maximum. "Not a person" settles the inverse. meta keeps the source footage hash, engine, request, OS, parameters, time, and dimensions.
 
-候補を返す時と採用する時は item id、素材 id・URI、元素材 SHA-256、編集の版を照合する。差し替え・削除・途中の編集後に届いた結果は書き込まない。
-## 切り抜きの分析
+Click split uses Apple's distributed SAM 2.1 tiny Core ML float16 models (image, point, and mask, about 79.7 MB total). The source is [Apple's model card](https://huggingface.co/apple/coreml-sam2.1-tiny). The license is Apache-2.0. The app does not bundle the models. On first use it fetches the three `.mlpackage` files from the model card into `~/Library/Caches/AKARI Video/photo-models/sam2.1-tiny/`, and it puts the compiled `.mlmodelc` under `compiled/` there. To place them ahead of time, keep each `.mlpackage`'s `Manifest.json`, `Data/com.apple.CoreML/model.mlmodel`, and `Data/com.apple.CoreML/weights/weight.bin` in that same layout. The helper process loads each model once with `.cpuAndGPU` only. After a photo is selected it prepares features. A click runs the point model and the mask model. The image encoder receives a PNG with EXIF orientation applied. The conversion to the 1024 input required by the image constraint, and the click position in 0 to 1 times 1024, use the same footage coordinates. The 256-pixel logits are bilinear-scaled to the original photo size, then binarized at 0. The three candidates can be chosen by area as Narrow, Middle, or Wide. Hover only displays a PNG that was already produced. On a Mac where fetch or inference is unavailable, editing continues and the UI shows "Not available on this Mac".
 
-切り抜きの「自動水平」は端末上の水平線検出から角度を得る。見つからない場合は 0 度を使う。「スマート切り抜き」は前景インスタンスマスク（対応しない Mac では人物分離）の重心と外接矩形を優先し、得られない場合だけ注目領域を使う。選んだ縦横比を保ったまま窓を広げて主役の大半を収め、重心を三分割の縦線へ寄せる。いずれも分析結果のラスタは保存せず、確定時の `crop` だけを edit.json に書く。
+Returning a candidate and adopting a candidate both check item id, footage id and URI, source footage SHA-256, and the edit version. A result that arrives after a replace, a delete, or an edit in between is not written.
+
+## Crop analysis
+
+"Auto level" for crop takes an angle from on-device horizon detection. When none is found, the angle is 0 degrees. "Smart crop" prefers the centroid and bounding box of the foreground instance mask, or person segmentation on a Mac that does not support instances. It uses a saliency region only when that mask is unavailable. It keeps the chosen aspect ratio, grows the window until it holds most of the subject, and shifts the centroid toward a rule-of-thirds vertical line. Neither analysis saves a raster. Only the settled `crop` is written to edit.json.

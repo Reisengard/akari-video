@@ -1,54 +1,44 @@
-# 音声素材の挿入時レベル契約 v1
+**English** | [Japanese](./contract-2026-09-02-audio-insert-level-v1.ja.md)
 
-- 日付: 2026-09-02
-- 状態: 実装済み（S1）
-- 前提: `contract-2026-07-14-edit-json-v1-audio.md`、
-  `contract-2026-07-20-edit-json-v1-narration.md`、
-  `contract-2026-08-28-v2-audio-roles-v0.md`
-- スコープ: 音声素材単体の決定論的なレベル計測、役割別挿入値の計算、
-  `akari media audio-level` による dry-run と edit.json への明示値保存
+# Insert-time level for audio footage v1
 
-## 1. 原則
+- Date: 2026-09-02
+- Status: implemented (S1)
+- Depends on: `contract-2026-07-14-edit-json-v1-audio.md`, `contract-2026-07-20-edit-json-v1-narration.md`, and `contract-2026-08-28-v2-audio-roles-v0.md`
+- Scope: a deterministic level measurement of one audio footage file, the per-role insert value, and `akari media audio-level` dry-run plus an explicit save into edit.json
 
-自動レベル合わせは再生中の追従処理ではない。素材を挿入するときに測定し、同じ入力から同じ
-`gain_db` と既定 fade を導出して edit.json に数値として残す。以後のプレビューと書き出しは
-その宣言値を消費する。素材カタログの既存ラウドネス値は使わず、外部素材と同じ実体計測を行う。
+## 1. Rules
 
-## 2. 計測契約
+Auto level is not a process that follows playback. It measures when the footage is inserted, derives the same `gain_db` and default fades from the same input, and leaves those numbers in edit.json. Later Preview and Export consume the declared values. Existing loudness numbers in the footage catalog are not used. External footage is measured the same way, from the file itself.
 
-計測器の metric は `akari-audio-measure-v1` とし、次を返す。
+## 2. Measurement
 
-| フィールド | 単位 | 定義 |
+The meter metric is `akari-audio-measure-v1`. It returns:
+
+| Field | Unit | Definition |
 |---|---:|---|
-| `integrated_lufs` | LUFS | EBU R128 Summary の I。-70.0 LUFS 以下または解析不能は `null` |
-| `loudness_range_lu` | LU | EBU R128 Summary の LRA。I が無効なら `null` 可 |
-| `true_peak_dbtp` | dBTP | EBU R128 Summary の Peak。無音の `-inf` は `null` |
-| `sample_peak_dbfs` | dBFS | astats Overall の Peak level。無音の `-inf` は `null` |
-| `rms_dbfs` | dBFS | astats Overall の RMS level。無音の `-inf` は `null` |
-| `duration_sec` | 秒 | ffprobe format duration |
-| `sample_rate` | Hz | ffprobe の先頭 audio stream |
-| `channels` | — | ffprobe の先頭 audio stream |
+| `integrated_lufs` | LUFS | I from the EBU R128 Summary. `null` at or below -70.0 LUFS, or when analysis fails |
+| `loudness_range_lu` | LU | LRA from the EBU R128 Summary. May be `null` when I is invalid |
+| `true_peak_dbtp` | dBTP | Peak from the EBU R128 Summary. Silent `-inf` is `null` |
+| `sample_peak_dbfs` | dBFS | Peak level from astats Overall. Silent `-inf` is `null` |
+| `rms_dbfs` | dBFS | RMS level from astats Overall. Silent `-inf` is `null` |
+| `duration_sec` | seconds | ffprobe format duration |
+| `sample_rate` | Hz | The first audio stream from ffprobe |
+| `channels` | count | The first audio stream from ffprobe |
 
-ffmpeg は音声ごとに 1 パスだけ実行し、次の引数を使う。
+ffmpeg runs one pass per audio file, with these arguments.
 
 ```text
 -vn -sn -dn -af ebur128=peak=true:framelog=verbose,astats=measure_perchannel=none:measure_overall=Peak_level+RMS_level -f null -
 ```
 
-duration / sample rate / channels は ffprobe で決定論的に取得する。パーサは最後の ebur128
-`Summary:` と astats `Overall` を読み、映像・字幕・data stream は計測対象にしない。
+Duration, sample rate, and channels come from ffprobe and are deterministic. The parser reads the last ebur128 `Summary:` and the astats `Overall`. Video, Captions, and data streams are not measured.
 
-### 2.1 キャッシュ
+### 2.1 Cache
 
-素材の realpath、byte size、`mtimeMs`、metric を `|` で連結し、
-`sha1(realpath|size|mtimeMs|metric)` を key とする。保存先は
-`<cacheDir>/<key>.json`。`akari media audio-level` の cacheDir は
-`<projectRoot>/.akari/cache/audio-measure/` である。単体の `akari-audio-measure` CLI も素材の
-親から上へ辿って最初に `.akari` ディレクトリを持つ projectRoot を使い、見つからない場合だけ
-素材の親を projectRoot とみなす。`--no-cache` または `useCache: false` は
-必ず再計測し、同じ key の JSON を上書きする。
+The key is `sha1(realpath|size|mtimeMs|metric)`, joining the footage realpath, byte size, `mtimeMs`, and metric with `|`. The file is `<cacheDir>/<key>.json`. For `akari media audio-level`, cacheDir is `<projectRoot>/.akari/cache/audio-measure/`. The standalone `akari-audio-measure` CLI walks up from the footage parent and uses the first directory that contains `.akari` as projectRoot. Only when none is found does it treat the footage parent as projectRoot. `--no-cache` or `useCache: false` always measures again and overwrites the JSON for the same key.
 
-## 3. 役割別の目標
+## 3. Targets by role
 
 | role | integrated target (LUFS) | fade in (s) | fade out (s) |
 |---|---:|---:|---:|
@@ -59,30 +49,23 @@ duration / sample rate / channels は ffprobe で決定論的に取得する。�
 | ambience | -26 | 0.5 | 0.5 |
 | bgm | -26 | 0 | 0 |
 
-true peak ceiling は -1.0 dBTP、短尺境界は 1.0 秒、短尺 sample peak target は -3.0 dBFS。
-未知 role は目標と fade の両方で sfx として扱う。
+The true-peak ceiling is -1.0 dBTP. The short-file boundary is 1.0 seconds. The short-file sample-peak target is -3.0 dBFS. An unknown role uses the sfx target and the sfx fades.
 
-## 4. 挿入値の式
+## 4. Insert-value formula
 
-`computeInsertLevel` は次の順序で 1 回だけ値を決める。
+`computeInsertLevel` decides the value once, in this order.
 
-1. 計測値が無ければ `basis: none`、`gain_db: 0` と役割既定 fade を返す。
-2. `duration_sec < 1.0` または `integrated_lufs == null` なら `basis: peak` とし、
-   `gain = -3.0 - sample_peak_dbfs`。sample peak も無ければ 1 と同じ。
-3. それ以外は `basis: lufs` とし、`gain = role target - integrated_lufs`。
-4. true peak があれば `gain = min(gain, ceilingDbtp - true_peak_dbtp)` とする。
-   実際に gain を下げた場合だけ `peak_guard_applied: true`。
-5. gain を `[-60, 12]` へクランプした後、`Math.round(x * 10) / 10` で 0.1 dB に丸める。
-   `-0` は `0` に正規化する。
+1. With no measurement, return `basis: none`, `gain_db: 0`, and the role's default fades.
+2. When `duration_sec < 1.0` or `integrated_lufs == null`, use `basis: peak` and `gain = -3.0 - sample_peak_dbfs`. If sample peak is also missing, use step 1.
+3. Otherwise use `basis: lufs` and `gain = role target - integrated_lufs`.
+4. When a true peak exists, `gain = min(gain, ceilingDbtp - true_peak_dbtp)`. Set `peak_guard_applied: true` only when this step actually lowers the gain.
+5. Clamp gain to `[-60, 12]`, then round to 0.1 dB with `Math.round(x * 10) / 10`. Normalize `-0` to `0`.
 
-`detail` は採用 target、計測値、peak guard 適用有無、クランプ有無を保持する。
+`detail` keeps the chosen target, the measurement, whether the peak guard applied, and whether the clamp applied.
 
-## 5. 役割判定
+## 5. Role decision
 
-v2 の明示 `role` が narration / bgm / jingle / music / ambience なら最優先し、そのまま使う。
-それ以外（sfx、未知、未指定）は legacy collection の bgm / narration を優先した後、SFX
-ヒューリスティクスへ進む。パスを小文字化し、`jingle` / `sting` を含めば jingle、
-`ambien` / `room` / `env` を含めば ambience、計測尺が 20 秒以上なら music、それ以外は sfx とする。
+An explicit v2 `role` of narration, bgm, jingle, music, or ambience wins and is used as written. Anything else (sfx, unknown, or unset) prefers a legacy bgm or narration collection, then falls through to the SFX heuristic. The path is lowercased. A path containing `jingle` or `sting` is jingle. A path containing `ambien`, `room`, or `env` is ambience. A measured duration of 20 seconds or more is music. Everything else is sfx.
 
 ## 6. CLI
 
@@ -90,21 +73,12 @@ v2 の明示 `role` が narration / bgm / jingle / music / ambience なら最優
 akari media audio-level <projectDir> [--write] [--targets '<json>'] [--ceiling <dBTP>] [--json] [--no-cache]
 ```
 
-v2 の audio lane items と legacy `audio.bgm` / `audio.sfx[]` / `audio.narration[]` を読み、
-`gain_db` 未指定の項目だけを対象とする。素材パスは edit.json の親ディレクトリ基準。
-dry-run の標準出力は header と 1 クリップ 1 行の表で、path / role / basis / I / TP /
-`gain_db` / `fade_in` / `fade_out` を含む。`--json` は同じ結果の JSON 配列 1 つだけを返す。
-素材不在または計測不能は stderr の warning 1 行でその項目だけを省く。対象 0 件は exit 0。
+The command reads v2 audio-lane items and legacy `audio.bgm`, `audio.sfx[]`, and `audio.narration[]`. Only items with no `gain_db` are targets. Footage paths are relative to the edit.json parent directory. Dry-run stdout is a header and one row per clip, with path, role, basis, I, TP, `gain_db`, `fade_in`, and `fade_out`. `--json` returns only one JSON array of the same result. Missing footage, or a measurement that cannot be made, skips that item with one warning line on stderr. Zero targets is exit 0.
 
-`--write` は `gain_db` と、未指定の `fade_in` / `fade_out` だけを書く。v2 は Project API の
-item patch、legacy は edit-store の既存書き込み API を使う。保存後に edit-lint を実行し、
-severity `error` が 1 件でもあれば退避した edit.json 全文を戻す。成功後の再実行は対象 0 件で
-あり、冪等である。
+`--write` writes only `gain_db` and unset `fade_in` and `fade_out`. v2 uses a Project API item patch. Legacy uses the existing edit-store write API. After the save, edit-lint runs. If any finding has severity `error`, the full saved edit.json is restored. A rerun after success has zero targets, so the write is idempotent.
 
-legacy 形（version 0/1）は現行 edit-lint が「古い形式」として error にするため、`--write` は
-常に巻き戻される（dry-run / `--json` は利用できる）。書き込む場合は `akari migrate` で v2 にしてから実行する。
+A legacy shape (version 0 or 1) is an error from current edit-lint as an old format, so `--write` always rolls back. Dry-run and `--json` still work. To write, run `akari migrate` to v2 first.
 
-## 7. 次段
+## 7. Next
 
-設定（`audio.level_targets` / アプリ設定）と shell 挿入フックは S2 / 別票とする。
-本契約では schema、設定画面、実行時追従、shell UI を追加しない。
+Settings (`audio.level_targets` and app settings) and the shell insert hook are S2, or another ticket. This contract does not add a schema, a settings screen, runtime follow, or shell UI.

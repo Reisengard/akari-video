@@ -1,22 +1,20 @@
+**English** | [Japanese](./contract-2026-09-02-item-caption-anchor-v0.ja.md)
+
 ---
 lifecycle: accepted
 created: 2026-09-02
 updated: 2026-09-24
 ---
 
-# edit.json v2 アイテム行アンカー契約 v0
+# edit.json v2 item caption anchors v0
 
-## 0. 位置づけ
+## 0. Place
 
-本契約は、時間の従属 3 分類のうち ②「字幕行に従属するアイテム」を定める。対象は
-`media` / `html` / `telop` / `filter` / `group` の visual item と audio item である。字幕行全体または行内の
-単語相当区間を source 秒で参照し、字幕時刻の変更後に同じ純関数でアイテム時刻を再導出する。
+Of the three time-dependency classes, this contract defines class 2, an item that depends on a caption row. Targets are visual items of kind `media`, `html`, `telop`, `filter`, or `group`, and audio items. The item refers to a whole caption row, or to a word-like span inside the row, in source seconds. After the caption time changes, the same pure function derives the item time again.
 
-`captions.json.emphasis_words[]` も source 秒の実測区間を持つが、そちらは語の演出宣言である。
-本契約の `anchor` は edit.json のアイテム配置を字幕へ従属させるための参照であり、語の index や
-文字列を正本にしない。
+`captions.json` `emphasis_words[]` also stores a measured span in source seconds, but that span is a performance declaration for a word. This contract's `anchor` is a reference that makes an edit.json item placement depend on a caption. It does not treat a word index or a string as the source of truth.
 
-## 1. データ模型
+## 1. Data model
 
 ```jsonc
 {
@@ -33,29 +31,20 @@ updated: 2026-09-24
 }
 ```
 
-- `caption` は `captions.json` の行 id（`^c-\d{4}$`）で、必須。
-- `range` は任意の `{ start, end }`。字幕行の `[start, end]` 内にある source 秒の半開区間で、
-  `start < end` とする。省略時は字幕行全体を使う。
-- `offset` は任意の整数フレーム。負数も許す。
-- `duration` は `caption` または `own`。省略時は `caption`。
-- `edge` は `start` または `end`。省略時は `start`。`end` は字幕区間の終端を item の開始位置にする。
-- `anchor.attached_by: { style_uid, caption }` は任意のスタイル配置印である。`caption` は
-  `anchor.caption` と同じ字幕を指す。字幕を削除すると、同じ字幕を指す印付き item を同じ書き込みで消す。
-  印付き item を手で移動すると `anchor` 全体を外し、現在の時刻を保持する。印のない既存アンカーは保持する。
-- `at` / `duration` は従来どおり必須の整数フレームだが、`anchor` があるときは解決結果の
-  キャッシュである。正本は `anchor` と参照字幕である。
-- 最上位 item の `at` は出力絶対フレーム。子 item の `at` は従来どおり親相対で、アンカーも
-  出力絶対位置を解いた後に親の絶対 `at` を引いて保存する。
+- `caption` is a row id in `captions.json` (`^c-\d{4}$`). It is required.
+- `range` is an optional `{ start, end }`. It is a half-open span in source seconds inside the caption row's `[start, end]`, with `start < end`. When omitted, the whole caption row is used.
+- `offset` is an optional integer frame count. A negative value is allowed.
+- `duration` is `caption` or `own`. The default is `caption`.
+- `edge` is `start` or `end`. The default is `start`. `end` places the item start at the end of the caption span.
+- `anchor.attached_by: { style_uid, caption }` is an optional style-placement mark. `caption` names the same caption as `anchor.caption`. Deleting that caption deletes, in the same write, marked items that name it. Moving a marked item by hand removes the whole `anchor` and keeps the current time. An existing anchor with no mark is kept.
+- `at` and `duration` stay required integer frames. When `anchor` is present they are a cache of the resolved result. The source of truth is `anchor` plus the referenced caption.
+- A top-level item's `at` is an absolute output frame. A child item's `at` stays parent-relative, as before. An anchor resolves an absolute output position, then subtracts the parent's absolute `at` before saving.
 
-## 2. 解決規則
+## 2. Resolve rules
 
-`sourceToOutput(segments, sourceT)` は、source 秒が保持された `src` segment 内なら
-`outStart + (sourceT - srcStart) / speed` を返す。カット内なら次の保持 segment の
-`outStart` へスナップし、素材末尾を超えた値は最終 segment の `outEnd` へクランプする。
-`time_domain: "output"` の字幕は写像せず、その秒値を出力秒として使う。
+`sourceToOutput(segments, sourceT)` returns `outStart + (sourceT - srcStart) / speed` when the source second falls inside a kept `src` segment. Inside a cut it snaps to the next kept segment's `outStart`. A value past the end of the footage clamps to the last segment's `outEnd`. A caption with `time_domain: "output"` is not mapped. Its seconds are used as output seconds.
 
-`start_src = anchor.range?.start ?? caption.start`、
-`end_src = anchor.range?.end ?? caption.end` とし、両端を出力秒へ写す。
+`start_src = anchor.range?.start ?? caption.start` and `end_src = anchor.range?.end ?? caption.end`. Both ends map to output seconds.
 
 ```text
 at = round((edge === "end" ? end_out : start_out) * fps) + (offset ?? 0) - parentAtFrames
@@ -63,48 +52,36 @@ duration(caption) = max(1, round(end_out * fps) - round(start_out * fps))
 duration(own) = item.duration
 ```
 
-`at < 0` はクランプせず、既存の親区間 lint に委ねる。両端が同じ出力時刻になる場合は区間全体が
-カット内なので unresolvable とし、キャッシュを変えない。参照字幕が無い場合も同様にキャッシュを
-保つ。どちらの場合も `hidden` を自動付与しない。
+`at < 0` is not clamped. The existing parent-interval lint owns that case. When both ends land on the same output time, the whole span is inside a cut, so it is unresolvable and the cache does not change. A missing referenced caption also keeps the cache. Neither case adds `hidden` on its own.
 
-## 3. 解決の入口と出口
+## 3. Where resolve runs
 
-共通入口は `readInternalEdit(source, { captions })` である。`captions` が渡されたときだけ
-`resolveItemAnchors` を通してから内部モデルを構築する。渡されない場合は `at` / `duration` の
-キャッシュを従来どおり読み、アンカー導入前の挙動を変えない。
+The shared entry is `readInternalEdit(source, { captions })`. Only when `captions` is passed does the read go through `resolveItemAnchors` before it builds the internal model. When `captions` is omitted, the `at` and `duration` cache is read as before, and behavior from before anchors does not change.
 
-render-cut / gpu / osr / shell preview / preview-server の各出口は、captions.json を
-`toAnchorCaptions` で正規化して `readInternalEdit` の `options.captions` へ渡し、読込時にアンカーを
-再解決する。captions.json が無い場合は従来どおり `at` / `duration` のキャッシュを読む。
+render-cut, gpu, osr, shell Preview, and preview-server each normalize captions.json with `toAnchorCaptions`, pass it as `options.captions` to `readInternalEdit`, and resolve anchors on read. When captions.json is missing, they read the `at` and `duration` cache as before.
 
-字幕の時刻・参照集合を変える `setCaptionTiming` / `shiftCaption` / `insertCaption` /
-`removeCaption` は印付き item の除去とアンカー更新を captions.json と edit.json の同じ書き込みで行う。
-`writeEditSnapshot` と preview-server の captions PUT は呼び出し側が再解決の責務を持つ。
-captions.json と edit.json の 2 ファイル間に原子性はなく、途中で停止してキャッシュが古くなった場合は
-lint `v2.item-anchor-stale` が検出する。
+`setCaptionTiming`, `shiftCaption`, `insertCaption`, and `removeCaption` change caption times or the referenced set. They remove marked items and update anchors in the same write as captions.json and edit.json. Callers of `writeEditSnapshot`, and of the preview-server captions PUT, own the re-resolve. captions.json and edit.json are not atomic across the two files. If a stop in the middle leaves a stale cache, lint `v2.item-anchor-stale` detects it.
 
-## 4. mutation
+## 4. Mutations
 
-- `setItemAnchor(edit, id, anchor, captions)`: anchor を書き、直ちに解決してキャッシュも更新する。
-  解決不能は throw せず warning とキャッシュ保持で返す。
-- `clearItemAnchor(edit, id)`: anchor だけを削除する。現在の `at` / `duration` は焼き込みとして残す。
-- `refreshItemAnchors(edit, captions)`: 全 item を親から子の深さ優先で再解決する
-  `resolveItemAnchors` の薄い wrapper。
+- `setItemAnchor(edit, id, anchor, captions)` writes the anchor, resolves it immediately, and updates the cache. An unresolvable anchor does not throw. It returns a warning and keeps the cache.
+- `clearItemAnchor(edit, id)` deletes only the anchor. The current `at` and `duration` remain as baked values.
+- `refreshItemAnchors(edit, captions)` is a thin wrapper over `resolveItemAnchors` that re-resolves every item, parent before child, depth first.
 
-## 5. lint
+## 5. Lint
 
-| check | severity | 条件 |
+| check | severity | Condition |
 |---|---|---|
-| `v2.item-anchor-ref` | error（captions.json 不在時 warning） | `anchor.caption` の参照先が無い |
-| `v2.item-anchor-range` | error | range が字幕区間外、または `end <= start` |
-| `v2.item-anchor-kind` | error | `captions` / `caption` item が anchor を持つ |
-| `v2.item-anchor-stale` | warning | 解決値とキャッシュの `at` / `duration` が違う |
-| `v2.item-anchor-unresolvable` | warning | アンカー区間全体がカット内で出力尺を持たない |
+| `v2.item-anchor-ref` | error (warning when captions.json is absent) | `anchor.caption` has no target |
+| `v2.item-anchor-range` | error | `range` is outside the caption span, or `end <= start` |
+| `v2.item-anchor-kind` | error | A `captions` or `caption` item has an anchor |
+| `v2.item-anchor-stale` | warning | The resolved `at` or `duration` differs from the cache |
+| `v2.item-anchor-unresolvable` | warning | The whole anchor span is inside a cut and has no output duration |
 
-## 6. 非スコープ
+## 6. Out of scope
 
-- 台本パネルの単語範囲ドラッグ、🎬 ボタンその他の UI
-- `itemAtV2` の string 拡張
-- 単語 index アンカー
-- `captions` / `caption` item へのアンカー
-- 解決不能 item への `hidden` 自動付与
+- Word-range drag on the script panel, the clapper button, and other UI
+- A string extension of `itemAtV2`
+- A word-index anchor
+- An anchor on a `captions` or `caption` item
+- Adding `hidden` on its own to an unresolvable item

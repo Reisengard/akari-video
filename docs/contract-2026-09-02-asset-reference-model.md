@@ -1,108 +1,70 @@
-# contract — 素材の参照モデル v0（共有ライブラリ参照の台帳と解決規則）
+**English** | [Japanese](./contract-2026-09-02-asset-reference-model.ja.md)
 
-ライブラリの置き場は既定で作業場の `library/`。作業場が無いときは従来の `~/.akari/assets/` を使う。
-`akari-assets list`（または `akari assets list`）の先頭行で実際の置き場を確認する。
-以下の `<ライブラリの置き場>` はその表示先を指し、音源はその下の `audio/` に入る。
+# Footage reference model v0
 
-- 状態: 実装済み（機械層 2026-09-02。シェル UI の採用 = 取り込みフローの reference 既定化・プロジェクト面の「参照」札・
-  プレビュー / タイムラインの経路・「素材をまとめる」は 2026-09-22 `task/2026-09-21-library-reference-in-shell` で採用）
-- 決定日: 2026-09-02
-- 実装: `packages/asset-resolver`（記帳・実体化）/ `packages/render-cut`・`packages/edit-lint`（解決）
+The ledger and resolve rules for a shared-library reference.
 
-## 1. 目的
+The library location defaults to `library/` in the workspace. When there is no workspace, the old `~/.akari/assets/` is used. The first line of `akari-assets list` (or `akari assets list`) shows the location actually in use. `<library location>` below means that displayed path. Audio files live under `audio/` there.
 
-カタログ素材をプロジェクトごとに実体コピーすると、同じ素材が何度もダウンロード・複製されて
-プロジェクトが肥大する。実体は**マシン単位の共有ライブラリ**（`<ライブラリの置き場>/<category>/<id>/`）に
-1 部だけ置き、プロジェクトには**参照だけを記録**できるようにする。
+- Status: implemented. The machine layer landed on 2026-09-02. Shell UI adoption landed on 2026-09-22 in `task/2026-09-21-library-reference-in-shell`. That covers a reference default on the import flow, a Reference badge on the project face, the Preview and timeline path, and Bundle footage.
+- Decided: 2026-09-02
+- Implementation: `packages/asset-resolver` (ledger and materialize), `packages/render-cut` and `packages/edit-lint` (resolve)
 
-## 2. 設計の要点
+## 1. Purpose
 
-- **edit.json は変えない**。参照素材も従来どおり `assets/<category>/<id>/<file>` の
-  プロジェクト相対パスで宣言される。実体がプロジェクトに無いことは参照台帳が説明する。
-- 参照台帳 = プロジェクトの `.akari/asset-references.json`:
+Copying catalog footage into every project downloads and duplicates the same footage, and the project grows. The file itself lives once in a **per-machine shared library** at `<library location>/<category>/<id>/`. A project can record **only a reference**.
+
+## 2. Design
+
+- **edit.json does not change.** Referenced footage is still declared as the project-relative path `assets/<category>/<id>/<file>`. The reference ledger explains that the file is not inside the project.
+- The reference ledger is the project's `.akari/asset-references.json`.
 
   ```json
-  { "version": 0, "references": [ { "id": "<素材 id>", "category": "<カテゴリ>" } ] }
+  { "version": 0, "references": [ { "id": "<footage id>", "category": "<category>" } ] }
   ```
 
-  references は category → id の安定ソート・重複なし。読み手は寛容（無い / 壊れは空扱い）、
-  書き込みは tmp + rename の原子的更新。`version` は台帳自身のスキーマ版数であり
-  edit.json の version とは無関係。
-- **解決規則**: 宣言されたプロジェクト相対パスが `assets/<category>/<id>/<rest>` の形で、
-  (1) プロジェクト実体が存在せず、(2) 台帳に `{category, id}` があるとき、
-  `resolveAssetLibraryRoots().read` の順（新しい置き場 → 従来の置き場）にフォールバックする。
-  解決先は各ルートで字句・realpath containment を満たす正規ファイルで
-  あること（`..` 等の脱出は fail-closed で拒否）。
-- render-cut は解決した入力を render inputs 記録に `scope: "library"` として残す
-  （既存 `scope: "akari"` と同列の additive 記録）。採用した実ルートを `library_root` に保存して後段でも検査する。edit-lint は解決できる参照を欠落と報告せず、
-  台帳にあるが実体が無い参照は「共有ライブラリ参照（未取得）」として欠落報告する。
-- 素材ライブラリ参照の解決ロジックの正本は `packages/creator-root/src/library-reference.mjs` に置く。
-  render-cut / edit-lint は各 `src/library-reference.mjs` から正本を再 export する。
+  `references` are stable-sorted by category, then id, with no duplicates. A reader is tolerant. A missing or broken file is treated as empty. A write is an atomic tmp plus rename. `version` is the ledger's own schema version. It is unrelated to the edit.json version.
+- **Resolve rule.** When the declared project-relative path has the shape `assets/<category>/<id>/<rest>`, the project file does not exist, and the ledger has `{category, id}`, resolve falls back through `resolveAssetLibraryRoots().read` in order (the new location, then the old location). The resolved file must be a regular file that passes lexical and realpath containment in that root. An escape such as `..` is refused, fail closed.
+- render-cut records a resolved input in the render inputs with `scope: "library"`, an additive record beside the existing `scope: "akari"`. The chosen real root is saved on `library_root` and checked again later. edit-lint does not report a reference it can resolve as missing. A ledger entry whose file is absent is reported missing as "shared library reference, not fetched".
+- The source of truth for library-reference resolve is `packages/creator-root/src/library-reference.mjs`. render-cut and edit-lint re-export that module from each `src/library-reference.mjs`.
 
-## 3. 使い方（CLI）
+## 3. CLI
 
 ```sh
-# 参照モードで取得（コピーせず台帳へ記帳。既定は従来どおりコピー）
+# Fetch in reference mode. Record the ledger and do not copy. The default is still a copy.
 akari-assets fetch <id> --project <dir> --reference
 
-# 「素材をまとめる」— 参照の実体化（持ち出し・アーカイブ用）
+# Bundle footage. Materialize references for hand-off or archive.
 akari-assets bundle --project <dir> [--dry-run]
 ```
 
-bundle は台帳の各参照をキャッシュから `assets/<category>/<id>/` へ実体化して台帳から除去する。
-未取得の参照は resolve（取得）を試み、取得できないものは台帳に残して部分成功（exit 非 0）で報告する。冪等。
+`bundle` materializes each ledger reference from the cache into `assets/<category>/<id>/` and removes it from the ledger. An unfetched reference is resolved (fetched). One that cannot be fetched stays on the ledger, and the command reports a partial success with a non-zero exit. The command is idempotent.
 
-## 4. 書き出しエンジンの配信
+## 4. Delivery to the Export engine
 
-OSR / GPU の共通配信サーバーは、render-cut が解決した入力のうち `scope: "library"` の
-全件を許可表として受け取る。映像だけでなく、音・静止画・オーバーレイ内の素材も対象。
-キーは宣言パス `assets/<category>/<id>/<rest>`（区切りは `/`）、値は
-`{ absolute: <実体の絶対パス>, library_root: <採用ルート> }`。
-配信側は置き場の探索や台帳からの再解決を行わない。
+The shared delivery server for OSR and GPU receives, as an allow table, every render-cut resolved input with `scope: "library"`. That includes picture, audio, stills, and footage inside an Overlay. The key is the declared path `assets/<category>/<id>/<rest>`, separated by `/`. The value is `{ absolute: <absolute path of the file>, library_root: <chosen root> }`. The delivery side does not search locations and does not resolve from the ledger again.
 
-ffmpeg の計画には、同じ render inputs の解決結果で素材パス欄だけを絶対パスへ置き換えた
-edit の写しを渡す。BGM・SFX・ナレーション・分離音声・レイヤー音声の入力と尺の probe が対象。
-映像ソースの cut 音声は既存の解決済み capabilities を使い、contact sheet は書き出した動画を読む。
-元の edit.json、配信用の宣言パス、receipt の入力パスは書き換えない。
+The ffmpeg plan receives a copy of the edit whose footage path fields are replaced with absolute paths from the same render-input resolution. That covers BGM, SFX, Narration, split audio, and layer-audio inputs, and their duration probes. Cut audio on a picture source uses the capabilities already resolved. A contact sheet reads the exported video. The original edit.json, the declared path used for delivery, and the receipt input path are not rewritten.
 
-別プロセスへの受け渡しには
-`<projectRoot>/.akari/render-tmp/media-references-<render-cut の PID>.json` を使う。
-表の形式は `{ "token": "<合言葉>", "references": { "<宣言パス>": { "absolute": "<実体の絶対パス>", "library_root": "<採用ルート>" } } }`。
-render-cut は実行ごとに `crypto.randomBytes(32)` の合言葉を hex 文字列として生成し、
-同じ値を環境変数 `AKARI_RENDER_MEDIA_REFERENCES_TOKEN` に設定してから書き出しを起動する。
-この変数は Electron 子プロセスへ継承される。終了時は `finally` で元の値へ戻し、元が未定義なら削除する。
-合言葉はログ・エラー文・render.json に出さない。
-render-cut は子プロセスの起動前に排他的に作成し、OSR / GPU（GPU から OSR への再試行を含む）の
-終了時に `finally` で成功・失敗とも削除する。Electron は親 PID からパスを決め、サーバー生成時に
-一度だけ読む。別 CLI の並行実行は表を共有しない。プロセス内の使用中パス集合で
-同じプロジェクトの重複実行（ネスト呼び出しを含む）を拒否する。集合に無い自 PID の既存表は、
-クラッシュや PID 再利用による残存表として削除してから排他的に作り直す。
-使用中の記録は作成・書き出し・後片付けの失敗時にも解除する。他 PID の表は回収しない。
-ファイル経由の表は、環境変数が無い・空、表の token が文字列でない、UTF-8 バイト長が異なる、
-または `crypto.timingSafeEqual` で一致しない場合は一切使わない。token の無い旧形式や壊れた JSON も空の表として扱う。
-これにより単体 CLI など render-cut を通らない起動では、プロジェクトに植え込まれた表から外部ファイルを配信しない。
-配信 API の明示引数 `mediaReferences` がある場合は従来どおりそちらを優先し、
-表が無い場合や認証できない場合はプロジェクト内だけを配信する。
+Handoff to another process uses `<projectRoot>/.akari/render-tmp/media-references-<render-cut PID>.json`. The table shape is `{ "token": "<token>", "references": { "<declared path>": { "absolute": "<absolute path of the file>", "library_root": "<chosen root>" } } }`. Each render-cut run generates a token with `crypto.randomBytes(32)` as a hex string, sets the same value on `AKARI_RENDER_MEDIA_REFERENCES_TOKEN`, then starts Export. The variable is inherited by the Electron child. On exit, `finally` restores the previous value, or deletes it when it was unset. The token is not written to logs, error text, or render.json.
 
-`/media/<宣言パス>` は次の順で検査する。
+render-cut creates the file exclusively before it starts the child, and `finally` deletes it when OSR or GPU ends, including a GPU retry that falls back to OSR, on both success and failure. Electron builds the path from the parent PID and reads the file once when the server is created. A parallel run of another CLI does not share the table. An in-process set of paths in use refuses a second run of the same project, including a nested call. An existing table for this PID that is not in the set is treated as a leftover from a crash or from PID reuse. It is deleted, then created again exclusively. The in-use record is cleared when create, Export, or cleanup fails. Tables for other PIDs are not collected.
 
-1. デコード後に `..` セグメント（`/` と `\` の両区切り）を含む要求は 403。
-2. プロジェクト内の実体があれば優先する。字句・realpath の両方でプロジェクト内に収まることを
-   検査し、symlink による脱出は 403、正規ファイルでなければ 404。
-3. プロジェクトに実体が無い場合のみ、許可表の完全一致キーを調べる。表に無いファイルは
-   ライブラリ配下に存在しても 404。
-4. 表の実体が採用ルート内にあることを字句で確認し、さらに実体と採用ルートを毎回 realpath で
-   解決して包含を再検査する。脱出は 403、欠落・非正規ファイルは 404。
-5. 許可した実体は既存のファイル配信を使い、通常取得は 200、Range 取得は 206 とする。
+A file table is not used at all when the environment variable is missing or empty, when the table token is not a string, when the UTF-8 byte length differs, or when `crypto.timingSafeEqual` does not match. An old form with no token, and broken JSON, are treated as an empty table. A launch that does not go through render-cut, such as a standalone CLI, therefore does not deliver an outside file from a table planted in the project. When the delivery API is given an explicit `mediaReferences` argument, that argument still wins. When the table is missing or cannot be authenticated, delivery stays inside the project.
 
-台帳にあっても置き場に無い必須素材は、従来の render inputs / 計画段階のエラーで停止する。
-配信ページの 404 を待ってから失敗させない。
+`/media/<declared path>` is checked in this order.
 
-## 5. スコープ外（後続）
+1. A request whose decoded path contains a `..` segment, with either `/` or `\` separators, is 403.
+2. A file inside the project wins. Both the lexical path and the realpath must stay inside the project. A symlink escape is 403. A path that is not a regular file is 404.
+3. Only when the project has no file, look up an exact key in the allow table. A file that is not in the table is 404 even if it exists under the library.
+4. Check lexically that the table file is inside the chosen root, then realpath both the file and the chosen root on every request and check containment again. An escape is 403. A missing file, or a non-regular file, is 404.
+5. An allowed file uses the existing file delivery. A normal fetch is 200. A Range fetch is 206.
 
-- ~~シェル UI の採用（取り込みフローの reference 既定化・プロジェクト面の「参照」バッジ・
-  プレビュー経路のフォールバック）~~ → 2026-09-22 に採用済み（「状態」行を参照）。残るのは置き場側の変化で札を自動更新する件
-- 共有キャッシュの容量管理 UI
+Required footage that is on the ledger but missing from the location stops with the existing render-inputs or plan-stage error. Do not wait for a 404 from the delivery page before failing.
 
-出自: 2026-09-02 の素材パネル再設計ラウンドの裁定 3（実体 = 共有キャッシュ・プロジェクトには参照・
-持ち出しは「素材をまとめる」で閉じる）。
+## 5. Out of scope, for later
+
+- ~~Shell UI adoption (a reference default on the import flow, a Reference badge on the project face, and a Preview-path fallback)~~ Adopted on 2026-09-22. See the status line. What remains is updating the badge on its own when the location changes.
+- A UI for shared-cache capacity
+
+Origin: ruling 3 of the footage-panel redesign round on 2026-09-02. The file is the shared cache, the project keeps a reference, and hand-off closes with Bundle footage.

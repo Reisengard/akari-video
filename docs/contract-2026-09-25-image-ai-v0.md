@@ -1,31 +1,33 @@
-# 画像の AI v0 契約
+**English** | [Japanese](./contract-2026-09-25-image-ai-v0.ja.md)
 
-## 設定と秘密
+# Image AI v0
 
-- 設定の「画像の AI」は 1 サービス・1 キー。試作の既定サービスは `fal`。実行口の `imageAi.provider` を 1 か所で差し替えられる。
-- 専用キーは `AKARI_IMAGE_AI_FAL_KEY`。読み上げの `FAL_KEY` が登録済みなら「同じキーを使う」を選べる。その選択は `AKARI_IMAGE_AI_USE_NARRATION_KEY=1` として記録する。専用キーを保存すると共有選択を解除する。
-- いずれも既存の `credentials.env` 保存経路を使う。キーは node 側だけで読み、レンダラー、`edit.json`、由来ファイル、ログへ渡さない。
-- 「接続を確かめる」は fal の読み取り専用 API に実際に GET を送り、HTTP 応答で判定する。キーが空でないことだけでは成功にしない。
+## Settings and secrets
 
-## 実行口とモデル
+- Image AI in Settings is one service and one key. The prototype default service is `fal`. One call site, `imageAi.provider`, can be swapped.
+- The dedicated key is `AKARI_IMAGE_AI_FAL_KEY`. When the Narration `FAL_KEY` is already registered, the user can choose Use the same key. That choice is stored as `AKARI_IMAGE_AI_USE_NARRATION_KEY=1`. Saving a dedicated key clears the shared choice.
+- Both keys use the existing `credentials.env` save path. Only the node side reads a key. The key is not passed to the renderer, `edit.json`, provenance files, or logs.
+- Check connection sends a real GET to a read-only fal API and decides from the HTTP response. A non-empty key alone is not success.
 
-`ImageAiService` は `upscale(input)` と `generateBackground(input, mask?)` を公開し、provider 実装は `ImageAiProvider` に隔離する。v0 の実装は fal 1 本。
+## Call site and models
 
-| 道具 | fal モデル ID | 入力 | 状態 |
+`ImageAiService` exposes `upscale(input)` and `generateBackground(input, mask?)`. Provider code stays behind `ImageAiProvider`. v0 ships one provider, fal.
+
+| Tool | fal model id | Input | Status |
 |---|---|---|---|
-| 高画質化 | `fal-ai/clarity-upscaler` | `image_url`、`upscale_factor: 2` | 利用可能 |
-| 背景生成 | `fal-ai/flux-pro/v1/fill` | `image_url`、`prompt`、`mask_url` | 実行口のみ。画面は「近日」 |
+| Upscale | `fal-ai/clarity-upscaler` | `image_url`, `upscale_factor: 2` | Available |
+| Generate background | `fal-ai/flux-pro/v1/fill` | `image_url`, `prompt`, `mask_url` | Call site only. The screen says Soon |
 
-高画質化モデルの [公式 API 仕様](https://fal.ai/models/fal-ai/clarity-upscaler/api) は上記 ID・入力・データ URI・キュー API を示す。[公式モデルページ](https://fal.ai/models/fal-ai/clarity-upscaler) の表示料金は $0.03/MP。画面の目安は 2 倍の拡大による出力画素数 4 倍を基準に計算する。背景生成はマスク必須の [公式 API 仕様](https://fal.ai/models/fal-ai/flux-pro/v1/fill/api) を参照する。料金は変わりうるため画面では「目安」と明示する。
+The [official API reference](https://fal.ai/models/fal-ai/clarity-upscaler/api) for the upscale model gives the id, the inputs, data URIs, and the queue API above. The listed price on the [official model page](https://fal.ai/models/fal-ai/clarity-upscaler) is $0.03/MP. The on-screen estimate uses a 2× scale, which makes the output pixel count 4× the input. Background generation follows the mask-required [official API reference](https://fal.ai/models/fal-ai/flux-pro/v1/fill/api). Prices can change, so the screen labels the figure as an estimate.
 
-## 高画質化の状態遷移
+## Upscale states
 
-1. 写真の項目を選び「高画質化」を開く。node 側が対象 ID、元素材の SHA-256、対象の宣言の版、画像のバイト数・寸法を調べる。既存の別案も `assets/generated/*.meta.json` から探す。
-2. 送信前に画像の寸法・容量、送信先、料金の目安を表示する。キーと画像の寸法を確認できない場合は送信を無効にする。キーがなければ「設定を開く」を表示する。
-3. 明示操作で fal キューへ送る。処理中は取り消せる。取り消しはローカル待機を止め、キューの取り消し口が返された場合はそこにも依頼する。処理開始後の課金取り消しは保証しない。
-4. 成功結果を `assets/generated/<sha256>.<ext>` に保存する。同名の `<sha256>.<ext>.meta.json` は provider、model、`item_id`、操作種別、入力 SHA-256、対象だけの編集版、パラメータ、作成日時を持つ。ファイルは上書きしない。結果の一時 URL は保存しない。
-5. 結果は選択中の項目に「別案」として提示する。再読み込み後も、`item_id`・現在の素材の入力 SHA-256・対象だけの編集版が一致する保存済みの別案を提示する。既存の案は再送信せず「この案にする」で採用できる。採用時に初めて `source` を差し替える。元素材は残り、この編集は undo 1 回で戻せる。
+1. The user selects a photo item and opens Upscale. The node side reads the target id, the source footage SHA-256, the target declaration's version, and the image byte size and dimensions. It also looks for saved alternatives in `assets/generated/*.meta.json`.
+2. Before send, the screen shows image dimensions, file size, the destination, and the price estimate. Send stays disabled when the key or the image dimensions cannot be checked. When the key is missing, the screen shows Open settings.
+3. An explicit action sends the job to the fal queue. The user can cancel while it runs. Cancel stops the local wait. When the queue returns a cancel endpoint, cancel also calls that endpoint. Cancel does not promise a refund after processing has started.
+4. A successful result is saved at `assets/generated/<sha256>.<ext>`. The sibling `<sha256>.<ext>.meta.json` records provider, model, `item_id`, operation kind, input SHA-256, the edit version limited to the target, parameters, and created time. Files are not overwritten. The result's temporary URL is not saved.
+5. The result is offered on the selected item as an alternative. After a reload, a saved alternative is offered again when `item_id`, the current footage input SHA-256, and the target-only edit version still match. An existing alternative is not sent again. Use this alternative adopts it. `source` is replaced only at adopt time. The original footage remains. One undo restores this edit.
 
-編集の版は、対象 item の `id`・`source` と参照先の `sources` の行だけをハッシュ化する。別クリップの移動など、対象と無関係な編集は別案の採用を妨げない。採用前には対象 ID・元素材ハッシュ・この限定した版を再照合し、対象の差し替え・削除で古くなった案は自動適用しない。失敗時には分かる範囲で課金状況の不確実性、再試行、キー無効時の「設定を開く」を表示する。
+The edit version hashes only the target item's `id` and `source`, plus the referenced `sources` row. An unrelated edit, such as moving another clip, does not block adoption. Before adoption, the target id, the original footage hash, and this limited version are checked again. An alternative that went stale because the target was replaced or deleted is not applied on its own. On failure, the screen shows billing uncertainty where it is known, a retry, and Open settings when the key is invalid.
 
-生成画像の保存形式と編集宣言はサービスに依存しない。サービス名は由来の `provider` にだけ残す。端末内の画像編集はこのキーを要求しない。
+The saved image format and the edit declaration do not depend on the service. The service name remains only on the provenance `provider`. On-device image edits do not require this key.

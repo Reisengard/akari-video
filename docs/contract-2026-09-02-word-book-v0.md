@@ -1,55 +1,36 @@
-# word book v0（単語帳 — 文字起こしの語彙補正と字幕語彙の規範）契約
+**English** | [Japanese](./contract-2026-09-02-word-book-v0.ja.md)
 
-- 日付: 2026-09-02
-- 状態: **ドラフト・要オーナーレビュー**（データ契約の新設・プロジェクト外置き場所の新設・
-  文字起こしパイプラインへの前処理追加を含むため、全編オーナー裁定事項。本書はレビュー前提の起草）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（三原則の正本）、
-  `contract-2026-07-25-memory-connection-v0.md`（姉妹契約。§9 が「系統 B = スタイルプロファイルは
-  性質が異なる別契約として起草する」と本書の席を予約している。本書はその**最初の実装対象**）、
-  `contract-2026-08-02-creator-root-v1.md`（作業場。§7 で「ユーザーの内容物は隠しディレクトリに
-  置かず作業場の `.akari/memory/` に置く」と裁定済み — 本書の置き場所はこれに従う）、
-  `contract-2026-07-13-asset-library.md`（4 層スコープ・shadowing の先例）、
-  `contract-2026-09-02-transcript-unrecognized-spans-v0.md`（analysis.json → captions.json の
-  パイプラインに席を足した直前の先例）、
-  `contract-2026-08-03-caption-display-encoding-qc-v1.md`（`display_policy` の現行形）
-- 発端: オーナー対話（2026-09-02）。要旨: 文字起こしの固有名詞誤認識を毎回手で直している／
-  「一度直したら以後は自動で直る」単語帳がほしい／管理単位は語彙項目（置換ペアではない）／
-  人の手直しには触らない／読み仮名（TTS）と NG 語は同じ器に入るが v0 では後回し。
-  内部裁定の全文脈は内部リポ（akari-video-internal）の memory-and-style 契約 §2・§4 を正本とする
-- スコープ: 単語帳ファイル（スキーマ・置き場所・層解決）、STT 直後の語単位プリパス、既存
-  captions.json への再適用、edit-lint 規則、字幕行分割の `protected_terms` への供給、台本パネル
-  「覚える」導線の規約。**TTS 読み仮名の消費・NG 語 lint・STT への初期プロンプト・読みでの一致・
-  学習ループ・凍結スナップショットは扱わない**（§9）
+# Word book v0, transcript vocabulary correction and the caption vocabulary norm
 
-## 0. 位置づけ — 置換テーブルではなく語彙項目、学習ではなく承認の蓄積
+- Date: 2026-09-02
+- Status: draft, needs owner review. This drafts a new data contract, a place outside the project, and a preprocess step on the transcript pipeline, so the whole document is an owner ruling. It is written for that review.
+- Premises: `contract-2026-07-17-data-contract-versioning.md` (source of the three principles), `contract-2026-07-25-memory-connection-v0.md` (sibling contract. Section 9 reserves this seat by saying system B, the style profile, is drafted as a different contract. This document is the first implementation of that seat), `contract-2026-08-02-creator-root-v1.md` (the workspace. Section 7 already rules that user content does not go in a hidden directory and goes in the workspace `.akari/memory/`. This document's location follows that), `contract-2026-07-13-asset-library.md` (the precedent for 4-layer scope and shadowing), `contract-2026-09-02-transcript-unrecognized-spans-v0.md` (the immediately previous precedent that added a seat on the analysis.json to captions.json pipeline), `contract-2026-08-03-caption-display-encoding-qc-v1.md` (the current form of `display_policy`)
+- Origin: owner conversation on 2026-09-02. The points were these. Proper-name mishearings in transcripts are fixed by hand every time. A word book should fix a term automatically after it is fixed once. The unit of management is a vocabulary entry, not a replacement pair. A person's hand edit is not touched. A TTS reading and a blocked word share the same container, and v0 defers both. The full context of the internal ruling is sections 2 and 4 of the memory-and-style contract in the internal repo akari-video-internal.
+- Scope: the word book file (schema, location, layer resolve), a word-level prepass immediately after speech to text, reapplying onto an existing captions.json, edit-lint rules, feeding `protected_terms` for caption line breaks, and the Remember path on the script panel. v0 does not consume TTS readings, lint blocked words, send an initial prompt to speech to text, match by reading, run a learning loop, or freeze a snapshot. Those are section 9.
 
-本契約は「AI が表記ゆれを学習する」仕組みではない。**人間が一度承認した語彙項目（正しい表記 +
-誤認識の形 + 読み + 種別）を層別のファイルに蓄積し、決まった瞬間（§4）に決定論的に当てるだけ**の
-ファイル契約 + スキル規律である。
+## 0. Place
 
-- 1 件 = **語彙項目**（`surface` を正とし、`variants[]` に誤認識・ゆれの形を束ねる）。
-  「誤 → 正」の置換ペアの列ではない。読み・種別・行分割保護は語彙項目の属性として同じ 1 件に載る
-- 消費は 4 出口: ① 文字起こし直後の**語単位**プリパス ② edit-lint の機械検査 ③ 字幕行分割の
-  `break_hints.protected_terms` への供給 ④ TTS 読み仮名（v0.1・§9）
-- **人の手直しは触らない**。`captionRecord.edited: true` の行には再適用しない（§3-5）
-- **部分文字列で当てない**。一致は `words[]` 上の語境界（無ければ `Intl.Segmenter` の語境界）に
-  限る（§3-2）
-- 内部契約で「スタイル学習」と呼ぶ差別化要素の最初の実装であるが、v0 は**承認済み項目の蓄積と
-  適用のみ**を持つ。「同じ直しを 2 回したら提案する」学習ループは次段（§9）
+This contract is not a mechanism where an AI learns spelling variants. A person approves a vocabulary entry once (the correct spelling, the misheard forms, the reading, and the kind). Layered files accumulate those entries. At the moments in section 4, the product applies them deterministically. That is a file contract plus skill discipline.
 
-版管理三原則（`contract-2026-07-17` §2）を新設契約として初版から適用する:
+- One record is a vocabulary entry. `surface` is the correct spelling, and `variants[]` bundles mishearings and spelling variants. It is not a list of wrong-to-right replacement pairs. Reading, kind, and line-break protection ride on that same entry as attributes.
+- Consumption has 4 exits. 1. A word-level prepass immediately after transcription. 2. Mechanical checks in edit-lint. 3. Supply into `break_hints.protected_terms` for caption line breaks. 4. TTS reading, v0.1, section 9.
+- A person's hand edit is not touched. A row with `captionRecord.edited: true` is not reapplied. Section 3-5.
+- Do not match a substring. A match is limited to a word boundary on `words[]`, or to an `Intl.Segmenter` word boundary when `words[]` is absent. Section 3-2.
+- This is the first implementation of the differentiator that the internal contract calls style learning. v0 only accumulates and applies approved entries. A learning loop that proposes a term after the same fix happens twice is the next stage. Section 9.
 
-- トップレベル `version` は**整数・0 起算**
-- 進化は**追加のみ**。読み手は**寛容リーダー**（entry の未知フィールドは保持する。validator は
-  未知キーを `info` で知らせるだけで拒否しない。§5）
-- 既知より大きい `version` を見た読み手は推測変換せず **read-only で正直に停止する**
-  （`validate-word-book.mjs` 実装。消費側はそのファイルを「無いもの」として扱い warning を出す。§5）
-- フィールド命名は **snake_case**
+Apply the three versioning principles (`contract-2026-07-17` section 2) from the first version of this new contract.
 
-## 1. 確定スキーマ
+- The top-level `version` is an integer starting at 0.
+- Evolution is addition only. The reader is tolerant. It keeps unknown fields on an entry. The validator reports an unknown key as `info` and does not reject it. Section 5.
+- A reader that sees a `version` higher than it knows does not guess a conversion. It stops honestly in read-only mode. That is `validate-word-book.mjs`. Consumers treat that file as absent and emit a warning. Section 5.
+- Field names are snake_case.
 
-正本: `packages/schemas/word-book.schema.json`（`$id: urn:akari-video:schema:word-book:v0`）。
-実例: `packages/schemas/examples/word-book-v0-valid/word-book.json`。
+## 1. Locked schema
+
+Source schema: `packages/schemas/word-book.schema.json` (`$id: urn:akari-video:schema:word-book:v0`).
+Checked example: `packages/schemas/examples/word-book-v0-valid/word-book.json`.
+
+The example below uses English stand-in strings. The checked example file, and the Japanese sibling of this page, keep the original spellings.
 
 ```jsonc
 {
@@ -57,8 +38,8 @@
   "entries": [
     {
       "surface": "AKARI Video",
-      "variants": ["あかりビデオ", "アカリビデオ", "灯りビデオ", "明かり ビデオ"],
-      "reading": "アカリビデオ",
+      "variants": ["Akari Video", "AKARI video", "AkariVideo"],
+      "reading": "akari video",
       "kind": "term",
       "protect_break": true,
       "source": "daihon-panel",
@@ -66,14 +47,14 @@
       "hits": 0
     },
     {
-      "surface": "動画",
-      "variants": ["ムービー"],
+      "surface": "video",
+      "variants": ["movie"],
       "kind": "notation",
       "source": "manual"
     },
     {
-      "surface": "KYO工房",
-      "reading": "キョウコウボウ",
+      "surface": "KYO Studio",
+      "reading": "kyo studio",
       "kind": "reading-only",
       "protect_break": true
     }
@@ -81,324 +62,207 @@
 }
 ```
 
-### フィールド表
+### Field table
 
-| フィールド | 型 | 必須 | 単位・備考 |
+| Field | Type | Required | Notes |
 |---|---|---|---|
-| `version` | integer (const 0) | 要 | — |
-| `entries[]` | array | 要（空配列可） | 語彙項目の列。順序は意味を持たない（一致の優先は §3-3 の規則で決まる） |
-| `entries[].surface` | string | 要 | **正しい表記**。空でない・前後空白なし・NFC（`display_policy` の `protected_terms` と同じ `strictText` 条件。§3-6 の供給先がこの形を要求する）。正規化キー（§3-1）がファイル内で一意 |
-| `entries[].variants[]` | string[] | 任意（既定 `[]`） | 誤認識・表記ゆれの形。各要素は空でない文字列。正規化キーがファイル内の他 entry の `variants` と衝突しない（`validate-word-book.mjs` が拒否）。`surface` と同じキーになる要素は許す（全角半角・大小の正規化を明示する用途） |
-| `entries[].reading` | string | `reading-only` では要・他は任意 | TTS 読み仮名。ひらがな・カタカナ・長音のみ（既存の narration `reading` 規約 [`skills/generate-narration/reading-text.md`](../skills/generate-narration/reading-text.md) に接続する。**v0 では保持のみ・消費は v0.1**） |
-| `entries[].kind` | enum | 要 | `term` / `notation` / `ng` / `reading-only`（下表） |
-| `entries[].protect_break` | boolean | 任意（既定 `false`） | `true` なら字幕行分割で `surface` の内側に改行を入れない（§3-6）。**台本パネル「覚える」は `term` に対して既定 `true` を提案する**（§4） |
-| `entries[].source` | string | 任意 | 出所。推奨語彙 `manual` / `daihon-panel` / `promote` / `import`（enum 強制はしない。`emphasis_words[].emotion` の先例） |
-| `entries[].added_at` | string (ISO8601) | 任意 | 登録時刻 |
-| `entries[].hits` | integer ≥ 0 | 任意 | 適用回数。**v0 は保持のみ**（書かない）。学習ループ（§9）が剪定の根拠に使う席 |
+| `version` | integer (const 0) | yes | |
+| `entries[]` | array | yes, may be empty | The list of vocabulary entries. Order has no meaning. Match priority is the rule in section 3-3. |
+| `entries[].surface` | string | yes | The correct spelling. Non-empty, no leading or trailing space, NFC. The same `strictText` condition as `protected_terms` in `display_policy`, because the supply target in section 3-6 requires that form. The normalized key (section 3-1) is unique in the file. |
+| `entries[].variants[]` | string[] | optional, default `[]` | Mishearings and spelling variants. Each element is a non-empty string. A normalized key must not collide with another entry's `variants` in the same file. `validate-word-book.mjs` rejects that. An element whose key equals `surface` is allowed, so a file can state width or case normalization explicitly. |
+| `entries[].reading` | string | required for `reading-only`, optional otherwise | TTS reading. Hiragana, katakana, and the long-vowel mark only. It connects to the existing narration `reading` rules in [`skills/generate-narration/reading-text.md`](../skills/generate-narration/reading-text.md). v0 stores it and does not consume it. Consumption is v0.1. |
+| `entries[].kind` | enum | yes | `term`, `notation`, `ng`, or `reading-only`. See the table below. |
+| `entries[].protect_break` | boolean | optional, default `false` | When `true`, caption line breaking does not insert a break inside `surface`. Section 3-6. Remember on the script panel proposes the default `true` for `term`. Section 4. |
+| `entries[].source` | string | optional | Where it came from. Recommended words are `manual`, `daihon-panel`, `promote`, and `import`. They are not a forced enum. The precedent is `emphasis_words[].emotion`. |
+| `entries[].added_at` | string (ISO8601) | optional | Time of registration. |
+| `entries[].hits` | integer, at least 0 | optional | How many times it was applied. v0 stores the field and does not write it. The learning loop in section 9 uses it as a reason to prune. |
 
-### `kind` の意味（v0 で何が起きるか）
+### What `kind` does in v0
 
-| `kind` | プリパス（§3-2） | edit-lint（§3-5） | `protected_terms` 供給（§3-6） | TTS 読み（§9） |
+| `kind` | Prepass (section 3-2) | edit-lint (section 3-5) | `protected_terms` supply (section 3-6) | TTS reading (section 9) |
 |---|---|---|---|---|
-| `term` — 固有名詞・専門用語。`variants` は誤認識 | **自動置換**（`variants` と、正規化キーが `surface` に一致する別表記を `surface` へ） | 残った `variants` を warning | `protect_break` に従う | v0.1 |
-| `notation` — 表記ルール（使う語 / 使わない語）。`variants` は「使わない語」 | **置換しない** | `variants` の出現を warning | `protect_break` に従う | — |
-| `ng` — 使用禁止語。`surface` が禁止語そのもの、`variants` はその別表記 | 置換しない | **v0 は検査しない**（v0.1。§9） | — | — |
-| `reading-only` — 表記は正しいが読みが要る語。`variants` は空 | 置換しない | — | `protect_break` に従う | v0.1 |
+| `term`. Proper names and technical terms. `variants` are mishearings. | Automatic replacement. Replace `variants`, and any other spelling whose normalized key matches `surface`, with `surface`. | Warn on `variants` that remain. | Follows `protect_break`. | v0.1 |
+| `notation`. A spelling rule for a word to use or a word not to use. `variants` are the words not to use. | Do not replace. | Warn when `variants` appear. | Follows `protect_break`. | |
+| `ng`. A blocked word. `surface` is the blocked word itself. `variants` are other spellings. | Do not replace. | v0 does not check. v0.1, section 9. | | |
+| `reading-only`. The spelling is already correct and the word needs a reading. `variants` is empty. | Do not replace. | | Follows `protect_break`. | v0.1 |
 
-`notation` を自動置換しない理由: 「ムービー」と言った発話を「動画」に直すのは**表記の統一であって
-誤認識の訂正ではない**。発話と字幕がずれる判断は人がする（warning で促す）。`term` は「そう言った
-のに STT が違う字を当てた」訂正なので機械が直してよい（§6）。
+Do not auto-replace `notation`. Changing a spoken word such as "movie" to the house spelling "video" unifies spelling. It does not correct a mishearing. A person decides when speech and Captions diverge. A warning prompts that decision. A `term` is a correction of letters the speech-to-text engine wrote for words the speaker did say, so the machine may fix it. Section 6.
 
-## 2. 置き場所 — 作業場基底の 4 層
+## 2. Location, four layers under the workspace root
 
-置き場所は creator-root v1 §7 の裁定（ユーザーの内容物は隠しディレクトリ `~/.akari/` に置かず、
-作業場の `.akari/memory/` に置く）に従う。層は素材ライブラリ契約の 4 層スコープと同型で、
-**近い層が勝つ**（shadowing）。
+The location follows the creator-root v1 section 7 ruling. User content does not go in the hidden directory `~/.akari/`. It goes in the workspace `.akari/memory/`. The layers have the same shape as the 4-layer scope of the Footage library contract. The nearer layer wins. That is shadowing.
 
-| 層 | 場所 | 生存範囲 | 書き手 |
+| Layer | Place | Lifetime | Writer |
 |---|---|---|---|
-| `project` | `<プロジェクト>/.akari/memory/word-book.json` | その動画のみ | 台本パネル「覚える」（既定）・CLI |
-| `channel` | `<作業場>/channels/<channel>/.akari/memory/word-book.json` | そのチャンネル（発信主体）の全動画 | 「覚える」の昇格先・CLI |
-| `workspace` | `<作業場>/.akari/memory/word-book.json` | その作業場の全チャンネル | 「覚える」の昇格先・CLI |
-| `builtin` | 本リポ `presets/word-book/builtin.json`（`presets/INDEX.md` に解決コードのパスと共に登録する） | 製品出荷デフォルト | PR 経路のみ（内容は空配列から始める） |
+| `project` | `<project>/.akari/memory/word-book.json` | That video only | Remember on the script panel (the default), and the CLI |
+| `channel` | `<workspace>/channels/<channel>/.akari/memory/word-book.json` | Every video of that channel, the publishing subject | The promotion target of Remember, and the CLI |
+| `workspace` | `<workspace>/.akari/memory/word-book.json` | Every channel in that workspace | The promotion target of Remember, and the CLI |
+| `builtin` | This repo, `presets/word-book/builtin.json`. Register it in `presets/INDEX.md` together with the path of the resolve code. | Product-shipped default | Pull requests only. Start the contents as an empty array. |
 
-- **解決順**: `project` → `channel` → `workspace` → `builtin`。同じ `surface`（正規化キー）が複数層に
-  あるときは近い層の entry が**丸ごと**勝つ（フィールド単位のマージはしない）。ある層の `variants`
-  が別の層の別 `surface` と衝突したときも近い層が勝ち、lint が `word-book.variant-shadowed`（info）で
-  知らせる（§5）
-- `channel` は、プロジェクトが `<作業場>/channels/<channel>/videos/<project>/` の形に置かれている
-  ときだけ存在する（creator-root v1 §3 の正準構造から機械的に決まる。**ブランド選択の質問を
-  intake に足さない**）。作業場の同定は `packages/creator-root` の `resolveCreatorRoot`（`root.json`
-  マーカー）を使う
-- **お試しモード**（作業場なし。creator-root v1 §9）では `project` + `builtin` の 2 層で動く。
-  昇格先（`channel` / `workspace`）は無い。「覚える」は `project` にだけ書き、作業場の作成を案内して
-  よいが強制しない
-- 検証・CI の注入口として `--word-book <path>` オプション / 環境変数 `AKARI_WORD_BOOK` を設け、
-  指定されたファイルを **`project` より近い最上位層**として読む（`AKARI_SOUNDS_DECLARATIONS` の
-  先例）。本タスクの検証はリポ内 fixture で完結させ、実際の作業場・ホームには書き込まない
-- `~/.akari/styles/` は**新設しない**。内部 memory-and-style 契約 §2（2026-07-25）が置き場として
-  挙げていたが、後発の creator-root v1 §7（2026-08-02・オーナー承認）が「内容物は作業場へ」と
-  裁定しており、本書はそちらに従う。`.akari/memory/` は creator-root v1 §3 が「スタイル学習・記憶」の
-  席として既に予約している名前である
-- `channels/<channel>/.akari/` は creator-root v1 §3 の正準構造に無い**追加**（任意サブディレクトリ。
-  追加のみ進化なので `creator-root/v2` は要らない）。同契約 §3 への 1 行追記を本タスクで行う
-- 書き込みは **temp + rename の原子的書き込み**、書く前に `validate-word-book.mjs` 相当の検査を
-  通す（fail-closed。壊れた単語帳を書くとプリパスが黙って効かなくなるため。audio
-  `declarations.json` の書き手 `declare-server.mjs` と同じ規律）。同一ファイルへの連続書き込みは
-  直列化する（`packages/edit-store/src/write-gate.ts` の `writeAtomic` と同じ理由）
-- 単語帳ファイルに**プロジェクト外への絶対パスを書かない**（creator-root v1 §6-4 可搬性）。
-  entry は語彙だけを持つ
+- Resolve order is `project`, then `channel`, then `workspace`, then `builtin`. When the same `surface` (normalized key) exists in several layers, the nearer layer's entry wins as a whole. Do not merge field by field. When one layer's `variants` collide with another layer's different `surface`, the nearer layer still wins, and lint reports `word-book.variant-shadowed` at info. Section 5.
+- `channel` exists only when the project sits at `<workspace>/channels/<channel>/videos/<project>/`. That follows mechanically from the canonical structure in creator-root v1 section 3. Do not add a brand-choice question to intake. Identify the workspace with `resolveCreatorRoot` in `packages/creator-root` (the `root.json` marker).
+- Try mode has no workspace (creator-root v1 section 9) and runs on the two layers `project` and `builtin`. There is no promotion target (`channel` or `workspace`). Remember writes only to `project`. It may point at creating a workspace. It does not force that.
+- Add a `--word-book <path>` option and the environment variable `AKARI_WORD_BOOK` as the injection point for verification and CI. Read the named file as the top layer, nearer than `project`. The precedent is `AKARI_SOUNDS_DECLARATIONS`. Verification for this task finishes on in-repo fixtures and does not write the real workspace or the home directory.
+- Do not create `~/.akari/styles/`. The internal memory-and-style contract section 2 (2026-07-25) named that as a location. The later creator-root v1 section 7 (2026-08-02, owner approved) ruled that content goes to the workspace, and this document follows that later ruling. `.akari/memory/` is a name creator-root v1 section 3 already reserved for style learning and memory.
+- `channels/<channel>/.akari/` is an addition that the canonical structure in creator-root v1 section 3 does not list. It is an optional subdirectory. Addition-only evolution means `creator-root/v2` is not required. This task adds one line to section 3 of that contract.
+- Writes are atomic temp plus rename. Run a check equivalent to `validate-word-book.mjs` before writing. Fail closed. A broken word book would make the prepass silently do nothing. The same discipline as the `declarations.json` writer `declare-server.mjs`. Serialize consecutive writes to the same file, for the same reason as `writeAtomic` in `packages/edit-store/src/write-gate.ts`.
+- A word book file does not store an absolute path outside the project (creator-root v1 section 6-4, portability). An entry holds vocabulary only.
 
-## 3. データ規律 — 一致・置換・不可侵
+## 3. Data rules for match, replace, and what stays untouched
 
-### 3-1. 正規化キー
+### 3-1. Normalized key
 
-一致は文字列そのものではなく**正規化キー**で比較する: NFKC 正規化 → Unicode 既定の case fold →
-空白（`\s`）を全て除去。`surface` は書き込み時に NFC・trim を要求する（§1）が、比較には NFKC
-キーを使う。これにより全角英数・大文字小文字・語間空白の差は `variants` に列挙しなくても吸収される。
-長音・小書き・濁点の異表記（「ヴィデオ」と「ビデオ」）は吸収**しない**（列挙する）。
+Compare a normalized key, not the raw string. NFKC, then the Unicode default case fold, then delete every whitespace character (`\s`). `surface` must be NFC and trimmed at write time (section 1), and comparison uses the NFKC key. Full-width alphanumerics, letter case, and spaces between words are absorbed without listing them in `variants`. Differences of long vowel, small kana, and voiced marks are not absorbed. List those. The Japanese sibling shows a pair that must be listed.
 
-### 3-2. 一致は語境界でのみ — 部分文字列一致の禁止
+### 3-2. Match only on a word boundary
 
-対象はセグメント / 字幕レコードの **`words[]`**（3 バックエンドすべてが出す。whisper / SpeechAnalyzer /
-cloud）。
+The target is `words[]` on a segment or a caption record. All 3 backends emit it. whisper, SpeechAnalyzer, and cloud.
 
-1. `words[]` 上で、**連続する k 個（k ≥ 1）の語の `text` を連結**したものの正規化キーが、ある entry の
-   `variants` のキー（`term` では `surface` のキーも含む）と**完全一致**するとき一致とする。語の途中
-   （「灯り」が語 `灯りビデオ` の内側にある等）は一致しない。これが「語境界でのみ当てる」の定義
-2. 一致した語列は **1 語に畳む**: `{ start: 先頭語の start, end: 末尾語の end, text: surface }`。
-   時刻は実測値のまま動かさない（カラオケの語時刻が保たれる）
-3. セグメント / レコードの `text` 側では、一致した語列の各 `text` を**任意の空白で連結した並び**を
-   左から 1 回だけ探して `surface` に置き換える。**見つからなければその一致は適用しない**（skip として
-   件数に計上）。`words[]` と `text` が既に乖離しているデータを、片側だけ書き換えて悪化させない
-4. `words[]` が無いセグメント / レコードでは、`text` を `Intl.Segmenter`（`granularity: "word"`、
-   locale は `display_policy.locale` があればそれ、無ければ `ja`）で語に分け、同じ規則（連続語の連結
-   キー一致）で `text` だけを置換する。時刻を持つ語が無いのでカラオケは壊れない
-5. 置換の結果が既に `surface` と同一なら何もしない（**冪等**。2 回当てても 1 回と同じ）
+1. On `words[]`, a match is when the normalized key of the concatenation of `text` from k consecutive words (k at least 1) exactly equals a key in an entry's `variants`. For `term`, the entry's `surface` key is included too. The middle of a word is not a match. A short token that sits inside a longer word does not match. That is the definition of matching only on a word boundary. The Japanese sibling shows the inside-a-word case.
+2. Fold the matched word run into one word. `{ start: start of the first word, end: end of the last word, text: surface }`. Do not move the measured times. Karaoke word times stay.
+3. On the segment or record `text`, search once from the left for the sequence of each matched word's `text` joined by any whitespace, and replace that sequence with `surface`. If it is not found, do not apply that match. Count it as a skip. Do not rewrite only one side of data where `words[]` and `text` have already diverged, which would make it worse.
+4. On a segment or record with no `words[]`, split `text` with `Intl.Segmenter` (`granularity: "word"`). The locale is `display_policy.locale` when present, otherwise `ja`. Apply the same rule, a normalized-key match of consecutive words, and replace only `text`. There are no timed words, so karaoke does not break.
+5. If the replacement is already identical to `surface`, do nothing. The operation is idempotent. Applying it twice matches applying it once.
 
-### 3-3. 優先順位と決定論
+### 3-3. Priority and determinism
 
-- 左から右へ走査し、各位置で**最長一致**（語数が多い → 同数なら variant 文字列が長い）を採る。
-  一致した語列は重ねて使わない
-- 同じ位置で複数 entry が候補になるときは近い層（§2）の entry を採る。同一層内の衝突は validator が
-  事前に拒否している
-- 同じ入力（セグメント・単語帳の解決結果）からは常に同じ出力を得る。乱数・時刻・環境に依存しない
+- Scan left to right. At each position take the longest match. More words wins. On a tie, the longer variant string wins. Do not reuse a matched word run.
+- When several entries are candidates at the same position, take the entry from the nearer layer (section 2). The validator has already rejected a collision inside one layer.
+- The same input (the segment and the resolved word book) always produces the same output. It does not depend on randomness, the clock, or the environment.
 
-### 3-4. 書き換えてよいもの・触らないもの
+### 3-4. What may be rewritten, and what is not touched
 
-| 対象 | 扱い |
+| Target | Treatment |
 |---|---|
-| `words[].text` / `start` / `end` | 一致した語列を 1 語に畳む（3-2 の 2）。他の語は不変 |
-| `text` | 3-2 の 3 に従い置換 |
-| `display_text`（存在するとき） | `text` と同じ置換を当てる（表示用の上書き席に古い表記が残らないように） |
-| `display_fragments`（存在するとき） | 一致が**1 つの fragment の内側に収まる**ときだけその fragment 内で置換する。fragment 境界をまたぐ一致は**そのレコード全体を skip** し件数に計上する（人が決めた改行位置を壊さない。`display_fragments` は `display_text ?? text` と完全一致しなければ validator が拒否する） |
-| `edited` | **触らない**。プリパスは人の手直しではない |
-| `unrecognized[]` / `emphasis_words[]` / `style` / `style_preset` / `text_style` / `sourceRef` / `speaker` / `time_domain` / その他 | 触らない。`emphasis_words[].word` は時刻アンカーなので表記が変わっても描画は壊れない |
+| `words[].text`, `start`, `end` | Fold the matched word run into one word (3-2 item 2). Other words stay. |
+| `text` | Replace per 3-2 item 3. |
+| `display_text`, when present | Apply the same replacement as `text`, so the display override does not keep the old spelling. |
+| `display_fragments`, when present | Replace inside a fragment only when the match fits inside that one fragment. A match that crosses a fragment boundary skips the whole record and is counted. Do not break a line break a person decided. The validator rejects `display_fragments` unless they match `display_text ?? text` exactly. |
+| `edited` | Not touched. The prepass is not a person's hand edit. |
+| `unrecognized[]`, `emphasis_words[]`, `style`, `style_preset`, `text_style`, `sourceRef`, `speaker`, `time_domain`, and the rest | Not touched. `emphasis_words[].word` is a time anchor, so drawing does not break when the spelling changes. |
 
-### 3-5. 人の手直しは不可侵
+### 3-5. A person's hand edit is untouchable
 
-- `captionRecord.edited: true` のレコードには**再適用しない**（一致があっても skip し、lint が
-  `captions.word-book-term` を `info` で知らせるだけ。§5）
-- 置換は**必ず `words[]` と `text` を同時に語単位で書く**。`applyCaptionTextEdit`
-  （`packages/edit-store/src/caption-words-rederive.ts`）を経由しない — あれは人の本文編集用の
-  カーネルで、`edited: true` を立て、一致率が閾値を下回ると `words[]` を**黙って削除**する
-  （カラオケ消失）。単語帳の置換は語列と時刻を知っているので再導出が要らない
-- captions.json への書き込みは edit-store の write-gate を通す（`caption-store.ts` に**関数 1 本 =
-  1 op** の流儀で `applyWordBookToCaptions` を足す。lint debounce・原子的書き込みを既存どおり受ける）
-- `akari word-book apply` は **analysis.json の transcript セグメントと captions.json の両方**へ同じ
-  置換を当てる。片側だけ直すと edit-lint 既存規則 `captions.edited`（`edited: false` なのに本文が
-  transcript と一致しない）が warning を出す。この warning は「単語帳を育てたのに captions.json に
-  再適用していない」検知として**そのまま使う**（新規則を足さない）
+- Do not reapply to a record with `captionRecord.edited: true`. Skip it even when it matches. Lint reports `captions.word-book-term` at info only. Section 5.
+- A replacement always writes `words[]` and `text` together, word by word. Do not go through `applyCaptionTextEdit` (`packages/edit-store/src/caption-words-rederive.ts`). That kernel is for a person editing the body. It sets `edited: true`, and when the match rate falls under the threshold it deletes `words[]` without saying so, which drops karaoke. A word book replacement already knows the word run and the times, so it does not re-derive.
+- Writes to captions.json go through the edit-store write gate. Add `applyWordBookToCaptions` in the `caption-store.ts` style of one function equals one op. It receives the existing lint debounce and atomic write.
+- `akari word-book apply` applies the same replacement to both the transcript segments in analysis.json and to captions.json. Fixing only one side makes the existing edit-lint rule `captions.edited` warn, because `edited` is false while the body does not match the transcript. Use that warning as-is to detect "the word book grew and captions.json was not reapplied". Do not add a new rule for it.
 
-### 3-6. 行分割 `protected_terms` への供給 — 軟らかい供給
+### 3-6. Supply into line-break `protected_terms` is soft
 
-`display_policy.break_hints.protected_terms` の一致は**部分文字列・全出現・硬い拒否**であり
-（`packages/edit-store/src/caption-display.ts` `splitsProtectedTerm`）、候補境界を全部潰すと
-`NO_WORD_BOUNDARY_SPLIT` で**字幕がレンダー不能**になる（劣化なし）。単語帳からの供給でこの失敗を
-新たに作ってはならないので、供給は**軟らかく**する:
+A match in `display_policy.break_hints.protected_terms` is a substring, every occurrence, and a hard rejection (`splitsProtectedTerm` in `packages/edit-store/src/caption-display.ts`). Crushing every candidate boundary makes the caption unable to render with `NO_WORD_BOUNDARY_SPLIT`, and there is no degraded draw. Supply from the word book must not create that failure, so supply is soft.
 
-1. `resolveCaptionDisplay` の呼び出し側（render-cut / preview-server / edit-lint / shell の preview
-   service の 4 箇所）が、解決済み単語帳の `protect_break: true` な `surface` を
-   `extra_protected_terms` として渡す（`resolveCaptionDisplay` 自体はファイル IO を持たない純関数の
-   まま。ブラウザ側には出さない — 既存の純度テストどおり）
-2. 分割は「policy 明示の `protected_terms` ∪ 単語帳ぶん」でまず試み、`NO_WORD_BOUNDARY_SPLIT` なら
-   **単語帳ぶんだけを外して再試行**する。それでも失敗するなら既存どおり失敗する（policy 明示ぶんの
-   責任）。外したことは lint が `captions.word-book-break-fallback`（warning）で知らせる
-3. **`display_policy` が無いプロジェクトには何も供給しない**。単語帳は policy を注入しない
-   （`recipe.schema.json` の「`display_policy` 等を自動注入してはならない」と同じ線）
-4. 供給するのは `surface` だけ（`variants` は供給しない。プリパス後の本文に variants は残らない
-   前提。残っていれば §5 の warning が先に立つ）
+1. The four callers of `resolveCaptionDisplay` (render-cut, preview-server, edit-lint, and the shell preview service) pass `surface` values with `protect_break: true` from the resolved word book as `extra_protected_terms`. `resolveCaptionDisplay` itself stays a pure function with no file IO. Do not send it to the browser. That matches the existing purity test.
+2. First try the split with the policy's explicit `protected_terms` plus the word book terms. On `NO_WORD_BOUNDARY_SPLIT`, retry with only the word book terms removed. If that still fails, fail as today. The explicit policy terms are responsible. Lint reports the removal as `captions.word-book-break-fallback` at warning.
+3. Supply nothing to a project that has no `display_policy`. The word book does not inject a policy. The same line as `recipe.schema.json`, which says `display_policy` and similar must not be injected automatically.
+4. Supply only `surface`. Do not supply `variants`. The premise is that variants do not remain in the body after the prepass. If they remain, the warning in section 5 stands first.
 
-### 3-7. キャッシュと生出力
+### 3-7. Cache and raw output
 
-- 文字起こしキャッシュ（`.akari/cache/transcribe/`）は **STT の生出力のまま**保存する。プリパスは
-  キャッシュ読み出し後に毎回当てる。単語帳を育てても再文字起こしは要らない
-- `akari media transcribe --no-word-book` で生出力を analysis.json に記録できる（比較・検証用）
+- The transcription cache (`.akari/cache/transcribe/`) stores the raw speech-to-text output. The prepass runs every time after a cache read. Growing the word book does not require a new transcription.
+- `akari media transcribe --no-word-book` can record the raw output into analysis.json, for comparison and verification.
 
-## 4. スキル配線 — 当てる瞬間
+## 4. Skill wiring, the moment of application
 
-| 瞬間 | 何をするか | 実装箇所 |
+| Moment | What it does | Where |
 |---|---|---|
-| 文字起こし直後 | 解決済み単語帳で全セグメントにプリパス（§3-2）。キャッシュ hit 経路も同じ | `packages/akari-tools/src/media/transcribe.mjs` `transcribeMedia`: `normalizeSegments` / `attachUnrecognizedSpans` の後・`recordTranscribe` の前。`options.wordBook`（`--no-word-book` / `--word-book <path>`） |
-| 台本パネル「覚える」 | 人が行を直した直後に、直した語列を `variants`、直した後を `surface` として登録を提案。**登録先の層を必ず人に確認**（既定 `project`。`channel` / `workspace` は昇格 = 内部契約 §4 の承認ゲート）。登録後、同じプロジェクトの `edited: false` な行と transcript に即時再適用し件数を返す | `apps/shell/extensions/akari-transcript` の node 側 service に `rememberWord` RPC を足し、`packages/word-book` の add + apply を呼ぶ（訂正 2026-09-02: RPC は akari-annotations の service に足す。UI は akari-transcript） |
-| 手動再適用 | 既存プロジェクトに解決済み単語帳を当て直す。`--dry-run` で件数だけ | `akari word-book apply [--project <dir>] [--dry-run]` |
-| edit-lint | §5 の規則 | `packages/edit-lint/src/edit-lint.mjs`（captions 検査の並び） |
-| 行分割 | §3-6 の軟らかい供給 | `resolveCaptionDisplay` の呼び出し 4 箇所 |
-| 解決の可視化 | 有効な entry と出所（どの層から来たか）を表示 | `akari word-book resolve [--project <dir>]`（`manage-connections` の `resolve-connections.mjs` が返す `sources` と同型） |
-| generate-narration | `reading` の消費 | **v0.1**（§9） |
+| Immediately after transcription | Prepass every segment with the resolved word book (section 3-2). The cache-hit path does the same. | `transcribeMedia` in `packages/akari-tools/src/media/transcribe.mjs`, after `normalizeSegments` and `attachUnrecognizedSpans`, before `recordTranscribe`. `options.wordBook` (`--no-word-book` or `--word-book <path>`). |
+| Remember on the script panel | Right after a person fixes a line, propose registering the fixed word run as `variants` and the text after the fix as `surface`. Always ask the person which layer to write. The default is `project`. `channel` and `workspace` are promotion, the approval gate in internal contract section 4. After registration, immediately reapply to `edited: false` lines and the transcript in the same project, and return the counts. | Add a `rememberWord` RPC on the node-side service of `apps/shell/extensions/akari-transcript`, and call add plus apply in `packages/word-book`. Correction of 2026-09-02. Add the RPC on the akari-annotations service. The UI stays in akari-transcript. |
+| Manual reapply | Apply the resolved word book again to an existing project. `--dry-run` returns counts only. | `akari word-book apply [--project <dir>] [--dry-run]` |
+| edit-lint | The rules in section 5. | `packages/edit-lint/src/edit-lint.mjs`, in the captions check list. |
+| Line breaking | The soft supply in section 3-6. | The four callers of `resolveCaptionDisplay`. |
+| Showing the resolve | Show the active entries and where they came from, which layer. | `akari word-book resolve [--project <dir>]`. The same shape as `sources` returned by `resolve-connections.mjs` in manage-connections. |
+| generate-narration | Consume `reading`. | v0.1, section 9. |
 
-純関数（解決・一致・置換・検証）は新規パッケージ `packages/word-book/`（依存ゼロの plain ESM）に
-置き、akari-tools / edit-lint / edit-store の node 側 / shell の node 側が同じ実装を呼ぶ。4 出口で
-別々の一致器を持たない（4 出口パリティ）。
+Put the pure functions (resolve, match, replace, validate) in a new package `packages/word-book/`, plain ESM with zero dependencies. The node side of akari-tools, edit-lint, edit-store, and the shell call the same implementation. The 4 exits do not each keep their own matcher. That is 4-exit parity.
 
-「覚える」が提案する既定値: `kind: "term"`、`protect_break: true`、`source: "daihon-panel"`、
-`added_at` = 今。人はダイアログで `kind` を `notation` に変えられる（その場合 `protect_break` の既定は
-`false`）。**推測で登録しない** — 人が「覚える」を押した語列だけを登録する（recipe v0 §3 規律 1 と
-同じ「確認済みの値だけ記録する」）。
+Defaults that Remember proposes: `kind: "term"`, `protect_break: true`, `source: "daihon-panel"`, `added_at` equal to now. In the dialog a person can change `kind` to `notation`. In that case the default of `protect_break` is `false`. Do not register by guessing. Register only the word run the person pressed Remember on. The same rule as recipe v0 section 3, discipline 1, record only a confirmed value.
 
-## 5. 劣化規約と lint 規則
+## 5. Degradation and lint rules
 
-単語帳はプロジェクトの参考情報であり、検証失敗や不在が文字起こし・編集・レンダー工程を巻き込んで
-失敗させない。
+The word book is reference information for the project. A failed check or a missing file does not fail transcription, editing, or render.
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| どの層にも単語帳が無い | 正当な状態。プリパスは何もしない・供給もしない・lint は静か |
-| `entries` が空配列 | 同上 |
-| ある層のファイルが JSON として壊れている / スキーマ違反 | その層を「無いもの」として続行。lint が `word-book.invalid`（warning・パス付き）で知らせる。**書き込み側は fail-closed**（壊れたものを書かない） |
-| `version > 0` | その層を read-only で無視し「このファイルは新しい形式です。スキル / アプリを更新してください」を warning で出す（原則 3） |
-| entry に未知フィールド | 保持する（寛容リーダー）。validator は `word-book.unknown-field`（info）で知らせるだけ |
-| 一致した語列を `text` 側で見つけられない | その一致だけ skip（§3-2 の 3）。`apply` の結果に件数を出す |
-| `display_fragments` の境界をまたぐ一致 | そのレコードを skip（§3-4）。件数を出す |
-| 作業場を解決できない（`resolveCreatorRoot` がエラー） | `project` + `builtin` で続行（お試しモード扱い）。warning は出さない |
-| 単語帳ぶんの `protected_terms` で分割不能 | 単語帳ぶんを外して再試行（§3-6）。`captions.word-book-break-fallback` warning |
+| No word book in any layer | A valid state. The prepass does nothing, supply does nothing, and lint stays quiet. |
+| `entries` is an empty array | Same as above. |
+| A layer's file is broken JSON or violates the schema | Continue, treating that layer as absent. Lint reports `word-book.invalid` at warning, with the path. The writer fails closed and does not write a broken file. |
+| `version > 0` | Ignore that layer in read-only mode and warn "This file is a newer format. Update the skill or the app." Principle 3. |
+| An entry has an unknown field | Keep it. Tolerant reader. The validator reports `word-book.unknown-field` at info only. |
+| The matched word run cannot be found on the `text` side | Skip only that match (section 3-2 item 3). `apply` reports the count. |
+| A match crosses a `display_fragments` boundary | Skip that record (section 3-4). Report the count. |
+| The workspace cannot be resolved (`resolveCreatorRoot` errors) | Continue with `project` and `builtin`, treated as try mode. Do not warn. |
+| Line breaking fails because of word book `protected_terms` | Retry with the word book terms removed (section 3-6). Warning `captions.word-book-break-fallback`. |
 
-### edit-lint 規則（v0）
+### edit-lint rules (v0)
 
-規則 id は既存の流儀（ドット区切り・各区分は kebab-case。識別子フィールドは `check`）に従う。
+Rule ids follow the existing style. Dot-separated, each segment kebab-case. The identifier field is `check`.
 
-| `check` | severity | 条件 |
+| `check` | Severity | Condition |
 |---|---|---|
-| `word-book.invalid` | warning | 解決対象の層のファイルが読めない / スキーマ違反 / `version > 0` |
-| `word-book.unknown-field` | info | entry に未知フィールド（validator のみ。lint は出さない） |
-| `word-book.variant-shadowed` | info | 層をまたいで同じ variant キーが別 `surface` に属する（近い層が勝った事実の通知） |
-| `captions.word-book-term` | warning（`edited: true` の行は info） | `term` の `variants` が字幕本文に語境界で残っている。非 edited 行なら「再適用漏れ」、edited 行なら人の判断なので info |
-| `captions.word-book-notation` | warning | `notation` の `variants` が字幕本文に語境界で現れる（edited の有無を問わない） |
-| `captions.word-book-break-fallback` | warning | §3-6 の 2 で単語帳ぶんを外した |
+| `word-book.invalid` | warning | A file in a layer under resolve cannot be read, violates the schema, or has `version > 0`. |
+| `word-book.unknown-field` | info | An entry has an unknown field. Validator only. Lint does not emit this. |
+| `word-book.variant-shadowed` | info | The same variant key across layers belongs to a different `surface`. Notice that the nearer layer won. |
+| `captions.word-book-term` | warning. An `edited: true` line is info. | A `term` `variants` value remains in the caption body on a word boundary. An unedited line means reapply was missed. An edited line is a person's decision, so info. |
+| `captions.word-book-notation` | warning | A `notation` `variants` value appears in the caption body on a word boundary, whether or not the line is edited. |
+| `captions.word-book-break-fallback` | warning | Section 3-6 item 2 removed the word book terms. |
 
-lint の一致も §3-2 と同じ語境界規則（`words[]` → 無ければ `Intl.Segmenter`）で行い、部分文字列では
-検査しない。`ng` の検査は v0.1（§9）。
+Lint matches with the same word-boundary rule as section 3-2 (`words[]`, otherwise `Intl.Segmenter`). It does not check substrings. Checking `ng` is v0.1, section 9.
 
-## 6. データ設計意図
+## 6. Why the data is shaped this way
 
-- **語彙項目を単位にする理由**: 同じ語に誤認識の形が複数あり（「あかりビデオ」「灯りビデオ」…）、
-  読み・行分割保護・種別はその語に 1 つずつ付く。置換ペアの列にすると同じ語の属性が散り、
-  「この語の読みは？」に答えられない。TTS（v0.1）と行分割（v0）が同じ 1 件を見るのが要点
-- **`kind` を分ける理由**: 「STT が違う字を当てた」（`term`・機械が直してよい）と「発話どおりだが
-  表記を統一したい」（`notation`・人が決める）は責任の所在が違う。両方を自動置換にすると発話と字幕が
-  黙ってずれる。禁止語（`ng`）と読みだけ要る語（`reading-only`）は置換の対象ですらない
-- **語境界でのみ当てる理由**: 日本語に空白区切りが無いため、部分文字列一致は「灯り」が「灯りビデオ」
-  や「明かりを灯りに」を巻き込む。`words[]` は STT が実測した語境界であり、これを一致の単位にすれば
-  時刻を持つ語列を 1 語に畳めてカラオケが崩れない。`words[]` が無いときだけ `Intl.Segmenter` に
-  落ちるのは、既存の行分割（`a4-ja-two-fragment-v1`）が同じ境界器を使っているため — 新しい依存を
-  持ち込まない（形態素解析器は本リポに存在しない。読みでの一致は次段 §9）
-- **`text` と `words[]` を同時に書く理由**: 人の本文編集カーネル `applyCaptionTextEdit` は「本文が
-  変わったので語時刻を再導出する」道具であり、一致率が低いと `words[]` を捨てる。単語帳は語列と
-  時刻を知っているので、再導出を通さず両方を語単位で書くのが唯一安全な経路
-- **`edited: true` を不可侵にする理由**: 人が直した行は人の判断の記録。機械が上書きすれば
-  「開いたらほぼ終わっていてドラッグで直せる」の信頼が崩れる。lint が info で知らせるに留める
-- **置き場所を作業場にする理由**: 単語帳はユーザーの内容物（承認の蓄積）であり、アプリ更新で
-  入れ替わるマシン状態ではない。creator-root v1 §7 の裁定どおり隠しディレクトリに置かない。層を
-  ディレクトリの包含関係（project ⊂ channel ⊂ workspace）で決めれば、「この動画はどのブランドか」
-  を別途宣言する席が要らない。移動（養子縁組）でも自然に付いてくる
-- **`channel` を発信主体の層にする理由**: 表記・用語が自然にまとまる単位はチャンネル / ブランド /
-  クライアントであり、プロジェクト単位では毎回作り直し、作業場全体では案件間で汚染する
-  （内部契約 §2 の裁定を creator-root の `channels/<channel>/` に写像したもの）
-- **凍結スナップショットを v0 に入れない理由**: プリパスの結果は analysis.json / captions.json に
-  **永続化される**ので、半年後の再レンダーで単語帳が変わっていても本文は変わらない。レンダー時に
-  生きて参照するのは §3-6 の行分割供給だけで、それは軟らかい供給であり本文を変えない。よって
-  再現性のために凍結は要らない。凍結が要るのは「別マシンで lint を同じ規範で走らせる」用途で、
-  それは次段（§9）
-- **供給を軟らかくする理由**: 既存の `protected_terms` は硬い拒否で、足すほど分割不能に近づく。
-  単語帳は語が増え続ける器なので、硬い供給にすると「単語を覚えるほど字幕が壊れる」。明示 policy の
-  硬さは保ったまま、単語帳ぶんだけ退く
-- **`hits` を席だけ確保する理由**: 学習ループ（同じ直し 2 回 → 提案、使われない entry の剪定）が
-  必要とする最初のデータ。v0 で書かないのは、書き込み（作業場・チャンネル層への副作用）を
-  文字起こしコマンドに持たせる是非を別途裁定するため
-- **`~/.akari/styles/` を作らない理由**: §2 参照。二つの契約が矛盾するとき、後発でオーナー承認の
-  ある creator-root v1 を採る。内部契約 §2 の記述は本書の裁定後に追従して改める
+- The unit is a vocabulary entry because one word can have several mishearings. The checked example lists them. A reading, line-break protection, and a kind each belong once to that word. A list of replacement pairs scatters the attributes of the same word, and cannot answer "what is this word's reading?". The point is that TTS (v0.1) and line breaking (v0) look at the same one entry.
+- `kind` is split because "speech to text wrote different letters" (`term`, the machine may fix it) and "the speech was right and the spelling should be unified" (`notation`, a person decides) have different owners. Auto-replacing both makes speech and Captions diverge quietly. A blocked word (`ng`) and a word that only needs a reading (`reading-only`) are not replacement targets at all.
+- Match only on a word boundary because Japanese has no space separation, so a substring match would catch a short token inside a longer name, or a sentence that happens to contain that token. The Japanese sibling shows that case. `words[]` is the word boundary speech to text measured. Using it as the match unit folds a timed word run into one word without breaking karaoke. Falling back to `Intl.Segmenter` only when `words[]` is absent is because the existing line break (`a4-ja-two-fragment-v1`) uses the same segmenter. Do not bring in a new dependency. This repo has no morphological analyzer. Matching by reading is the next stage, section 9.
+- Write `text` and `words[]` together because the person's body-edit kernel `applyCaptionTextEdit` is a tool that re-derives word times because the body changed, and it drops `words[]` when the match rate is low. The word book knows the word run and the times, so writing both at word granularity without re-derivation is the only safe path.
+- `edited: true` is untouchable because a line a person fixed is a record of that person's decision. A machine overwrite breaks the trust that opening the project shows a cut that is nearly done and can be fixed by dragging. Lint only reports info.
+- The location is the workspace because a word book is user content, an accumulation of approvals, not machine state that an app update replaces. Per the creator-root v1 section 7 ruling, do not put it in a hidden directory. Deciding the layer by directory containment (project inside channel inside workspace) means there is no separate seat that declares which brand this video belongs to. A move (adoption) carries the book along.
+- `channel` is the publishing-subject layer because the unit where spelling and terms naturally group is the channel, brand, or client. A project-only book is rebuilt every time. A workspace-wide book contaminates one job with another. This maps the ruling in internal contract section 2 onto creator-root's `channels/<channel>/`.
+- v0 has no frozen snapshot because the prepass result is persisted in analysis.json and captions.json, so a re-render half a year later does not change the body even if the word book changed. The only live reference at render time is the line-break supply in section 3-6, and that supply is soft and does not change the body. A freeze is therefore not required for reproducibility. A freeze is required to run lint against the same norm on another machine, and that is the next stage, section 9.
+- Supply is soft because the existing `protected_terms` is a hard rejection, and adding terms moves closer to an unsplittable line. A word book is a container that keeps growing, so a hard supply would mean "remembering a word breaks Captions". Keep the explicit policy hard, and let only the word book terms step back.
+- `hits` only reserves a seat because the learning loop (the same fix twice, then a proposal, and pruning unused entries) needs that data first. v0 does not write it, so that a separate ruling can decide whether the transcribe command should have the side effect of writing the workspace and channel layers.
+- Do not create `~/.akari/styles/` for the reason in section 2. When two contracts disagree, take the later owner-approved creator-root v1. After this ruling, update the wording in internal contract section 2 to follow.
 
-## 7. よくある間違い
+## 7. Common mistakes
 
-- **`text` を部分文字列置換で直す** — 誤り。§3-2。語境界でのみ当てる。`text` 側の置換は一致した
-  語列を探して 1 回だけ
-- **`applyCaptionTextEdit` 経由で本文を書き換える** — 誤り。§3-5。`edited: true` が立ち、
-  一致率次第で `words[]` が消える
-- **`edited: true` の行に再適用する** — 誤り。§3-5。人の手直しは不可侵
-- **captions.json だけ直して analysis.json を直さない（またはその逆）** — 誤り。§3-5。
-  `captions.edited` が warning を出す。`apply` は両方へ当てる
-- **`notation` を自動置換する** — 誤り。§1 の `kind` 表。表記統一は人の判断。warning で促す
-- **`display_policy` が無いプロジェクトに policy を注入して `protected_terms` を効かせる** — 誤り。
-  §3-6 の 3。単語帳は policy を作らない
-- **単語帳の `surface` を硬い `protected_terms` として直接 policy に書き込む** — 誤り。§3-6。
-  分割不能を作る。供給は呼び出し側の `extra_protected_terms` で軟らかく
-- **`normalizeSegments` の前にプリパスを当てる** — 誤り。§4。`normalizeSegments` はフィールドを列挙で
-  再構築するので、前段で足した情報は落ちる。当てるのは `normalizeSegments` / `attachUnrecognizedSpans`
-  の後
-- **キャッシュに置換済みを保存する** — 誤り。§3-7。キャッシュは生出力。単語帳を育てるたびに
-  再文字起こしが要る設計にしない
-- **`~/.akari/styles/<brand>/` に置く** — 誤り。§2。内容物は作業場へ。ブランド = `channels/<channel>/`
-- **単語帳の不在・破損で文字起こしやレンダーを止める** — 誤り。§5。無いものとして続行し warning
-- **推測で entry を登録する**（STT の confidence や LLM の判断で自動登録） — 誤り。§4。人が「覚える」を
-  押した語列だけ
-- **entry に `scope` を書く** — 誤り。§2。層はファイルの置き場で決まる。`resolve` の出力にだけ出所が付く
-- **`packages/overlay-runtime/src/text-split.js` を語境界器として参照する** — 誤り。そのファイルは
-  存在しない。語境界は `words[]` と `Intl.Segmenter`
+- Fixing `text` with a substring replace is wrong. Section 3-2. Match only on a word boundary. The `text`-side replace searches for the matched word run and replaces it once.
+- Rewriting the body through `applyCaptionTextEdit` is wrong. Section 3-5. `edited: true` gets set, and `words[]` can disappear depending on the match rate.
+- Reapplying to an `edited: true` line is wrong. Section 3-5. A person's hand edit is untouchable.
+- Fixing only captions.json and not analysis.json, or the reverse, is wrong. Section 3-5. `captions.edited` warns. `apply` writes both.
+- Auto-replacing `notation` is wrong. The `kind` table in section 1. Unifying spelling is a person's decision. A warning prompts it.
+- Injecting a policy into a project that has no `display_policy` so that `protected_terms` takes effect is wrong. Section 3-6 item 3. The word book does not create a policy.
+- Writing a word book `surface` directly into the policy as a hard `protected_terms` value is wrong. Section 3-6. That creates an unsplittable line. Supply is soft, through the caller's `extra_protected_terms`.
+- Running the prepass before `normalizeSegments` is wrong. Section 4. `normalizeSegments` rebuilds fields by enumeration, so information added in an earlier step is dropped. Apply after `normalizeSegments` and `attachUnrecognizedSpans`.
+- Saving the replaced text in the cache is wrong. Section 3-7. The cache is raw output. Do not design it so that growing the word book requires a new transcription.
+- Placing the file at `~/.akari/styles/<brand>/` is wrong. Section 2. Content goes to the workspace. A brand is `channels/<channel>/`.
+- Stopping transcription or render because the word book is missing or broken is wrong. Section 5. Continue, treating it as absent, and warn.
+- Registering an entry by guessing, from speech-to-text confidence or an LLM judgment, is wrong. Section 4. Register only the word run the person pressed Remember on.
+- Writing `scope` on an entry is wrong. Section 2. The layer is decided by where the file sits. Only the `resolve` output carries the origin.
+- Citing `packages/overlay-runtime/src/text-split.js` as the word segmenter is wrong. That file does not exist. Word boundaries are `words[]` and `Intl.Segmenter`.
 
-## 8. マイグレーション
+## 8. Migration
 
-（空欄 — `word-book.schema.json` は本契約で新設。破壊的変更が必要になった場合はここに旧→新の
-機械実行可能な変換手順を必ず併記する。`contract-2026-07-17` 原則 2）
+Blank. `word-book.schema.json` is created by this contract. If a breaking change becomes necessary, write the machine-runnable old-to-new conversion steps here. `contract-2026-07-17` principle 2.
 
-## 9. 次段（本契約のスコープ外）
+## 9. Next stage, outside this contract
 
-- **TTS 読み仮名の消費（v0.1）**: generate-narration が読み原稿を作るとき、解決済み単語帳の
-  `reading` を持つ entry（`term` / `reading-only`）の `surface` を `reading` に置き換える。既存の
-  `script` / `reading` 二重保存規約（`reading-text.md`）に接続する。手作業のかな化を減らすのが目的
-- **`ng` の lint（v0.1）**: `captions.word-book-ng`（error か warning かは裁定待ち）。禁止語は
-  「出たら直す」ではなく「出したくない」なので severity は `term` より強い候補
-- **STT への初期プロンプト**: whisper.cpp の `--prompt` に解決済み `surface` を渡し、誤認識を上流で
-  減らす。現行の `runWhisper` argv（`-m,-f,-l,-oj,-ojf,-of`）に席が無いので `resolveWhisper` /
-  `transcribeMedia` の options を通す改修が要る。SpeechAnalyzer / cloud の同等機能は個別に調査
-- **読みでの一致**: `variants` を列挙しなくても同音の誤認識を当てる（「灯り」「明かり」「あかり」）。
-  形態素解析器（kuromoji.js 等）の依存を持ち込む判断が要るため v0 は表層一致のみ
-- **学習ループ**（内部契約 §4 の実体・「スタイル学習」）: 台本パネルの本文編集を `.akari/events/` に
-  記録し、同じ直しが 2 回目に現れたら「覚える？」を提案する。`hits` を書き、長期間 0 の entry を
-  剪定候補に出す。提案頻度は recipe v0 の offer-once に倣う
-- **凍結スナップショット**: `frozen_at` を持つ `project` 層ファイルへ上位層を写し、以後は上位層を
-  読まない。別マシン・別時期で同じ規範の lint を保証する用途
-- **`notation` の承認付き一括置換**: warning を見た人が「全部直す」を押したときだけ、`edited` を
-  立てずに置換する導線
-- **単語帳エディタ UI / インポート・エクスポート**（CSV・他ツールの辞書形式）
-- **作業場 `.akari/memory/` の他の記憶**（トーン散文・`caption_defaults` 等。内部契約 §2 の残り）
-  との同居規約。本書は `word-book.json` 1 ファイルだけを定める
+- Consuming TTS readings (v0.1). When generate-narration builds the reading script, replace `surface` of a resolved word book entry that has `reading` (`term` or `reading-only`) with `reading`. Connect to the existing dual-save rule for `script` and `reading` in `reading-text.md`. The goal is to reduce manual conversion to kana.
+- `ng` lint (v0.1). `captions.word-book-ng`. Whether it is an error or a warning waits for a ruling. A blocked word is "do not want it to appear" rather than "fix it when it appears", so the severity is a candidate stronger than `term`.
+- An initial prompt to speech to text. Pass resolved `surface` values to whisper.cpp `--prompt` so mishearings drop upstream. The current `runWhisper` argv (`-m,-f,-l,-oj,-ojf,-of`) has no seat for it, so `resolveWhisper` and `transcribeMedia` options need a change. Survey the equivalent for SpeechAnalyzer and cloud separately.
+- Matching by reading. Catch a same-sound mishearing without listing every `variants` entry. The Japanese sibling lists the homophone set. That needs a decision to take a morphological analyzer dependency (for example kuromoji.js), so v0 matches the written surface only.
+- The learning loop, the body of internal contract section 4, called style learning. Record body edits on the script panel into `.akari/events/`. When the same fix appears a second time, propose Remember. Write `hits`, and surface entries that stay at 0 for a long time as prune candidates. Proposal frequency follows offer-once in recipe v0.
+- A frozen snapshot. Copy upper layers into a `project` layer file that has `frozen_at`, and do not read upper layers after that. The use is to guarantee lint against the same norm on another machine or at another time.
+- Approved bulk replace for `notation`. A path that replaces, without setting `edited`, only when a person who saw the warning presses fix all.
+- A word book editor UI, and import and export (CSV and dictionary formats from other tools).
+- A cohabitation rule with the other memories in the workspace `.akari/memory/` (tone prose, `caption_defaults`, and the rest of internal contract section 2). This document defines only the one file `word-book.json`.
 
-## 10. 受け入れ条件（実装タスクが満たすこと）
+## 10. Acceptance, what the implementation task meets
 
-1. `packages/schemas/word-book.schema.json` + `validate-word-book.mjs` + 実例（valid 1・invalid
-   3: variant 衝突 / `reading-only` に variants / `version: 1`）。`version > 0` は更新案内で停止
-2. `packages/word-book/` の純関数に対する node --test: 語境界一致（語の内側は一致しない）・
-   多語連結の畳み込み（時刻が先頭 / 末尾を保つ）・最長一致・層の shadowing・冪等性・`text` 側
-   不一致の skip・`display_fragments` 境界またぎの skip・`Intl.Segmenter` 経路
-3. `transcribeMedia` に `backendRunner` 差し替えで固定した words を流し、analysis.json の
-   transcript が置換済みで、キャッシュファイルは生出力のままであることを確認
-4. captions.json への apply 後に `edit-lint` が `captions.edited` を出さず、`edited: true` の行が
-   バイト単位で不変であること。カラオケ 4 出口（render-cut / gpu / osr / preview）の語トークン数が
-   `words[]` と一致し続けること（既存パリティテストに単語帳 fixture を 1 本足す）
-5. `display_policy` あり + 単語帳 `protect_break` で分割不能になる fixture で、軟らかい供給が退いて
-   レンダーが成功し `captions.word-book-break-fallback` が出ること
-6. 作業場 fixture（`root.json` + `channels/<c>/videos/<p>`）で `resolve` が 4 層の出所を正しく返し、
-   作業場なし fixture で `project` + `builtin` に落ちること
-7. 実際のホーム・作業場へ書き込まない（全テストは一時ディレクトリと `AKARI_WORD_BOOK` で完結）
-8. launcher: `akari word-book --help` が 4 サブコマンド（resolve / validate / add / apply）を列挙し、
-   akari-tools 不在時は「インストール方法」を示して exit 1
+1. `packages/schemas/word-book.schema.json`, `validate-word-book.mjs`, and examples. One valid. Three invalid, a variant collision, `variants` on `reading-only`, and `version: 1`. `version > 0` stops with an update notice.
+2. `node --test` for the pure functions in `packages/word-book/`. Word-boundary match (the inside of a word does not match). Folding a multi-word concatenation (times keep the first start and the last end). Longest match. Layer shadowing. Idempotence. Skip when the `text` side does not match. Skip when a match crosses a `display_fragments` boundary. The `Intl.Segmenter` path.
+3. With `backendRunner` replaced, feed fixed words through `transcribeMedia` and confirm the analysis.json transcript is replaced, and the cache file stays raw output.
+4. After apply to captions.json, `edit-lint` does not emit `captions.edited`, and an `edited: true` line is unchanged at the byte level. Karaoke's 4 exits (render-cut, gpu, osr, preview) keep a word-token count that matches `words[]`. Add one word book fixture to the existing parity test.
+5. On a fixture that has `display_policy` and a word book `protect_break` that makes the line unsplittable, the soft supply steps back, render succeeds, and `captions.word-book-break-fallback` is emitted.
+6. On a workspace fixture (`root.json` plus `channels/<c>/videos/<p>`), `resolve` returns the origin of all 4 layers correctly. On a fixture with no workspace, it falls back to `project` and `builtin`.
+7. Do not write the real home directory or workspace. Every test finishes in a temp directory and `AKARI_WORD_BOOK`.
+8. Launcher. `akari word-book --help` lists 4 subcommands (resolve, validate, add, apply). When akari-tools is absent, it shows how to install and exits 1.

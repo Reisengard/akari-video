@@ -1,70 +1,77 @@
-# 色パネル v0 契約（インスペクターの色の欄・色を作る窓・ブランドキット）
+**English** | [Japanese](./contract-2026-09-25-color-panel-v0.ja.md)
 
-## 位置と開き方
+# Color panel v0
 
-- 色の欄は**インスペクターの列の中**にある。色の行の丸（字幕の 文字 / 縁取り / 座布団 / 効果の色、オーバーレイの色のつまみ）を押すと、同じ列の中身が色パネルに切り替わる。左上の戻るボタンで元の列へ戻る。選択が変わると閉じる。
-- 色番号の入力欄は行にも残る（直接打てる。プレビューからの「欄を開く」もこの入力欄へ焦点を当てる）。
-- ほかの部品（上のバーの色の丸など）はコマンドで開く:
+The inspector color field, the color-making window, and the brand kit.
+
+## Where it sits and how it opens
+
+- The color field is **inside the inspector column**. Pressing a color-row swatch replaces that column with the color panel. Caption swatches are text, stroke, plate, and effect color. Overlay swatches are the color controls. The back button at the upper left returns to the previous column. A selection change closes the panel.
+- The hex field stays on the row, so the value can be typed. Open field from Preview also focuses that input.
+- Other parts, such as a color swatch on the top bar, open by command:
 
 ```
 akari.inspector.openColorPanel({
-  target: { kind: 'field', field: '<data-akari-field の値>' }      // 今の選択のインスペクターの色の行
-        | { kind: 'item', itemId: '<item id>', path: '<ドット区切り>' }, // edit.json の item の中（例 source.params.fill）
-  allowGradient?: boolean,     // 既定 false。図形・ラインの塗り / 枠 / 線だけ true
-  allowTransparent?: boolean,  // 既定 false。塗りだけ true
-  title?: string,              // 見出し（省略時は行の名前。「色」だけの行は「<節>の色」）
-  toggle?: boolean             // 同じ対象で開いていたら閉じる（バーの色の丸をもう一度押したとき）
-}) → boolean（開いたら true）
+  target: { kind: 'field', field: '<data-akari-field value>' }
+        | { kind: 'item', itemId: '<item id>', path: '<dot path>' },
+  allowGradient?: boolean,
+  allowTransparent?: boolean,
+  title?: string,
+  toggle?: boolean
+})
 akari.inspector.closeColorPanel()
 ```
 
-- `item` の書き込みは edit-store の `updateItem` で行い、`path` の一番上の鍵（例 `source`）を丸ごと作り直して渡す（`updateItem` は source の中を浅くしか混ぜないため）。**書く前に `readEditV2` で読み直して検査し、その項目の契約が受け付けない値は書かずに断る**（例: 図形の契約がまだ文字列だけの版では、グラデーションを「この項目には、まだグラデーションを保存できません。」で断り、edit.json は変えない）。
+`field` is the color row in the inspector for the current selection. `item` is inside an edit.json item, for example `source.params.fill`. `allowGradient` defaults to false and is true only for a shape or line fill, stroke, or line. `allowTransparent` defaults to false and is true only for fill. `title` is the heading. When it is omitted, the row name is used. A row whose name is only Color becomes "<section> color". `toggle` closes the panel when it is already open on the same target, which is what a second press on the bar swatch does. The call returns boolean, true when the panel opened.
 
-## 値の形
+- An `item` write uses edit-store `updateItem`. The top key of `path` (for example `source`) is rebuilt and passed whole, because `updateItem` only shallow-merges inside `source`. **Before the write, `readEditV2` reads the item again and checks it. A value that item's contract does not accept is refused and not written.** Example: while the shape contract still accepts only a string, a gradient is refused with "This item cannot store a gradient yet." and edit.json does not change.
 
-図形の塗り・枠の契約（shape item v1）と同じ形を使う。
+## Value shape
 
-| 値 | 形 |
+The shape matches the shape-item v1 fill and stroke contract.
+
+| Value | Shape |
 |---|---|
-| 単色 | `#RRGGBB` か `#RRGGBBAA`（大文字にそろえる。AA = FF は落とす） |
-| 透明（塗りだけ） | `'none'` = 中抜き |
-| グラデーション | `{ type: 'linear', angle, stops }` / `{ type: 'radial', stops }`。`stops = [{ color: '#RRGGBB(AA)', offset: 0..1 }]`・2〜5 色・色ごとの透明度は color の AA |
+| Solid | `#RRGGBB` or `#RRGGBBAA`, normalized to uppercase. An AA of FF is dropped |
+| Transparent, fill only | `'none'`, which means hollow |
+| Gradient | `{ type: 'linear', angle, stops }` or `{ type: 'radial', stops }`. `stops` is `[{ color: '#RRGGBB(AA)', offset: 0..1 }]`, 2 to 5 colors. Per-color opacity is the AA on `color` |
 
-- `angle` は CSS の `linear-gradient` と同じ向き（0 = 下から上・90 = 左から右・180 = 上から下）。
-- 色を作る窓のスタイル 5 種はこの 2 型で表す: 横 = linear 90 / 縦 = linear 180 / 斜め ↘ = linear 135 / 放射 = radial / 斜め ↗ = linear 45。
-- 色を足す・外すと `offset` は均等に振り直す（0, 1/(n-1), …, 1）。
-- 純関数とテスト: `apps/shell/extensions/akari-annotations/src/browser/inspector/color-model.ts`。
+- `angle` uses the same direction as the CSS `linear-gradient`. 0 is bottom to top, 90 is left to right, and 180 is top to bottom.
+- The five styles in the color-making window use those two types. Horizontal is linear 90. Vertical is linear 180. Diagonal down-right is linear 135. Radial is radial. Diagonal up-right is linear 45.
+- Adding or removing a color redistributes `offset` evenly, from 0 through `1/(n-1)` to 1.
+- Pure functions and tests live in `apps/shell/extensions/akari-annotations/src/browser/inspector/color-model.ts`.
 
-## パネルの並び（上から）
+## Panel order, top to bottom
 
-1. 検索: 色の名前（「青」「あお」など・既定の単色の名前に当てる）/ 色番号（「#00c4cc」・3 / 6 / 8 桁）
-2. 虹の ＋（色を作る窓）・スポイト（`EyeDropper`。使えない環境では一言）・透明（`allowTransparent` のときだけ）・**使った色の履歴**（新しい順に 8 個・グラデーションも 1 つの丸・今の色に印。今の色が履歴に無ければ先頭に並べる）
-3. **このデザインの色**: edit.json と captions の器のファイルから、色らしい鍵（color / fill / stroke / background を含む）の値を使われている回数の多い順に最大 14
-4. **ブランドキット**: 「＋ ブランドカラーを追加」で今の単色を入れる。「編集」で外す
-5. **写真の色**: 置いた画像（どのトラックでも）と B-roll（一番上の visual トラック以外の動画）から、最大 4 本・各 5 色。画素を 64px に縮め、各チャンネル 4bit の箱で数えて多い順に「既に選んだ色と十分に離れた色」を拾う（決定論）
-6. **デフォルトの単色**: 4 段 28 色（すべて表示で 6 段 42 色）
-7. **デフォルトのグラデーション**（`allowGradient` のときだけ）: 3 段 21 種（すべて表示で 5 段 35 種）
+1. Search matches a default solid's name, or a hex color such as `#00c4cc` in 3, 6, or 8 digits. The Japanese sibling also matches a kana reading of that name.
+2. A rainbow plus opens the color-making window. An eyedropper uses `EyeDropper`, or one line of copy when that API is missing. Transparent appears only when `allowTransparent` is set. **Recent colors** keep 8 entries, newest first. A gradient is one swatch. The current color is marked. If the current color is not in the history, it is placed first.
+3. **Colors in this design.** From edit.json and the captions container file, values whose keys look like color (`color`, `fill`, `stroke`, or `background`) are listed by how often they are used, up to 14.
+4. **Brand kit.** Add a brand color stores the current solid. Edit removes one.
+5. **Photo colors.** Placed images on any track, and B-roll (video on any visual track except the top one), contribute at most 4 sources and 5 colors each. Pixels are scaled to 64 px and counted in 4-bit bins per channel. Colors are taken from the most common bins that stay far enough from colors already chosen. The choice is deterministic.
+6. **Default solids.** 4 rows, 28 colors. Show all expands to 6 rows, 42 colors.
+7. **Default gradients,** only when `allowGradient` is set. 3 rows, 21 gradients. Show all expands to 5 rows, 35 gradients.
 
-押した色はその場で書き込み、パネルは開いたまま。色の四角・色相・透明度の帯のドラッグは見た目だけ先に動かし、**離したときに 1 回だけ書く**。書き込みに失敗したら元の値へ戻して理由を出す。
+A pressed color is written immediately, and the panel stays open. A drag on the color square, the hue band, or the opacity band updates the look first. **The write happens once, on release.** A failed write restores the previous value and shows the reason.
 
-## 色を作る窓
+## Color-making window
 
-- タブ 単色 / グラデーション（`allowGradient` のときだけタブを出す）。
-- 単色: 色の四角（鮮やかさ × 明るさ）・色相の帯・色番号・スポイト。
-- グラデーション: 色の丸（＋ で足す・最大 5 色）・スタイル 5 種。色の丸を押すと、その色だけを直す**小窓**（色の四角・色相・透明度の帯・ゴミ箱〔2 色のときは押せない〕・色番号 + 透明度 %・スポイト）。小窓は **外を押す / Esc / 同じ丸をもう一度** で閉じ、中でドラッグしている間は閉じない。
+- Tabs are Solid and Gradient. The Gradient tab appears only when `allowGradient` is set.
+- Solid has a color square (saturation by brightness), a hue band, a hex field, and an eyedropper.
+- Gradient has color stops (plus adds one, at most 5) and the five styles. Pressing a stop opens a **small window** that edits only that color. It has a color square, a hue band, an opacity band, a trash control (disabled at 2 colors), a hex field plus opacity percent, and an eyedropper. The small window closes on an outside press, on Esc, or on a second press of the same stop. It does not close during a drag inside it.
 
-## 保存の置き場
+## Where values are saved
 
-| もの | 置き場 | 範囲 |
+| Thing | Place | Scope |
 |---|---|---|
-| ブランドキット | `AKARI_HOME/brand-kit.json`（`{ schema: 'akari-brand-kit/v0', colors: ['#RRGGBB(AA)'] }`・最大 60 色） | 利用者ごと。どのプロジェクトからも同じ 1 つ（★ お気に入りと同じ置き場）。ライブラリ › マイ › ブランドキット も同じファイルを読む |
-| 使った色の履歴 | アプリのローカル保存（`akari.colorPanel.history.v0`） | 利用者ごと |
-| 色そのもの | 各項目の保存先（字幕 = captions の textStyle・item = edit.json） | プロジェクト |
+| Brand kit | `AKARI_HOME/brand-kit.json` (`{ schema: 'akari-brand-kit/v0', colors: ['#RRGGBB(AA)'] }`, at most 60 colors) | Per user. One file for every project, the same place as starred favorites. Library, Mine, Brand kit reads that file |
+| Recent colors | App local storage (`akari.colorPanel.history.v0`) | Per user |
+| The color itself | The field's own store (Captions use the captions textStyle, an item uses edit.json) | Project |
 
-ブランドキットの読み書きは akari-project が次のコマンドで出す（拡張をまたぐので文字列の id で呼ぶ）:
-`akari.library.brandKit.get()` → `string[]` / `akari.library.brandKit.addColor(color)` → `string[]` / `akari.library.brandKit.removeColor(color)` → `string[]`。
+akari-project exposes brand-kit reads and writes as these commands. Extensions call them by string id:
 
-## 今の版でつないでいる所・まだの所
+`akari.library.brandKit.get()` returns `string[]`. `akari.library.brandKit.addColor(color)` returns `string[]`. `akari.library.brandKit.removeColor(color)` returns `string[]`.
 
-- つないでいる: 字幕の色の行（文字・縁取り・座布団・効果の色。グラデーション・透明は出さない）、オーバーレイの色のつまみ（単色）。
-- まだ: 図形の塗り・枠・線（上のバーの色の丸・インスペクターの図形の行）。図形の契約がグラデーションと `'none'` を受け付けた後に、`{ kind: 'item', itemId, path: 'source.params.fill' | 'source.params.stroke' }` と `allowGradient: true`（塗りは `allowTransparent: true` も）で呼ぶ。
+## Wired in this version, and not yet
+
+- Wired: Caption color rows (text, stroke, plate, and effect color, with no gradient and no transparent) and Overlay color controls (solids only).
+- Not yet: shape fill, stroke, and line (the top-bar color swatch and the inspector shape row). After the shape contract accepts a gradient and `'none'`, call it with `{ kind: 'item', itemId, path: 'source.params.fill' | 'source.params.stroke' }`, `allowGradient: true`, and `allowTransparent: true` for fill.

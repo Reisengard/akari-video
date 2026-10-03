@@ -1,38 +1,40 @@
-# contract — 図形アイテム v1
+**English** | [Japanese](./contract-2026-09-25-shape-item-v1.ja.md)
 
-- 決定日: 2026-09-25
-- 保存先: edit.json v2 の `source.kind: "shape"`
-- 降下先: edit-store の決定論的なインライン SVG HTML オーバーレイ
+# Shape item v1
 
-## 1. 保存形
+- Decided: 2026-09-25
+- Stored on: `source.kind: "shape"` in edit.json v2
+- Lowered to: a deterministic inline SVG HTML Overlay from edit-store
 
-図形の形は `source.shape` と `source.params` に置き、位置・拡縮・回転・時間は item 共通の値を使う。棚から配置するときは形状と既定値を **値でコピー** する。`params.preset` は由来の ID であり、描画時の参照先ではない。
+## 1. Stored form
 
-| 型 | 保存する値 |
+Shape geometry is stored in `source.shape` and `source.params`. Position, scale, rotation, and time use the fields shared by every item. A placement from the shelf **copies the values**. `params.preset` records the source id. Draw time does not look that id up.
+
+| Kind | Stored values |
 | --- | --- |
-| `path` | `params.path: {d, vb:[width,height], rule?}`。`d` は絶対座標の `M/L/C/Z` のみ。`rule` は `nonzero` または `evenodd` |
-| 元の形 + 丸み | `shape: "path"` の `params.cornerRadius` だけを割合 0〜100（100 = 短辺の半分）として、直線同士の角を配置後の実寸 px で丸める。v0 の形名では `rounded-rect` だけが従来どおり px で丸まり、ほかの形名の同名値は描画に影響しない |
-| `line` | `dash: solid/dash/dot`、`startCap` / `endCap: none/triangle/chevron/bar/square/circle/diamond`、各 `*CapFilled`、`lineCap: butt/round`。`arrow` は終端三角の別名 |
-| `bubble` | `style: ellipse/rounded/rect/jagged/burst/cloud/wobble`、`count`（4〜48）、`depth`、`jitter`、`seed`、`tail: point/dots/none`、`tailAngle`（0〜360）、`tailLength`、`tailWidth`、`tailCurve`、`dash` |
+| `path` | `params.path: {d, vb:[width,height], rule?}`. `d` uses only absolute `M/L/C/Z`. `rule` is `nonzero` or `evenodd` |
+| Original shape, plus rounding | For `shape: "path"`, only `params.cornerRadius` is a percent from 0 to 100. 100 means half of the short side. Corners between straight segments are rounded in the placed pixel size. Among v0 shape names, only `rounded-rect` still rounds in px. The same field on the other v0 names does not affect drawing |
+| `line` | `dash` is `solid`, `dash`, or `dot`. `startCap` and `endCap` are `none`, `triangle`, `chevron`, `bar`, `square`, `circle`, or `diamond`. Each has a matching `*CapFilled`. `lineCap` is `butt` or `round`. `arrow` is another name for an end triangle |
+| `bubble` | `style` is `ellipse`, `rounded`, `rect`, `jagged`, `burst`, `cloud`, or `wobble`. `count` is 4 to 48. The other fields are `depth`, `jitter`, `seed`, `tail` (`point`, `dots`, or `none`), `tailAngle` (0 to 360), `tailLength`, `tailWidth`, `tailCurve`, and `dash` |
 
-`fill` / `stroke` は `#RRGGBB`、`#RRGGBBAA`、`none`、または `{type:"linear",angle,stops:[{color,offset}]}` / `{type:"radial",stops:[{color,offset}]}`。グラデーションは 2〜5 色、offset は 0〜1 で昇順。透明度は各色の AA に持つ。`strokeWidth` は 0〜100（1920px 幅基準で出力幅に比例）。閉じた形の枠は輪郭の内側だけに描き、開いた線は中心線のままにする。
+`fill` and `stroke` are `#RRGGBB`, `#RRGGBBAA`, `none`, `{type:"linear",angle,stops:[{color,offset}]}`, or `{type:"radial",stops:[{color,offset}]}`. A gradient has 2 to 5 colors. Offsets run from 0 to 1 and increase. Opacity is the AA on each color. `strokeWidth` is 0 to 100 and scales with output width, using 1920 px as the reference. A closed shape draws the stroke only inside the outline. An open line keeps the stroke on the centerline.
 
-四角を丸めたいときは、棚の四角を `path` として値で写し、`params.cornerRadius` を付ける。
+To round a rectangle, copy the shelf rectangle as a `path` and set `params.cornerRadius`.
 
-棚の既定値は形 = `#a6a6a6` 塗り・枠なし、線 = `#000000`・4px、吹き出し = 白塗り・黒枠 5px。旧データは v0 の既定値と SVG 文字列を維持する。v1 の値は新しい型・フィールドを持つ item で適用する。
+Shelf defaults are a `#a6a6a6` fill with no stroke for a shape, `#000000` at 4 px for a line, and a white fill with a 5 px black stroke for a bubble. Old data keeps the v0 defaults and the SVG string. v1 values apply on items that carry the new kinds or fields.
 
-## 2. 降下と外形
+## 2. Lowering and the outer edge
 
-path は棚の viewBox 余白を外して描画領域へ写す。角丸・吹き出しは実寸の座標で作り直す。SVG の viewBox に追加の余白を置かず、見える端を選択枠と吸着の基準にする。開いた線・閉じた形・吹き出しで同じ線種を使い、点線は角形の点（長さ = 見える太さ）、破線は長さ = 見える太さの 3 倍、どちらも間隔 = `max(見える太さ×2,3px)`。端のパーツは端点から内側へ向け、見える端を動かさない。
+A path is copied into the draw area after the shelf viewBox padding is removed. Rounded corners and bubbles are rebuilt in placed coordinates. The SVG viewBox adds no extra padding. The visible edge is the basis for the selection frame and for snapping. Open lines, closed shapes, and bubbles share one dash pattern. A dot is a square whose length equals the visible thickness. A dash length is three times the visible thickness. The gap for both is `max(visible thickness × 2, 3px)`. An end part points inward from the endpoint and does not move the visible end.
 
-item の非一様な拡大は `sqrt(scaleX×scaleY)` で線幅・線種・端の寸法を補正する。方向ごとの幅差は残るが、プレビューと書き出しは同じ SVG の拡大結果を描く。
+Non-uniform item scale corrects stroke width, dash, and end size by `sqrt(scaleX×scaleY)`. Width still differs by axis. Preview and Export draw the same scaled SVG.
 
-グラデーションと内側枠線の SVG ID は item ごとに決定論的に分離する。SVG 出力は同じ宣言に対してバイト同一とする。プレビューは HTML オーバーレイへ降下する。GPU 出口の SVG 適格性はこの契約では変更せず、書き出しは既存の OSR フォールバックを利用する。
+Gradient and inside-stroke SVG ids are separated per item, and the separation is deterministic. The same declaration produces byte-identical SVG. Preview lowers the shape into an HTML Overlay. This contract does not change SVG eligibility on the GPU exit. Export uses the existing OSR fallback.
 
-## 3. 棚
+## 3. Shelf
 
-`presets/shapes/index.jsonl` は 1 行 1 件で、`id/category/name/vb/d/kind/rule?/rounded_from?/defaults` を持つ。吹き出しは `kind: "bubble"` と params、線は `kind: "line"` と params を持つ。角丸のプリセットは `rounded_from: {base,radius}` を持ち、配置時は元の形と丸みをコピーする。生成スクリプトで同じバイト列を再生成できる。
+`presets/shapes/index.jsonl` is one preset per line. Each line has `id`, `category`, `name`, `vb`, `d`, `kind`, optional `rule`, optional `rounded_from`, and `defaults`. A bubble has `kind: "bubble"` plus params. A line has `kind: "line"` plus params. A rounded preset has `rounded_from: {base,radius}` and copies the source shape and the radius at placement. A generator script can write the same bytes again.
 
-## 4. 後続
+## 4. Follow-ups
 
-棚の UI、配置操作、点編集、形の時間変化、GPU 適格化は別契約で扱う。
+Shelf UI, placement, point editing, animating a shape over time, and GPU eligibility are other contracts.

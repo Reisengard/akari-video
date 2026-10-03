@@ -1,26 +1,28 @@
-# 素材ライセンスの 2 軸 v0
+**English** | [Japanese](./contract-2026-09-25-asset-license-axes-v0.ja.md)
 
-素材の `meta.json` の `license` に、商用利用の可否 `commercial`（`allowed` / `prohibited` / `unknown`）と帰属表示の要否 `attributionRequired`（`true` / `false` / `null`）を任意で加える。古い `scope`・`spdx`・`attribution_required` は読み取りで使い、書き換えない。`null` は判断できないことを表す。
+# Footage license axes v0
 
-## 導出
+`license` on a footage `meta.json` may add two optional axes. `commercial` is `allowed`, `prohibited`, or `unknown`. `attributionRequired` is `true`, `false`, or `null`. Readers still use the old `scope`, `spdx`, and `attribution_required` values. Writers do not rewrite them. `null` means the axis cannot be decided.
 
-| 宣言・旧値 | 商用利用 | 帰属表示の既定値 |
+## Derivation
+
+| Declared value or old value | Commercial use | Default attribution |
 |---|---|---|
-| `CC0-1.0`、`LicenseRef-AKARI-Assets-v0`、`LicenseRef-AKARI-Sounds-Terms-v0`、`MIT`、`OFL-1.1` | allowed | false |
-| 版番号を持つ `CC-BY-*`（`CC-BY-SA-*`・`CC-BY-ND-*` など、NC を含まないもの） | allowed | true |
-| `CC-BY-NC-*`（SA・ND との組み合わせを含む） | prohibited | true |
-| その他、SPDX 識別子に `NC` 区切り語を含むもの | prohibited | 判別できなければ null |
-| 旧 `scope: commercial-ok` | allowed | 未指定なら null |
-| 旧 `scope: non-commercial` | prohibited | 未指定なら null |
-| 旧 `scope: attribution` | allowed | true |
-| `scope: paid-license-required` など未対応の scope と、判別できない SPDX の組み合わせ | unknown | 未指定なら null |
-| `meta.json` はあるが `license` が無い・判別できない | unknown | 未指定なら null |
-| `meta.json` が無い | 対象外（利用者の素材として所見を出さない） | 対象外 |
+| `CC0-1.0`, `LicenseRef-AKARI-Assets-v0`, `LicenseRef-AKARI-Sounds-Terms-v0`, `MIT`, `OFL-1.1` | allowed | false |
+| Versioned `CC-BY-*` (`CC-BY-SA-*`, `CC-BY-ND-*`, and other forms that do not contain NC) | allowed | true |
+| `CC-BY-NC-*`, including combinations with SA or ND | prohibited | true |
+| Any other SPDX id that contains `NC` as a separated token | prohibited | null when it cannot be told apart |
+| Old `scope: commercial-ok` | allowed | null when unset |
+| Old `scope: non-commercial` | prohibited | null when unset |
+| Old `scope: attribution` | allowed | true |
+| An unsupported scope such as `scope: paid-license-required`, combined with an SPDX id that cannot be told apart | unknown | null when unset |
+| `meta.json` exists, but `license` is missing or cannot be told apart | unknown | null when unset |
+| No `meta.json` | Out of scope. No finding is reported for the user's own footage | Out of scope |
 
-旧 `attribution_required` の真偽値は帰属表示の軸へ写す（版番号を持つ CC-BY 系の帰属表示は true を優先）。新しい 2 軸があれば最優先する。SPDX 識別子の `NC` 区切り語による商用禁止は旧 `scope: commercial-ok` より優先する。未知の scope だけでは商用可否を決めず、既知の SPDX があればそちらの導出値を使う。どちらの軸も、もう一方を根拠に補完しない。
+A boolean old `attribution_required` is copied onto the attribution axis. Versioned CC-BY attribution prefers `true`. When the new pair of axes is present, it wins. A commercial ban from an SPDX `NC` token wins over an old `scope: commercial-ok`. An unknown scope alone does not decide commercial use. A known SPDX id supplies the derived value instead. Neither axis is filled in from the other.
 
-## 書き出し前の表示
+## Display before Export
 
-edit-lint は使用中の素材について `license.non-commercial` を warning、`license.unknown` と `license.attribution` を info で出す。各所見の `details` は `asset`・`name`・`credit` を持つ。クレジットは同じ素材ディレクトリの `CREDIT.txt` 先頭行を優先し、無ければ題名・作者・SPDX を組み立てる。書き出し画面は該当する行だけを表示し、名前の一覧を開閉できる。帰属表示が必要な行ではクレジットをコピーできる。これらの所見で書き出しは止めない。
+For footage that is in use, edit-lint reports `license.non-commercial` as a warning. It reports `license.unknown` and `license.attribution` as info. Each finding's `details` has `asset`, `name`, and `credit`. Credit prefers the first line of `CREDIT.txt` in the same footage directory. If that file is absent, credit is built from the title, the author, and the SPDX id. The Export screen shows only the matching rows, and the name list can be opened and closed. A row that requires attribution can copy the credit. These findings do not stop Export.
 
-既存の `assets/` と `catalog/` のメタデータは `packages/asset-resolver/test/license-axes.test.mjs` で全件点検し、商用利用が unknown になるパスをテスト出力へ列挙する。元データは点検で変更しない。
+Existing `assets/` and `catalog/` metadata is checked in full by `packages/asset-resolver/test/license-axes.test.mjs`. Paths whose commercial axis is unknown are listed in the test output. The check does not change the source metadata.
