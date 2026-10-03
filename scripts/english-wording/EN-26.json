@@ -1,0 +1,5 @@
+{
+  "id": "EN-26",
+  "glob": "{CLAUDE.md,AGENTS.md,CONTRIBUTING.md}",
+  "max": 4638
+}

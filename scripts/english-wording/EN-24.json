@@ -1,0 +1,5 @@
+{
+  "id": "EN-24",
+  "glob": "{docs/contract-2026-09-*.md,docs/contract-2026-10-*.md}",
+  "max": 56340
+}
