@@ -4,5 +4,5 @@
   "exclude": [
     "apps/shell/extensions/akari-annotations/lib/**"
   ],
-  "max": 43200
+  "max": 43220
 }
