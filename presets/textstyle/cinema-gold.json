@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "cinema-gold",
-  "name": "映画 金の見出し",
+  "name": "Cinema, gold title",
   "category": "title",
-  "sample_text": "終幕",
+  "sample_text": "Final Act",
   "style": {
     "size_px": 84,
     "weight": 300,

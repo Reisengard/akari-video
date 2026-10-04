@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "plate-coral",
-  "name": "座布団 珊瑚色",
+  "name": "Plate, coral",
   "category": "emphasis",
-  "sample_text": "注目ポイント",
+  "sample_text": "Key point",
   "style": {
     "size_px": 62,
     "weight": 700,

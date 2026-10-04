@@ -2,8 +2,8 @@
   "id": "dotgothic16",
   "category": "font",
   "title": "DotGothic16",
-  "description": "16px ビットマップ由来のドット絵ゴシック。レトロゲーム・8bit・デジタル演出の定番。 実体（Regular のみ（書体自体が単ウェイト））は本リポの assets/font/dotgothic16/ に同梱済み（2026-08-03 追加。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "レトロゲーム風・8bit 演出・デジタル/グリッチ系テロップ",
+  "description": "A pixel gothic derived from a 16px bitmap. A standard face for retro games, 8-bit, and digital looks. The binary (Regular only, because the face is one weight) is already bundled at assets/font/dotgothic16/ in this repo (added 2026-08-03. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "Captions for a retro game, an 8-bit look, or a digital or glitch look",
   "tags": [
     "font",
     "japanese",

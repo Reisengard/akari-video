@@ -6,7 +6,7 @@ import type { TextstylePreset } from '../caption-style-preset';
 export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   "cinema-blue": {
     "id": "cinema-blue",
-    "name": "映画 青い余韻",
+    "name": "Cinema, blue afterglow",
     "category": "title",
     "style": {
       "size_px": 75,
@@ -24,7 +24,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "cinema-gold": {
     "id": "cinema-gold",
-    "name": "映画 金の見出し",
+    "name": "Cinema, gold title",
     "category": "title",
     "style": {
       "size_px": 84,
@@ -42,7 +42,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "cinema-white": {
     "id": "cinema-white",
-    "name": "映画 白い余白",
+    "name": "Cinema, white space",
     "category": "title",
     "style": {
       "size_px": 68,
@@ -60,7 +60,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "discount-text": {
     "id": "discount-text",
-    "name": "割引バッジテキスト",
+    "name": "Discount badge text",
     "category": "price",
     "style": {
       "size_px": 72,
@@ -75,7 +75,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "emphasis-red": {
     "id": "emphasis-red",
-    "name": "強調",
+    "name": "Emphasis",
     "category": "emphasis",
     "style": {
       "size_px": 92,
@@ -94,7 +94,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "glitch": {
     "id": "glitch",
-    "name": "グリッチ風",
+    "name": "Glitch",
     "category": "decorative",
     "style": {
       "size_px": 116,
@@ -118,7 +118,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "narration-caption": {
     "id": "narration-caption",
-    "name": "ナレーション字幕",
+    "name": "Narration captions",
     "category": "subtitle",
     "style": {
       "font_family": "'Noto Serif JP', serif",
@@ -136,7 +136,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "neon": {
     "id": "neon",
-    "name": "ネオン",
+    "name": "Neon",
     "category": "decorative",
     "style": {
       "size_px": 120,
@@ -171,7 +171,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "neon-amber": {
     "id": "neon-amber",
-    "name": "ネオン 琥珀",
+    "name": "Neon amber",
     "category": "decorative",
     "style": {
       "size_px": 104,
@@ -195,7 +195,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "neon-lime": {
     "id": "neon-lime",
-    "name": "ネオン 黄緑",
+    "name": "Neon yellow-green",
     "category": "decorative",
     "style": {
       "size_px": 100,
@@ -219,7 +219,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "neon-rose": {
     "id": "neon-rose",
-    "name": "ネオン 桃色",
+    "name": "Neon pink",
     "category": "decorative",
     "style": {
       "size_px": 106,
@@ -243,7 +243,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "neon-violet": {
     "id": "neon-violet",
-    "name": "ネオン 紫",
+    "name": "Neon purple",
     "category": "decorative",
     "style": {
       "size_px": 104,
@@ -267,7 +267,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "news-navy-bar": {
     "id": "news-navy-bar",
-    "name": "ニュース 紺の解説帯",
+    "name": "News, navy explainer bar",
     "category": "subtitle",
     "style": {
       "size_px": 58,
@@ -283,7 +283,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "news-red-bar": {
     "id": "news-red-bar",
-    "name": "ニュース 淡赤の速報帯",
+    "name": "News, pale-red breaking bar",
     "category": "subtitle",
     "style": {
       "size_px": 60,
@@ -306,7 +306,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "news-yellow-label": {
     "id": "news-yellow-label",
-    "name": "解説 黄色ラベル",
+    "name": "Explainer, yellow label",
     "category": "emphasis",
     "style": {
       "size_px": 58,
@@ -322,7 +322,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "plate-coral": {
     "id": "plate-coral",
-    "name": "座布団 珊瑚色",
+    "name": "Plate, coral",
     "category": "emphasis",
     "style": {
       "size_px": 62,
@@ -338,7 +338,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "plate-cream": {
     "id": "plate-cream",
-    "name": "座布団 生成り",
+    "name": "Plate, cream",
     "category": "title",
     "style": {
       "size_px": 72,
@@ -355,7 +355,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "plate-indigo": {
     "id": "plate-indigo",
-    "name": "座布団 藍紫角丸",
+    "name": "Plate, indigo rounded",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -371,7 +371,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-commentary": {
     "id": "subtitle-commentary",
-    "name": "実況テロップ",
+    "name": "Commentary caption",
     "category": "subtitle",
     "style": {
       "size_px": 60,
@@ -390,7 +390,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-interview": {
     "id": "subtitle-interview",
-    "name": "インタビュー字幕",
+    "name": "Interview captions",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -411,7 +411,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-news": {
     "id": "subtitle-news",
-    "name": "ニュース風",
+    "name": "News",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -427,7 +427,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-soft-band": {
     "id": "subtitle-soft-band",
-    "name": "字幕 半透明の帯",
+    "name": "Captions, translucent band",
     "category": "subtitle",
     "style": {
       "size_px": 52,
@@ -443,7 +443,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-standard": {
     "id": "subtitle-standard",
-    "name": "標準字幕",
+    "name": "Standard captions",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -457,7 +457,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-variety": {
     "id": "subtitle-variety",
-    "name": "バラエティ",
+    "name": "Variety",
     "category": "subtitle",
     "style": {
       "size_px": 80,
@@ -478,7 +478,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-white-bold": {
     "id": "subtitle-white-bold",
-    "name": "白字幕 太縁",
+    "name": "White captions, thick edge",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -492,7 +492,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-white-hairline": {
     "id": "subtitle-white-hairline",
-    "name": "白字幕 細縁",
+    "name": "White captions, thin edge",
     "category": "subtitle",
     "style": {
       "size_px": 52,
@@ -506,7 +506,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "subtitle-yellow-bold": {
     "id": "subtitle-yellow-bold",
-    "name": "黄色字幕 太縁",
+    "name": "Yellow captions, thick edge",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -520,7 +520,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "title-impact": {
     "id": "title-impact",
-    "name": "インパクト",
+    "name": "Impact",
     "category": "title",
     "style": {
       "size_px": 168,
@@ -541,7 +541,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "variety-candy-pink": {
     "id": "variety-candy-pink",
-    "name": "バラエティ 桃の袋文字",
+    "name": "Variety, pink outlined letters",
     "category": "decorative",
     "style": {
       "size_px": 90,
@@ -563,7 +563,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "variety-lime-pop": {
     "id": "variety-lime-pop",
-    "name": "バラエティ 黄緑ポップ",
+    "name": "Variety, yellow-green pop",
     "category": "decorative",
     "style": {
       "size_px": 84,
@@ -585,7 +585,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "variety-orange-pop": {
     "id": "variety-orange-pop",
-    "name": "バラエティ オレンジ影",
+    "name": "Variety, orange shadow",
     "category": "decorative",
     "style": {
       "size_px": 86,
@@ -607,7 +607,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "variety-soda-blue": {
     "id": "variety-soda-blue",
-    "name": "バラエティ 水色の袋文字",
+    "name": "Variety, light-blue outlined letters",
     "category": "decorative",
     "style": {
       "size_px": 90,
@@ -629,7 +629,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "verdict-badge": {
     "id": "verdict-badge",
-    "name": "判定バッジ",
+    "name": "Verdict badge",
     "category": "emphasis",
     "style": {
       "size_px": 80,
@@ -650,7 +650,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "vertical-impact-cyan": {
     "id": "vertical-impact-cyan",
-    "name": "縦動画 水色の大見出し",
+    "name": "Vertical, large cyan title",
     "category": "title",
     "style": {
       "size_px": 125,
@@ -672,7 +672,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "vertical-impact-red": {
     "id": "vertical-impact-red",
-    "name": "縦動画 赤の大見出し",
+    "name": "Vertical, large red title",
     "category": "title",
     "style": {
       "size_px": 130,
@@ -694,7 +694,7 @@ export const TEXTSTYLE_CATALOG: Record<string, TextstylePreset> = {
   },
   "vertical-impact-white": {
     "id": "vertical-impact-white",
-    "name": "縦動画 白の大見出し",
+    "name": "Vertical, large white title",
     "category": "title",
     "style": {
       "size_px": 126,

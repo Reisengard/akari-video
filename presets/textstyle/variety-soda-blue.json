@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "variety-soda-blue",
-  "name": "バラエティ 水色の袋文字",
+  "name": "Variety, light-blue outlined letters",
   "category": "decorative",
-  "sample_text": "びっくり！",
+  "sample_text": "Surprise!",
   "style": {
     "size_px": 90,
     "weight": 800,

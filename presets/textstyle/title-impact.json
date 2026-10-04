@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "title-impact",
-  "name": "インパクト",
+  "name": "Impact",
   "category": "title",
-  "sample_text": "衝撃の事実",
+  "sample_text": "Shocking fact",
   "style": {
     "size_px": 168,
     "weight": 700,

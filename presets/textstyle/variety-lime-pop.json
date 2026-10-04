@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "variety-lime-pop",
-  "name": "バラエティ 黄緑ポップ",
+  "name": "Variety, yellow-green pop",
   "category": "decorative",
-  "sample_text": "やったー！",
+  "sample_text": "Yes!",
   "style": {
     "size_px": 84,
     "weight": 900,

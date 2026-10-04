@@ -1,9 +1,9 @@
 {
   "id": "dova-syndrome-hatena-mark-se",
   "category": "audio",
-  "title": "DOVA-SYNDROME はてなマーク効果音",
-  "description": "フレクサトーン音を加工した「ぽよ〜ん」とした質問符（？）ポップアップ効果音。キャラクターが困惑・疑問を示す場面向け。（収録数: 1点）",
-  "when_to_use": "キャラクターの頭上に「？」が浮かぶ疑問・困惑の一瞬を表現したいとき",
+  "title": "DOVA-SYNDROME question-mark sound effect",
+  "description": "A question-mark popup made from a flexatone, with a soft boing. For a moment when a character is puzzled. (Count: 1)",
+  "when_to_use": "When you want the instant a question mark floats over a character who is puzzled",
   "tags": [
     "sfx",
     "reaction",

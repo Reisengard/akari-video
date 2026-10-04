@@ -1,9 +1,9 @@
 {
   "id": "soundeffect-lab-scene-transition",
   "category": "audio",
-  "title": "効果音ラボ 場面転換SFX（シーン切り替え2）",
-  "description": "場面転換用の柔らかい風切り「ブオッ」1 点。（収録数: 1点）",
-  "when_to_use": "柔らかい場面転換・シーンの切り替わり（速いカットには otologic-sfx-selection のスイング06）",
+  "title": "Sound Effect Lab scene-change SFX (scene switch 2)",
+  "description": "One soft whoosh for a scene change. (Count: 1)",
+  "when_to_use": "A soft scene change. For a fast cut, use swing 06 from otologic-sfx-selection",
   "tags": [
     "sfx",
     "whoosh",

@@ -2,8 +2,8 @@
   "id": "klee-one",
   "category": "font",
   "title": "Klee One",
-  "description": "手書きの教科書体（クレー）。人の手のぬくもりが要るシーン・手紙風・ナレーション風テロップに向く。 実体（Regular）は本リポの assets/font/klee-one/ に同梱済み（2026-08-03 追加。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "手書き風・手紙風・やさしいナレーションテロップ",
+  "description": "A handwritten textbook face (Klee). It suits a scene that needs a human hand, a letter, or a narration caption. The Regular binary is already bundled at assets/font/klee-one/ in this repo (added 2026-08-03. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "Handwritten, letter-like, gentle narration captions",
   "tags": [
     "font",
     "japanese",

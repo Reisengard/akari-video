@@ -2,8 +2,8 @@
   "id": "dela-gothic-one",
   "category": "font",
   "title": "Dela Gothic One",
-  "description": "画面を支配する極太ディスプレイゴシック。一撃のインパクト・サムネイル級の見出しに向く。 実体（Regular のみ（書体自体が単ウェイト））は本リポの assets/font/dela-gothic-one/ に同梱済み（2026-08-03 追加。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "サムネ級の極太見出し・バラエティの強い一言・煽りテロップ",
+  "description": "An extra-bold display gothic that can fill the frame. It suits one hard hit or a thumbnail-scale heading. The binary (Regular only, because the face is one weight) is already bundled at assets/font/dela-gothic-one/ in this repo (added 2026-08-03. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "A thumbnail-scale extra-bold title, a hard variety one-liner, or a hype caption",
   "tags": [
     "font",
     "japanese",

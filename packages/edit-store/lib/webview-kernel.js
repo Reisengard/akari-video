@@ -640,7 +640,7 @@ var AkariEditKernel = (() => {
   var TEXTSTYLE_CATALOG = {
     "cinema-blue": {
       "id": "cinema-blue",
-      "name": "\u6620\u753B \u9752\u3044\u4F59\u97FB",
+      "name": "Cinema, blue afterglow",
       "category": "title",
       "style": {
         "size_px": 75,
@@ -658,7 +658,7 @@ var AkariEditKernel = (() => {
     },
     "cinema-gold": {
       "id": "cinema-gold",
-      "name": "\u6620\u753B \u91D1\u306E\u898B\u51FA\u3057",
+      "name": "Cinema, gold title",
       "category": "title",
       "style": {
         "size_px": 84,
@@ -676,7 +676,7 @@ var AkariEditKernel = (() => {
     },
     "cinema-white": {
       "id": "cinema-white",
-      "name": "\u6620\u753B \u767D\u3044\u4F59\u767D",
+      "name": "Cinema, white space",
       "category": "title",
       "style": {
         "size_px": 68,
@@ -694,7 +694,7 @@ var AkariEditKernel = (() => {
     },
     "discount-text": {
       "id": "discount-text",
-      "name": "\u5272\u5F15\u30D0\u30C3\u30B8\u30C6\u30AD\u30B9\u30C8",
+      "name": "Discount badge text",
       "category": "price",
       "style": {
         "size_px": 72,
@@ -709,7 +709,7 @@ var AkariEditKernel = (() => {
     },
     "emphasis-red": {
       "id": "emphasis-red",
-      "name": "\u5F37\u8ABF",
+      "name": "Emphasis",
       "category": "emphasis",
       "style": {
         "size_px": 92,
@@ -728,7 +728,7 @@ var AkariEditKernel = (() => {
     },
     "glitch": {
       "id": "glitch",
-      "name": "\u30B0\u30EA\u30C3\u30C1\u98A8",
+      "name": "Glitch",
       "category": "decorative",
       "style": {
         "size_px": 116,
@@ -752,7 +752,7 @@ var AkariEditKernel = (() => {
     },
     "narration-caption": {
       "id": "narration-caption",
-      "name": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u5B57\u5E55",
+      "name": "Narration captions",
       "category": "subtitle",
       "style": {
         "font_family": "'Noto Serif JP', serif",
@@ -770,7 +770,7 @@ var AkariEditKernel = (() => {
     },
     "neon": {
       "id": "neon",
-      "name": "\u30CD\u30AA\u30F3",
+      "name": "Neon",
       "category": "decorative",
       "style": {
         "size_px": 120,
@@ -805,7 +805,7 @@ var AkariEditKernel = (() => {
     },
     "neon-amber": {
       "id": "neon-amber",
-      "name": "\u30CD\u30AA\u30F3 \u7425\u73C0",
+      "name": "Neon amber",
       "category": "decorative",
       "style": {
         "size_px": 104,
@@ -829,7 +829,7 @@ var AkariEditKernel = (() => {
     },
     "neon-lime": {
       "id": "neon-lime",
-      "name": "\u30CD\u30AA\u30F3 \u9EC4\u7DD1",
+      "name": "Neon yellow-green",
       "category": "decorative",
       "style": {
         "size_px": 100,
@@ -853,7 +853,7 @@ var AkariEditKernel = (() => {
     },
     "neon-rose": {
       "id": "neon-rose",
-      "name": "\u30CD\u30AA\u30F3 \u6843\u8272",
+      "name": "Neon pink",
       "category": "decorative",
       "style": {
         "size_px": 106,
@@ -877,7 +877,7 @@ var AkariEditKernel = (() => {
     },
     "neon-violet": {
       "id": "neon-violet",
-      "name": "\u30CD\u30AA\u30F3 \u7D2B",
+      "name": "Neon purple",
       "category": "decorative",
       "style": {
         "size_px": 104,
@@ -901,7 +901,7 @@ var AkariEditKernel = (() => {
     },
     "news-navy-bar": {
       "id": "news-navy-bar",
-      "name": "\u30CB\u30E5\u30FC\u30B9 \u7D3A\u306E\u89E3\u8AAC\u5E2F",
+      "name": "News, navy explainer bar",
       "category": "subtitle",
       "style": {
         "size_px": 58,
@@ -917,7 +917,7 @@ var AkariEditKernel = (() => {
     },
     "news-red-bar": {
       "id": "news-red-bar",
-      "name": "\u30CB\u30E5\u30FC\u30B9 \u6DE1\u8D64\u306E\u901F\u5831\u5E2F",
+      "name": "News, pale-red breaking bar",
       "category": "subtitle",
       "style": {
         "size_px": 60,
@@ -940,7 +940,7 @@ var AkariEditKernel = (() => {
     },
     "news-yellow-label": {
       "id": "news-yellow-label",
-      "name": "\u89E3\u8AAC \u9EC4\u8272\u30E9\u30D9\u30EB",
+      "name": "Explainer, yellow label",
       "category": "emphasis",
       "style": {
         "size_px": 58,
@@ -956,7 +956,7 @@ var AkariEditKernel = (() => {
     },
     "plate-coral": {
       "id": "plate-coral",
-      "name": "\u5EA7\u5E03\u56E3 \u73CA\u745A\u8272",
+      "name": "Plate, coral",
       "category": "emphasis",
       "style": {
         "size_px": 62,
@@ -972,7 +972,7 @@ var AkariEditKernel = (() => {
     },
     "plate-cream": {
       "id": "plate-cream",
-      "name": "\u5EA7\u5E03\u56E3 \u751F\u6210\u308A",
+      "name": "Plate, cream",
       "category": "title",
       "style": {
         "size_px": 72,
@@ -989,7 +989,7 @@ var AkariEditKernel = (() => {
     },
     "plate-indigo": {
       "id": "plate-indigo",
-      "name": "\u5EA7\u5E03\u56E3 \u85CD\u7D2B\u89D2\u4E38",
+      "name": "Plate, indigo rounded",
       "category": "subtitle",
       "style": {
         "size_px": 64,
@@ -1005,7 +1005,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-commentary": {
       "id": "subtitle-commentary",
-      "name": "\u5B9F\u6CC1\u30C6\u30ED\u30C3\u30D7",
+      "name": "Commentary caption",
       "category": "subtitle",
       "style": {
         "size_px": 60,
@@ -1024,7 +1024,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-interview": {
       "id": "subtitle-interview",
-      "name": "\u30A4\u30F3\u30BF\u30D3\u30E5\u30FC\u5B57\u5E55",
+      "name": "Interview captions",
       "category": "subtitle",
       "style": {
         "size_px": 56,
@@ -1045,7 +1045,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-news": {
       "id": "subtitle-news",
-      "name": "\u30CB\u30E5\u30FC\u30B9\u98A8",
+      "name": "News",
       "category": "subtitle",
       "style": {
         "size_px": 56,
@@ -1061,7 +1061,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-soft-band": {
       "id": "subtitle-soft-band",
-      "name": "\u5B57\u5E55 \u534A\u900F\u660E\u306E\u5E2F",
+      "name": "Captions, translucent band",
       "category": "subtitle",
       "style": {
         "size_px": 52,
@@ -1077,7 +1077,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-standard": {
       "id": "subtitle-standard",
-      "name": "\u6A19\u6E96\u5B57\u5E55",
+      "name": "Standard captions",
       "category": "subtitle",
       "style": {
         "size_px": 56,
@@ -1091,7 +1091,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-variety": {
       "id": "subtitle-variety",
-      "name": "\u30D0\u30E9\u30A8\u30C6\u30A3",
+      "name": "Variety",
       "category": "subtitle",
       "style": {
         "size_px": 80,
@@ -1112,7 +1112,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-white-bold": {
       "id": "subtitle-white-bold",
-      "name": "\u767D\u5B57\u5E55 \u592A\u7E01",
+      "name": "White captions, thick edge",
       "category": "subtitle",
       "style": {
         "size_px": 64,
@@ -1126,7 +1126,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-white-hairline": {
       "id": "subtitle-white-hairline",
-      "name": "\u767D\u5B57\u5E55 \u7D30\u7E01",
+      "name": "White captions, thin edge",
       "category": "subtitle",
       "style": {
         "size_px": 52,
@@ -1140,7 +1140,7 @@ var AkariEditKernel = (() => {
     },
     "subtitle-yellow-bold": {
       "id": "subtitle-yellow-bold",
-      "name": "\u9EC4\u8272\u5B57\u5E55 \u592A\u7E01",
+      "name": "Yellow captions, thick edge",
       "category": "subtitle",
       "style": {
         "size_px": 64,
@@ -1154,7 +1154,7 @@ var AkariEditKernel = (() => {
     },
     "title-impact": {
       "id": "title-impact",
-      "name": "\u30A4\u30F3\u30D1\u30AF\u30C8",
+      "name": "Impact",
       "category": "title",
       "style": {
         "size_px": 168,
@@ -1175,7 +1175,7 @@ var AkariEditKernel = (() => {
     },
     "variety-candy-pink": {
       "id": "variety-candy-pink",
-      "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6843\u306E\u888B\u6587\u5B57",
+      "name": "Variety, pink outlined letters",
       "category": "decorative",
       "style": {
         "size_px": 90,
@@ -1197,7 +1197,7 @@ var AkariEditKernel = (() => {
     },
     "variety-lime-pop": {
       "id": "variety-lime-pop",
-      "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u9EC4\u7DD1\u30DD\u30C3\u30D7",
+      "name": "Variety, yellow-green pop",
       "category": "decorative",
       "style": {
         "size_px": 84,
@@ -1219,7 +1219,7 @@ var AkariEditKernel = (() => {
     },
     "variety-orange-pop": {
       "id": "variety-orange-pop",
-      "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u30AA\u30EC\u30F3\u30B8\u5F71",
+      "name": "Variety, orange shadow",
       "category": "decorative",
       "style": {
         "size_px": 86,
@@ -1241,7 +1241,7 @@ var AkariEditKernel = (() => {
     },
     "variety-soda-blue": {
       "id": "variety-soda-blue",
-      "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6C34\u8272\u306E\u888B\u6587\u5B57",
+      "name": "Variety, light-blue outlined letters",
       "category": "decorative",
       "style": {
         "size_px": 90,
@@ -1263,7 +1263,7 @@ var AkariEditKernel = (() => {
     },
     "verdict-badge": {
       "id": "verdict-badge",
-      "name": "\u5224\u5B9A\u30D0\u30C3\u30B8",
+      "name": "Verdict badge",
       "category": "emphasis",
       "style": {
         "size_px": 80,
@@ -1284,7 +1284,7 @@ var AkariEditKernel = (() => {
     },
     "vertical-impact-cyan": {
       "id": "vertical-impact-cyan",
-      "name": "\u7E26\u52D5\u753B \u6C34\u8272\u306E\u5927\u898B\u51FA\u3057",
+      "name": "Vertical, large cyan title",
       "category": "title",
       "style": {
         "size_px": 125,
@@ -1306,7 +1306,7 @@ var AkariEditKernel = (() => {
     },
     "vertical-impact-red": {
       "id": "vertical-impact-red",
-      "name": "\u7E26\u52D5\u753B \u8D64\u306E\u5927\u898B\u51FA\u3057",
+      "name": "Vertical, large red title",
       "category": "title",
       "style": {
         "size_px": 130,
@@ -1328,7 +1328,7 @@ var AkariEditKernel = (() => {
     },
     "vertical-impact-white": {
       "id": "vertical-impact-white",
-      "name": "\u7E26\u52D5\u753B \u767D\u306E\u5927\u898B\u51FA\u3057",
+      "name": "Vertical, large white title",
       "category": "title",
       "style": {
         "size_px": 126,

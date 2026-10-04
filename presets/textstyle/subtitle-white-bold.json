@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-white-bold",
-  "name": "白字幕 太縁",
+  "name": "White captions, thick edge",
   "category": "subtitle",
-  "sample_text": "はっきり伝える",
+  "sample_text": "Say it clearly",
   "style": {
     "size_px": 64,
     "weight": 800,

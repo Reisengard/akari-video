@@ -9,7 +9,7 @@ export interface InspectorLookPreset {
 export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     {
         "id": "teal_orange",
-        "name": "ティール＆オレンジ",
+        "name": "Teal and orange",
         "adjust": {
             "basic": {
                 "contrast": 0.15,
@@ -32,7 +32,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "golden_hour",
-        "name": "ゴールデンアワー",
+        "name": "Golden hour",
         "adjust": {
             "basic": {
                 "exposure": 0.15,
@@ -61,7 +61,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "filmic_fade",
-        "name": "フィルミックフェード",
+        "name": "Filmic fade",
         "adjust": {
             "basic": {
                 "exposure": -0.15,
@@ -89,7 +89,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "clean_punch",
-        "name": "クリーンパンチ",
+        "name": "Clean punch",
         "adjust": {
             "basic": {
                 "exposure": 0.15,
@@ -108,7 +108,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "bleach",
-        "name": "ブリーチバイパス",
+        "name": "Bleach bypass",
         "adjust": {
             "basic": {
                 "contrast": 0.4,
@@ -130,7 +130,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "noir_soft",
-        "name": "ソフトノワール",
+        "name": "Soft noir",
         "adjust": {
             "basic": {
                 "contrast": 0.2,
@@ -152,7 +152,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "cool_matte",
-        "name": "クールマット",
+        "name": "Cool matte",
         "adjust": {
             "basic": {
                 "exposure": -0.15,
@@ -183,7 +183,7 @@ export const INSPECTOR_LOOK_PRESETS: readonly InspectorLookPreset[] = [
     },
     {
         "id": "vivid_summer",
-        "name": "ビビッドサマー",
+        "name": "Vivid summer",
         "adjust": {
             "basic": {
                 "exposure": 0.15,

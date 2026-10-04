@@ -1,47 +1,47 @@
-{"id":"fade-in-out","name":"フェード","category":"フェード","description":"ふわっと出て消える","sample_text":"フェード","slot":"in"}
-{"id":"soft-fade","name":"ソフトフェード","category":"フェード","description":"少し寄りながら柔らかく表示","sample_text":"ソフト","slot":"in"}
-{"id":"fade-up","name":"フェードアップ","category":"フェード","description":"下から薄く浮かぶ","sample_text":"浮かぶ字幕","slot":"in"}
-{"id":"fade-down","name":"フェードダウン","category":"フェード","description":"上から薄く降りる","sample_text":"降りる字幕","slot":"in"}
-{"id":"cinematic-fade","name":"シネマフェード","category":"フェード","description":"ゆっくり近づくタイトル向け","sample_text":"SCENE TITLE","slot":"in"}
-{"id":"slide-left","name":"左からスライド","category":"スライド","description":"左から入り左へ抜ける","sample_text":"左から","slot":"in"}
-{"id":"slide-right","name":"右からスライド","category":"スライド","description":"右から入り右へ抜ける","sample_text":"右から","slot":"in"}
-{"id":"slide-up","name":"下からスライド","category":"スライド","description":"下から上へ入る","sample_text":"下から","slot":"in"}
-{"id":"slide-down","name":"上からスライド","category":"スライド","description":"上から下へ入る","sample_text":"上から","slot":"in"}
-{"id":"push-left","name":"プッシュ左","category":"スライド","description":"短く押し出す左移動","sample_text":"プッシュ","slot":"in"}
-{"id":"push-right","name":"プッシュ右","category":"スライド","description":"短く押し出す右移動","sample_text":"プッシュ","slot":"in"}
-{"id":"push-up","name":"プッシュ上","category":"スライド","description":"上方向に素早く押し出す","sample_text":"プッシュ","slot":"in"}
-{"id":"push-down","name":"プッシュ下","category":"スライド","description":"下方向に素早く押し出す","sample_text":"プッシュ","slot":"in"}
-{"id":"rise-soft","name":"ソフトライズ","category":"スライド","description":"字幕向けに小さく持ち上がる","sample_text":"自然な字幕","slot":"in"}
-{"id":"drop-in","name":"ドロップイン","category":"スライド","description":"上から落ちて止まる","sample_text":"ドン","slot":"in"}
-{"id":"zoom-in-out","name":"ズーム","category":"ズーム","description":"近づきながら出て奥へ消える","sample_text":"ズーム","slot":"in"}
-{"id":"zoom-pop","name":"ズームポップ","category":"ズーム","description":"小さく弾んで拡大","sample_text":"POP","slot":"in"}
-{"id":"zoom-pulse","name":"ズームパルス","category":"ズーム","description":"表示中に軽く鼓動する","sample_text":"PULSE","slot":"in"}
-{"id":"pop","name":"ポップ","category":"弾性","description":"ぽんっと拡大して出る","sample_text":"ポップ","slot":"in"}
-{"id":"bounce","name":"バウンス","category":"弾性","description":"跳ねるように着地","sample_text":"バウンド","slot":"in"}
-{"id":"squash-pop","name":"スクワッシュ","category":"弾性","description":"潰れて戻るように強調","sample_text":"BOOM","slot":"in"}
-{"id":"stretch-in","name":"ストレッチ","category":"弾性","description":"伸びてから整う","sample_text":"伸びる","slot":"in"}
-{"id":"stomp","name":"ストンプ","category":"弾性","description":"重く踏み込むインパクト","sample_text":"ドン！","slot":"in"}
-{"id":"snap","name":"スナップ","category":"弾性","description":"一瞬で切れよく表示","sample_text":"SNAP","slot":"in"}
-{"id":"rotate-in","name":"回転イン","category":"回転","description":"少し回転しながら入る","sample_text":"回転","slot":"in"}
-{"id":"spin-in","name":"スピンイン","category":"回転","description":"大きく回って登場","sample_text":"SPIN","slot":"in"}
-{"id":"roll-in","name":"ロールイン","category":"回転","description":"転がるように横から入る","sample_text":"ROLL","slot":"in"}
-{"id":"spiral-in","name":"スパイラル","category":"回転","description":"弧を描きながら中央へ","sample_text":"SPIRAL","slot":"in"}
-{"id":"swing","name":"スイング","category":"回転","description":"吊られたように揺れる","sample_text":"SWING","slot":"in"}
-{"id":"shake","name":"シェイク","category":"強調","description":"小刻みに震える","sample_text":"ブルブル","slot":"in"}
-{"id":"jitter","name":"ジッター","category":"強調","description":"細かく荒く揺れる","sample_text":"JITTER","slot":"in"}
-{"id":"glitch","name":"グリッチ","category":"強調","description":"瞬間的に横ズレする","sample_text":"GLITCH","slot":"in"}
-{"id":"flash","name":"フラッシュ","category":"強調","description":"点滅して目を引く","sample_text":"FLASH","slot":"in"}
-{"id":"heartbeat","name":"ハートビート","category":"強調","description":"強めの鼓動で押す","sample_text":"HEART","slot":"in"}
-{"id":"typewriter","name":"タイプライター","category":"文字表示","description":"1文字ずつ表示","sample_text":"タイプ印字","slot":"in"}
-{"id":"wipe-left","name":"左ワイプ","category":"文字表示","description":"左から文字を開く","sample_text":"ワイプ表示","slot":"in"}
-{"id":"wipe-right","name":"右ワイプ","category":"文字表示","description":"右側から文字を開く","sample_text":"右ワイプ","slot":"in"}
-{"id":"wobble","name":"ゆらゆら","category":"ループ","description":"表示中に軽く揺れる","sample_text":"ゆらゆら","slot":"loop"}
-{"id":"float","name":"フロート","category":"ループ","description":"上下にゆっくり浮く","sample_text":"FLOAT","slot":"loop"}
-{"id":"breath","name":"ブレス","category":"ループ","description":"呼吸するように伸縮","sample_text":"BREATH","slot":"loop"}
-{"id":"neon-flicker","name":"ネオン点滅","category":"ループ","description":"ネオン看板のように明滅","sample_text":"NEON","slot":"loop"}
-{"id":"hologram","name":"ホログラム","category":"ループ","description":"薄く揺れるデジタル感","sample_text":"HOLOGRAM","slot":"loop"}
-{"id":"retro-flicker","name":"レトロ点滅","category":"ループ","description":"古い映像のようにちらつく","sample_text":"RETRO","slot":"loop"}
-{"id":"caption-rise","name":"字幕ライズ","category":"テロップ","description":"会話字幕向けに短く上がる","sample_text":"字幕テロップ","slot":"in"}
-{"id":"news-ticker","name":"ニュース帯","category":"テロップ","description":"右から左へ流れる","sample_text":"ニュース速報","slot":"loop"}
-{"id":"marquee-left","name":"横スクロール","category":"テロップ","description":"テキストを横に流す","sample_text":"横に流れるテキスト","slot":"loop"}
-{"id":"crawl-up","name":"縦スクロール","category":"テロップ","description":"下から上へ流す","sample_text":"縦に流れる","slot":"loop"}
+{"id":"fade-in-out","name":"Fade","category":"Fade","description":"Appears and leaves softly","sample_text":"Fade","slot":"in"}
+{"id":"soft-fade","name":"Soft fade","category":"Fade","description":"Eases in while moving slightly closer","sample_text":"Soft","slot":"in"}
+{"id":"fade-up","name":"Fade up","category":"Fade","description":"Rises in from below while fading","sample_text":"Rising caption","slot":"in"}
+{"id":"fade-down","name":"Fade down","category":"Fade","description":"Drops in from above while fading","sample_text":"Dropping caption","slot":"in"}
+{"id":"cinematic-fade","name":"Cinematic fade","category":"Fade","description":"A slow approach for titles","sample_text":"SCENE TITLE","slot":"in"}
+{"id":"slide-left","name":"Slide from left","category":"Slide","description":"Enters from the left and exits left","sample_text":"From left","slot":"in"}
+{"id":"slide-right","name":"Slide from right","category":"Slide","description":"Enters from the right and exits right","sample_text":"From right","slot":"in"}
+{"id":"slide-up","name":"Slide from bottom","category":"Slide","description":"Enters upward from below","sample_text":"From below","slot":"in"}
+{"id":"slide-down","name":"Slide from top","category":"Slide","description":"Enters downward from above","sample_text":"From above","slot":"in"}
+{"id":"push-left","name":"Push left","category":"Slide","description":"A short push to the left","sample_text":"Push","slot":"in"}
+{"id":"push-right","name":"Push right","category":"Slide","description":"A short push to the right","sample_text":"Push","slot":"in"}
+{"id":"push-up","name":"Push up","category":"Slide","description":"A quick push upward","sample_text":"Push","slot":"in"}
+{"id":"push-down","name":"Push down","category":"Slide","description":"A quick push downward","sample_text":"Push","slot":"in"}
+{"id":"rise-soft","name":"Soft rise","category":"Slide","description":"A small lift for captions","sample_text":"Natural caption","slot":"in"}
+{"id":"drop-in","name":"Drop in","category":"Slide","description":"Falls from above and stops","sample_text":"Boom","slot":"in"}
+{"id":"zoom-in-out","name":"Zoom","category":"Zoom","description":"Enters while approaching and leaves into the distance","sample_text":"Zoom","slot":"in"}
+{"id":"zoom-pop","name":"Zoom pop","category":"Zoom","description":"Pops up from a smaller size","sample_text":"POP","slot":"in"}
+{"id":"zoom-pulse","name":"Zoom pulse","category":"Zoom","description":"Pulses lightly while on screen","sample_text":"PULSE","slot":"in"}
+{"id":"pop","name":"Pop","category":"Elastic","description":"Pops in with a small scale-up","sample_text":"Pop","slot":"in"}
+{"id":"bounce","name":"Bounce","category":"Elastic","description":"Lands with a bounce","sample_text":"Bounce","slot":"in"}
+{"id":"squash-pop","name":"Squash","category":"Elastic","description":"Squashes and settles for emphasis","sample_text":"BOOM","slot":"in"}
+{"id":"stretch-in","name":"Stretch","category":"Elastic","description":"Stretches, then settles","sample_text":"Stretch","slot":"in"}
+{"id":"stomp","name":"Stomp","category":"Elastic","description":"A heavy impact","sample_text":"Boom!","slot":"in"}
+{"id":"snap","name":"Snap","category":"Elastic","description":"Appears in one sharp beat","sample_text":"SNAP","slot":"in"}
+{"id":"rotate-in","name":"Rotate in","category":"Rotate","description":"Enters with a small rotation","sample_text":"Spin","slot":"in"}
+{"id":"spin-in","name":"Spin in","category":"Rotate","description":"Arrives with a large spin","sample_text":"SPIN","slot":"in"}
+{"id":"roll-in","name":"Roll in","category":"Rotate","description":"Rolls in from the side","sample_text":"ROLL","slot":"in"}
+{"id":"spiral-in","name":"Spiral","category":"Rotate","description":"Arcs into the center","sample_text":"SPIRAL","slot":"in"}
+{"id":"swing","name":"Swing","category":"Rotate","description":"Swings as if hung","sample_text":"SWING","slot":"in"}
+{"id":"shake","name":"Shake","category":"Emphasis","description":"Shakes in small steps","sample_text":"Shake","slot":"in"}
+{"id":"jitter","name":"Jitter","category":"Emphasis","description":"A fine, rough shake","sample_text":"JITTER","slot":"in"}
+{"id":"glitch","name":"Glitch","category":"Emphasis","description":"Slips sideways for a moment","sample_text":"GLITCH","slot":"in"}
+{"id":"flash","name":"Flash","category":"Emphasis","description":"Flashes to catch the eye","sample_text":"FLASH","slot":"in"}
+{"id":"heartbeat","name":"Heartbeat","category":"Emphasis","description":"Pushes with a strong pulse","sample_text":"HEART","slot":"in"}
+{"id":"typewriter","name":"Typewriter","category":"Reveal","description":"Reveals one character at a time","sample_text":"Typed text","slot":"in"}
+{"id":"wipe-left","name":"Wipe left","category":"Reveal","description":"Opens the text from the left","sample_text":"Wipe","slot":"in"}
+{"id":"wipe-right","name":"Wipe right","category":"Reveal","description":"Opens the text from the right","sample_text":"Right wipe","slot":"in"}
+{"id":"wobble","name":"Wobble","category":"Loop","description":"Sways lightly while on screen","sample_text":"Wobble","slot":"loop"}
+{"id":"float","name":"Float","category":"Loop","description":"Drifts slowly up and down","sample_text":"FLOAT","slot":"loop"}
+{"id":"breath","name":"Breathe","category":"Loop","description":"Scales like a breath","sample_text":"BREATH","slot":"loop"}
+{"id":"neon-flicker","name":"Neon flicker","category":"Loop","description":"Flickers like a neon sign","sample_text":"NEON","slot":"loop"}
+{"id":"hologram","name":"Hologram","category":"Loop","description":"A thin digital shimmer","sample_text":"HOLOGRAM","slot":"loop"}
+{"id":"retro-flicker","name":"Retro flicker","category":"Loop","description":"Flickers like old footage","sample_text":"RETRO","slot":"loop"}
+{"id":"caption-rise","name":"Caption rise","category":"Captions","description":"A short rise for dialogue captions","sample_text":"Caption","slot":"in"}
+{"id":"news-ticker","name":"News ticker","category":"Captions","description":"Travels from right to left","sample_text":"Breaking news","slot":"loop"}
+{"id":"marquee-left","name":"Scroll horizontal","category":"Captions","description":"Scrolls the text sideways","sample_text":"Text scrolling sideways","slot":"loop"}
+{"id":"crawl-up","name":"Scroll vertical","category":"Captions","description":"Scrolls from bottom to top","sample_text":"Scrolling up","slot":"loop"}

@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "variety-orange-pop",
-  "name": "バラエティ オレンジ影",
+  "name": "Variety, orange shadow",
   "category": "decorative",
-  "sample_text": "最高です！",
+  "sample_text": "This is the best!",
   "style": {
     "size_px": 86,
     "weight": 700,

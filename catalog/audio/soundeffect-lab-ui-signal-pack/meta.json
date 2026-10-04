@@ -1,9 +1,9 @@
 {
   "id": "soundeffect-lab-ui-signal-pack",
   "category": "audio",
-  "title": "効果音ラボ UI・決定音・警告音パック",
-  "description": "決定ボタン確定音（バリエーション12種）・クイズ正誤判定・クリック・警告音・チーン・不安を煽る鐘など、UI操作と場面の合図に使う短尺SE 22点セット。（収録数: 22点）※チーン1の配布元公式説明は「がっかりした時の演出に」（2026-07-31 に /sound/anime/ で実確認）。やらかし/がっかりの記号であり、旧記述「終了/決定」は誤りだった 【audio-standard】部分参加 20/21 音（対象はローカル index.jsonl の standard フラグ / 正本は内部リポ sfx-curation.json）",
-  "when_to_use": "ボタン確定・クイズの正誤判定・操作クリック・警告通知に使う。チーン1はやらかし・がっかり演出専用（完了/決定の合図として使わない）",
+  "title": "Sound Effect Lab UI, decision, and warning pack",
+  "description": "A set of 22 short cues for UI and for a scene: decision-button confirms (12 variants), quiz right-or-wrong, clicks, warnings, a chime, and a bell that raises unease. (Count: 22) The publisher's own note for chime 1 is a sting for a letdown (confirmed on /sound/anime/ on 2026-07-31). It marks a mistake or a disappointment. The old note that it meant done or decision was wrong. [audio-standard] partial membership, 20 of 21 sounds (the standard flag on the local index.jsonl / source of truth: internal repo sfx-curation.json)",
+  "when_to_use": "For a button confirm, a quiz right-or-wrong call, an operation click, or a warning. Chime 1 is only for a mistake or a letdown. Do not use it as a done or decision cue",
   "tags": [
     "sfx",
     "ui",

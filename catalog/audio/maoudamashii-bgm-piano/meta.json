@@ -1,9 +1,9 @@
 {
   "id": "maoudamashii-bgm-piano",
   "category": "audio",
-  "title": "魔王魂 ピアノ（静寂の世界へ / 見渡す街へ）",
-  "description": "静けさ・ゆったりした時間の流れを出すピアノ BGM 2 点。（収録数: 2点） 【audio-standard】部分参加 1/2 音（対象はローカル index.jsonl の standard フラグ / 正本は内部リポ sfx-curation.json）",
-  "when_to_use": "静寂・喪失・ぼんやりした時間（静寂の世界へ）、美しい景色をゆったり見せる場面（見渡す街へ）",
+  "title": "MaouDamashii piano (Into a Quiet World / Over the City)",
+  "description": "Two piano BGM tracks for quiet and a slow passage of time. (Count: 2) [audio-standard] partial membership, 1 of 2 sounds (the standard flag on the local index.jsonl / source of truth: internal repo sfx-curation.json)",
+  "when_to_use": "Quiet, loss, and a hazy stretch of time (Into a Quiet World), or a slow look at a beautiful view (Over the City)",
   "tags": [
     "bgm",
     "piano",

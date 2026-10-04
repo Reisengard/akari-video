@@ -1,6 +1,6 @@
 {
   "id": "freefont-kensaku",
-  "name": "フリーフォントケンサク",
+  "name": "Free Font Kensaku",
   "tab": "font",
   "entry_url": "https://cute-freefont.flop.jp/",
   "hosts": [
@@ -13,7 +13,7 @@
   "download_hosts": [],
   "price": "free",
   "terms": {
-    "summary_ja": "紹介サイト。実配布先の規約を個別に確認する。BOOTHやタイプラボ等に移る場合があるが、HTTPのみの配布先はアプリ内で開かない。出典の消えたとりさんのフォントはおすすめに含めない。",
+    "summary_ja": "A directory site. Confirm each real publisher's terms. A listing may move to BOOTH, TypeLab, or similar, but an HTTP-only publisher is not opened inside the app. A Torisan font whose source has vanished is not recommended.",
     "source_url": "https://cute-freefont.flop.jp/",
     "checked_at": "2026-09-21"
   },

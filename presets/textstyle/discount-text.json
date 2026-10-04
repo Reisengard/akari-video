@@ -2,7 +2,7 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "discount-text",
-  "name": "割引バッジテキスト",
+  "name": "Discount badge text",
   "category": "price",
   "sample_text": "30% OFF",
   "style": {

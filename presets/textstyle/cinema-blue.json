@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "cinema-blue",
-  "name": "映画 青い余韻",
+  "name": "Cinema, blue afterglow",
   "category": "title",
-  "sample_text": "旅のはじまり",
+  "sample_text": "Start of the Journey",
   "style": {
     "size_px": 75,
     "weight": 300,

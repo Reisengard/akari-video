@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "news-yellow-label",
-  "name": "解説 黄色ラベル",
+  "name": "Explainer, yellow label",
   "category": "emphasis",
-  "sample_text": "要点はここ",
+  "sample_text": "Here's the key point",
   "style": {
     "size_px": 58,
     "weight": 800,

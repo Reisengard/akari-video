@@ -7,7 +7,7 @@
     "id": "akari-sounds",
     "label": "AKARI Sounds",
     "role": "default_source",
-    "note": "自社（first-party）音源ライブラリ。全トラック AI 生成（Suno 有料プラン）・生成記録公開・商用可・クレジット不要。BGM とジングルの既定はここ。効果音もまずここを見て、無い系統だけ下の外部候補を使う。first-party のため第三者サイト向けの一括取得禁止ルールは適用されない（skills/setup-audio-library/first-party.md 参照）",
+    "note": "The in-house (first-party) sound library. Every track is AI-generated (Suno paid plan), the generation record is public, commercial use is allowed, and credit is not required. BGM and jingles default to this library. Look here for sound effects first, and use an external candidate below only for a family this library does not have. Because it is first-party, the ban on bulk fetch from a third-party site does not apply (see skills/setup-audio-library/first-party.md)",
     "repo": "AkariLabs/akari-sounds",
     "catalog_url": "https://raw.githubusercontent.com/AkariLabs/akari-sounds/main/catalog.json",
     "release_tag": "v0",
@@ -112,14 +112,14 @@
   "categories": [
     {
       "id": "impact-hit",
-      "label_ja": "ヒット/ドン（impact / hit）",
+      "label_ja": "Impact hit",
       "note": "汎用のインパクト音（ブーム・ドン・サブドロップ）は AKARI Sounds（sfx-impact-* / sfx-sub-drop 等）が既定。ここに残すのは AKARI Sounds に無い和風の「ドーン」とバトル打撃系のみ（2026-08-03 整理）",
       "items": [
         {
           "rank": 7,
           "id": "soundeffect-lab-doon1",
           "site": "効果音ラボ",
-          "title_ja": "ドーン（和太鼓・ビブラスラップ一斉）",
+          "title_ja": "Doon (taiko and vibraslap together)",
           "type": "individual_file",
           "download_page_url": "https://soundeffect-lab.info/sound/anime/",
           "expected_filenames": [
@@ -130,21 +130,21 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "同上"
+            "note": "Same as above"
           },
           "confidence": "confirmed_by_lane",
           "verification": {
             "checked_by": "lane",
             "checked_at": "2026-07-22",
             "method": "WebFetch 直接取得",
-            "result_note": "doon1.mp3 実在確認"
+            "result_note": "Confirmed doon1.mp3 is on the page"
           }
         },
         {
           "rank": 8,
           "id": "soundeffect-lab-battle-category",
           "site": "効果音ラボ",
-          "title_ja": "戦闘 カテゴリ（打撃・衝撃音）",
+          "title_ja": "Battle category (strikes and impacts)",
           "type": "category_page",
           "download_page_url": "https://soundeffect-lab.info/sound/battle/",
           "expected_filenames": [],
@@ -153,7 +153,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "商用利用無料・クレジット任意・AI学習利用禁止"
+            "note": "Free for commercial use, credit optional, AI training forbidden"
           },
           "confidence": "confirmed_by_research",
           "verification": {
@@ -166,7 +166,7 @@
           "rank": 11,
           "id": "springin-sound-stock-battle",
           "site": "Springin' Sound Stock",
-          "title_ja": "バトル系効果音（ゲーム制作特化）",
+          "title_ja": "Battle sound effects (aimed at game production)",
           "type": "category_page",
           "download_page_url": "https://www.springin.org/sound-stock/",
           "expected_filenames": [],
@@ -175,7 +175,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "unknown",
-            "note": "登録不要・クレジット任意。素材集約動画・Content ID登録は禁止"
+            "note": "No signup, credit optional. Compilation videos and Content ID registration are forbidden"
           },
           "confidence": "confirmed_by_research",
           "verification": {
@@ -188,14 +188,14 @@
     },
     {
       "id": "applause",
-      "label_ja": "拍手（applause）",
+      "label_ja": "Applause",
       "note": "拍手・歓声・観客リアクションは AKARI Sounds 未収録のため外部候補を維持（2026-08-03 整理）",
       "items": [
         {
           "rank": 27,
           "id": "soundeffect-lab-clapping-hands",
           "site": "効果音ラボ",
-          "title_ja": "大勢で拍手 / スタジアムの拍手 / 小さなホールでの拍手",
+          "title_ja": "A crowd applauding / stadium applause / applause in a small hall",
           "type": "individual_file",
           "download_page_url": "https://soundeffect-lab.info/sound/various/various3.html",
           "expected_filenames": [
@@ -208,7 +208,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "生活[3]カテゴリ"
+            "note": "Daily life [3] category"
           },
           "confidence": "corrected_by_lane",
           "verification": {
@@ -216,14 +216,14 @@
             "checked_at": "2026-07-22",
             "method": "WebFetch 直接取得。元URL（sound/various/）は誤りで、正しくは sound/various/various3.html",
             "original_url": "https://soundeffect-lab.info/sound/various/",
-            "result_note": "clapping-hands1.mp3（パチパチ）・stadium-clapping-hands1.mp3（スポーツの試合）・hall-clapping-hands1.mp3（少人数）を実在確認"
+            "result_note": "Confirmed clapping-hands1.mp3 (handclaps), stadium-clapping-hands1.mp3 (a sports match), and hall-clapping-hands1.mp3 (a small crowd)"
           }
         },
         {
           "rank": 28,
           "id": "soundeffect-lab-people-performance-cheer",
           "site": "効果音ラボ",
-          "title_ja": "歓声と拍手（大盛り上がり/中盛り上がり）",
+          "title_ja": "Cheers and applause (a big peak / a medium peak)",
           "type": "individual_file",
           "download_page_url": "https://soundeffect-lab.info/sound/voice/people.html",
           "expected_filenames": [
@@ -236,7 +236,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "声素材-大人数カテゴリ"
+            "note": "Voice material, large crowd category"
           },
           "confidence": "corrected_by_lane",
           "verification": {
@@ -244,14 +244,14 @@
             "checked_at": "2026-07-22",
             "method": "WebFetch 直接取得。元URL（sound/voice/game.html）はゲームキャラ個別ボイスのページで誤り。正しくは sound/voice/people.html",
             "original_url": "https://soundeffect-lab.info/sound/voice/game.html",
-            "result_note": "people-performance-cheer1（大盛り上がり）・cheer2（中盛り上がり）・people-stadium-applause1（スタジアムの拍手）を実在確認"
+            "result_note": "Confirmed people-performance-cheer1 (a big peak), cheer2 (a medium peak), and people-stadium-applause1 (stadium applause)"
           }
         },
         {
           "rank": 29,
           "id": "pixabay-search-applause",
           "site": "Pixabay",
-          "title_ja": "効果音検索 \"applause\"",
+          "title_ja": "Sound-effect search \"applause\"",
           "type": "search_page",
           "download_page_url": "https://pixabay.com/sound-effects/search/applause/",
           "expected_filenames": [],
@@ -273,7 +273,7 @@
           "rank": 30,
           "id": "freesound-search-applause-crowd",
           "site": "Freesound",
-          "title_ja": "タグ検索 \"applause crowd\"",
+          "title_ja": "Tag search \"applause crowd\"",
           "type": "search_page",
           "download_page_url": "https://freesound.org/search/?q=applause+crowd",
           "expected_filenames": [],
@@ -282,7 +282,7 @@
             "attribution_required": null,
             "ai_training_allowed": null,
             "redistribution": "depends_on_license",
-            "note": "音源ごとに異なる"
+            "note": "Differs per source"
           },
           "confidence": "confirmed_by_research",
           "verification": {
@@ -295,7 +295,7 @@
           "rank": 31,
           "id": "dova-syndrome-se-search-applause",
           "site": "DOVA-SYNDROME",
-          "title_ja": "効果音検索（拍手・歓声系ワード指定）",
+          "title_ja": "Sound-effect search (applause and cheer keywords)",
           "type": "search_page",
           "download_page_url": "https://dova-s.jp/se/search",
           "expected_filenames": [],
@@ -304,7 +304,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "同上"
+            "note": "Same as above"
           },
           "confidence": "confirmed_by_research",
           "verification": {
@@ -317,14 +317,14 @@
     },
     {
       "id": "fail-buzzer",
-      "label_ja": "失敗音（fail / buzzer）",
+      "label_ja": "Fail buzzer",
       "note": "「ブブー」「デデーン」「チーン」等の日本のお約束失敗音は AKARI Sounds 未収録のため外部候補を維持（2026-08-03 整理）",
       "items": [
         {
           "rank": 37,
           "id": "soundeffect-lab-error-beep4-bubu",
           "site": "効果音ラボ",
-          "title_ja": "エラー音「ブブー」（ビープ音カテゴリ内の1点。独立した「失敗音セット」ではない点に注意）",
+          "title_ja": "The error buzz (one item inside the beep category. It is not a standalone fail-sound set)",
           "type": "individual_file",
           "download_page_url": "https://soundeffect-lab.info/sound/button/",
           "expected_filenames": [],
@@ -333,21 +333,21 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "ボタン・システム音カテゴリ内「エラー音」"
+            "note": "Error sound inside the button and system category"
           },
           "confidence": "corrected_by_lane",
           "verification": {
             "checked_by": "lane",
             "checked_at": "2026-07-22",
             "method": "WebFetch 直接取得。研究時点の記述「ブブー・不正解系」という独立項目は実在せず、エラー音カテゴリ内のビープ音の一つ（表記上「ブブー」に相当）であることを確認して説明文を修正",
-            "result_note": "専用の「失敗音」セットは無いため、代替として #38（ポケットサウンド「失敗」タグ）を優先候補として案内する"
+            "result_note": "There is no dedicated fail-sound set, so #38 (the Pocket Sound fail tag) is the preferred substitute"
           }
         },
         {
           "rank": 38,
           "id": "pocket-se-tag-fail",
           "site": "ポケットサウンド",
-          "title_ja": "「失敗」タグ一覧",
+          "title_ja": "Fail tag list",
           "type": "category_page",
           "download_page_url": "https://pocket-se.info/archives/tag/%E5%A4%B1%E6%95%97/",
           "expected_filenames": [],
@@ -356,21 +356,21 @@
             "attribution_required": true,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "商用無料・加工OK。作品利用時はクレジット表記またはリンク必須（例: 効果音：ポケットサウンド – https://pocket-se.info/）。直リンク・二次配布・転売禁止。有償プランでクレジット免除あり"
+            "note": "Free for commercial use, changes allowed. A work must show credit or a link (example: Sound effects: Pocket Sound - https://pocket-se.info/). Hotlinking, redistribution, and resale are forbidden. A paid plan can waive the credit"
           },
           "confidence": "confirmed_by_lane",
           "verification": {
             "checked_by": "lane",
             "checked_at": "2026-07-22",
             "method": "WebFetch 直接取得",
-            "result_note": "10件以上（ページネーションあり、サイト全体で2367点）。「クイズ不正解・誤答音」「ゲームオーバー」「失敗『デデーン』」等を確認。本カテゴリの本命候補として#37より優先推奨／2026-07-31 pass2: /rules/ を直接確認しクレジット要件を訂正（旧 attribution_required: false は誤り）"
+            "result_note": "More than 10 items (paginated, 2367 on the whole site). Confirmed a quiz-wrong sting, a game over, and a fail stab, among others. Prefer this over #37 as the main candidate in the category. 2026-07-31 pass 2: /rules/ was fetched directly and the credit requirement was corrected (the old attribution_required: false was wrong)"
           }
         },
         {
           "rank": 39,
           "id": "pixabay-search-fail",
           "site": "Pixabay",
-          "title_ja": "効果音検索 \"fail buzzer\"",
+          "title_ja": "Sound-effect search \"fail buzzer\"",
           "type": "search_page",
           "download_page_url": "https://pixabay.com/sound-effects/search/fail/",
           "expected_filenames": [],
@@ -392,7 +392,7 @@
           "rank": 40,
           "id": "freesound-search-fail-wrong-buzzer",
           "site": "Freesound",
-          "title_ja": "タグ検索 \"fail wrong buzzer\"",
+          "title_ja": "Tag search \"fail wrong buzzer\"",
           "type": "search_page",
           "download_page_url": "https://freesound.org/search/?q=fail+wrong+buzzer",
           "expected_filenames": [],
@@ -401,7 +401,7 @@
             "attribution_required": null,
             "ai_training_allowed": null,
             "redistribution": "depends_on_license",
-            "note": "音源ごとに異なる"
+            "note": "Differs per source"
           },
           "confidence": "confirmed_by_research",
           "verification": {
@@ -414,7 +414,7 @@
           "rank": 41,
           "id": "dova-syndrome-se-search-fail",
           "site": "DOVA-SYNDROME",
-          "title_ja": "効果音検索（失敗・ブー系ワード指定）",
+          "title_ja": "Sound-effect search (fail and buzzer keywords)",
           "type": "search_page",
           "download_page_url": "https://dova-s.jp/se/search",
           "expected_filenames": [],
@@ -423,7 +423,7 @@
             "attribution_required": false,
             "ai_training_allowed": false,
             "redistribution": "prohibited",
-            "note": "同上"
+            "note": "Same as above"
           },
           "confidence": "confirmed_by_research",
           "verification": {

@@ -2,8 +2,8 @@
   "id": "mplus-rounded-1c",
   "category": "font",
   "title": "M PLUS Rounded 1c",
-  "description": "丸みを帯びたやわらかい印象の日本語ゴシック体。Thin〜Black の幅広いウェイトを持ち、角の取れたアウトラインでカジュアル・親しみやすいトーンを演出できる。Google Fonts 公開・日本語テロップで人気の高い書体。実体（静的ウェイト、telop カタログでの実使用に合わせ Medium/ExtraBold/Black の3ウェイトのみ）は本リポの assets/font/mplus-rounded-1c/ に同梱済み（2026-07-23 追記。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "VLOG・エンタメ系・チュートリアル・子ども/ファミリー向けなど、硬くなりすぎない柔らかい印象のテロップ見出しやポップな強調テキストが欲しいシーン",
+  "description": "A Japanese gothic with a soft, rounded impression. Weights run from Thin to Black, and the eased outline carries a casual, familiar tone. Published on Google Fonts, and widely used for Japanese captions. The binaries (static weights, only Medium, ExtraBold, and Black, matching real use in the caption catalog) are already bundled at assets/font/mplus-rounded-1c/ in this repo (noted 2026-07-23. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "Scenes that want a soft caption heading or a pop emphasis line, for a vlog, entertainment, a tutorial, or kids and family, where a stiff tone would be wrong",
   "tags": [
     "font",
     "japanese",

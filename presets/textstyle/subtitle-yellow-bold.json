@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-yellow-bold",
-  "name": "黄色字幕 太縁",
+  "name": "Yellow captions, thick edge",
   "category": "subtitle",
-  "sample_text": "ここを見て！",
+  "sample_text": "Look here!",
   "style": {
     "size_px": 64,
     "weight": 800,

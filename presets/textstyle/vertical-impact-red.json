@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "vertical-impact-red",
-  "name": "縦動画 赤の大見出し",
+  "name": "Vertical, large red title",
   "category": "title",
-  "sample_text": "まさかの結果！",
+  "sample_text": "Unexpected result!",
   "style": {
     "size_px": 130,
     "weight": 900,
