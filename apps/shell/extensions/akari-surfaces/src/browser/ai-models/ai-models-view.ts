@@ -8,8 +8,8 @@ import {
 } from '../../common/ai-models-model';
 import { makerBadge } from '../settings/maker-badge';
 
-const KIND_LABELS: Record<AiModelKind, string> = { image: '静止画', video: '動画', voice: '声', transcribe: '文字起こし' };
-const LICENSE_LABELS: Record<string, string> = { 'commercial-ok': '商用 OK', conditional: '条件つき', 'credit-required': '要クレジット', unknown: '未確認' };
+const KIND_LABELS: Record<AiModelKind, string> = { image: 'Images', video: 'Video', voice: 'Voice', transcribe: 'Transcription' };
+const LICENSE_LABELS: Record<string, string> = { 'commercial-ok': 'Commercial use allowed', conditional: 'Conditional', 'credit-required': 'Attribution required', unknown: 'Not checked' };
 const COMPARE_COLORS = ['#f0b44c', '#38bdf8', '#c084fc'] as const;
 
 const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
@@ -41,10 +41,10 @@ function fieldPills(values: Record<string, unknown>, labels: Record<string, stri
             continue;
         }
         const detail = capabilityText(key, values[key], model);
-        const label = `${labels[key]}${state === 'available' && detail !== '可' ? ` ${detail}` : ''}`;
+        const label = `${labels[key]}${state === 'available' && detail !== 'Allowed' ? ` ${detail}` : ''}`;
         const pill = node('span', `akari-ai-pill${state === 'unavailable' ? ' akari-ai-no' : ''}`, label);
         if (key === 'resolutions' && model?.outputs.akari_sizes) {
-            const limit = /（モデルの上限 [^）]+）$/.exec(detail);
+            const limit = /\(Model limit: [^)]+\)$/.exec(detail);
             if (limit) {
                 pill.textContent = `${labels[key]} ${detail.slice(0, -limit[0].length)}`;
                 pill.append(node('small', 'akari-ai-secondary', limit[0].slice(1, -1)));
@@ -118,7 +118,7 @@ export class AiModelsView {
                 this.service.getAiModelPreferences({ projectRootUri: this.projectRoot })
             ]);
         } catch (error) {
-            this.error = error instanceof Error ? error.message : 'モデルを読み込めませんでした。';
+            this.error = error instanceof Error ? error.message : 'Could not load models.';
         }
         this.render();
     }
@@ -129,7 +129,7 @@ export class AiModelsView {
             this.preferences = await this.service.getAiModelPreferences({ projectRootUri: this.projectRoot });
             this.error = '';
         } catch (error) {
-            this.error = error instanceof Error ? error.message : '保存できませんでした。';
+            this.error = error instanceof Error ? error.message : 'Could not save.';
         }
         this.render();
     }
@@ -144,7 +144,7 @@ export class AiModelsView {
         }
         if (!this.catalog || !this.preferences) {
             if (!this.error) {
-                this.host.append(node('p', 'akari-ai-note', 'AI モデルを読み込んでいます…'));
+                this.host.append(node('p', 'akari-ai-note', 'Loading AI models…'));
             }
             return;
         }
@@ -172,8 +172,8 @@ export class AiModelsView {
 
     private renderAside(aside: HTMLElement): void {
         const catalog = this.catalog!;
-        aside.append(node('p', 'akari-ai-note', '作れるものと渡せるものを見て、いつものモデルを決めます。'));
-        const kinds = this.field(aside, '作りたいもの', 'kind');
+        aside.append(node('p', 'akari-ai-note', 'Compare inputs and outputs to choose your default models.'));
+        const kinds = this.field(aside, 'What to create', 'kind');
         for (const kind of AI_MODEL_KINDS) {
             const count = catalog.models.filter(row => row.kind === kind && row.callable).length;
             const item = button(`${KIND_LABELS[kind]} ${count}`, 'data-ai-model-kind', kind, () => {
@@ -187,10 +187,10 @@ export class AiModelsView {
             item.setAttribute('aria-pressed', String(this.kind === kind));
             kinds.append(item);
         }
-        const scope = this.field(aside, '決める範囲', 'scope');
+        const scope = this.field(aside, 'Scope', 'scope');
         const scopeRow = node('div', 'akari-ai-options');
         const projectName = this.projectRoot?.split(/[\\/]/).filter(Boolean).pop();
-        for (const [id, label] of [['app', 'アプリ全体'], ['project', 'この動画']] as const) {
+        for (const [id, label] of [['app', 'Entire app'], ['project', 'This video']] as const) {
             const scopeLabel = id === 'project' && this.preferences!.projectAvailable && projectName
                 ? `${label}（${projectName}）` : label;
             const item = button(scopeLabel, 'data-ai-model-scope', id, () => {
@@ -202,21 +202,21 @@ export class AiModelsView {
             scopeRow.append(item);
         }
         scope.append(scopeRow);
-        scope.append(node('p', 'akari-ai-note', '何も固定していない動画は、ここの「いつもの」を使います。'));
+        scope.append(node('p', 'akari-ai-note', 'Videos without pinned models use these defaults.'));
         const fixed = Object.keys(this.preferences!.projectDefaults).length;
         if (this.preferences!.projectAvailable && this.scope === 'app' && fixed) {
-            scope.append(node('p', 'akari-ai-note', `この動画では ${fixed} 種類を固定中`));
+            scope.append(node('p', 'akari-ai-note', `This video pins ${fixed} types`));
         }
-        const sets = this.field(aside, 'おすすめのセット', 'set');
+        const sets = this.field(aside, 'Recommended set', 'set');
         const setRow = node('div', 'akari-ai-options');
         for (const id of ['cheap', 'normal', 'quality'] as AiModelSetId[]) {
             setRow.append(button(catalog.sets[id].label, 'data-ai-model-set', id, () => void this.save(() => this.service.applySet(id, this.options()))));
         }
-        sets.append(setRow, node('p', 'akari-ai-note', '押すと全種類の「いつもの」を設定します。'));
-        const via = this.field(aside, '手段', 'via');
+        sets.append(setRow, node('p', 'akari-ai-note', 'Apply defaults for all types.'));
+        const via = this.field(aside, 'Method', 'via');
         for (const [id, label] of [
-            ['included', '追加料金なし（サブスク・この Mac）'],
-            ['api', '使った分だけ（API キー）']
+            ['included', 'No extra cost (subscription or this Mac)'],
+            ['api', 'Pay as you go (API keys)']
         ] as const) {
             const row = node('label', 'akari-ai-check');
             const input = node('input') as HTMLInputElement;
@@ -234,11 +234,11 @@ export class AiModelsView {
             row.append(input, label);
             via.append(row);
         }
-        const needs = this.field(aside, '渡したいもの', 'need');
+        const needs = this.field(aside, 'Inputs', 'need');
         const needRow = node('div', 'akari-ai-options');
         const needKeys = this.kind === 'image' ? ['reference_images'] : this.kind === 'video' ? ['first_frame', 'last_frame', 'reference_images', 'reference_videos', 'reference_audios', 'source_video'] : this.kind === 'voice' ? ['style', 'voice_clone', 'reference_audio'] : ['audio', 'video'];
         for (const key of ['', ...needKeys]) {
-            const item = button(key ? INPUT_LABELS[key] || key : 'すべて', 'data-ai-model-need', key || 'all', () => {
+            const item = button(key ? INPUT_LABELS[key] || key : 'All', 'data-ai-model-need', key || 'all', () => {
                 this.need = key;
                 this.render();
             });
@@ -246,7 +246,7 @@ export class AiModelsView {
             needRow.append(item);
         }
         needs.append(needRow);
-        const unavailable = button('まだ呼べないモデルも表示', 'data-ai-model-show-unavailable', 'toggle', () => {
+        const unavailable = button('Show unavailable models', 'data-ai-model-show-unavailable', 'toggle', () => {
             this.showUnavailable = !this.showUnavailable;
             this.render();
         });
@@ -260,9 +260,9 @@ export class AiModelsView {
         const input = node('input') as HTMLInputElement;
         input.type = 'search';
         input.value = this.query;
-        input.placeholder = 'モデル名・会社名・系統・できることで探す';
+        input.placeholder = 'Search model, company, family, or capability';
         input.setAttribute('data-ai-model-search', 'true');
-        input.setAttribute('aria-label', 'AI モデルを検索');
+        input.setAttribute('aria-label', 'Search AI models');
         input.addEventListener('input', () => {
             this.query = input.value;
             this.renderResults();
@@ -270,7 +270,7 @@ export class AiModelsView {
         search.append(input);
         const makers = [...new Set(catalog.models.filter(row => row.kind === this.kind).map(row => row.maker))];
         for (const id of ['', ...makers]) {
-            const item = button(id ? catalog.makers[id]?.name || id : 'すべての会社', 'data-ai-model-maker', id || 'all', () => {
+            const item = button(id ? catalog.makers[id]?.name || id : 'All companies', 'data-ai-model-maker', id || 'all', () => {
                 this.maker = id;
                 this.render();
             });
@@ -290,7 +290,7 @@ export class AiModelsView {
             item.setAttribute('aria-pressed', String(this.maker === id));
             search.append(item);
         }
-        main.append(search, node('p', 'akari-ai-note', '★ でお気に入り。⋯ から「いつもの」や「比べる」を選べます。'));
+        main.append(search, node('p', 'akari-ai-note', 'Use ★ for favorites. Choose Default or Compare from ⋯.'));
         const results = node('div');
         results.setAttribute('data-ai-model-results', 'true');
         main.append(results);
@@ -317,7 +317,7 @@ export class AiModelsView {
         const byId = new Map(this.catalog.models.map(model => [model.id, model.name]));
         const defaultId = this.preferences.defaults[this.kind];
         const favoriteNames = (this.preferences.favorites[this.kind] || []).map(id => byId.get(id)).filter(Boolean);
-        const summary = `${KIND_LABELS[this.kind]}・${visible.length} 件 ／ いつもの: ${defaultId ? byId.get(defaultId) || '未確認' : 'なし'}・★ お気に入り: ${favoriteNames.join('・') || 'なし'}`;
+        const summary = `${KIND_LABELS[this.kind]}・${visible.length} results / Default: ${defaultId ? byId.get(defaultId) || 'Not checked' : 'None'} · ★ Favorites: ${favoriteNames.join('・') || 'None'}`;
         host.append(node('p', 'akari-ai-summary', summary));
         const grid = node('div', 'akari-ai-grid');
         for (const model of visible) {
@@ -336,14 +336,14 @@ export class AiModelsView {
         const star = button(starred ? '★' : '☆', 'data-ai-model-star', model.id, () => void this.save(() => this.service.toggleFavorite(model.kind, model.id)));
         star.classList.add('akari-ai-star');
         star.disabled = !model.callable;
-        star.setAttribute('aria-label', `${model.name}をお気に入り${starred ? 'から外す' : 'にする'}`);
+        star.setAttribute('aria-label', `${starred ? 'Remove' : 'Add'} ${model.name} ${starred ? 'from' : 'to'} favorites`);
         star.setAttribute('aria-pressed', String(starred));
         const dots = button('⋯', 'data-ai-model-menu', model.id, () => {
             this.menu = this.menu === model.id ? '' : model.id;
             this.renderResults();
         });
         dots.classList.add('akari-ai-dots');
-        dots.setAttribute('aria-label', `${model.name}のメニュー`);
+        dots.setAttribute('aria-label', `${model.name} menu`);
         top.append(star, dots);
         card.append(top);
         if (this.menu === model.id) {
@@ -351,17 +351,17 @@ export class AiModelsView {
             menu.setAttribute('data-ai-model-menu-items', model.id);
             const appDefault = this.preferences!.appDefaults[model.kind] === model.id;
             const projectDefault = this.preferences!.projectDefaults[model.kind] === model.id;
-            const appItem = button(appDefault ? 'いつものを外す' : 'いつものにする', 'data-ai-model-action', 'default', () => {
+            const appItem = button(appDefault ? 'Remove default' : 'Use as default', 'data-ai-model-action', 'default', () => {
                 this.menu = '';
                 void this.save(() => this.service.setDefault(model.kind, appDefault ? null : model.id));
             });
-            const projectItem = button(projectDefault ? 'この動画の固定を外す' : 'この動画で固定する', 'data-ai-model-action', 'project', () => {
+            const projectItem = button(projectDefault ? 'Unpin for this video' : 'Pin for this video', 'data-ai-model-action', 'project', () => {
                 this.menu = '';
                 void this.save(() => this.service.setDefault(model.kind, projectDefault ? null : model.id, { projectRootUri: this.projectRoot }));
             });
             projectItem.disabled = !this.preferences!.projectAvailable || !model.callable;
             appItem.disabled = !model.callable;
-            const comparison = button(this.compare.includes(model.id) ? '比べるから外す' : '比べる', 'data-ai-model-action', 'compare', () => {
+            const comparison = button(this.compare.includes(model.id) ? 'Remove from comparison' : 'Compare', 'data-ai-model-action', 'compare', () => {
                 this.menu = '';
                 if (this.compare.includes(model.id)) {
                     this.compare = this.compare.filter(id => id !== model.id);
@@ -381,31 +381,31 @@ export class AiModelsView {
             card.append(node('small', 'akari-ai-secondary', otherPrices));
         }
         const meta = node('div', 'akari-ai-meta');
-        meta.append(badge(this.catalog!, model), node('span', '', model.via === 'api' ? `経由: ${model.provider || 'API'}` : model.via === 'local' ? 'この Mac' : 'サブスク'), node('span', '', model.family || model.group));
+        meta.append(badge(this.catalog!, model), node('span', '', model.via === 'api' ? `Via: ${model.provider || 'API'}` : model.via === 'local' ? 'This Mac' : 'Subscription'), node('span', '', model.family || model.group));
         card.append(meta);
         const io = node('div', 'akari-ai-io');
         const inputKeys = comparisonKeys(this.catalog!.models, model.kind, 'inputs', INPUT_LABELS);
         const outputKeys = comparisonKeys(this.catalog!.models, model.kind, 'outputs', OUTPUT_LABELS);
         io.append(
-            node('span', '', '入力'), fieldPills(model.inputs, INPUT_LABELS, inputKeys, model),
-            node('span', '', '出力'), fieldPills(model.outputs, OUTPUT_LABELS, outputKeys, model)
+            node('span', '', 'Input'), fieldPills(model.inputs, INPUT_LABELS, inputKeys, model),
+            node('span', '', 'Output'), fieldPills(model.outputs, OUTPUT_LABELS, outputKeys, model)
         );
         card.append(io);
         const flags = node('div', 'akari-ai-flags');
         flags.append(
-            node('span', '', LICENSE_LABELS[model.license?.badge || 'unknown'] || '未確認'),
-            node('span', '', model.verified === 'measured' ? '実測' : '公表値')
+            node('span', '', LICENSE_LABELS[model.license?.badge || 'unknown'] || 'Not checked'),
+            node('span', '', model.verified === 'measured' ? 'Measured' : 'Published')
         );
         if (model.released) {
-            flags.append(node('span', '', `公開日 ${model.released}`));
+            flags.append(node('span', '', `Release date ${model.released}`));
         }
         if (!model.callable) {
-            flags.append(node('span', '', 'まだ呼べない'));
+            flags.append(node('span', '', 'Unavailable'));
         }
         if (this.preferences!.projectDefaults[model.kind] === model.id) {
-            flags.append(node('span', '', 'この動画で固定'));
+            flags.append(node('span', '', 'Pinned for this video'));
         } else if (this.preferences!.defaults[model.kind] === model.id) {
-            flags.append(node('span', '', 'いつもの'));
+            flags.append(node('span', '', 'Default'));
         }
         card.append(flags);
         const groupModels = this.catalog!.models.filter(row => row.kind === model.kind && (this.showUnavailable || row.callable));
@@ -413,7 +413,7 @@ export class AiModelsView {
             const count = otherVariantCount(this.catalog!.models, model, this.showUnavailable);
             if (count && !this.query && !this.maker && !this.need && this.viaIncluded && this.viaApi && !this.showUnavailable) {
                 const expanded = this.expanded.has(model.group);
-                const toggle = button(expanded ? `▴ ほかの ${count} 種類を閉じる` : `▾ ほかに ${count} 種類`, 'data-ai-model-variants', model.group, () => {
+                const toggle = button(expanded ? `▴ Hide other ${count} types` : `▾ Other ${count} types`, 'data-ai-model-variants', model.group, () => {
                     if (expanded) {
                         this.expanded.delete(model.group);
                     } else {
@@ -429,13 +429,13 @@ export class AiModelsView {
     }
 
     private renderCompare(host: HTMLElement): void {
-        host.append(node('h3', '', '比べる（3 つまで）'));
+        host.append(node('h3', '', 'Compare (up to 3)'));
         const catalog = this.catalog!;
         const selectable = catalog.models.filter(row => row.kind === this.kind && (this.showUnavailable || row.callable));
         this.compare = this.compare.filter(id => selectable.some(row => row.id === id)).slice(0, 3);
         const picked = this.compare.map(id => selectable.find(row => row.id === id)!);
         if (!picked.length) {
-            host.append(node('p', 'akari-ai-note', 'カードの ⋯ からモデルを追加できます。'));
+            host.append(node('p', 'akari-ai-note', 'Add models using ⋯ on a card.'));
         }
         if (picked.length) {
             host.append(this.radar(picked));
@@ -444,14 +444,14 @@ export class AiModelsView {
         const table = node('table', 'akari-ai-table');
         table.setAttribute('data-ai-model-compare-table', 'true');
         const head = node('tr');
-        head.append(node('th', '', '項目'));
+        head.append(node('th', '', 'Property'));
         for (const [index, model] of picked.entries()) {
             const th = node('th');
             const swatch = node('span', 'akari-ai-swatch');
             swatch.style.background = COMPARE_COLORS[index];
             const select = node('select') as HTMLSelectElement;
             select.setAttribute('data-ai-model-compare-select', String(index));
-            select.setAttribute('aria-label', `${index + 1} 列目のモデル`);
+            select.setAttribute('aria-label', `${index + 1} column model`);
             for (const optionModel of selectable) {
                 const option = node('option', '', optionModel.name);
                 option.value = optionModel.id;
@@ -472,7 +472,7 @@ export class AiModelsView {
         }
         if (picked.length < 3 && selectable.length > picked.length) {
             const th = node('th');
-            th.append(button('＋ 足す', 'data-ai-model-compare-add', 'true', () => {
+            th.append(button('＋ Add', 'data-ai-model-compare-add', 'true', () => {
                 const next = selectable.find(row => !this.compare.includes(row.id));
                 if (next) {
                     this.compare.push(next.id);
@@ -490,20 +490,20 @@ export class AiModelsView {
             }
             table.append(tr);
         };
-        row('手段', model => model.via === 'api' ? `API（${model.provider || '直接'}）` : model.via === 'local' ? 'この Mac' : 'サブスク');
-        row('料金', formatAiModelPrice);
-        row('商用', model => LICENSE_LABELS[model.license?.badge || 'unknown'] || '未確認');
-        if (this.kind === 'transcribe') row('入力: 指示文', () => '—');
+        row('Method', model => model.via === 'api' ? `API（${model.provider || 'Direct'}）` : model.via === 'local' ? 'This Mac' : 'Subscription');
+        row('Price', formatAiModelPrice);
+        row('Commercial use', model => LICENSE_LABELS[model.license?.badge || 'unknown'] || 'Not checked');
+        if (this.kind === 'transcribe') row('Input: Prompt', () => '—');
         for (const key of comparisonKeys(catalog.models, this.kind, 'inputs', INPUT_LABELS)) {
-            row(`入力: ${INPUT_LABELS[key]}`, model => capabilityText(key, model.inputs[key]));
+            row(`Input: ${INPUT_LABELS[key]}`, model => capabilityText(key, model.inputs[key]));
         }
         for (const key of comparisonKeys(catalog.models, this.kind, 'outputs', OUTPUT_LABELS)) {
-            row(`出力: ${OUTPUT_LABELS[key]}`, model => capabilityText(key, model.outputs[key], model));
+            row(`Output: ${OUTPUT_LABELS[key]}`, model => capabilityText(key, model.outputs[key], model));
         }
-        row('公開日', model => model.released || '未確認');
-        row('確かめ方', model => model.verified === 'measured' ? '実測' : '公表値');
+        row('Release date', model => model.released || 'Not checked');
+        row('Evidence', model => model.verified === 'measured' ? 'Measured' : 'Published');
         for (const [index, axis] of (picked[0] ? radarAxes(picked[0]) : []).entries()) {
-            row(axis.label, model => radarAxes(model)[index]?.display || '未確認');
+            row(axis.label, model => radarAxes(model)[index]?.display || 'Not checked');
         }
         tableWrap.append(table);
         host.append(tableWrap);
@@ -515,7 +515,7 @@ export class AiModelsView {
         svg.setAttribute('class', 'akari-ai-radar');
         svg.setAttribute('viewBox', '0 0 320 290');
         svg.setAttribute('role', 'img');
-        svg.setAttribute('aria-label', 'モデル比較のレーダー');
+        svg.setAttribute('aria-label', 'Model comparison radar');
         svg.setAttribute('data-ai-model-radar', 'compare');
         const axes = radarAxes(models[0]);
         const cx = 160;

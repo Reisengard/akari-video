@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:akari-video:schema:intake:v0",
   "title": "AKARI Video intake.json v0",
-  "description": "「進め方フォーム」の保存先。ユーザーが決めた進め方（やること・尺・おまかせ度）の SSOT。パートナー（AI）はこの内容に従って作業する。UI が無くても（素の Claude Code でも）成立する契約。追記のみ進化の原則: 今後の変更は新しいオプショナルフィールドの追加に限り、既存フィールドの意味変更・削除・型変更は行わない。破壊的な変更が必要になった場合は $id を v1 に上げた別スキーマとして導入し、この v0 は変更しない。",
+  "description": "Storage for the intake form. The single source of truth for the user's tasks, target duration, and autonomy. The AI partner follows these choices, including without a UI (for example, in Claude Code). Evolve by adding optional fields only; do not change the meaning or type of existing fields or remove them. Introduce breaking changes in a separate schema with a v1 $id, leaving this v0 unchanged.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "tasks", "target", "autonomy", "status", "submitted_at"],
   "properties": {
     "version": {
       "const": 1,
-      "description": "intake.json のスキーマバージョン。現状 1 固定。"
+      "description": "The intake.json schema version. Currently fixed at 1."
     },
     "title": {
       "oneOf": [
@@ -17,29 +17,29 @@
         { "type": "string" }
       ],
       "default": null,
-      "description": "プロジェクトの人間向け表示名（フォルダ名とは独立）。フォルダ名は作成時刻ベースの機械 ID のまま変えず、人が読む名前はここに置く（2026-08-09 オーナー裁定: フォルダ名 = 機械の ID / 表示名 = 別に持つ）。既定は null（未設定）で、表示側は title ?? フォルダ名 で解決する。人間が作成ダイアログで入力する経路はまだ無く、企画（intake）の内容が固まった時点でエージェントが書く（任意フィールドの追記であり version は上げない）。"
+      "description": "The project's display name, independent of its folder name. Keep the creation-time-based machine ID as the folder name and store the readable name here (owner decision, 2026-08-09). Defaults to null (unset); displays resolve title ?? folder name. The creation dialog does not yet accept a title; the agent may write it when intake planning is settled. This optional field does not require a version increment."
     },
     "tasks": {
       "type": "array",
       "uniqueItems": true,
       "items": { "$ref": "#/$defs/taskId" },
-      "description": "やること。スキルカタログに対応する安定 ID のみを許可する（unknown ID は検証エラー）。表示用の日本語ラベルは x-akari-labels を参照する。"
+      "description": "Tasks to perform. Only stable IDs from the skill catalog are allowed; unknown IDs fail validation. Use x-akari-labels for display labels."
     },
     "target": { "$ref": "#/$defs/target" },
     "autonomy": {
       "enum": ["full-auto", "checkpoint", "collaborative"],
-      "description": "おまかせ度。そのまま（言った通りに入れて見ずに書き出す）/ 提案つき（既定。良さそうな物も入れて見せる。確認は書き出しの 1 回）/ 一緒に作る（方針・素材・実行の要所で確認）"
+      "description": "Autonomy: As is (follow instructions and export without review), With suggestions (default; add suitable suggestions, show them, and ask for review once before export), or Make it together (review key decisions about direction, footage, and execution)."
     },
     "status": {
       "enum": ["draft", "submitted"],
-      "description": "draft はまだ進め方が未確定。submitted になって初めてパートナーが tasks / target / autonomy に従う。"
+      "description": "draft means the approach is not yet confirmed. The partner follows tasks / target / autonomy only after status becomes submitted."
     },
     "submitted_at": {
       "oneOf": [
         { "type": "null" },
         { "type": "string", "format": "date-time" }
       ],
-      "description": "status が submitted のとき ISO 8601 日時が必須。draft のときは null。"
+      "description": "An ISO 8601 timestamp is required when status is submitted. Must be null for draft."
     }
   },
   "allOf": [
@@ -64,23 +64,23 @@
     }
   ],
   "x-akari-labels": {
-    "$comment": "安定 ID ↔ 日本語ラベルの単一ソース。フォーム表示・パートナー要約はどちらもここを引く（オーナー裁定 2026-07-21 §8-3: 安定 ID を正、日本語ラベルは表示用の併記）。",
-    "transcribe-captions": "文字起こし・テロップ",
-    "silence-cut": "いらない間・NG のカット",
-    "bgm-sfx": "BGM・効果音",
-    "narration": "ナレーション（自分の声 / 既製の声）",
-    "3d-inserts": "3D・画面はめ込みの演出"
+    "$comment": "Single source for stable IDs and display labels. Both forms and partner summaries use these labels (owner decision, 2026-07-21, section 8-3: stable IDs are canonical; labels are for display).",
+    "transcribe-captions": "Transcribe and captions",
+    "silence-cut": "Cut silences and NG takes",
+    "bgm-sfx": "BGM and sound effects",
+    "narration": "Narration",
+    "3d-inserts": "3D inserts"
   },
   "x-akari-autonomy-labels": {
-    "$comment": "安定 ID ↔ 表示語。ID と既定は不変・表示語だけの正本",
-    "full-auto": "そのまま",
-    "checkpoint": "提案つき",
-    "collaborative": "一緒に作る"
+    "$comment": "Canonical display labels for stable IDs. IDs and defaults remain unchanged.",
+    "full-auto": "As is",
+    "checkpoint": "With suggestions",
+    "collaborative": "Make it together"
   },
   "$defs": {
     "taskId": {
       "enum": ["transcribe-captions", "silence-cut", "bgm-sfx", "narration", "3d-inserts"],
-      "description": "将来増える前提の安定 ID enum。新しいスキルが増えたら追記のみで拡張する。"
+      "description": "An extensible enum of stable IDs. Add new entries when new skills become available."
     },
     "target": {
       "type": "object",
@@ -92,18 +92,18 @@
             { "type": "null" },
             { "type": "number", "exclusiveMinimum": 0 }
           ],
-          "description": "目標尺（秒）。keep_length: true と同時指定は不可（排他）。"
+          "description": "Target duration in seconds. Mutually exclusive with keep_length: true."
         },
         "keep_length": {
           "type": "boolean",
-          "description": "true なら素材尺のまま。duration_s と同時に true にはできない（排他）。"
+          "description": "Keep the footage's original duration when true. Mutually exclusive with a non-null duration_s."
         },
         "taste": {
           "oneOf": [
             { "type": "null" },
             { "type": "string" }
           ],
-          "description": "テイスト・雰囲気の自由記述。任意。"
+          "description": "Optional free-form description of style and mood."
         }
       },
       "allOf": [

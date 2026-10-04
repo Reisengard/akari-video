@@ -31,20 +31,20 @@ export function AkariStoreSettings({ service, windows, refreshKey }: { service: 
     return <section data-akari-store-settings='true' style={{ borderTop: '1px solid var(--theia-widget-border)', paddingTop: 14, display: 'grid', gap: 10 }}>
         <strong>AKARI Video Lab</strong>
         <p data-akari-store-description='true' style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--theia-descriptionForeground)' }}>
-            動画に使える素材や演出パックを探して購入できます。接続すると、購入済みの素材をAKARI Videoで使えます。
+            Find and buy footage and effects packs for videos. Connect to use purchased footage in AKARI Video.
         </p>
         <span role='status' style={{ color: 'var(--theia-descriptionForeground)', overflowWrap: 'anywhere' }}>
-            {state.connectionLoading ? '接続を確認しています…' : state.phase === 'starting' ? '接続を開始しています…'
-                : state.phase === 'pending' ? `ブラウザで承認してください${state.userCode ? ` · 確認コード: ${state.userCode}` : ''}`
-                    : reconnect ? '再接続が必要です' : state.connection.connected ? `接続中 · ${state.connection.email ?? state.connection.identifier ?? ''}` : '未接続'}
+            {state.connectionLoading ? 'Checking connection…' : state.phase === 'starting' ? 'Starting connection…'
+                : state.phase === 'pending' ? `Approve in your browser${state.userCode ? ` · Verification code: ${state.userCode}` : ''}`
+                    : reconnect ? 'Reconnect required' : state.connection.connected ? `Connected · ${state.connection.email ?? state.connection.identifier ?? ''}` : 'Not connected'}
         </span>
         {state.error && <small role='alert' style={{ color: 'var(--theia-errorForeground)' }}>{state.error}</small>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <button type='button' className='theia-button secondary' onClick={() => windows.openNewWindow(url, { external: true })}>AKARI Video Lab を開く</button>
-            {busy ? <button type='button' className='theia-button secondary' onClick={() => controller.cancel()}>キャンセル</button>
+            <button type='button' className='theia-button secondary' onClick={() => windows.openNewWindow(url, { external: true })}>Open AKARI Video Lab</button>
+            {busy ? <button type='button' className='theia-button secondary' onClick={() => controller.cancel()}>Cancel</button>
                 : (!state.connection.connected || reconnect || state.phase === 'error' || state.phase === 'expired') &&
                 <button type='button' className='theia-button main' disabled={state.connectionLoading} onClick={() => void controller.start()}>
-                    {reconnect ? '再接続する' : state.phase === 'error' || state.phase === 'expired' ? 'もう一度試す' : '接続する'}
+                    {reconnect ? 'Reconnect' : state.phase === 'error' || state.phase === 'expired' ? 'Try again' : 'Connect'}
                 </button>}
         </div>
     </section>;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { falKeyAvailable, settingsVoiceEngineValue, voiceAvatarLabel, voiceMigrationAvatar, voiceSettingsActions } from '../../lib/common/voice-settings-model.js';
 
-test('fal needs は鍵あり、移行先は meta → 唯一 → me → ウィザード既定順', () => {
+test('fal needs credentials and migration resolves meta, unique, me, then wizard defaults', () => {
     assert.equal(falKeyAvailable({ id: 'fal-qwen3', availability: { state: 'needs' } }), true);
     assert.equal(falKeyAvailable({ id: 'fal-qwen3', availability: { state: 'unconfigured' } }), false);
     const single = [{ id: 'sample', displayName: 'サンプル' }];
@@ -17,7 +17,7 @@ test('fal needs は鍵あり、移行先は meta → 唯一 → me → ウィザ
     assert.equal(settingsVoiceEngineValue('voice:sample', [{ id: 'sample' }]), 'voice:sample');
 });
 
-test('設定の行は旧い声を移行だけに絞り、同意・照合・stale で写し操作を出す', () => {
+test('Legacy voices expose migration only; consent, verification, and stale copies control actions', () => {
     const base = { id: 'p', label: '私', avatar: 'me', engines: [], consent: { self_voice: true, cloud_upload: true },
         verification: { score: .9 }, copies: {} };
     const empty = voiceSettingsActions(base, true, true);

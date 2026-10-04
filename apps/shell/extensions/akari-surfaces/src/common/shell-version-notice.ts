@@ -47,7 +47,7 @@ export function evaluateVersionNotice(currentVersion: string, record: ShellLastV
 
 /** ポップアップ本文（task.md 指示どおりの文言: 「AKARI Video を vX.Y.Z に更新しました」）。 */
 export function formatVersionNoticeText(currentVersion: string): string {
-    return `AKARI Video を v${currentVersion} に更新しました`;
+    return `AKARI Video  v${currentVersion} updated`;
 }
 
 /** 今回の起動版を記録する新しいレコードを組み立てる純粋関数（書き込みは呼び出し側の責務）。 */

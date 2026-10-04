@@ -17,7 +17,7 @@ async function fixture(t) {
     return { temp, env, old };
 }
 
-test('場所を変えると library-location.json に書き、素材を同じ移行処理で動かす', async t => {
+test('Location changes write library-location.json and reuse footage migration', async t => {
     const { temp, env } = await fixture(t);
     const destination = path.join(temp, 'other-library');
     assert.equal((await changeAssetLibraryLocation(destination, { env })).state, 'done');
@@ -26,7 +26,7 @@ test('場所を変えると library-location.json に書き、素材を同じ移
     assert.equal(await fs.readFile(path.join(destination, 'audio', 'theme', 'sound.wav'), 'utf8'), 'sound');
 });
 
-test('同期フォルダでは pending の間は元の置き場に書き、同意まで移さない', async t => {
+test('Pending sync locations keep writes at the original location until consent', async t => {
     const { temp, env, old } = await fixture(t);
     const destination = path.join(temp, 'OneDrive', 'library');
     const result = await changeAssetLibraryLocation(destination, { env });
@@ -38,7 +38,7 @@ test('同期フォルダでは pending の間は元の置き場に書き、同�
     assert.equal(resolveAssetLibraryRoots(env).write, destination);
 });
 
-test('環境指定した置き場も一時ディレクトリだけを使う', async t => {
+test('Environment-configured locations use only temporary directories', async t => {
     const { temp, env } = await fixture(t);
     const override = path.join(temp, 'override-library');
     assert.equal(resolveAssetLibraryRoots({ ...env, AKARI_LIBRARY_ROOT: override }).write, override);

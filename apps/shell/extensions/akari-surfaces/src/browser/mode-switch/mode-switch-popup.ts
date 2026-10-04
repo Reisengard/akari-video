@@ -57,10 +57,10 @@ export class ModeSwitchPopup {
     constructor(current: IntakeAutonomy | undefined, onSelect: (autonomy: IntakeAutonomy) => void) {
         this.node.className = 'akari-mode-popup';
         this.node.setAttribute('role', 'group');
-        this.node.setAttribute('aria-label', '進め方');
+        this.node.setAttribute('aria-label', 'Approach');
         const heading = document.createElement('div');
         heading.className = 'hd';
-        heading.textContent = '進め方 — AI がどこまで任されて進めるか';
+        heading.textContent = 'Approach — How much the AI can do on its own';
         this.node.appendChild(heading);
         for (const autonomy of INTAKE_AUTONOMY_ORDER) {
             const card = document.createElement('button');
@@ -83,7 +83,7 @@ export class ModeSwitchPopup {
         }
         const footer = document.createElement('div');
         footer.className = 'ft';
-        footer.textContent = 'このプロジェクトの .akari/intake.json に保存されます';
+        footer.textContent = 'Saved in this project .akari/intake.json';
         this.node.appendChild(footer);
     }
 

@@ -53,7 +53,7 @@ export class NarrationCli implements AkariNarrationEnginesService {
 
     protected async run(args: string[], command = 'narration'): Promise<Record<string, unknown>> {
         const cli = await this.resolveCli();
-        if (!cli) throw new Error('akari narration CLI が見つかりません。');
+        if (!cli) throw new Error('akari narration CLI not found.');
         return new Promise((resolvePromise, reject) => {
             let stdout = '';
             let stderr = '';
@@ -66,9 +66,9 @@ export class NarrationCli implements AkariNarrationEnginesService {
             child.on('close', code => {
                 let parsed: Record<string, unknown>;
                 try { const lines = stdout.trim().split(/\r?\n/); parsed = JSON.parse(lines[lines.length - 1] ?? '{}'); }
-                catch { reject(new Error(code === 0 ? 'narration CLI の応答を読み取れませんでした。'
-                    : stderr.trim() || 'narration CLI に失敗しました。')); return; }
-                if (code !== 0) { reject(new Error(String(parsed.error || stderr.trim() || 'narration CLI に失敗しました。'))); return; }
+                catch { reject(new Error(code === 0 ? 'Could not read the narration CLI response.'
+                    : stderr.trim() || 'Narration CLI failed.')); return; }
+                if (code !== 0) { reject(new Error(String(parsed.error || stderr.trim() || 'Narration CLI failed.'))); return; }
                 resolvePromise(parsed);
             });
         });
@@ -98,9 +98,9 @@ export class NarrationCli implements AkariNarrationEnginesService {
     async previewVoicevox(): Promise<string> {
         const directory = await fs.mkdtemp(join(this.tempRoot, 'akari-voicevox-preview-'));
         try {
-            const result = await this.run(['generate', '--project', directory, '--engine', 'voicevox', '--speaker', '3', '--text', 'こんにちは']);
+            const result = await this.run(['generate', '--project', directory, '--engine', 'voicevox', '--speaker', '3', '--text', 'Hello']);
             const relative = result.path;
-            if (typeof relative !== 'string' || !/^out\/narration\/n-\d{4}\.wav$/.test(relative)) throw new Error('試聴音声の保存先が不正です。');
+            if (typeof relative !== 'string' || !/^out\/narration\/n-\d{4}\.wav$/.test(relative)) throw new Error('Invalid voice preview destination.');
             return `data:audio/wav;base64,${(await fs.readFile(join(directory, relative))).toString('base64')}`;
         } finally { await fs.rm(directory, { recursive: true, force: true }); }
     }
@@ -122,7 +122,7 @@ export class NarrationCli implements AkariNarrationEnginesService {
             const creatorRoot = await importEsm(pathToFileURL(file).toString());
             return resolve(creatorRoot.resolveAkariHome(this.env));
         }
-        throw new Error('AKARI_HOME の解決器が見つかりません。');
+        throw new Error('AKARI_HOME resolver not found.');
     }
     async voiceAvatars(): Promise<{ avatars: SettingsVoiceAvatar[] }> {
         const root = join(await this.akariHome(), 'avatars');
@@ -142,7 +142,7 @@ export class NarrationCli implements AkariNarrationEnginesService {
         await this.run(['rename', '--profile', profile, '--label', label], 'voice');
     }
     async voiceCopy(request: { profile: string; engine: 'irodori' | 'fal-qwen3' | 'gemini-3.8-flash-tts'; irodoriUrl?: string; consentAudioPath?: string; approved?: boolean }): Promise<void> {
-        if (request.engine !== 'irodori' && request.approved !== true) throw new Error('費用承認が必要です。');
+        if (request.engine !== 'irodori' && request.approved !== true) throw new Error('Cost approval required.');
         await this.run(['copy', '--profile', request.profile, '--engine', request.engine,
             ...(request.irodoriUrl ? ['--irodori-url', request.irodoriUrl] : []),
             ...(request.consentAudioPath ? ['--consent-audio', request.consentAudioPath] : []),
@@ -150,7 +150,7 @@ export class NarrationCli implements AkariNarrationEnginesService {
     }
     async voiceCheckGeminiConsent(audioBase64: string): Promise<{ path: string; score: number }> {
         if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(audioBase64) || audioBase64.length > 40_000_000) {
-            throw new Error('同意録音が不正です。');
+            throw new Error('Invalid consent recording.');
         }
         const dir = await fs.mkdtemp(join(this.tempRoot, 'akari-gemini-consent-'));
         const path = join(dir, 'consent.wav');
@@ -173,7 +173,7 @@ export class NarrationCli implements AkariNarrationEnginesService {
     async voiceMigrateLegacy(profile: string): Promise<void> {
         const [profiles, { avatars }] = await Promise.all([this.voiceProfiles(), this.voiceAvatars()]);
         const legacy = profiles.profiles.find(item => item.id === profile && item.legacy);
-        if (!legacy) throw new Error('移行する旧い声が見つかりません。');
+        if (!legacy) throw new Error('No legacy voice found to migrate.');
         const selected = voiceMigrationAvatar(legacy.avatar, avatars);
         await this.run(['migrate-legacy', '--profile', profile, '--avatar', selected], 'voice');
     }

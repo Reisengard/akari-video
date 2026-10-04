@@ -6,15 +6,15 @@ type ToolAvailability = Pick<AkariToolCheckResult, 'available' | 'unsupported' |
 /** 道具行の状態札。通常行は初回セットアップの既存文言を保つ。 */
 export function describeToolAvailabilityLabel(tool: ToolAvailability): string {
     if (tool.unsupported) {
-        return 'この OS では使えない';
+        return 'Unavailable on this OS';
     }
     if (tool.needs?.length) {
-        return `準備が要る（${tool.needs.join('・')}）`;
+        return `Setup required (${tool.needs.join('・')}）`;
     }
     if (tool.id && TOOL_UI[tool.id].osProvided) {
-        return tool.available ? '使える' : '準備が要る';
+        return tool.available ? 'Available' : 'Setup required';
     }
-    return tool.available ? 'インストール済み' : '未インストール';
+    return tool.available ? 'Installed' : 'Not installed';
 }
 
 /** DOM に依存しない行描画の判定。unsupported は available より優先する。 */
@@ -29,7 +29,7 @@ export function shouldShowToolNote(tool: Pick<AkariToolCheckResult, 'id' | 'avai
 }
 
 export const SPEECH_ANALYZER_MANUAL_INSTALL_GUIDANCE =
-    'SpeechAnalyzer を使うには macOS 26 以上が必要です。Command Line Tools が無い場合は、ターミナルで xcode-select --install を実行して手動で入れる必要があります。完了したら再チェックしてください。';
+    'SpeechAnalyzer requires macOS 26 or later. If Command Line Tools are missing, run xcode-select --install in the terminal to install them manually. Check again when finished.';
 
 export interface ToolUiInfo {
     name: string;
@@ -45,7 +45,7 @@ export interface ToolUiInfo {
 }
 
 /** whisper 行のモデルサブ行の表示用サイズ（`tool-install.ts` の `WHISPER_MODEL_FILENAME` 実測サイズ）。 */
-export const WHISPER_MODEL_SIZE_LABEL = '約574MB';
+export const WHISPER_MODEL_SIZE_LABEL = 'About 574 MB';
 
 /**
  * 検知結果と分離した、UI に表示する案内の正本。
@@ -54,36 +54,36 @@ export const WHISPER_MODEL_SIZE_LABEL = '約574MB';
  */
 export const TOOL_UI: Record<AkariToolId, ToolUiInfo> = {
     ffmpeg: {
-        name: 'FFmpeg', badge: '基本 · ほぼ必須', purpose: '動画・音声の変換、プレビュー、書き出しに使います。',
-        sizeLabel: '約 300MB'
+        name: 'FFmpeg', badge: 'Basic · Usually required', purpose: 'Used to convert, preview, and export video and audio.',
+        sizeLabel: 'About 300 MB'
     },
     whisper: {
-        name: 'Whisper（whisper.cpp）', badge: '基本', purpose: '素材の文字起こしに使います。モデルは実行ファイルとは別に必要です。',
-        sizeLabel: '約 20MB（+ モデル別途）'
+        name: 'Whisper（whisper.cpp）', badge: 'Basic', purpose: 'Used to transcribe footage. The model is required separately from the executable.',
+        sizeLabel: 'About 20 MB (+ separate model)'
     },
     'yt-dlp': {
-        name: 'yt-dlp', badge: 'アドバンス · 既定 ON', purpose: '許可された動画素材の取得に使います。',
-        sizeLabel: '約 35MB'
+        name: 'yt-dlp', badge: 'Advanced · Enabled by default', purpose: 'Used to download authorized video footage.',
+        sizeLabel: 'About 35 MB'
     },
     voicevox: {
-        name: 'VOICEVOX', badge: 'アドバンス', purpose: 'ローカルの日本語ナレーション生成に使います。',
-        sizeLabel: '約 1.5GB',
-        note: '利用時は、音声ライブラリごとの規約に従ったクレジット表記が必要です。'
+        name: 'VOICEVOX', badge: 'Advanced', purpose: 'Used to generate Japanese narration locally.',
+        sizeLabel: 'About 1.5 GB',
+        note: 'Attribution is required according to each voice library license.'
     },
     blender: {
-        name: 'Blender CLI', badge: 'アドバンス', purpose: '高度な 3D 素材の事前レンダーに使います。',
-        sizeLabel: '約 700MB'
+        name: 'Blender CLI', badge: 'Advanced', purpose: 'Used to prerender advanced 3D footage.',
+        sizeLabel: 'About 700 MB'
     },
     'speech-analyzer': {
         osProvided: true,
         hideNoteWhenAvailable: true,
-        name: 'SpeechAnalyzer', badge: '推奨', purpose: 'この Mac で高速に文字起こしします。',
-        sizeLabel: 'macOS に付属', note: SPEECH_ANALYZER_MANUAL_INSTALL_GUIDANCE
+        name: 'SpeechAnalyzer', badge: 'Recommended', purpose: 'Fast transcription on this Mac.',
+        sizeLabel: 'Included with macOS', note: SPEECH_ANALYZER_MANUAL_INSTALL_GUIDANCE
     },
     'xcode-clt': {
         hideNoteWhenAvailable: true,
-        name: 'macOS: Command Line Tools', badge: '推奨', purpose: 'プロジェクトの履歴・差分・スナップショットと、AI 分析の高速文字起こし・目線バー・指フレーム・人物マットに使います。',
-        sizeLabel: '約 2GB',
-        note: '入れなくても動画は作れます。導入後に自動で有効になり、履歴機能と AI 分析機能で使われます。'
+        name: 'macOS: Command Line Tools', badge: 'Recommended', purpose: 'Used for project history, diffs, snapshots, and AI analysis: fast transcription, gaze bars, finger framing, and person mattes.',
+        sizeLabel: 'About 2 GB',
+        note: 'You can make videos without it. After installation, it is enabled automatically for history and AI analysis.'
     }
 };

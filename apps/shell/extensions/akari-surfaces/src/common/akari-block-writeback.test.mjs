@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const require = createRequire(import.meta.url);
 const { replaceCaptionLine } = require('../../lib/browser/akari-block-writeback.js');
 
-test('caption block writeback は未編集語の words と他行 bytes を温存する', () => {
+test('Caption writeback preserves unedited words and bytes of other rows', () => {
     const records = [
         {
             id: 'c-0001', start: 0, end: 3, text: 'alpha beta gamma', speaker: null,

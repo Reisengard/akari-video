@@ -82,7 +82,7 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
         try {
             this.configureAndCheck();
         } catch (error) {
-            this.recordUpdaterError('electron-updater の初期化に失敗しました', error);
+            this.recordUpdaterError('Failed to initialize electron-updater', error);
         }
     }
 
@@ -128,7 +128,7 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
         const updater = autoUpdater as unknown as { httpExecutor?: { createRequest?: (...args: unknown[]) => unknown } | null };
         const executor = updater.httpExecutor;
         if (!executor || typeof executor.createRequest !== 'function') {
-            console.warn('[akari-surfaces] updater の createRequest が使えず、通信の追跡を省略しました');
+            console.warn('[akari-surfaces] updater createRequest unavailable; skipped request tracking');
             return;
         }
         const original = executor.createRequest;
@@ -136,7 +136,7 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
             const request = Reflect.apply(original, executor, args);
             try { return this.updaterRequests.track(request); }
             catch (error) {
-                console.error('[akari-surfaces] updater 通信の追跡に失敗しました:', error);
+                console.error('[akari-surfaces] Failed to track updater requests:', error);
                 return request;
             }
         };
@@ -163,7 +163,7 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
             writeFileSync(configPath, buildFallbackAppUpdateYml(), 'utf8');
             autoUpdater.updateConfigPath = configPath;
         } catch (error) {
-            this.recordUpdaterError('フォールバック用 app-update.yml の準備に失敗しました', error);
+            this.recordUpdaterError('Failed to prepare fallback app-update.yml', error);
         }
     }
 
@@ -181,22 +181,22 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
         autoUpdater.allowPrerelease = channel === 'prerelease';
         if (!manual && !settings.autoCheck) { return; }
         if (isAppTranslocationPath(process.execPath)) {
-            this.recordUpdaterError('App Translocation を検知しました', new Error('App Translocation'));
+            this.recordUpdaterError('App Translocation detected', new Error('App Translocation'));
             return;
         }
-        if (manual) { this.appendUpdaterLog('手動更新確認', `channel=${channel}`); }
+        if (manual) { this.appendUpdaterLog('Manual update check', `channel=${channel}`); }
         const startedAt = Date.now();
         autoUpdater.checkForUpdates().then(result => {
-            if (manual) { this.appendUpdaterLog('手動更新結果', `available=${!!result?.isUpdateAvailable} version=${result?.updateInfo?.version ?? 'unknown'}`); }
+            if (manual) { this.appendUpdaterLog('Manual update result', `available=${!!result?.isUpdateAvailable} version=${result?.updateInfo?.version ?? 'unknown'}`); }
             if (manual && !result) {
-                this.recordUpdaterError('手動更新を開始できませんでした', new Error('このビルドではアプリ内更新を利用できません'));
+                this.recordUpdaterError('Could not start manual update', new Error('In-app updates are unavailable in this build'));
                 return;
             }
             if (!this.activeDownload && result?.isUpdateAvailable && result.cancellationToken && result.downloadPromise) {
                 this.watchDownload(result, startedAt);
             }
         }).catch(error => {
-            this.recordUpdaterError('checkForUpdates に失敗しました', error);
+            this.recordUpdaterError('checkForUpdates failed', error);
         });
     }
 
@@ -208,15 +208,15 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
             if (!existsSync(requestPath) || active.cancelling) { return; }
             let request = '';
             try { request = readFileSync(requestPath, 'utf8'); JSON.parse(request); }
-            catch (error) { console.error('[akari-surfaces] 取消要求の読み取りに失敗しました:', error); return; }
+            catch (error) { console.error('[akari-surfaces] Failed to read cancellation request:', error); return; }
             try { unlinkSync(requestPath); }
-            catch (error) { console.error('[akari-surfaces] 取消要求の削除に失敗しました:', error); return; }
+            catch (error) { console.error('[akari-surfaces] Failed to delete cancellation request:', error); return; }
             if (!isUpdaterCancelRequest(request, version, startedAt, Date.now())) { return; }
             active.cancelling = true;
             clearInterval(active.timer);
             result.cancellationToken!.cancel();
             for (const error of this.updaterRequests.abortAll()) {
-                console.error('[akari-surfaces] 更新通信の中断に失敗しました:', error);
+                console.error('[akari-surfaces] Failed to abort update request:', error);
             }
             void this.finishCancellation(active);
         }, 200);
@@ -240,10 +240,10 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
                 for (const name of readdirSync(helper.cacheDirForPendingUpdate)) {
                     if (isUpdaterTemporaryFileName(name)) {
                         try { unlinkSync(join(helper.cacheDirForPendingUpdate, name)); }
-                        catch (error) { console.error('[akari-surfaces] 更新一時ファイルの削除に失敗しました:', error); }
+                        catch (error) { console.error('[akari-surfaces] Failed to delete update temporary files:', error); }
                     }
                 }
-            } catch (error) { console.error('[akari-surfaces] 更新一時ファイルの削除に失敗しました:', error); }
+            } catch (error) { console.error('[akari-surfaces] Failed to delete update temporary files:', error); }
         }
         this.activeDownload = undefined;
         this.emit({ kind: 'update-not-available' });
@@ -270,7 +270,7 @@ export class AkariUpdaterElectronMain implements ElectronMainApplicationContribu
             const safeMessage = message.replace(/[\r\n]+/g, ' ');
             appendFileSync(join(logDirectory, UPDATER_LOG_FILENAME), `${new Date().toISOString()} ${safeContext}: ${safeMessage}\n`, 'utf8');
         } catch (logError) {
-            console.error('[akari-surfaces] updater 診断ログの追記に失敗しました:', logError);
+            console.error('[akari-surfaces] Failed to append updater diagnostics:', logError);
         }
     }
 

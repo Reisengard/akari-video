@@ -1,12 +1,12 @@
 /** Settings-only grouping: command IDs mirror the owning extensions without importing them. */
 export const SHORTCUT_GROUPS = [
-    { id: 'editing', label: '編集・タイムライン' },
-    { id: 'playback', label: '再生' },
-    { id: 'preview', label: 'プレビュー' },
-    { id: 'script', label: '台本・字幕' },
-    { id: 'panels', label: 'パネル・画面' },
-    { id: 'partner', label: 'パートナー' },
-    { id: 'other', label: 'そのほか' }
+    { id: 'editing', label: 'Edit and timeline' },
+    { id: 'playback', label: 'Playback' },
+    { id: 'preview', label: 'Preview' },
+    { id: 'script', label: 'Script and captions' },
+    { id: 'panels', label: 'Panels and views' },
+    { id: 'partner', label: 'Partner' },
+    { id: 'other', label: 'Other' }
 ] as const;
 export type ShortcutGroup = typeof SHORTCUT_GROUPS[number]['id'];
 export type ShortcutFilter = 'all' | 'modified' | 'unassigned' | 'conflicts';
@@ -265,15 +265,15 @@ export function keybindingFromKeyCode(code: ShortcutPhysicalCode, mac: boolean):
 }
 
 export function shortcutWhen(when?: string): string {
-    if (!when) { return 'いつでも'; }
+    if (!when) { return 'Any time'; }
     const positive = new Set([...when.matchAll(/(!?)\s*(akari[A-Za-z0-9_]+)/g)]
         .filter(match => !match[1]).map(match => match[2]));
     const parsed = parseWhen(when);
     if (/akari[A-Za-z0-9_]+/.test(when) && parsed && !hasPositiveWhenIdentifier(parsed)) { return ''; }
-    if (positive.has('akariKeyframeSelected')) { return 'キーフレームを選んでいるとき'; }
-    if (positive.has('akariNumberFieldFocus')) { return '数値の欄'; }
-    if (positive.has('akariInspectorFocus')) { return '編集パネル'; }
-    if (positive.has('akariDaihonRowsFocus')) { return '台本の一覧'; }
-    if (positive.has('akariTimelineVisible')) { return 'タイムライン'; }
+    if (positive.has('akariKeyframeSelected')) { return 'When a keyframe is selected'; }
+    if (positive.has('akariNumberFieldFocus')) { return 'Numeric fields'; }
+    if (positive.has('akariInspectorFocus')) { return 'Edit panel'; }
+    if (positive.has('akariDaihonRowsFocus')) { return 'Script list'; }
+    if (positive.has('akariTimelineVisible')) { return 'Timeline'; }
     return when.length > 72 ? `${when.slice(0, 69)}…` : when;
 }

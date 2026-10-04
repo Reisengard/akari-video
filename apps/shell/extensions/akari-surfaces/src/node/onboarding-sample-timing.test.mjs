@@ -15,7 +15,7 @@ const LEGACY_DIGEST = 'b384cae62959224be1c65d036da836ce53023169f0aa778afc1dffd30
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const readJson = async path => JSON.parse(await readFile(path, 'utf8'));
 
-test('同梱の書き起こしは声で合わせ直した語の時刻（word-timing.json）と一致する', async () => {
+test('Bundled transcripts match realigned word-timing.json speech times', async () => {
     const transcript = await readJson(join(sample, 'transcript.json'));
     const timing = await readJson(timingFile);
     const tokens = transcript.tokens.items;
@@ -37,7 +37,7 @@ test('同梱の書き起こしは声で合わせ直した語の時刻（word-tim
     assert.equal(plain(tokens.map(token => token.t).join('')), plain(transcript.script));
 });
 
-test('字幕の区切りは 22 行のまま、時刻だけが声に合う（captions_after_realign と一致）', async () => {
+test('Caption splitting retains twenty-two rows with realigned speech timing', async () => {
     const transcript = await readJson(join(sample, 'transcript.json'));
     const timing = await readJson(timingFile);
     const captions = splitOnboardingTokens(transcript.tokens.items);
@@ -54,7 +54,7 @@ test('字幕の区切りは 22 行のまま、時刻だけが声に合う（capt
     assert.equal(startOf('BGM'), 29.45);
 });
 
-test('既定の旧版ダイジェストは語の時刻を合わせ直す前の同梱 transcript.json だけ', () => {
+test('Legacy digests identify only the transcript bundled before realignment', () => {
     assert.deepEqual([...new AkariOnboardingServiceImpl().legacyTranscriptDigests], [LEGACY_DIGEST]);
 });
 
@@ -89,7 +89,7 @@ for (const [name, lineEnding] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     });
 }
 
-test('利用者が手を入れた書き起こしは置き換えない', async t => {
+test('User-edited transcripts are not replaced', async t => {
     const edited = (await fakeLegacy()).replace('概算。', '自分で直した');
     const setup = await library(t, edited);
     const service = new AkariOnboardingServiceImpl();
@@ -98,7 +98,7 @@ test('利用者が手を入れた書き起こしは置き換えない', async t 
     assert.equal(await readFile(setup.transcript, 'utf8'), edited);
 });
 
-test('書き起こしがまだ無ければ同梱版をそのまま置く', async t => {
+test('Missing transcripts receive the bundled version unchanged', async t => {
     const setup = await library(t, undefined);
     await new AkariOnboardingServiceImpl().ensureSample(setup.root);
     assert.equal(sha256(await readFile(setup.transcript)), sha256(await readFile(join(sample, 'transcript.json'))));

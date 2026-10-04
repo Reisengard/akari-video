@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const { nextFirstRunSetupStep, shouldAutoOpenFirstRunSetup } = require('../../lib/common/first-run-onboarding.js');
 const { summarizeLibraryStorage, librarySyncChoices, libraryMoveCopy } = require('../../lib/common/library-storage.js');
 
-test('素材を作業場とパートナーの間に置き、戻るとスキップを扱う', () => {
+test('Footage setup appears between workspace and partner with back and skip', () => {
     assert.equal(nextFirstRunSetupStep('workspace', 'workspace-created'), 'library');
     assert.equal(nextFirstRunSetupStep('library', 'back'), 'workspace');
     assert.equal(nextFirstRunSetupStep('library', 'skip'), 'connection');
@@ -16,8 +16,8 @@ test('素材を作業場とパートナーの間に置き、戻るとスキッ�
         hasProjectHistory: false, markerSeen: true }), false);
 });
 
-test('同期の確認中だけ三つの選択肢を示す', () => {
-    assert.deepEqual(librarySyncChoices('pending'), ['このまま使う', '別の場所を選ぶ', '今は移さない']);
+test('Only pending sync confirmation shows the three choices', () => {
+    assert.deepEqual(librarySyncChoices('pending'), ['Use this location', 'Choose another location', 'Do not move now']);
     assert.deepEqual(librarySyncChoices('done'), []);
 });
 
@@ -30,18 +30,18 @@ for (const [state, count, bytes, expected] of [
     ['done', 0, 0, { transfer: false, sync: false, retained: false }],
     [null, 1, 4096, { transfer: true, sync: false, retained: false }],
     [null, 0, 0, { transfer: false, sync: false, retained: false }]
-]) test(`置き場の案内: ${state ?? '未決定'}・旧素材 ${count} 件`, () => {
+]) test(`Storage guidance: ${state ?? '未決定'} · legacy assets ${count} items`, () => {
     const copy = libraryMoveCopy(state, { count, bytes }, 'OneDrive');
     assert.deepEqual({ transfer: !!copy.transfer, sync: !!copy.sync, retained: !!copy.retained }, expected);
     if (state === 'declined') {
-        assert.match(copy.retained, /今の置き場のまま使います/);
+        assert.match(copy.retained, /Keep the current location/);
         assert.doesNotMatch(JSON.stringify(copy), /移します|0\.0 MB/);
     }
     if (state === 'pending' && count > 0) assert.match(copy.sync, /OneDrive.*4 KB/);
-    if (state === null && count > 0) assert.match(copy.transfer, /1 個・約 4 KB/);
+    if (state === null && count > 0) assert.match(copy.transfer, /1 items · About 4 KB/);
 });
 
-test('内訳と片づけ候補は取得済みの Lab だけ', () => {
+test('Cleanup breakdown includes only downloaded Lab footage', () => {
     const items = [
         { id: 'lab', category: 'audio', title: 'Lab', sourceKind: 'lab', libraryDir: '/tmp/lab', files: [{ bytes: 7 }] },
         { id: 'site', category: 'audio', title: 'Site', sourceKind: 'site', libraryDir: '/tmp/site', files: [{ bytes: 11 }] },

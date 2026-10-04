@@ -109,7 +109,7 @@ export class AkariModeSwitchContribution implements FrontendApplicationContribut
         this.shell.rightPanelHandler.addBottomMenu({
             id: MENU_ID,
             iconClass: 'akari-mode-switch-icon',
-            title: autonomy ? `進め方: ${INTAKE_AUTONOMY_LABELS[autonomy]}` : '進め方を切り替える',
+            title: autonomy ? `Approach: ${INTAKE_AUTONOMY_LABELS[autonomy]}` : 'Change approach',
             menuPath: MENU_PATH,
             order: 0
         });
@@ -207,7 +207,7 @@ export class AkariModeSwitchContribution implements FrontendApplicationContribut
         try {
             const uri = await this.resolveIntakeUri();
             if (!uri || !await this.fileService.exists(uri)) {
-                void this.messages.info('進め方フォームで先に進め方を決めてください');
+                void this.messages.info('Choose your approach in the intake form first');
                 return;
             }
             const content = await this.fileService.readFile(uri);
@@ -215,7 +215,7 @@ export class AkariModeSwitchContribution implements FrontendApplicationContribut
             await this.fileService.writeFile(uri, BinaryBuffer.fromString(next));
             await this.refreshMenu();
         } catch (error) {
-            void this.messages.error(`進め方を変更できませんでした: ${error instanceof Error ? error.message : String(error)}`);
+            void this.messages.error(`Could not change the approach: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             this.writing = false;
         }

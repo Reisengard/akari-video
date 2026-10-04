@@ -44,7 +44,7 @@ export function filterInstallableSelection(
 
 /** 「インストール中: FFmpeg (1/3)…」形式の進捗表示文字列。 */
 export function formatInstallProgressLabel(toolName: string, index: number, total: number): string {
-    return `インストール中: ${toolName} (${index}/${total})…`;
+    return `Installing: ${toolName} (${index}/${total})…`;
 }
 
 /** 導入結果をそのまま表示できる 1 行へ寄せる。 */
@@ -54,13 +54,13 @@ export function describeToolInstallOutcome(result: AkariToolInstallResult, toolN
     }
     switch (result.outcome) {
         case 'installed':
-            return `${toolName} を導入しました。`;
+            return `${toolName} installed.`;
         case 'external-installer-opened':
-            return `${toolName} のインストーラーを開きました。完了したら再チェックしてください。`;
+            return `${toolName} installer opened. Check again after completion.`;
         case 'skipped':
-            return `${toolName} は手動で入れる必要があります。`;
+            return `${toolName} must be installed manually.`;
         case 'failed':
-            return `${toolName} の導入に失敗しました。もう一度お試しください。`;
+            return `${toolName} installation failed. Please try again.`;
     }
 }
 

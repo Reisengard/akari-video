@@ -10,29 +10,29 @@ const base = {
 };
 const installedKit = { id: 'world-kit', version: 2, skills: ['design-world'], assetCount: 3 };
 
-test('未接続は hidden', () => {
+test('Disconnected kits are hidden', () => {
     assert.deepEqual(buildKitCardModel({ ...base, connected: false }), { kind: 'hidden' });
 });
 
-test('導入済みかつ pluginEnabled=true は有効化案内なし', () => {
+test('Installed enabled plugins need no enable hint', () => {
     const model = buildKitCardModel({ ...base, installedKits: [installedKit] });
     assert.equal(model.kind, 'installed');
     assert.equal(model.showEnableHint, false);
 });
 
-test('導入済みかつ pluginEnabled=false は有効化案内あり', () => {
+test('Installed disabled plugins show an enable hint', () => {
     const model = buildKitCardModel({ ...base, installedKits: [installedKit], pluginEnabled: false });
     assert.equal(model.kind, 'installed');
     assert.equal(model.showEnableHint, true);
 });
 
-test('導入済みかつ pluginEnabled=null は未有効化扱い', () => {
+test('Unknown plugin enablement is treated as disabled', () => {
     const model = buildKitCardModel({ ...base, installedKits: [installedKit], pluginEnabled: null });
     assert.equal(model.kind, 'installed');
     assert.equal(model.showEnableHint, true);
 });
 
-test('kit entitlement の未導入 id は入力順・重複除去で購入済みコマンドになる', () => {
+test('Uninstalled kit entitlements preserve order, deduplicate, and create purchased commands', () => {
     const model = buildKitCardModel({
         ...base,
         entitledProducts: [
@@ -48,18 +48,18 @@ test('kit entitlement の未導入 id は入力順・重複除去で購入済み
     });
 });
 
-test('kit 以外の entitlement しかなければ unpurchased', () => {
+test('Non-kit entitlements produce unpurchased status', () => {
     assert.deepEqual(buildKitCardModel({
         ...base,
         entitledProducts: [{ id: 'course', kind: 'course', currentVersion: 1 }]
     }), { kind: 'unpurchased', labUrl: KIT_LAB_URL });
 });
 
-test('entitlement が空なら unpurchased', () => {
+test('Empty entitlements produce unpurchased status', () => {
     assert.deepEqual(buildKitCardModel(base), { kind: 'unpurchased', labUrl: KIT_LAB_URL });
 });
 
-test('導入済み id と同じ entitlement しかない場合も installed が勝つ', () => {
+test('Installed status takes precedence over matching entitlements', () => {
     const model = buildKitCardModel({
         ...base,
         installedKits: [installedKit],

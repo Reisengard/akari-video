@@ -8,23 +8,23 @@ const BASE = {
     dismissedThisSession: false
 };
 
-test('プロジェクト無しで起動すると自動表示する', () => {
+test('Launcher opens automatically on startup without a project', () => {
     assert.equal(shouldAutoOpenProjectLauncher(BASE), true);
 });
 
-test('プロジェクトを開いて起動したときは自動表示しない', () => {
+test('Launcher does not open automatically with an open project', () => {
     assert.equal(shouldAutoOpenProjectLauncher({ ...BASE, hasOpenProject: true }), false);
 });
 
-test('初回セットアップが自動表示される起動では、ランチャーはここでは開かない（優先関係）', () => {
+test('Automatic first-run setup takes priority over the launcher', () => {
     assert.equal(shouldAutoOpenProjectLauncher({ ...BASE, firstRunWillAutoOpen: true }), false);
 });
 
-test('同一セッション内で一度閉じたら再度は自動表示しない', () => {
+test('Closing once prevents another automatic launcher in the same session', () => {
     assert.equal(shouldAutoOpenProjectLauncher({ ...BASE, dismissedThisSession: true }), false);
 });
 
-test('プロジェクトが開いていて初回セットアップも優先で閉じ済みでも、理由に関わらず false のまま', () => {
+test('An open project or higher-priority setup keeps launcher visibility false', () => {
     assert.equal(
         shouldAutoOpenProjectLauncher({ hasOpenProject: true, firstRunWillAutoOpen: true, dismissedThisSession: true }),
         false

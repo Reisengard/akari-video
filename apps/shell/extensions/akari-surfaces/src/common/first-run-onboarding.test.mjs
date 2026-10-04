@@ -13,24 +13,24 @@ const FIRST_RUN = {
     markerSeen: false
 };
 
-test('完全初回だけセットアップを自動表示する', () => {
+test('Setup opens automatically only on a completely fresh installation', () => {
     assert.equal(shouldAutoOpenFirstRunSetup(FIRST_RUN), true);
 });
 
-test('表示済みマーカーがあれば2回目以降は自動表示しない', () => {
+test('The seen marker prevents subsequent automatic setup', () => {
     assert.equal(shouldAutoOpenFirstRunSetup({ ...FIRST_RUN, markerSeen: true }), false);
 });
 
-test('作業場ポインタまたはプロジェクト履歴があれば既存利用者として自動表示しない', () => {
+test('A workspace pointer or project history identifies existing users', () => {
     assert.equal(shouldAutoOpenFirstRunSetup({ ...FIRST_RUN, hasCreatorRootPointer: true }), false);
     assert.equal(shouldAutoOpenFirstRunSetup({ ...FIRST_RUN, hasProjectHistory: true }), false);
 });
 
-test('プロジェクトを開いているときは自動表示しない', () => {
+test('An open project prevents automatic setup', () => {
     assert.equal(shouldAutoOpenFirstRunSetup({ ...FIRST_RUN, hasOpenProject: true }), false);
 });
 
-test('ダイアログの step は 道具 → 作業場 → 素材 → 接続 と遷移し、戻る・スキップできる', () => {
+test('Setup steps progress through tools, workspace, footage, and connection with back and skip', () => {
     assert.equal(nextFirstRunSetupStep('tools', 'next'), 'workspace');
     assert.equal(nextFirstRunSetupStep('workspace', 'back'), 'tools');
     assert.equal(nextFirstRunSetupStep('workspace', 'workspace-created'), 'library');
@@ -39,7 +39,7 @@ test('ダイアログの step は 道具 → 作業場 → 素材 → 接続 と
     assert.equal(nextFirstRunSetupStep('connection', 'back'), 'library');
 });
 
-test('閉じ時を含む marker 記録は自動表示だけが対象になる', () => {
+test('Only automatic setup writes the marker, including when closed', () => {
     assert.equal(shouldRecordFirstRunMarker('automatic'), true);
     assert.equal(shouldRecordFirstRunMarker('manual'), false);
 });

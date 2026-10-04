@@ -28,34 +28,34 @@ const sfx = (id, at, duration, gain_db, name, out) =>
 const expectedPlan = {
   stages: [
     { stage: 1, key: 'title', items: [
-        html('demo-stage', 'demo-title', 'タイトル', 7, 217, 'overlays/demo-title/fragment.html'),
+        html('demo-stage', 'demo-title', 'Title', 7, 217, 'overlays/demo-title/fragment.html'),
         sfx('demo-sfx-title-whoosh', 0, 29, -10, 'sfx-whoosh-air-soft', 0.95),
         sfx('demo-sfx-name-pop', 107, 15, -6, 'sfx-pop-ding', 0.5)
     ] },
     { stage: 2, key: 'telops', items: [
-        html('demo-stage', 'demo-chat', 'AI との対話', 256, 73, 'overlays/demo-chat/fragment.html'),
-        html('demo-stage', 'demo-done', '編集完了', 338, 108, 'overlays/demo-done/fragment.html'),
+        html('demo-stage', 'demo-chat', 'Conversation with AI', 256, 73, 'overlays/demo-chat/fragment.html'),
+        html('demo-stage', 'demo-done', 'Editing complete', 338, 108, 'overlays/demo-done/fragment.html'),
         sfx('demo-sfx-chat-pop-1', 256, 5, -4, 'sfx-pop-bubble-big', 0.15),
         sfx('demo-sfx-chat-pop-2', 277, 5, -4, 'sfx-pop-bubble-big', 0.15),
         sfx('demo-sfx-done-tone', 402, 17, -3, 'sfx-correct-tone', 0.55)
     ] },
     { stage: 3, key: 'effects', items: [
-        html('demo-stage', 'demo-effects', '効果音とエフェクト', 524, 135, 'overlays/demo-effects/fragment.html'),
-        html('demo-flash', 'demo-flash', '閃光', 590, 12, 'overlays/demo-flash/fragment.html'),
+        html('demo-stage', 'demo-effects', 'Sound effects and effects', 524, 135, 'overlays/demo-effects/fragment.html'),
+        html('demo-flash', 'demo-flash', 'Flash', 590, 12, 'overlays/demo-flash/fragment.html'),
         sfx('demo-sfx-kouka-pop', 524, 5, -4, 'sfx-pop-cork', 0.15),
         sfx('demo-sfx-pa-whoosh', 581, 23, -4, 'sfx-whoosh-punchy', 0.75),
         sfx('demo-sfx-hora-sparkle', 617, 44, 2, 'sfx-shimmer-sparkle', 1.45)
     ] },
     { stage: 4, key: 'diagram', items: [
-        html('demo-stage', 'demo-diagram', '図解', 697, 110, 'overlays/demo-diagram/fragment.html'),
+        html('demo-stage', 'demo-diagram', 'Diagram', 697, 110, 'overlays/demo-diagram/fragment.html'),
         sfx('demo-sfx-diagram-pon', 697, 15, -3, 'sfx-diagram-pon', 0.482),
         sfx('demo-sfx-diagram-stack', 713, 5, -3, 'sfx-diagram-stack', 0.147),
         sfx('demo-sfx-diagram-playhead', 727, 7, -3, 'sfx-diagram-playhead', 0.216),
         sfx('demo-sfx-diagram-count', 743, 18, -3, 'sfx-diagram-count', 0.567)
     ] },
     { stage: 5, key: 'phone', items: [
-        { track: 'demo-phone-screen', item: { id: 'demo-phone-screen', name: 'スマホの画面', at: 833, duration: 144, crop: { x: 0.208, y: 0, w: 0.2645, h: 1 }, transform: { x: 372, y: -24, scale: 0.6607 }, source: { kind: 'media', src: 'sample', in: 27.7667, out: 32.5667, mute: true }, captions: 'off' } },
-        html('demo-stage', 'demo-phone', 'スマホ', 809, 179, 'overlays/demo-phone/fragment.html'),
+        { track: 'demo-phone-screen', item: { id: 'demo-phone-screen', name: 'Phone screen', at: 833, duration: 144, crop: { x: 0.208, y: 0, w: 0.2645, h: 1 }, transform: { x: 372, y: -24, scale: 0.6607 }, source: { kind: 'media', src: 'sample', in: 27.7667, out: 32.5667, mute: true }, captions: 'off' } },
+        html('demo-stage', 'demo-phone', 'Phone', 809, 179, 'overlays/demo-phone/fragment.html'),
         sfx('demo-sfx-phone-swoosh', 805, 20, -5, 'sfx-swoosh-up', 0.65),
         sfx('demo-sfx-phone-tap', 833, 5, -6, 'sfx-click-mouse-single', 0.15)
     ] },
@@ -68,7 +68,7 @@ const expectedPlan = {
     ] },
     { stage: 7, key: 'karaoke', items: [] },
     { stage: 8, key: 'credit', items: [
-        html('demo-stage', 'demo-credit', 'クレジット', 1068, 60, 'overlays/demo-credit/fragment.html'),
+        html('demo-stage', 'demo-credit', 'Credits', 1068, 60, 'overlays/demo-credit/fragment.html'),
         sfx('demo-sfx-punchline-ding', 1069, 42, -2, 'sfx-ding-single', 1.4)
     ] }
   ],
@@ -79,7 +79,7 @@ const exists = path => stat(path).then(() => true, () => false);
 const json = async path => JSON.parse(await readFile(path, 'utf8'));
 const overlays = ['demo-title', 'demo-chat', 'demo-done', 'demo-effects', 'demo-flash',
     'demo-diagram', 'demo-phone', 'demo-bgm', 'demo-credit'];
-test('同梱オーバーレイの easing 変数にはフォールバックがある', async () => {
+test('Bundled overlay easing variables have fallbacks', async () => {
     for (const name of overlays) {
         const fragment = await readFile(join(sample, 'overlays', name, 'fragment.html'), 'utf8');
         assert.deepEqual(fragment.match(/var\(--ease-[a-z-]+\)/g), null, name);
@@ -130,7 +130,7 @@ async function fixture(t) {
     return { root, uri, service, segments };
 }
 
-test('同梱の音源 15 本は出所・ライセンス・price・秒数が記録され、\u4eee\u7f6e\u304dの記述が無い', async t => {
+test('Fifteen bundled audio assets record source, license, price, and duration without placeholders', async t => {
     const sourcesText = await readFile(join(sample, 'audio-sources.json'), 'utf8');
     const sources = JSON.parse(sourcesText);
     assert.equal(sources.schema, 'akari-onboarding-audio-sources/v1');
@@ -171,7 +171,7 @@ test('同梱の音源 15 本は出所・ライセンス・price・秒数が記�
         assert.doesNotMatch(text, /\u4eee\u7f6e\u304d|\u4e86\u627f\u5f85\u3061|\u672a\u78ba\u5b9a/);
 });
 
-test('同梱 24 本が library に届き、旧図解は同梱されない', async t => {
+test('Twenty-four bundled assets reach the library without the legacy diagram', async t => {
     assert.equal(files.length, 24);
     for (const [origin] of files) assert.equal(await exists(join(sample, origin)), true, origin);
     for (const old of ['automatic', 'dialogue', 'effects', 'diagram', 'finishing'])
@@ -182,7 +182,7 @@ test('同梱 24 本が library に届き、旧図解は同梱されない', asyn
     for (const [origin] of files) assert.equal(await exists(join(library, origin)), true, origin);
 });
 
-test('段階 0〜8 の edit・字幕・素材コピーと lint', async t => {
+test('Stages zero through eight copy edit data, captions, and assets and pass lint', async t => {
     const { root, uri, service, segments } = await fixture(t);
     let expected = {};
     let expectedSources = ['sample'];
@@ -283,7 +283,7 @@ test('段階 0〜8 の edit・字幕・素材コピーと lint', async t => {
     }
 });
 
-test('お手本のカラオケ段階と完成形は render-cut 経路で GPU 書き出し可能', async t => {
+test('Karaoke and completed examples support GPU export through render-cut', async t => {
     const { root, uri, service, segments } = await fixture(t);
     for (const stage of [7, 8]) {
         await service.writeExample(uri, join(sample, 'clip.mp4'), segments, segments.length, true, { stage });
@@ -314,7 +314,7 @@ test('お手本のカラオケ段階と完成形は render-cut 経路で GPU 書
     }
 });
 
-test('既定段階と不正な段階、書き起こし欠落時の後退', async t => {
+test('Default and invalid stages handle missing transcripts safely', async t => {
     const { root, uri, service, segments } = await fixture(t);
     const source = join(sample, 'clip.mp4');
     await service.writeExample(uri, source, segments, 1, true);
@@ -322,7 +322,7 @@ test('既定段階と不正な段階、書き起こし欠落時の後退', async
         ['video', 'demo-stage', 'captions', 'demo-sfx']);
     for (const [progress, title] of [[{ stage: 9 }, true], [{ stage: 1.5 }, true], [{ stage: 2 }, false]])
         await assert.rejects(service.writeExample(uri, source, segments, segments.length, title, progress),
-            /お手本の段階が不正です/);
+            /Invalid example stage/);
     const library = await mkdtemp(join(process.env.AKARI_TEST_SCRATCH || tmpdir(), 'akari-no-transcript-'));
     t.after(() => rm(library, { recursive: true, force: true }));
     await copyFile(source, join(library, 'clip.mp4'));
@@ -336,7 +336,7 @@ test('既定段階と不正な段階、書き起こし欠落時の後退', async
     assert.equal(captions[19].style, undefined);
 });
 
-test('reset は利用者が変更した写しだけ残す', async t => {
+test('Reset retains only user-modified copies', async t => {
     const { root, uri, service, segments } = await fixture(t);
     await service.writeExample(uri, join(sample, 'clip.mp4'), segments, segments.length, true);
     const changedOverlay = join(root, 'overlays', 'demo-title', 'fragment.html');
@@ -358,7 +358,7 @@ test('reset は利用者が変更した写しだけ残す', async t => {
     assert.ok((await readdir(join(root, 'assets', 'onboarding'))).includes('sfx-pop-ding.m4a'));
 });
 
-test('reset は原本どおりの写しと空の専用ディレクトリを片付ける', async t => {
+test('Reset removes unchanged copies and empty dedicated directories', async t => {
     const { root, uri, service, segments } = await fixture(t);
     await service.writeExample(uri, join(sample, 'clip.mp4'), segments, segments.length, true);
     await service.resetTourExample(uri, join(sample, 'clip.mp4'), segments);

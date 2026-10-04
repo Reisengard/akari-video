@@ -23,10 +23,10 @@ export interface ProjectDetails {
     hasEditData?: boolean;
 }
 export const PROJECT_SORT_LABELS = {
-    'updated-desc': '更新が新しい順',
-    'updated-asc': '更新が古い順',
-    'name-asc': '名前（昇順）',
-    'name-desc': '名前（降順）'
+    'updated-desc': 'Recently updated first',
+    'updated-asc': 'Oldest updated first',
+    'name-asc': 'Name (A–Z)',
+    'name-desc': 'Name (Z–A)'
 } as const;
 export type ProjectSortOrder = keyof typeof PROJECT_SORT_LABELS;
 export const PROJECT_VIEW_ICONS = { cards: 'codicon-dashboard', list: 'codicon-list-flat' } as const;
@@ -60,13 +60,13 @@ export function sortProjects<T extends ProjectDetails & { name: string; key: str
 
 export function formatProjectUpdatedAt(value?: number): string {
     if (!Number.isFinite(value)) { return '—'; }
-    return new Intl.DateTimeFormat('ja-JP', {
+    return new Intl.DateTimeFormat('en-US', {
         year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
     }).format(value);
 }
 
 export function projectEditStatus(row: ProjectDetails): string {
-    return row.hasEditData === true ? '編集データあり' : row.hasEditData === false ? '未作成' : '—';
+    return row.hasEditData === true ? 'Edit data available' : row.hasEditData === false ? 'Not created' : '—';
 }
 
 export function readProjectView(scope: 'home' | 'launcher' = 'launcher'): ProjectViewMode {

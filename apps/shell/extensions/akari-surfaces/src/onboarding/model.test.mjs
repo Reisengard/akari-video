@@ -24,7 +24,7 @@ const segments = [
     { start: 6.3, end: 7.1, text: 'できました。' }
 ];
 
-test('案内は17段で、実演の9段だけを数える', () => {
+test('Guide has seventeen steps and counts only nine demonstration steps', () => {
     assert.equal(ONBOARDING_STEPS.length, 17);
     assert.equal(COUNTED_ONBOARDING_STEPS.length, 9);
     for (const step of ['welcome', 'first', 'invite', 'tour0', 'tour1', 'tour2', 'tour3', 'done'])
@@ -40,7 +40,7 @@ test('案内は17段で、実演の9段だけを数える', () => {
     });
 });
 
-test('戻るの順序と再訪は完了済みの成果を維持する', () => {
+test('Back navigation and revisits preserve completed results', () => {
     assert.equal(previousOnboardingStep('tour0'), undefined);
     assert.equal(previousOnboardingStep('tour1'), undefined);
     assert.equal(previousOnboardingStep('tour2'), 'tour1');
@@ -57,7 +57,7 @@ test('戻るの順序と再訪は完了済みの成果を維持する', () => {
     assert.equal(shouldResumeOnboarding({ ...backward, projectUri: 'file:///project' }, 'file:///project'), true);
 });
 
-test('字幕と台本の戻るは表示中の段から一段だけ戻る', () => {
+test('Caption and script back navigation moves exactly one visible step', () => {
     const position = (step, sub) => previousGuidePosition({ ...INITIAL_ONBOARDING_STATE, step, sub });
     assert.deepEqual(position('caption', 2), { step: 'caption', sub: 1 });
     assert.deepEqual(position('caption', 1), { step: 'caption', sub: 0 });
@@ -67,7 +67,7 @@ test('字幕と台本の戻るは表示中の段から一段だけ戻る', () =>
     assert.deepEqual(position('matpreview', 1), { step: 'drag', sub: 0 });
 });
 
-test('書き出し前は一段ずつ戻り、開始後は書き出しを止める戻るを出さない', () => {
+test('Export setup moves back one step at a time and active export never offers cancellation by back', () => {
     const position = sub => previousGuidePosition({ ...INITIAL_ONBOARDING_STATE, step: 'export', sub });
     assert.deepEqual(position(2), { step: 'export', sub: 1 });
     assert.deepEqual(position(1), { step: 'export', sub: 0 });
@@ -76,7 +76,7 @@ test('書き出し前は一段ずつ戻り、開始後は書き出しを止め�
     assert.equal(position(4), undefined);
 });
 
-test('お手本の字幕表示文は読点を置換しない', () => {
+test('Example caption display text preserves punctuation', () => {
     const captions = createOnboardingCaptions([
         { start: 0, end: 1, text: 'ほら、こんな感じで。' }
     ], 1).captions;
@@ -84,7 +84,7 @@ test('お手本の字幕表示文は読点を置換しない', () => {
     assert.equal(captions[0].display_text, 'ほら、こんな感じで。');
 });
 
-test('字幕のシーク時刻は実際に書く有効な区間の中央を選ぶ', () => {
+test('Caption seek times use the midpoint of the effective written interval', () => {
     const changed = [{ start: 18, end: 18.1, text: '短い' }, { start: 24, end: 26, text: '長い字幕' },
         { start: 7, end: 10, text: '  ' }, { start: NaN, end: 31, text: '不正' }];
     assert.equal(onboardingCaptionSeekTime(changed), 25);
@@ -92,7 +92,7 @@ test('字幕のシーク時刻は実際に書く有効な区間の中央を選�
     assert.equal(onboardingCaptionSeekTime(segments) !== 8.7, true);
 });
 
-test('保存形式を検査し、同じプロジェクトでのみ中断段から再開する', () => {
+test('Saved state validates and resumes only within the same project', () => {
     const state = { schema: 1, step: 'caption', sub: 2, answer: 'chatgpt', projectUri: 'file:///project', imported: true };
     assert.deepEqual(parseOnboardingState(JSON.parse(JSON.stringify(state))), {
         ...state, samplePath: undefined, exampleActive: false, workCompleted: false,
@@ -107,7 +107,7 @@ test('保存形式を検査し、同じプロジェクトでのみ中断段か�
     assert.equal(parseOnboardingState({ ...state, sub: -1 }), undefined);
 });
 
-test('最後の接続先は回答に従い、未使用・その他には表示しない', () => {
+test('Final connection targets follow answers and omit unused or other providers', () => {
     assert.equal(partnerToConnect('claude'), 'Claude Code CLI');
     assert.equal(partnerToConnect('chatgpt'), 'Codex CLI');
     assert.equal(partnerToConnect('google'), 'Antigravity CLI');
@@ -115,7 +115,7 @@ test('最後の接続先は回答に従い、未使用・その他には表示�
     assert.equal(partnerToConnect('other'), undefined);
 });
 
-test('同梱の語時刻から短い一行字幕を決定的に作る', async () => {
+test('Bundled word timing deterministically generates short single-line captions', async () => {
     const transcript = JSON.parse(await readFile(join(dirname(fileURLToPath(import.meta.url)),
         '../../../../resources/onboarding-sample/talkinghead-desk-ja-01/transcript.json'), 'utf8'));
     const result = splitOnboardingTokens(transcript.tokens.items);
@@ -125,7 +125,7 @@ test('同梱の語時刻から短い一行字幕を決定的に作る', async ()
     assert.deepEqual(result, splitOnboardingTokens(transcript.tokens.items));
 });
 
-test('お手本の本編、1行ずつの字幕、右上タイトルが edit-lint を通る', async () => {
+test('Example main video, incremental captions, and top-right title pass edit-lint', async () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const dir = await mkdtemp(join(here, '.onboarding-test-'));
     try {

@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 const controllerPath = join(dirname(fileURLToPath(import.meta.url)), 'controller.ts');
 
-test('お手本の依頼文と作業ログは 8 段階を約 18 秒で再生する', async () => {
+test('Example prompts and logs play eight stages in about eighteen seconds', async () => {
     const controller = await readFile(controllerPath, 'utf8');
-    assert.match(controller, /const PROMPT = 'この動画を編集したいです。話している内容に合わせて、テロップ・図解・効果音・BGM を入れてください。';/);
+    assert.match(controller, /const PROMPT = 'Please edit this video\. Add captions, diagrams, sound effects, and BGM to match the speech\.';/);
     const log = controller.slice(controller.indexOf('const LOG:'), controller.indexOf('const esc ='));
     const entries = [...log.matchAll(/\{ t: (\d+),[^\n]*/g)].map(match => match[0]);
     const times = entries.map(entry => Number(entry.match(/t: (\d+)/)[1]));
@@ -19,6 +19,6 @@ test('お手本の依頼文と作業ログは 8 段階を約 18 秒で再生す�
         [1, 2, 3, 4, 5, 6, 7, 8]);
     assert.doesNotMatch(log, /figures|bgm: true|title: true/);
     assert.match(controller, /1: 4\.2, 2: 13\.5, 3: 20\.25, 4: 25\.2,\s*5: 28\.6, 6: 30\.1, 7: 31\.9, 8: 36\.9/);
-    assert.match(controller, /title: 'テロップ・図解・効果音・BGM が入りました'/);
-    assert.match(controller, /body: '<p>話に合わせて、言ったその瞬間に出ます。止めるときは、もう一度 ▶ を押します。見終わったら次へ。<\/p>'/);
+    assert.match(controller, /title: 'Captions, diagrams, sound effects, and BGM are added'/);
+    assert.match(controller, /body: '<p>Elements appear in sync with speech\. Press ▶ again to stop\. Continue after watching\.<\/p>'/);
 });

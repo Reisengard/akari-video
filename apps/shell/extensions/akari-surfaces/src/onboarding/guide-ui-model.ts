@@ -20,11 +20,11 @@ export function askHighlightTarget(answer: AiAnswer | undefined): string {
 
 export function askConnectionCopy(answer: AiAnswer | undefined): string {
     return ({
-        claude: 'Claude の Pro・Max なら、つなぐのは「Claude Code CLI」です（光っているところ）。',
-        chatgpt: 'ChatGPT なら、つなぐのは「Codex CLI」です（光っているところ）。無料のアカウントでも使えます。',
-        google: 'Google のアカウントなら、つなぐのは「Antigravity CLI」です（光っているところ）。',
-        none: 'AI とつながなくても、流れはお手本で見られます。',
-        other: 'お使いの AI は、あとでこの一覧からつなげます。'
+        claude: 'For Claude Pro or Max, connect Claude Code CLI (highlighted).',
+        chatgpt: 'For ChatGPT, connect Codex CLI (highlighted). Free accounts work too.',
+        google: 'For a Google account, connect Antigravity CLI (highlighted).',
+        none: 'Follow the prepared example even without connecting AI.',
+        other: 'Connect your AI later from this list.'
     } as Record<AiAnswer, string>)[answer ?? 'none'];
 }
 

@@ -73,45 +73,45 @@ export function describeBalanceResponse(
     const number = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
     if (id === 'openrouter') {
         if (status === 401 || status === 403) {
-            if (!keyResponse) { return { ok: false, error: 'キーの上限を取得できませんでした。' }; }
+            if (!keyResponse) { return { ok: false, error: 'Could not retrieve key limit.' }; }
             if (keyResponse.status < 200 || keyResponse.status >= 300) {
-                return { ok: false, error: `キーの上限を取得できませんでした（HTTP ${keyResponse.status}）。` };
+                return { ok: false, error: `Could not retrieve key limit (HTTP ${keyResponse.status}）。` };
             }
             const key = record(record(keyResponse.body)?.data);
             if (key && number(key.limit_remaining)) {
-                return { ok: true, display: `キーの上限 残り ${money(key.limit_remaining, 'USD')}`, account_url: 'https://openrouter.ai/settings/credits' };
+                return { ok: true, display: `Remaining key limit: ${money(key.limit_remaining, 'USD')}`, account_url: 'https://openrouter.ai/settings/credits' };
             }
             if (key && key.limit_remaining === null && number(key.usage)) {
-                return { ok: true, display: `キーの上限なし · 使用 ${money(key.usage, 'USD')}`, account_url: 'https://openrouter.ai/settings/credits' };
+                return { ok: true, display: `No key limit · Used: ${money(key.usage, 'USD')}`, account_url: 'https://openrouter.ai/settings/credits' };
             }
-            return { ok: false, error: 'キーの上限の応答を読み取れませんでした。' };
+            return { ok: false, error: 'Could not read the key limit response.' };
         }
-        if (status < 200 || status >= 300) { return { ok: false, error: `残高を取得できませんでした（HTTP ${status}）。` }; }
+        if (status < 200 || status >= 300) { return { ok: false, error: `Could not retrieve balance (HTTP ${status}）。` }; }
         const credits = record(record(body)?.data);
         if (credits && number(credits.total_credits) && number(credits.total_usage)) {
-            let display = `口座の残高 残り ${money(credits.total_credits - credits.total_usage, 'USD')}`;
+            let display = `Remaining account balance: ${money(credits.total_credits - credits.total_usage, 'USD')}`;
             if (keyResponse?.status === 200) {
                 const key = record(record(keyResponse.body)?.data);
-                if (key && number(key.limit_remaining)) { display += ` · キーの上限 残り ${money(key.limit_remaining, 'USD')}`; }
+                if (key && number(key.limit_remaining)) { display += ` · Remaining key limit: ${money(key.limit_remaining, 'USD')}`; }
             }
             return { ok: true, display };
         }
-        return { ok: false, error: '残高の応答を読み取れませんでした。' };
+        return { ok: false, error: 'Could not read the balance response.' };
     }
     if (status === 401 || status === 403) {
-        return { ok: false, error: id === 'fal' ? 'このキーでは残高を見られません（fal は ADMIN 権限のキーが要ります）。' : 'キーが通りませんでした。キーを確認してください。' };
+        return { ok: false, error: id === 'fal' ? 'This key cannot access balances (fal requires an ADMIN key).' : 'Key rejected. Please check it.' };
     }
-    if (status < 200 || status >= 300) { return { ok: false, error: `残高を取得できませんでした（HTTP ${status}）。` }; }
+    if (status < 200 || status >= 300) { return { ok: false, error: `Could not retrieve balance (HTTP ${status}）。` }; }
     if (id === 'fal') {
         const credits = record(record(body)?.credits);
-        if (credits && number(credits.current_balance)) { return { ok: true, display: `口座のクレジット 残り ${money(credits.current_balance, credits.currency ?? 'USD')}` }; }
+        if (credits && number(credits.current_balance)) { return { ok: true, display: `Remaining account credits: ${money(credits.current_balance, credits.currency ?? 'USD')}` }; }
     } else if (id === 'elevenlabs') {
         const data = record(body);
         if (data && number(data.character_limit) && number(data.character_count)) {
-            return { ok: true, display: `今月の残り ${Math.max(0, data.character_limit - data.character_count).toLocaleString('en-US')} クレジット` };
+            return { ok: true, display: `Remaining this month: ${Math.max(0, data.character_limit - data.character_count).toLocaleString('en-US')} credits` };
         }
     }
-    return { ok: false, error: '残高の応答を読み取れませんでした。' };
+    return { ok: false, error: 'Could not read the balance response.' };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -121,44 +121,44 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function assertOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): void {
-    if (Object.keys(value).some(key => !allowed.includes(key))) { throw new Error('connections.json に未定義の欄があります。'); }
+    if (Object.keys(value).some(key => !allowed.includes(key))) { throw new Error('connections.json contains unknown fields.'); }
 }
 
 function assertNullableNonNegativeNumber(value: unknown): void {
     if (value !== null && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
-        throw new Error('connections.json の予算欄が不正です。');
+        throw new Error('Invalid budget in connections.json.');
     }
 }
 
 function assertValidConnectionsDocument(value: unknown): void {
-    if (!isPlainObject(value)) { throw new Error('connections.json のルートが不正です。'); }
+    if (!isPlainObject(value)) { throw new Error('Invalid connections.json root.'); }
     assertOnlyKeys(value, ['providers', 'defaults', 'policy', 'memory']);
     if (!Object.prototype.hasOwnProperty.call(value, 'providers') || !Array.isArray(value.providers)) {
-        throw new Error('connections.json の providers が不正です。');
+        throw new Error('Invalid providers in connections.json.');
     }
     if (!Object.prototype.hasOwnProperty.call(value, 'policy') || !isPlainObject(value.policy)) {
-        throw new Error('connections.json の policy が不正です。');
+        throw new Error('Invalid policy in connections.json.');
     }
     assertOnlyKeys(value.policy, ['currency', 'monthly_budget', 'approval_threshold']);
     if (Object.keys(value.policy).length !== 3 || typeof value.policy.currency !== 'string' || !/^[A-Z]{3}$/.test(value.policy.currency)) {
-        throw new Error('connections.json の policy が不正です。');
+        throw new Error('Invalid policy in connections.json.');
     }
     assertNullableNonNegativeNumber(value.policy.monthly_budget);
     assertNullableNonNegativeNumber(value.policy.approval_threshold);
     if (Object.prototype.hasOwnProperty.call(value, 'memory') && !Array.isArray(value.memory)) {
-        throw new Error('connections.json の memory が不正です。');
+        throw new Error('Invalid memory in connections.json.');
     }
     if (!Object.prototype.hasOwnProperty.call(value, 'defaults')) { return; }
-    if (!isPlainObject(value.defaults)) { throw new Error('connections.json の defaults が不正です。'); }
+    if (!isPlainObject(value.defaults)) { throw new Error('Invalid defaults in connections.json.'); }
     assertOnlyKeys(value.defaults, ['generate']);
     if (!Object.prototype.hasOwnProperty.call(value.defaults, 'generate')) { return; }
-    if (!isPlainObject(value.defaults.generate)) { throw new Error('connections.json の defaults.generate が不正です。'); }
+    if (!isPlainObject(value.defaults.generate)) { throw new Error('Invalid defaults.generate in connections.json.'); }
     assertOnlyKeys(value.defaults.generate, ['still', 'video']);
     for (const key of ['still', 'video']) {
         if (!Object.prototype.hasOwnProperty.call(value.defaults.generate, key)) { continue; }
         const field = value.defaults.generate[key];
         if (field !== null && (typeof field !== 'string' || field.trim().length === 0)) {
-            throw new Error('connections.json の既定モデルが不正です。');
+            throw new Error('Invalid default model in connections.json.');
         }
     }
 }
@@ -183,7 +183,7 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
     async useNarrationImageAiKey(enabled: boolean): Promise<void> {
         const credentials = await this.loadModule<CreatorCredentials>('packages/creator-root/src/index.mjs');
         if (enabled) {
-            if (!credentials.readCredentials().values.get('FAL_KEY')) throw new Error('読み上げのキーがありません。');
+            if (!credentials.readCredentials().values.get('FAL_KEY')) throw new Error('No narration key configured.');
             credentials.deleteCredential('AKARI_IMAGE_AI_FAL_KEY');
             credentials.writeCredential('AKARI_IMAGE_AI_USE_NARRATION_KEY', '1');
         } else credentials.deleteCredential('AKARI_IMAGE_AI_USE_NARRATION_KEY');
@@ -213,7 +213,7 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                 directory = parent;
             }
         }
-        throw new Error('接続確認の実装が見つかりません。');
+        throw new Error('Connection check implementation not found.');
     }
 
     protected async resolveRepoFile(relativeTarget: string): Promise<string | undefined> {
@@ -234,9 +234,9 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
         if (!this.catalogPromise) {
             this.catalogPromise = (async () => {
                 const catalogPath = await this.resolveRepoFile('packages/schemas/gen-models.json');
-                if (!catalogPath) { throw new Error('生成モデルのカタログが見つかりません。'); }
+                if (!catalogPath) { throw new Error('Generation model catalog not found.'); }
                 const parsed = JSON.parse(await fs.readFile(catalogPath, 'utf8')) as { models?: unknown[] };
-                if (!Array.isArray(parsed.models)) { throw new Error('生成モデルのカタログが見つかりません。'); }
+                if (!Array.isArray(parsed.models)) { throw new Error('Generation model catalog not found.'); }
                 return parsed.models.filter((value): value is Record<string, unknown> =>
                     isPlainObject(value) && (value.kind === 'image' || value.kind === 'video')).map(value => {
                     const rawPrice = isPlainObject(value.price) ? value.price : null;
@@ -267,7 +267,7 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
 
     async readGenerationCatalog(): Promise<GenerationCatalog> {
         try { return { models: await this.catalogModels() }; }
-        catch { throw new Error('生成モデルのカタログを読み込めません。'); }
+        catch { throw new Error('Cannot load the generation model catalog.'); }
     }
 
     protected async workspaceRoot(): Promise<string | undefined> {
@@ -332,11 +332,11 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                 for (const field of fields) {
                     const kind = field === 'still' ? 'image' : 'video';
                     if (!models.some(model => model.kind === kind && model.id === update[field])) {
-                        throw new GenerationDefaultsServiceError(`カタログにないモデルです。 (${update[field]})`);
+                        throw new GenerationDefaultsServiceError(`Model not in catalog. (${update[field]})`);
                     }
                 }
                 const rootDir = await this.workspaceRoot();
-                if (!rootDir) { throw new GenerationDefaultsServiceError('作業場が見つかりません。'); }
+                if (!rootDir) { throw new GenerationDefaultsServiceError('Workspace not found.'); }
                 const filePath = this.workspaceConnectionsPath(rootDir);
                 let document: ConnectionsDocument;
                 try {
@@ -345,7 +345,7 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                     document = parsed as ConnectionsDocument;
                 } catch (error) {
                     if ((error as NodeJS.ErrnoException)?.code !== 'ENOENT') {
-                        throw new GenerationDefaultsServiceError('既存の connections.json を読めません。');
+                        throw new GenerationDefaultsServiceError('Cannot read existing connections.json.');
                     }
                     document = {
                         providers: [],
@@ -365,12 +365,12 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                     await fs.rename(temporary, filePath);
                 } catch {
                     try { await fs.unlink(temporary); } catch { /* Nothing to clean up. */ }
-                    throw new Error('生成の既定モデルを保存できません。');
+                    throw new Error('Cannot save default generation models.');
                 }
                 return await this.readGenerationDefaultsUnlocked();
             } catch (error) {
                 if (error instanceof GenerationDefaultsServiceError) { throw error; }
-                throw new Error('生成の既定モデルを保存できません。');
+                throw new Error('Cannot save default generation models.');
             }
         });
     }
@@ -392,13 +392,13 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
         }
         try { return await this.registryPromise; } catch {
             this.registryPromise = undefined;
-            throw new Error('接続一覧を読み込めません。');
+            throw new Error('Cannot load connections.');
         }
     }
 
     protected async provider(id: string): Promise<ConnectionProvider> {
         const provider = (await this.registry()).providers.find(item => item.id === id && item.auth === 'env-key' && item.id !== 'akari-cloud');
-        if (!provider) { throw new Error('未対応の接続です。'); }
+        if (!provider) { throw new Error('Unsupported connection.'); }
         return provider;
     }
 
@@ -430,7 +430,7 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                     providers: formatConnections(registry.providers, state, this.doctors),
                     credentials: { exists: state.exists, secure_permissions: state.secure_permissions, path: filePath }, store
                 };
-            } catch { throw new Error('接続一覧を読み込めません。'); }
+            } catch { throw new Error('Cannot load connections.'); }
         });
     }
 
@@ -442,9 +442,9 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                 credentials.writeCredential(credentialEnvName(provider), value);
                 let doctor: ConnectionDoctor;
                 try { doctor = await this.inspect(provider); }
-                catch { doctor = { status: 'unchecked', detail: '接続を確認できませんでした。', last_checked: new Date().toISOString() }; }
+                catch { doctor = { status: 'unchecked', detail: 'Could not check the connection.', last_checked: new Date().toISOString() }; }
                 return { ok: true, masked_tail: maskedTail(value), doctor: safeDoctor(doctor, value, new Date().toISOString()) };
-            } catch { throw new Error('資格情報を登録できません。入力と保存先の権限を確認してください。'); }
+            } catch { throw new Error('Cannot register credentials. Check input and destination permissions.'); }
         });
     }
 
@@ -456,14 +456,14 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                 credentials.deleteCredential(credentialEnvName(provider));
                 this.doctors.delete(id);
                 return { ok: true };
-            } catch { throw new Error('資格情報を削除できません。'); }
+            } catch { throw new Error('Cannot delete credentials.'); }
         });
     }
 
     async checkConnection(id: string): Promise<{ doctor: ConnectionDoctor }> {
         return this.serialize(async () => {
             try { return { doctor: await this.inspect(await this.provider(id)) }; }
-            catch { throw new Error('接続を確認できません。'); }
+            catch { throw new Error('Cannot check the connection.'); }
         });
     }
 
@@ -477,19 +477,19 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
                 if (state.sources[key] !== 'legacy') { return { ok: false }; }
                 credentials.writeCredential(key, state.values.get(key)!);
                 return { ok: true };
-            } catch { throw new Error('資格情報を移せません。'); }
+            } catch { throw new Error('Cannot move credentials.'); }
         });
     }
 
     async readBalance(id: string): Promise<ProviderBalanceResult> {
         const checked_at = new Date().toISOString();
         if (!providerHasBalanceEndpoint(id) || !BALANCE_REQUESTS[id]) {
-            return { ok: false, error: 'この接続は残高の問い合わせに対応していません。', checked_at };
+            return { ok: false, error: 'This connection does not support balance queries.', checked_at };
         }
         let secret: string | undefined;
         try { secret = (await this.loadModule<CreatorCredentials>('packages/creator-root/src/index.mjs')).readCredentials().values.get(credentialEnvName(await this.provider(id))); }
-        catch { return { ok: false, error: '登録済みのキーを読めませんでした。', checked_at }; }
-        if (!secret) { return { ok: false, error: 'API キーが未登録です。', checked_at }; }
+        catch { return { ok: false, error: 'Could not read the configured key.', checked_at }; }
+        if (!secret) { return { ok: false, error: 'API key not configured.', checked_at }; }
         const request = BALANCE_REQUESTS[id];
         try {
             const get = async (url: string): Promise<{ status: number; body: unknown }> => {
@@ -508,10 +508,10 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
             }
             const result = describeBalanceResponse(id, primary.status, primary.body, keyResponse);
             // 表示用の 1 行にキーが混ざることは無いが、念のため反射を止める（doctor と同じ扱い）。
-            if (result.display?.includes(secret)) { return { ok: false, error: '残高の応答を読み取れませんでした。', checked_at }; }
+            if (result.display?.includes(secret)) { return { ok: false, error: 'Could not read the balance response.', checked_at }; }
             return { ...result, checked_at };
         } catch {
-            return { ok: false, error: '残高を問い合わせられませんでした。ネットワークを確認してください。', checked_at };
+            return { ok: false, error: 'Could not retrieve balance. Check your network.', checked_at };
         }
     }
 
@@ -522,9 +522,9 @@ export class AkariConnectionsServiceImpl implements AkariConnectionsService {
             const secret = (await this.loadModule<CreatorCredentials>('packages/creator-root/src/index.mjs')).readCredentials().values.get(credentialEnvName(provider));
             const checkedAt = new Date().toISOString();
             doctor = secret ? safeDoctor(await module.adapters[provider.id](secret, checkedAt), secret, checkedAt)
-                : { status: 'unconfigured', detail: '未登録', last_checked: null };
+                : { status: 'unconfigured', detail: 'Not configured', last_checked: null };
         } catch {
-            doctor = { status: 'unchecked', detail: '接続を確認できませんでした。', last_checked: new Date().toISOString() };
+            doctor = { status: 'unchecked', detail: 'Could not check the connection.', last_checked: new Date().toISOString() };
         }
         this.doctors.set(provider.id, doctor);
         return doctor;

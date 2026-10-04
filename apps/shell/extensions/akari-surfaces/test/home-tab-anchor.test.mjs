@@ -46,7 +46,7 @@ for (const side of ['left', 'right']) {
     });
 }
 
-test('タブ消失・幅ゼロ・非有限値では退避ボタンを隠す', () => {
+test('Missing tabs, zero width, and nonfinite geometry hide the fallback button', () => {
     for (const [viewport, tab] of [
         [bounds, undefined], [bounds, { left: 0, right: 0 }],
         [{ left: 100, right: 100 }, { left: 0, right: 80 }],
@@ -57,7 +57,7 @@ test('タブ消失・幅ゼロ・非有限値では退避ボタンを隠す', ()
     }
 });
 
-test('退避ボタンはフロー外でタブより上に表示し、クリック・再判定・破棄を維持する', () => {
+test('Fallback buttons sit above tabs outside layout flow and preserve click, recheck, and disposal', () => {
     const frames = new Map(), observers = [], listeners = new Map();
     let nextFrame = 0, button, layoutChanged, activated;
     let tabBounds = { left: 106, right: 180 };
@@ -93,33 +93,33 @@ test('退避ボタンはフロー外でタブより上に表示し、クリッ�
     const binding = load(environment).installHomeTabAnchor(shell, home);
     flush();
     assert.equal(button.hidden, true);
-    assert.equal(button.style.position, 'absolute', '表示しても flex の幅を消費しない');
+    assert.equal(button.style.position, 'absolute', 'Viewしても flex の幅を消費しない');
     assert.equal(button.style.flex, undefined);
     assert.equal(row.style.position, 'relative');
-    assert.equal(scroller.style.zIndex, '0', 'タブとPSレールの z-index をスクローラー内に閉じ込める');
+    assert.equal(scroller.style.zIndex, '0', 'タブとPSレールの z-index スクローラー内に閉じ込める');
     assert.equal(button.style.zIndex, '1', 'スクローラーより上、既存ツールバーの1001より下');
     const show = clippedBy => {
         tabBounds = { left: 100 - clippedBy, right: 180 - clippedBy };
         listeners.get('scroll')();
         observers.forEach(observer => observer.callback());
-        assert.equal(frames.size, 1, '更新は1フレームにまとめる');
+        assert.equal(frames.size, 1, 'Refreshは1フレームにまとめる');
         flush();
     };
     show(40);
     assert.equal(button.hidden, false);
     assert.equal(button.style.display, 'inline-flex');
-    assert.equal(scroller.style.zIndex, '0', '表示切替でも重なり順を維持する');
+    assert.equal(scroller.style.zIndex, '0', 'View切替でもConflict順を維持する');
     assert.equal(button.attributes['aria-pressed'], 'true');
     button.click();
     assert.equal(activated, 'home');
     for (const amount of [1.1, 0.9, 1.01, 0.99]) {
         show(amount);
-        assert.equal(button.hidden, false, '前回の表示状態が判定に渡る');
+        assert.equal(button.hidden, false, '前回のView状態が判定に渡る');
     }
     show(0);
     assert.equal(button.hidden, true);
     assert.equal(button.style.display, 'none');
-    assert.equal(scroller.style.zIndex, '0', '非表示でもスクローラーの配置を変えない');
+    assert.equal(scroller.style.zIndex, '0', '非Viewでもスクローラーの配置を変えない');
     listeners.get('scroll')();
     shell.mainAreaTabBars = [];
     layoutChanged();

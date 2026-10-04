@@ -75,6 +75,14 @@ test('GET / serves the template HTML', async () => {
         const res = await fetch(`${baseUrl}/`);
         assert.equal(res.status, 200);
         const text = await res.text();
-        assert.match(text, /進め方フォーム/);
+        assert.match(text, /Intake form/);
+        const nonce = text.match(/<script nonce="([^"]+)">/)?.[1];
+        assert.ok(nonce);
+        const policy = res.headers.get('content-security-policy');
+        assert.ok(policy.includes(`script-src 'nonce-${nonce}'`));
+        assert.ok(policy.includes("connect-src 'self'"));
+        assert.doesNotMatch(policy, /script-src 'unsafe-inline'/);
+        const second = await fetch(`${baseUrl}/`);
+        assert.notEqual((await second.text()).match(/<script nonce="([^"]+)">/)?.[1], nonce);
     });
 });

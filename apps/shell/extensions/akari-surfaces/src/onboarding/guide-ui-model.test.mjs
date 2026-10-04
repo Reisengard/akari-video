@@ -9,15 +9,15 @@ const { guideShowsChat, guideTargetsChat, guideNeedsPartner, shouldRevealPartner
     partnerFallbackReady, askHighlightTarget,
     askConnectionCopy } = require('../../lib/onboarding/guide-ui-model.js');
 
-test('ask は本物のパートナーを見せ、その他の実演段にはチャットを出す', () => {
+test('Ask shows a real partner while demonstration stages show chat', () => {
     for (const step of ['tour3', 'prompt', 'work', 'play', 'caption']) assert.equal(guideShowsChat(step), true);
     for (const step of ['welcome', 'invite', 'drag', 'export', 'ask']) assert.equal(guideShowsChat(step), false);
     assert.equal(guideNeedsPartner('ask'), true);
     assert.equal(askHighlightTarget('chatgpt'), 'partner-codex');
-    assert.match(askConnectionCopy('chatgpt'), /つなぐのは「Codex CLI」です（光っているところ）/);
+    assert.match(askConnectionCopy('chatgpt'), /connect Codex CLI \(highlighted\)/);
 });
 
-test('チャットを霧の上に出して枠を付ける段だけを選ぶ', () => {
+test('Only relevant stages elevate framed chat above the scrim', () => {
     for (const [step, sub] of [['tour0', 0], ['tour0', 1], ['tour1', 0], ['tour2', 0],
         ['tour2', 1], ['tour3', 1], ['ask', 0], ['drag', 0], ['play', 0], ['play', 1],
         ['caption', 0], ['caption', 1], ['caption', 2], ['caption', 3]]) {
@@ -28,7 +28,7 @@ test('チャットを霧の上に出して枠を付ける段だけを選ぶ', ()
     }
 });
 
-test('チャットが目当てでない案内段の入力くり抜きにチャットは入らない', () => {
+test('Non-chat guide holes exclude chat from input cutouts', () => {
     const chat = { x: 700, y: 40, width: 250, height: 500 };
     const targets = [
         ['tour0', 0, []], ['tour0', 1, []],
@@ -45,7 +45,7 @@ test('チャットが目当てでない案内段の入力くり抜きにチャ�
     }
 });
 
-test('caption に戻ったときも前回と異なる入場番号なら再びパートナーを開く', () => {
+test('Returning to captions with a new entry ID reopens the partner', () => {
     assert.equal(shouldRevealPartner('caption', 14, 9), true);
     assert.equal(shouldRevealPartner('caption', 14, 14), false);
     assert.equal(shouldRevealPartner('daihon', 15, 14), false);
@@ -53,17 +53,17 @@ test('caption に戻ったときも前回と異なる入場番号なら再びパ
     assert.equal(partnerFallbackReady(4, 9000, 9700), true);
 });
 
-test('別オリジンの出力プレビュー枠から字幕の表示帯を推定する', () => {
+test('Caption display bounds derive from cross-origin output preview frames', () => {
     const band = outputCaptionBandRect({ x: 395, y: 71, width: 659, height: 592 });
     const contains = (rect) => band.x <= rect.x && band.y <= rect.y
         && band.x + band.width >= rect.x + rect.width
         && band.y + band.height >= rect.y + rect.height;
-    assert.ok(contains({ x: 576, y: 447, width: 295, height: 43 }), '1 行の字幕');
-    assert.ok(contains({ x: 617.2, y: 401.5, width: 214, height: 88.6 }), '2 行の字幕');
+    assert.ok(contains({ x: 576, y: 447, width: 295, height: 43 }), '1 行のCaptions');
+    assert.ok(contains({ x: 617.2, y: 401.5, width: 214, height: 88.6 }), '2 行のCaptions');
     assert.ok(band.y > 339 && band.y + band.height < 520);
 });
 
-test('字幕のコーチは1920と1366の画面でメニュー・色窓・字幕帯を覆わない', () => {
+test('Caption coaches avoid menus, color dialogs, and captions at 1920 and 1366 widths', () => {
     const overlap = (a, b) => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x))
         * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
     for (const sample of [
@@ -84,14 +84,14 @@ test('字幕のコーチは1920と1366の画面でメニュー・色窓・字幕
     }
 });
 
-test('見た目の段へ戻ったときだけ、色メニューが無ければ字幕を選び直す', () => {
+test('Returning to appearance reselects captions only when the color menu is missing', () => {
     assert.equal(needsCaptionStyleSelection('caption', 1, false), true);
     assert.equal(needsCaptionStyleSelection('caption', 1, true), false);
     assert.equal(needsCaptionStyleSelection('caption', 0, false), false);
     assert.equal(needsCaptionStyleSelection('daihon', 1, false), false);
 });
 
-test('遮断層のくり抜きは spec の holes・clear・rings の矩形と一致する', () => {
+test('Blocking mask cutouts match spec holes, clear areas, and ring rectangles', () => {
     const holes = [{ x: 30, y: 40, width: 90, height: 80 }];
     const clear = [{ x: 200, y: 50, width: 60, height: 40 }];
     const rings = [{ x: 400, y: 70, width: 20, height: 20 }];
@@ -104,7 +104,7 @@ test('遮断層のくり抜きは spec の holes・clear・rings の矩形と一
     assert.equal(guideBlockerClipPath(100, 100, [{ x: 0, y: 0, width: 100, height: 100 }]), 'inset(100%)');
 });
 
-test('入れ子・同一・一部重なりでも、くり抜きの和集合は通り外側だけ塞がる', () => {
+test('Nested, identical, and overlapping holes allow their union and block only outside', () => {
     const blockedAt = (x, y, rects) => rects.some(rect =>
         x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height);
     const cases = [
@@ -124,14 +124,14 @@ test('入れ子・同一・一部重なりでも、くり抜きの和集合は�
     }
 });
 
-test('ガイドの合成クリックは座標が 0,0 でも通し、実クリックだけ遮断する', () => {
+test('Synthetic guide clicks pass even at zero coordinates while real clicks are blocked', () => {
     const cutouts = [{ x: 50, y: 50, width: 100, height: 100 }];
     assert.equal(shouldBlockGuidePointer(false, 0, 0, cutouts), false);
     assert.equal(shouldBlockGuidePointer(true, 0, 0, cutouts), true);
     assert.equal(shouldBlockGuidePointer(true, 100, 100, cutouts), false);
 });
 
-test('素材プレビュー下端の操作列は広い画面でも狭い画面でも ▶ を含む', () => {
+test('Footage preview control rows include play at wide and narrow widths', () => {
     const contains = (outer, inner) => outer.x <= inner.x && outer.y <= inner.y
         && outer.x + outer.width >= inner.x + inner.width
         && outer.y + outer.height >= inner.y + inner.height;

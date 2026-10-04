@@ -5,26 +5,26 @@ export const HELP_DELAY = { hint: 4000, next: 1500 } as const;
 export interface GuideCopy { title: string; body: string }
 
 export const MATERIAL_PREVIEW_SELECT_COPY: GuideCopy = {
-    title: '素材を押すと、中身が見られます',
-    body: '<p>入った動画を押してみてください。</p>'
+    title: 'Click footage to preview it',
+    body: '<p>Click the imported video.</p>'
 };
 
 export const CAPTION_GUIDE_COPY: readonly GuideCopy[] = [
-    { title: '字幕を押すと、その場で直せます', body: '<p>映像の下に出る字幕を選びましょう。</p>' },
-    { title: '見た目を変えてみましょう', body: '<p>上のメニューで色などを自由に試せます。できたら次へ。</p>' },
-    { title: '位置も動かせます', body: '<p>字幕をドラッグすると上下に動きます。文字を直すときはダブルクリック。</p>' }
+    { title: 'Click captions to edit them in place', body: '<p>Select the captions below the video.</p>' },
+    { title: 'Try changing the appearance', body: '<p>Try colors and other styles in the top menu. Continue when ready.</p>' },
+    { title: 'You can move them too', body: '<p>Drag captions to move them up or down. Double-click to edit text.</p>' }
 ];
 
 export const DAIHON_GUIDE_COPY: readonly GuideCopy[] = [
-    { title: '字幕の全文は「台本」で見られます', body: '<p>右端の紙のアイコンを押すと、字幕をまとめて読めます。</p>' },
-    { title: 'この行を押してみてください', body: '<p>右の台本の最初の行を押すと、その場面へ飛びます。</p>' },
-    { title: 'プレビューがこの場面へ飛びました',
-        body: '<p>ダブルクリックで文字も直せます。AI パートナーへは右端のいちばん上のアイコンから戻れます。</p>' }
+    { title: 'Read all captions in Script', body: '<p>Click the paper icon on the right rail to read all captions.</p>' },
+    { title: 'Click this line', body: '<p>Click the first line in the script on the right to jump to that scene.</p>' },
+    { title: 'Preview jumped to this scene',
+        body: '<p>Double-click to edit text. Return to the AI partner using the top icon on the right rail.</p>' }
 ];
 
 /** A hint is useful only when it adds a clue absent from the coach copy. */
 export function guideWaitingHint(state: OnboardingState): string | undefined {
-    if (state.step === 'matpreview' && state.sub === 0) return '左のサンプル動画カードを押してください。';
+    if (state.step === 'matpreview' && state.sub === 0) return 'Click the sample video card on the left.';
     return undefined;
 }
 

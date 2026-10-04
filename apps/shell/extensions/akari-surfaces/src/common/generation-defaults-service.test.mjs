@@ -24,7 +24,7 @@ async function findRepoFile(relativeTarget) {
         if (parent === directory) break;
         directory = parent;
     }
-    throw new Error(`${relativeTarget} が見つかりません`);
+    throw new Error(`${relativeTarget} was not found`);
 }
 
 async function withEnvironment(run) {
@@ -51,7 +51,7 @@ async function withEnvironment(run) {
     }
 }
 
-test('connections.json が無いと最小形から video だけを新規作成し正典バリデータを通す', () => withEnvironment(async context => {
+test('Missing connections.json creates minimal video defaults that pass schema validation', () => withEnvironment(async context => {
     await fs.unlink(context.connectionsPath);
     const service = new AkariConnectionsServiceImpl();
     await service.setGenerationDefaults({ video: 'fal:kling-v3-pro-i2v' });
@@ -66,7 +66,7 @@ test('connections.json が無いと最小形から video だけを新規作成�
     assert.match(result.stdout, /^OK:/);
 }));
 
-test('既存更新は video 以外の providers・policy・memory・still を保持する', () => withEnvironment(async context => {
+test('Updating video defaults preserves providers, policy, memory, and still defaults', () => withEnvironment(async context => {
     const document = minimal();
     document.providers.push({ fixture: 'provider' });
     document.policy.monthly_budget = 1234;
@@ -83,21 +83,21 @@ test('既存更新は video 以外の providers・policy・memory・still を保
     assert.equal(after.defaults.generate.video, 'fal:veo-3.1-flf');
 }));
 
-test('カタログ外 id と kind 違いを拒否し既存ファイルを変えない', () => withEnvironment(async context => {
+test('Unknown IDs and wrong model kinds leave existing files unchanged', () => withEnvironment(async context => {
     await fs.unlink(context.connectionsPath);
     const service = new AkariConnectionsServiceImpl();
-    await assert.rejects(service.setGenerationDefaults({ video: 'fal:does-not-exist' }), /カタログにないモデル/);
+    await assert.rejects(service.setGenerationDefaults({ video: 'fal:does-not-exist' }), /Model not in catalog/);
     await assert.rejects(fs.stat(context.connectionsPath), { code: 'ENOENT' });
     await fs.writeFile(context.connectionsPath, `${JSON.stringify(minimal(), null, 2)}\n`);
     const beforeText = await fs.readFile(context.connectionsPath, 'utf8');
     const beforeStat = await fs.stat(context.connectionsPath);
-    await assert.rejects(service.setGenerationDefaults({ video: 'codex:image' }), /カタログにないモデル/);
+    await assert.rejects(service.setGenerationDefaults({ video: 'codex:image' }), /Model not in catalog/);
     const afterStat = await fs.stat(context.connectionsPath);
     assert.equal(await fs.readFile(context.connectionsPath, 'utf8'), beforeText);
     assert.equal(afterStat.mtimeMs, beforeStat.mtimeMs);
 }));
 
-test('既定モデルの保存は credentials.env の mtime を変えない', () => withEnvironment(async context => {
+test('Saving default models preserves credentials.env modification time', () => withEnvironment(async context => {
     await fs.writeFile(context.credentialsPath, 'FAL_KEY=fixture\n');
     const before = await fs.stat(context.credentialsPath);
     await new AkariConnectionsServiceImpl().setGenerationDefaults({ video: 'fal:h3-i2v' });
@@ -105,7 +105,7 @@ test('既定モデルの保存は credentials.env の mtime を変えない', ()
     assert.equal(after.mtimeMs, before.mtimeMs);
 }));
 
-test('readGenerationDefaults は workspace と同梱既定の出所を欄別に返す', () => withEnvironment(async context => {
+test('Each default model reports its workspace or bundled source', () => withEnvironment(async context => {
     const document = minimal();
     document.defaults = { generate: { video: 'fal:kling-v3-pro-i2v' } };
     await fs.writeFile(context.connectionsPath, `${JSON.stringify(document, null, 2)}\n`);
@@ -118,11 +118,11 @@ test('readGenerationDefaults は workspace と同梱既定の出所を欄別に�
     assert.equal(result.workspacePath, path.resolve(context.connectionsPath));
 }));
 
-test('作業場が無いと read は寛容に返し set は区別できる文言で拒否する', () => withEnvironment(async context => {
+test('Missing workspaces allow reads and reject writes with a distinct message', () => withEnvironment(async context => {
     process.env.AKARI_CREATOR_ROOT = path.join(context.scratch, 'missing-workspace');
     process.env.AKARI_HOME = context.homeDir;
     const service = new AkariConnectionsServiceImpl();
     const result = await service.readGenerationDefaults();
     assert.equal(result.workspacePath, null);
-    await assert.rejects(service.setGenerationDefaults({ video: 'fal:h3-i2v' }), /作業場が見つかりません/);
+    await assert.rejects(service.setGenerationDefaults({ video: 'fal:h3-i2v' }), /Workspace not found/);
 }));

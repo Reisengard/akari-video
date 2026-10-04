@@ -34,34 +34,34 @@ const sfx = (id: string, at: number, duration: number, gain_db: number, name: st
 const DEMO_PLAN: { stages: Array<{ stage: number; key: string; items: DemoEntry[] }>; punch_in_keyframes: object[] } = {
   stages: [
     { stage: 1, key: 'title', items: [
-        html('demo-stage', 'demo-title', 'タイトル', 7, 217, 'overlays/demo-title/fragment.html'),
+        html('demo-stage', 'demo-title', 'Title', 7, 217, 'overlays/demo-title/fragment.html'),
         sfx('demo-sfx-title-whoosh', 0, 29, -10, 'sfx-whoosh-air-soft', 0.95),
         sfx('demo-sfx-name-pop', 107, 15, -6, 'sfx-pop-ding', 0.5)
     ] },
     { stage: 2, key: 'telops', items: [
-        html('demo-stage', 'demo-chat', 'AI との対話', 256, 73, 'overlays/demo-chat/fragment.html'),
-        html('demo-stage', 'demo-done', '編集完了', 338, 108, 'overlays/demo-done/fragment.html'),
+        html('demo-stage', 'demo-chat', 'Conversation with AI', 256, 73, 'overlays/demo-chat/fragment.html'),
+        html('demo-stage', 'demo-done', 'Editing complete', 338, 108, 'overlays/demo-done/fragment.html'),
         sfx('demo-sfx-chat-pop-1', 256, 5, -4, 'sfx-pop-bubble-big', 0.15),
         sfx('demo-sfx-chat-pop-2', 277, 5, -4, 'sfx-pop-bubble-big', 0.15),
         sfx('demo-sfx-done-tone', 402, 17, -3, 'sfx-correct-tone', 0.55)
     ] },
     { stage: 3, key: 'effects', items: [
-        html('demo-stage', 'demo-effects', '効果音とエフェクト', 524, 135, 'overlays/demo-effects/fragment.html'),
-        html('demo-flash', 'demo-flash', '閃光', 590, 12, 'overlays/demo-flash/fragment.html'),
+        html('demo-stage', 'demo-effects', 'Sound effects and effects', 524, 135, 'overlays/demo-effects/fragment.html'),
+        html('demo-flash', 'demo-flash', 'Flash', 590, 12, 'overlays/demo-flash/fragment.html'),
         sfx('demo-sfx-kouka-pop', 524, 5, -4, 'sfx-pop-cork', 0.15),
         sfx('demo-sfx-pa-whoosh', 581, 23, -4, 'sfx-whoosh-punchy', 0.75),
         sfx('demo-sfx-hora-sparkle', 617, 44, 2, 'sfx-shimmer-sparkle', 1.45)
     ] },
     { stage: 4, key: 'diagram', items: [
-        html('demo-stage', 'demo-diagram', '図解', 697, 110, 'overlays/demo-diagram/fragment.html'),
+        html('demo-stage', 'demo-diagram', 'Diagram', 697, 110, 'overlays/demo-diagram/fragment.html'),
         sfx('demo-sfx-diagram-pon', 697, 15, -3, 'sfx-diagram-pon', 0.482),
         sfx('demo-sfx-diagram-stack', 713, 5, -3, 'sfx-diagram-stack', 0.147),
         sfx('demo-sfx-diagram-playhead', 727, 7, -3, 'sfx-diagram-playhead', 0.216),
         sfx('demo-sfx-diagram-count', 743, 18, -3, 'sfx-diagram-count', 0.567)
     ] },
     { stage: 5, key: 'phone', items: [
-        { track: 'demo-phone-screen', item: { id: 'demo-phone-screen', name: 'スマホの画面', at: 833, duration: 144, crop: { x: 0.208, y: 0, w: 0.2645, h: 1 }, transform: { x: 372, y: -24, scale: 0.6607 }, source: { kind: 'media', src: 'sample', in: 27.7667, out: 32.5667, mute: true }, captions: 'off' } },
-        html('demo-stage', 'demo-phone', 'スマホ', 809, 179, 'overlays/demo-phone/fragment.html'),
+        { track: 'demo-phone-screen', item: { id: 'demo-phone-screen', name: 'Phone screen', at: 833, duration: 144, crop: { x: 0.208, y: 0, w: 0.2645, h: 1 }, transform: { x: 372, y: -24, scale: 0.6607 }, source: { kind: 'media', src: 'sample', in: 27.7667, out: 32.5667, mute: true }, captions: 'off' } },
+        html('demo-stage', 'demo-phone', 'Phone', 809, 179, 'overlays/demo-phone/fragment.html'),
         sfx('demo-sfx-phone-swoosh', 805, 20, -5, 'sfx-swoosh-up', 0.65),
         sfx('demo-sfx-phone-tap', 833, 5, -6, 'sfx-click-mouse-single', 0.15)
     ] },
@@ -74,7 +74,7 @@ const DEMO_PLAN: { stages: Array<{ stage: number; key: string; items: DemoEntry[
     ] },
     { stage: 7, key: 'karaoke', items: [] },
     { stage: 8, key: 'credit', items: [
-        html('demo-stage', 'demo-credit', 'クレジット', 1068, 60, 'overlays/demo-credit/fragment.html'),
+        html('demo-stage', 'demo-credit', 'Credits', 1068, 60, 'overlays/demo-credit/fragment.html'),
         sfx('demo-sfx-punchline-ding', 1069, 42, -2, 'sfx-ding-single', 1.4)
     ] }
   ],
@@ -97,12 +97,12 @@ const EXTRA_SAMPLE_FILES = [...new Map(DEMO_STAGES.flatMap(stage => stage.items)
     .map(file => [file.bundled, file])).values()];
 // 閃光は擬音「パッ！」（demo-stage）より下の専用段に置く（上だと 19.70 の見せ場で擬音が白く飛ぶ）。
 const DEMO_TRACKS = [
-    { id: 'demo-phone-screen', lane: 'visual', name: 'スマホの画面' },
-    { id: 'demo-flash', lane: 'visual', name: '閃光' },
-    { id: 'demo-stage', lane: 'visual', name: '右の演出' },
-    { id: 'demo-accents', lane: 'visual', name: '札' },
+    { id: 'demo-phone-screen', lane: 'visual', name: 'Phone screen' },
+    { id: 'demo-flash', lane: 'visual', name: 'Flash' },
+    { id: 'demo-stage', lane: 'visual', name: 'Effects on the right' },
+    { id: 'demo-accents', lane: 'visual', name: 'Card' },
     { id: 'onboarding-bgm', lane: 'audio', name: 'BGM' },
-    { id: 'demo-sfx', lane: 'audio', name: '効果音' }
+    { id: 'demo-sfx', lane: 'audio', name: 'Sound effects' }
 ] as const;
 // 2026-10-01 に語の時刻を声で合わせ直す前に同梱していた transcript.json（語頭が最大 1.46 秒早い）の sha256。
 // ライブラリへの複写は COPYFILE_EXCL なので、既存ユーザーの手元にはこの版が残り続ける。
@@ -116,7 +116,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
             try { return `data:image/webp;base64,${(await fs.readFile(candidate)).toString('base64')}`; }
             catch (error) { lastError = error; }
         }
-        console.warn('[akari-onboarding] ようこそ画像を読めませんでした。画像なしで続けます。', lastError);
+        console.warn('[akari-onboarding] Could not read welcome image. Continuing without it.', lastError);
         return '';
     }
 
@@ -141,7 +141,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
 
     async save(state: OnboardingState): Promise<void> {
         const parsed = parseOnboardingState(state);
-        if (!parsed) throw new Error('オンボーディングの保存形式が不正です');
+        if (!parsed) throw new Error('Invalid onboarding state format');
         await fs.mkdir(this.home, { recursive: true });
         const destination = join(this.home, STATE_FILE);
         const temporary = `${destination}.${process.pid}.tmp`;
@@ -199,7 +199,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
                 current = parent;
             }
         }
-        throw new Error(`${name} が見つかりません`);
+        throw new Error(`${name} was not found`);
     }
 
     protected async ensureSample(rootPath: string): Promise<string> {
@@ -246,7 +246,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
             await fs.rename(temporary, target);
         } catch (error) {
             await fs.rm(temporary, { force: true }).catch(() => undefined);
-            console.warn('[akari-onboarding] サンプルの書き起こしを新しい語の時刻へ更新できませんでした。前の版のまま続けます。', error);
+            console.warn('[akari-onboarding] Could not update sample transcript word timing. Continuing with the previous version.', error);
         }
     }
 
@@ -263,7 +263,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
             projectPath = join(videos, name);
             await this.projects.createProject(pathToFileURL(projectPath).toString());
             const intake = { version: 1, tasks: [], target: { duration_s: null, keep_length: true, taste: null },
-                autonomy: 'checkpoint', status: 'draft', submitted_at: null, title: 'はじめての動画' };
+                autonomy: 'checkpoint', status: 'draft', submitted_at: null, title: 'First video' };
             await fs.writeFile(join(projectPath, '.akari', 'intake.json'), `${JSON.stringify(intake, null, 2)}\n`);
             await writeProjectFilesGuarded(projectPath, { 'edit.json': `${JSON.stringify(createEmptyOnboardingEdit(), null, 2)}\n` });
             await this.save({ schema: 1, step: 'invite', sub: 0, projectUri: pathToFileURL(projectPath).toString() });
@@ -273,22 +273,22 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
             tokens?: { items?: TranscriptToken[] }
         };
         const segments = splitOnboardingTokens(transcript.tokens?.items ?? []);
-        if (!segments.length) throw new Error('サンプルの書き起こしを読み取れませんでした');
+        if (!segments.length) throw new Error('Could not read sample transcript');
         return { projectUri: pathToFileURL(projectPath).toString(), sample: { sourcePath: join(assetDir, 'clip.mp4'), segments } };
     }
 
     async importSample(projectUri: string, sourcePath: string): Promise<string> {
         const project = fileURLToPath(projectUri);
         const current = await this.load();
-        if (current?.projectUri !== projectUri || basename(sourcePath) !== 'clip.mp4') throw new Error('サンプルの場所が違います');
+        if (current?.projectUri !== projectUri || basename(sourcePath) !== 'clip.mp4') throw new Error('Incorrect sample location');
         const result = await this.projectService.recordDroppedAssets(projectUri,
             [{ name: SAMPLE_NAME, sourcePath }]);
         const imported = result[0];
-        if (!imported?.success) throw new Error('サンプル動画を取り込めませんでした');
+        if (!imported?.success) throw new Error('Could not import sample video');
         const rel = imported.assetPath;
         const assetPath = resolve(project, rel);
         const inside = relative(project, assetPath);
-        if (!inside || inside.startsWith(`..${sep}`) || inside === '..') throw new Error('素材の場所が違います');
+        if (!inside || inside.startsWith(`..${sep}`) || inside === '..') throw new Error('Incorrect footage location');
         const transcript = JSON.parse(await fs.readFile(join(dirname(sourcePath), 'transcript.json'), 'utf8')) as {
             tokens?: { items?: TranscriptToken[] }
         };
@@ -305,11 +305,11 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
         progress?: { stage?: number }): Promise<void> {
         const current = await this.load();
         if (current?.projectUri !== projectUri || (!current.imported && !current.exampleActive) || basename(sourcePath) !== 'clip.mp4')
-            throw new Error('素材を先に取り込んでください');
-        if (!Number.isInteger(count) || count < 0 || count > segments.length || !segments.length) throw new Error('字幕の数が不正です');
+            throw new Error('Import footage first');
+        if (!Number.isInteger(count) || count < 0 || count > segments.length || !segments.length) throw new Error('Invalid caption count');
         const stage = progress?.stage ?? (title ? (count === segments.length ? 8 : 1) : 0);
         if (!Number.isInteger(stage) || stage < 0 || stage > 8 || (stage >= 1 && !title))
-            throw new Error('お手本の段階が不正です');
+            throw new Error('Invalid example stage');
         const project = fileURLToPath(projectUri);
         const samplePath = `assets/${SAMPLE_NAME}`;
         const edit = createOnboardingEdit(samplePath, count > 0 || title) as {
@@ -320,7 +320,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
         if (stage >= 3) edit.tracks[0].items[0].keyframes = DEMO_PLAN.punch_in_keyframes;
         if (stage >= 1) {
             const captionTrack = edit.tracks.find(track => track.id === 'captions');
-            if (captionTrack) captionTrack.name = '字幕';
+            if (captionTrack) captionTrack.name = 'Captions';
         }
         const visual = DEMO_TRACKS.filter(track => track.lane === 'visual').map(track => ({ ...track,
             items: selected.filter(entry => entry.track === track.id).map(entry => ({ ...entry.item }))
@@ -426,7 +426,7 @@ export class AkariOnboardingServiceImpl implements AkariOnboardingService {
     async resetTourExample(projectUri: string, sourcePath: string, _segments: TranscriptSegment[]): Promise<void> {
         const current = await this.load();
         if (current?.projectUri !== projectUri || !current.exampleActive || current.workCompleted)
-            throw new Error('完成例の状態が違います');
+            throw new Error('Incorrect finished example state');
         const project = fileURLToPath(projectUri);
         const sample = join(project, 'assets', SAMPLE_NAME);
         const captionPath = join(project, 'captions.json');

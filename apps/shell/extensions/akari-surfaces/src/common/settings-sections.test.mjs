@@ -12,7 +12,7 @@ import {
 
 const source = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('全節の設定キーは節へ往復し、複数の節に重複しない', () => {
+test('Preference keys round-trip to unique sections', () => {
     const keys = new Set();
     assert.deepEqual(Object.keys(SECTION_PREFERENCE_KEYS), SETTINGS_SECTIONS.map(section => section.id));
     assert.deepEqual(SECTION_PREFERENCE_KEYS.quality, ['akari.qualityTier', 'akari.timeline.visualThumbnails']);
@@ -28,7 +28,7 @@ test('全節の設定キーは節へ往復し、複数の節に重複しない',
     assert.equal(sectionForPreferenceKey('unknown'), undefined);
 });
 
-test('旧設定の品質・テーマ・開発者・通知と Store 接続は各節に移行する', () => {
+test('Legacy quality, theme, developer, notifications, and Store settings move to their sections', () => {
     for (const [key, section] of [
         ['akari.qualityTier', 'quality'], ['workbench.colorTheme', 'appearance'],
         ['akari.developerMode', 'developer'], ['akari.notifications.agentTurnEnd', 'notifications']
@@ -44,7 +44,7 @@ test('旧設定の品質・テーマ・開発者・通知と Store 接続は各�
     assert.match(dialog, /this\.storeController\.disconnect\(\)/);
 });
 
-test('節指定はオブジェクトと文字列を受け付け、未知の値を無視する', () => {
+test('Section arguments accept objects or strings and ignore unknown values', () => {
     for (const { id } of SETTINGS_SECTIONS) {
         assert.equal(resolveSettingsSectionId({ section: id }), id);
         assert.equal(resolveSettingsSectionId(id), id);
@@ -54,18 +54,18 @@ test('節指定はオブジェクトと文字列を受け付け、未知の値�
     }
 });
 
-test('節の順序・グループと DOM ID はナビの契約に一致する', () => {
+test('Section order, groups, and DOM IDs match navigation contracts', () => {
     assert.deepEqual(SETTINGS_SECTIONS.map(section => section.id),
         ['account', 'start', 'export', 'appearance', 'connections', 'ai-models', 'partner', 'transcribe', 'narration', 'quality', 'notifications', 'tools', 'shortcuts', 'storage', 'privacy', 'statistics', 'help', 'about', 'developer']);
     assert.deepEqual(SETTINGS_SECTIONS.map(section => section.label),
-        ['AKARI アカウント', 'はじめかた', '書き出し', '外観', '接続と API キー', 'AI モデル', 'パートナー', '文字起こし', '読み上げ', 'プレビュー品質', '通知', '道具', 'ショートカット', 'ストレージ', 'プライバシーとアクセス許可', '統計と利用状況', '困ったとき', 'このアプリについて', '開発者モード']);
+        ['AKARI account', 'Getting started', 'Export', 'Appearance', 'Connections and API keys', 'AI models', 'Partner', 'Transcription', 'Narration', 'Preview quality', 'Notifications', 'Tools', 'Shortcuts', 'Storage', 'Privacy and permissions', 'Statistics and usage', 'Help', 'About', 'Developer mode']);
     for (const { id, group } of SETTINGS_SECTIONS) {
         assert.equal(group, id === 'developer' ? 'developer' : ['storage', 'privacy', 'statistics'].includes(id) ? 'data' : ['help', 'about'].includes(id) ? 'support' : 'main');
         assert.equal(settingsSectionElementId(id), `akari-settings-${id}`);
     }
 });
 
-test('設定値は有効値を保持し、不正値を既定へ正規化する', () => {
+test('Valid preferences persist and invalid preferences normalize to defaults', () => {
     for (const { value } of QUALITY_TIER_CHOICES) { assert.equal(normalizeQualityTier(value), value); }
     for (const { value } of THEME_CHOICES) { assert.equal(normalizeTheme(value), value); }
     for (const { value } of EXPORT_QUALITY_CHOICES) { assert.equal(normalizeExportQuality(value), value); }
@@ -82,32 +82,32 @@ test('設定値は有効値を保持し、不正値を既定へ正規化する',
     assert.equal(normalizeOutputDirectory('file:///tmp/exports'), 'file:///tmp/exports');
 });
 
-test('ホームの Store 設定は接続節を指定して設定ダイアログを開く', () => {
+test('Home Store settings open the connections section', () => {
     const home = source('../browser/akari-home-widget.tsx');
     const body = home.match(/protected async openStoreSettings\(\): Promise<void> \{([\s\S]*?)\n    \}/)?.[1].trim();
     assert.equal(body, "await this.commands.executeCommand('akari.settings.open', { section: 'connections' });");
 });
 
-test('レールの許可リストに旧設定 widget がなく、設定 opener は残る', () => {
+test('The old settings widget is absent from the rail allowlist while its opener remains', () => {
     const curation = source('../../../akari-shell-strip/src/browser/akari-activity-bar-curation.ts');
     assert.equal(curation.includes('akari-settings-widget'), false);
     assert.match(curation, /id: 'akari-settings-opener'/);
 });
 
-test('旧設定 widget と復元用 WidgetFactory を撤去する', () => {
+test('Legacy settings widget and restoration WidgetFactory are removed', () => {
     assert.equal(existsSync(new URL('../browser/akari-settings-widget.tsx', import.meta.url)), false);
     assert.equal(source('../browser/akari-surfaces-frontend-module.ts').includes('AkariSettingsWidget'), false);
     assert.equal(source('../browser/akari-settings-dialog.ts').includes('akari-settings-widget'), false);
 });
 
-test('ページ選択では全節のうち自分だけを表示する', () => {
+test('Section selection displays only the selected section', () => {
     for (const { id: selected } of SETTINGS_SECTIONS) {
         const visible = SETTINGS_SECTIONS.filter(({ id }) => isSettingsSectionVisible(id, selected));
         assert.deepEqual(visible.map(({ id }) => id), [selected]);
     }
 });
 
-test('最後のページの復元は明示指定を優先し、不正な保存値は無視する', () => {
+test('Explicit section overrides restoration and invalid stored values are ignored', () => {
     assert.equal(SETTINGS_LAST_SECTION_KEY, 'akari.settings.lastSection');
     for (const { id } of SETTINGS_SECTIONS) {
         assert.equal(initialSettingsSection(id, 'tools'), id);
@@ -123,7 +123,7 @@ test('最後のページの復元は明示指定を優先し、不正な保存�
     }
 });
 
-test('全 akari スキーマキーをフォールバックに頼らずページに掲載する', () => {
+test('All AKARI schema keys appear without relying on fallback sections', () => {
     const declared = Object.values(SECTION_PREFERENCE_KEYS).flat();
     const schemaKeys = new Set();
     const dialog = source('../browser/akari-settings-dialog.ts');
@@ -162,14 +162,14 @@ test('全 akari スキーマキーをフォールバックに頼らずページ�
         'akari.catalog.root can be saved');
 });
 
-test('全ページは共通の見出しと説明を持ち、hidden で切り替えてページ内だけスクロールする', () => {
+test('All sections share headings and descriptions and scroll only within the visible page', () => {
     for (const { id } of SETTINGS_SECTIONS) {
         assert.equal(typeof SETTINGS_SECTION_DESCRIPTIONS[id], 'string');
         assert.ok(SETTINGS_SECTION_DESCRIPTIONS[id].trim().length > 0, id);
         assert.equal(SETTINGS_SECTION_DESCRIPTIONS[id].includes('\n'), false, id);
     }
     // 「値を読む機能が無い」注記は説明文から外し、プレビュー品質のカードの下に小さく出す。
-    assert.equal(QUALITY_TIER_RESERVED_NOTE, '今はこの値を読む機能がありません（AI 生成の品質段階として予約）');
+    assert.equal(QUALITY_TIER_RESERVED_NOTE, 'No feature currently uses this value (reserved for AI generation quality tiers)');
     const dialog = source('../browser/akari-settings-dialog.ts');
     assert.match(dialog, /settingsNote\(QUALITY_TIER_RESERVED_NOTE\)/);
     assert.match(dialog, /element\('h2', SETTINGS_SECTIONS\.find\(item => item\.id === id\)!\.label\)/);
@@ -186,7 +186,7 @@ test('全ページは共通の見出しと説明を持ち、hidden で切り替�
 
 // カタログのフォルダ（手入力・選択・キャンセル）の DOM 検査は settings-dialog-refresh.test.mjs へ移した。
 
-test('ページの保存と復元は保存不可でも動き、コマンドからの直接指定を渡す', () => {
+test('Navigation works without storage and passes explicit command sections', () => {
     const dialog = source('../browser/akari-settings-dialog.ts');
     assert.match(dialog, /try \{ stored = localStorage\.getItem\(SETTINGS_LAST_SECTION_KEY\); \} catch/);
     assert.match(dialog, /this\.showSection\(initialSettingsSection\(initialSection, stored\)\)/);
@@ -197,7 +197,7 @@ test('ページの保存と復元は保存不可でも動き、コマンドか�
     assert.match(dialog, /new AkariSettingsDialog\([^;]*this\.requestedSection\)/);
 });
 
-test('AI モデルの節だけダイアログを広げ、比較表はレーダーの下に置く', () => {
+test('Only AI models widen the dialog and place comparisons below radar', () => {
     const dialog = source('../browser/akari-settings-dialog.ts');
     const section = dialog.slice(dialog.indexOf('showSection(section: SettingsSectionId): void {'));
     assert.match(section, /block\.style\.width = `min\(\$\{section === 'ai-models' \? 1440 : 1040\}px, calc\(100vw - 48px\)\)`/);
@@ -207,7 +207,7 @@ test('AI モデルの節だけダイアログを広げ、比較表はレーダ�
     assert.doesNotMatch(models, /\.akari-ai-compare\{[^}]*grid-template-columns/);
 });
 
-test('形式・fps・OS ごとのエンコーダは有効値を保持し、不正値を既定に戻す', () => {
+test('Valid format, FPS, and platform encoder values persist; invalid values reset', () => {
     for (const { value } of EXPORT_CODEC_CHOICES) { assert.equal(normalizeExportCodec(value), value); }
     for (const value of [24, 30, 60]) { assert.equal(normalizeExportFps(value), value); }
     for (const [platform, encoders] of [
@@ -234,9 +234,9 @@ test('形式・fps・OS ごとのエンコーダは有効値を保持し、不�
 });
 
 
-test('文字起こしのモードは先頭に掲載し、既定は simple', () => {
+test('Transcription mode appears first and defaults to simple', () => {
     assert.equal(SECTION_PREFERENCE_KEYS.transcribe[0], 'akari.transcribe.mode');
-    assert.match(SETTINGS_SECTION_DESCRIPTIONS.transcribe, /モード.*エンジン/);
+    assert.match(SETTINGS_SECTION_DESCRIPTIONS.transcribe, /mode.*engine/i);
     assert.match(source('../browser/akari-preferences.ts'),
         /\[AKARI_TRANSCRIBE_MODE\]:\s*\{\s*type: 'string', enum: \['simple', 'advanced'\], default: 'simple'/);
 });

@@ -12,14 +12,14 @@ export class AkariNewVideoDialog extends AbstractDialog<NewVideoOptions> {
     protected autonomy: IntakeAutonomy = INTAKE_DEFAULT_AUTONOMY;
 
     constructor(channels: string[]) {
-        super({ title: '新しい動画を始める' });
+        super({ title: 'Start a new video' });
         this.node.setAttribute('data-akari-new-video-dialog', 'true');
         Object.assign(this.contentNode.style, { display: 'grid', gap: '16px', width: 'min(460px, calc(100vw - 80px))' });
         const channelLabel = document.createElement('label');
-        channelLabel.textContent = 'チャンネル';
+        channelLabel.textContent = 'Channel';
         Object.assign(channelLabel.style, { display: 'grid', gap: '8px' });
         this.channelSelect.className = 'theia-select';
-        this.channelSelect.setAttribute('aria-label', 'チャンネル');
+        this.channelSelect.setAttribute('aria-label', 'Channel');
         for (const channel of channels) {
             const option = document.createElement('option');
             option.value = channel;
@@ -30,7 +30,7 @@ export class AkariNewVideoDialog extends AbstractDialog<NewVideoOptions> {
         const modes = document.createElement('fieldset');
         Object.assign(modes.style, { border: '0', padding: '0', margin: '0', display: 'grid', gap: '8px' });
         const legend = document.createElement('legend');
-        legend.textContent = '進め方';
+        legend.textContent = 'Approach';
         legend.style.marginBottom = '8px';
         modes.appendChild(legend);
         for (const mode of INTAKE_AUTONOMY_ORDER) {
@@ -53,11 +53,11 @@ export class AkariNewVideoDialog extends AbstractDialog<NewVideoOptions> {
             modes.appendChild(label);
         }
         const note = document.createElement('small');
-        note.textContent = '進め方は、動画を始めた後でも変更できます。';
+        note.textContent = 'You can change your approach after starting the video.';
         note.style.color = 'var(--theia-descriptionForeground)';
         this.contentNode.append(channelLabel, modes, note);
-        this.appendCloseButton('キャンセル');
-        this.appendAcceptButton('動画を作成');
+        this.appendCloseButton('Cancel');
+        this.appendAcceptButton('Create video');
     }
 
     get value(): NewVideoOptions {

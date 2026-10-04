@@ -84,12 +84,12 @@ import { makerBadge } from './settings/maker-badge';
 const CONNECTION_MAKERS = require('../../../../../../packages/schemas/ai-makers.json');
 
 const ENGINE_LABELS: Record<string, string> = {
-    'speech-analyzer': 'SpeechAnalyzer（この Mac）', 'whisper-cpp': 'Whisper.cpp（ローカル）',
-    'cloud:scribe': 'Scribe（クラウド）', 'cloud:groq': 'Groq（クラウド）'
+    'speech-analyzer': 'SpeechAnalyzer (this Mac)', 'whisper-cpp': 'Whisper.cpp (local)',
+    'cloud:scribe': 'Scribe (cloud)', 'cloud:groq': 'Groq (cloud)'
 };
 const ENGINE_DESCRIPTIONS: Record<string, string> = {
-    'speech-analyzer': '速い・オフライン', 'whisper-cpp': 'オフライン・精度重視',
-    'cloud:scribe': 'ElevenLabs のキーが要る', 'cloud:groq': 'Groq のキーが要る'
+    'speech-analyzer': 'Fast and offline', 'whisper-cpp': 'Offline, focused on accuracy',
+    'cloud:scribe': 'Requires an ElevenLabs key', 'cloud:groq': 'Requires a Groq key'
 };
 const ENGINE_SHORT_LABELS: Record<string, string> = {
     'speech-analyzer': 'SpeechAnalyzer', 'whisper-cpp': 'Whisper.cpp', 'cloud:scribe': 'Scribe', 'cloud:groq': 'Groq'
@@ -104,7 +104,7 @@ const GEMINI_NARRATION_VOICES = [
 ] as const;
 /** エンコーダのセグメントは短い名前で並べ、正式名は title（ホバー）に残す。 */
 const ENCODER_SHORT_LABELS: Record<ExportEncoder, string> = {
-    auto: '自動', videotoolbox: 'GPU', nvenc: 'NVENC', qsv: 'QSV', amf: 'AMF', mf: 'Media Foundation', x264: 'CPU'
+    auto: 'Automatic', videotoolbox: 'GPU', nvenc: 'NVENC', qsv: 'QSV', amf: 'AMF', mf: 'Media Foundation', x264: 'CPU'
 };
 const TOOL_ICONS: Record<AkariToolId, SettingsIconName> = {
     ffmpeg: 'film', whisper: 'mic', 'yt-dlp': 'download', voicevox: 'user', blender: 'cube', 'speech-analyzer': 'spark', 'xcode-clt': 'terminal'
@@ -179,7 +179,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         protected readonly keymapsService: KeymapsService, protected readonly keyboardLayout: KeyboardLayoutService,
         protected readonly aiModelsService: AkariAiModelsService, initialSection?: SettingsSectionId
     ) {
-        super({ title: 'AKARI Video の設定' });
+        super({ title: 'AKARI Video settings' });
         this.compareDraft = preferences.get<string[]>(AKARI_TRANSCRIBE_COMPARE_SET, []);
         this.compareEnabled = this.compareDraft.length > 0;
         this.storeController = new StoreConnectionFlowController(storeService, {
@@ -192,7 +192,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             }
         });
         this.toDispose.push(this.storeController);
-        this.toolsView = new SettingsToolsView({ title: '道具', onWorkspaceCreated: async () => undefined, onFinished: () => undefined },
+        this.toolsView = new SettingsToolsView({ title: 'Tools', onWorkspaceCreated: async () => undefined, onFinished: () => undefined },
             files, env, toolsService, commands);
         this.toolsView.onToolsChanged = () => { if (!this.isDisposed) { this.renderSection('start'); } };
         this.toDispose.push(this.toolsView);
@@ -225,7 +225,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         }).catch(() => {
             if (!this.isDisposed) {
                 this.imageRouteStates = ['codex', 'antigravity', 'grok'].map(id => ({
-                    id: id as ImageRouteState['id'], state: 'unknown' as const, detail: '状態を確かめられませんでした'
+                    id: id as ImageRouteState['id'], state: 'unknown' as const, detail: 'Could not check status'
                 }));
                 this.renderSubscriptions();
             }
@@ -257,11 +257,11 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         this.controlPanel.style.display = 'none';
         const nav = element('nav');
         nav.className = 'akari-set-nav';
-        nav.setAttribute('aria-label', '設定の項目');
+        nav.setAttribute('aria-label', 'Settings sections');
         this.searchInput.className = 'akari-set-search';
         this.searchInput.type = 'search';
-        this.searchInput.placeholder = '設定を探す';
-        this.searchInput.setAttribute('aria-label', '設定を検索');
+        this.searchInput.placeholder = 'Find settings';
+        this.searchInput.setAttribute('aria-label', 'Search settings');
         this.searchInput.addEventListener('input', () => this.filterSections());
         const search = element('label'); search.className = 'akari-set-search-wrap';
         const keyHint = element('kbd', '⌘F');
@@ -270,7 +270,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         let previousGroup: string = 'main';
         for (const section of SETTINGS_SECTIONS) {
             if (section.group !== previousGroup) {
-                const group = element('h3', section.group === 'data' ? 'データとプライバシー' : section.group === 'support' ? 'サポート' : '開発者');
+                const group = element('h3', section.group === 'data' ? 'Data and privacy' : section.group === 'support' ? 'Support' : 'Developer');
                 group.className = 'akari-set-nav-group';
                 group.setAttribute('data-settings-nav-group', section.group);
                 nav.append(group);
@@ -296,11 +296,11 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         }
         this.storeRow.setAttribute('data-akari-store-settings', 'true');
         // AKARI Store は「Akari アカウント」節へ移した（2026-09-22）。接続と API キーの末尾には置かない。
-        const storeMoved = settingsNote('読み上げに使う API キーもここで登録できます。AKARI Video Lab との接続は「AKARI アカウント」へ移りました。');
-        storeMoved.append(' ', inlineLink('AKARI アカウントを開く', () => this.showSection('account')));
+        const storeMoved = settingsNote('Register narration API keys here too. AKARI Video Lab connections have moved to AKARI account.');
+        storeMoved.append(' ', inlineLink('Open AKARI account', () => this.showSection('account')));
         this.connections.append(...this.sectionHeading('connections'), storeMoved, this.subscriptionList,
-            element('h3', '使った分だけ — API キー'), this.providerList, this.imageAiRow, this.storage);
-        this.providerList.append(settingsNote('接続を読み込んでいます…'));
+            element('h3', 'Pay as you go — API keys'), this.providerList, this.imageAiRow, this.storage);
+        this.providerList.append(settingsNote('Loading connections…'));
         this.renderStore();
         this.contentNode.append(nav, this.body);
         this.addEventListener(this.node, 'keydown', event => {
@@ -383,7 +383,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         button.className = 'akari-set-nav-item';
         const title = element('span', label); title.className = 'akari-set-nav-label';
         button.append(settingsIcon(icon), title);
-        if (badge) { const note = element('span', badge); note.className = `akari-set-nav-badge${badge === '準備中' ? ' akari-set-nav-badge-soon' : ''}`; button.append(note); }
+        if (badge) { const note = element('span', badge); note.className = `akari-set-nav-badge${badge === 'Coming soon' ? ' akari-set-nav-badge-soon' : ''}`; button.append(note); }
         button.addEventListener('click', () => this.showSection(target));
         button.setAttribute('data-settings-nav', target);
         return button;
@@ -424,13 +424,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             section.append(this.storeRow);
         } else if (id === 'tools') {
             section.append(this.toolsView.content);
-            const directory = textField({ label: 'カタログの素材フォルダ', placeholder: '（自動で探す）', wide: true });
+            const directory = textField({ label: 'Catalog footage folder', placeholder: '(Find automatically)', wide: true });
             directory.value = normalizeOutputDirectory(this.preferences.get(AKARI_CATALOG_ROOT));
             directory.addEventListener('change', () => this.savePreference(AKARI_CATALOG_ROOT, directory.value));
-            const pick = action('選ぶ', async () => {
+            const pick = action('Choose', async () => {
                 try {
                     const destination = await this.fileDialogs.showOpenDialog({
-                        title: 'カタログの素材フォルダを選ぶ', canSelectFiles: false, canSelectFolders: true
+                        title: 'Choose catalog footage folder', canSelectFiles: false, canSelectFolders: true
                     });
                     if (!destination || this.isDisposed) { return; }
                     directory.value = destination.path.fsPath();
@@ -438,29 +438,29 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                     await this.preferenceWrites;
                     if (!this.isDisposed) { this.renderSection('tools'); }
                 } catch {
-                    this.notice.textContent = 'フォルダを選べませんでした。';
+                    this.notice.textContent = 'Could not choose a folder.';
                 }
             }, { small: true, icon: 'folder' });
-            const catalogRow = groupCard('素材フォルダ', settingRow('カタログの素材フォルダ', 'カタログタブが読む素材フォルダ。空欄なら自動で探します', directory, pick));
+            const catalogRow = groupCard('Footage folder', settingRow('Catalog footage folder', 'Footage folder used by the catalog tab. Leave empty to find it automatically', directory, pick));
             catalogRow.setAttribute('data-akari-catalog-root', 'true');
             section.append(catalogRow);
         } else if (id === 'start') {
-            section.append(groupCard(undefined, settingRow('はじめてのガイド',
-                '動画を1本つくりながら、AKARI Video の使い方を見られます。',
-                action('見る', () => {
+            section.append(groupCard(undefined, settingRow('First video guide',
+                'Learn AKARI Video while making your first video.',
+                action('View', () => {
                     this.close();
                     void this.commands.executeCommand(AkariHomeCommands.OPEN_FIRST_VIDEO_GUIDE.id);
                 }, { variant: 'primary' }))));
-            const open = action('準備を開く', () => {
+            const open = action('Open setup', () => {
                 this.close();
                 void this.commands.executeCommand(AkariHomeCommands.OPEN_FIRST_RUN_SETUP.id);
             });
             const hero = element('div');
             hero.className = 'akari-set-hero';
             const copy = element('div');
-            const heroTitle = element('div', 'はじめる準備');
+            const heroTitle = element('div', 'Getting ready');
             heroTitle.className = 'akari-set-hero-title';
-            copy.append(heroTitle, description('道具・作業場・素材・AI パートナーを順番に案内します。いつでもやり直せます'));
+            copy.append(heroTitle, description('Set up tools, your workspace, footage, and AI partner in order. Repeat at any time'));
             hero.append(copy, open);
             const card = groupCard(undefined, hero);
             const steps = this.startProgressSteps();
@@ -469,88 +469,88 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         } else if (id === 'quality') {
             const current = normalizeQualityTier(this.preferences.get(AKARI_QUALITY_TIER));
             section.append(
-                groupCard('品質段階',
-                    choiceCards({ label: 'プレビュー品質', options: QUALITY_TIER_CHOICES, value: current, columns: 2,
+                groupCard('Quality tier',
+                    choiceCards({ label: 'Preview quality', options: QUALITY_TIER_CHOICES, value: current, columns: 2,
                         onChange: value => this.savePreference(AKARI_QUALITY_TIER, value) }),
                     settingsNote(QUALITY_TIER_RESERVED_NOTE)),
-                groupCard('タイムライン', this.preferenceSwitch(AKARI_TIMELINE_VISUAL_THUMBNAILS, 'HTML / 3D 素材の絵を出す', false,
-                    '素材が多いと開くのが遅くなります。オフなら種別の色と名前だけ')));
+                groupCard('Timeline', this.preferenceSwitch(AKARI_TIMELINE_VISUAL_THUMBNAILS, 'Show HTML / 3D footage thumbnails', false,
+                    'Many assets can slow opening. Turn off to show only type colors and names')));
         } else if (id === 'notifications') {
-            section.append(groupCard(undefined, this.preferenceSwitch(AKARI_AGENT_TURN_END_NOTIFICATION, 'AI 完了通知', true,
-                'Claude Code などの処理が終わったとき、通知でお知らせします（ウィンドウが背面のときだけ）')));
+            section.append(groupCard(undefined, this.preferenceSwitch(AKARI_AGENT_TURN_END_NOTIFICATION, 'AI completion notifications', true,
+                'Notify when Claude Code or another partner finishes (only while the window is in the background)')));
         } else if (id === 'appearance') {
             const theme = this.preferences.get<string>(AKARI_APPEARANCE_THEME_MODE, normalizeTheme(this.preferences.get(WORKBENCH_COLOR_THEME)));
             const themes: { value: string; label: string; preview?: HTMLElement }[] = THEME_CHOICES.map(option => ({ ...option, preview: themePreview(option.value) }));
             if (!themes.some(option => option.value === theme)) { themes.push({ value: theme, label: theme }); }
-            section.append(groupCard('テーマ', choiceCards({ label: 'テーマ', options: themes, value: theme, columns: 3,
+            section.append(groupCard('Theme', choiceCards({ label: 'Theme', options: themes, value: theme, columns: 3,
                 onChange: value => { this.savePreference(AKARI_APPEARANCE_THEME_MODE, value); this.applyTheme(value); } })));
-            section.append(groupCard('言語', settingRow('表示する言語', 'ほかの言語は準備中です',
-                segmentedControl({ label: '言語', options: [{ value: 'ja', label: '日本語' }, { value: 'en', label: 'English（準備中）', disabled: true }], value: 'ja', onChange: () => undefined }))));
+            section.append(groupCard('Language', settingRow('Display language', 'Other languages are coming soon',
+                segmentedControl({ label: 'Language', options: [{ value: 'en', label: 'English' }, { value: 'ja', label: 'Japanese (coming soon)', disabled: true }], value: 'en', onChange: () => undefined }))));
             const zoom = clampZoom(Number(this.preferences.get(AKARI_APPEARANCE_ZOOM, 100)));
             const zoomLabel = element('span', `${zoom}%`);
             const changeZoom = (next: number): void => { const value = clampZoom(next); zoomLabel.textContent = `${value}%`; this.savePreference(AKARI_APPEARANCE_ZOOM, value); applyAkariZoom(value); };
-            section.append(groupCard('UI の大きさ', settingRow('UI の大きさ', 'ズーム 60〜200%。⌘+ / ⌘− でも変更できます',
+            section.append(groupCard('UI size', settingRow('UI size', 'Zoom 60–200%. You can also use ⌘+ / ⌘−',
                 action('−', () => changeZoom(Number(zoomLabel.textContent?.replace('%', '')) - 10), { small: true }), zoomLabel,
                 action('+', () => changeZoom(Number(zoomLabel.textContent?.replace('%', '')) + 10), { small: true }),
-                action('元に戻す', () => changeZoom(100), { small: true }))));
-            section.append(groupCard('下のバー（右下）に出すもの',
-                this.preferenceSwitch(STATUS_BAR_KEYS.cpu, 'CPU', true, '使用率'),
-                this.preferenceSwitch(STATUS_BAR_KEYS.gpu, 'GPU', true, '使用率'),
-                this.preferenceSwitch(STATUS_BAR_KEYS.memory, 'メモリ', true, '使用量'),
-                this.preferenceSwitch(STATUS_BAR_KEYS.disk, 'ディスクの空き', false, '空き容量'),
-                this.preferenceSwitch(STATUS_BAR_KEYS.running, '実行中の数', true, 'パートナー・書き出し・文字起こし'),
-                this.preferenceSwitch(STATUS_BAR_KEYS.accountBalance, 'アカウント残高', false, '取得できるサービスのみ'),
-                settingRow('更新の間隔', 'リソース表示を更新する間隔', segmentedControl({ label: '更新の間隔',
-                    options: [{ value: '1', label: '1 秒' }, { value: '3', label: '3 秒' }, { value: '10', label: '10 秒' }],
+                action('Reset', () => changeZoom(100), { small: true }))));
+            section.append(groupCard('Status bar items (bottom right)',
+                this.preferenceSwitch(STATUS_BAR_KEYS.cpu, 'CPU', true, 'Utilization'),
+                this.preferenceSwitch(STATUS_BAR_KEYS.gpu, 'GPU', true, 'Utilization'),
+                this.preferenceSwitch(STATUS_BAR_KEYS.memory, 'Memory', true, 'Usage'),
+                this.preferenceSwitch(STATUS_BAR_KEYS.disk, 'Free disk space', false, 'Free space'),
+                this.preferenceSwitch(STATUS_BAR_KEYS.running, 'Running tasks', true, 'Partner, export, and transcription'),
+                this.preferenceSwitch(STATUS_BAR_KEYS.accountBalance, 'Account balance', false, 'Only services that provide balances'),
+                settingRow('Refresh interval', 'How often resource displays refresh', segmentedControl({ label: 'Refresh interval',
+                    options: [{ value: '1', label: '1 second' }, { value: '3', label: '3 seconds' }, { value: '10', label: '10 seconds' }],
                     value: String(this.preferences.get(STATUS_BAR_KEYS.intervalSec, 3)), onChange: value => this.savePreference(STATUS_BAR_KEYS.intervalSec, Number(value)) }))));
         } else if (id === 'developer') {
             section.append(groupCard(undefined, this.preferenceSwitch(AKARI_DEVELOPER_MODE, 'Developer mode', false,
-                'HTML をコードとして開き、フル設定を使えるようにします')));
+                'Open HTML as code and enable full settings')));
         } else if (id === 'export') {
             const platform = OS.type() === OS.Type.OSX ? 'darwin' : OS.type() === OS.Type.Windows ? 'win32' : 'linux';
-            const directory = textField({ label: '書き出し先フォルダの URI', placeholder: '（プロジェクトの exports/）', wide: true });
+            const directory = textField({ label: 'Export folder URI', placeholder: '(Project exports/)', wide: true });
             directory.value = normalizeOutputDirectory(this.preferences.get(AKARI_EXPORT_OUTPUT_DIRECTORY));
             directory.addEventListener('change', () => this.savePreference(AKARI_EXPORT_OUTPUT_DIRECTORY, directory.value));
-            const pickDirectory = action('選ぶ', async () => {
+            const pickDirectory = action('Choose', async () => {
                 try {
                     const destination = await this.fileDialogs.showOpenDialog({
-                        title: '書き出し先フォルダを選ぶ', canSelectFiles: false, canSelectFolders: true
+                        title: 'Choose export folder', canSelectFiles: false, canSelectFolders: true
                     });
                     if (!destination || this.isDisposed) { return; }
                     directory.value = destination.toString();
                     this.savePreference(AKARI_EXPORT_OUTPUT_DIRECTORY, directory.value);
                 } catch {
-                    this.notice.textContent = 'フォルダを選べませんでした。';
+                    this.notice.textContent = 'Could not choose a folder.';
                 }
             }, { small: true, icon: 'folder' });
             const encoders = buildExportEncoderChoices(platform).map(choice => ({
                 value: choice.value, label: ENCODER_SHORT_LABELS[choice.value], title: choice.label
             }));
             section.append(
-                groupCard('画質', choiceCards({ label: '書き出し画質', options: EXPORT_QUALITY_CHOICES, columns: 4,
+                groupCard('Quality', choiceCards({ label: 'Export quality', options: EXPORT_QUALITY_CHOICES, columns: 4,
                     value: normalizeExportQuality(this.preferences.get(AKARI_EXPORT_QUALITY)),
                     onChange: value => this.savePreference(AKARI_EXPORT_QUALITY, value) })),
-                groupCard('形式',
-                    settingRow('形式 / コーデック', '迷ったら MP4 · H.264', dropdown({ label: '形式 / コーデック', options: EXPORT_CODEC_CHOICES,
+                groupCard('Format',
+                    settingRow('Format / Codec', 'Use MP4 · H.264 if unsure', dropdown({ label: 'Format / Codec', options: EXPORT_CODEC_CHOICES,
                         value: normalizeExportCodec(this.preferences.get(AKARI_EXPORT_CODEC)),
                         onChange: value => this.savePreference(AKARI_EXPORT_CODEC, value) })),
-                    settingRow('エンコーダ', '速さと互換性。自動はハードウェアが使えれば優先します', segmentedControl({ label: 'エンコーダ', options: encoders,
+                    settingRow('Encoder', 'Speed and compatibility. Automatic prefers hardware when available', segmentedControl({ label: 'Encoder', options: encoders,
                         value: normalizeExportEncoder(this.preferences.get(AKARI_EXPORT_ENCODER), platform),
                         onChange: value => this.savePreference(AKARI_EXPORT_ENCODER, value) })),
-                    settingRow('フレームレート', '編集データに従うのが既定', segmentedControl({ label: 'フレームレート', options: EXPORT_FPS_CHOICES,
+                    settingRow('Frame rate', 'Defaults to edit data', segmentedControl({ label: 'Frame rate', options: EXPORT_FPS_CHOICES,
                         value: String(normalizeExportFps(this.preferences.get(AKARI_EXPORT_FPS)) ?? '') as typeof EXPORT_FPS_CHOICES[number]['value'],
                         onChange: value => this.savePreference(AKARI_EXPORT_FPS, normalizeExportFps(Number(value))) }))),
-                groupCard('保存先',
-                    settingRow('書き出し先フォルダ', '空欄ではプロジェクトの exports/ を使います', directory, pickDirectory),
-                    settingRow('くわしい設定', 'フル設定を開きます', action('開く', () => {
+                groupCard('Destination',
+                    settingRow('Export folder', 'Leave empty to use the project exports/ folder', directory, pickDirectory),
+                    settingRow('Advanced settings', 'Open full settings', action('Open', () => {
                         this.close();
                         void this.commands.executeCommand(CommonCommands.OPEN_PREFERENCES.id);
                     }, { small: true }))),
-                groupCard('書き出しのあと',
-                    this.preferenceSwitch('akari.export.openFolderAfter', '終わったらフォルダを開く', false, 'Finder で書き出したファイルを選んだ状態に'),
-                    this.preferenceSwitch('akari.export.notifyAfter', '終わったら知らせる', true, 'ウィンドウが背面のときだけ'),
-                    settingRow('ファイル名の決め方', '書き出したファイルの名前', dropdown({ label: 'ファイル名の決め方',
-                        options: [{ value: 'project-date-time', label: 'プロジェクト名_日付_時刻' }, { value: 'project-name', label: 'プロジェクト名' }],
+                groupCard('After export',
+                    this.preferenceSwitch('akari.export.openFolderAfter', 'Open folder when finished', false, 'Reveal the exported file in Finder'),
+                    this.preferenceSwitch('akari.export.notifyAfter', 'Notify when finished', true, 'Only while the window is in the background'),
+                    settingRow('File naming', 'Exported file name', dropdown({ label: 'File naming',
+                        options: [{ value: 'project-date-time', label: 'Project_date_time' }, { value: 'project-name', label: 'Project name' }],
                         value: this.preferences.get<string>(AKARI_EXPORT_FILENAME_PATTERN, 'project-date-time'),
                         onChange: value => this.savePreference(AKARI_EXPORT_FILENAME_PATTERN, value) }))));
         }
@@ -565,8 +565,8 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const rows = partnerSettingsCliRows().map(({ entry, name }) => {
             const id = entry.agent;
             const detail = this.partnerDetails?.[id];
-            return this.partnerRow(id, name, detail?.installed === undefined ? '調べています' : detail.installed ? 'インストール済み' : '未インストール',
-                detail?.detail || '—', detail?.installed === false ? '入れ方' : '起動', async () => {
+            return this.partnerRow(id, name, detail?.installed === undefined ? 'Checking' : detail.installed ? 'Installed' : 'Not installed',
+                detail?.detail || '—', detail?.installed === false ? 'Installation guide' : 'Start', async () => {
                 this.close();
                 await this.commands.executeCommand('akari.partner.open');
                 if (!detail?.installed) { return; }
@@ -575,28 +575,28 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             });
         });
         const extensions = [
-            { id: 'anthropic.claude-code', agent: 'claude' as const, name: 'Claude Code 拡張' },
-            { id: 'openai.chatgpt', agent: 'codex' as const, name: 'Codex 拡張' }
+            { id: 'anthropic.claude-code', agent: 'claude' as const, name: 'Claude Code extension' },
+            { id: 'openai.chatgpt', agent: 'codex' as const, name: 'Codex extension' }
         ].map(entry => this.partnerRow(entry.agent, entry.name,
-            this.extensionVersions ? entry.id in this.extensionVersions ? '入っている' : '入っていない' : '調べています',
-            `${entry.id}${this.extensionVersions?.[entry.id] ? ` · ${this.extensionVersions[entry.id]}` : ''}`, '開く', () => {
+            this.extensionVersions ? entry.id in this.extensionVersions ? 'Installed' : 'Not installed' : 'Checking',
+            `${entry.id}${this.extensionVersions?.[entry.id] ? ` · ${this.extensionVersions[entry.id]}` : ''}`, 'Open', () => {
                 this.close(); void this.commands.executeCommand('akari.partner.open');
             }));
         const cli = groupCard('CLI', ...rows);
         const cliHeading = cli.querySelector<HTMLElement>('.akari-set-group-title');
-        if (cliHeading) { cliHeading.append(element('span', '右のレールの線の上に並ぶ')); }
+        if (cliHeading) { cliHeading.append(element('span', 'Shown above the divider on the right rail')); }
         const caution = element('div'); caution.className = 'akari-set-caution';
-        caution.append(settingsIcon('info', 'sm'), element('span', '拡張は、拡張ホストが再起動すると会話が切れます。長い作業には CLI をおすすめします。'));
-        section.append(cli, groupCard('公式拡張',
+        caution.append(settingsIcon('info', 'sm'), element('span', 'Conversations end when the extension host restarts. Use the CLI for longer tasks.'));
+        section.append(cli, groupCard('Official extensions',
             caution,
             ...extensions,
-            settingRow('ほかの拡張を探す', 'Open VSX から（くわしい人向け）', action('開く', async () => {
+            settingRow('Find other extensions', 'From Open VSX (advanced)', action('Open', async () => {
                 this.close();
                 const widget = await this.widgetManager.getOrCreateWidget('vsx-extensions-view-container');
                 if (!widget.isAttached) { await this.shell.addWidget(widget, { area: 'main' }); }
                 await this.shell.activateWidget(widget.id);
             }, { small: true }))),
-        groupCard('ふるまい', this.preferenceSwitch(AKARI_PARTNER_REOPEN, '起動したら前回のパートナーを開く', true, '右のレールの線の上に並べる')));
+        groupCard('Behavior', this.preferenceSwitch(AKARI_PARTNER_REOPEN, 'Reopen the last partner on startup', true, 'Place above the divider on the right rail')));
     }
 
     protected partnerRow(id: keyof typeof PARTNER_CLI_ICON_CLASSES, name: string, state: string, sub: string,
@@ -629,18 +629,18 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
 
     protected async loadStorage(): Promise<void> {
         try { this.storageSnapshot = await this.maintenance.measure(this.workspaceRoot); }
-        catch { this.storageSnapshot = { entries: [], freeBytes: 0 }; this.notice.textContent = 'ストレージを調べられませんでした。'; }
+        catch { this.storageSnapshot = { entries: [], freeBytes: 0 }; this.notice.textContent = 'Could not check storage.'; }
         if (!this.isDisposed) { this.renderSection('storage'); }
     }
 
     protected renderStorageSection(section: HTMLElement): void {
         if (!this.storageSnapshot) {
-            section.append(settingsNote('調べています…'));
+            section.append(settingsNote('Checking…'));
         } else {
             const { entries, freeBytes } = this.storageSnapshot;
             const total = entries.reduce((sum, entry) => sum + entry.bytes, 0);
             const summary = element('div'); summary.className = 'akari-set-storage-total';
-            summary.append(element('b', formatBytes(total)), element('span', `AKARI 全体 · Mac の空き ${freeBytes ? formatBytes(freeBytes) : '調べられませんでした'}`));
+            summary.append(element('b', formatBytes(total)), element('span', `All AKARI data · Free space on Mac: ${freeBytes ? formatBytes(freeBytes) : 'Could not check'}`));
             const usage = element('div'); usage.className = 'akari-set-storage-usage';
             const legend = element('div'); legend.className = 'akari-set-storage-legend';
             entries.forEach((entry, index) => {
@@ -651,8 +651,8 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             });
             section.append(groupCard(undefined, summary, usage, legend));
             const rows = entries.map(entry => this.storageDetailRow(entry));
-            const breakdown = groupCard('内訳', ...rows);
-            breakdown.querySelector('.akari-set-group-title')?.append(element('span', '行を押すと開く'));
+            const breakdown = groupCard('Breakdown', ...rows);
+            breakdown.querySelector('.akari-set-group-title')?.append(element('span', 'Click a row to open'));
             section.append(breakdown);
         }
         section.append(this.renderLibraryStorageCard());
@@ -661,28 +661,28 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
     protected renderLibraryStorageCard(): HTMLElement {
         const status = this.libraryStatus;
         const usage = status?.usage;
-        const open = action('Finder で開く', () => {
+        const open = action('Open in Finder', () => {
             if (status?.root) { void this.maintenance.openPath(status.root); }
         }, { small: true, icon: 'folder' });
         open.disabled = !status?.root;
-        const change = action('場所を変える…', () => void this.commands.executeCommand('akari.library.changeLocation'), { small: true });
-        const clean = action('取り直せるものを片づける', () => void this.clearLabLibrary(), { small: true });
+        const change = action('Change location…', () => void this.commands.executeCommand('akari.library.changeLocation'), { small: true });
+        const clean = action('Clean up downloadable footage', () => void this.clearLabLibrary(), { small: true });
         clean.disabled = !usage?.cleanup.length;
-        const card = groupCard('素材の置き場',
-            settingRow('現在の場所', status?.root ?? '確認中…', open, change),
-            settingRow('合計', usage ? formatLibraryBytes(usage.totalBytes) : '確認中…'),
-            settingRow('Lab から', usage ? `${formatLibraryBytes(usage.bySource.lab.bytes)}（${usage.bySource.lab.count} 個）` : '確認中…'),
-            settingRow('素材サイトから', usage ? `${formatLibraryBytes(usage.bySource.site.bytes)}（${usage.bySource.site.count} 個）` : '確認中…'),
-            settingRow('自分の', usage ? `${formatLibraryBytes(usage.bySource.own.bytes)}（${usage.bySource.own.count} 個）` : '確認中…'),
-            settingRow('取り直せるもの', 'Lab から受け取った素材だけを一覧で確認してからゴミ箱へ移します', clean));
+        const card = groupCard('Footage location',
+            settingRow('Current location', status?.root ?? 'Checking…', open, change),
+            settingRow('Total', usage ? formatLibraryBytes(usage.totalBytes) : 'Checking…'),
+            settingRow('From Lab', usage ? `${formatLibraryBytes(usage.bySource.lab.bytes)}（${usage.bySource.lab.count} items)` : 'Checking…'),
+            settingRow('From footage sites', usage ? `${formatLibraryBytes(usage.bySource.site.bytes)}（${usage.bySource.site.count} items)` : 'Checking…'),
+            settingRow('Your own', usage ? `${formatLibraryBytes(usage.bySource.own.bytes)}（${usage.bySource.own.count} items)` : 'Checking…'),
+            settingRow('Downloadable footage', 'Review footage received from Lab before moving it to the trash', clean));
         card.setAttribute('data-akari-library-usage', 'true');
         const moveCopy = status ? libraryMoveCopy(status.state, status.previous, status.cloud) : {};
         if (moveCopy.retained) { card.append(settingsNote(moveCopy.retained)); }
         if (status?.state === 'pending') {
-            card.append(settingRow('移動する前に確認', moveCopy.sync,
-                action('このまま使う', () => void this.acceptSyncedLibrary(), { small: true }),
-                action('別の場所を選ぶ', () => void this.commands.executeCommand('akari.library.changeLocation'), { small: true }),
-                action('今は移さない', () => void this.declineSyncedLibrary(), { small: true })));
+            card.append(settingRow('Review before moving', moveCopy.sync,
+                action('Use this location', () => void this.acceptSyncedLibrary(), { small: true }),
+                action('Choose another location', () => void this.commands.executeCommand('akari.library.changeLocation'), { small: true }),
+                action('Do not move now', () => void this.declineSyncedLibrary(), { small: true })));
         }
         return card;
     }
@@ -704,13 +704,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const actions = element('div'); actions.className = 'akari-set-storage-actions';
         if (entry.id === 'cache' || entry.id === 'models' || entry.id === 'history') {
             const target: StorageCleanTarget = entry.id === 'history' ? 'old-history' : entry.id;
-            actions.append(action(entry.id === 'cache' ? '掃除する…' : entry.id === 'models' ? '消す…' : '古いものを消す…',
+            actions.append(action(entry.id === 'cache' ? 'Clean up…' : entry.id === 'models' ? 'Delete…' : 'Delete old items…',
                 () => this.showStorageConfirmation(target, entry), { small: true }));
         }
         if (entry.id === 'cache' || entry.id === 'library') {
-            actions.append(action('Finder で表示', () => void this.maintenance.revealPath(entry.path), { small: true }));
+            actions.append(action('Reveal in Finder', () => void this.maintenance.revealPath(entry.path), { small: true }));
         }
-        if (entry.id === 'exports') { actions.append(action('一覧', () => void this.maintenance.openPath(entry.path), { small: true })); }
+        if (entry.id === 'exports') { actions.append(action('List', () => void this.maintenance.openPath(entry.path), { small: true })); }
         detail.append(why, table, actions);
         header.addEventListener('click', () => { const open = header.getAttribute('aria-expanded') !== 'true';
             header.setAttribute('aria-expanded', String(open)); detail.hidden = !open; row.classList.toggle('akari-set-storage-open', open); });
@@ -719,45 +719,45 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
 
     protected showStorageConfirmation(target: StorageCleanTarget, entry: StorageEntry): void {
         const overlay = element('div'); overlay.className = 'akari-set-storage-confirm'; overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', `${entry.label}を消す確認`);
+        overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', `${entry.label} — Confirm deletion`);
         const box = element('div'); box.className = 'akari-set-storage-confirm-box';
-        box.append(element('h4', `${entry.label} ${formatBytes(entry.bytes)} を${target === 'cache' ? '掃除' : '削除'}しますか？`));
+        box.append(element('h4', `${target === 'cache' ? 'Clean up' : 'Delete'} ${entry.label} (${formatBytes(entry.bytes)})?`));
         const yes = element('ul');
-        yes.append(...entry.paths.map(location => element('li', `消すもの: ${target === 'old-history' ? '30 日より古い履歴' : entry.label}（${location}）`)),
-            element('li', target === 'cache' ? '必要になったら自動で作り直します' : target === 'models' ? '次に使うとき再ダウンロードが必要です' : '30 日より古い履歴だけを削除します'));
+        yes.append(...entry.paths.map(location => element('li', `Delete: ${target === 'old-history' ? 'History older than 30 days' : entry.label}（${location}）`)),
+            element('li', target === 'cache' ? 'Automatically recreated when needed' : target === 'models' ? 'Must be downloaded again before next use' : 'Only history older than 30 days is deleted'));
         const no = element('ul'); no.className = 'akari-set-storage-confirm-no';
-        no.append(element('li', '消さないもの: プロジェクト・素材・書き出し・最近の編集履歴'));
+        no.append(element('li', 'Kept: projects, footage, exports, and recent edit history'));
         const buttons = element('div'); buttons.className = 'akari-set-storage-confirm-actions';
-        buttons.append(action('やめる', () => overlay.remove(), { small: true }),
-            action(target === 'cache' ? '掃除する' : '削除する', async () => {
+        buttons.append(action('Cancel', () => overlay.remove(), { small: true }),
+            action(target === 'cache' ? 'Clean up' : 'Delete', async () => {
                 try { await this.maintenance.cleanStorage(target, this.workspaceRoot); overlay.remove(); await this.loadStorage(); }
-                catch { this.notice.textContent = `${entry.label}を削除できませんでした。`; overlay.remove(); }
+                catch { this.notice.textContent = `${entry.label} could not be deleted.`; overlay.remove(); }
             }, { small: true, variant: 'primary' }));
         box.append(yes, no, buttons); overlay.append(box); this.body.append(overlay);
     }
 
     protected renderPrivacy(section: HTMLElement): void {
         const microphone = window.akariPermissions?.microphone;
-        const permissionLabel = (value: string | undefined): string => value === 'granted' ? '許可済み'
-            : value === 'denied' || value === 'restricted' ? '拒否' : value === 'not-determined' ? '未設定' : 'システム設定で確認';
+        const permissionLabel = (value: string | undefined): string => value === 'granted' ? 'Granted'
+            : value === 'denied' || value === 'restricted' ? 'Denied' : value === 'not-determined' ? 'Not set' : 'Check in System Settings';
         const notification = typeof Notification !== 'undefined' ? Notification.permission : undefined;
         const permissions: { icon: SettingsIconName; name: string; description: string; state: string; url: string }[] = [
-            { icon: 'mic', name: 'マイク', description: '声で編集（Akari Vibe）・注釈の録音', state: permissionLabel(microphone), url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone' },
-            { icon: 'folder', name: '書類・デスクトップ・ダウンロード', description: 'そこに置いたプロジェクトや素材を開く', state: 'システム設定で確認', url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders' },
-            { icon: 'bell', name: '通知', description: '書き出し・AI の作業が終わったとき', state: permissionLabel(notification), url: 'x-apple.systempreferences:com.apple.preference.notifications' },
-            { icon: 'terminal', name: 'フルディスクアクセス', description: 'ふつうは不要。外付けドライブの一部で要ることがある', state: 'システム設定で確認', url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles' }
+            { icon: 'mic', name: 'Microphone', description: 'Voice editing (Akari Vibe) and annotation recording', state: permissionLabel(microphone), url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone' },
+            { icon: 'folder', name: 'Documents, Desktop, and Downloads', description: 'Open projects and footage stored there', state: 'Check in System Settings', url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders' },
+            { icon: 'bell', name: 'Notifications', description: 'When exports or AI tasks finish', state: permissionLabel(notification), url: 'x-apple.systempreferences:com.apple.preference.notifications' },
+            { icon: 'terminal', name: 'Full Disk Access', description: 'Usually unnecessary; some external drives may require it', state: 'Check in System Settings', url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles' }
         ];
         const rows = permissions.map(item => {
             const row = element('div'); row.className = 'akari-set-permission-row';
             const tile = element('span'); tile.className = 'akari-set-partner-tile'; tile.append(settingsIcon(item.icon, 'sm'));
             const copy = element('div'); copy.append(element('b', item.name), element('span', item.description));
-            const state = element('span', item.state); state.className = `akari-set-permission-state${item.state === '許可済み' ? ' akari-set-permission-state-ok' : ''}`;
-            row.append(tile, copy, state, action('システム設定', () => this.windows.openNewWindow(item.url, { external: true }), { small: true }));
+            const state = element('span', item.state); state.className = `akari-set-permission-state${item.state === 'Granted' ? ' akari-set-permission-state-ok' : ''}`;
+            row.append(tile, copy, state, action('System Settings', () => this.windows.openNewWindow(item.url, { external: true }), { small: true }));
             return row;
         });
-        section.append(groupCard('macOS のアクセス許可', ...rows),
-        groupCard('外へ送るもの', settingRow('利用状況の送信', 'AKARI Video は利用状況を送っていません', statusPill('送っていない')),
-            settingRow('API キー', `鍵は ${this.credentialsPath || (OS.type() === OS.Type.Windows ? '%USERPROFILE%\\.akari\\credentials.env' : '~/.akari/credentials.env')} に保存します（この PC だけ・600）。AKARI のサーバーには送りません`, action('場所を開く', () => {
+        section.append(groupCard('macOS permissions', ...rows),
+        groupCard('Data sent externally', settingRow('Usage reporting', 'AKARI Video does not send usage data', statusPill('Not sent')),
+            settingRow('API key', `Keys are stored at ${this.credentialsPath || (OS.type() === OS.Type.Windows ? '%USERPROFILE%\\.akari\\credentials.env' : '~/.akari/credentials.env')} (this PC only, permissions 600). They are not sent to AKARI servers`, action('Open location', () => {
                 if (this.credentialsPath) { void this.maintenance.openPath(this.credentialsPath.replace(/[\\/][^\\/]+$/, '')); }
             }, { small: true }))));
     }
@@ -766,17 +766,17 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const wrap = element('div'); wrap.className = 'akari-set-soon';
         const blurred = element('div'); blurred.className = 'akari-set-soon-blur'; blurred.setAttribute('aria-hidden', 'true');
         const kpi = element('div'); kpi.className = 'akari-set-stats-kpi';
-        for (const [label, value] of [['使った金額', '$23.10'], ['トークン', '4.2 M'], ['生成した動画', '37 本']]) {
+        for (const [label, value] of [['Amount spent', '$23.10'], ['Tokens', '4.2 M'], ['Generated videos', '37 videos']]) {
             const tile = element('div'); tile.append(element('span', label), element('b', value)); kpi.append(tile);
         }
         const chart = element('div'); chart.className = 'akari-set-stats-chart';
         [20, 35, 28, 60, 44, 12, 8, 52, 70, 33, 41, 25, 18, 64].forEach((height, index) => {
             const bar = element('i'); bar.style.height = `${height}%`; if (index % 5 === 3) { bar.className = 'akari-set-stats-chart-hi'; } chart.append(bar);
         });
-        blurred.append(groupCard('この 30 日', kpi, chart));
-        const services = [['OpenRouter · Akari Vibe', '$11.40', 62], ['fal · 画像・動画の生成', '$9.20', 48],
-            ['ElevenLabs · ナレーション', '$2.50', 14]] as const;
-        blurred.append(groupCard('サービスごと', ...services.map(([name, amount, percent]) => {
+        blurred.append(groupCard('Last 30 days', kpi, chart));
+        const services = [['OpenRouter · Akari Vibe', '$11.40', 62], ['fal · Image and video generation', '$9.20', 48],
+            ['ElevenLabs · Narration', '$2.50', 14]] as const;
+        blurred.append(groupCard('By service', ...services.map(([name, amount, percent]) => {
             const row = element('div'); row.className = 'akari-set-stats-service';
             const logo = element('span'); logo.className = 'akari-set-stats-service-logo';
             const bar = element('span'); bar.className = 'akari-set-stats-service-bar';
@@ -784,35 +784,35 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             row.append(logo, element('span', name), bar, element('span', amount)); return row;
         })));
         const veil = element('div'); veil.className = 'akari-set-soon-veil';
-        const copy = element('div'); copy.append(element('b', 'Coming soon'), element('span', 'サービスごとの使用量と金額')); veil.append(copy);
+        const copy = element('div'); copy.append(element('b', 'Coming soon'), element('span', 'Usage and cost by service')); veil.append(copy);
         wrap.append(blurred, veil); section.append(wrap);
     }
 
     protected renderHelp(section: HTMLElement): void {
         const checklist = element('div'); checklist.className = 'akari-set-diagnostic-list';
-        for (const label of ['アプリと OS のバージョン', '直近のログ（24 時間）', '道具の状態（ffmpeg など）', '画面の配置', 'プロジェクトの edit.json']) {
+        for (const label of ['App and OS versions', 'Recent logs (24 hours)', 'Tool status (ffmpeg and others)', 'Panel layout', 'Project edit.json']) {
             const item = element('span'); item.append(settingsIcon('check', 'sm'), element('span', label)); checklist.append(item);
         }
-        const excluded = element('span', 'API キー・個人のパスは入れない'); excluded.className = 'akari-set-diagnostic-excluded'; checklist.append(excluded);
-        section.append(groupCard('診断情報を書き出す', checklist,
-            settingRow('保存先', homeShortened(this.diagnosticPath || '調べています…'), action('場所を変える', async () => {
-                const destination = await this.fileDialogs.showSaveDialog({ title: '診断情報の保存先', inputValue: this.diagnosticPath });
+        const excluded = element('span', 'Excludes API keys and personal paths'); excluded.className = 'akari-set-diagnostic-excluded'; checklist.append(excluded);
+        section.append(groupCard('Export diagnostics', checklist,
+            settingRow('Destination', homeShortened(this.diagnosticPath || 'Checking…'), action('Change location', async () => {
+                const destination = await this.fileDialogs.showSaveDialog({ title: 'Diagnostics destination', inputValue: this.diagnosticPath });
                 if (destination) { this.diagnosticPath = destination.path.fsPath(); this.diagnosticPathCustomized = true; this.renderSection('help'); }
             }, { small: true })),
-            settingRow('zip にまとめる', 'できたら Finder で選んだ状態で開きます。中身は開いて確かめられます', action('書き出す', async () => {
+            settingRow('Create ZIP', 'Reveal the ZIP in Finder when finished. Open it to inspect its contents', action('Export', async () => {
                 const left = document.querySelector<HTMLElement>('#theia-left-content-panel')?.getBoundingClientRect().width || 0;
                 const right = document.querySelector<HTMLElement>('#theia-right-content-panel')?.getBoundingClientRect().width || 0;
                 try { const location = await this.maintenance.exportDiagnostics(this.diagnosticPathCustomized ? this.diagnosticPath : undefined,
                     { width: window.innerWidth, height: window.innerHeight, leftPanelWidth: left, rightPanelWidth: right },
                     this.workspaceRoot, this.credentialsPath);
                     this.diagnosticPath = location; this.renderSection('help');
-                    await this.maintenance.revealPath(location); this.notice.textContent = '診断情報を書き出しました。'; }
-                catch { this.notice.textContent = '診断情報を書き出せませんでした。'; }
+                    await this.maintenance.revealPath(location); this.notice.textContent = 'Diagnostics exported.'; }
+                catch { this.notice.textContent = 'Could not export diagnostics.'; }
             }, { small: true }))),
-        groupCard('そのほか',
-            settingRow('不具合を報告する', 'GitHub の issue を開く', action('開く', () => this.windows.openNewWindow(AKARI_VIDEO_NEW_ISSUE_URL, { external: true }), { small: true })),
-            settingRow('ログのフォルダを開く', '~/Library/Logs/AKARI Video', action('開く', () => void this.maintenance.openPath('~/Library/Logs/AKARI Video'), { small: true })),
-            settingRow('画面の配置を最初に戻す', 'パネルの位置・右のレールの並びを既定に', action('戻す', () => void this.commands.executeCommand('reset.layout'), { small: true }))));
+        groupCard('Other',
+            settingRow('Report a bug', 'Open a GitHub issue', action('Open', () => this.windows.openNewWindow(AKARI_VIDEO_NEW_ISSUE_URL, { external: true }), { small: true })),
+            settingRow('Open logs folder', '~/Library/Logs/AKARI Video', action('Open', () => void this.maintenance.openPath('~/Library/Logs/AKARI Video'), { small: true })),
+            settingRow('Reset panel layout', 'Restore default panel positions and right rail order', action('Reset', () => void this.commands.executeCommand('reset.layout'), { small: true }))));
     }
 
     protected renderAbout(section: HTMLElement): void {
@@ -832,7 +832,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 this.applyAboutUpdaterEvent(event);
             });
         }
-        section.append(groupCard('AKARI Video', settingsNote('バージョンとビルド情報を調べています…')));
+        section.append(groupCard('AKARI Video', settingsNote('Loading version and build information…')));
         void Promise.all([this.maintenance.appInfo(), window.electronAkariUpdater?.getLastEvent(), this.maintenance.getUpdateSettings().catch(() => undefined),
             window.electronAkariUpdater?.getCapabilities().catch(() => ({ updateUiEnabled: false })), this.resolveAboutUpdateDownloadUrl()]).then(([info, update, updateSettings, capabilities, downloadUrl]) => {
             if (this.isDisposed || !section.isConnected || generation !== this.aboutUpdateGeneration) { return; }
@@ -845,20 +845,20 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             icon.onerror = () => { const logo = element('strong', 'AKARI'); logo.style.width = '64px'; icon.replaceWith(logo); };
             const hero = element('div'); hero.className = 'akari-set-about-hero';
             const identity = element('div'); identity.append(element('h3', 'AKARI Video'),
-                element('p', `v${info.version} · ${info.buildDate} ビルド · ${info.os}`));
+                element('p', `v${info.version} · ${info.buildDate} build · ${info.os}`));
             hero.append(icon, identity);
             const updateRow = capabilities && !capabilities.updateUiEnabled
-                ? settingsNote('開発版のため更新は確認できません')
+                ? settingsNote('Updates cannot be checked in development builds')
                 : this.createAboutUpdateRow();
             this.aboutUpdateRow = capabilities && !capabilities.updateUiEnabled ? undefined : updateRow;
             const main = groupCard(undefined, hero,
                 updateRow,
-                settingRow('受け取る版', 'プレリリースは新しい機能が早く届くかわりに不安定なことがある', segmentedControl({ label: '受け取る版', options: [{ value: 'stable', label: '安定版' }, { value: 'prerelease', label: 'プレリリースも' }],
+                settingRow('Update channel', 'Prereleases offer early features but may be unstable', segmentedControl({ label: 'Update channel', options: [{ value: 'stable', label: 'Stable' }, { value: 'prerelease', label: 'Include prereleases' }],
                     value: updateSettings?.channel ?? this.preferences.get('akari.update.channel', 'prerelease'), onChange: value => {
                         this.savePreference('akari.update.channel', value);
                         void this.maintenance.setUpdateSettings({ channel: value });
                     } })),
-                settingRow('自動で確認する', '起動したときに右下の通知でお知らせ', switchControl({ label: '自動で確認する',
+                settingRow('Check automatically', 'Notify at the bottom right on startup', switchControl({ label: 'Check automatically',
                     checked: updateSettings?.autoCheck ?? this.preferences.get<boolean>('akari.update.autoCheck', true), onChange: checked => {
                         this.savePreference('akari.update.autoCheck', checked);
                         void this.maintenance.setUpdateSettings({ autoCheck: checked });
@@ -867,13 +867,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             if (info.recentChanges) {
                 const release = element('div'); release.className = 'akari-set-about-release';
                 release.append(element('b', `v${info.recentChanges.version}`), element('span', formatShortReleaseDate(info.recentChanges.date)));
-                if (info.recentChanges.notesUrl) { release.append(action('変更を見る', () => this.windows.openNewWindow(info.recentChanges!.notesUrl!, { external: true }), { small: true })); }
-                section.append(groupCard('最近の変更', release));
+                if (info.recentChanges.notesUrl) { release.append(action('View changes', () => this.windows.openNewWindow(info.recentChanges!.notesUrl!, { external: true }), { small: true })); }
+                section.append(groupCard('Recent changes', release));
             }
-            section.append(groupCard(undefined, settingRow('リンク', 'akari.video · GitHub · オープンソースのライセンス',
-                ...[['公式サイト', 'https://akari.video'], ['GitHub', AKARI_VIDEO_REPO_URL], ['ライセンス', AKARI_VIDEO_LICENSE_URL]].map(([label, url]) =>
+            section.append(groupCard(undefined, settingRow('Links', 'akari.video · GitHub · Open-source licenses',
+                ...[['Official website', 'https://akari.video'], ['GitHub', AKARI_VIDEO_REPO_URL], ['Licenses', AKARI_VIDEO_LICENSE_URL]].map(([label, url]) =>
                     action(label, () => this.windows.openNewWindow(url, { external: true }), { small: true })))));
-        }).catch(() => { this.notice.textContent = 'アプリ情報を読み込めませんでした。'; });
+        }).catch(() => { this.notice.textContent = 'Could not load app information.'; });
     }
 
     protected stopAboutUpdaterEvents(): void {
@@ -905,7 +905,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             state: this.aboutUpdaterState,
             lastEventKind: this.aboutLastEventKind,
             currentVersion: this.aboutCurrentVersion ?? '',
-            lastChecked: this.aboutCheckedAt ? new Date(this.aboutCheckedAt).toLocaleString('ja-JP') : 'まだ確認していません',
+            lastChecked: this.aboutCheckedAt ? new Date(this.aboutCheckedAt).toLocaleString('en-US') : 'Not checked yet',
             downloadUrl: this.aboutDownloadUrl
         });
         const button = action(view.button.label, () => {
@@ -918,7 +918,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             this.refreshAboutUpdateRow();
             const api = window.electronAkariUpdater;
             if (!api) {
-                this.aboutUpdaterState = applyImmediateUpdaterFallback(this.aboutUpdaterState, 'アプリ内更新機能を利用できませんでした');
+                this.aboutUpdaterState = applyImmediateUpdaterFallback(this.aboutUpdaterState, 'In-app updates are unavailable');
                 this.refreshAboutUpdateRow();
                 if (this.aboutDownloadUrl) { this.windows.openNewWindow(this.aboutDownloadUrl, { external: true }); }
                 return;
@@ -926,13 +926,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             const generation = this.aboutUpdateGeneration;
             void api.checkForUpdatesNow({ userInitiated: true }).catch(() => {
                 if (this.isDisposed || this.sections.get('about')?.hidden || generation !== this.aboutUpdateGeneration) { return; }
-                this.applyAboutUpdaterEvent({ kind: 'error', reason: '更新処理を開始できませんでした' });
+                this.applyAboutUpdaterEvent({ kind: 'error', reason: 'Could not start the update' });
             });
         }, { small: true, variant: view.button.primary ? 'primary' : 'ghost', icon: view.button.kind === 'check' ? 'refresh' : undefined });
         button.disabled = view.button.disabled;
         const controls = [button];
         if (view.browserFallback && this.aboutDownloadUrl) {
-            controls.push(action('ブラウザで入手', () => this.windows.openNewWindow(this.aboutDownloadUrl!, { external: true }), { small: true }));
+            controls.push(action('Get in browser', () => this.windows.openNewWindow(this.aboutDownloadUrl!, { external: true }), { small: true }));
         }
         return settingRow(view.label, view.detail, ...controls);
     }
@@ -951,38 +951,38 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         try {
             this.libraryStatus = await this.toolsService.libraryStatus();
             if (!this.isDisposed) { this.renderSection('storage'); }
-        } catch { this.notice.textContent = '素材の使用量を確認できませんでした。'; }
+        } catch { this.notice.textContent = 'Could not check footage usage.'; }
     }
 
     showLibraryMoveProgress(progress: { bytes: number; totalBytes: number } | undefined): void {
         this.notice.textContent = progress?.totalBytes
-            ? `素材を移動しています… ${formatLibraryBytes(progress.bytes)} / ${formatLibraryBytes(progress.totalBytes)}`
-            : '素材を移動しています… 終わるまで取り込みと取得をお待ちください。';
+            ? `Moving footage… ${formatLibraryBytes(progress.bytes)} / ${formatLibraryBytes(progress.totalBytes)}`
+            : 'Moving footage… Wait for this to finish before importing or downloading.';
     }
     clearLibraryMoveProgress(): void { this.notice.textContent = ''; }
 
     protected async acceptSyncedLibrary(): Promise<void> {
         this.showLibraryMoveProgress(undefined);
-        try { await this.toolsService.moveLibrary(); await this.refreshLibraryStatus(); this.notice.textContent = '素材を移動しました。'; }
-        catch { this.notice.textContent = '素材を移動できませんでした。'; }
+        try { await this.toolsService.moveLibrary(); await this.refreshLibraryStatus(); this.notice.textContent = 'Footage moved.'; }
+        catch { this.notice.textContent = 'Could not move footage.'; }
     }
 
     protected async declineSyncedLibrary(): Promise<void> {
         try { await this.toolsService.declineLibraryMove(); await this.refreshLibraryStatus(); }
-        catch { this.notice.textContent = '選択を保存できませんでした。'; }
+        catch { this.notice.textContent = 'Could not save the selection.'; }
     }
 
     protected async clearLabLibrary(): Promise<void> {
         const targets = this.libraryStatus?.usage.cleanup ?? [];
         if (!targets.length) { return; }
         const list = element('div');
-        list.append(element('p', `Lab から受け取った ${targets.length} 個、合計 ${formatLibraryBytes(this.libraryStatus!.usage.cleanupBytes)} をゴミ箱へ移します。`));
+        list.append(element('p', `Footage from Lab: ${targets.length} items, total ${formatLibraryBytes(this.libraryStatus!.usage.cleanupBytes)} will be moved to the trash.`));
         const names = element('ul');
         Object.assign(names.style, { maxHeight: '260px', overflow: 'auto', paddingLeft: '22px' });
         for (const item of targets) { names.append(element('li', `${item.title}（${formatLibraryBytes(item.bytes)}）`)); }
         list.append(names);
         const confirmed = await new ConfirmDialog({
-            title: '取り直せる素材を片づける', msg: list, ok: 'ゴミ箱へ移す', cancel: 'やめる'
+            title: 'Clean up downloadable footage', msg: list, ok: 'Move to trash', cancel: 'Cancel'
         }).open();
         if (!confirmed) { return; }
         try {
@@ -993,9 +993,9 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 await this.files.delete(URI.fromFilePath(directory), { recursive: true, useTrash: true });
                 count++;
             }
-            this.notice.textContent = `${count} 個をゴミ箱へ移しました。`;
+            this.notice.textContent = `${count} items moved to trash.`;
             await this.refreshLibraryStatus();
-        } catch { this.notice.textContent = '素材を片づけられませんでした。'; }
+        } catch { this.notice.textContent = 'Could not clean up footage.'; }
     }
 
     /** はじめかたの進み具合。道具・接続の状態が読めたものだけ出す（読めないうちは枠ごと出さない）。 */
@@ -1004,11 +1004,11 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const steps: { name: string; detail: string; done: boolean }[] = [];
         if (tools && tools.length > 0) {
             const ready = tools.filter(tool => tool.available).length;
-            steps.push({ name: '道具', detail: `${ready} / ${tools.length} が使える`, done: ready === tools.length });
+            steps.push({ name: 'Tools', detail: `${ready} / ${tools.length} is available`, done: ready === tools.length });
         }
         if (this.connectionSummary && this.connectionSummary.total > 0) {
             const { configured, total } = this.connectionSummary;
-            steps.push({ name: '接続', detail: `API キー ${configured} / ${total}`, done: configured > 0 });
+            steps.push({ name: 'Connection', detail: `API key ${configured} / ${total}`, done: configured > 0 });
         }
         if (steps.length === 0) { return undefined; }
         const wrap = element('div');
@@ -1043,42 +1043,42 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const compareSet = this.preferences.get<string[]>(AKARI_TRANSCRIBE_COMPARE_SET, []);
         if (compareSet.length > 0) { this.compareDraft = compareSet; this.compareEnabled = true; }
         this.transcribe.replaceChildren(...this.sectionHeading('transcribe'));
-        this.transcribe.append(groupCard('モード', choiceCards({ label: '文字起こしのモード', options: TRANSCRIBE_MODE_CHOICES, value: mode, columns: 2,
+        this.transcribe.append(groupCard('Mode', choiceCards({ label: 'Transcription mode', options: TRANSCRIBE_MODE_CHOICES, value: mode, columns: 2,
             onChange: value => this.savePreference(AKARI_TRANSCRIBE_MODE, value) })));
         const engines = TRANSCRIBE_BACKENDS.map(id => ({ value: id, label: ENGINE_LABELS[id], description: ENGINE_DESCRIPTIONS[id] }));
         let fixedEngine: typeof TRANSCRIBE_BACKENDS[number] = backend === 'auto' ? 'speech-analyzer' : backend;
-        const engine: DropdownHandle = dropdown({ label: '文字起こしのエンジン', options: engines, value: fixedEngine, disabled: backend === 'auto',
+        const engine: DropdownHandle = dropdown({ label: 'Transcription engine', options: engines, value: fixedEngine, disabled: backend === 'auto',
             onChange: value => { fixedEngine = value; this.savePreference(AKARI_TRANSCRIBE_BACKEND, value); } });
-        const policy = segmentedControl({ label: '使うエンジン', value: backend === 'auto' ? 'auto' : 'fixed',
-            options: [{ value: 'auto', label: 'おまかせ' }, { value: 'fixed', label: '決めたエンジン' }],
+        const policy = segmentedControl({ label: 'Engine to use', value: backend === 'auto' ? 'auto' : 'fixed',
+            options: [{ value: 'auto', label: 'Automatic' }, { value: 'fixed', label: 'Selected engine' }],
             onChange: value => {
                 engine.akariSetDisabled?.(value === 'auto');
                 this.savePreference(AKARI_TRANSCRIBE_BACKEND, value === 'auto' ? 'auto' : fixedEngine);
             } });
-        this.transcribe.append(groupCard('エンジン',
-            settingRow('使うエンジン', 'おまかせは SpeechAnalyzer、次に Whisper の順。クラウドは自分で選んだときだけ使います', policy),
-            settingRow('決めたエンジン', '「決めたエンジン」のときだけ使います', engine)));
+        this.transcribe.append(groupCard('Engine',
+            settingRow('Engine to use', 'Automatic uses SpeechAnalyzer, then Whisper. Cloud engines are used only when explicitly selected', policy),
+            settingRow('Selected engine', 'Used only with Selected engine', engine)));
         if (mode === 'simple') {
-            this.transcribe.append(settingsNote('比較・カット候補の自動作成: アドバンスで使います'));
+            this.transcribe.append(settingsNote('Engine comparison and automatic cut candidates: available in Advanced mode'));
             return;
         }
-        const chips = checkChips({ label: '比べるエンジン', checked: this.compareDraft,
+        const chips = checkChips({ label: 'Engines to compare', checked: this.compareDraft,
             options: TRANSCRIBE_BACKENDS.map(id => ({ value: id, label: ENGINE_SHORT_LABELS[id] })),
             onToggle: (id, checked) => {
                 this.compareDraft = TRANSCRIBE_BACKENDS.filter(candidate => candidate === id ? checked : this.compareDraft.includes(candidate));
                 this.savePreference(AKARI_TRANSCRIBE_COMPARE_SET, [...this.compareDraft]);
             } });
         chips.hidden = !this.compareEnabled;
-        const compare = switchControl({ label: '比べるときは、いつもこの組', checked: this.compareEnabled, onChange: checked => {
+        const compare = switchControl({ label: 'Use this set for comparisons', checked: this.compareEnabled, onChange: checked => {
             this.compareEnabled = checked;
             chips.hidden = !checked;
             this.savePreference(AKARI_TRANSCRIBE_COMPARE_SET, this.compareEnabled ? [...this.compareDraft] : []);
         } });
-        const cuts = switchControl({ label: 'カット候補を自動で作る', checked: this.preferences.get<boolean>(AKARI_TRANSCRIBE_AUTO_CUTS, true),
+        const cuts = switchControl({ label: 'Create cut candidates automatically', checked: this.preferences.get<boolean>(AKARI_TRANSCRIBE_AUTO_CUTS, true),
             onChange: checked => this.savePreference(AKARI_TRANSCRIBE_AUTO_CUTS, checked) });
-        this.transcribe.append(groupCard('アドバンス',
-            settingRow('比べるときは、いつもこの組', '比較は選択式（毎回ではない）。比べるエンジンに印を付けます', compare), chips,
-            settingRow('カット候補を自動で作る', 'フィラー・言い直し・無音。作るだけでタイムラインには入れません', cuts)));
+        this.transcribe.append(groupCard('Advanced',
+            settingRow('Use this set for comparisons', 'Comparison is optional. Select the engines to compare', compare), chips,
+            settingRow('Create cut candidates automatically', 'Fillers, retakes, and silence. Candidates are not added to the timeline', cuts)));
     }
 
     protected renderNarration(): void {
@@ -1090,15 +1090,15 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const voicevoxDetail = voicevox?.availability.detail;
         const voicevoxRunning = voicevoxDetail?.running === true;
         const voicevoxFound = voicevoxDetail?.app_found === true;
-        const voicevoxPill = this.narrationLoading ? '確認中…' : voicevoxRunning
-            ? `起動中 · ${voicevoxDetail?.version ?? '版を確認できません'}` : voicevoxFound ? '止まっています' : '入っていません';
+        const voicevoxPill = this.narrationLoading ? 'Checking…' : voicevoxRunning
+            ? `Running · ${voicevoxDetail?.version ?? 'Could not check version'}` : voicevoxFound ? 'Stopped' : 'Not installed';
         const engineCard = (id: string, label: string, state: string, description: string): { card: HTMLElement; actions: HTMLElement } => {
             const card = element('div');
             card.setAttribute('data-akari-narration-engine', id);
             Object.assign(card.style, { padding: '14px 16px', borderBottom: '1px solid var(--theia-border-color, #404040)' });
             const heading = element('div');
             Object.assign(heading.style, { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' });
-            heading.append(element('strong', label), statusPill(state, state.startsWith('起動中') || state === 'fal の鍵あり' || state === 'お試し · 接続済み' ? 'ok' : 'neutral'));
+            heading.append(element('strong', label), statusPill(state, state.startsWith('Running') || state === 'fal key configured' || state === 'Trial · Connected' ? 'ok' : 'neutral'));
             const detail = element('div', description);
             detail.style.opacity = '0.8';
             const actions = element('div');
@@ -1107,28 +1107,28 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             return { card, actions };
         };
         const vv = engineCard('voicevox', 'VOICEVOX', voicevoxPill,
-            'この Mac · 無料 · 使う声のクレジット（VOICEVOX:キャラ名）が必要');
+            'This Mac · Free · Voice attribution required (VOICEVOX: character name)');
         if (!this.narrationLoading && !voicevoxFound && !voicevoxRunning) {
             if (this.narrationState?.voicevoxCaskAvailable) {
-                const install = action(this.narrationBusy === 'install' ? '入れています…' : '入れる', () => void this.installVoicevox(), { small: true });
+                const install = action(this.narrationBusy === 'install' ? 'Installing…' : 'Add', () => void this.installVoicevox(), { small: true });
                 install.disabled = Boolean(this.narrationBusy);
                 install.setAttribute('data-akari-narration-action', 'install');
                 vv.actions.append(install);
             }
-            const official = action('公式サイトを開く', () => this.windows.openNewWindow('https://voicevox.hiroshiba.jp/', { external: true }), { small: true });
+            const official = action('Open official website', () => this.windows.openNewWindow('https://voicevox.hiroshiba.jp/', { external: true }), { small: true });
             official.setAttribute('data-akari-narration-action', 'official');
             vv.actions.append(official);
         } else if (!this.narrationLoading && voicevoxRunning) {
-            const preview = action(this.narrationBusy === 'preview' ? '作成中…' : '声を試す', () => void this.previewVoicevox(), { small: true });
+            const preview = action(this.narrationBusy === 'preview' ? 'Creating…' : 'Preview voice', () => void this.previewVoicevox(), { small: true });
             preview.disabled = Boolean(this.narrationBusy);
             preview.setAttribute('data-akari-narration-action', 'preview');
-            const stop = action('止める', () => void this.operateVoicevox('stop'), { small: true });
+            const stop = action('Stop', () => void this.operateVoicevox('stop'), { small: true });
             stop.disabled = Boolean(this.narrationBusy) || !voicevoxDetail?.managed;
-            stop.title = voicevoxDetail?.managed ? '' : 'VOICEVOX アプリから終了してください';
+            stop.title = voicevoxDetail?.managed ? '' : 'Quit from the VOICEVOX app';
             stop.setAttribute('data-akari-narration-action', 'stop');
             vv.actions.append(preview, stop);
         } else if (!this.narrationLoading && voicevoxFound) {
-            const start = action(this.narrationBusy === 'start' ? '起動中…' : '起動する', () => void this.operateVoicevox('start'), { small: true });
+            const start = action(this.narrationBusy === 'start' ? 'Starting…' : 'Start', () => void this.operateVoicevox('start'), { small: true });
             start.disabled = Boolean(this.narrationBusy);
             start.setAttribute('data-akari-narration-action', 'start');
             vv.actions.append(start);
@@ -1144,26 +1144,26 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             const progress = element('div');
             progress.className = 'akari-set-progress';
             progress.append(element('i'));
-            vv.card.append(progress, settingsNote('導入しています…'));
+            vv.card.append(progress, settingsNote('Installing…'));
         }
-        const geminiCard = engineCard('gemini-tts', 'Gemini 2.5 Flash TTS', this.narrationLoading ? '確認中…' :
-            gemini?.availability.state === 'available' ? 'fal の鍵あり' : 'fal の鍵がありません',
-            'クラウド · fal.ai 経由 · 従量（暫定 $0.05 / 1000 字）');
-        const connectionsButton = action('接続と API キーへ', () => this.showSection('connections'), { small: true });
+        const geminiCard = engineCard('gemini-tts', 'Gemini 2.5 Flash TTS', this.narrationLoading ? 'Checking…' :
+            gemini?.availability.state === 'available' ? 'fal key configured' : 'No fal key configured',
+            'Cloud · Via fal.ai · Pay as you go (provisional $0.05 / 1,000 characters)');
+        const connectionsButton = action('Open Connections and API keys', () => this.showSection('connections'), { small: true });
         connectionsButton.setAttribute('data-akari-narration-action', 'connections');
         geminiCard.actions.append(connectionsButton);
-        const irodori = engineCard('irodori', '彩（自分の PC）', this.narrationLoading ? '確認中…' :
-            irodoriState?.availability.state === 'available' ? 'お試し · 接続済み' : 'つながりません',
-            'Irodori-TTS（MIT）を別に起動したサーバーにつないで使います。Mac の MPS でも使えます（M1 で 2 回目以降、1 文 15 秒前後）。');
-        const experimentalPill = statusPill('お試し', 'neutral');
+        const irodori = engineCard('irodori', 'Irodori (my PC)', this.narrationLoading ? 'Checking…' :
+            irodoriState?.availability.state === 'available' ? 'Trial · Connected' : 'Cannot connect',
+            'Connect to a separately running Irodori-TTS server (MIT). Supports Mac MPS (about 15 seconds per sentence after the first run on M1).');
+        const experimentalPill = statusPill('Trial', 'neutral');
         experimentalPill.setAttribute('data-akari-experimental', 'true');
         irodori.card.querySelector('strong')?.after(experimentalPill);
         const irodoriUrl = element('input'); irodoriUrl.type = 'text';
         irodoriUrl.value = this.preferences.get(AKARI_NARRATION_IRODORI_URL) ?? 'http://127.0.0.1:8088';
-        irodoriUrl.setAttribute('aria-label', '彩の接続先 URL'); irodoriUrl.setAttribute('data-akari-irodori-url', 'true');
-        const invalidUrlNote = settingsNote('接続先は http または https の URL を入力してください。');
+        irodoriUrl.setAttribute('aria-label', 'Irodori server URL'); irodoriUrl.setAttribute('data-akari-irodori-url', 'true');
+        const invalidUrlNote = settingsNote('Enter an HTTP or HTTPS server URL.');
         invalidUrlNote.hidden = true; invalidUrlNote.setAttribute('data-akari-irodori-url-error', 'true');
-        const saveUrl = action('保存', () => {
+        const saveUrl = action('Save', () => {
             const value = irodoriUrl.value.trim();
             if (!isValidIrodoriUrl(value)) { invalidUrlNote.hidden = false; return; }
             invalidUrlNote.hidden = true;
@@ -1171,12 +1171,12 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             void this.preferenceWrites.then(() => this.refreshNarrationState());
         }, { small: true });
         saveUrl.setAttribute('data-akari-narration-action', 'save-irodori-url');
-        irodori.card.append(settingRow('接続先 URL', '同じ PC または別の PC の Irodori サーバー', irodoriUrl, saveUrl));
+        irodori.card.append(settingRow('Server URL', 'Irodori server on this PC or another PC', irodoriUrl, saveUrl));
         irodori.card.append(invalidUrlNote);
-        const checkIrodori = action('接続を確かめる', () => void this.refreshNarrationState(), { small: true });
+        const checkIrodori = action('Check connection', () => void this.refreshNarrationState(), { small: true });
         checkIrodori.setAttribute('data-akari-narration-action', 'check-irodori');
         irodori.actions.append(checkIrodori);
-        const setup = element('details'); const summary = element('summary', 'サーバーの立て方'); setup.append(summary);
+        const setup = element('details'); const summary = element('summary', 'Server setup'); setup.append(summary);
         const commandLine = (command: string): HTMLElement => {
             const pre = element('pre'); pre.append(element('code', command)); return pre;
         };
@@ -1189,29 +1189,29 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         };
         setupSteps('Windows（PowerShell）', [
             { label: 'NVIDIA GPU', command: 'uv sync --extra cu128' },
-            { label: 'CPU のみ', command: 'uv sync --extra cpu' }
+            { label: 'CPU only', command: 'uv sync --extra cpu' }
         ]);
         setupSteps('Linux', [
             { label: 'NVIDIA GPU', command: 'uv sync --extra cu128' },
             { label: 'AMD GPU（ROCm）', command: 'uv sync --extra rocm' },
-            { label: 'CPU のみ', command: 'uv sync --extra cpu' }
+            { label: 'CPU only', command: 'uv sync --extra cpu' }
         ]);
         setup.append(element('h4', 'macOS（Apple Silicon）'),
             commandLine('git clone https://github.com/Aratako/Irodori-TTS-Server.git'),
             commandLine('cd Irodori-TTS-Server'), commandLine('uv sync --extra cpu'),
             commandLine('cp .env.example .env'),
             commandLine('IRODORI_MODEL_DEVICE=mps IRODORI_CODEC_DEVICE=mps uv run --no-sync python -m irodori_openai_tts --host 0.0.0.0 --port 8088'),
-            element('p', '初回はモデル約 3.3 GB。2 回目以降は 1 文 15 秒前後（M1 実測 2026-09-24）。'));
-        setup.append(element('p', '別の PC から使うときは、AKARI の接続先に http://<その PC の IP>:8088 を入れ、ファイアウォールで 8088 を開けてください。'));
+            element('p', 'Initial model download: about 3.3 GB. Subsequent runs take about 15 seconds per sentence (measured on M1, 2026-09-24).'));
+        setup.append(element('p', 'To use another PC, enter http://<server PC IP>:8088 as the AKARI server URL and allow port 8088 through its firewall.'));
         irodori.card.append(setup);
-        const officialIrodori = action('公式リポジトリを開く', () => this.windows.openNewWindow('https://github.com/Aratako/Irodori-TTS-Server', { external: true }), { small: true });
+        const officialIrodori = action('Open official repository', () => this.windows.openNewWindow('https://github.com/Aratako/Irodori-TTS-Server', { external: true }), { small: true });
         officialIrodori.setAttribute('data-akari-narration-action', 'irodori-official'); irodori.actions.append(officialIrodori);
-        section.append(groupCard('エンジン', vv.card, geminiCard.card, irodori.card));
-        const voicesSection = groupCard('自分の声');
-        const createVoice = action('自分の声をつくる…', () => void this.commands.executeCommand('akari.voice.create').then(() => this.refreshNarrationState()), { small: true });
+        section.append(groupCard('Engine', vv.card, geminiCard.card, irodori.card));
+        const voicesSection = groupCard('My voice');
+        const createVoice = action('Create my voice…', () => void this.commands.executeCommand('akari.voice.create').then(() => this.refreshNarrationState()), { small: true });
         createVoice.setAttribute('data-akari-voice-action', 'create');
-        voicesSection.append(settingRow('自分の声', '録音を正本として保存します', createVoice));
-        if (!this.voiceProfilesLoaded) voicesSection.append(settingsNote(this.narrationError ? '声の一覧を取得できませんでした。' : '読み込み中…'));
+        voicesSection.append(settingRow('My voice', 'Save the recording as the source', createVoice));
+        if (!this.voiceProfilesLoaded) voicesSection.append(settingsNote(this.narrationError ? 'Could not load voices.' : 'Loading…'));
         const profiles = this.voiceProfiles.filter(profile => !profile.legacy || !this.voiceProfiles.some(other => other.id === profile.id && !other.legacy));
         for (const profile of profiles) {
             const buttons = element('div'); Object.assign(buttons.style, { display: 'flex', gap: '6px', flexWrap: 'wrap' });
@@ -1221,43 +1221,43 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             const addButton = (label: string, id: string, callback: () => void): void => {
                 const button = action(label, callback, { small: true }); button.setAttribute('data-akari-voice-action', id); buttons.append(button);
             };
-            if (choices.migrate) addButton('新しい場所へ移す', 'migrate', () => void this.voiceAction(async () => {
-                if (!await this.confirmVoiceAction('新しい場所へ移す', 'コピーします。旧い場所は残ります', '移す')) return;
+            if (choices.migrate) addButton('Move to new location', 'migrate', () => void this.voiceAction(async () => {
+                if (!await this.confirmVoiceAction('Move to new location', 'Copy to the new location. Keep the old location', 'Move')) return;
                 await this.narrationService.voiceMigrateLegacy(profile.id);
             }));
             if (choices.rename) {
-                const name = element('input'); name.value = profile.label; name.setAttribute('aria-label', `${profile.label} の名前`); buttons.append(name);
-                addButton('名前を変える', 'rename', () => void this.voiceAction(() => this.narrationService.voiceRename(profile.id, name.value)));
+                const name = element('input'); name.value = profile.label; name.setAttribute('aria-label', `${profile.label} name`); buttons.append(name);
+                addButton('Rename', 'rename', () => void this.voiceAction(() => this.narrationService.voiceRename(profile.id, name.value)));
             }
             const copy = (engine: 'irodori' | 'fal-qwen3'): void => void this.voiceAction(async () => {
                 let approved = false;
                 if (engine === 'fal-qwen3') {
-                    approved = await new ConfirmDialog({ title: '費用承認', msg: 'クラウド（fal）に録音を送って写しを作ります。見積 約 $0.01。続けますか？',
-                        ok: '費用承認する', cancel: 'キャンセル' }).open();
+                    approved = await new ConfirmDialog({ title: 'Cost approval', msg: 'Send the recording to the cloud (fal) to create a copy. Estimated cost: about $0.01. Continue?',
+                        ok: 'Approve cost', cancel: 'Cancel' }).open();
                     if (!approved) return;
                 }
                 await this.narrationService.voiceCopy({ profile: profile.id, engine, approved,
                     irodoriUrl: engine === 'irodori' ? this.preferences.get(AKARI_NARRATION_IRODORI_URL) : undefined });
             });
-            if (choices.addIrodori) addButton('写しを足す… 彩（自分の PC）', 'copy-irodori', () => copy('irodori'));
-            if (choices.addFal) addButton('写しを足す… クラウド（fal）', 'copy-fal', () => copy('fal-qwen3'));
+            if (choices.addIrodori) addButton('Add copy… Irodori (my PC)', 'copy-irodori', () => copy('irodori'));
+            if (choices.addFal) addButton('Add copy… Cloud (fal)', 'copy-fal', () => copy('fal-qwen3'));
             const copyGemini = (): void => void this.voiceAction(async () => {
                 const consentAudioPath = await this.geminiConsentDialog();
                 if (!consentAudioPath) return;
                 try {
-                    const approved = await new ConfirmDialog({ title: '費用承認',
-                        msg: 'Google に正本と本人の同意録音を送って声をつくります。声づくりの料金は見積不可です。続けますか？',
-                        ok: '費用承認する', cancel: 'キャンセル' }).open();
+                    const approved = await new ConfirmDialog({ title: 'Cost approval',
+                        msg: 'Send the source and your recorded consent to Google to create a voice. Voice creation cost cannot be estimated. Continue?',
+                        ok: 'Approve cost', cancel: 'Cancel' }).open();
                     if (!approved) return;
                     await this.narrationService.voiceCopy({ profile: profile.id, engine: 'gemini-3.8-flash-tts', consentAudioPath, approved: true });
                 } finally { await this.narrationService.voiceDiscardGeminiConsent(consentAudioPath); }
             });
-            if (choices.addGemini) addButton('写しを足す… Google Gemini 3.8', 'copy-gemini', copyGemini);
-            if (choices.remakeIrodori) addButton('作り直す · 彩（自分の PC）', 'remake-irodori', () => copy('irodori'));
-            if (choices.remakeFal) addButton('作り直す · クラウド（fal）', 'remake-fal', () => copy('fal-qwen3'));
-            if (choices.remakeGemini) addButton('作り直す · Google Gemini 3.8', 'remake-gemini', copyGemini);
-            if (choices.remove) addButton('消す', 'delete', () => void this.voiceAction(async () => {
-                if (!await this.confirmVoiceAction('自分の声を消す', '手元の録音と彩の登録を消します。クラウドで作った声は fal / Google 側に残ります', '消す')) return;
+            if (choices.addGemini) addButton('Add copy… Google Gemini 3.8', 'copy-gemini', copyGemini);
+            if (choices.remakeIrodori) addButton('Recreate · Irodori (my PC)', 'remake-irodori', () => copy('irodori'));
+            if (choices.remakeFal) addButton('Recreate · Cloud (fal)', 'remake-fal', () => copy('fal-qwen3'));
+            if (choices.remakeGemini) addButton('Recreate · Google Gemini 3.8', 'remake-gemini', copyGemini);
+            if (choices.remove) addButton('Delete', 'delete', () => void this.voiceAction(async () => {
+                if (!await this.confirmVoiceAction('Delete my voice', 'Delete the local recording and Irodori registration. Cloud voices remain on fal / Google', 'Delete')) return;
                 await this.narrationService.voiceDelete(profile.id, this.preferences.get(AKARI_NARRATION_IRODORI_URL));
             }));
             const row = settingRow(profile.label, undefined, buttons);
@@ -1265,14 +1265,14 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             Object.assign(row.style, { gridTemplateColumns: 'minmax(0, 1fr)', gap: '8px' });
             const control = row.querySelector<HTMLElement>('.akari-set-row-control');
             if (control) control.style.justifyContent = 'flex-start';
-            const detail = element('div', `${voiceAvatarLabel(profile.avatar, this.voiceAvatars)} · ${profile.created_at?.slice(0, 10) ?? '日付不明'} · ${profile.duration_s?.toFixed(1) ?? '—'} 秒`);
+            const detail = element('div', `${voiceAvatarLabel(profile.avatar, this.voiceAvatars)} · ${profile.created_at?.slice(0, 10) ?? 'Unknown date'} · ${profile.duration_s?.toFixed(1) ?? '—'} seconds`);
             detail.className = 'akari-set-row-desc';
             const pills = element('div'); Object.assign(pills.style, { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' });
             for (const engine of profile.engines) {
-                pills.append(statusPill(engine === 'irodori' ? '彩（自分の PC）' : 'クラウド（fal）', 'neutral'));
-                if (profile.copies?.[engine]?.stale) pills.append(statusPill('古い', 'warn'));
+                pills.append(statusPill(engine === 'irodori' ? 'Irodori (my PC)' : 'Cloud (fal)', 'neutral'));
+                if (profile.copies?.[engine]?.stale) pills.append(statusPill('Outdated', 'warn'));
             }
-            if (profile.legacy) pills.append(statusPill('旧い場所', 'warn'));
+            if (profile.legacy) pills.append(statusPill('Old location', 'warn'));
             row.querySelector('.akari-set-row-text')?.append(detail, pills);
             voicesSection.append(row);
         }
@@ -1284,9 +1284,9 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             ? voiceValue as Record<string, unknown> : {};
         const geminiVoice = typeof voices['gemini-tts'] === 'string' && GEMINI_NARRATION_VOICES.some(id => id === voices['gemini-tts'])
             ? voices['gemini-tts'] : 'Leda';
-        const voicevoxSpeaker = typeof voices.voicevox === 'string' && voices.voicevox ? voices.voicevox : '未選択';
+        const voicevoxSpeaker = typeof voices.voicevox === 'string' && voices.voicevox ? voices.voicevox : 'Not selected';
         const defaultEngineSelect = element('select');
-        defaultEngineSelect.setAttribute('aria-label', '既定のエンジン');
+        defaultEngineSelect.setAttribute('aria-label', 'Default engine');
         defaultEngineSelect.dataset.akariNarrationDefaultEngine = 'true';
         const chevron = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12"><path d="m2 4 4 4 4-4" fill="none" stroke="#a0a0a0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
         Object.assign(defaultEngineSelect.style, { appearance: 'none', WebkitAppearance: 'none', boxSizing: 'border-box',
@@ -1300,40 +1300,40 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             const group = element('optgroup'); group.label = label;
             for (const [id, title] of rows) {
                 const state = this.narrationState?.engines.find(row => row.id === id);
-                const option = element('option', `${title}${state?.availability.state === 'unconfigured' && label === 'クラウド' ? '（鍵なし）' : ''}`);
+                const option = element('option', `${title}${state?.availability.state === 'unconfigured' && label === 'Cloud' ? '(No key)' : ''}`);
                 option.value = id; group.append(option);
             }
             defaultEngineSelect.append(group);
         };
-        addGroup('この Mac', [['voicevox', 'VOICEVOX'], ['irodori', '彩（お試し）']]);
-        addGroup('クラウド', [['gemini-3.8-flash-tts', 'Gemini 3.8 Flash TTS'],
+        addGroup('This Mac', [['voicevox', 'VOICEVOX'], ['irodori', 'Irodori (trial)']]);
+        addGroup('Cloud', [['gemini-3.8-flash-tts', 'Gemini 3.8 Flash TTS'],
             ['gemini-3.1-flash-tts', 'Gemini 3.1 Flash TTS'], ['gemini-tts', 'Gemini 2.5 Flash TTS'],
             ['elevenlabs-v3', 'ElevenLabs v3'], ['fish-s2.1-pro', 'Fish Audio S2.1-Pro'],
-            ['minimax-2.6-hd', 'MiniMax 2.6 HD'], ['chatterbox', 'Chatterbox 多言語']]);
-        addGroup('自分の声', profiles.filter(profile => typeof profile.consent === 'string' ? profile.consent.trim() : profile.consent?.self_voice)
-            .map(profile => [`voice:${profile.id}`, `自分の声（${profile.label}）`]));
+            ['minimax-2.6-hd', 'MiniMax 2.6 HD'], ['chatterbox', 'Chatterbox multilingual']]);
+        addGroup('My voice', profiles.filter(profile => typeof profile.consent === 'string' ? profile.consent.trim() : profile.consent?.self_voice)
+            .map(profile => [`voice:${profile.id}`, `My voice (${profile.label}）`]));
         if (!this.voiceProfilesLoaded && typeof engine === 'string' && engine.startsWith('voice:')
             && !profiles.some(profile => `voice:${profile.id}` === engine)) {
-            const option = element('option', '自分の声（読み込み中…）'); option.value = engine;
+            const option = element('option', 'My voice (loading…)'); option.value = engine;
             defaultEngineSelect.lastElementChild?.append(option);
         }
         defaultEngineSelect.value = settingsVoiceEngineValue(engine, profiles, this.voiceProfilesLoaded);
         defaultEngineSelect.addEventListener('change', () => this.savePreference(AKARI_NARRATION_ENGINE, defaultEngineSelect.value));
-        section.append(groupCard('既定値',
-            settingRow('既定のエンジン', '読み上げのポップアップを開いたときに選ぶエンジン',
+        section.append(groupCard('Defaults',
+            settingRow('Default engine', 'Engine selected when opening the narration popup',
                 defaultEngineSelect),
-            settingRow('Gemini の既定の声', 'Gemini 2.5 Flash TTS で使う声',
-                dropdown({ label: 'Gemini の既定の声', options: GEMINI_NARRATION_VOICES.map(id => ({ value: id, label: id })),
+            settingRow('Default Gemini voice', 'Voice for Gemini 2.5 Flash TTS',
+                dropdown({ label: 'Default Gemini voice', options: GEMINI_NARRATION_VOICES.map(id => ({ value: id, label: id })),
                     value: geminiVoice, onChange: value => {
                         const current = this.preferences.get(AKARI_NARRATION_VOICE);
                         const saved = typeof current === 'object' && current !== null && !Array.isArray(current)
                             ? current as Record<string, unknown> : {};
                         this.savePreference(AKARI_NARRATION_VOICE, { ...saved, 'gemini-tts': value });
                     } })),
-            settingRow('VOICEVOX の既定の声', '読み上げのポップアップで声を選ぶと保存されます',
+            settingRow('Default VOICEVOX voice', 'Saved when you choose a voice in the narration popup',
                 element('span', voicevoxSpeaker))));
-        const note = settingsNote('Gemini を使うには「接続と API キー」で fal の鍵を登録します。');
-        note.append(' ', inlineLink('接続と API キーを開く', () => this.showSection('connections')));
+        const note = settingsNote('To use Gemini, register a fal key in Connections and API keys.');
+        note.append(' ', inlineLink('Open Connections and API keys', () => this.showSection('connections')));
         section.append(note);
     }
 
@@ -1349,7 +1349,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 this.voiceAvatars = avatars.avatars; this.narrationError = '';
             } }
         catch (error) { if (generation === this.narrationRefreshGeneration)
-            this.narrationError = error instanceof Error ? error.message : '状態を取得できませんでした。'; }
+            this.narrationError = error instanceof Error ? error.message : 'Could not retrieve status.'; }
         finally { if (generation === this.narrationRefreshGeneration) {
             this.narrationLoading = false; if (!this.isDisposed) this.renderNarration();
         } }
@@ -1360,39 +1360,39 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
     }
     protected geminiConsentDialog(): Promise<string | undefined> {
         return new Promise(resolve => {
-            const overlay = element('div'); overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-label', 'Google への口頭同意');
+            const overlay = element('div'); overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-label', 'Spoken consent for Google');
             overlay.setAttribute('data-akari-gemini-consent', 'true');
             Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '1000', background: '#0009',
                 display: 'flex', alignItems: 'center', justifyContent: 'center' });
             const panel = element('div'); Object.assign(panel.style, { background: '#242832', border: '1px solid #777',
                 borderRadius: '10px', padding: '20px', width: 'min(560px, calc(100vw - 32px))', display: 'flex', flexDirection: 'column', gap: '12px' });
             const phrase = createGeminiConsentPrompt();
-            const note = element('p', '本人の声で読んで録音してください。照合はこの PC で行います。');
-            const input = element('input') as HTMLInputElement; input.type = 'file'; input.accept = '.wav,.m4a,.mp3,.webm'; input.setAttribute('aria-label', '同意録音ファイル');
+            const note = element('p', 'Read and record in your own voice. Verification runs on this PC.');
+            const input = element('input') as HTMLInputElement; input.type = 'file'; input.accept = '.wav,.m4a,.mp3,.webm'; input.setAttribute('aria-label', 'Consent recording file');
             let blob: Blob | undefined; let recorder: MediaRecorder | undefined; let stream: MediaStream | undefined;
             let checkedPath: string | undefined; let consentCheck: GeminiConsentCheck | undefined;
             const resetCheck = (): void => {
                 if (checkedPath) void this.narrationService.voiceDiscardGeminiConsent(checkedPath);
                 checkedPath = undefined; consentCheck = undefined;
             };
-            input.onchange = () => { blob = input.files?.[0]; resetCheck(); note.textContent = blob ? '録音を選びました。照合してください。' : '録音を選んでください。'; };
-            const record = action('録音する', () => void (async () => {
-                if (recorder?.state === 'recording') { recorder.stop(); record.textContent = '録音する'; return; }
+            input.onchange = () => { blob = input.files?.[0]; resetCheck(); note.textContent = blob ? 'Recording selected. Please verify it.' : 'Choose a recording.'; };
+            const record = action('Record', () => void (async () => {
+                if (recorder?.state === 'recording') { recorder.stop(); record.textContent = 'Record'; return; }
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     const chunks: Blob[] = []; recorder = new MediaRecorder(stream);
                     recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
                     recorder.onstop = () => { blob = new Blob(chunks, { type: recorder?.mimeType || 'audio/webm' }); resetCheck();
-                        stream?.getTracks().forEach(track => track.stop()); note.textContent = '録音しました。照合してください。'; };
-                    recorder.start(); record.textContent = '止める';
-                } catch { note.textContent = 'マイクを使えません。録音ファイルを選んでください。'; }
+                        stream?.getTracks().forEach(track => track.stop()); note.textContent = 'Recorded. Please verify it.'; };
+                    recorder.start(); record.textContent = 'Stop';
+                } catch { note.textContent = 'Microphone unavailable. Choose a recording file.'; }
             })(), { small: true });
             const finish = (path?: string): void => { recorder?.state === 'recording' && recorder.stop(); stream?.getTracks().forEach(track => track.stop());
                 overlay.remove(); resolve(path); };
-            const cancel = action('キャンセル', () => { resetCheck(); finish(); }, { small: true });
-            const next = action('この PC で照合', () => void (async () => {
+            const cancel = action('Cancel', () => { resetCheck(); finish(); }, { small: true });
+            const next = action('Verify on this PC', () => void (async () => {
                 if (checkedPath && geminiConsentCanNext(true, consentCheck)) { finish(checkedPath); return; }
-                if (!blob) { note.textContent = '同意録音が必要です。'; return; }
+                if (!blob) { note.textContent = 'A consent recording is required.'; return; }
                 next.disabled = true;
                 try {
                     const bytes = new Uint8Array(await blob.arrayBuffer()); let binary = '';
@@ -1401,12 +1401,12 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                     consentCheck = { pass: true, checks: { script: { ok: true, score: result.score } } };
                     if (!geminiConsentCanNext(true, consentCheck)) throw new Error(geminiConsentStatus(consentCheck));
                     checkedPath = result.path; note.textContent = geminiConsentStatus(consentCheck);
-                    next.textContent = '次へ';
+                    next.textContent = 'Next';
                 } catch (error) { note.textContent = String(error); } finally { next.disabled = false; }
             })(), { small: true });
             next.setAttribute('data-gemini-consent-next', 'true');
             const buttons = element('div'); buttons.append(cancel, next);
-            panel.append(element('strong', 'Google への口頭同意'), phrase, record, input, note, buttons);
+            panel.append(element('strong', 'Spoken consent for Google'), phrase, record, input, note, buttons);
             overlay.append(panel); this.node.append(overlay);
         });
     }
@@ -1421,7 +1421,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             panel.append(element('strong', title), element('p', message));
             const buttons = element('div'); Object.assign(buttons.style, { display: 'flex', gap: '8px', justifyContent: 'flex-end' });
             const finish = (accepted: boolean): void => { overlay.remove(); resolve(accepted); };
-            const cancel = action('キャンセル', () => finish(false), { small: true });
+            const cancel = action('Cancel', () => finish(false), { small: true });
             const accept = action(confirmLabel, () => finish(true), { small: true });
             accept.setAttribute('data-akari-voice-confirm', 'true');
             buttons.append(cancel, accept); panel.append(buttons); overlay.append(panel); this.node.append(overlay);
@@ -1436,7 +1436,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         try {
             if (operation === 'start') await this.narrationService.startNarrationEngine('voicevox');
             else { await this.narrationService.stopNarrationEngine('voicevox'); this.voicevoxPreviewSrc = ''; }
-        } catch (error) { actionError = error instanceof Error ? error.message : '操作に失敗しました。'; }
+        } catch (error) { actionError = error instanceof Error ? error.message : 'Operation failed.'; }
         finally {
             this.narrationBusy = '';
             await this.refreshNarrationState();
@@ -1448,7 +1448,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         this.narrationBusy = 'preview'; this.renderNarration();
         let actionError = '';
         try { this.voicevoxPreviewSrc = await this.narrationService.previewVoicevox(); }
-        catch (error) { actionError = error instanceof Error ? error.message : '試聴音声を作れませんでした。'; }
+        catch (error) { actionError = error instanceof Error ? error.message : 'Could not create voice preview.'; }
         finally {
             this.narrationBusy = '';
             await this.refreshNarrationState();
@@ -1464,7 +1464,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         try {
             const result = await this.toolsService.installTool('voicevox');
             actionError = result.outcome === 'failed' ? result.message : '';
-        } catch (error) { actionError = error instanceof Error ? error.message : '導入できませんでした。'; }
+        } catch (error) { actionError = error instanceof Error ? error.message : 'Could not install.'; }
         finally {
             this.narrationBusy = '';
             await this.refreshNarrationState();
@@ -1478,7 +1478,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             setTimeout(() => this.localPreferenceWrites.delete(key), 500);
         }).catch(() => {
             this.localPreferenceWrites.delete(key);
-            this.notice.textContent = '設定を保存できませんでした。';
+            this.notice.textContent = 'Could not save settings.';
             if (!this.isDisposed) {
                 const section = sectionForPreferenceKey(key);
                 if (section) { this.renderSection(section); }
@@ -1497,7 +1497,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             this.credentialsPath = list.credentials.path;
             this.renderSection('privacy');
         } catch {
-            this.providerList.replaceChildren(settingsNote('接続一覧を読み込めませんでした。'), action('再読み込み', () => void this.loadConnections(), { small: true }));
+            this.providerList.replaceChildren(settingsNote('Could not load connections.'), action('Reload', () => void this.loadConnections(), { small: true }));
         }
     }
 
@@ -1505,37 +1505,37 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const state = await this.service.imageAiSettings();
         if (this.isDisposed) return;
         const status = settingsNote(state.configured
-            ? `fal · キーを登録済み${state.maskedTail ? `（末尾 ${state.maskedTail}）` : ''}`
-            : 'fal · キーを設定すると使えます');
+            ? `fal · Key configured${state.maskedTail ? `(Ending in ${state.maskedTail}）` : ''}`
+            : 'fal · Configure a key to use');
         status.setAttribute('data-akari-image-ai-status', state.configured ? 'configured' : 'unconfigured');
         const input = element('input'); input.type = 'password'; input.autocomplete = 'off';
-        input.placeholder = 'fal のキー'; input.setAttribute('aria-label', '画像のキー');
+        input.placeholder = 'fal key'; input.setAttribute('aria-label', 'Image key');
         const result = settingsNote(''); result.setAttribute('role', 'status');
-        const save = action('保存', () => {
-            if (!input.value.trim()) { result.textContent = 'キーを入力してください。'; return; }
+        const save = action('Save', () => {
+            if (!input.value.trim()) { result.textContent = 'Enter a key.'; return; }
             save.disabled = true;
             void this.service.setImageAiKey(input.value).then(() => this.renderImageAi()).catch(() => {
-                result.textContent = 'キーを保存できませんでした。'; save.disabled = false;
+                result.textContent = 'Could not save the key.'; save.disabled = false;
             });
         }, { small: true });
-        const check = action('接続を確かめる', () => {
-            check.disabled = true; result.textContent = '接続を確かめています…';
+        const check = action('Check connection', () => {
+            check.disabled = true; result.textContent = 'Checking connection…';
             void this.service.checkImageAiConnection().then(doctor => { result.textContent = doctor.detail; })
-                .catch(() => { result.textContent = '接続を確認できませんでした。'; })
+                .catch(() => { result.textContent = 'Could not check the connection.'; })
                 .finally(() => { check.disabled = false; });
         }, { small: true });
         const card = element('div');
-        card.append(status, settingRow('画像の AI のキー', 'この PC の鍵の保存先に記録します。', input, save));
+        card.append(status, settingRow('Image AI key', 'Save in the credentials file on this PC.', input, save));
         if (state.narrationKeyAvailable) {
-            const reuse = action(state.useNarrationKey ? '同じキーを使用中' : '同じキーを使う', () => {
+            const reuse = action(state.useNarrationKey ? 'Using the same key' : 'Use the same key', () => {
                 reuse.disabled = true;
                 void this.service.useNarrationImageAiKey(true).then(() => this.renderImageAi())
-                    .catch(() => { result.textContent = 'キーを切り替えられませんでした。'; reuse.disabled = false; });
+                    .catch(() => { result.textContent = 'Could not switch keys.'; reuse.disabled = false; });
             }, { small: true });
             reuse.disabled = state.useNarrationKey;
-            card.append(settingRow('読み上げの fal キー', '登録済みのキーを共有できます。', reuse));
+            card.append(settingRow('Narration fal key', 'Reuse a configured key.', reuse));
         }
-        card.append(settingRow('接続', 'サービスへ軽い読み取りの問い合わせをします。', check), result);
+        card.append(settingRow('Connection', 'Send a lightweight read-only request to the service.', check), result);
         this.imageAiRow.replaceChildren(card);
     }
 
@@ -1557,9 +1557,9 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
 
     protected renderSubscriptions(): void {
         const entries = [
-            { id: 'codex', label: 'ChatGPT（Codex）', maker: 'openai', guide: 'ターミナルで codex login を実行してください' },
-            { id: 'antigravity', label: 'Antigravity', maker: 'google', guide: 'ターミナルで agy を起動してサインインしてください' },
-            { id: 'grok', label: 'Grok', maker: 'xai', guide: 'ターミナルで grok login を実行してください' }
+            { id: 'codex', label: 'ChatGPT（Codex）', maker: 'openai', guide: 'Run codex login in the terminal' },
+            { id: 'antigravity', label: 'Antigravity', maker: 'google', guide: 'Start agy in the terminal and sign in' },
+            { id: 'grok', label: 'Grok', maker: 'xai', guide: 'Run grok login in the terminal' }
         ] as const;
         const rows = entries.map(entry => {
             const state = this.imageRouteStates.find(row => row.id === entry.id);
@@ -1571,14 +1571,14 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             detail.style.minWidth = '0';
             const name = element('div'); name.className = 'akari-set-prov-name';
             name.append(element('span', entry.label));
-            const status = state?.state === 'ready' ? '使える' : state?.state === 'signed-out' ? 'サインインが必要'
-                : state?.state === 'missing' ? '入っていない' : state?.state === 'unknown' ? '確かめられませんでした' : '確かめています';
+            const status = state?.state === 'ready' ? 'Available' : state?.state === 'signed-out' ? 'Sign-in required'
+                : state?.state === 'missing' ? 'Not installed' : state?.state === 'unknown' ? 'Could not verify' : 'Checking';
             name.append(statusPill(status, state?.state === 'ready' ? 'ok' : 'neutral'));
-            detail.append(name, element('div', state?.state === 'ready' ? 'サインイン済み · 静止画' : entry.guide));
+            detail.append(name, element('div', state?.state === 'ready' ? 'Signed in · Images' : entry.guide));
             row.append(logo, detail);
             return row;
         });
-        this.subscriptionList.replaceChildren(groupCard('追加料金なし — いま使っているサブスク', ...rows));
+        this.subscriptionList.replaceChildren(groupCard('No extra cost — Your subscriptions', ...rows));
     }
 
     protected updateConnectionSummary(providers: ConnectionRow[]): void {
@@ -1612,44 +1612,44 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const busy = state.phase === 'starting' || state.phase === 'pending';
         const connected = state.connection.connected && !this.storeReconnect;
         const who = state.connection.email ?? state.connection.identifier ?? '';
-        const statusText = state.connectionLoading ? '接続を確認しています…'
-            : state.phase === 'starting' ? '接続を開始しています…'
-                : state.phase === 'pending' ? `ブラウザで承認してください · 確認コード: ${state.userCode ?? ''}`
+        const statusText = state.connectionLoading ? 'Checking connection…'
+            : state.phase === 'starting' ? 'Starting connection…'
+                : state.phase === 'pending' ? `Approve in your browser · Verification code: ${state.userCode ?? ''}`
                     : this.storeReconnect ? STORE_RECONNECT_REQUIRED_MESSAGE
-                        : state.connection.connected ? `接続中 · ${who}` : '未接続';
+                        : state.connection.connected ? `Connected · ${who}` : 'Not connected';
         const url = `${deriveStoreLabBaseUrl(state.connection.url)}/`;
 
         const band = element('div');
         band.className = 'akari-set-group';
         band.setAttribute('data-akari-account-band', 'true');
-        band.setAttribute('data-akari-settings-group', 'アカウント');
+        band.setAttribute('data-akari-settings-group', 'Account');
         const bandInner = element('div');
         bandInner.className = 'akari-set-account';
         const avatar = element('div');
         avatar.className = 'akari-set-avatar akari-set-avatar-user';
         avatar.setAttribute('aria-hidden', 'true');
         const identity = element('div');
-        const name = element('div', connected ? (who || 'AKARI アカウントに接続中') : 'AKARI アカウント 未接続');
+        const name = element('div', connected ? (who || 'Connected to AKARI account') : 'AKARI account not connected');
         name.className = 'akari-set-account-name';
-        const lead = description(connected ? '購入済みの素材を AKARI Video で使えます。'
-            : '接続すると、AKARI Video Lab で買った素材をライブラリへ入れられます。');
+        const lead = description(connected ? 'Use purchased footage in AKARI Video.'
+            : 'Connect to add footage purchased from AKARI Video Lab to your library.');
         lead.className = 'akari-set-account-desc';
         identity.append(name, lead);
         const controls = element('div');
         controls.className = 'akari-set-store-controls';
         if (busy) {
-            controls.append(action('キャンセル', () => this.storeController.cancel(), { small: true }));
+            controls.append(action('Cancel', () => this.storeController.cancel(), { small: true }));
         } else {
             if (!state.connection.connected || this.storeReconnect) {
-                const connect = action(this.storeReconnect ? '再接続する' : '接続する', () => void this.storeController.start(), { variant: 'primary' });
+                const connect = action(this.storeReconnect ? 'Reconnect' : 'Connect', () => void this.storeController.start(), { variant: 'primary' });
                 connect.disabled = state.connectionLoading;
                 controls.append(connect);
             }
             if (state.connection.connected) {
-                const disconnect = action('切断する', () => {
+                const disconnect = action('Disconnect', () => {
                     disconnect.disabled = true;
                     void this.storeController.disconnect().catch(() => {
-                        this.notice.textContent = 'AKARI アカウントの接続を解除できませんでした。';
+                        this.notice.textContent = 'Could not disconnect the AKARI account.';
                         if (!this.isDisposed) { this.renderStore(); }
                     });
                 }, { small: true });
@@ -1669,9 +1669,9 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const statusRow = element('div');
         statusRow.className = 'akari-set-row';
         const statusCopy = element('div');
-        const statusLabel = element('div', '接続');
+        const statusLabel = element('div', 'Connection');
         statusLabel.className = 'akari-set-row-label';
-        const statusDetail = description('動画に使える素材や演出パックを探して購入できます。接続すると、購入済みの素材を AKARI Video で使えます。');
+        const statusDetail = description('Find and buy footage and effects packs for your videos. Connect to use purchased footage in AKARI Video.');
         statusDetail.className = 'akari-set-row-desc';
         statusCopy.append(statusLabel, statusDetail);
         const status = element('span', statusText);
@@ -1682,13 +1682,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const openRow = element('div');
         openRow.className = 'akari-set-row';
         const openCopy = element('div');
-        const openLabel = element('div', 'AKARI Video Lab を開く');
+        const openLabel = element('div', 'Open AKARI Video Lab');
         openLabel.className = 'akari-set-row-label';
         const openUrl = description(url.replace(/^https?:\/\//, '').replace(/\/$/, ''));
         openUrl.className = 'akari-set-row-desc';
         openCopy.append(openLabel, openUrl);
         openRow.setAttribute('data-akari-store-open', url);
-        openRow.append(openCopy, action('開く', () => this.windows.openNewWindow(url, { external: true }), { small: true, iconAfter: 'ext' }));
+        openRow.append(openCopy, action('Open', () => this.windows.openNewWindow(url, { external: true }), { small: true, iconAfter: 'ext' }));
         store.append(storeTitle, statusRow, openRow);
         if (state.error) {
             const error = description(state.error);
@@ -1700,13 +1700,13 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
     }
 
     protected renderStorage(credentials: ConnectionsList['credentials']): void {
-        const detail = !credentials.exists ? `${credentials.path} · 登録すると作成します。平文・自分だけ読める権限（600）。CLI やスキルもこのファイルを読みます。`
-            : credentials.secure_permissions ? `${credentials.path} · 平文・自分だけ読める権限（600）。CLI やスキルもこのファイルを読みます。`
-                : `${credentials.path} · 現在のファイル権限は 600 ではありません。次の登録・削除時に修正します。`;
-        this.storage.replaceChildren(groupCard('キーの保存先', settingRow('保存場所', `鍵は ${credentials.path} に保存します（この PC だけ・600）。${detail}`, segmentedControl<'file' | 'encrypted'>({
-            label: 'キーの保存先', value: 'file', onChange: () => undefined,
-            options: [{ value: 'file', label: 'このファイル' }, { value: 'encrypted', label: '暗号化', disabled: true, title: '暗号化して保存（この Mac のログイン鍵で）は準備中です' }]
-        }))), settingsNote('登録後は末尾 4 桁だけを表示します。鍵はレポート・差分・チャットへ出しません。'));
+        const detail = !credentials.exists ? `${credentials.path} · Created on registration. Plain text with owner-only permissions (600). CLI tools and skills also read this file.`
+            : credentials.secure_permissions ? `${credentials.path} · Plain text with owner-only permissions (600). CLI tools and skills also read this file.`
+                : `${credentials.path} · Current permissions are not 600. Corrected on the next registration or deletion.`;
+        this.storage.replaceChildren(groupCard('Key storage', settingRow('Storage location', `Keys are stored at ${credentials.path} (this PC only, permissions 600).${detail}`, segmentedControl<'file' | 'encrypted'>({
+            label: 'Key storage', value: 'file', onChange: () => undefined,
+            options: [{ value: 'file', label: 'This file' }, { value: 'encrypted', label: 'Encrypted', disabled: true, title: 'Encrypted storage using this Mac login key is coming soon' }]
+        }))), settingsNote('Only the last four characters are shown after registration. Keys are never included in reports, diffs, or chat.'));
     }
 
     protected providerRow(row: ConnectionRow): HTMLElement {
@@ -1734,12 +1734,12 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         status.setAttribute('role', 'status');
         heading.append(element('span', row.label), status);
         if (row.source === 'legacy') {
-            const badge = element('span', '旧い場所から読んでいます');
+            const badge = element('span', 'Reading from old location');
             badge.className = 'akari-set-pill akari-set-pill-warn';
             badge.setAttribute('data-credential-source', 'legacy');
             heading.append(badge);
         }
-        if (row.id === 'fal') { heading.append(statusPill('おすすめ', 'accent')); }
+        if (row.id === 'fal') { heading.append(statusPill('Recommended', 'accent')); }
         const display = PROVIDER_DISPLAY[row.id];
         const copy = element('div', display?.description ?? row.description);
         copy.className = 'akari-set-prov-desc';
@@ -1757,10 +1757,10 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const links = element('div');
         links.className = 'akari-set-keyin';
         const billing = providerBillingUrl(row.id);
-        if (billing) { links.append(action('管理画面', () => this.windows.openNewWindow(billing, { external: true }), { small: true, iconAfter: 'ext' })); }
+        if (billing) { links.append(action('Dashboard', () => this.windows.openNewWindow(billing, { external: true }), { small: true, iconAfter: 'ext' })); }
         if (row.setup_url?.startsWith('https://')) {
             const setupUrl = row.setup_url;
-            links.append(action('キーを取得', () => this.windows.openNewWindow(setupUrl, { external: true }), { small: true, iconAfter: 'ext' }));
+            links.append(action('Get key', () => this.windows.openNewWindow(setupUrl, { external: true }), { small: true, iconAfter: 'ext' }));
         }
         if (links.childElementCount > 0) { actions.append(links); }
         const paintStatus = (): void => {
@@ -1772,7 +1772,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         };
         const run = async (operation: () => Promise<void>): Promise<void> => {
             for (const control of Array.from(controls.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input,button'))) { control.disabled = true; }
-            setPill(status, '確認中…', 'neutral');
+            setPill(status, 'Checking…', 'neutral');
             try {
                 await operation();
                 renderControls();
@@ -1781,7 +1781,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                     this.renderStorage(list.credentials);
                     this.renderProviders(list.providers);
                 }
-            } catch { detail.textContent = '操作できませんでした。入力と保存先を確認してください。'; }
+            } catch { detail.textContent = 'Operation failed. Check your input and destination.'; }
             finally {
                 for (const control of Array.from(controls.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input,button'))) { control.disabled = false; }
             }
@@ -1792,22 +1792,22 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
             if (row.configured) {
                 const tail = element('code', `••••${row.masked_tail ?? ''}`);
                 tail.className = 'akari-set-key-tail';
-                controls.append(tail, action('確認', () => void run(async () => {
+                controls.append(tail, action('Check', () => void run(async () => {
                     row.doctor = (await this.service.checkConnection(row.id)).doctor;
-                }), { small: true }), action('削除', () => void run(async () => {
+                }), { small: true }), action('Delete', () => void run(async () => {
                     await this.service.deleteCredential(row.id);
                     row.configured = false; row.masked_tail = null;
-                    row.doctor = { status: 'unconfigured', detail: '未登録', last_checked: null };
+                    row.doctor = { status: 'unconfigured', detail: 'Not configured', last_checked: null };
                 }), { small: true }));
                 if (row.source === 'legacy') {
-                    controls.append(action('新しい場所へ移す', () => void run(async () => {
+                    controls.append(action('Move to new location', () => void run(async () => {
                         await this.service.migrateCredential(row.id);
                     }), { small: true }));
                 }
             } else {
-                const input = textField({ label: `${row.label} の API キー`, type: 'password', placeholder: 'API キーを貼る' });
+                const input = textField({ label: `${row.label} API key`, type: 'password', placeholder: 'Paste API key' });
                 input.autocomplete = 'off';
-                const save = action('保存', () => void run(async () => {
+                const save = action('Save', () => void run(async () => {
                     // Send once, then immediately clear the DOM, including on failed requests.
                     let request: ReturnType<AkariConnectionsService['setCredential']>;
                     try { request = this.service.setCredential(row.id, input.value); }
@@ -1842,14 +1842,14 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
         const time = element('span');
         time.className = 'akari-set-bal-time';
         const accountLink = row.id === 'openrouter'
-            ? action('口座の残高は管理画面で確認', () => this.windows.openNewWindow('https://openrouter.ai/settings/credits', { external: true }), { small: true, iconAfter: 'ext' })
+            ? action('Check account balance in dashboard', () => this.windows.openNewWindow('https://openrouter.ai/settings/credits', { external: true }), { small: true, iconAfter: 'ext' })
             : undefined;
         if (accountLink) { accountLink.style.display = 'none'; }
-        const button = action('残高を見る', async () => {
+        const button = action('View balance', async () => {
             button.disabled = true;
             value.className = 'akari-set-bal-value';
             value.setAttribute('data-state', 'loading');
-            value.textContent = '確認中…';
+            value.textContent = 'Checking…';
             time.textContent = '';
             if (accountLink) { accountLink.style.display = 'none'; }
             try {
@@ -1858,16 +1858,16 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 if (result.ok) {
                     value.textContent = result.display ?? '';
                     value.setAttribute('data-state', 'ok');
-                    time.textContent = 'たった今';
-                    time.title = new Date(result.checked_at).toLocaleString('ja-JP');
+                    time.textContent = 'Just now';
+                    time.title = new Date(result.checked_at).toLocaleString('en-US');
                     if (accountLink) { accountLink.style.display = result.account_url ? '' : 'none'; }
                 } else {
-                    value.textContent = result.error ?? '残高を問い合わせられませんでした。';
+                    value.textContent = result.error ?? 'Could not retrieve balance.';
                     value.className = 'akari-set-bal-error';
                     value.setAttribute('data-state', 'error');
                 }
             } catch {
-                value.textContent = '残高を問い合わせられませんでした。';
+                value.textContent = 'Could not retrieve balance.';
                 value.className = 'akari-set-bal-error';
                 value.setAttribute('data-state', 'error');
             } finally {
@@ -1883,7 +1883,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 if (!configured) {
                     value.className = 'akari-set-bal-value';
                     value.setAttribute('data-state', 'idle');
-                    value.textContent = '未接続';
+                    value.textContent = 'Not connected';
                     time.textContent = '';
                     if (accountLink) { accountLink.style.display = 'none'; }
                 } else if (value.getAttribute('data-state') === 'idle') {
@@ -1894,7 +1894,7 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
     }
 
     private async renderGenerationDefaults(container: HTMLElement): Promise<void> {
-        container.replaceChildren(settingsNote('生成の既定モデルを読み込んでいます…'));
+        container.replaceChildren(settingsNote('Loading default generation models…'));
         try {
             const [defaults, catalog] = await Promise.all([
                 this.service.readGenerationDefaults(), this.service.readGenerationCatalog()
@@ -1905,17 +1905,17 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 const options = generationOptions(catalog.models, kind, defaults.effective[field]).map(item => {
                     const [family, id, ...rest] = item.label.split(' · ');
                     return item.missing ? { value: item.value, label: item.value,
-                        description: item.value === 'fal:gpt-image-2.5-flare' ? 'この画面では選べません' : 'カタログにありません' }
+                        description: item.value === 'fal:gpt-image-2.5-flare' ? 'Cannot select on this screen' : 'Not in catalog' }
                         : { value: item.value, label: family, description: [id, ...rest].filter(Boolean).join(' · ') || undefined };
                 });
-                const control = dropdown({ label: `${label}の既定モデル`, options, value: defaults.effective[field] ?? '',
+                const control = dropdown({ label: `${label} default model`, options, value: defaults.effective[field] ?? '',
                     onChange: async value => {
                         for (const item of controls) { item.akariSetDisabled?.(true); }
                         try {
                             await this.service.setGenerationDefaults({ [field]: value });
                             if (!this.isDisposed) { await this.renderGenerationDefaults(container); }
                         } catch {
-                            this.notice.textContent = '生成の既定モデルを保存できませんでした。';
+                            this.notice.textContent = 'Could not save default generation models.';
                             if (!this.isDisposed) { await this.renderGenerationDefaults(container); }
                         } finally {
                             for (const item of controls) { item.akariSetDisabled?.(false); }
@@ -1927,17 +1927,17 @@ export class AkariSettingsDialog extends AbstractDialog<void> {
                 source.className = 'akari-set-source';
                 source.setAttribute('data-akari-generation-source', defaults.source[field]);
                 source.setAttribute('data-akari-generation-source-for', field);
-                return settingRow(`既定モデル: ${label}`, undefined, control, source);
+                return settingRow(`Default model: ${label}`, undefined, control, source);
             };
             container.replaceChildren(
-                rowFor('still', 'image', '静止画'), rowFor('video', 'video', '動画'),
-                settingsNote('「静止画を作る」「動画にする」で最初に選ばれるモデル。作業場の .akari/connections.json に保存します。鍵が未登録でも選べます')
+                rowFor('still', 'image', 'Images'), rowFor('video', 'video', 'Video'),
+                settingsNote('Initial models for image and video generation. Saved in workspace .akari/connections.json. Select even without configured keys')
             );
             for (const note of Array.from(container.querySelectorAll<HTMLElement>('.akari-set-note'))) { note.style.margin = '8px 0 0'; }
         } catch {
             if (this.isDisposed) { return; }
-            container.replaceChildren(settingsNote('生成モデルのカタログを読み込めませんでした。'),
-                action('再読み込み', () => void this.renderGenerationDefaults(container), { small: true }));
+            container.replaceChildren(settingsNote('Could not load the generation model catalog.'),
+                action('Reload', () => void this.renderGenerationDefaults(container), { small: true }));
         }
     }
 
@@ -1981,12 +1981,12 @@ class SettingsToolsView extends AkariFirstRunSetupDialog {
         const tools = this.toolCheck?.tools ?? [];
         const order = ['required', 'advanced', 'recommended'];
         const rows = [...tools].sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier)).map(tool => this.createToolRow(tool));
-        const recheck = action(this.checkingTools ? '確認中…' : '確認し直す', () => void this.recheckTools(), { small: true, icon: 'refresh' });
+        const recheck = action(this.checkingTools ? 'Checking…' : 'Check again', () => void this.recheckTools(), { small: true, icon: 'refresh' });
         recheck.setAttribute('data-akari-tool-recheck', 'true');
         recheck.disabled = this.checkingTools || this.installingTools;
-        const card = groupCard('道具', ...rows);
+        const card = groupCard('Tools', ...rows);
         if (!this.toolCheck && this.checkingTools) {
-            const status = settingsNote('道具を確認しています…');
+            const status = settingsNote('Checking tools…');
             status.setAttribute('role', 'status');
             status.style.margin = '10px 16px 14px';
             card.append(status);
@@ -1998,7 +1998,7 @@ class SettingsToolsView extends AkariFirstRunSetupDialog {
             progress.style.margin = '10px 16px 14px';
             card.append(progress);
         }
-        card.append(settingRow('状態を確認し直す', 'インストールしたあとや、別の方法で入れたあとに押します', recheck));
+        card.append(settingRow('Recheck status', 'Click after installing, including with another method', recheck));
         this.panel.append(card);
     }
 
@@ -2030,8 +2030,8 @@ class SettingsToolsView extends AkariFirstRunSetupDialog {
         if (tool.id === 'whisper' && tool.model) {
             const voiceInk = tool.model.path ? /[\\/]com\.prakashjoshipax\.VoiceInk[\\/]/.test(tool.model.path) : false;
             const line = tool.model.path
-                ? `モデル: ${voiceInk ? 'VoiceInk のモデルを使います · ' : ''}${homeShortened(tool.model.path)}`
-                : `認識モデル · ${WHISPER_MODEL_SIZE_LABEL} · ${tool.model.available ? '取得済み' : '未取得'}`;
+                ? `Model: ${voiceInk ? 'Using VoiceInk model · ' : ''}${homeShortened(tool.model.path)}`
+                : `Recognition model · ${WHISPER_MODEL_SIZE_LABEL} · ${tool.model.available ? 'Downloaded' : 'Not downloaded'}`;
             extra(line);
             body.lastElementChild?.setAttribute('data-akari-tool-model-state', String(tool.model.available));
         }
@@ -2052,11 +2052,11 @@ class SettingsToolsView extends AkariFirstRunSetupDialog {
             fill.style.width = `${percent ?? 35}%`;
             track.append(fill);
             body.append(track);
-            extra(progress?.kind === 'download' ? formatDownloadProgressLabel(progress.downloadedBytes ?? 0, progress.totalBytes) : progress?.phase ?? '準備しています…');
+            extra(progress?.kind === 'download' ? formatDownloadProgressLabel(progress.downloadedBytes ?? 0, progress.totalBytes) : progress?.phase ?? 'Preparing…');
         }
         let trailing: HTMLElement;
         if (!tool.unsupported && !tool.available && !info.osProvided) {
-            const install = action(this.installingTools && this.installProgress?.id === tool.id ? 'インストール中…' : '準備する', () => {
+            const install = action(this.installingTools && this.installProgress?.id === tool.id ? 'Installing…' : 'Set up', () => {
                 this.selectedToolIds = new Set([tool.id]);
                 void this.installSelectedTools();
             }, { small: true });
@@ -2109,13 +2109,13 @@ export class AkariSettingsCommandContribution implements CommandContribution {
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand({ id: 'akari.library.isMoving' }, { execute: () => this.tools.isLibraryMoving() });
-        commands.registerCommand({ id: 'akari.library.changeLocation', label: '素材の置き場を変える…' }, {
+        commands.registerCommand({ id: 'akari.library.changeLocation', label: 'Change footage location…' }, {
             execute: async () => {
                 const selected = await this.fileDialogs.showOpenDialog({
-                    title: '素材の置き場を選ぶ', canSelectFiles: false, canSelectFolders: true
+                    title: 'Choose footage location', canSelectFiles: false, canSelectFolders: true
                 });
                 if (!selected) { return; }
-                this.messages.info('素材を移動しています…');
+                this.messages.info('Moving footage…');
                 this.dialog?.showLibraryMoveProgress(undefined);
                 const poll = window.setInterval(() => {
                     void this.tools.libraryMoveProgress().then(value => this.dialog?.showLibraryMoveProgress(value));
@@ -2123,11 +2123,11 @@ export class AkariSettingsCommandContribution implements CommandContribution {
                 try {
                     const result = await this.tools.moveLibrary(selected.path.fsPath());
                     this.messages.info(result.state === 'pending'
-                        ? '同期される場所です。移動する前に、素材の設定で確認してください。'
-                        : '素材の置き場を変えました。');
+                        ? 'This location is synced. Review footage settings before moving.'
+                        : 'Footage location changed.');
                     await this.dialog?.refreshLibraryStatus();
                 } catch (error) {
-                    this.messages.error(error instanceof Error ? error.message : '素材を移動できませんでした。');
+                    this.messages.error(error instanceof Error ? error.message : 'Could not move footage.');
                     throw error;
                 } finally {
                     window.clearInterval(poll);
@@ -2203,7 +2203,7 @@ export class AkariSettingsCommandContribution implements CommandContribution {
                 throw new Error('Unknown status service');
             }
         });
-        commands.registerCommand({ id: 'akari.settings.open', label: 'AKARI Video の設定' }, {
+        commands.registerCommand({ id: 'akari.settings.open', label: 'AKARI Video settings' }, {
             execute: (arg?: unknown) => {
                 const section = resolveSettingsSectionId(arg);
                 if (section) {
@@ -2293,13 +2293,13 @@ function themePreview(theme: string): HTMLElement {
 }
 /** 状態のピルは「接続済み / 未接続」の 2 値（キーが通らないと分かったときだけ「繋がらない」）。確認の詳細は下の 1 行に出す。 */
 function doctorPill(row: ConnectionRow): [string, 'ok' | 'neutral' | 'warn'] {
-    if (!row.configured || row.doctor.status === 'unconfigured') { return ['未接続', 'neutral']; }
-    if (row.doctor.status === 'unauthorized') { return ['繋がらない', 'warn']; }
-    return ['接続済み', 'ok'];
+    if (!row.configured || row.doctor.status === 'unconfigured') { return ['Not connected', 'neutral']; }
+    if (row.doctor.status === 'unauthorized') { return ['Cannot connect', 'warn']; }
+    return ['Connected', 'ok'];
 }
 function doctorLabel(doctor: ConnectionDoctor): string {
-    if (doctor.status === 'unconfigured') { return '未登録'; }
-    if (doctor.status === 'ok') { return `繋がった · ${doctor.last_checked ? new Date(doctor.last_checked).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : ''}`; }
-    if (!doctor.last_checked) { return '登録済み · 未確認'; }
-    return `繋がらない（${doctor.detail}）`;
+    if (doctor.status === 'unconfigured') { return 'Not configured'; }
+    if (doctor.status === 'ok') { return `Connected · ${doctor.last_checked ? new Date(doctor.last_checked).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}`; }
+    if (!doctor.last_checked) { return 'Configured · Not checked'; }
+    return `Cannot connect (${doctor.detail}）`;
 }

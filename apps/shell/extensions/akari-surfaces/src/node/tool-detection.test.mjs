@@ -11,7 +11,7 @@ function tool(result, id) {
     return result.tools.find(entry => entry.id === id);
 }
 
-test('ffmpeg は PATH 上の実行ファイルを実測し、版を返す', async t => {
+test('FFmpeg measures the PATH executable version', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-present-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const bin = join(scratch, 'bin');
@@ -32,7 +32,7 @@ test('ffmpeg は PATH 上の実行ファイルを実測し、版を返す', asyn
     });
 });
 
-test('ffmpeg は PATH から除くと未検出になる', async t => {
+test('FFmpeg is unavailable when removed from PATH', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-absent-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const emptyBin = join(scratch, 'empty-bin');
@@ -42,7 +42,7 @@ test('ffmpeg は PATH から除くと未検出になる', async t => {
     assert.deepEqual(tool(result, 'ffmpeg'), { id: 'ffmpeg', tier: 'required', available: false });
 });
 
-test('macOS CLT は xcode-select -p の非0終了で推奨・未検出となり git を呼ばない', async () => {
+test('Missing macOS CLT recommends setup without calling git', async () => {
     const calls = [];
     const result = await detectTools({
         platform: 'darwin',
@@ -61,7 +61,7 @@ test('macOS CLT は xcode-select -p の非0終了で推奨・未検出となり 
     assert.equal(calls.some(([command]) => command === 'git'), false);
 });
 
-test('~/.akari/tools/bin に配置された道具は再チェックで検出される（brew 不在時 DL 配置の受け皿）', async t => {
+test('Tools placed in managed bin are detected again without brew', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-akaribin-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const binDir = join(scratch, '.akari', 'tools', 'bin');
@@ -76,7 +76,7 @@ test('~/.akari/tools/bin に配置された道具は再チェックで検出さ�
     assert.equal(ytDlp.executable, fakeYtDlp);
 });
 
-test('macOS 以外では CLT 項目自体を返さない', async () => {
+test('Non-macOS platforms omit CLT', async () => {
     const result = await detectTools({
         platform: 'linux', env: { PATH: '/empty' }, homeDir: '/nonexistent',
         pathExists: async () => false,
@@ -85,7 +85,7 @@ test('macOS 以外では CLT 項目自体を返さない', async () => {
     assert.equal(tool(result, 'xcode-clt'), undefined);
 });
 
-test('VOICEVOX は未導入・停止中・起動中の版とユーザー Applications を偽 fs/HTTP だけで検出する', async () => {
+test('VOICEVOX detects missing, stopped, and running versions through mocked filesystem and HTTP', async () => {
     const runCommand = async () => ({ ok: false, stdout: '', stderr: '' });
     const base = { platform: 'darwin', env: { PATH: '/empty' }, homeDir: '/isolated',
         resourcesPath: '', devSearchRoots: [], runCommand, pathExists: async () => false };
@@ -105,7 +105,7 @@ test('VOICEVOX は未導入・停止中・起動中の版とユーザー Applica
 
 // --- 同梱バイナリ検知（進捗バー + 同梱ファースト裁定） ------------------------------
 
-test('ffmpeg は同梱バイナリ（process.resourcesPath 配下の media-bin/）を PATH より優先して検出する', async t => {
+test('Bundled FFmpeg under resources media-bin takes priority over PATH', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-bundled-resources-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const resourcesPath = join(scratch, 'Resources');
@@ -129,7 +129,7 @@ test('ffmpeg は同梱バイナリ（process.resourcesPath 配下の media-bin/�
     assert.match(ffmpeg.version, /bundled-test/);
 });
 
-test('ffmpeg は開発時、packages/media-bin/vendor/<platform>-<arch>/ を上方探索して検出する', async t => {
+test('Development FFmpeg searches ancestor platform vendor directories', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-dev-vendor-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const vendorDir = join(scratch, 'packages', 'media-bin', 'vendor', 'linux-x64');
@@ -146,7 +146,7 @@ test('ffmpeg は開発時、packages/media-bin/vendor/<platform>-<arch>/ を上�
     assert.equal(ffmpeg.executable, devFfmpeg);
 });
 
-test('ffmpeg: env override > 同梱 > PATH の優先順で解決する', async t => {
+test('FFmpeg resolves environment override before bundled executable before PATH', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-priority-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
 
@@ -183,7 +183,7 @@ test('ffmpeg: env override > 同梱 > PATH の優先順で解決する', async t
     assert.equal(tool(envOverAll, 'ffmpeg').executable, envFfmpeg);
 });
 
-test('win32: ~/.akari/tools/bin の道具は .exe 付きで検出される（DL ファースト化の受け皿）', async t => {
+test('Windows managed tools are detected with exe extensions', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-win-akaribin-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const binDir = join(scratch, '.akari', 'tools', 'bin');
@@ -200,7 +200,7 @@ test('win32: ~/.akari/tools/bin の道具は .exe 付きで検出される（DL 
 
 // --- whisper: 本体 + モデルの 2 資産 ------------------------------------------------
 
-test('whisper-cli も同じ規約で同梱候補（dev vendor）を検出する。モデルが揃うと行全体も available になる', async t => {
+test('Whisper uses bundled vendor candidates and is available when its model exists', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-whisper-bundled-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const vendorDir = join(scratch, 'packages', 'media-bin', 'vendor', 'linux-x64');
@@ -222,7 +222,7 @@ test('whisper-cli も同じ規約で同梱候補（dev vendor）を検出する�
     assert.equal(whisper.model.path, join(modelsDir, 'ggml-tiny.bin'));
 });
 
-test('whisper: 本体は検出できてもモデル未取得なら行全体は available=false になる', async t => {
+test('Whisper remains unavailable when its executable exists but model is missing', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-whisper-no-model-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const bin = join(scratch, 'bin');
@@ -241,7 +241,7 @@ test('whisper: 本体は検出できてもモデル未取得なら行全体は a
     assert.equal(whisper.model.path, undefined);
 });
 
-test('whisper モデル: WHISPER_CPP_MODEL の実在パスが最優先で検出される', async t => {
+test('Existing WHISPER_CPP_MODEL paths take priority', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-whisper-model-env-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const customModel = join(scratch, 'custom-model.bin');
@@ -261,7 +261,7 @@ test('whisper モデル: WHISPER_CPP_MODEL の実在パスが最優先で検出�
     assert.equal(whisper.available, true);
 });
 
-test('whisper モデル: 何も無ければ未取得（WHISPER_CPP_MODEL 未設定・models/ ディレクトリ自体が無い）', async t => {
+test('Whisper model remains missing without overrides or a models directory', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-tools-whisper-model-none-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
 
@@ -318,7 +318,7 @@ test('VoiceInk alone is ready; removing it makes the model missing; nested Engli
     await rm(model);
     result = tool(await detectTools(options), 'whisper');
     assert.equal(result.available, false);
-    assert.deepEqual(result.needs, ['モデルが無い']);
+    assert.deepEqual(result.needs, ['Model missing']);
 });
 
 test('shell uses WHISPER_CPP_MODEL first and excludes test/English overrides', async () => {
@@ -336,7 +336,7 @@ test('shell uses WHISPER_CPP_MODEL first and excludes test/English overrides', a
 test('SpeechAnalyzer uses the CLI --check helper on macOS and reports OS / CLT conditions', async () => {
     for (const [value, expected] of [
         [{ available: true }, { available: true }],
-        [{ available: false, reason: 'swiftc が PATH 上にありません' }, { available: false, needs: ['Command Line Tools が無い'] }],
+        [{ available: false, reason: 'swiftc が PATH 上にありません' }, { available: false, needs: ['Command Line Tools missing'] }],
         [{ available: false, reason: 'macOS 15.0 は 26 未満です' }, { available: false, unsupported: true, needs: ['macOS 15.0 は 26 未満です'] }]
     ]) {
         const calls = [];

@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 const { BEFORE_AFTER_DATA_URL } = require('../../lib/onboarding/before-after-data.js');
 const { BEFORE_AFTER_IMAGE } = require('../../lib/onboarding/asset-paths.js');
 
-test('招待の図は 1200×500、200KB 以下で、埋め込みと同じ内容', () => {
+test('Invitation images are 1200×500, below 200 KB, and match embedded bytes', () => {
     const bytes = readFileSync(join(import.meta.dirname, BEFORE_AFTER_IMAGE.split(/[\\/]/).at(-1)));
     assert.ok(bytes.length <= 200 * 1024);
     assert.equal(bytes.toString('ascii', 0, 4), 'RIFF');

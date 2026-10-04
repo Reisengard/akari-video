@@ -69,7 +69,7 @@ export function HomeScrim(props: { kind: string; onClose: () => void; children: 
         return () => document.removeEventListener('keydown', close);
     }, [props.onClose]);
     return ReactDOM.createPortal(<div className='akari-home-sheet-scrim' data-akari-home-dialog={props.kind} onMouseDown={event => { if (event.target === event.currentTarget) { props.onClose(); } }}>
-        <div className='akari-home-sheet' role='dialog' aria-modal='true'><button type='button' className='akari-home-sheet-close' aria-label='閉じる' onClick={props.onClose}>×</button>{props.children}</div>
+        <div className='akari-home-sheet' role='dialog' aria-modal='true'><button type='button' className='akari-home-sheet-close' aria-label='Close' onClick={props.onClose}>×</button>{props.children}</div>
     </div>, document.body);
 }
 
@@ -89,23 +89,23 @@ function EmptyFilmIcon(): React.ReactElement {
 export function CurrentProjectBand(p: CurrentProjectBandProps): React.ReactElement {
     const [failedPosterSrc, setFailedPosterSrc] = React.useState<string | undefined>();
     const poster = p.frames[0] !== failedPosterSrc && p.frames[0];
-    const values: Array<[string, string | undefined]> = [['尺', p.stats.duration], ['クリップ', p.stats.clips], ['素材', p.stats.assets], ['データ量', p.stats.bytes], ['最後の書き出し', p.stats.lastExport]];
+    const values: Array<[string, string | undefined]> = [['Duration', p.stats.duration], ['Clips', p.stats.clips], ['Footage', p.stats.assets], ['Data size', p.stats.bytes], ['Last export', p.stats.lastExport]];
     // 絵が用意できないときの 1 行。帯の中ではなく詳細側の弱い注記として出す
     // （小さなサムネ枠の中に文とボタンを詰め込むと、狭い幅で真っ先に壊れる）。
     const note = poster ? undefined : p.canPreview
-        ? <p className='akari-current-note'><span className='akari-current-empty-title'>サムネイルはありません</span></p>
+        ? <p className='akari-current-note'><span className='akari-current-empty-title'>No thumbnail</span></p>
         : <p className='akari-current-note'>
-            <span className='akari-current-empty-title'>まだ映像がありません</span>
-            <button type='button' onClick={p.onStart}>素材を入れて始める</button>
-            <span className='akari-current-empty-hint'>素材をドラッグしても取り込めます</span>
+            <span className='akari-current-empty-title'>No video yet</span>
+            <button type='button' onClick={p.onStart}>Add footage to start</button>
+            <span className='akari-current-empty-hint'>You can also drag footage to import it</span>
         </p>;
     return <section className='akari-current-project' data-akari-current-location='true' data-akari-status-kind={p.channel ? 'inside' : 'outside'}>
-        <p className='akari-current-label'>いま開いているプロジェクト</p>
+        <p className='akari-current-label'>Currently open project</p>
         <div className='akari-current-band' data-akari-current-band='true'>
-            <div className='akari-current-art'>{poster ? (p.canPreview ? <button type='button' className='akari-current-hero' data-akari-current-hero='true' aria-label='出力プレビューで再生' onClick={p.onPreview}>
+            <div className='akari-current-art'>{poster ? (p.canPreview ? <button type='button' className='akari-current-hero' data-akari-current-hero='true' aria-label='Play output preview' onClick={p.onPreview}>
                 <img src={poster} alt='' onError={() => setFailedPosterSrc(poster)} /><span className='akari-current-play'>▶</span>
             </button> : <div className='akari-current-hero' data-akari-current-hero='true'><img src={poster} alt='' onError={() => setFailedPosterSrc(poster)} /></div>)
-                : p.canPreview ? <button type='button' className='akari-current-hero akari-current-hero-empty akari-current-hero-preview-placeholder' data-akari-current-hero='true' data-akari-current-hero-preview-placeholder='true' aria-label='出力プレビューで再生' onClick={p.onPreview}>
+                : p.canPreview ? <button type='button' className='akari-current-hero akari-current-hero-empty akari-current-hero-preview-placeholder' data-akari-current-hero='true' data-akari-current-hero-preview-placeholder='true' aria-label='Play output preview' onClick={p.onPreview}>
                     <EmptyFilmIcon />
                     <span className='akari-current-play'>▶</span>
                 </button> : <div className='akari-current-hero akari-current-hero-empty' data-akari-current-hero='true' data-akari-current-hero-empty='true'>
@@ -114,14 +114,14 @@ export function CurrentProjectBand(p: CurrentProjectBandProps): React.ReactEleme
             <div className='akari-current-detail'>
                 <div className='akari-current-crumb'>
                     <button type='button' className={`akari-current-tag ${p.channel ? 'channel' : 'single'}`} data-akari-channel-switch='true'
-                        title={p.channel ? 'チャンネルを切り替える' : 'このプロジェクトをチャンネルに入れる'}
+                        title={p.channel ? 'Switch channel' : 'Add this project to a channel'}
                         onClick={p.channel ? p.onSwitch : p.onJoin}>
                         <span className={`codicon ${p.channel ? 'codicon-layers' : 'codicon-circle-outline'}`} aria-hidden='true' />
-                        {p.channel || '単体'}
+                        {p.channel || 'Standalone'}
                     </button>
                 </div>
                 <h2 className='akari-current-name'>{p.name}</h2>
-                <button type='button' className='akari-current-path' title={`${p.path}（クリックでフォルダを開く）`} onClick={p.onReveal}>
+                <button type='button' className='akari-current-path' title={`${p.path}(Click to open folder)`} onClick={p.onReveal}>
                     <span className='codicon codicon-folder-opened' aria-hidden='true' />
                     <span className='p'>{p.path}</span>
                 </button>

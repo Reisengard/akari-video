@@ -9,7 +9,7 @@ import { detectTools as detectToolsImpl } from '../../lib/node/tool-detection.js
 
 const detectTools = options => detectToolsImpl({ fetchImpl: async () => ({ ok: false }), ...options });
 
-test('VOICEVOX 導入は cask の存在を確認し、無ければ公式サイトへ誘導する', async () => {
+test('VOICEVOX installation checks cask availability before linking to the official site', async () => {
     const commands = [];
     const opened = [];
     const base = { ...noExternalWork, platform: 'darwin', pathExists: async () => false,
@@ -35,7 +35,7 @@ test('VOICEVOX 導入は cask の存在を確認し、無ければ公式サイ�
     }
 });
 
-test('VOICEVOX の cask が存在するときだけ偽 brew install を呼ぶ', async () => {
+test('VOICEVOX invokes mocked brew install only when the cask exists', async () => {
     const calls = [];
     const result = await installTool('voicevox', { ...noExternalWork, platform: 'darwin',
         runCommand: async (command, args) => {
@@ -89,7 +89,7 @@ for (const platform of ['darwin', 'win32', 'linux']) {
     });
 }
 
-test('隔離した偽モデルへの override は導入と検出で同じ絶対パスになる', async t => {
+test('Isolated model overrides resolve to the same absolute path during install and detection', async t => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-install-model-'));
     t.after(() => rm(scratch, { recursive: true, force: true }));
     const modelPath = join(scratch, 'override.bin');
@@ -106,7 +106,7 @@ test('隔離した偽モデルへの override は導入と検出で同じ絶対�
     assert.equal(await resolveWhisperModelPath(options), detected.model.path);
 });
 
-test('アプリ管理モデルの再帰探索・除外・順序は検出側と一致する', async () => {
+test('Managed model recursion, exclusions, and ordering match detection', async () => {
     const modelsDir = '/isolated/.akari/tools/models';
     const modelPath = `${modelsDir}/nested/ggml-tiny.bin`;
     for (const override of ['/override.bin', '/missing.bin', '/ggml-small.en.bin', undefined]) {
@@ -124,14 +124,14 @@ test('アプリ管理モデルの再帰探索・除外・順序は検出側と�
     }
 });
 
-test('repoRoot / whisperBin 未指定でも安全に探索し、相対 override は絶対パスにする', async () => {
+test('Missing repoRoot or whisperBin is safe and relative overrides become absolute', async () => {
     assert.equal(await resolveWhisperModelPath({ ...noExternalWork, repoRoot: undefined, whisperBin: undefined }), undefined);
     assert.equal(await resolveWhisperModelPath({
         ...noExternalWork, env: { WHISPER_CPP_MODEL: 'custom.bin' }, pathExists: async path => path === 'custom.bin'
     }), resolve('custom.bin'));
 });
 
-test('モデルがなければ既存の DL 先とハッシュ検証を維持する', async () => {
+test('Missing models retain existing download destinations and hash verification', async () => {
     const payload = Buffer.from('fake model');
     const writes = [];
     const dirs = [];
@@ -147,7 +147,7 @@ test('モデルがなければ既存の DL 先とハッシュ検証を維持す�
     assert.deepEqual(writes, [{ path: join(dirs[0], WHISPER_MODEL_FILENAME), data: payload }]);
 });
 
-test('解決済みモデルがあれば installTool はモデルを再ダウンロードしない', async () => {
+test('Resolved models are never downloaded again by installTool', async () => {
     const result = await installTool('whisper', {
         ...noExternalWork, platform: 'darwin',
         listDir: async path => path === '/isolated/.akari/tools/models' ? ['ggml-tiny.bin'] : [],

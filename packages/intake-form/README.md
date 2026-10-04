@@ -1,44 +1,46 @@
 # @akari-video/intake-form
 
-進め方フォーム（intake サーフェス）の standalone ブラウザ版。アプリなし運用
-（`packages/decision-cards` と同じ流儀: 外部 npm 依存ゼロ・`127.0.0.1` のみ）でも
-`.akari/intake.json` を読み書きできる。
+[English](README.md) | [日本語](README.ja.md)
 
-## 構成
+A standalone browser intake form for AKARI Video. It reads and writes
+`.akari/intake.json` without requiring the app, external npm dependencies, or
+a network listener beyond `127.0.0.1`.
 
-| ファイル | 役割 |
-|---|---|
-| `intake-form-server.mjs` | `createIntakeFormServer(projectRoot)` — リッスンしない `http.Server` を返す。テスト/CLI から使い回す |
-| `intake-form-helper.mjs` | CLI ラッパー（`bin: intake-form-helper`）。引数をパースしてサーバを起動する |
-| `intake-form-template.html` | フォーム本体（静的 HTML + インライン JS）。`packages/schemas/intake.schema.json` の `x-akari-labels` の手動ミラー（同期は手動 — 既知の制約） |
-| `test/intake-form-server.test.mjs` | サーバが書き込む `intake.json` が `packages/schemas/bin/validate-intake.mjs` を通ることを含めた smoke test |
-
-## 使い方
+## Usage
 
 ```sh
-node packages/intake-form/intake-form-helper.mjs <プロジェクトルート> [--port N]
+node packages/intake-form/intake-form-helper.mjs <project-root> [--port N]
 ```
 
-起動すると `intake-form: http://127.0.0.1:<port>/  (project: ...)` を標準出力に出す。
-ブラウザでそれを開くとフォームが表示され、送信すると `<プロジェクトルート>/.akari/intake.json` へ
-`status: "submitted"` で書き込まれる。
+The helper prints `intake-form: http://127.0.0.1:<port>/  (project: ...)`.
+Open that address in a browser. Submitting the form writes
+`<project-root>/.akari/intake.json` with `status: "submitted"`.
 
-### エンドポイント
+## Files and endpoints
 
-- `GET /` — `intake-form-template.html` を配信
-- `GET /api/state` — `.akari/intake.json` を読む（無ければ 404）
-- `POST /api/state` — `.akari/intake.json` へ全文書き込み（`.akari/` が無ければ作成する）
+`intake-form-server.mjs` exports `createIntakeFormServer(projectRoot)`,
+which returns an HTTP server without listening. The CLI wrapper is
+`intake-form-helper.mjs`; the static form is `intake-form-template.html`.
 
-### アプリ内サーフェスとの関係
+- `GET /` serves the form.
+- `GET /api/state` reads the intake file, returning 404 when absent.
+- `POST /api/state` writes the complete intake file, creating `.akari/` if needed.
 
-アプリ内（Theia シェル）のホーム v2 は同じ内容を React ウィジェットとして実装している
-（`apps/shell/extensions/akari-surfaces/src/browser/akari-home-widget.tsx` の 03 進め方
-フォーム）。両者は同じ `.akari/intake.json` を対象にし、ラベル文言も揃えているが、
-実装（レンダリング経路）自体は独立している — アプリが無い環境でもこのパッケージ単体で
-進め方を決めて `.akari/intake.json` を作れることを壊さないための構成。
+## Relationship to the app
 
-## テスト
+The shell home widget implements the same intake flow in React. Both forms use
+the same intake file and stable task and autonomy IDs. Display labels come from
+`packages/schemas/intake.schema.json`: `x-akari-labels` and
+`x-akari-autonomy-labels`. The React constants and HTML tables are manual
+mirrors; tests compare both maps to the schema to prevent drift.
+
+The rendering implementations remain independent so this package can work
+without the app.
+
+## Tests
 
 ```sh
 node --test packages/intake-form/test/*.mjs
 ```
+
+The tests verify file persistence, schema validation, and both label mirrors.

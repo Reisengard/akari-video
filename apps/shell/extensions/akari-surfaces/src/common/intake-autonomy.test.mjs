@@ -4,7 +4,7 @@ import { applyAutonomy } from '../../lib/common/intake-autonomy.js';
 
 const submitted = {
     version: 1,
-    title: '動画',
+    title: 'Video',
     tasks: ['silence-cut', 'bgm-sfx'],
     target: { duration_s: 30, keep_length: false, taste: '自然に' },
     autonomy: 'checkpoint',

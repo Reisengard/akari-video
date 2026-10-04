@@ -21,39 +21,39 @@ export const AKARI_AGENT_TURN_END_NOTIFICATION = 'akari.notifications.agentTurnE
 
 const AKARI_PREFERENCE_SCHEMA: PreferenceSchema = {
     properties: {
-        [AKARI_NARRATION_ENGINE]: { type: 'string', default: 'voicevox', description: '読み上げの既定エンジン' },
-        [AKARI_NARRATION_VOICE]: { type: 'object', default: {}, description: 'エンジン別の読み上げ音声' },
-        [AKARI_NARRATION_IRODORI_URL]: { type: 'string', default: 'http://127.0.0.1:8088', description: '彩サーバーの接続先 URL' },
+        [AKARI_NARRATION_ENGINE]: { type: 'string', default: 'voicevox', description: 'Default narration engine' },
+        [AKARI_NARRATION_VOICE]: { type: 'object', default: {}, description: 'Narration voices by engine' },
+        [AKARI_NARRATION_IRODORI_URL]: { type: 'string', default: 'http://127.0.0.1:8088', description: 'Irodori server URL' },
         [AKARI_TRANSCRIBE_MODE]: {
             type: 'string', enum: ['simple', 'advanced'], default: 'simple',
-            description: '文字起こしのモード（簡単 / アドバンス）'
+            description: 'Transcription mode (Simple / Advanced)'
         },
         [AKARI_TRANSCRIBE_BACKEND]: {
             type: 'string', enum: ['auto', ...TRANSCRIBE_BACKENDS], default: 'auto',
-            description: '文字起こしの既定エンジン（おまかせはローカルを優先）'
+            description: 'Default transcription engine (automatic prefers local)'
         },
         [AKARI_TRANSCRIBE_COMPARE_SET]: {
             type: 'array', items: { type: 'string', enum: [...TRANSCRIBE_BACKENDS] }, default: [], uniqueItems: true,
-            description: '文字起こしを比べるときに使うエンジンの組（空なら比較しない）'
+            description: 'Engines to compare for transcription (empty disables comparison)'
         },
         [AKARI_TRANSCRIBE_AUTO_CUTS]: {
             type: 'boolean', default: true,
-            description: 'フィラー・言い直し・無音のカット候補を自動で作る（タイムラインには入れない）'
+            description: 'Automatically create cut candidates for fillers, retakes, and silence (without adding them to the timeline)'
         },
         [AKARI_QUALITY_TIER]: {
             type: 'string',
             enum: ['draft', 'final'],
             default: 'draft',
-            description: 'AKARI Video の書き出し品質ティア'
+            description: 'AKARI Video export quality tier'
         },
         [AKARI_TIMELINE_VISUAL_THUMBNAILS]: {
             type: 'boolean', default: false,
-            description: 'タイムラインに HTML / 3D 素材の絵を出す（オフのときは種別の色と名前だけ）'
+            description: 'Show HTML / 3D footage thumbnails in the timeline (off shows type colors and names only)'
         },
         [AKARI_AGENT_TURN_END_NOTIFICATION]: {
             type: 'boolean',
             default: true,
-            description: 'AI パートナーの処理が終わったとき OS 通知を出す（ウィンドウが背面のときだけ）'
+            description: 'Send an OS notification when your AI partner finishes (only when the window is in the background)'
         }
     }
 };

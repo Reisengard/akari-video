@@ -15,7 +15,7 @@ export function replaceReportBlock(source: string, blockId: string, text: string
         return source.replace(linePattern, (_match, prefix, _content, annotation, _quote, ending) =>
             `${prefix}${text.replace(/\r?\n/g, ' ')}${annotation}${ending}`);
     }
-    throw new Error(`ブロック ${blockId} が元ファイルにありません。`);
+    throw new Error(`Block ${blockId} is missing from the source file.`);
 }
 
 function findHtmlBlock(source: string, blockId: string): { contentStart: number; contentEnd: number } | undefined {
@@ -26,7 +26,7 @@ function findHtmlBlock(source: string, blockId: string): { contentStart: number;
             continue;
         }
         if (/\/\s*>$/.test(opening[0])) {
-            throw new Error(`ブロック ${blockId} に編集できる本文がありません。`);
+            throw new Error(`Block ${blockId} has no editable body.`);
         }
         const tag = opening[1];
         const tagPattern = new RegExp(`<\\/?${escapeRegExp(tag)}\\b[^>]*>`, 'gi');
@@ -43,7 +43,7 @@ function findHtmlBlock(source: string, blockId: string): { contentStart: number;
                 depth++;
             }
         }
-        throw new Error(`ブロック ${blockId} の閉じタグがありません。`);
+        throw new Error(`Block ${blockId} has no closing tag.`);
     }
     return undefined;
 }
