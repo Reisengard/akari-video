@@ -1,43 +1,29 @@
-# plan.json v0（仮枠タイムライン）契約
+**English** | [日本語](./contract-2026-07-20-plan-json-v0.ja.md)
 
-## 2026-09-13 追記 — 仮枠役の退役
+# plan.json v0 contract (provisional timeline)
 
-plan.json の仮枠役（`confidence` / `fill` / §6 の処理）は退役した。現在の仮枠は edit.json v2 のタイムライン上の静止画 media item + 素材の隣の `<path>.meta.json` である（[生成 v0 契約 §1](./contract-2026-09-13-generation-v0.md#1-継ぎ目仮枠とタイムライン)）。企画層（`research-plan.json` / `planning/`）は存続する。以下は旧契約と移行経緯を保持するため本文を残す。
+## Addendum, 2026-09-13. The provisional-timeline role is retired
 
-- 日付: 2026-07-20
-- 状態: 実装ラウンドの SSOT（データ形と検証のみ確定。仮枠コンパイラは §6 の規約先行・実装は次段）
-- 前提: 仮枠タイムラインの方向性メモ §3〜§5（本契約はこの節群を昇格したもの。
-  メモ原本は非公開の内部記録で管理）、`contract-2026-07-17-data-contract-versioning.md`（三原則）、
-  `contract-2026-07-18-edit-json-v1-sources.md`（§2 の連結規則と §6 のコンパイル先）、
-  `contract-2026-07-13-m5-analysis-report.md`（編集判断レポート = 本データのもう 1 つのレンダリング）
-- スコープ: `plan.json` のデータ形・検証・置き場所・edit.json への接続規約。
-  対話 UI・ゴースト描画・コンパイラ実装・収録統合は扱わない（§11 次段）
-- 名前について: `packages/render-cut/src/plan.mjs` は非永続の ffmpeg コマンド計画
-  ビルダーであり本契約とは無関係（純粋な語彙の重なり）。`skills/edit-plan` は
-  編集判断レポートのスキル名で、§5 のとおり本データと収束していく関係にある
+The provisional-timeline role of plan.json (`confidence`, `fill`, and the processing in section 6) is retired. The current provisional frame is a still-image media item on an edit.json v2 timeline, plus a `<path>.meta.json` next to the footage. See section 1 of `contract-2026-09-13-generation-v0.md` (Japanese). The planning layer (`research-plan.json` and `planning/`) stays. The body below is kept so the old contract and the migration history remain.
 
-## 0. version 運用
+- Date: 2026-07-20
+- Status: source of truth for the implementation round. Only the data shape and validation are fixed. The provisional-frame compiler follows the rules in section 6. The implementation is the next stage.
+- Depends on: the direction memo for the provisional timeline, sections 3 through 5, which this contract promotes. The memo itself stays in private internal records. Also `contract-2026-07-17-data-contract-versioning.md` (the three principles), `contract-2026-07-18-edit-json-v1-sources.md` (the join rule in section 2, and the compile target in section 6), and `contract-2026-07-13-m5-analysis-report.md` (the editorial-judgment report, which is another rendering of this data).
+- Scope: the data shape of `plan.json`, validation, where the file lives, and the rule for connecting it to edit.json. Dialogue UI, ghost drawing, the compiler implementation, and recording integration are not covered (section 11).
+- About the name. `packages/render-cut/src/plan.mjs` is a non-persistent builder of an ffmpeg command plan. It has nothing to do with this contract. The names only overlap. `skills/edit-plan` is the skill name for the editorial-judgment report. Section 5 says that skill and this data converge.
 
-- 新設契約のため `contract-2026-07-17` §4 のチェックリストを初版から適用する:
-  トップレベル `version` は**整数・0 起算**。進化は**追加のみ**、読み手は**寛容リーダー**
-  （`additionalProperties: true`。未知フィールドは保持し、欠落は既定値で補う）
-- 既知より大きい `version` を見た読み手は推測変換せず read-only で正直に停止する
-  （`validate-plan.mjs` 実装済み）
-- 旧世代スキーマ（analysis / connections / asset-meta）の `additionalProperties: false` とは
-  **意図的に違える**。あちらは版管理契約より前の設計であり、本契約は版管理契約準拠の
-  新しい先例（edit.schema.json と同側）に揃える
-- フィールド命名は **snake_case**（`.schema.json` を持つ契約群 connections / asset-meta /
-  analysis の先例）。review.json（camelCase）は既存資産のため命名系が分かれるが、
-  「schema ファースト契約 = snake_case、既存 TS 資産由来 = camelCase」という分裂として
-  両契約に明記して固定する
+## 0. How version is used
 
-## 1. 確定スキーマ
+- This is a new contract, so the checklist in section 4 of `contract-2026-07-17-data-contract-versioning.md` applies from the first version. Top-level `version` is an integer starting at 0. Evolution is additive only. The reader is tolerant (`additionalProperties: true`). Keep unknown fields. Fill a missing field from its default.
+- A reader that sees a `version` higher than the one it knows does not guess a conversion. It stops in read-only and says so. `validate-plan.mjs` implements this.
+- This is different on purpose from the old schemas (analysis, connections, asset-meta), which set `additionalProperties: false`. Those were designed before the versioning contract. This contract follows the newer precedent that complies with the versioning contract, the same side as `edit.schema.json`.
+- Field names are snake_case, the precedent of the contracts that have a `.schema.json` (connections, asset-meta, analysis). review.json is camelCase because it is existing material, so the naming families differ. Both contracts state the split and fix it. A schema-first contract is snake_case. A contract that came from existing TypeScript material is camelCase.
 
-正本: `packages/schemas/plan.schema.json`（`$id: urn:akari-video:schema:plan:v0`）。
-実例: `packages/schemas/examples/plan-v0-sample/plan.json`。
-置き場所: **編集判断レポートと同じ `<plan-dir>`**（AKARI プロジェクトでは `planning/`
-ロールが既定。workflow.md §1 の出力先規約に従う）。相対パスはすべて **plan.json
-所在ディレクトリ基準**（edit.json のパス解決規則と同型）。
+## 1. Fixed schema
+
+Source of truth: `packages/schemas/plan.schema.json` (`$id: urn:akari-video:schema:plan:v0`).
+Example: `packages/schemas/examples/plan-v0-sample/plan.json`.
+Location: the same `<plan-dir>` as the editorial-judgment report. In an AKARI project the `planning/` role is the default. Follow the output-location rule in workflow.md section 1. Every relative path is relative to the directory that contains plan.json, the same shape as edit.json path resolution.
 
 ```jsonc
 {
@@ -45,201 +31,153 @@ plan.json の仮枠役（`confidence` / `fill` / §6 の処理）は退役した
   "slots": [
     {
       "id": "s-opening",
-      "label": "オープニング",                    // 人間可読のビート名（レポート・タイムライン両表示で使う）
-      "script": "こんにちは。今日は…",            // テレプロンプター台本 兼 TTS 仮ナレ原稿。null 可
+      "label": "Opening",                         // human-readable beat name, shown in the report and on the timeline
+      "script": "Hello. Today...",                 // teleprompter script and the draft narration text for TTS. May be null
       "target_duration_seconds": 5.0,
-      "confidence": "proposed",                  // "proposed" | "locked" | "filled"（§3）
-      "fill": {                                  // 充填手段（§4）
-        "method": "generate",                    // null | "generate" | "record" | "import"（null = 未決）
-        "prompt": "明るいデスクの俯瞰…",          // generate 用。null 可
-        "asset_path": null                       // import 用。copy-don't-link 後の相対パス
+      "confidence": "proposed",                    // "proposed" | "locked" | "filled" (section 3)
+      "fill": {                                    // how the slot is filled (section 4)
+        "method": "generate",                      // null | "generate" | "record" | "import" (null = not decided)
+        "prompt": "A bright desk, seen from above...", // for generate. May be null
+        "asset_path": null                         // for import. Relative path after copy, do not link
       },
-      "media": {                                 // 現在のスタンドイン（仮枠の実体）
-        "image_path": "scaffold/beat-01.png",    // 静止画。null 可
-        "audio_path": "scaffold/beat-01.wav",    // TTS 音声。null 可
-        "text_card": null                        // タイポグラフィのみのビート用。null 可
+      "media": {                                   // the current stand-in, the body of the provisional frame
+        "image_path": "scaffold/beat-01.png",      // still. May be null
+        "audio_path": "scaffold/beat-01.wav",      // TTS audio. May be null
+        "text_card": null                          // for a beat that is type only. May be null
       },
-      "provenance": { "tool": "codex-image", "created_at": "2026-07-20T11:00:00.000Z", "note": "…" }
+      "provenance": { "tool": "codex-image", "created_at": "2026-07-20T11:00:00.000Z", "note": "..." }
     }
   ],
   "constraints": [
-    { "id": "c-total", "kind": "duration_exact", "applies_to": null, "value": 30.0, "note": "30 秒尺で確定" },
-    { "id": "c-sfx",   "kind": "note",           "applies_to": "s-main", "value": null, "note": "冒頭にボン系の SFX" }
+    { "id": "c-total", "kind": "duration_exact", "applies_to": null, "value": 30.0, "note": "Fixed at a 30 second duration" },
+    { "id": "c-sfx",   "kind": "note",           "applies_to": "s-main", "value": null, "note": "A hit sound effect at the start" }
   ]
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 単位・座標系 |
+| Field | Type | Required | Default | Unit and coordinates |
 |---|---|---|---|---|
-| `version` | integer (const 0) | 要 | — | — |
-| `slots[]` | array | 否 | []（対話開始直後は空で正当） | 配列順が timeline 順（§2） |
-| `slots[].id` | string | 要 | — | plan 内一意 |
-| `slots[].label` | string | 要 | — | — |
-| `slots[].script` | string \| null | 要（キー） | null | テレプロンプター / TTS の正本（§4 record） |
-| `slots[].target_duration_seconds` | number > 0 | 要 | — | 秒 |
-| `slots[].confidence` | enum | 要 | — | `proposed` / `locked` / `filled`（§3） |
-| `slots[].fill.method` | enum \| null | 要（キー） | null = 未決 | `generate` / `record` / `import`（§4） |
-| `slots[].fill.prompt` | string \| null | 否 | null | generate 用 |
-| `slots[].fill.asset_path` | string \| null | 否 | null | import 用。plan.json 基準の相対パス |
-| `slots[].media.*` | string \| null | 要（キー） | null | `image_path` / `audio_path` は plan.json 基準の相対パス |
-| `slots[].provenance.*` | — | 要（キー） | null | `tool` / `created_at`（ISO-8601）/ `note` |
-| `constraints[]` | array | 否 | [] | — |
-| `constraints[].kind` | enum | 要 | — | `duration_max`（ハード上限）/ `duration_exact`（目標尺）/ `note`（非構造 locked 指示） |
-| `constraints[].applies_to` | string \| null | 要（キー） | null = プロジェクト全体 | slot id 参照 |
-| `constraints[].value` | number > 0 \| null | 要（キー） | — | duration_* では必須（秒）。note では null |
+| `version` | integer (const 0) | Yes | none | none |
+| `slots[]` | array | No | `[]` (an empty plan just after dialogue starts is valid) | Array order is timeline order (section 2) |
+| `slots[].id` | string | Yes | none | Unique inside the plan |
+| `slots[].label` | string | Yes | none | none |
+| `slots[].script` | string or null | Key required | null | Source of truth for the teleprompter and for TTS (section 4, record) |
+| `slots[].target_duration_seconds` | number > 0 | Yes | none | Seconds |
+| `slots[].confidence` | enum | Yes | none | `proposed`, `locked`, or `filled` (section 3) |
+| `slots[].fill.method` | enum or null | Key required | null means not decided | `generate`, `record`, or `import` (section 4) |
+| `slots[].fill.prompt` | string or null | No | null | For generate |
+| `slots[].fill.asset_path` | string or null | No | null | For import. Relative to plan.json |
+| `slots[].media.*` | string or null | Key required | null | `image_path` and `audio_path` are relative to plan.json |
+| `slots[].provenance.*` | none | Key required | null | `tool`, `created_at` (ISO-8601), `note` |
+| `constraints[]` | array | No | `[]` | none |
+| `constraints[].kind` | enum | Yes | none | `duration_max` (a hard cap), `duration_exact` (a target duration), `note` (an unstructured locked instruction) |
+| `constraints[].applies_to` | string or null | Key required | null means the whole project | A slot id reference |
+| `constraints[].value` | number > 0, or null | Key required | none | Required for `duration_*`, in seconds. Null for `note` |
 
-「要（キー）」= 値は null 許容だがキーは省略しない（`sourceV1.proxy` と同じ流儀。
-レコード単体で自己記述的になる）。
+"Key required" means the value may be null, but the key is not omitted. The same habit as `sourceV1.proxy`. A record describes itself.
 
-## 2. タイムライン導出規則 — start を永続化しない
+## 2. How the timeline is derived
 
-**timeline は `slots[]` を配列順にギャップなく連結して導出する。** 各 slot の開始時刻は
-`前の slot までの target_duration_seconds の総和`であり、`start` フィールドは持たない。
-edit.json v1 の「cuts[] を配列順にギャップなく連結」（contract-2026-07-18 §2）と同型の
-規則を 1 段上流に適用したもの。並べ替えのたびにズレる冗長フィールドを持たないことで、
-スロットの入れ替え = 配列の並べ替えだけで完結する。
+Do not persist `start`.
 
-「尺 30 秒のケツ」のような境界の確定は slot の中身ではなく **constraints** で表す
-（`applies_to: null` の `duration_exact` / `duration_max`）。「正解のないタイムライン」の
-うち、決まっている事実だけを制約として分離し、仮説（slots の並びと尺）と混ぜない。
+**The timeline is `slots[]` joined in array order with no gaps.** A slot's start time is the sum of `target_duration_seconds` of the slots before it. There is no `start` field. This applies, one stage upstream, the same rule as edit.json v1, "join `cuts[]` in array order with no gaps" (section 2 of `contract-2026-07-18-edit-json-v1-sources.md`). There is no redundant field that drifts every time the order changes. Reordering slots is only reordering the array.
 
-## 3. confidence 状態遷移
+A boundary such as "the piece ends at 30 seconds" is not the contents of a slot. It is a constraint (`duration_exact` or `duration_max` with `applies_to: null`). In a timeline that has no single correct answer, separate the facts that are already decided as constraints. Do not mix them with the hypothesis (slot order and durations).
 
-（退役・2026-09-13 追記参照）
+## 3. confidence transitions
 
-`confidence` は**保存フィールド**であり、`media` の有無から導出しない（locked かつ未充填
-= 「空きスロットだが方向は確定」は正当な状態。ここが導出だと収録前ロックが表現できない）。
+Retired. See the addendum of 2026-09-13.
 
-| 状態 | 意味 | 表示（次段の UI 規約） |
+`confidence` is a stored field. Do not derive it from whether `media` is present. Locked and not yet filled, "the slot is empty but the direction is fixed", is a valid state. If confidence were derived, a lock before recording could not be expressed.
+
+| State | Meaning | Display (UI rule for the next stage) |
 |---|---|---|
-| `proposed` | AI の仮説 | ゴースト表示（点線・半透明） |
-| `locked` | 人間が確定（決定カード commit / 明示承認） | 固定表示 |
-| `filled` | 実素材が入った | 通常表示 |
+| `proposed` | The AI's hypothesis | Ghost display (dotted, translucent) |
+| `locked` | A person fixed it (a decision-card commit, or explicit approval) | Fixed display |
+| `filled` | Real footage is in the slot | Ordinary display |
 
-推奨遷移（散文規約。スキーマでは強制しない）: `proposed` →（人間の承認）→ `locked` →
-（§4 の充填実行）→ `filled`。人間の明示要求があれば逆遷移（filled → locked / proposed）も
-可。整合の乱れ（filled なのに media 全 null、proposed 以外で fill.method 未決）は
-**warning**（検証は止めない）。
+Recommended transition. This is a prose rule. The schema does not force it. `proposed`, then human approval, then `locked`, then the fill in section 4 runs, then `filled`. A reverse transition (`filled` back to `locked` or `proposed`) is allowed when a person asks for it explicitly. An inconsistency is a warning, and validation does not stop. Examples: `filled` while every media field is null, or `fill.method` still undecided when confidence is not `proposed`.
 
-## 4. fill — スロットの充填手段
+## 4. fill
 
-（退役・2026-09-13 追記参照）
+How a slot gets filled. Retired. See the addendum of 2026-09-13.
 
-空きスロットはプラン由来の `script` と `target_duration_seconds` を既に知っている。
-充填手段は 3 種 + 未決:
+An empty slot already knows `script` and `target_duration_seconds` from the plan. There are three fill methods, plus undecided.
 
-- `null`（未決）: 対話中の正当な状態。proposed スロットの既定
-- `generate`: AI 生成。**画像先行**（`media.image_path` に 1 枚目の絵 → 仮枠 QA →
-  承認後に動画生成）。`prompt` は生成前は AI 仮説、実行時に実際に使った値へ更新してよい
-  （provenance は「手・日時」、fill は「何を・どう」という分担で、prompt の二重管理をしない）
-- `record`: 画面/カメラ収録。テレプロンプターは `slot.script` を直接読む（複製フィールドを
-  持たない）。takes[] / device 等の収録詳細は v1+ の追加フィールドとして予約
-- `import`: 既存素材の割り当て。`asset_path` は素材ライブラリの copy-don't-link 規律を
-  経た後の**プロジェクト内実体パス**（ライブラリ層参照を plan に持ち込まない）
+- `null` (not decided). A valid state during dialogue. The default for a `proposed` slot.
+- `generate`. AI generation. Image first. The first picture goes to `media.image_path`, then provisional-frame QA, then video generation after approval. `prompt` is the AI hypothesis before generation, and it may be updated to the value actually used at run time. Provenance is "which hand, and when". Fill is "what, and how". Do not store the prompt in both places.
+- `record`. A screen or camera recording. The teleprompter reads `slot.script` directly. There is no copied field. Recording detail such as `takes[]` and device is reserved as an added field in v1 or later.
+- `import`. Assign existing footage. `asset_path` is the path of the body inside the project, after the asset library's copy, do not link, rule. Do not bring a library-layer reference into the plan.
 
-## 5. スコープ境界 — 素材三択は M5 のまま
+## 5. Scope boundary
 
-plan.json v0 が持つのは**シーケンシャルな骨格（slots）と構造制約（constraints）だけ**。
-BGM・字幕方針・SFX・B ロール・テロップ様式の「あれば提案 / なければ生成 / だめなら
-使わない」の三択は、従来どおり編集判断レポート §5 素材計画（contract-2026-07-13-m5）の
-管轄であり、plan.json に持ち込まない。「ここに効果音が欲しい」のような位置つき指示は
-`constraints[].kind: note` で locked な**指示**として運び、素材の選定・生成判断そのものは
-M5 側で行う。
+The three-way footage choice stays in M5.
 
-レポートと plan.json の関係: **同一プランの 2 つのレンダリング**（メモ §4）。当面は
-plan.json が骨格の SSOT、レポートは plan.json の slot id を根拠参照する
-（report-guide.md の追記参照）。レポート生成フロー全体の plan.json 駆動化は次段。
+plan.json v0 holds only the sequential skeleton (`slots`) and the structural constraints (`constraints`). The three-way choice for BGM, caption direction, sound effects, B-roll, and caption style (propose it if the library has it, generate it if not, do not use it if neither is good enough) stays under the footage plan in section 5 of the editorial-judgment report (`contract-2026-07-13-m5-analysis-report.md`). Do not bring it into plan.json. A placed instruction such as "I want a sound effect here" travels as a locked instruction with `constraints[].kind: note`. Selecting or generating the footage itself stays on the M5 side.
 
-decision-cards との関係は疎結合: 方針決めの質問対話は既存機構の別ペア
-`<plan-dir>/plan-dialogue.html` + `.decisions.json` で行い（コード変更不要）、確定結果を
-plan.json に書く。plan.json 自体は decision id を持たない（`decision_ref` は v1+ の
-追加候補として予約）。
+The report and plan.json are two renderings of the same plan (memo section 4). For now, plan.json is the source of truth for the skeleton, and the report cites plan.json slot ids as its evidence. See the addendum in report-guide.md. Driving the whole report-generation flow from plan.json is the next stage.
 
-## 6. プレビュー合成規約 — 普通の edit.json v1 へコンパイルする
+The link to decision-cards is loose. The question dialogue that fixes direction uses the existing pair `<plan-dir>/plan-dialogue.html` plus `.decisions.json`. No code change is required. The confirmed result is written into plan.json. plan.json itself has no decision id. `decision_ref` is reserved as a candidate addition in v1 or later.
 
-（退役・2026-09-13 追記参照）
+## 6. Preview composite rule
 
-仮枠の再生（アニマティクス QA）は専用レンダラーを作らず、**通常の edit.json v1 への
-コンパイル**で実現する。プレビュー・edit-lint・render-cut が無改造でそのまま使えることが
-本規約の眼目であり、**edit.json に新しい語彙を 1 つも足さない**。
+Compile to an ordinary edit.json v1. Retired. See the addendum of 2026-09-13.
 
-- 各 slot は 1 本の**通常のソース素材**にベイクされる: `media.image_path` を
-  `target_duration_seconds` ぶんループし `media.audio_path`（TTS）を重ねて ffmpeg で
-  1 クリップ化 → `sources[]` に登録、`cuts[]` が配列順に並ぶ。`text_card` のみの slot は
-  無地背景ソース + 既存 overlay 規約（単一ルート・`data-start`/`data-duration`）の
-  HTML 断片にコンパイルする
-- 配置: `<plan-dir>/scaffold/` に `edit.json` / `sources/` / `overlays/` / `manifest.json`。
-  `manifest.json` は slot ↔ コンパイル産物の対応
-  `{ version, plan_ref, plan_hash（plan.json テキストの sha256）, compiled_at,
-  slots: [{ slot_id, source_id, cut_index, overlay_id|null }] }` を持つ
-  （本ラウンドでは文書化のみ・schema 化しない）
-- 再生成規則: **常に全再構築**。部分パッチはしない（仮枠素材は安価であることが仮枠の
-  存在意義であり、並べ替え後の対応追跡という難problemを持ち込まない）。`plan_hash` の
-  一致で無変更時の再コンパイルをスキップしてよい
-- コンパイル済み scaffold/edit.json は**それ単体で自己完結**する（plan.json を知らない
-  エンジニアがそのままプレビュー・lint・書き出しできる）。edit.json 契約の自己完結原則を
-  文字どおり満たす
-- 注意: `skills/edit-plan` のハードルール「edit.json は v0 単一 source 形を変えない」は
-  **edit-plan フローの最終成果物**に対する規定であり、本 scaffold は別成果物。ただし
-  同ルールが v1 sources 契約（2026-07-18）より古い記述のままである点はオーナー判断の
-  持ち越し事項として開示する（本契約では変更しない）
-- **コンパイラの実装は本ラウンドのスコープ外**（規約のみ確定）
+Playback of the provisional frame (animatic QA) does not get a dedicated renderer. It is a compile to an ordinary edit.json v1. The point of this rule is that preview, edit-lint, and render-cut work with no modification. **Do not add even one new word to edit.json.**
 
-## 7. 劣化規約
+- Each slot is baked into one ordinary source. Loop `media.image_path` for `target_duration_seconds`, stack `media.audio_path` (TTS) on it, and make one clip with ffmpeg. Register it in `sources[]`. `cuts[]` follows array order. A slot that is only `text_card` compiles to a plain-background source plus an HTML fragment under the existing overlay rule (one root, `data-start` and `data-duration`).
+- Place files under `<plan-dir>/scaffold/`: `edit.json`, `sources/`, `overlays/`, and `manifest.json`. `manifest.json` maps a slot to the compiled artifacts. It holds `{ version, plan_ref, plan_hash (sha256 of the plan.json text), compiled_at, slots: [{ slot_id, source_id, cut_index, overlay_id or null }] }`. This round documents it only. It is not a schema yet.
+- Regeneration rule. Always rebuild everything. Do not patch a part. Provisional footage is cheap. That cheapness is why the provisional frame exists. Do not import the hard problem of tracking correspondence after a reorder. When `plan_hash` matches, you may skip a recompile of an unchanged plan.
+- The compiled `scaffold/edit.json` is self-contained by itself. An engineer who does not know plan.json can preview, lint, and export it. That meets the self-contained rule of the edit.json contract literally.
+- Note. The hard rule in `skills/edit-plan`, "do not change the v0 single-source shape of edit.json", applies to the final artifact of the edit-plan flow. This scaffold is a different artifact. That rule is still written as it was before the v1 sources contract (2026-07-18). Disclosing that as an open owner decision is required. This contract does not change the rule.
+- The compiler implementation is out of scope for this round. Only the rule is fixed.
 
-plan は企画データであり、検証・表示・下流工程の全体を巻き込んで失敗させない。
+## 7. Degradation
 
-| 状況 | 挙動 |
+A plan is planning data. Do not fail validation, display, or the whole downstream flow because of it.
+
+| Situation | Behavior |
 |---|---|
-| `slots` / `constraints` が無い | 空として扱う（対話開始直後の plan として正当） |
-| `media.*` / `fill.asset_path` の実体ファイルが無い | validate-plan は error（充填記録の虚偽を許さない）。表示側は当該 slot を未充填として描画し他を巻き込まない |
-| `confidence: filled` なのに media 全 null | warning（§3。検証は止めない） |
-| `proposed` 以外で `fill.method: null` | warning |
-| `duration_max` 超過 | **error**（ハード上限。locked な事実に反する plan を通さない） |
-| `duration_exact` と slot 合計の乖離 | **warning**（目標尺への収束は仮枠 QA の過程そのもの） |
-| `constraints[].applies_to` が存在しない slot を指す | error（参照切れ） |
-| `version > 0` | read-only で正直に停止（原則 3） |
+| `slots` or `constraints` is missing | Treat it as empty. That is a valid plan just after dialogue starts. |
+| A file named by `media.*` or `fill.asset_path` does not exist | validate-plan is an error. Do not allow a false fill record. The display draws that slot as unfilled and does not take the others down with it. |
+| `confidence` is `filled` but every media field is null | Warning (section 3). Validation does not stop. |
+| `fill.method` is null when confidence is not `proposed` | Warning. |
+| `duration_max` is exceeded | Error. It is a hard cap. Do not accept a plan that contradicts a locked fact. |
+| `duration_exact` disagrees with the sum of the slots | Warning. Converging on the target duration is the provisional-frame QA itself. |
+| `constraints[].applies_to` names a slot that does not exist | Error. The reference is broken. |
+| `version > 0` | Stop in read-only and say so (principle 3). |
 
-## 8. データ設計意図
+## 8. Why the data is shaped this way
 
-- **slots と constraints を分けた理由**: 「たぶんこう並ぶ」（仮説の列）と「これは決まって
-  いる」（事実）は寿命も所有者も違う。混ぜると §2 の「正解のないタイムライン」問題が
-  データに逆流する
-- **`start` を持たない理由**: §2。冗長座標は必ずズレる（timelineT の教訓を上流で繰り返さない）
-- **`media` が fill と別である理由**: `media` は「今の見た目（スタンドイン）」、`fill` は
-  「最終的にどう埋めるか」。generate 予定 slot が仮枠段階で静止画スタンドインを持つ、が
-  自然に表現できる
-- **キー必須・値 null 許容の流儀**: レコードを読むだけで契約の全フィールドが見える
-  （AI が plan.json を直接書く際のセルフドキュメント。sourceV1.proxy の先例）
+- Slots and constraints are separate because "it probably goes in this order" (a column of hypotheses) and "this is decided" (a fact) have different lifetimes and different owners. Mixing them sends the section 2 problem, a timeline with no single correct answer, back into the data.
+- There is no `start` because of section 2. A redundant coordinate always drifts. Do not repeat the timeline-time lesson one stage upstream.
+- `media` is separate from `fill` because `media` is "what it looks like now" (the stand-in) and `fill` is "how it will finally be filled". A slot that will be generated can hold a still stand-in during the provisional stage. That falls out of the split.
+- Keys are required and values may be null so that reading one record shows every field of the contract. That is self-documentation when an AI writes plan.json directly. The precedent is `sourceV1.proxy`.
 
-## 9. よくある間違い
+## 9. Common mistakes
 
-- **slot に `start` や timeline 秒を書き足す** — 誤り。位置は配列順 + 尺から導出（§2）
-- **「30 秒で終わる」を最後の slot の尺で表現する** — 誤り。`constraints` の
-  `duration_exact` / `duration_max`（`applies_to: null`）で表す
-- **BGM・SFX の素材選定を plan.json に持ち込む** — 誤り。§5。位置つき指示は
-  `kind: note` まで
-- **`filled` を「media が非 null」から導出する** — 誤り。confidence は保存フィールド（§3）
-- **record 用に台本フィールドを複製する** — 誤り。テレプロンプターは `slot.script` を読む
-- **scaffold/edit.json を手で直す** — 誤り。§6 の全再構築規則により次のコンパイルで消える。
-  直すのは plan.json（または通常の編集フローに進んでから edit.json 本体）
-- **`plan.mjs`（render-cut）と混同する** — 別物（ヘッダ注記）
+- Writing `start` or a timeline second onto a slot. That is wrong. Position is derived from array order plus duration (section 2).
+- Expressing "it ends at 30 seconds" as the duration of the last slot. That is wrong. Use `duration_exact` or `duration_max` on `constraints`, with `applies_to: null`.
+- Bringing BGM or sound-effect selection into plan.json. That is wrong. Section 5. A placed instruction stops at `kind: note`.
+- Deriving `filled` from "media is not null". That is wrong. Confidence is a stored field (section 3).
+- Copying a script field for recording. That is wrong. The teleprompter reads `slot.script`.
+- Hand-editing `scaffold/edit.json`. That is wrong. The full rebuild in section 6 deletes it on the next compile. Edit plan.json, or edit the real edit.json after you move into the ordinary edit flow.
+- Confusing this file with `plan.mjs` in render-cut. They are different. See the note in the header.
 
-## 10. マイグレーション
+## 10. Migration
 
-（空欄 — `version` bump は発生していない。bump する場合はここに旧→新の機械実行可能な
-変換手順を必ず併記する。`contract-2026-07-17` 原則 2）
+Empty. No `version` bump has happened. When a bump happens, write the machine-runnable old-to-new conversion here in the same change. Principle 2 of `contract-2026-07-17-data-contract-versioning.md`.
 
-## 11. 次段（本契約のスコープ外）
+## 11. Next stage
 
-（退役・2026-09-13 追記参照）
+Out of scope for this contract. Retired. See the addendum of 2026-09-13.
 
-- 仮枠コンパイラ実装（§6 の規約に従う。画像生成/TTS の実行・ffmpeg ベイク・manifest 生成）
-- 質問対話 UI の充実（当面は decision-cards の既存機構で代替。skills/edit-plan/plan-json.md 参照）
-- タイムラインのゴースト描画（confidence 別表示。akari-annotations の strip 描画へ統合）
-- 収録統合（`fill.record` の takes[] / device / テレプロンプター UI）
-- `decision_ref` フィールド（decision-cards との追跡強化）
-- edit-lint の plan.json / manifest.json 横断検査（コンパイラ実装後）
-- 編集判断レポートの plan.json 駆動レンダリング化（§5 の収束の完成形）
+- Implement the provisional-frame compiler. Follow section 6. Run image generation and TTS, bake with ffmpeg, and write the manifest.
+- A richer question-dialogue UI. For now, the existing decision-cards mechanism stands in. See `skills/edit-plan/plan-json.md`.
+- Ghost drawing on the timeline. Display by confidence. Integrate it into the strip drawing in akari-annotations.
+- Recording integration. `takes[]`, device, and the teleprompter UI for `fill.record`.
+- A `decision_ref` field, so decision-cards can be traced more tightly.
+- An edit-lint check across plan.json and manifest.json, after the compiler exists.
+- Rendering the editorial-judgment report from plan.json. That completes the convergence in section 5.

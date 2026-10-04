@@ -1,122 +1,109 @@
+**English** | [日本語](./contract-2026-07-26-avatar-registry-v0.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-07-26
 updated: 2026-07-26
 ---
 
-# アバター・レジストリ契約 v0（avatar.json / rendition.json / 段階読み出し）
+# Avatar registry contract v0 (avatar.json, rendition.json, and staged reading)
 
-- 日付: 2026-07-26
-- 状態: **ドラフト**（データ形・検証規律は確定して実装済み。ペルソナ核の文面は人間主導の層のため
-  第 1 号アバターの記述内容自体は引き続きドラフト扱い）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（version 整数・追加のみ・寛容リーダーの
-  三原則）、`contract-2026-07-13-asset-library.md`（4 層スコープ・カタログ構造の型）、
-  `contract-2026-07-2X-edit-json-v1-narration.md`（narration 3 レーン。§10 で参照のみ）
-- スコープ: アバター（性格・話し口調を持つ 1 人格）を登録するデータ契約 — ディレクトリ構造・
-  段階読み出し・`avatar.json` / `rendition.json` / `relationships.json` のスキーマ・検証規律のみ。
-  演出エンジンとの自動連携・登録ウィザード UI・VRM/Live2D/PSD インポートの実装は本契約のスコープ外
-  （将来契約で扱う）
+- Date: 2026-07-26
+- Status: **draft**. The data shape and the validation rules are fixed and implemented. The persona-core text is a human-led layer, so the descriptive content of avatar number 1 stays draft.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (an integer version, additive evolution, and a tolerant reader), `contract-2026-07-13-asset-library.md` (the four scope layers and the shape of a catalog), and `contract-2026-07-2X-edit-json-v1-narration.md` (the three narration lanes. Referenced only in section 10).
+- Scope: the data contract that registers an avatar, one person with a character and a way of speaking. Directory structure, staged reading, and the schemas and validation rules of `avatar.json`, `rendition.json`, and `relationships.json` only. Automatic wiring to a treatment engine, a registration-wizard UI, and import of VRM, Live2D, or PSD are outside this contract. A later contract covers them.
 
-## 0. 位置づけ — アイデンティティが核、見た目と声は着せ替え
+## 0. Place
 
-アバター = 「性格・話し口調を持つ 1 人格」であり、2D 立ち絵 / 3D モデル / 実写 / 音声プロファイルは
-その人格の**表現形態（rendition）**として着脱可能に持つ。同一人格の複数バリアント（例
-`ryoma-casual`）は別人格にせず、同一 `id` 配下の `variants` として持つ。
+Identity is the core. Look and voice can be swapped.
 
-- **能力は宣言する**（素材ライブラリの `meta.json` のツマミ宣言と同型）。rendition ごとに
-  「口パクできる・表情が何種類あるか・フレーミング（バストアップ/全身等）」を機械可読に宣言し、
-  宣言のない能力は存在しないものとして扱う
-- **読み出しは段階制**（§3）。1 行カード（L0）→ ダイジェスト（L1・AVATAR.md）→ 詳細ファイル
-  （L2）の 3 段で、必要な深さだけ読む。日常の挿入判断・台本生成は L1 で完結する設計を前提とする
-- **レジストリは器、資産は既存レーンで作る**。音声は narration-tts の 3 レーン、立ち絵は画像生成
-  レーンの産物をここに登録するだけであり、本契約は生成手段を新設しない
+An avatar is one person with a character and a way of speaking. A 2D standing picture, a 3D model, live footage, and a voice profile are renditions of that person, and they can be attached and detached. Several variants of the same person, for example `ryoma-casual`, are not separate people. They live as `variants` under the same `id`.
 
-## 1. 4 層スコープでの配置
+- Declare capabilities. The same shape as the knob declaration in an asset-library `meta.json`. Each rendition declares, in a machine-readable way, whether it can lip-sync, how many expressions it has, and its framing (bust-up, full body, and similar). A capability that is not declared does not exist.
+- Reading is staged (section 3). Three stages: a one-line card (L0), a digest (L1, AVATAR.md), then the detail files (L2). Read only the depth that is needed. Everyday insert decisions and script generation are designed to finish at L1.
+- The registry is a container. Assets are made on existing lanes. Voice is a product of the three narration-tts lanes. A standing picture is a product of the image-generation lane. This contract only registers those products here. It does not add a new way to generate them.
 
-素材ライブラリ契約（`contract-2026-07-13-asset-library.md` §「アセットのスコープ階層」）と同じ
-4 層スコープをそのまま使う。
+## 1. Where it sits in the four scope layers
 
-| 層 | 場所 | 備考 |
+Use the same four scope layers as the asset library contract, the section "Asset scope layers" of `contract-2026-07-13-asset-library.md`.
+
+| Layer | Place | Notes |
 |---|---|---|
-| `builtin` | 本リポの `assets/` 相当 | アバターは同梱しない（現時点で 0 体） |
-| `catalog` | 本リポの `catalog/avatars/`（remote 相当の索引） | `rights.subject` が `original` / `third_party` のもののみ入庫可 |
-| `user`（個人） | `~/.akari/avatars/` | 実在人物の顔・声を含むアバターはここが既定の置き場所 |
-| `project` | プロジェクト内 `.akari/avatars/` | 案件専用キャラ |
+| `builtin` | The equivalent of `assets/` in this repository | Avatars are not bundled. The count is 0 today. |
+| `catalog` | `catalog/avatars/` in this repository (an index, the remote equivalent) | Only an avatar whose `rights.subject` is `original` or `third_party` may be admitted |
+| `user` (personal) | `~/.akari/avatars/` | The default place for an avatar that includes a real person's face or voice |
+| `project` | `.akari/avatars/` inside the project | A character for one job |
 
-- **実在人物の顔・声の実体ファイルは個人スコープに置く**ことを検証で強制する。`rights.subject`
-  が `person` のアバターが公開 `catalog/avatars/` 配下パスにあることは検証エラーとする（§8・§11）
-- 検索順序・shadowing の規則は素材ライブラリ契約の 4 層スコープに準じる
+- Validation forces the real files of a real person's face and voice into the personal scope. An avatar whose `rights.subject` is `person` is a validation error if its path is under the public `catalog/avatars/` (sections 8 and 11).
+- Search order and shadowing follow the four scope layers of the asset library contract.
 
-## 2. ディレクトリ構造 — 1 アバター = 1 ディレクトリ
+## 2. Directory structure
+
+One avatar is one directory.
 
 ```
 avatars/
-  INDEX.md                     ← L0: 全アバター 1 行カードの一覧（背骨）
+  INDEX.md                     L0. A list of one-line cards for every avatar. The spine.
   <id>/
-    AVATAR.md                  ← L1: 段階読み出しの入口（SKILL.md 相当。§3）
-    avatar.json                ← 機械可読正典（identity + 能力宣言 + 権利。§4）
+    AVATAR.md                  L1. The entrance for staged reading. The equivalent of SKILL.md. Section 3.
+    avatar.json                The machine-readable source of truth. Identity, capability declarations, and rights. Section 4.
     persona/
-      persona.md                ← L2: ペルソナ全文（口調サンプル・語彙・NG 詳細）
-      relationships.json        ← L2: 他アバターとの関係（§6）
+      persona.md               L2. The full persona. Tone samples, vocabulary, and the NG detail.
+      relationships.json       L2. Relations with other avatars. Section 6.
     voice/
-      voice.json                 ← L2: 音声プロファイル（レーン・speaker/profile 参照）
-      samples/                   ← 収録サンプル（クローン元。個人スコープのみ）
+      voice.json               L2. The voice profile. Lane, and a speaker or profile reference.
+      samples/                 Recorded samples. The clone source. Personal scope only.
     renditions/
-      <rendition-id>/           ← rendition 1 つ = 1 ディレクトリ（例: 2d-bustup, 2d-fullbody, 3d, photo）
-        rendition.json           ← 能力宣言 + アセット索引（§5）
-        <アセットファイル群>       ← 表情差分・口パク差分・モデル等
-    preview.png                 ← 一覧・decision card 用サムネ
+      <rendition-id>/          One rendition is one directory. Examples: 2d-bustup, 2d-fullbody, 3d, photo.
+        rendition.json         The capability declaration and the asset index. Section 5.
+        <asset files>          Expression differences, lip-sync differences, models, and similar.
+    preview.png                A thumbnail for the list and for a decision card.
 ```
 
-- `persona/persona.md` と `persona/relationships.json` は L2 の任意ファイルであり、ペルソナ核の
-  全文執筆が未着手の段階では省略してよい。省略時は `avatar.json` の `persona` オブジェクトが
-  L1/L2 双方の唯一の出所になる（追って `persona.md` が用意され次第、そちらを正典に切り替える）
+- `persona/persona.md` and `persona/relationships.json` are optional L2 files. They may be omitted while the full writing of the persona core has not started. When they are omitted, the `persona` object in `avatar.json` is the only source for both L1 and L2. When `persona.md` is prepared later, switch the source of truth to that file.
 
-## 3. 段階読み出し契約
+## 3. Staged reading
 
-CLAUDE.md / SKILL.md の progressive disclosure をアバターに適用する。深読みの条件を明文化し、
-それ以外は読まない。
+Apply the progressive disclosure of CLAUDE.md and SKILL.md to an avatar. Write down when a deeper read is allowed. Otherwise do not read it.
 
-| 段 | 実体 | 何が書いてあるか | いつ読むか |
+| Stage | File | What is written there | When to read it |
 |---|---|---|---|
-| **L0** | `avatars/INDEX.md` の 1 行 | 例: `ryoma — 解説役。落ち着いた噛み砕きトーン。2D 全身/バストアップ(口パク可)・自声クローン` | アバター一覧・「誰かいる？」の解決 |
-| **L1** | `AVATAR.md`（**135 行以内**） | frontmatter（`description` / `when_to_use`）+ ペルソナ要約（一人称・口調・NG 上位）+ 能力一覧表 + L2 への案内 | 挿入判断・台本生成・decision card 生成。日常工程はここで打ち止め |
-| **L2** | `persona/` `voice/` `renditions/*/rendition.json` | 全文・全宣言 | 特定工程のみ: 口パク prerender → 該当 rendition のみ / 掛け合い台本 → `relationships.json` のみ / 音声生成 → `voice.json` のみ |
+| **L0** | One line of `avatars/INDEX.md` | Example: `ryoma. Explainer. A calm, plain tone. 2D full body and bust-up, lip sync available. Own-voice clone.` | An avatar list, and resolving "is anyone here?" |
+| **L1** | `AVATAR.md` (**135 lines or fewer**) | Frontmatter (`description` and `when_to_use`), a persona summary (first person, tone, and the top NG items), a capability table, and a pointer to L2 | An insert decision, script generation, and decision-card generation. Everyday work stops here. |
+| **L2** | `persona/`, `voice/`, and `renditions/*/rendition.json` | The full text and every declaration | Specific stages only. Lip-sync prerender reads only the matching rendition. A two-person script reads only `relationships.json`. Voice generation reads only `voice.json`. |
 
-- AVATAR.md の frontmatter は素材 `meta.json` の `description` / `when_to_use` と同じ検索シグナル
-  規約に従う（スキーマ横断で語彙を揃える）
-- **AVATAR.md の行数上限は 135 行**。超過は `validate-avatar.mjs` の検証対象（欠落・逸脱は fail）
-- AVATAR.md のペルソナ核は人間（オーナー/キャラ作者）が主導する。LLM は提案・整形にとどまる
+- AVATAR.md frontmatter follows the same search-signal rule as `description` and `when_to_use` on an asset `meta.json`. Vocabulary lines up across schemas.
+- The line cap on AVATAR.md is 135 lines. Going over is a subject of `validate-avatar.mjs`. A missing file and a file that breaks the rule fail.
+- A person (the owner or the character's author) leads the persona core of AVATAR.md. An LLM stays at proposing and formatting.
 
-## 4. `avatar.json` スキーマ v0
+## 4. `avatar.json` schema v0
 
-機械可読正典。フルスキーマは `packages/schemas/avatar.schema.json`（`$id:
-urn:akari-video:schema:avatar:v0`）を参照。
+The machine-readable source of truth. The full schema is `packages/schemas/avatar.schema.json` (`$id: urn:akari-video:schema:avatar:v0`).
 
 ```jsonc
 {
   "version": 0,
   "id": "ryoma",
   "display_name": "Ryoma",
-  "variants": [],                        // 例 ["ryoma-casual"]。別人格にしない
+  "variants": [],                        // example: ["ryoma-casual"]. Not a separate person.
   "persona": {
-    "first_person": "俺",
-    "tone": "落ち着いた・親しみ",          // direction engine の tone 語彙を軸にした自由記述
-    "speech_style": "噛み砕いて説明する。専門用語は一度ほどいてから使う",
-    "verbal_tics": ["〜なんだよね"],
-    "energy": 40,                        // 0-100。§9 参照
-    "ng": ["断定的な投資助言"],
-    "default_role": "explainer"          // §7 の配役語彙
+    "first_person": "I",
+    "tone": "calm and familiar",          // free text, centered on the tone vocabulary of the direction engine
+    "speech_style": "Explain by unpacking the idea. Define a technical term once, then use it.",
+    "verbal_tics": ["you know"],
+    "energy": 40,                         // 0-100. See section 9.
+    "ng": ["definite investment advice"],
+    "default_role": "explainer"           // the role vocabulary in section 7
   },
-  "voice": {                             // 詳細は voice/voice.json。ここは解決に足る最小
-    "lane": "fal-clone",                 // voicevox | fal-clone | recorded（narration-tts 準拠。§10）
+  "voice": {                              // detail is voice/voice.json. This is the minimum needed to resolve.
+    "lane": "fal-clone",                  // voicevox, fal-clone, or recorded. Follows narration-tts. Section 10.
     "ref": "profile:owner-ja",
     "credit": null
   },
-  "renditions": [                        // 能力宣言の要約（詳細は各 rendition.json。§5）
+  "renditions": [                         // a summary of capability declarations. Detail is each rendition.json. Section 5.
     {
       "id": "2d-fullbody",
-      "kind": "2d",                      // 2d | 3d | photo
+      "kind": "2d",                       // 2d, 3d, or photo
       "capabilities": {
         "lipsync": true,
         "expressions": ["neutral", "happy", "..."],
@@ -124,21 +111,19 @@ urn:akari-video:schema:avatar:v0`）を参照。
       }
     }
   ],
-  "default_rendition": null,             // null = 毎回 decision card で質問する（§7 相当の挿入フロー）
-  "rights": {                            // §8。必須（省略不可）
-    "subject": "person",                 // person | original | third_party
-    "consent": "self",                   // self | signed:<path> | terms:<url>
+  "default_rendition": null,              // null means ask on a decision card every time (the insert flow of section 7)
+  "rights": {                             // section 8. Required. Cannot be omitted.
+    "subject": "person",                  // person, original, or third_party
+    "consent": "self",                    // self, signed:<path>, or terms:<url>
     "credit_required": false,
-    "distribution": "private"            // private | org | sellable
+    "distribution": "private"             // private, org, or sellable
   }
 }
 ```
 
-## 5. `rendition.json` スキーマ v0
+## 5. `rendition.json` schema v0
 
-各 `renditions/<rendition-id>/rendition.json` の正典。フルスキーマは
-`packages/schemas/avatar-rendition.schema.json`（`$id:
-urn:akari-video:schema:avatar-rendition:v0`）を参照。
+The source of truth for each `renditions/<rendition-id>/rendition.json`. The full schema is `packages/schemas/avatar-rendition.schema.json` (`$id: urn:akari-video:schema:avatar-rendition:v0`).
 
 ```jsonc
 {
@@ -150,13 +135,13 @@ urn:akari-video:schema:avatar-rendition:v0`）を参照。
     "expressions": ["neutral", "happy", "sad", "angry", "surprised", "laugh"],
     "framing": ["bustup"]
   },
-  "assets": {                            // rendition ディレクトリ相対のファイル名索引
+  "assets": {                            // an index of file names relative to the rendition directory
     "expressions": {
       "neutral": "master-neutral-closed.png",
       "happy": "happy.png"
-      // ... capabilities.expressions の各要素に対応
+      // one entry for each item of capabilities.expressions
     },
-    "lipsync": {                          // 口パク状態（例: neutral-closed / neutral-half / neutral-open）
+    "lipsync": {                          // lip-sync states. Examples: neutral-closed, neutral-half, neutral-open.
       "neutral-closed": "master-neutral-closed.png",
       "neutral-half": "neutral-half.png",
       "neutral-open": "neutral-open.png"
@@ -165,99 +150,87 @@ urn:akari-video:schema:avatar-rendition:v0`）を参照。
 }
 ```
 
-- `assets` に列挙された全ファイル名は、検証時に rendition ディレクトリ配下の実ファイルへ解決
-  できる必要がある（欠落は fail・全数列挙。§11）
-- `capabilities` は `avatar.json` 側の `renditions[].capabilities`（要約）と同じ形を持つ。詳細な
-  アセット索引を持つのはこの `rendition.json` 側
+- Every file name listed in `assets` must resolve to a real file under the rendition directory at validation time. A missing file fails, and every missing name is listed (section 11).
+- `capabilities` has the same shape as `renditions[].capabilities` on the `avatar.json` side, which is the summary. The detailed asset index lives on this `rendition.json`.
 
-## 6. `relationships.json` スキーマ v0（複数アバターの関係性）
+## 6. `relationships.json` schema v0
 
-複数アバターの掛け合いは個体ペルソナだけでは書けない。呼称と距離感はペアの属性として
-`persona/relationships.json` に持つ（L2・掛け合い台本生成のときのみ読む）。
+Relations among several avatars.
+
+A two-person exchange cannot be written from individual personas alone. The name one avatar uses for another, and the distance between them, are attributes of the pair. They live in `persona/relationships.json`. That file is L2, and it is read only when generating a two-person script.
 
 ```jsonc
 {
   "version": 0,
   "relations": [
     {
-      "to": "zundamon",                  // 相手アバターの id
-      "calls_them": "ずんだもん",         // 呼称
-      "register": "casual",               // casual | polite
-      "dynamic": "先生と生徒（教わる側に回ると面白い）"  // 関係性の一言説明
+      "to": "zundamon",                  // the other avatar's id
+      "calls_them": "Zundamon",          // the name used for them
+      "register": "casual",              // casual or polite
+      "dynamic": "Teacher and student. It works when this avatar is the one learning."
     }
   ]
 }
 ```
 
-- 片方向宣言（A→B と B→A は別行）。アバターが 1 体のみの登録では空 `relations: []` でよい
-- 本ファイルの**消費**（関係性を踏まえた掛け合い台本生成）は将来段階のスコープであり、本契約は
-  データ形のみを定める
+- The declaration is one way. A to B and B to A are separate rows. A registration with only one avatar may use an empty `relations: []`.
+- Consuming this file, generating a two-person script that takes the relation into account, is a later stage. This contract sets the data shape only.
 
-## 7. 配役語彙（5 種）
+## 7. Role vocabulary
 
-`explainer`（解説役） / `listener`（聞き役） / `tsukkomi`（ツッコミ役） / `narrator`（ナレーター）
-/ `guest`（ゲスト）の 5 語で開始する（追加のみ進化）。`persona.default_role` が既定値であり、
-シーン単位で上書きしてよい。
+Five roles.
 
-## 8. 権利・ライセンス欄（`rights`・必須）
+Start with five words, and evolve by addition only. `explainer`, `listener`, `tsukkomi`, `narrator`, and `guest`. `persona.default_role` is the default. A scene may override it.
 
-`rights` は avatar.json の必須フィールドであり、省略は検証エラーとする。
+## 8. Rights and license
 
-| フィールド | 値 | 意味 |
+`rights` is required.
+
+`rights` is a required field of avatar.json. Omitting it is a validation error.
+
+| Field | Values | Meaning |
 |---|---|---|
-| `subject` | `person` / `original` / `third_party` | `person`=実在人物、`original`=自作キャラ、`third_party`=VOICEVOX キャラ等 |
-| `consent` | `self` / `signed:<path>` / `terms:<url>` | 本人同意の記録（`person`）・署名済み同意書パス・第三者規約 URL |
-| `credit_required` | boolean | クレジット表記義務の有無 |
-| `distribution` | `private` / `org` / `sellable` | 配布範囲 |
+| `subject` | `person`, `original`, or `third_party` | `person` is a real person. `original` is an original character. `third_party` is a character such as a VOICEVOX character. |
+| `consent` | `self`, `signed:<path>`, or `terms:<url>` | A record of the person's own consent (`person`), a path to a signed consent form, or a third-party terms URL |
+| `credit_required` | boolean | Whether a credit line is required |
+| `distribution` | `private`, `org`, or `sellable` | How far it may be distributed |
 
-- `subject: "person"` のアバターは `distribution: "sellable"` にできない（検証エラー）
-- `subject: "person"` のアバターは公開 `catalog/avatars/` 配下に置けない（§1・検証エラー）
-- `subject: "third_party"` は規約 URL とクレジット義務を `consent` / `credit_required` に記録する
+- An avatar with `subject: "person"` cannot have `distribution: "sellable"`. That is a validation error.
+- An avatar with `subject: "person"` cannot be placed under the public `catalog/avatars/`. That is a validation error (section 1).
+- `subject: "third_party"` records the terms URL and the credit obligation in `consent` and `credit_required`.
 
-## 9. `energy` とドパ度の別軸定義
+## 9. `energy` is a different axis from treatment flashiness
 
-`persona.energy`（0-100 の整数）は、演出エンジン契約の「ドパ度」（演出の派手さ）とは**別軸**の
-値である。
+`persona.energy` (an integer from 0 to 100) is a different axis from the treatment engine's flash level, how showy the treatment is.
 
-- **ドパ度** = 演出の派手さ（フック等の編集強度。演出エンジン / intake wizard の語彙）
-- **`energy`** = キャラ自身のテンション・熱量（0 = 落ち着き・クール、100 = ハイテンション）
+- The flash level is how showy the treatment is. Edit strength such as hooks. Vocabulary of the treatment engine and the intake wizard.
+- `energy` is the character's own heat. 0 is calm. 100 is high energy.
 
-両者は**尺度（0-100 のレンジ）だけを共用**し、意味論は混同しない。例えば `energy` が高い
-（熱いキャラ）を低いドパ度（落ち着いた演出）の動画で使う組み合わせは正当である。
+The two share only the scale, a range of 0 to 100. Do not mix the meanings. A high `energy` (a heated character) in a video with a low flash level (a calm treatment) is a valid combination.
 
-## 10. 音声の扱い（新設なし・参照のみ）
+## 10. Voice
 
-アバターの声は narration-tts 契約の 3 レーン（`voicevox` / `fal-clone` / `recorded`）をそのまま
-消費する。本契約が足すのは「台本の話者 = アバター → voice 解決が自動になる」という参照関係のみで
-あり、レーン・エンジンアダプタ・provenance 規約は narration-tts 契約側が正本のまま変わらない。
+No new lane. A reference only.
 
-## 11. 検証
+An avatar's voice consumes the three lanes of the narration-tts contract as they are: `voicevox`, `fal-clone`, and `recorded`. What this contract adds is only the reference "the speaker of the script is an avatar, so voice resolution becomes automatic." The lanes, the engine adapters, and the provenance rules stay the source of truth on the narration-tts contract. They do not change.
 
-`packages/schemas/bin/validate-avatar.mjs <avatar-dir>` が以下を検証する:
+## 11. Validation
 
-1. `avatar.schema.json` / `avatar-rendition.schema.json` に対する構造検証
-2. `rights` 欄の必須化（欠落は fail）
-3. `rights.subject: "person"` × `rights.distribution: "sellable"` の禁止
-4. `rights.subject: "person"` のアバターが公開 `catalog/avatars/` 配下にあることの禁止
-5. `AVATAR.md` の 135 行上限
-6. 各 `rendition.json` の `assets` に列挙された全ファイル名が実ファイルへ解決できること（欠落は
-   全数列挙）
+`packages/schemas/bin/validate-avatar.mjs <avatar-dir>` checks the following.
 
-## 12. 版管理
+1. Structural validation against `avatar.schema.json` and `avatar-rendition.schema.json`.
+2. `rights` is required. A missing field fails.
+3. `rights.subject: "person"` combined with `rights.distribution: "sellable"` is forbidden.
+4. An avatar with `rights.subject: "person"` under the public `catalog/avatars/` is forbidden.
+5. The 135-line cap on `AVATAR.md`.
+6. Every file name listed in `assets` of each `rendition.json` resolves to a real file. A missing file is listed in full.
 
-`version`（整数・0 起算）・追加のみ進化・寛容リーダー・snake_case の三原則
-（`contract-2026-07-17-data-contract-versioning.md`）を `avatar.json` / `rendition.json` /
-`relationships.json` の全てに適用する。破壊的変更は明示マイグレーションを伴う `version` bump
-としてのみ行う。
+## 12. Versioning
 
-## 13. 改訂注記（S2・2026-07-26）
+Apply the three principles of `contract-2026-07-17-data-contract-versioning.md` to all of `avatar.json`, `rendition.json`, and `relationships.json`. `version` is an integer starting at 0. Evolution is additive. The reader is tolerant. Field names are snake_case. A breaking change happens only as a `version` bump that ships with an explicit migration.
 
-- **`renditions` の `minItems` を `1` から `0` へ緩和した**（`packages/schemas/avatar.schema.json`
-  / `validate-avatar.mjs`）。voice-only アバター（rendition を持たず声のみを登録するケース。
-  例: §1 の VOICEVOX プリセット提案を個人スコープへ登録するとき）を表現するため。既存の
-  `avatar.json`（`renditions` 1 件以上）は全て valid のまま（三原則「追加のみ進化」に適合。
-  破壊的変更ではない）
-- `renditions: []` のとき `default_rendition` は必ず `null` のままとする（選べる rendition が
-  無いため。非 `null` を指定すると `renditions[]` に存在しないとして検証エラーになる）
-- §4 の `avatar.json` サンプルは `renditions` 1 件以上のケースのまま変更していない
-  （voice-only は本節の追記のみで表現し、既存サンプルを voice-only に書き換えない）
+## 13. Revision note (S2, 2026-07-26)
+
+- `minItems` on `renditions` was relaxed from `1` to `0` (`packages/schemas/avatar.schema.json` and `validate-avatar.mjs`). This expresses a voice-only avatar, a case that registers a voice and has no rendition. An example is registering the VOICEVOX preset proposal of section 1 into the personal scope. Every existing `avatar.json` with one or more `renditions` stays valid. That fits the principle "additive evolution." It is not a breaking change.
+- When `renditions` is `[]`, `default_rendition` stays `null`. There is no rendition to choose. A non-null value is a validation error, because it does not exist in `renditions[]`.
+- The `avatar.json` sample in section 4 is unchanged, and still shows one or more `renditions`. A voice-only avatar is expressed only by this note. The existing sample is not rewritten into a voice-only example.

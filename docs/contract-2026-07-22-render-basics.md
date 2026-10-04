@@ -1,182 +1,122 @@
-# レンダー基礎機能契約（速度 / クロマキー背景置換 / 基本トランジション / LUT / 音声マスター処理 / 画角操作 / フリーズ）
+**English** | [日本語](./contract-2026-07-22-render-basics.ja.md)
 
-> **2026-09-01 終了注記:** ffmpeg フィルタグラフ合成は #130d で退役した。以下の ffmpeg 実装記述は参照記録として残す。
+# Render basics contract
 
-- 日付: 2026-07-22（2026-08-06 追記: #6 画角操作 / #7 フリーズを増築。2026-08-09 追記:
-  `layers[].keyframes` への一般化を §4-4 に追記）
-- 状態: **draft**（実装と並走で approved 化）。本書は技術仕様のみ。
-  判断経緯・実装レーンの運用は非公開の内部記録で管理する（本リポには置かない方針）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（三原則）、
-  `contract-2026-07-13-m1-m4.md`（edit.json 正本）、
-  `contract-2026-07-14-edit-json-v1-audio.md`（audio スキーマ）
-- 大原則: **done = 出力ファイルに現れる**。全項目、実レンダリング出力の機械検証を
-  受け入れ条件とする（仕様先行・バックエンドの silent drop を許さない —
-  schema・実装・lint・出力検証を同時に納品する）
+Speed, chroma-key background replacement, basic transitions, LUT, audio master, framing, and freeze.
 
-## 1. スコープ（7 機能・いずれも ffmpeg 直結）
+> End note, 2026-09-01. ffmpeg filter-graph compositing was retired in #130d. The ffmpeg implementation text below stays as a reference record.
 
-| # | 機能 | edit.json 拡張（追記のみ） | ffmpeg 実装 | 出力検証 |
+- Date: 2026-07-22. Added 2026-08-06: section 6 framing and section 7 freeze. Added 2026-08-09: the generalization onto `layers[].keyframes` in section 4-4.
+- Status: draft. It becomes approved as implementation proceeds. This document is the technical spec only. The reasoning and the lane operations stay in private internal records. This repo does not hold them.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (the three principles), `contract-2026-07-13-m1-m4.md` (the edit.json source of truth), and `contract-2026-07-14-edit-json-v1-audio.md` (the audio schema).
+- Governing rule. Done means it appears in the output file. Every item takes a machine check of a real rendered output as its acceptance condition. Do not ship a spec first and then let the backend drop the feature silently. Deliver the schema, the implementation, lint, and output verification together.
+
+## 1. Scope
+
+Seven features. Each one connects straight to ffmpeg.
+
+| # | Feature | edit.json extension (additive only) | ffmpeg implementation | Output check |
 |---|---|---|---|---|
-| 1 | 定速変更（クリップ単位の倍速/スロー） | `cuts[].speed`（number・既定 1.0・v0 は定速のみ、ランプは将来） | `setpts` + `atempo`（>2x/<0.5x の段組み） | 出力尺が理論値と一致（ffprobe）・音程/同期の実聴確認 1 点 |
-| 2 | クロマキー背景置換 | `source.chroma_key`: {color, similarity, blend, background(色 or 画像/動画パス)} | `chromakey`/`colorkey` + 背景入力の `overlay` | 緑背景フィクスチャで背景が置換された出力のピクセルサンプル検証 |
-| 3 | 基本トランジション | `cuts[].transition_out`: {type: dissolve/fade-black/fade-white/**reveal-down/reveal-up**, duration} | `xfade`（transition 指定があるカット境界のみ xfade 経路）。reveal 系は ffmpeg の `revealdown` / `revealup` | 境界フレームの中間ブレンド実在をフレーム抽出で確認・指定なし境界はハードカット維持。reveal 系は色が混ざらないため、遷移中間フレームの**上半分と下半分を別々に測って**前後カットが同居することを確認する |
-| 4 | 色調フィルター（LUT） | `output.look`: {lut(プリセット参照 or パス), intensity} | `lut3d`（intensity は `blend` 併用） | LUT 有無 2 出力のフレームピクセル差分・プリセット表 `presets/luts/`（初期 2〜3 本。2026-07-29 に `catalog/luts/` から移設） |
-| 5 | 音声マスター処理 | `audio.master`: {denoise(off/std/strong), loudnorm(target LUFS・既定 -14)} | `afftdn` / `loudnorm`（2 パスでなく 1 パス許容 v0） | 出力のラウドネス実測（ffmpeg ebur128）が目標 ±1LU |
-| 6 | 画角操作（静的クロップ / ズームキーフレーム / 段階縮小） | `cuts[].framing`: `{crop?: {x,y,w,h}（0..1 の出力相対・静的）, keyframes?: [{t,scale,cx?,cy?}]（t=カット内秒・線形補間。2 点でズーム、3 点以上で段階縮小・cx/cy 省略時 0.5）}` | 出力キャンバスへフィット済みの frame を `crop` で窓抜きし `scale` で再拡大（punch-in）。静的 `crop` は `w/h/x/y` とも定数。ズームは `crop` 自身の `w/h` が実機検証で init 時一度しか評価されない制約があるため、`scale` 側を `eval=frame` で `scale(t)` 倍に広げ、`crop` は固定 `w=width:h=height` のまま `x/y` だけを `t` の関数で追わせる方式（詳細 §4-1） | 静的 crop は出力フレームの画素でクロップ位置が宣言どおりであることを実測・ズームは開始/中間/終端フレームで可視要素の実測サイズから逆算したスケールが線形補間の理論値と一致（±5%）・3 点キーフレームは 2 段階の縮小がフレーム抽出で確認できる |
-| 7 | フリーズ（動画停止） | `cuts[].freeze`: `{at_sec, duration_sec}`（at_sec=カット内秒でフレーム静止・停止分だけカット尺が伸びる。コンテンツを削らない） | `trim` 分割 + `tpad`（`stop_mode=clone`）+ `concat`。カット先頭（at_sec=0）での静止は `tpad` の `start_mode=clone` が本機の ffmpeg で下流の `fps` フィルタと組み合わさると最終フレームを 1 枚欠落させるバグを実機検証で確認したため使わず、frame-index trim（`start_frame=0:end_frame=1`）で 1 フレーム種を取り出し `stop_mode=clone` で伸ばしてから先頭に concat する方式で代替（詳細 §4-2）。音声は該当区間を無音（`anullsrc`）で埋める（直前音の継続はしない・詳細 §4-3） | 静止区間内の 2 フレームが画素一致（ロスレスエンコードで実測）・出力尺 = 元尺 + duration_sec（ffprobe 実測）・静止区間の音声が無音であること（`silencedetect`/`volumedetect` 実測）を確認 |
+| 1 | Constant speed change (faster or slower, per clip) | `cuts[].speed` (number, default 1.0). v0 is constant speed only. A ramp is later. | `setpts` plus `atempo` (chained when faster than 2x or slower than 0.5x) | Output duration matches the theoretical value (ffprobe). One listen for pitch and sync. |
+| 2 | Chroma-key background replacement | `source.chroma_key`: `{color, similarity, blend, background}` where background is a color or an image or video path | `chromakey` or `colorkey`, plus `overlay` of the background input | On a green-background fixture, pixel samples show that the background was replaced. |
+| 3 | Basic transitions | `cuts[].transition_out`: `{type: dissolve, fade-black, fade-white, reveal-down, or reveal-up, duration}` | `xfade`, and only on a cut boundary that declares a transition. Reveal uses ffmpeg `revealdown` or `revealup`. | Frame extraction shows a real mid-blend at the boundary. A boundary with no declaration stays a hard cut. Reveal does not mix colors, so measure the top half and the bottom half of a mid-transition frame separately and confirm that the previous cut and the next cut are both present. |
+| 4 | Color look (LUT) | `output.look`: `{lut` (a preset reference or a path), `intensity}` | `lut3d`. Intensity also uses `blend`. | Pixel difference between two output frames, with and without the LUT. Preset table in `presets/luts/`. Start with 2 or 3 files. Moved from `catalog/luts/` on 2026-07-29. |
+| 5 | Audio master | `audio.master`: `{denoise` (`off`, `std`, or `strong`), `loudnorm` (target LUFS, default -14)} | `afftdn` and `loudnorm`. v0 allows one pass, not two. | Measured output loudness (ffmpeg ebur128) is within 1 LU of the target. |
+| 6 | Framing (static crop, zoom keyframes, stepped shrink) | `cuts[].framing`: `{crop?: {x,y,w,h}` (0 to 1, relative to the output, static), `keyframes?: [{t, scale, cx?, cy?}]` (`t` is seconds inside the cut, linear interpolation. Two points zoom. Three or more step the shrink. `cx` and `cy` default to 0.5 when omitted)} | Fit the frame to the output canvas, cut a window with `crop`, and scale it back up (a punch-in). A static `crop` has constant `w`, `h`, `x`, and `y`. For a zoom, this ffmpeg build evaluates `crop` `w` and `h` only once at init, so widen `scale` by `scale(t)` with `eval=frame`, keep `crop` at a fixed `w=width:h=height`, and drive only `x` and `y` as functions of `t`. Detail is in section 4-1. | A static crop is measured on output-frame pixels and matches the declared crop position. For a zoom, the scale inferred from the measured size of a visible element at the start, middle, and end frames matches the linear-interpolation theory within 5 percent. Three keyframes show two shrink steps in extracted frames. |
+| 7 | Freeze (hold the video) | `cuts[].freeze`: `{at_sec, duration_sec}`. `at_sec` is seconds inside the cut, and the frame holds there. The cut grows by the hold. Content is not removed. | Split with `trim`, then `tpad` (`stop_mode=clone`), then `concat`. A hold at the start of the cut (`at_sec` is 0) does not use `tpad` `start_mode=clone`. On this machine's ffmpeg, that mode plus a downstream `fps` filter drops the last frame. Confirmed on a real render. Instead, take a one-frame seed with a frame-index trim (`start_frame=0:end_frame=1`), stretch it with `stop_mode=clone`, and concat it at the front. Detail is in section 4-2. Audio in that span is silence (`anullsrc`). Do not continue the previous sound. Detail is in section 4-3. | Two frames inside the hold match pixel for pixel, measured with a lossless encode. Output duration equals the original duration plus `duration_sec` (ffprobe). Audio in the hold is silent (`silencedetect` and `volumedetect`). |
 
-- 除外（次段送り）: ブレンドモード・PinP・プリレンダ合成レール（レイヤー機構が前提のため）
+Left out, and sent to a later stage: blend modes, picture-in-picture, and a pre-rendered composite rail. Those need a layer mechanism first.
 
-現況（2026-09-05）: ffmpeg `lut3d` 経路は撤去済み。`output.look` は frame-engine の最終パス（WebGL2 LUT）で gpu / osr の 2 出口が適用し、per-clip の色補正は `docs/contract-2026-09-03-clip-adjust-v0.md` §4 の順（item adjust → 合成 → look）で同じエンジンが適用する。
+Current state (2026-09-05). The ffmpeg `lut3d` path has been removed. `output.look` is applied by the frame-engine final pass (WebGL2 LUT) on both the gpu and osr exits. Per-clip color correction is applied by the same engine in the order in section 4 of `contract-2026-09-03-clip-adjust-v0.md` (Japanese): item adjust, then composite, then look.
 
-## 2. 横断要件
+## 2. Rules that apply to every feature
 
-1. schema は**追記のみ**（既存 edit.json が全て無変更で valid のまま）。validate-edit /
-   edit-lint / fixtures / test を同時追随
-2. プレビュー（後継の frame-engine。`packages/preview-engine` は 2026-08-28 削除済み）は v0 では**近似不要・無視でよい**（出力最優先。
-   「プレビューは近似・書き出しが正」の哲学を全項目に適用。プレビュー追随は別契約）
-3. **`output.look`（#4 の LUT）の適用範囲は `cuts[]` の本編映像だけ**である。
-   `layers[]`（PinP / 人物マット / B-roll）と `overlays[]` には**掛からない**。
-   同じ絵の一部として重ねる素材の色を本編に合わせたいときは、`layers[].filter`
-   （`{type:"lut", id, intensity}`。正本 = `contract-2026-08-12-region-filter-layer-v0.md` §4）
-   へ**同じ `id` / `intensity` を明示的に宣言する**。
-   実害例（2026-08-14・リール制作）: 本編にだけ `cinematic` が乗り、重ねた人物切り抜きが
-   素の色のまま合成されて、窓の継ぎ目で肌色が食い違った。「プロジェクト全体の色」だと
-   誤解しやすいため、ここに明記する。
-4. **書き出しエンジンの既定（2026-08-28 改訂）**: `--engine` 省略時は `auto`。
-   全 platform で適格なら GPU、不適格なら OSR に解決する。`legacy` は廃止済み。
+1. The schema is additive only. Every existing edit.json stays valid with no edit. Update validate-edit, edit-lint, fixtures, and tests in the same change.
+2. Preview (the successor frame-engine; `packages/preview-engine` was deleted on 2026-08-28) does not need an approximation in v0. Ignoring the feature is allowed. Output comes first. Apply the rule "preview is the approximation, export is exact" to every item. Preview catch-up is another contract.
+3. `output.look` (the LUT in item 4) applies only to the main picture in `cuts[]`. It does not apply to `layers[]` (picture-in-picture, a person matte, B-roll) or to `overlays[]`. When stacked footage should match the main picture's color, declare the same `id` and `intensity` explicitly on `layers[].filter` (`{type:"lut", id, intensity}`). The source of truth is section 4 of `contract-2026-08-12-region-filter-layer-v0.md` (Japanese). A real miss on 2026-08-14, during a reel: only the main picture got `cinematic`, the stacked person cutout stayed at its raw color, and skin color disagreed at the window seam. This is easy to misread as "the color of the whole project", so it is written here.
+4. Export engine default, revised 2026-08-28. When `--engine` is omitted, the value is `auto`. On every platform, resolve to GPU when the machine qualifies, and to OSR when it does not. `legacy` is retired.
 
-### 2-4. reveal 系トランジション（`reveal-down` / `reveal-up`。2026-08-14 追加）
+### 2-4. Reveal transitions
 
-**前カットが丸ごとその方向へ動いて画面外へ抜け、空いた側から次カットが現れる**
-（前カットは動きながら画面端でクロップされる）。ディゾルブのように混ざらないので、
-**同じ構図が続くトークシーンでも「場面が入れ替わった」ことが読める**のが採用理由
-（オーナー指定 2026-08-14「テンプレの基本トランジションとして必要」）。
+`reveal-down` and `reveal-up`. Added 2026-08-14.
 
-- `reveal-down` = 前カットが下へ降りる（画面上部から次カットが出てくる）
-- `reveal-up` = 前カットが上へ抜ける（画面下部から次カットが出てくる）
-- 実測（64x64・10fps・duration 1s・遷移中間 t=2.5s）: `reveal-down` で上半分 RGB(0,0,253)＝次カット /
-  下半分 RGB(252,0,0)＝前カット。`reveal-up` はこの上下が入れ替わる
-- **他の xfade と同じく、遷移の重なり分だけタイムラインが縮む**（境界 1 つにつき `duration` 秒）。
-  `layers[]` / `overlays[]` / `audio.sfx[]` を**タイムライン秒で手置き**しているプロジェクトでは、
-  トランジションを足すと後続の配置が全部ずれる。字幕は (`src`, source 秒) で書くのでエンジンが
-  追随するが、手置きの要素は自分で引き直す必要がある。尺を変えたくない場合は、
-  トランジションではなくオーバーレイで表現する（前カット最終フレームを焼いて動かす）という
-  逃げ道もあるが、静止画になるうえプロジェクト固有の焼き込みが要るので既定にはしない
+The previous cut moves entirely in that direction and leaves the frame. The next cut appears from the side that opened. The previous cut is cropped at the frame edge while it moves. It does not mix the way a dissolve does, so a talk scene that keeps the same composition still reads as a scene change. That is why it was adopted. Owner direction on 2026-08-14: it is required as a basic template transition.
 
-## 3. 残裁定
+- `reveal-down`. The previous cut moves down. The next cut comes in from the top of the frame.
+- `reveal-up`. The previous cut leaves through the top. The next cut comes in from the bottom of the frame.
+- Measured at 64 by 64, 10 fps, duration 1 second, mid-transition at t = 2.5 seconds. For `reveal-down`, the top half is RGB(0, 0, 253), the next cut, and the bottom half is RGB(252, 0, 0), the previous cut. `reveal-up` swaps those halves.
+- As with the other xfade transitions, the timeline shrinks by the overlap, `duration` seconds per boundary. In a project that places `layers[]`, `overlays[]`, or `audio.sfx[]` by hand in timeline seconds, adding a transition shifts every later placement. Captions are written as `(src, source seconds)`, so the engine follows them. Hand-placed elements have to be redrawn. If the duration must not change, express the change as an overlay instead of a transition (bake the last frame of the previous cut and move it). That escape makes a still, and it needs a project-specific bake, so it is not the default.
 
-1. `speed` の音声ピッチ保持（atempo = ピッチ維持）を既定とするか、ピッチ変動オプションを持つか
-2. LUT 初期カタログの中身の選定
-3. xfade 移行で render-cut の concat 構造をどこまで作り替えるか（v0 = 指定境界のみ / 全面 xfade 化）
+## 3. Decisions still open
 
-## 4. #6/#7 実装決定（2026-08-06 追記・画角操作 + フリーズ増築）
+1. Whether keeping pitch on `speed` (`atempo` keeps pitch) is the default, or whether there is also an option that lets pitch change.
+2. What the first LUT catalog contains.
+3. How far the render-cut concat structure is rebuilt for the xfade move. v0 is only boundaries that declare a transition, or everything becomes xfade.
 
-### 4-1. 画角（`cuts[].framing`）
+## 4. Implementation decisions for items 6 and 7
 
-- **crop と keyframes の併存**: 両方宣言された場合は `keyframes` を優先する。`crop` は「1 点ズームの縮退形」であり、両立させる意味論が無いため（複製 drift の温床にもなる）
-- **幾何の基準（2026-09-02 追記・相互参照）**: `output.geometry` は未指定 = fit 互換 / `"source"` = 実寸基準を表すマーカーで、正本は `docs/contract-2026-08-02-preview-parity.md` §2.2（G1 は描画無変更・framing の再定義は G2）。
-- **scale < 1 の扱い**: `keyframes[].scale` は仕組み上「クロップ窓を縮めて拡大する」ため 1 未満（キャンバスの外まで見せる＝リビール）は原理的に表現できない。レンダ側で `max(1, scale)` にクランプする（silent drop ではなく仕組み上の上限として契約に明記）
-- **crop.w/h が init 一度しか評価されない**: ffmpeg の `crop` フィルタは `x`/`y` は `t` を使った毎フレーム再評価に対応するが、`w`/`h` は（この ffmpeg ビルドで）フィルタ初期化時の一度きりの評価に固定されており `eval` オプション自体が存在しない（実機検証: `t` を含む `w`/`h` 式は `crop=... w='...t...'` で `Error when evaluating the expression` を返す）。そのため実装は「`scale` を `eval=frame` で `width*scale(t) : height*scale(t)` に広げてから固定サイズ `width:height` で `crop` する」方式を採る（クロップ窓の拡大 = `scale` 側の時間関数、パン位置 = `crop` の `x`/`y` の時間関数、という役割分担）
-- **`crop` の `x`/`y` は上流フレームの実サイズを見ない**: 同フィルタの `iw`/`ih` 定数は（動的サイズの上流から来ていても）negotiate 済みの固定リンクサイズを指し、最初のフレームのサイズに固定されたままになることを実機検証で確認した。そのため `crop` の `x`/`y` 式は `iw`/`ih` を参照せず、`scale` 側と同じ `scale(t)` 式をそのまま再計算する（対称的だが唯一 crop から見て正しい現在値）
-- **ズーム中の左右ちらつき修正（2026-08-06 追記・オーナー実機指摘・ws:framing-zoom-flicker）**: `crop` の `x`/`y` は ffmpeg 上フレーム整数ピクセル位置でしか表現できず、連続的に変化する `scale(t)` は毎フレーム 1px 刻みの階段状に量子化される。この階段と本来の滑らかな軌跡との差が、細かい周期パターン上で左右にスナップするちらつきとして見える（チェッカーボード実測フィクスチャで確認: 元実装は連続フレーム間で 78% の確率で位置が逆方向に振れ、平滑トレンドからの残差 stdev 0.51px）。`scale` のフラグ変更（`bilinear`→`lanczos`）は無効（値の補間精度は変えるが `crop` の位置精度そのものは変えないため）。有効だったのは**スーパーサンプリング**: `cuts[].framing.keyframes` のズーム計算をキャンバス解像度の 2 倍（`SUPERSAMPLE=2`）で行ってから高品質フィルタで実解像度へ縮小する方式で、`crop` の 1px 量子化ステップが出力ピクセルの 1/2 になる分だけちらつきが縮む（同フィクスチャで stdev 0.51px→0.26px、連続フレーム逆方向率 78%→41%、いずれも約 48% 改善）。あわせて `scale`/`crop` 双方が参照する「現在の拡大後サイズ」式を偶数丸め（`trunc(x/2)*2`）に統一し、`scale` が実際に負向する整数サイズと `crop` 側の想定がフレームによって食い違う（`crop` 内部クランプが暗黙に発火する）ケースを閉じた。静的 `crop`（`framing.crop`、ズームではない一点窓抜き）は時間不変のため対象外・無変更
+Added 2026-08-06. Framing and freeze.
 
-### 4-2. フリーズ（`cuts[].freeze`）— ffmpeg 実装上の制約
+### 4-1. Framing (`cuts[].framing`)
 
-- **`tpad` の `start_mode=clone` は使わない**: カット先頭（`at_sec=0`）での静止を素直に `tpad=start_mode=clone:start_duration=X` で実装すると、後続に（本機能の他パスも含め）`fps` フィルタが一つでも挟まると出力の**最終フレームが 1 枚欠落する**バグをこの ffmpeg ビルドで実機検証した（`stop_mode=clone` には同じ問題が無いことも確認済み）。代わりに、`split` で複製した全区間トリムの一方を `trim=start_frame=0:end_frame=1`（フレーム番号ベース・fps に依存しない）で 1 フレームへ切り、`stop_mode=clone` + `stop=<フレーム数-1>`（時間指定の `stop_duration` ではなく整数フレーム数）で伸ばしてから元の全区間へ concat する
-- **フリーズ中の音声は無音挿入**（direct 音の継続やループはしない）: 直前音をループさせるとループ境目でクリックノイズが乗る（PCM の非ゼロ交差での接続）のに対し、無音挿入は決定論的でグリッチが無い。narration/BGM/SFX は出力タイムライン上の絶対秒で独立に配置される既存契約（`cuts[].speed` と同じ前提）のため、freeze による尺の伸びに合わせて自動シフトはしない
-- **v0 は gap-aware タイムライン（明示 `at`/`track`）との併用不可**: gap-aware パス（`computeVideoRuns`）の出力秒→ソース秒写像は速度係数のみを前提にした線形式で、フリーズによる非線形な静止区間があると破綻する。`cuts[].freeze` が宣言された状態で gap-aware 判定（`needsGapAwareCutTimeline`）が真になる場合、render-cut は明示的に例外を投げて止まる（silent drop を許さない契約の原則どおり、機能を無言で無視しない）。デフォルトの逐次タイムラインでのみ有効
-- **v1（2026-08-18 追記）も同じ制約**: `contract-2026-08-18-v1-render-parity.md` で v1
-  （`sources[]`）の `buildMultiSourceCutCommand` にも gap-aware タイムライン（`buildGapAwareMultiSourceCutCommand`）が入った。理由は v0 と全く同じ（`computeVideoRuns` の線形写像がフリーズを表現できない）ため、`cuts[].freeze` + 明示 `at`/`track` の組み合わせは v1 でも同じ例外で止まる
+- Crop and keyframes together. When both are declared, `keyframes` wins. `crop` is the degenerate form of a one-point zoom. There is no meaning in which both apply, and keeping both is a place for copies to drift.
+- Geometry basis. Added 2026-09-02, a cross-reference. `output.geometry` omitted means fit-compatible. `"source"` is a marker for actual-size basis. The source of truth is section 2.2 of `contract-2026-08-02-preview-parity.md` (Japanese). G1 does not change drawing. Redefining framing is G2.
+- `scale` below 1. `keyframes[].scale` works by shrinking the crop window and enlarging it, so a value below 1 (showing past the canvas, a reveal) cannot be expressed. The renderer clamps with `max(1, scale)`. This is not a silent drop. The contract states it as a limit of the mechanism.
+- `crop` `w` and `h` are evaluated only once at init. ffmpeg's `crop` filter re-evaluates `x` and `y` every frame when they use `t`, but on this ffmpeg build `w` and `h` are fixed to the one evaluation at filter init. There is no `eval` option. A real render confirmed that a `w` or `h` expression containing `t` returns `Error when evaluating the expression` for `crop=... w='...t...'`. The implementation therefore widens `scale` with `eval=frame` to `width*scale(t) : height*scale(t)`, then crops at the fixed size `width:height`. Widening the crop window is the time function on `scale`. Pan position is the time function on `crop` `x` and `y`.
+- `crop` `x` and `y` do not look at the real size of the upstream frame. The same filter's `iw` and `ih` constants point at the negotiated fixed link size, even when the upstream size is dynamic, and they stay fixed at the first frame's size. A real render confirmed that. So the `x` and `y` expressions do not refer to `iw` or `ih`. They recompute the same `scale(t)` expression the `scale` side uses. The two sides match, and that recomputation is the only current value that is correct from `crop`'s point of view.
+- Left-right flicker during a zoom, fixed. Added 2026-08-06 after an owner saw it on a real render (`ws:framing-zoom-flicker`). On ffmpeg, `crop` `x` and `y` can only be integer pixel positions. A continuously changing `scale(t)` is quantized to 1 px steps every frame. The difference between that staircase and the smooth path shows up as a left-right snap on a fine repeating pattern. A checkerboard fixture confirmed it. The original implementation reversed direction between consecutive frames 78 percent of the time, and the residual standard deviation from the smooth trend was 0.51 px. Changing the `scale` flag from `bilinear` to `lanczos` did nothing. It changes interpolation quality of the values, not the position precision of `crop`. What worked was supersampling. Compute the zoom for `cuts[].framing.keyframes` at twice the canvas resolution (`SUPERSAMPLE=2`), then scale down to the real resolution with a high-quality filter. The 1 px quantization step of `crop` becomes half an output pixel, so the flicker shrinks. On the same fixture, standard deviation went from 0.51 px to 0.26 px, and the consecutive-frame reversal rate went from 78 percent to 41 percent, about a 48 percent improvement on both. The expression for "the size after the current enlargement", which both `scale` and `crop` read, was also unified on even rounding (`trunc(x/2)*2`). That closes the case where the integer size `scale` actually outputs and the size `crop` assumes disagree on some frames, which fired an implicit clamp inside `crop`. A static `crop` (`framing.crop`, a one-point window, not a zoom) does not change with time, so it is out of this fix and unchanged.
 
-### 4-3. プレビュー乖離
+### 4-2. Freeze (`cuts[].freeze`)
 
-画角（`cuts[].framing`）とフリーズ（`cuts[].freeze`）はレンダ（本契約 #6/#7）のみの対応であり、Web UI / shell のプレビューは追随していない。`docs/contract-2026-08-02-preview-parity.md` の適合状況表に明示済み。
+Limits of the ffmpeg implementation.
 
-### 4-4. 変形キーフレームの一般化（`layers[].keyframes`。2026-08-09 追記）
+- Do not use `tpad` `start_mode=clone`. Implementing a hold at the start of a cut (`at_sec` is 0) as `tpad=start_mode=clone:start_duration=X` drops the last output frame whenever any later `fps` filter is in the chain, including another pass of this feature. Confirmed on a real render of this ffmpeg build. `stop_mode=clone` does not have the same bug. That was also confirmed. Instead, `split` a copy of the full-range trim, cut one side to one frame with `trim=start_frame=0:end_frame=1` (frame numbers, so it does not depend on fps), stretch it with `stop_mode=clone` and `stop=<frame count minus 1>` (an integer frame count, not the time-based `stop_duration`), and concat it onto the original full range.
+- Audio during a freeze is inserted silence. Do not continue or loop the direct sound. Looping the previous sound clicks at the loop boundary, because the PCM join is not at a zero crossing. Inserted silence is deterministic and has no glitch. Narration, BGM, and sound effects are placed independently at absolute seconds on the output timeline, the same premise as `cuts[].speed`, so they are not shifted automatically when a freeze lengthens the cut.
+- v0 cannot be combined with a gap-aware timeline (explicit `at` and `track`). The gap-aware path (`computeVideoRuns`) maps output seconds to source seconds with a linear formula that assumes only a speed coefficient. A nonlinear hold from a freeze breaks that map. When `cuts[].freeze` is declared and the gap-aware test (`needsGapAwareCutTimeline`) is true, render-cut throws and stops. It does not ignore the feature quietly, which matches the rule against a silent drop. Freeze works only on the default sequential timeline.
+- v1, added 2026-08-18, has the same limit. `contract-2026-08-18-v1-render-parity.md` (Japanese) added a gap-aware timeline (`buildGapAwareMultiSourceCutCommand`) to v1 `buildMultiSourceCutCommand` for `sources[]`. The reason is exactly the v0 reason. The linear map in `computeVideoRuns` cannot express a freeze. The combination of `cuts[].freeze` and explicit `at` or `track` stops with the same exception on v1.
 
-`cuts[].framing.keyframes`（#6・上記 4-1）が確立した「時刻付きの部分状態の配列・線形補間・
-hold-before/after」という形は、`layers[]`（PinP）の変形（`transform.x/y/scale/rotate`・
-`crop`・`perspective`）全般を動かす共通機構 `layers[].keyframes` として一般化された
-（オーナー指示 2026-08-09。パース単独の専用機構は作らない）。`layers[]` は本契約のスコープ表
-（§1）に無く、`layers[].crop`/`layers[].perspective` 自体の契約は
-`docs/contract-2026-08-02-preview-parity.md` §2.4.1/§2.4.4 が正本のため、`layers[].keyframes`
-の適用順・補間規則・ffmpeg 実装（`eval=frame` 区分線形式 / crop の異方 scale-up-crop-down 技法 /
-perspective のレイヤー分割フォールバック — perspective は `crop` の `w`/`h` 同様
-"per-frame 評価に対応しない" 制約を持つが、ffmpeg 側に時刻変数自体が無いためこの技法すら
-使えず、レイヤー分割へフォールバックする点が crop/framing と異なる）・プレビュー再現の詳細は
-すべて同契約 §2.4.7 に記載する（本ファイルでの重複記載はしない — SSOT は 1 箇所）。
+### 4-3. Preview disagreement
 
-- **レイヤー拡大・crop の固定キャンバス化（2026-08-24 追記）**: normal blend かつ
-  perspective/rotate 非併用の `layers[].keyframes` では、`transform.scale` に応じて素材の整数
-  bitmap 寸法を毎フレーム変え、その可変 `overlay_w/overlay_h` を中央配置する方式を廃止した。
-  素材ネイティブ寸法を 2 倍した固定グリッド（`LAYER_KEYFRAME_SUPERSAMPLE=2`）内で scale/crop
-  を補間し、最大 footprint の固定透明キャンバスへ偶数座標で配置・固定 crop した後、Lanczos で
-  実寸へ縮小する。これにより overlay の外形寸法は全フレーム不変となり、拡大後サイズの偶奇変化
-  による中央座標の ±1px 往復を除去しつつ、PiP の footprint 自体は固定グリッド内で連続的に
-  拡縮する。倍率値は `cut-framing.mjs` の `SUPERSAMPLE=2` と同値だが、両者は出力相対の framing
-  と素材ネイティブ相対の layer という独立した filter builder であり、実装モジュール間の逆依存を
-  作らないため定数は共有しない。キーフレーム無しの filter 文字列は不変。perspective は bitmap
-  外形を四隅の基準にし、rotate と非 normal blend は固定外形化による既存意味の変化を排除できない
-  ため、この組み合わせだけは従来互換経路を維持する。
+Framing (`cuts[].framing`) and freeze (`cuts[].freeze`) are implemented only in the renderer (items 6 and 7 of this contract). The web UI and the shell preview do not follow them yet. The compatibility table in `contract-2026-08-02-preview-parity.md` (Japanese) says so.
 
-- **主映像カット拡大・crop の固定キャンバス化（2026-08-25 追記）**: v2 主映像トラックから
-  gap-aware cuts へ変換された `transform.scale` / crop キーフレームにも、レイヤー経路と同じ
-  `layerFixedCanvasKeyframeSteps` を適用する。normal blend・perspective 非宣言・rotate=0（静的・
-  キーフレームとも）の場合に限り、素材ネイティブ寸法の 2 倍グリッドで補間し、最大 footprint の
-  固定透明キャンバスへ偶数座標で配置した後、Lanczos で実寸へ縮小する。これにより毎フレームの
-  可変 bitmap 寸法と中央 overlay の組み合わせを排除し、拡大後サイズの偶奇変化による ±1px 往復を
-  防ぐ。perspective・rotate・非 normal blend は従来互換経路を維持し、キーフレーム無しカットの
-  filter 文字列は変更しない。
+### 4-4. Generalizing transform keyframes
 
-- **rotate 適用条件の追補（2026-08-25）**: 上記の「rotate=0（静的・キーフレームとも）」は、
-  下流 filter に rotate ステップが実際に出るかどうかへ読み替え、`rotateConstant === 0` のときだけ
-  固定キャンバスを適用する。静的 `transform.rotate` が非 0 でも、キーフレームが `transform` を
-  宣言すれば rotate はキーフレーム由来の既定 0 で解決され、rotate ステップが出ないため対象となる
-  （rotate の描画意味論は不変）。これで `layers.mjs` の同名ガードと一致する。静的 rotate 非 0 かつ
-  transform キーフレーム無し、キーフレーム rotate が非 0、rotate が時間変化する構成は、rotate
-  ステップが実際に出るため従来互換経路を維持する。
+`layers[].keyframes`. Added 2026-08-09.
 
-## 5. 退役済みブラウザラスタライズの参照記録（2026-09-01 終了）
+The shape that `cuts[].framing.keyframes` established (item 6, section 4-1), an array of partial state with a time, linear interpolation, and hold before and after, was generalized as `layers[].keyframes`, a shared mechanism for the transforms on `layers[]` (picture-in-picture): `transform.x`, `y`, `scale`, and `rotate`, plus `crop` and `perspective`. Owner direction on 2026-08-09. Do not build a mechanism that exists only for perspective. `layers[]` is not in the scope table in section 1. The contracts for `layers[].crop` and `layers[].perspective` themselves have their source of truth in sections 2.4.1 and 2.4.4 of `contract-2026-08-02-preview-parity.md` (Japanese). Apply order, interpolation rules, the ffmpeg implementation (the `eval=frame` piecewise-linear form, the anisotropic scale-up then crop-down technique for crop, and the layer-split fallback for perspective), and the preview reproduction are all written in section 2.4.7 of that contract. This file does not repeat them. The source of truth is one place. Perspective has the same "not evaluated per frame" limit as `crop` `w` and `h`, but the ffmpeg side has no time variable at all, so even that technique cannot be used and the path falls back to splitting the layer. That is the difference from crop and framing.
 
-- macOS では `.app` 内の Chrome 実行ファイルを子プロセスとして直接起動しない。書き出し専用の
-  一意な `user-data-dir` を作り、`/usr/bin/open -na <Chrome.app> --args` で LaunchServices
-  経由の新規インスタンスを起動する。
-- `--remote-debugging-port=0` で起動し、専用プロファイルの `DevToolsActivePort` を
-  タイムアウト付きで待ってから `puppeteer.connect()` する。通常の連番 PNG 経路と静止画経路は
-  同じ起動・接続・終了層を使う。Linux / Windows は共通層内の `puppeteer.launch()` で
-  実行ファイルを直接起動する。
-- 正常・異常を問わず、接続済み Chrome は CDP の `Browser.close` 相当で終了し、専用プロファイルを
-  削除する。macOS の終了設計は PID の推測や広域 `kill` に依存しない。
-- Chrome 不在、`.app` でない実行ファイル、`DevToolsActivePort` 待機または接続の失敗は、
-  「字幕レンダ用ブラウザの起動に失敗した」ことと Chrome の確認を日本語で示し、書き出しを
-  非 0 で停止する。別スタイルの簡易字幕へは切り替えない。
+- Fixed canvas for layer enlargement and crop. Added 2026-08-24. For `layers[].keyframes` with a normal blend and no perspective or rotate, stop changing the footage's integer bitmap size every frame from `transform.scale` and stop centering that variable `overlay_w` and `overlay_h`. Interpolate scale and crop inside a fixed grid at twice the footage's native size (`LAYER_KEYFRAME_SUPERSAMPLE=2`), place the result at even coordinates on a fixed transparent canvas of the maximum footprint, crop that fixed canvas, then scale down to the real size with Lanczos. The overlay's outer size is then the same on every frame. The plus or minus 1 px oscillation of the center coordinate, caused by the enlarged size flipping between even and odd, goes away, while the picture-in-picture footprint itself still grows and shrinks continuously inside the fixed grid. The factor matches `SUPERSAMPLE=2` in `cut-framing.mjs`, but the two builders are independent. One is output-relative framing. The other is a layer relative to the footage's native size. The constants are not shared, so the implementation modules do not depend on each other in reverse. A filter string with no keyframes does not change. Perspective uses the bitmap outline as the basis of the four corners. Rotate, and a blend that is not normal, cannot rule out a change to the existing meaning if the outline is fixed. Those combinations keep the previous compatible path.
+- Fixed canvas for main-picture cut enlargement and crop. Added 2026-08-25. `transform.scale` and crop keyframes that were converted from a v2 main-picture track into gap-aware cuts use the same `layerFixedCanvasKeyframeSteps` as the layer path. Only when the blend is normal, perspective is not declared, and rotate is 0 both as a static value and in keyframes: interpolate on a grid at twice the footage's native size, place at even coordinates on a fixed transparent canvas of the maximum footprint, then scale down to the real size with Lanczos. That removes the combination of a bitmap size that changes every frame and a centered overlay, and it prevents the plus or minus 1 px oscillation from the enlarged size flipping between even and odd. Perspective, rotate, and a blend that is not normal keep the previous compatible path. A cut with no keyframes does not change its filter string.
+- Added condition for rotate. 2026-08-25. The phrase above, "rotate is 0 both as a static value and in keyframes", is read as whether a rotate step actually appears in the downstream filter. Apply the fixed canvas only when `rotateConstant === 0`. Even when a static `transform.rotate` is not 0, a keyframe that declares `transform` resolves rotate to the keyframe default of 0, no rotate step appears, and the cut is in scope. The drawing meaning of rotate does not change. This matches the guard of the same name in `layers.mjs`. A static rotate that is not 0 with no transform keyframe, a keyframe rotate that is not 0, and a rotate that changes over time all emit a rotate step, so they keep the previous compatible path.
 
-## 6. H.264 エンコーダ選択（2026-08-28 追記）
+## 5. Reference record of the retired browser rasterizer
 
-`--encoder` の語彙は `auto` / `videotoolbox` / `nvenc` / `qsv` / `amf` / `mf` / `x264` とする。
-`master` 品質は x264 専用であり、ハードウェアエンコーダを明示した場合は拒否する。
+Ended 2026-09-01.
 
-| 値 | ffmpeg エンコーダ | 対応環境・品質制御 |
+- On macOS, do not start the Chrome executable inside the `.app` directly as a child process. Create a unique `user-data-dir` for export, and start a new instance through LaunchServices with `/usr/bin/open -na <Chrome.app> --args`.
+- Start with `--remote-debugging-port=0`, wait with a timeout for `DevToolsActivePort` in the dedicated profile, then `puppeteer.connect()`. The ordinary numbered-PNG path and the still-image path use the same start, connect, and shutdown layer. Linux and Windows start the executable directly with `puppeteer.launch()` inside the shared layer.
+- Whether the run succeeded or failed, close a connected Chrome with the CDP equivalent of `Browser.close`, and delete the dedicated profile. The macOS shutdown does not guess a PID and does not depend on a wide `kill`.
+- If Chrome is missing, if the executable is not a `.app`, or if waiting for `DevToolsActivePort` or connecting fails, say in Japanese that the browser for caption rendering failed to start and that Chrome should be checked, and stop the export with a non-zero status. Do not fall back to a simpler caption style.
+
+## 6. H.264 encoder choice
+
+Added 2026-08-28.
+
+`--encoder` is one of `auto`, `videotoolbox`, `nvenc`, `qsv`, `amf`, `mf`, or `x264`. `master` quality is x264 only. An explicit hardware encoder is rejected.
+
+| Value | ffmpeg encoder | Where it runs, and how quality is controlled |
 |---|---|---|
-| `videotoolbox` | `h264_videotoolbox` | macOS。ビットレート制御 |
-| `nvenc` | `h264_nvenc` | Windows / NVIDIA。VBR + CQ |
-| `qsv` | `h264_qsv` | Windows / Intel。global quality |
-| `amf` | `h264_amf` | Windows / AMD。CQP |
-| `mf` | `h264_mf` | Windows Media Foundation。quality 0..100 |
-| `x264` | `libx264` | 全環境。CRF |
+| `videotoolbox` | `h264_videotoolbox` | macOS. Bitrate control. |
+| `nvenc` | `h264_nvenc` | Windows, NVIDIA. VBR plus CQ. |
+| `qsv` | `h264_qsv` | Windows, Intel. Global quality. |
+| `amf` | `h264_amf` | Windows, AMD. CQP. |
+| `mf` | `h264_mf` | Windows Media Foundation. Quality 0 to 100. |
+| `x264` | `libx264` | Every environment. CRF. |
 
-`auto` は macOS で VideoToolbox → x264、Windows で NVENC → QSV → AMF → Media Foundation →
-x264、その他の環境で x264 の順に解決する。ハードウェア対応は `ffmpeg -encoders` の一覧だけで
-決めず、実際の1フレーム試し焼きにも成功した場合だけ採用する。Windows 向け4方式は最小解像度の
-誤判定を避けるため 256x144 で試し焼きし、`AKARI_EXPORT_FORCE_X264=1` のときは試し焼きせず
-すべて不採用とする。明示指定した Windows 向け方式が利用不能なら x264 へ暗黙移行せず停止する。
-`AKARI_EXPORT_FORCE_X264=1` のときに Windows 向け方式を明示指定した場合も、同じく停止する。
+`auto` resolves in this order. On macOS, VideoToolbox, then x264. On Windows, NVENC, then QSV, then AMF, then Media Foundation, then x264. On any other environment, x264. Do not decide hardware support from the `ffmpeg -encoders` list alone. Adopt an encoder only when a real one-frame trial encode also succeeds. The four Windows methods trial-encode at 256 by 144, so a wrong minimum resolution is not accepted. When `AKARI_EXPORT_FORCE_X264=1`, skip the trial and reject all of them. If an explicit Windows method is unavailable, stop. Do not move to x264 quietly. If a Windows method is named explicitly while `AKARI_EXPORT_FORCE_X264=1` is set, stop the same way.
 
-## 7. v2 書き出しの cut 中間物（2026-08-29 追記）
+## 7. Cut intermediates in a v2 export
 
-OSR / GPU の v2 書き出しでは、映像エンジンが `edit.sources` から直接描画するため、cut 段と
-tail-pad 段は音声専用中間物だけを生成する。通常は `cut-audio.mp4`、最終尺までの音声 padding が
-必要な場合は `cut-audio-tail-padded.mp4` を使用し、どちらも `-vn` で映像を処理しない。
-旧 legacy 書き出しは `cut.mp4` と必要時の `cut-tail-padded.mp4` を使用していた（現在は廃止）。
-音声入力は cut ごとに入力側シーク（`-ss` / `-t`）し、cut 頭 0.5 s の先読みガード（AAC の overlap-add 用）を設け、cut 段の費用を素材長に依存させない。
+Added 2026-08-29.
+
+In an OSR or GPU v2 export, the picture engine draws directly from `edit.sources`, so the cut stage and the tail-pad stage generate audio-only intermediates. Normally that file is `cut-audio.mp4`. When audio padding out to the final duration is required, use `cut-audio-tail-padded.mp4`. Both pass `-vn` and do not process picture. The old legacy export used `cut.mp4` and, when needed, `cut-tail-padded.mp4`. That path is retired. Audio input seeks on the input side per cut (`-ss` and `-t`), with a 0.5 second read-ahead guard at the start of the cut for AAC overlap-add. The cost of the cut stage does not depend on the footage length.

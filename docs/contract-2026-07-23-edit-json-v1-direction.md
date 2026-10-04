@@ -1,180 +1,133 @@
-# edit.json v1 演出宣言（direction）データ契約
+**English** | [日本語](./contract-2026-07-23-edit-json-v1-direction.ja.md)
 
-- 日付: 2026-07-23
-- 状態: 実装ラウンドの SSOT（`direction` フィールドのみ確定）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ進化・明示マイグレの三原則）、
-  `contract-2026-07-20-edit-json-v1-narration.md`（enum 強制しない自由文字列と検証分担の先例）、
-  `contract-2026-07-22-edit-json-v1-beats.md` §8（`direction {}` の席の予告）
-- スコープ: edit.json のトップレベル `direction` フィールド（演出宣言）のみ。**器と検証責務の
-  正文化だけを行う。** プリセットが実際にどんな演出パラメータへ展開されるか、`intensity` が
-  どの規則の数値をどうスケールするか（消費規則）は**別タスク・別契約**であり本書は定めない
+# edit.json v1 treatment declaration (direction) contract
 
-## 0. version 運用（後方互換）
+- Date: 2026-07-23
+- Status: source of truth for the implementation round. Only the `direction` field is fixed.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (version required, additive evolution, and an explicit migration), `contract-2026-07-20-edit-json-v1-narration.md` (the precedent for a free string that is not a forced enum, and for who checks what), and section 8 of `contract-2026-07-22-edit-json-v1-beats.md` (the seat announced for `direction {}`).
+- Scope: only the top-level `direction` field of edit.json, the treatment declaration. This document writes down the container and the validation duties. Which treatment parameters a preset expands into, and which rule numbers `intensity` scales, are consumer rules. They are a separate task and a separate contract. This document does not set them.
 
-`contract-2026-07-22-edit-json-v1-beats.md` §0 と同じ運用を踏襲する。**`version` は bump しない。**
+## 0. How version is used
 
-- `direction` は edit.json の**トップレベル任意フィールド**（`Option`）。存在しなければ従来
-  （演出宣言なし）と完全に同じ挙動
-- 既存の `edit.json`（`direction` フィールド無し）は一切影響を受けない。既存の読み手は未知
-  フィールドとして素通しできる（tolerant reader）
-- `contract-2026-07-17-data-contract-versioning.md` 原則 1（版必須・追加のみ進化）どおり、
-  任意フィールドの追加のみであり `version` の bump を要しない
-- v0（単一 `source`）と v1（`sources[]`）の双方で使用できる。`direction` は素材参照を持たない
-  ため、v0 / v1 で扱いに差が無い（`beats[].src` のような版差はない）
+Backward compatible. Follow section 0 of `contract-2026-07-22-edit-json-v1-beats.md`. **Do not bump `version`.**
 
-## 1. 呼称
+- `direction` is an optional top-level field of edit.json. When it is absent, behavior matches the previous behavior exactly. There is no treatment declaration.
+- An existing `edit.json` with no `direction` field is unaffected. An existing reader can pass an unknown field through. It is a tolerant reader.
+- This is an optional field only, which is principle 1 of `contract-2026-07-17-data-contract-versioning.md`. No `version` bump is required.
+- Both v0 (a single `source`) and v1 (`sources[]`) may use it. `direction` does not reference footage, so v0 and v1 treat it the same way. There is no version split like `beats[].src`.
 
-| 文脈 | 呼称 |
+## 1. Names
+
+| Context | Name |
 |---|---|
-| データモデル（edit.json のフィールド名・スキーマ・コード・エラーメッセージ） | `direction {}` |
-| 人間向け（レポート・UI・ドキュメント本文・オーナーとの会話） | **演出宣言** |
-| 強度を表すフィールド | `intensity`（人間向けにも「強度」と呼ぶ。別称を新設しない） |
+| The data model (the edit.json field name, the schema, code, and error messages) | `direction {}` |
+| For a person (a report, the UI, the body of a document, a conversation with the owner) | treatment declaration |
+| The field that states strength | `intensity`. Call it intensity for a person as well. Do not add another name for it. |
 
-この呼称を正文とし、他の呼称（演出モード、スタイル指定、テンション等）を新設しない。
+Those names are the text. Do not add another name, such as treatment mode, style assignment, or tension.
 
-**`direction` は配列ではなくオブジェクトである。** 演出宣言は「このファイルをどう演出するか」
-という**ファイル全体に 1 つ**の宣言であり、`beats[]` のような時刻付きの観測データとは性質が
-異なる。複数の宣言を並べられる形（配列）にすると「どれが有効か」「区間ごとに切り替わるのか」
-という解釈の余地が生まれるため、器の段階で 1 個に固定する。区間ごとの演出切り替えが必要に
-なった場合は §7 の将来拡張として別途設計する。
+**`direction` is an object, not an array.** A treatment declaration is one statement about how to treat this file. It is a different kind of data from `beats[]`, which are observations with times. An array would leave open which item is in force, and whether the declaration switches by span. The container fixes the count at one. If a later edit needs a treatment that changes by span, design that as a future extension in section 7.
 
-### `output.look.intensity` との区別
+### How this differs from `output.look.intensity`
 
-edit.json には既に `output.look.intensity`（LUT 適用の強さ・`[0, 1]` の実数）が存在する。
-本契約の `direction.intensity` はこれとは**別のフィールド・別の値域**（整数 `[0, 100]`）で
-あり、意味も異なる（前者は色調整の適用率、後者は演出全体の密度・強度）。パスが異なる
-（`output.look.intensity` / `direction.intensity`）ため衝突はしないが、エラーメッセージ・
-レポートでは常にフルパスで示し、単に「intensity」と書かない。
+edit.json already has `output.look.intensity`. That value is the strength of a LUT, a real number in `[0, 1]`. `direction.intensity` is a different field and a different range, an integer in `[0, 100]`. The LUT value is how much of a color adjustment to apply. `direction.intensity` is the density of the treatment as a whole. The paths differ, `output.look.intensity` and `direction.intensity`, so the names do not collide. An error message and a report always show the full path. They do not say only "intensity".
 
-## 2. 確定スキーマ
+## 2. Fixed schema
 
 ```jsonc
 {
   "version": 1,
   "output": { "width": 1920, "height": 1080, "fps": 30 },
-  "sources": [ /* 既存のまま */ ],
-  "cuts": [ /* 既存のまま */ ],
+  "sources": [ /* unchanged */ ],
+  "cuts": [ /* unchanged */ ],
 
-  "direction": {                          // 省略可。オブジェクト（配列ではない = 宣言はファイルに 1 つ）
-    "preset": "youtube-long-standard",    // 必須。空でない文字列。enum 強制はしない（§3）
-    "intensity": 50,                      // 任意。整数 [0, 100]。既定 50（§4）
-    "overrides": {}                       // 任意。オブジェクト。個別規則の上書きの席（中身の語彙は本契約で定義しない）
+  "direction": {                          // optional. An object. Not an array, so the file has one declaration.
+    "preset": "youtube-long-standard",    // required. A non-empty string. Not a forced enum (section 3).
+    "intensity": 50,                      // optional. An integer in [0, 100]. Default 50 (section 4).
+    "overrides": {}                       // optional. An object. A seat for per-rule overrides. This contract does not define the vocabulary inside it.
   }
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 意味 |
+| Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
-| `direction` | object \| 省略 | 否 | 省略 = 演出宣言なし | ファイル全体に 1 つ。配列不可 |
-| `direction.preset` | string | **必須** | — | 空でない文字列。演出プリセットの識別子。`youtube-long-standard` / `shorts-high-energy` / `calm-explainer` を例示（enum 強制はしない・§3） |
-| `direction.intensity` | integer | 否 | `50` | `[0, 100]`。演出全体の密度・強度を単一の整数で一括スケールする（§4）。実数は不可 |
-| `direction.overrides` | object | 否 | 省略 = 上書きなし | 個別規則の上書きを置く席。**中身の語彙は本契約で定義しない**（§7） |
+| `direction` | object, or omitted | No | Omitted means no treatment declaration | One object for the whole file. An array is invalid. |
+| `direction.preset` | string | Required | none | A non-empty string. The identifier of a treatment preset. Examples: `youtube-long-standard`, `shorts-high-energy`, `calm-explainer`. Not a forced enum (section 3). |
+| `direction.intensity` | integer | No | `50` | `[0, 100]`. One integer scales the density of the whole treatment (section 4). A real number is invalid. |
+| `direction.overrides` | object | No | Omitted means no overrides | A seat for per-rule overrides. This contract does not define the vocabulary inside it (section 7). |
 
-`preset` を `audio.narration[].provenance.provider` / `beats[].kind` と同じ流儀で**文書上の
-例示に留め enum 強制しない**のは、プリセットが素材ジャンル・配信先の増加とともに増えるため
-であり、契約側で列挙を固定すると 1 つ増やすたびにスキーマ改訂が要るからである。書き手が
-未知の `preset` を使っても静的検証は通り、消費側は未知の `preset` を §5 の既定動作へ
-フォールバックする。
+`preset` follows `audio.narration[].provenance.provider` and `beats[].kind`. It stays an example in the document. It is not a forced enum. Presets grow as footage genres and delivery targets grow. Fixing the list in the contract would require a schema revision every time one preset is added. A writer may use an unknown `preset` and static validation still passes. A consumer falls back to the default behavior in section 5 for an unknown `preset`.
 
-`intensity` を**整数**に固定したのは、これが連続的な物理量ではなく「人が UI のツマミで選ぶ
-一段階」だからである。`0.5` と `0.51` の差に意味を持たせない（持たせられない）ため、値域を
-`[0, 100]` の整数に閉じることで、書き手・読み手・レポート表示のすべてで同じ粒度に揃う。
-`beats[].strength` が `[0, 1]` の実数であることとは対照的だが、これは前者が「人の指定」、
-後者が「解析結果の正規化値」という性質の違いに対応する。
+`intensity` is an integer because it is one step a person picks on a control, not a continuous physical quantity. The difference between `0.5` and `0.51` has no meaning here, and cannot be given one. Closing the range to integers in `[0, 100]` gives the writer, the reader, and the report the same grain. `beats[].strength` is a real number in `[0, 1]`. That contrast matches the kind of each value. `intensity` is a person's setting. `strength` is a normalized analysis result.
 
-## 3. プリセットの例示
+## 3. Preset examples
 
-以下は**例示であり enum ではない**。この 3 値以外の `preset` を書いても静的検証は通る。
+These rows are examples. They are not an enum. Static validation still passes for a `preset` outside these three values.
 
-| `preset` | 意味 |
+| `preset` | Meaning |
 |---|---|
-| `youtube-long-standard` | 長尺標準。冒頭フックあり・見せ場は要所のみ・落ち着いた密度 |
-| `shorts-high-energy` | ショート向け高密度。発火多め・強い文字演出 |
-| `calm-explainer` | 落ち着き解説。SE 控えめ・儀式最小限 |
+| `youtube-long-standard` | A standard long video. An opening hook, set pieces only where they matter, a calm density. |
+| `shorts-high-energy` | A dense short. More triggers, and stronger caption treatment. |
+| `calm-explainer` | A calm explanation. Few sound effects, and the minimum ritual. |
 
-各プリセットが実際にどんな演出パラメータ（SE の選択、テロップの出現頻度、トランジションの
-種類等）へ展開されるかの**実パラメータ表は本契約のスコープ外**である（§7）。本契約が定めるのは
-「`preset` は空でない文字列である」ことと、上記 3 値がどういう狙いの名前かの説明までである。
+The real parameter table, which sound effect a preset picks, how often captions appear, which transition it uses, is outside this contract (section 7). This contract states that `preset` is a non-empty string, and what these three names aim at.
 
-## 4. `intensity` の意味論
+## 4. What `intensity` means
 
-`intensity` は**演出全体の密度・強度を単一の整数で一括スケールする**ためのツマミである。
+`intensity` is the control that scales the density of the whole treatment with one integer.
 
-| 値 | 意味 |
+| Value | Meaning |
 |---|---|
-| `0` | 演出最小限（儀式のみ）。プリセットが定める最小限の演出だけが残る |
-| `50` | プリセットの既定値そのまま（省略時と同じ） |
-| `100` | プリセットの許す最大密度・強度 |
+| `0` | The minimum treatment. Only the ritual the preset defines remains. |
+| `50` | The preset's own default. The same as omitting `intensity`. |
+| `100` | The maximum density the preset allows. |
 
-**どの規則のどの数値をどうスケールするかの写像表は、消費側（skills の連動ルール）が持つ。**
-本契約は「単一の整数で一括スケールする」という意味だけを定め、写像の具体は定めない。これは
-`beats[].strength` について「`strength` から音量・尺への写像関数は消費側の別契約で定める」
-（`contract-2026-07-22-edit-json-v1-beats.md` §6）としたのと同じ分担である。
+The consumer, the linked rules in the skills, holds the table of which number on which rule scales, and how. This contract states only that one integer scales the whole treatment. It does not state the mapping. The same split is in section 6 of `contract-2026-07-22-edit-json-v1-beats.md`, which leaves the function from `strength` to loudness and duration to a separate consumer contract.
 
-この分担にする理由は、写像表が演出規則の増減とともに頻繁に変わる一方、「0〜100 の整数 1 つで
-全体をスケールする」という器は変わらないためである。器と写像を同じ契約に載せると、規則を
-1 つ足すたびにデータ契約の改訂が必要になる。
+The mapping changes often as treatment rules are added and removed. The container, one integer from 0 to 100 that scales the whole treatment, does not change. Putting the container and the mapping in the same contract would force a data-contract revision every time one rule is added.
 
-## 5. 劣化規約
+## 5. Degradation
 
-`contract-2026-07-22-edit-json-v1-beats.md` §4 と同じ設計哲学を適用する。**`direction` は演出の
-入力宣言であり、映像本体の書き出し成否を左右してはならない。**
+Apply the same design as section 4 of `contract-2026-07-22-edit-json-v1-beats.md`. **`direction` is an input declaration for treatment. It must not decide whether the picture itself exports.**
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| `direction` フィールドなし | 従来どおり（演出宣言なし）。エラーにしない |
-| `direction` がオブジェクトでない（配列・文字列・数値等） | **direction 全体を無視して既定動作** + warning。書き出しは継続する |
-| `preset` が欠落・空文字・文字列でない | 同上（direction 全体を無視して既定動作 + warning） |
-| `intensity` が範囲外・非整数・数値でない | 同上（direction 全体を無視して既定動作 + warning） |
-| `overrides` がオブジェクトでない | 同上（direction 全体を無視して既定動作 + warning） |
-| 未知の `preset` | エラーにしない。消費側は既定動作へフォールバックする |
+| No `direction` field | Previous behavior. No treatment declaration. Not an error. |
+| `direction` is not an object (an array, a string, a number, or another type) | Ignore the whole declaration, use the default behavior, and warn. Export continues. |
+| `preset` is missing, empty, or not a string | Ignore the whole declaration, use the default behavior, and warn. Export continues. |
+| `intensity` is out of range, not an integer, or not a number | Ignore the whole declaration, use the default behavior, and warn. Export continues. |
+| `overrides` is not an object | Ignore the whole declaration, use the default behavior, and warn. Export continues. |
+| Unknown `preset` | Not an error. The consumer falls back to the default behavior. |
 
-ここでいう**既定動作**とは、`preset` = §3 の例示 1 番目（`youtube-long-standard`）+
-`intensity` = `50` 相当の演出である。
+The default behavior here is the first example in section 3, `preset` = `youtube-long-standard`, with `intensity` = `50`.
 
-劣化の単位が `beats[]` と異なり**要素単位ではなく direction 全体**であるのは、`direction` が
-配列ではなく単一のオブジェクト（§1）であり、部分的に壊れた宣言を部分的に採用すると
-「preset は読めたが intensity は捨てた」という中途半端な演出になって、書き手の意図とも
-既定動作とも違う第三の結果が出るためである。壊れていたら宣言ごと捨て、既定動作へ倒す。
+The unit of degradation is the whole `direction` object, not one field. That differs from `beats[]`. `direction` is one object, not an array (section 1). Adopting a partly broken declaration, for example a readable `preset` with a discarded `intensity`, would produce a third result that matches neither the writer's intent nor the default. If the declaration is broken, drop the whole declaration and use the default.
 
-**書き手は厳格・読み手は寛容。** 静的検証（`validate-edit.mjs` / `edit-lint`）が形式不正・
-範囲外を**エラー**として弾くことと、消費側（書き出し・プレビュー）が実行時に不正な宣言を
-無視して継続することは矛盾しない。前者は「壊れたファイルを書かせない」ためのゲート、後者は
-「壊れたファイルを渡されても映像を出す」ための保険であり、役割が異なる。この二段構えは
-`beats`（`contract-2026-07-22-edit-json-v1-beats.md` §4）、`audio.narration`
-（`contract-2026-07-20-edit-json-v1-narration.md` §4/§8）、`audio.bgm` / `audio.sfx`
-（`contract-2026-07-14-edit-json-v1-audio.md` §5）で確立済みの先例に従う。
+**The writer is strict. The reader is tolerant.** Static validation (`validate-edit.mjs` and `edit-lint`) rejects a bad shape or an out-of-range value as an error. A consumer (export and preview) ignores an invalid declaration at runtime and continues. Those two behaviors do not conflict. The first is the gate that refuses to write a broken file. The second is the insurance that still produces a picture when a broken file is handed over. The roles differ. This two-step pattern is already set by `beats` (section 4 of `contract-2026-07-22-edit-json-v1-beats.md`), `audio.narration` (sections 4 and 8 of `contract-2026-07-20-edit-json-v1-narration.md`), and `audio.bgm` and `audio.sfx` (section 5 of `contract-2026-07-14-edit-json-v1-audio.md`).
 
-## 6. 検証
+## 6. Validation
 
-| 層 | 検証すること |
+| Layer | What it checks |
 |---|---|
-| `packages/schemas/edit.schema.json` | `$defs/direction` として構造（`preset` の必須・最小長、`intensity` の型 `integer` と範囲 `[0, 100]`、`overrides` の型 `object`）を定義する。`editV0` / `editV1` 双方の `properties.direction` から参照する。`additionalProperties: true`（tolerant reader）を維持する |
-| `packages/schemas/bin/validate-edit.mjs` | 同一のチェックをエラーとして実装する。`direction` の検証はファイルシステムを見ない（`preset` は識別子であってパスではない） |
-| `packages/edit-lint`（`src/edit-lint.mjs`） | validate-edit と同一の構造チェック（エラー）を、依存ゼロ・手書き写しの流儀で実装する |
+| `packages/schemas/edit.schema.json` | Defines the shape as `$defs/direction`. `preset` is required and has a minimum length. `intensity` is an integer in `[0, 100]`. `overrides` is an object. Both `editV0` and `editV1` reference it from `properties.direction`. Keep `additionalProperties: true` (a tolerant reader). |
+| `packages/schemas/bin/validate-edit.mjs` | Implements the same checks as errors. Validating `direction` does not look at the file system. `preset` is an identifier, not a path. |
+| `packages/edit-lint` (`src/edit-lint.mjs`) | Implements the same structural checks as errors, as a handwritten copy with no extra dependency, in the same style as validate-edit. |
 
-`direction` の不在は、edit-lint の既存原則どおり**エラーにしない**。
+Absence of `direction` is not an error, under the existing edit-lint rule.
 
-`overrides` は**中身を検証しない**（`type: object` であることだけを見る）。語彙を本契約で
-定義していない以上（§7）、中身に対する検証規則も定義できないためである。空オブジェクト
-`{}` は正常であり、未知のキーを含んでいても静的検証は通る。
+`overrides` is not validated inside. The check sees only that the type is `object`. This contract does not define the vocabulary (section 7), so it cannot define a check on the contents. An empty object `{}` is valid. Static validation still passes when the object contains unknown keys.
 
-`preset` の値そのものが実在するプリセットかどうかは**検証しない**。enum 強制をしない（§2）
-以上、既知の一覧を検証器が持つことはできない。未知の `preset` の扱いは §5 の劣化規約が担う。
+The check does not ask whether the `preset` string names a preset that exists. Because the value is not a forced enum (section 2), the validator cannot hold a known list. Section 5 covers an unknown `preset`.
 
-## 7. 将来拡張の席（本契約のスコープ外）
+## 7. Seats for later extensions
 
-- **`overrides` の中身の語彙**: 個別規則をどのキー・どの型で上書きするか。本契約は席（`object`
-  であること）だけを開け、キーの語彙は定義しない
-- **プリセットの実パラメータ表**: 各 `preset` が実際にどの演出パラメータ群へ展開されるか。
-  消費側（skills の連動ルール）が持つ
-- **`intensity` の写像表**: 0〜100 がどの規則のどの数値をどうスケールするか（§4）。同じく
-  消費側が持つ
-- **スタイル学習によるプリセット増殖**: 既存作品から演出傾向を学習してプリセットを自動生成・
-  追加する経路。`preset` を enum 強制しない設計（§2）はこの席を塞がないためでもあるが、
-  生成・登録・命名の規約は本契約では定めない
+Outside this contract.
 
-いずれも別契約で扱う。本契約は `direction {}` の器だけを確定し、これらの席が将来開く可能性が
-あることを記録するに留める。
+- The vocabulary inside `overrides`. Which key and which type override which rule. This contract opens only the seat, the fact that the value is an object, and does not define the keys.
+- The real parameter table for a preset. Which treatment parameters each `preset` expands into. The consumer, the linked rules in the skills, holds that table.
+- The mapping table for `intensity`. Which number on which rule a value from 0 to 100 scales, and how (section 4). The consumer holds that table as well.
+- Growing presets by learning a style. A path that learns a treatment tendency from existing work and generates or adds a preset. Leaving `preset` as a free string (section 2) keeps this seat open. This contract does not set the rules for generating, registering, or naming those presets.
+
+Each of those is a separate contract. This contract fixes only the container `direction {}`, and records that these seats may open later.

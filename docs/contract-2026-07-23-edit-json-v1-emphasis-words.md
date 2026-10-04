@@ -1,47 +1,38 @@
-# edit.json v1 語レベル演出（emphasis_words）データ契約
+**English** | [日本語](./contract-2026-07-23-edit-json-v1-emphasis-words.ja.md)
 
-- 日付: 2026-07-23
-- 状態: 実装ラウンドの SSOT（`emphasis_words` フィールドのみ確定）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ進化・明示マイグレの三原則）、
-  `contract-2026-07-18-edit-json-v1-sources.md`（§3 座標系 — source 秒アンカー）、
-  `contract-2026-07-20-edit-json-v1-narration.md`（id 規約・検証分担の先例）、
-  `contract-2026-07-22-edit-json-v1-beats.md`（§8 で「将来拡張の席」として言及された `emphasis_words[]` の席を、
-  本契約が開く）
-- スコープ: edit.json のトップレベル `emphasis_words` フィールド（語レベル演出の対象）のみ。
-  emphasis_words を**生成する側**（どの語を強調対象に選ぶか）と**消費する側**（どう描画するか）の実装は
-  **別タスク**。本書はデータの器と検証責務の正文化のみを行う
+# edit.json v1 word-level treatment (emphasis_words) contract
 
-## 0. version 運用（後方互換）
+- Date: 2026-07-23
+- Status: source of truth for the implementation round. Only the `emphasis_words` field is fixed.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (version required, additive evolution, and an explicit migration), section 3 of `contract-2026-07-18-edit-json-v1-sources.md` (the source-second anchor), `contract-2026-07-20-edit-json-v1-narration.md` (the precedent for id rules and for who checks what), and `contract-2026-07-22-edit-json-v1-beats.md` (section 8 named `emphasis_words[]` as a future seat. This contract opens that seat).
+- Scope: only the top-level `emphasis_words` field of edit.json, the words a word-level treatment may target. Generating emphasis words (which words to select) and consuming them (how to draw them) are separate tasks. This document writes down the data container and the validation duties.
 
-`contract-2026-07-22-edit-json-v1-beats.md` §0 と同じ運用を踏襲する。**`version` は bump しない。**
+## 0. How version is used
 
-- `emphasis_words` は edit.json の**トップレベル任意フィールド**（`Option`）。存在しなければ従来
-  （語レベル演出なし）と完全に同じ挙動
-- 既存の `edit.json`（`emphasis_words` フィールド無し）は一切影響を受けない。既存の読み手は未知フィールドと
-  して素通しできる（tolerant reader）
-- `contract-2026-07-17-data-contract-versioning.md` 原則 1（版必須・追加のみ進化）どおり、
-  任意フィールドの追加のみであり `version` の bump を要しない
-- v0（単一 `source`）と v1（`sources[]`）の双方で使用できる。差は `src` の扱いのみ（§2）
+Backward compatible. Follow section 0 of `contract-2026-07-22-edit-json-v1-beats.md`. **Do not bump `version`.**
 
-## 1. 呼称
+- `emphasis_words` is an optional top-level field of edit.json. When it is absent, behavior matches the previous behavior exactly. There is no word-level treatment.
+- An existing `edit.json` with no `emphasis_words` field is unaffected. An existing reader can pass an unknown field through. It is a tolerant reader.
+- This is an optional field only, which is principle 1 of `contract-2026-07-17-data-contract-versioning.md`. No `version` bump is required.
+- Both v0 (a single `source`) and v1 (`sources[]`) may use it. The only difference is how `src` is treated (section 2).
 
-| 文脈 | 呼称 |
+## 1. Names
+
+| Context | Name |
 |---|---|
-| データモデル（edit.json のフィールド名・スキーマ・コード・エラーメッセージ） | `emphasis_words[]` |
-| 人間向け（レポート・UI・ドキュメント本文・オーナーとの会話） | **語レベル演出** |
+| The data model (the edit.json field name, the schema, code, and error messages) | `emphasis_words[]` |
+| For a person (a report, the UI, the body of a document, a conversation with the owner) | word-level treatment |
 
-この 2 つを正文とし、他の呼称（強調ワード、キーワード演出、語ハイライト等）を新設しない。
-`beats[]`（見せ場マーカー）と同じく、データ名を英語（`emphasis_words`）に、人間向けを日本語
-（語レベル演出）に固定することで、コードとレポートのどちらから読んでも同じものを指していると分かるようにする。
+Those two names are the text. Do not add another name, such as emphasis word, keyword treatment, or word highlight. As with `beats[]` (moment marker), the data name is the English `emphasis_words` and the name for a person is "word-level treatment". A reader of the code and a reader of a report can tell they are the same thing.
 
-`beats[]` との粒度の違いは次のとおりで、両者は排他ではなく併存する:
+`beats[]` and `emphasis_words[]` differ in grain. They coexist. One does not exclude the other.
 
-| フィールド | 粒度 | 時刻 | 何を指すか |
+| Field | Grain | Time | What it points at |
 |---|---|---|---|
-| `beats[]` | 見せ場（区間の代表点） | 単一時刻 `t` | 素材のどこが山場か |
-| `emphasis_words[]` | 語（発話の 1 語） | 区間 `t_start` 〜 `t_end` | どの語を演出の対象にするか |
+| `beats[]` | A moment (a representative point of a span) | A single time `t` | Where the peak of the footage is |
+| `emphasis_words[]` | A word (one word of speech) | A span from `t_start` to `t_end` | Which word is a target of treatment |
 
-## 2. 確定スキーマ
+## 2. Fixed schema
 
 ```jsonc
 {
@@ -50,172 +41,127 @@
   "sources": [
     { "id": "s1", "path": "assets/intro.mp4", "proxy": null }
   ],
-  "cuts": [ /* 既存のまま */ ],
+  "cuts": [ /* unchanged */ ],
 
-  "emphasis_words": [            // 省略可。配列
+  "emphasis_words": [            // optional. An array.
     {
-      "id": "e-0001",            // 必須。^e-\d{4}$。edit.json 内で一意
-      "src": "s1",               // 任意。sources[].id への参照。省略 = 単一 source 互換
-      "t_start": 132.40,         // 必須。source 秒。0 以上
-      "t_end": 132.82,           // 必須。source 秒。t_end > t_start
-      "word": "痛い",            // 必須。空でない文字列。transcript の実表記に忠実
-      "emotion": "pain",         // 必須。空でない文字列
-      "style_hint": "one-char-bang"  // 任意。描画側への提案。強制力なし
+      "id": "e-0001",            // required. ^e-\d{4}$. Unique inside edit.json.
+      "src": "s1",               // optional. A reference to sources[].id. Omitted means single-source compatibility.
+      "t_start": 132.40,         // required. Source seconds. At least 0.
+      "t_end": 132.82,           // required. Source seconds. t_end > t_start.
+      "word": "hurts",           // required. A non-empty string. Faithful to the transcript spelling.
+      "emotion": "pain",         // required. A non-empty string.
+      "style_hint": "one-char-bang"  // optional. A suggestion to the renderer. No force.
     }
   ]
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 単位・座標系 |
+| Field | Type | Required | Default | Unit and coordinates |
 |---|---|---|---|---|
-| `emphasis_words` | array \| 省略 | 否 | 省略 = 語レベル演出なし | — |
-| `emphasis_words[].id` | string | **必須** | — | `^e-\d{4}$`。edit.json 内で一意（`beats[].id` / `audio.narration[].id` と同型の規約） |
-| `emphasis_words[].src` | string | 否 | 省略 = 単一 source 互換 | `sources[].id` への参照。v0（単一 `source`）では**使用できない**（参照先が定義できないため） |
-| `emphasis_words[].t_start` | number | **必須** | — | **source 秒**（§3）。0 以上 |
-| `emphasis_words[].t_end` | number | **必須** | — | **source 秒**（§3）。0 以上かつ `t_end > t_start` |
-| `emphasis_words[].word` | string | **必須** | — | 空でない文字列。transcript の実表記に忠実（§4） |
-| `emphasis_words[].emotion` | string | **必須** | — | 空でない文字列。`joy` / `pain` / `surprise` / `anger` / `sadness` / `emphasis` を例示（enum 強制はしない） |
-| `emphasis_words[].style_hint` | string | 否 | — | 描画側への提案。`one-char-bang` / `size-pulse` / `color-accent` を例示。強制力なし（§6） |
+| `emphasis_words` | array, or omitted | No | Omitted means no word-level treatment | none |
+| `emphasis_words[].id` | string | Required | none | `^e-\d{4}$`. Unique inside edit.json. The same shape of rule as `beats[].id` and `audio.narration[].id`. |
+| `emphasis_words[].src` | string | No | Omitted means single-source compatibility | A reference to `sources[].id`. On v0 (a single `source`) it cannot be used, because there is no id to reference. |
+| `emphasis_words[].t_start` | number | Required | none | Source seconds (section 3). At least 0. |
+| `emphasis_words[].t_end` | number | Required | none | Source seconds (section 3). At least 0, and `t_end > t_start`. |
+| `emphasis_words[].word` | string | Required | none | A non-empty string. Faithful to the transcript spelling (section 4). |
+| `emphasis_words[].emotion` | string | Required | none | A non-empty string. Examples: `joy`, `pain`, `surprise`, `anger`, `sadness`, `emphasis`. Not a forced enum. |
+| `emphasis_words[].style_hint` | string | No | none | A suggestion to the renderer. Examples: `one-char-bang`, `size-pulse`, `color-accent`. No force (section 6). |
 
-`emotion` は `beats[].kind` / `audio.narration[].provenance.provider` と同じ流儀で、**文書上の例示に留め
-enum 強制はしない**。感情語彙は素材ジャンル・言語・検出器の実装によって増えるため、契約側で列挙を固定すると
-新しい語彙を足すたびにスキーマ改訂が要る。書き手が新しい `emotion` を使っても検証は通り、消費側は未知の
-`emotion` を既定の扱い（§6）へフォールバックする。
+`emotion` follows `beats[].kind` and `audio.narration[].provenance.provider`. It stays an example in the document. It is not a forced enum. Emotion vocabulary grows with the footage genre, the language, and the detector. Fixing the list in the contract would require a schema revision every time a word is added. A writer may use a new `emotion` and validation still passes. A consumer falls back to the default handling for an unknown `emotion` (section 6).
 
-`style_hint` は**提案であって指定ではない**。書き手（検出側）が「この語は一文字バンが似合う」という知見を
-残せるようにしつつ、最終的にどう描くかの決定権は消費側（描画）に残す。消費側が `style_hint` を無視しても
-契約違反ではない。強制力を持たせなかったのは、描画の語彙（§8 スコープ外）が本契約より後に決まるためであり、
-先に決まる側が後に決まる側を縛らないようにするためである。
+`style_hint` is a suggestion, not a specification. The writer, the detector, can record that this word suits a one-character bang. The consumer, the renderer, keeps the decision of how to draw it. A consumer that ignores `style_hint` does not violate this contract. The hint has no force because the drawing vocabulary (outside the scope in section 8) is decided after this contract. The side that is decided first does not bind the side that is decided later.
 
-## 3. 座標系 — source 秒アンカー
+## 3. Coordinates
 
-**`emphasis_words[].t_start` / `t_end` は (`src`, source 秒) で永続化し、timeline 秒へ変換した結果を
-永続化してはならない。**
+A source-second anchor.
 
-これは `contract-2026-07-18-edit-json-v1-sources.md` §3 の次の規則を emphasis_words に適用したものである
-（`contract-2026-07-22-edit-json-v1-beats.md` §3 と同じ根拠）:
+**Persist `emphasis_words[].t_start` and `t_end` as `(src, source seconds). Do not persist the timeline seconds you got by converting them.**
 
-> 字幕、注釈、解析結果は (`src`, source 秒) で永続化し、timeline 秒へ変換した結果を
-> 永続化してはならない。表示や書き出しのたびに、その時点の `cuts[]` から timeline 秒へ
-> 射影する。
+This applies the following rule from section 3 of `contract-2026-07-18-edit-json-v1-sources.md` to emphasis words. The same basis is in section 3 of `contract-2026-07-22-edit-json-v1-beats.md`.
 
-emphasis_words は**解析結果**（素材のどこで何と発話されたかという素材固有の事実に対する注釈）であり、
-編集の結果（どこに置いたか）ではない。したがって上記規則の適用対象そのものである。具体的な帰結:
+> Persist captions, annotations, and analysis results as `(src, source seconds)`. Do not persist the timeline seconds you got by converting them. On each display and on each export, project onto timeline seconds from the `cuts[]` of that moment.
 
-- 消費側（描画・プレビュー・書き出し）は、表示・書き出しのたびに `cuts[]` から timeline 秒へ射影する。
-  射影結果を edit.json へ書き戻さない
-- 同一 source 区間がタイムライン上に複数回現れ得るため、source 秒 → timeline 秒の対応は**一対多**である
-  （同§3）。1 つの語が複数の timeline 位置へ射影されることは正常であり、エラーではない
-- どの cut にも含まれない source 秒の語（カットで落とした区間の語）は timeline 上に射影先を持たない。
-  **射影先 0 件は正常**であり、消費側は単に射影結果 0 件として扱う
-- 語の区間が cut 境界をまたぐ場合の扱い（部分的に残った語をどう描くか）は消費側の判断であり、
-  本契約はデータ側で区間を分割することを求めない
-- カットの再配置・同一区間の再利用を行っても emphasis_words を書き換える必要がない。焼き込んだ時刻との
-  ずれが原理的に発生しない
+An emphasis word is an analysis result. It annotates a fact about the footage, where something was spoken and what was spoken. It is not a result of the edit, where someone placed it. It is exactly what that rule covers. The consequences:
 
-`overlays[].start` / `audio.bgm` / `audio.sfx` / `audio.narration[].t` が**タイムライン秒**であることとは
-対照的である（同§3）。emphasis_words は「素材の事実に対する注釈」、narration や SFX は「編集で置いた演出」
-であり、座標系の違いはこの性質の違いに対応する。
+- A consumer (drawing, preview, export) projects onto timeline seconds from `cuts[]` on every display and every export. It does not write the projected time back into edit.json.
+- The same source range can appear more than once on the timeline, so the map from source seconds to timeline seconds is one-to-many (the same section 3). One word projecting to several timeline positions is normal. It is not an error.
+- A word whose source seconds fall in no cut, a word in a span the cut dropped, has no projection target on the timeline. Zero projection results is normal. The consumer treats it as zero projection results.
+- A word span that crosses a cut boundary is the consumer's judgment, including how to draw a word that only partly remains. This contract does not require the data side to split the span.
+- Rearranging cuts, or reusing the same range, does not require rewriting emphasis words. A drift from a baked-in time cannot happen, by construction.
 
-`src` の省略は `captions.json` の `items[].src` / `beats[].src` と同じく**単一ソース互換**を意味する
-（同§4）。v0（単一 `source`）では参照先を定義できないため、`src` の存在自体を不正とする（§7 の検証で**エラー**）。
+This contrasts with `overlays[].start`, `audio.bgm`, `audio.sfx`, and `audio.narration[].t`, which are timeline seconds (the same section 3). An emphasis word annotates a fact about the footage. Narration and a sound effect are a treatment the edit placed. The coordinate difference matches that difference in kind.
 
-## 4. word-level タイムスタンプとの関係（実測時刻の原則）
+Omitting `src` means single-source compatibility, the same as `items[].src` in `captions.json` and `beats[].src` (the same section 4). On v0, a single `source`, there is no id to reference, so the presence of `src` itself is invalid. Section 7's check reports an error.
 
-**`t_start` / `t_end` は、既に実測されている語レベルタイムスタンプの値を使う。語の中間で発明しない。**
+## 4. Relation to word-level timestamps
 
-参照元は次のいずれかである:
+Use a measured time.
 
-- `analysis.json` の `transcriptSegment.words`（`packages/schemas/analysis.schema.json`）
-- `captions.json` の `words[]`
+**`t_start` and `t_end` use a word-level timestamp that is already measured. Do not invent a time in the middle of a word.**
 
-いずれも認識器が出力した語ごとの開始・終了時刻を持つ。emphasis_words の `t_start` / `t_end` はその値を
-そのまま写す。文単位のセグメント時刻から「たぶんこの辺」と按分して語の時刻を作ってはならない。
+The source is one of these:
 
-この原則を置くのは、語レベル演出が**フレーム精度で語の発話に同期**して初めて成立する表現だからである。
-按分で作った時刻は数百ミリ秒単位でずれ、描画側がどれだけ精密でも同期が破綻する。ずれの原因がデータ側に
-あるのか描画側にあるのかも切り分けられなくなる。実測時刻に限定することで、同期精度の責任境界を
-「認識器の精度」の 1 点に閉じ込める。
+- `transcriptSegment.words` in `analysis.json` (`packages/schemas/analysis.schema.json`)
+- `words[]` in `captions.json`
 
-`word` も同じ理由で **transcript の実表記に忠実**とする。表記を正規化・整形した語を入れると、
-参照元の word-level タイムスタンプとの対応が取れなくなり、後から突き合わせ検証ができなくなる。
+Both hold a start time and an end time per word, as the recognizer output them. `t_start` and `t_end` on an emphasis word copy those values as they are. Do not build a word time by dividing a sentence-level segment time into a guess of "about here."
 
-本契約は「どの語を強調対象に選ぶか」（検出）を定めない（§8）。定めるのは、選ばれた語がどう記録されるか
-だけである。
+The rule exists because a word-level treatment works only when it syncs to the spoken word at frame accuracy. A time made by dividing a span drifts by hundreds of milliseconds, and the sync breaks no matter how precise the renderer is. It also becomes impossible to tell whether the drift came from the data or from the renderer. Limiting the time to a measured value keeps the responsibility for sync accuracy at one place, the accuracy of the recognizer.
 
-## 5. 劣化規約
+`word` is faithful to the transcript spelling for the same reason. A normalized or cleaned spelling loses the link to the source word-level timestamp, and a later cross-check becomes impossible.
 
-`contract-2026-07-14-edit-json-v1-audio.md` §5「音声は装飾であり、映像本体の書き出し成否を左右しては
-ならない」と同じ設計哲学を emphasis_words にも適用する。**語レベル演出は装飾であり、映像本体の書き出し
-成否を左右してはならない。**
+This contract does not decide which words to select (section 8). It decides only how a selected word is recorded.
 
-| 状況 | 挙動 |
+## 5. Degradation
+
+Apply the same design as section 5 of `contract-2026-07-14-edit-json-v1-audio.md`, which says audio is decoration and must not decide whether the picture itself exports. **A word-level treatment is decoration. It must not decide whether the picture itself exports.**
+
+| Situation | Behavior |
 |---|---|
-| `emphasis_words` フィールドなし | 従来どおり（語レベル演出なし）。エラーにしない |
-| `emphasis_words` が配列でない | 消費側は emphasis_words 全体を無いものとして扱い warning。書き出しは継続する |
-| ある要素の `id` / `t_start` / `t_end` / `word` / `emotion` が不正 | **その 1 要素のみ**無視 + warning。他の語・映像本体・音声には影響しない |
-| ある要素の `src` が `sources[].id` に解決できない | 同上（その 1 要素のみ無視 + warning）。`cuts[].src` の劣化規約（`contract-2026-07-18-edit-json-v1-sources.md` §6）と同型 |
-| `t_start` / `t_end` がどの cut にも含まれない | エラーでも warning でもない。射影結果 0 件として扱う（§3） |
-| 未知の `emotion` | エラーにしない。消費側は既定の扱いへフォールバックする（§6） |
-| 未知の `style_hint` | エラーにしない。消費側は無視してよい（§2） |
+| No `emphasis_words` field | Previous behavior. No word-level treatment. Not an error. |
+| `emphasis_words` is not an array | The consumer treats the whole field as absent and warns. Export continues. |
+| `id`, `t_start`, `t_end`, `word`, or `emotion` on one element is invalid | Ignore that one element and warn. Other words, the picture, and the audio are unaffected. |
+| `src` on one element does not resolve to a `sources[].id` | Ignore that one element and warn. The same shape as the degradation rule for `cuts[].src` in section 6 of `contract-2026-07-18-edit-json-v1-sources.md`. |
+| `t_start` and `t_end` fall in no cut | Neither an error nor a warning. Treat it as zero projection results (section 3). |
+| Unknown `emotion` | Not an error. The consumer falls back to the default handling (section 6). |
+| Unknown `style_hint` | Not an error. The consumer may ignore it (section 2). |
 
-**書き手は厳格・読み手は寛容。** 静的検証（`validate-edit.mjs` / `edit-lint`）が形式不正・範囲外を
-**エラー**として弾くことと、消費側（書き出し・プレビュー）が実行時に不正な 1 要素だけを無視して継続する
-ことは矛盾しない。前者は「壊れたファイルを書かせない」ためのゲート、後者は「壊れたファイルを渡されても
-映像を出す」ための保険であり、役割が異なる。この二段構えは `beats`
-（`contract-2026-07-22-edit-json-v1-beats.md` §4）、`audio.narration`
-（`contract-2026-07-20-edit-json-v1-narration.md` §4/§8）、`audio.bgm` / `audio.sfx`
-（`contract-2026-07-14-edit-json-v1-audio.md` §5）で確立済みの先例に従う。
+**The writer is strict. The reader is tolerant.** Static validation (`validate-edit.mjs` and `edit-lint`) rejects a bad shape or an out-of-range value as an error. A consumer (export and preview) ignores one invalid element at runtime and continues. Those two behaviors do not conflict. The first is the gate that refuses to write a broken file. The second is the insurance that still produces a picture when a broken file is handed over. The roles differ. This two-step pattern is already set by `beats` (section 4 of `contract-2026-07-22-edit-json-v1-beats.md`), `audio.narration` (sections 4 and 8 of `contract-2026-07-20-edit-json-v1-narration.md`), and `audio.bgm` and `audio.sfx` (section 5 of `contract-2026-07-14-edit-json-v1-audio.md`).
 
-## 6. 消費側の期待（本契約が定めること・定めないこと）
+## 6. What a consumer must do
 
-本契約が定めるのは **emphasis_words がどう書かれるか**（形式・座標系・実測時刻の原則・検証）までである。
-emphasis_words を読んで実際にどんな演出を出すか（文字の出し方、`emotion` から色・モーションへの写像、
-`style_hint` を採用するかどうか、未知 `emotion` の既定の扱いの具体）は**本契約のスコープ外**であり、
-消費側の別契約で定める。
+This contract states how emphasis words are written. That covers the shape, the coordinates, the measured-time rule, and validation. What treatment a consumer actually produces from them is outside this contract. That includes how the letters appear, the map from `emotion` to color and motion, whether `style_hint` is adopted, and the concrete default for an unknown `emotion`. A separate consumer contract sets those.
 
-本契約が消費側に課す不変条件は次の 2 点のみである:
+This contract imposes two invariants on a consumer.
 
-1. **source 秒アンカーを尊重する**（§3）。timeline 秒への射影は消費のたびに `cuts[]` から行い、
-   結果を永続化しない
-2. **劣化規約を尊重する**（§5）。不正・解決不能な要素は 1 件単位で無視し、書き出し全体を止めない
+1. Respect the source-second anchor (section 3). Project onto timeline seconds from `cuts[]` on every use. Do not persist the result.
+2. Respect the degradation rule (section 5). Ignore an invalid or unresolvable element one at a time. Do not stop the whole export.
 
-## 7. 検証
+## 7. Validation
 
-| 層 | 検証すること |
+| Layer | What it checks |
 |---|---|
-| `packages/schemas/edit.schema.json` | `$defs/emphasisWordItem` として構造（型・`id` パターン・必須項目・`t_start` / `t_end` の非負・`word` / `emotion` の最小長）を定義する。`editV0` / `editV1` 双方の `properties.emphasis_words` から参照する。`additionalProperties: true`（tolerant reader）を維持する |
-| `packages/schemas/bin/validate-edit.mjs` | 上記に加え、JSON Schema 単体では表せない **`t_end > t_start`**、**`id` のファイル内一意性**、**`src` の参照整合**（v1: `sources[].id` に存在しない場合エラー / v0: `src` の存在自体がエラー）を検証する。`cuts[].out > in` / `cuts[].src` と同じ扱い |
-| `packages/edit-lint`（`src/edit-lint.mjs`） | validate-edit と同一の構造チェック（エラー）を、依存ゼロ・手書き写しの流儀で実装する |
+| `packages/schemas/edit.schema.json` | Defines the shape as `$defs/emphasisWordItem`. Types, the `id` pattern, required fields, non-negative `t_start` and `t_end`, and a minimum length on `word` and `emotion`. Both `editV0` and `editV1` reference it from `properties.emphasis_words`. Keep `additionalProperties: true` (a tolerant reader). |
+| `packages/schemas/bin/validate-edit.mjs` | Also checks what JSON Schema alone cannot say. `t_end > t_start`. `id` is unique inside the file. `src` resolves. On v1, an id missing from `sources[].id` is an error. On v0, the presence of `src` itself is an error. The same treatment as `cuts[].out > in` and `cuts[].src`. |
+| `packages/edit-lint` (`src/edit-lint.mjs`) | Implements the same structural checks as errors, as a handwritten copy with no extra dependency, in the same style as validate-edit. |
 
-`t_end > t_start` と `id` の一意性と `src` の参照整合を JSON Schema に載せないのは、いずれも**兄弟要素・
-兄弟フィールドの値を突き合わせる必要があり、JSON Schema 標準の語彙では表現できない**ためである
-（`cutV0.out > in` / `cutV1.src` / `beats[].id` と同じ理由・同じ分担）。
+`t_end > t_start`, unique `id`, and `src` resolution stay out of JSON Schema because each one compares sibling elements or sibling fields. The standard JSON Schema vocabulary cannot express that. The same reason and the same split as `cutV0.out > in`, `cutV1.src`, and `beats[].id`.
 
-**emphasis_words の検証はファイルシステムを見ない。** 各要素は素材ファイルを参照しないため、実在チェックの
-対象が存在しない（`audio.narration[].file` との違い）。
+Validating emphasis words does not look at the file system. An element does not reference a footage file, so there is no existence check to run. That differs from `audio.narration[].file`.
 
-**edit-lint は source の実尺と `t_start` / `t_end` を突き合わせない。** `--media` なしでメディアを
-デコードしない規律を維持するためであり、`beats[].t` と同じ扱いである
-（`contract-2026-07-22-edit-json-v1-beats.md` §7）。「時刻が素材の実尺を超えている」という検査は
-**将来課題**とし、必要になった時点で実尺解析（ffprobe 等）を伴う別契約として設計する。
+edit-lint does not compare `t_start` and `t_end` with the real duration of the source. It keeps the rule that it does not decode media without `--media`. The same treatment as `beats[].t` (section 7 of `contract-2026-07-22-edit-json-v1-beats.md`). A check that the time exceeds the real duration of the footage is future work. Design it as a separate contract that includes a real-duration probe, such as ffprobe, when it is needed.
 
-**`word` / `t_start` / `t_end` を `analysis.json` / `captions.json` の word-level タイムスタンプと
-突き合わせる検査は行わない。** §4 の原則は書き手が守るべき規律であり、静的検証の対象にはしない
-（参照元ファイルは任意であり、不在時に検証が成立しないため）。突き合わせ検証は**将来課題**とする。
-`emphasis_words` および `analysis.json` の不在は、edit-lint の既存原則どおり**エラーにしない**。
+The check does not cross-check `word`, `t_start`, and `t_end` against the word-level timestamps in `analysis.json` or `captions.json`. The rule in section 4 is a discipline the writer keeps. It is not a subject of static validation, because the source file is optional and the check cannot be formed when that file is absent. A cross-check is future work. Absence of `emphasis_words`, and absence of `analysis.json`, is not an error, under the existing edit-lint rule.
 
-## 8. スコープ外（将来拡張の席）
+## 8. Outside this contract
 
-- **検出規約**（どの語を強調対象に選ぶか — 感情推定・キーワード抽出・しきい値・語数上限）: 本契約は選ばれた
-  語の**記録形式**のみを定め、選定の規約は定めない。別契約で扱う
-- **描画規約**（`style_hint` の各値が実際にどう描かれるか — 一文字バン等の実装・`emotion` から色/モーション
-  への写像・オーバーレイ HTML の生成）: 本契約は消費側へ提案を渡す器のみを定める。別契約で扱う
-- **カラオケなぞり・縦書き**（語の進行に合わせた塗り分け、縦組みレイアウト）: 語レベルの時刻データを前提と
-  する表現だが、必要なフィールド（なぞりの方向、行組み、文字単位の分解）が本契約の器では表せない。
-  席のみ言及し、フィールドは定義しない。別契約で扱う
+Seats for later extensions.
 
-いずれも別契約で扱う。本契約は `emphasis_words[]` の器だけを確定し、これらの席が将来開く可能性があることを
-記録するに留める。
+- Detection rules. Which words to select, including emotion estimation, keyword extraction, thresholds, and a cap on the word count. This contract sets only the record shape of a selected word. A separate contract sets the selection rules.
+- Drawing rules. How each `style_hint` value is actually drawn, including a one-character bang, the map from `emotion` to color and motion, and how overlay HTML is generated. This contract sets only the container that passes a suggestion to the consumer. A separate contract sets the drawing.
+- Karaoke fill and vertical writing. A fill that follows the progress of a word, and a vertical layout. Those expressions assume word-level times, but the fields they need (fill direction, line composition, a per-character split) cannot be expressed in this container. This contract names the seat and does not define the fields. A separate contract sets them.
+
+Each of those is a separate contract. This contract fixes only the container `emphasis_words[]`, and records that these seats may open later.

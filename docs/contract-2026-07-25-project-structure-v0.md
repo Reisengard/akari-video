@@ -1,196 +1,145 @@
+**English** | [日本語](./contract-2026-07-25-project-structure-v0.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-07-25
 updated: 2026-09-06
 ---
 
-# project-structure-v0（生成物の置き場所）契約
+# project-structure v0 contract (where generated files go)
 
-- 日付: 2026-07-25
-- 状態: **ドラフト・要オーナーレビュー**
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（版管理三原則の正本。本契約は
-  データスキーマの版管理ではなくプロジェクト内の置き場所規約のため三原則を直接は適用しないが、
-  契約文書としての様式は踏襲する）、`contract-2026-07-25-recipe-v0.md`（直前の姉妹契約。
-  文体・様式・ドラフト明記の先例）、`docs/contract-2026-07-13-m1-m4.md`（`edit.json` 等、
-  現在プロジェクトルート直下に置かれている既存契約ファイルの正本）
-- 発端: 実機フィードバック 2026-07-25 — 実プロジェクトのルートに `frame-*.png` 9 枚
-  （キーフレーム視認証跡）・ad-hoc 検証スクリプトとその結果 JSON・`final.mp4` が散乱。
-  「もう全部構造化できないと困る」。生成物の宛先を層として確定し契約化する。
-  判断根拠・出典調査は非公開の内部記録で管理する（本リポには置かない方針）
-- スコープ: プロジェクトディレクトリ内の生成物の置き場所規約（層の定義・ルート直下原則・
-  削除安全とレガシーの定義）と、既存スキル・テンプレへの出力先明記のみ。**既存プロジェクトの
-  移行・強制移動スクリプト・GUI 変更・`edit-lint`/`render-cut` のコード（`packages/**`）変更・
-  スキーマ変更・ルート直下の `cache/`（レガシー）の扱い裁定は非スコープ**（§7）
+- Date: 2026-07-25
+- Status: draft. Needs an owner review.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (the source of truth for the three versioning principles). This contract is a placement rule inside a project, not schema versioning, so the three principles do not apply directly. The document form follows them. Also `contract-2026-07-25-recipe-v0.md` (the sister contract just before this one, the precedent for voice, form, and marking a draft) and `contract-2026-07-13-m1-m4.md` (the source of truth for existing contract files that currently sit at the project root, including `edit.json`).
+- Origin: a real-machine note on 2026-07-25. A real project's root held nine `frame-*.png` files (keyframe visual-check traces), an ad-hoc verification script and its result JSON, and `final.mp4`, all scattered. The note was that everything has to be structured or it becomes a problem. This contract fixes the destination of generated files as layers. The reasons and the source survey stay in private internal records. This repo does not hold them.
+- Scope: the placement rule for generated files inside a project directory (the layer definitions, the root-level principle, and the definitions of safe-to-delete and legacy), plus writing those destinations into existing skills and templates. Out of scope: migrating existing projects, a script that forces a move, GUI changes, code changes to `edit-lint` or `render-cut` under `packages/**`, schema changes, and the decision on what to do with a legacy `cache/` at the root (section 7).
 
-## 0. 位置づけ — 生成物の宛先を 1 枚で言い切る
+## 0. What this contract is
 
-本契約が定めるのは「どのファイルがどこに書かれるか」だけである。新しいデータスキーマも、
-新しい実行手順も導入しない。既存のスキル・CLI（`edit-lint`・`render-cut`・`analyze-footage`
-等）が実際に生成しているファイル種別を棚卸しし、正準の置き場所を 1 枚の表（§1）に確定させ、
-スキル文書とプロジェクト雛形にその宛先を明記することで、生成物がプロジェクトルートへ
-散らかる事故を構造的に防ぐ。
+Say, on one page, where a generated file goes.
 
-統制の柱は「隠し領域隔離」（削除安全な層をドット領域へ分離する）と「スキルが場所を教える」
-（スキル文書へ出力先を明記する）の 2 本である。「paths 宣言」（プロジェクトごとの
-置き場所設定 UI）は本契約のスコープ外（§7）。
+This contract defines only which file is written where. It introduces no new data schema and no new run procedure. It inventories the file kinds that existing skills and CLIs (`edit-lint`, `render-cut`, `analyze-footage`, and the others) actually generate, fixes the canonical place in one table (section 1), and writes that destination into the skill documents and the project template. That stops generated files from scattering onto the project root, by structure.
 
-## 1. 層の定義（正準の置き場所）
+Control rests on two posts. Isolate the hidden area (put the safe-to-delete layer in a dot directory). And the skill teaches the place (the skill document names the output destination). A "paths declaration" (a UI that sets locations per project) is out of scope (section 7).
 
-| 層 | 場所 | 書き手 |
+## 1. Layer definitions
+
+The canonical places.
+
+| Layer | Place | Writer |
 |---|---|---|
-| 人間の一次素材 | `assets/`（下位分類自由） | 人間・取り込み UI |
-| 企画・プラン | `planning/` | スキル + 人間承認 |
-| エージェント中間物・ad-hoc 検証スクリプトと結果 | `.akari/work/` | スキル・エージェント |
-| 検証証跡・レポート（キーフレーム視認 PNG・render-report 等） | `.akari/reports/` | スキル |
-| 絵コンテ（タイムラインの印刷・初回だけ・AI は後から読まない） | `.akari/reports/storyboard/` | スキル |
-| キャッシュ（サムネ・プロキシ等の再生成可能物） | `.akari/cache/` | アプリ・スキル |
-| 納品物 | `exports/` | `render-cut` |
-| 契約サイドカー（既存） | `.akari/`（`sidecars/` `diffs/` `events/` 等） | 既存のまま |
+| A person's primary footage | `assets/` (subfolders are free) | A person, or the ingest UI |
+| Planning | `planning/` | A skill, plus human approval |
+| Agent intermediates, and ad-hoc verification scripts and their results | `.akari/work/` | A skill or an agent |
+| Verification traces and reports (keyframe visual-check PNGs, the render report, and similar) | `.akari/reports/` | A skill |
+| Storyboard (a print of the timeline, drawn once, and the AI does not read it later) | `.akari/reports/storyboard/` | A skill |
+| Cache (thumbnails, proxies, and other files that can be generated again) | `.akari/cache/` | The app or a skill |
+| Deliverables | `exports/` | `render-cut` |
+| Contract sidecars (existing) | `.akari/` (`sidecars/`, `diffs/`, `events/`, and the others) | Unchanged |
 
-`.akari/` 直下にはこの表にない契約サイドカーファイルも存在する（`intake.json`・
-`workflow.json`・`connections.json`・`lint.json`・`render.json` 等）。これらは各自の
-契約文書が正本であり、本契約は「置き場所の層」を追加で確定させるだけで、個々のファイル形は
-変更しない。
+Files that are not in this table also sit directly under `.akari/` (`intake.json`, `workflow.json`, `connections.json`, `lint.json`, `render.json`, and others). Each of those has its own contract as the source of truth. This contract only adds the placement layer. It does not change the shape of each file.
 
-## 2. 原則
+## 2. Principles
 
-### 2-1. ルート直下原則
+### 2-1. Root-level principle
 
-**プロジェクトルート直下への新規ファイル作成は、`edit.json` / `captions.json` /
-`review.json` 等の既存契約ファイルのみ**とする。それ以外の新規ファイルをプロジェクトルート
-直下に書くことは契約違反である。
+**A new file directly under the project root may only be an existing contract file, such as `edit.json`, `captions.json`, or `review.json`.** Writing any other new file directly under the project root violates this contract.
 
-- 上記 3 ファイルは各自の契約文書（[contract-2026-07-13-m1-m4.md](contract-2026-07-13-m1-m4.md)、
-  [contract-2026-07-20-review-json-v1-annotation-model.md](contract-2026-07-20-review-json-v1-annotation-model.md)
-  等）でルート直下配置が既に確定しているため、本契約はその配置を変更しない
-- `frame-*.png`・ad-hoc 検証スクリプトとその結果・最終書き出し前の中間ファイル等、上記
-  3 ファイル以外の生成物は、性質に応じて §1 の層へ振り分ける（具体例は §4）
-- 新しいトップレベル契約ファイルを追加する場合（将来の話）は、本契約の改訂を通す
+- Those three files already have a root placement fixed by their own contracts ([contract-2026-07-13-m1-m4.md](contract-2026-07-13-m1-m4.md), [contract-2026-07-20-review-json-v1-annotation-model.md](contract-2026-07-20-review-json-v1-annotation-model.md), and others). This contract does not move them.
+- Generated files other than those three, such as `frame-*.png`, an ad-hoc verification script and its result, and an intermediate file from before the final export, go to a layer in section 1 according to what they are. Section 4 gives examples.
+- Adding a new top-level contract file later goes through a revision of this contract.
 
-#### 2026-08-26 追記: ルート直下の判断記録・分析レポート
+#### Added 2026-08-26. Decision records and the analysis report at the root
 
-- `decision-log.md` は analyze-project と edit-plan が共同追記する判断履歴の単一 SSOT であり、
-  プロジェクトルート直下の正当な契約ファイルとする（根拠:
-  `skills/edit-plan/report-guide.md` の `decision_log` 節）
-- `analysis-report.html` は analyze-project が生成し edit-plan が読む正式な分析レポートであり、
-  プロジェクトルート直下の正当な契約ファイルとする（根拠:
-  `skills/edit-plan/workflow.md` §1）
-- この追記は上記 2 ファイルを §2-1 の許可リストへ追加するものであり、その他のファイルに
-  ルート直下配置を許可しない
+- `decision-log.md` is the single source of truth for the decision history that analyze-project and edit-plan append together. It is a legitimate contract file directly under the project root. The basis is the `decision_log` section of `skills/edit-plan/report-guide.md`.
+- `analysis-report.html` is the formal analysis report that analyze-project generates and edit-plan reads. It is a legitimate contract file directly under the project root. The basis is section 1 of `skills/edit-plan/workflow.md`.
+- This addendum adds those two files to the allow-list in section 2-1. It does not allow any other file at the root.
 
-### 2-2. 削除安全の定義
+### 2-2. What safe to delete means
 
-`.akari/work/` と `.akari/cache/` は**再生成可能・削除安全**と定義する。
+`.akari/work/` and `.akari/cache/` are defined as regenerable and safe to delete.
 
-- `.akari/work/`: エージェントが実行の過程で作る中間物・ad-hoc 検証スクリプトとその実行結果。
-  同じ入力から同じ手順を再実行すれば再現できる想定のものだけを置く
-- `.akari/cache/`: サムネイル・プロキシ等、原本（`assets/`）または承認済み成果物
-  （`edit.json` 等）から機械的に再生成できるものだけを置く
-- この 2 ディレクトリは**バックアップ対象外としてよい**（削除しても、原本または
-  正本ファイルさえ残っていれば再現できるため）。`.akari/reports/` は検証証跡であり
-  削除安全とは定義しない（キーフレーム視認や render-report は「その時点で人間が確認した
-  記録」であり、再実行しても同じ内容が再現される保証がない）
+- `.akari/work/`. Intermediates an agent makes while it runs, and ad-hoc verification scripts and their results. Put here only what the same inputs and the same procedure can reproduce.
+- `.akari/cache/`. Thumbnails, proxies, and similar files. Put here only what can be regenerated mechanically from the original (`assets/`) or from an approved artifact (`edit.json` and the others).
+- These two directories may be left out of backups. Deleting them is recoverable as long as the original or the source-of-truth file remains. `.akari/reports/` is a verification trace and is not defined as safe to delete. A keyframe visual check and a render report are a record of what a person confirmed at that time. Running the step again does not guarantee the same content.
 
-## 3. レガシー定義
+## 3. Legacy
 
-既存の実プロジェクト（本契約より前に作られたプロジェクト）のルート直下にある `cache/`
-ディレクトリ、および `frame-*.png` 等の散乱ファイルは**レガシーと定義する**。
+A `cache/` directory at the root of an existing real project (a project created before this contract), and scattered files such as `frame-*.png`, are defined as legacy.
 
-- 移行（レガシー資産を §1 の層へ移す作業）は本契約のスコープ外
-- 強制的にファイルを移動・削除するスクリプトは作らない
-- 既存プロジェクトの `cache/`（ルート直下）を今後どう扱うか（`.akari/cache/` への統合、
-  削除、放置のいずれか）は**オーナー裁定事項**とし、本契約は裁定を代行しない（§6）
-- 新規プロジェクト（本契約適用後にテンプレから作られるプロジェクト）は §1 の層に
-  最初から従う。レガシー定義は「過去に作られたプロジェクトを免責する」ためのものであり、
-  今後の新規生成物には適用されない
+- Moving legacy material into the layers in section 1 is out of scope.
+- Do not write a script that forcibly moves or deletes files.
+- What to do later with an existing project's root `cache/` (fold it into `.akari/cache/`, delete it, or leave it) is an owner decision. This contract does not make that decision (section 6).
+- A new project, created from the template after this contract applies, follows the layers in section 1 from the start. The legacy definition exists to exempt projects that were already made. It does not apply to generated files created from now on.
 
-## 4. 具体例 — 発端の実例 3 種の行き先
+## 4. Examples
 
-発端の実機フィードバックで観測された散乱ファイル 3 種は、本契約下では
-それぞれ次の層へ行く。
+Where the three scattered files from the original note go.
 
-| 実例 | 性質 | 本契約下の行き先 |
+The three scattered file kinds observed in the real-machine note go to these layers under this contract.
+
+| Example | What it is | Where it goes under this contract |
 |---|---|---|
-| `frame-*.png`（キーフレーム視認証跡） | 検証証跡・レポート | `.akari/reports/`（`edit-lint`・`render-cut` の視認スクリーンショットと同じ層。§1） |
-| `negative-rule-check.mjs` + `negative-rule-check-result.json`（エージェントの ad-hoc 検証スクリプトと結果） | エージェント中間物 | `.akari/work/`（スクリプト本体と実行結果 JSON を同じディレクトリへ。§1・§2-2） |
-| `final.mp4` | 納品物 | `exports/`（`render-cut` の出力契約どおり。§1） |
+| `frame-*.png` (a keyframe visual-check trace) | A verification trace or report | `.akari/reports/` (the same layer as the visual-check screenshots from `edit-lint` and `render-cut`. Section 1) |
+| `negative-rule-check.mjs` plus `negative-rule-check-result.json` (an agent's ad-hoc verification script and its result) | An agent intermediate | `.akari/work/` (the script and the result JSON in the same directory. Sections 1 and 2-2) |
+| `final.mp4` | A deliverable | `exports/` (as the `render-cut` output contract says. Section 1) |
 
-いずれも新しいファイル形・命名規則を導入するものではない。既に §1 で確定した層のうち、
-どの層に対応するかを具体例で明示しただけである。
+None of these introduces a new file shape or a new naming rule. They only name which layer from section 1 each example belongs to.
 
-## 5. 適用箇所
+## 5. Where this contract is applied
 
-本契約は次のスキル文書・プロジェクト雛形に出力先として反映する（各ファイルの追記箇所が
-本契約の実施箇所である）。
+This contract is reflected as an output destination in the following skill documents and in the project template. The added text in each file is where this contract is carried out.
 
-- `skills/edit-lint/SKILL.md` — キーフレーム視認の画像・QA 生成物は `.akari/reports/`、
-  一時スクリプトは `.akari/work/`
-- `skills/render-cut/SKILL.md` — 最終 MP4 は `exports/`、視認スクショは `.akari/reports/`、
-  中間ファイルは `.akari/work/`
-- `skills/edit-plan/workflow.md` — ad-hoc 検証スクリプト・実験生成物は `.akari/work/`
-- `skills/analyze-footage/SKILL.md` — 既存の `.akari/sidecars/` 規約が本契約の一部である旨の
-  相互リンク
-- `templates/project-default/`（`.akari/work/` `.akari/reports/` `.akari/cache/` を実
-  ディレクトリとして追加）と、その `CLAUDE.md` / `AGENTS.md` の要約 3 行 + 本契約への参照
+- `skills/edit-lint/SKILL.md`. Keyframe visual-check images and QA artifacts go to `.akari/reports/`. Temporary scripts go to `.akari/work/`.
+- `skills/render-cut/SKILL.md`. The final MP4 goes to `exports/`. Visual-check screenshots go to `.akari/reports/`. Intermediate files go to `.akari/work/`.
+- `skills/edit-plan/workflow.md`. Ad-hoc verification scripts and experiment artifacts go to `.akari/work/`.
+- `skills/analyze-footage/SKILL.md`. A cross-link stating that the existing `.akari/sidecars/` rule is part of this contract.
+- `templates/project-default/` (add `.akari/work/`, `.akari/reports/`, and `.akari/cache/` as real directories) and a three-line summary plus a reference to this contract in that template's `CLAUDE.md` and `AGENTS.md`.
 
-## 6. オーナー裁定事項
+## 6. Owner decisions
 
-- 既存実プロジェクトのルート直下 `cache/` と散乱ファイルをレガシーと定義し、移行を
-  本契約のスコープ外とすること（§3）。今後これらをどう扱うか（統合・削除・放置）は
-  オーナー裁定が必要
-- 「paths 宣言」（プロジェクトごとに置き場所を UI で変更できる機構）を本契約で導入しない
-  という判断（§0・§7）。導入する場合は別契約が必要
+- Defining the root `cache/` and the scattered files of an existing real project as legacy, and leaving migration out of scope (section 3). What to do with them later (fold in, delete, or leave) needs an owner decision.
+- The decision not to introduce a "paths declaration" (a mechanism that changes locations per project from a UI) in this contract (sections 0 and 7). Introducing it needs another contract.
 
-## 7. 次段（本契約のスコープ外）
+## 7. Next stage
 
-- 既存プロジェクトのレガシー資産の移行・強制移動スクリプト（§3）
-- 素材タブ等 GUI の未整理セクション対応（別レーンの領分）
-- `edit-lint` / `render-cut` のコード（`packages/**`）変更 — 本契約は出力先の文書上の明記
-  のみで、CLI の書き込み先ロジックを変更しない
-- スキーマ変更（`edit.json` 等の既存契約ファイル形は不変）
-- 「paths 宣言」（プロジェクトごとの置き場所カスタマイズ UI）の導入
-- ルート直下 `cache/`（レガシー）の最終的な扱いの裁定（§3・§6）
+Out of scope for this contract.
 
-## 8. 追記（2026-08-30）— `motion/` を正本ディレクトリとして登録
+- Migrating legacy material in existing projects, and a script that forces a move (section 3).
+- Unsorted sections of a GUI such as the footage tab. That belongs to another lane.
+- Code changes to `edit-lint` or `render-cut` under `packages/**`. This contract only names the output destination in documents. It does not change where the CLI writes.
+- Schema changes. The shape of existing contract files such as `edit.json` does not change.
+- Introducing a "paths declaration" (a UI that customizes locations per project).
+- The final decision on a legacy root `cache/` (sections 3 and 6).
 
-`contract-2026-08-30-edit-json-v2-object-tree-v0.md` / `contract-2026-08-30-motion-and-keyframes-v0.md` により、
-プロジェクト直下に **`motion/`** を追加する。
+## 8. Addendum (2026-08-30). Register `motion/` as a source-of-truth directory
 
-| 用途 | 置き場 | 作成者 | 性質 |
+`contract-2026-08-30-edit-json-v2-object-tree-v0.md` (Japanese) and `contract-2026-08-30-motion-and-keyframes-v0.md` (Japanese) add `motion/` directly under the project.
+
+| Use | Place | Creator | Kind |
 |---|---|---|---|
-| キーフレーム曲線の袋（`motion/<group-id>.json`。edit.json の `keyframes: { path, count }` から参照）| `motion/` | edit-store（保存時に inline から振り分け）| **正本**（再生成不可。`.akari/cache/` ではない）|
+| A bag of keyframe curves (`motion/<group-id>.json`, referenced from edit.json `keyframes: { path, count }`) | `motion/` | edit-store (split out from inline data on save) | Source of truth. Not regenerable. Not `.akari/cache/`. |
 
-- edit.json / captions.json と同じトランザクションで保存され、同じ lint ゲートを通る
-- §2 の「ルート直下への新規ファイル作成は正本ファイルに限る」の例外ではなく、正本ファイルの追加である
+- It is saved in the same transaction as edit.json and captions.json, and it passes the same lint gate.
+- This is not an exception to section 2's rule that a new file at the root is limited to source-of-truth files. It is an added source-of-truth file.
 
-## 9. 追記（2026-09-02）— `akari clean` と `.akari/work/` の下位規約
+## 9. Addendum (2026-09-02). `akari clean` and the sub-rule for `.akari/work/`
 
-§2-2 の「`.akari/work/` は再生成可能・削除安全」という定義は維持する。ただし、既存の実プロジェクトで
-人が編集した計画・生成器と使い捨て出力が同居し、一括削除によって再生成できないデータを失った実績が
-ある。この移行期の安全策として、`akari clean` は `.akari/work/` 全体を削除可能とは判定せず、次の
-下位規約と目印で分類できる範囲だけを扱う。
+Section 2-2 still defines `.akari/work/` as regenerable and safe to delete. In existing real projects, though, a plan a person edited, a generator, and disposable output have lived in the same place, and a bulk delete has already lost data that could not be generated again. As a safety measure for this transition, `akari clean` does not treat all of `.akari/work/` as deletable. It handles only what the following sub-rule and markers can classify.
 
-| 場所・目印 | 性質 | `akari clean` の扱い |
+| Place or marker | Kind | What `akari clean` does |
 |---|---|---|
-| `.akari/work/tmp/` | 同じ入力と手順から作り直せる使い捨て | 削除可能 |
-| `.akari/work/keep/` | 計画・生成器・手編集ファイルなど作り直せないもの | 保持 |
-| ディレクトリ直下の `.akari-disposable` | そのディレクトリ配下を使い捨てと宣言する空ファイル | 削除可能 |
-| ディレクトリ直下の `.akari-keep` | そのディレクトリ配下を保持すると宣言する空ファイル | 保持 |
-| 上記のいずれにも当たらない `.akari/work/` 配下 | 正本混在の可能性を否定できない | 判断保留 |
+| `.akari/work/tmp/` | Disposable. The same inputs and procedure can rebuild it. | May delete |
+| `.akari/work/keep/` | Cannot be rebuilt. A plan, a generator, a hand-edited file. | Keep |
+| An `.akari-disposable` file directly inside a directory | An empty file that declares everything under that directory disposable | May delete |
+| An `.akari-keep` file directly inside a directory | An empty file that declares everything under that directory kept | Keep |
+| Anything else under `.akari/work/` | A source-of-truth file mixed in cannot be ruled out | Defer the decision |
 
-目印は置いたディレクトリの配下全体に効き、上位または同じディレクトリに `.akari-keep` があれば
-`.akari-disposable` より保持を優先する。スキルは、再生成に手間のかかる計画・生成器・手編集ファイルを
-`.akari/work/` 直下へ新しく置かず、`keep/` へ置く。既存の
-`.akari/work/semantic-keep-plan.json` や `.akari/work/gen-timeline.mjs` 等は互換性のため移動せず、
-この規約の適用後に新しく作るものから `tmp/` / `keep/` を使い分ける。
+A marker applies to everything under the directory it sits in. If `.akari-keep` is in an ancestor or in the same directory, keep wins over `.akari-disposable`. A skill does not put a plan, a generator, or a hand-edited file that is expensive to regenerate directly under `.akari/work/`. It puts those in `keep/`. Existing files such as `.akari/work/semantic-keep-plan.json` and `.akari/work/gen-timeline.mjs` are not moved, for compatibility. Files created after this rule use `tmp/` or `keep/`.
 
-`akari clean` は、削除可能・保持・判断保留を宣言表に基づいて一覧し、既定では削除しない。明示承認後も
-削除するのは削除可能と分類されたものだけであり、直近 60 分以内に更新された候補とシンボリックリンクは
-判断保留に移す。この限定されたオプトイン削除は、§3 のレガシー資産を強制移動・削除しない原則と両立する。
+`akari clean` lists what may be deleted, what is kept, and what is deferred, from the table above. By default it deletes nothing. After explicit approval it deletes only what was classified as deletable. A candidate updated within the last 60 minutes, and a symbolic link, move to deferred. This limited opt-in delete is compatible with section 3's rule that legacy material is not forcibly moved or deleted.
 
-`assets/generated/` の生成素材には、可能な限り `<file>.meta.json` を添える。由来サイドカーの形は次とし、
-`provenance` は `asset-meta.schema.json` と同じキー名を使う。`akari clean` はこれを読み取って由来を表示し、
-`origin` の参照先が無い場合は警告する。サイドカーを書く生成器の実装はこの追記の範囲外である。
+Generated footage under `assets/generated/` should carry a `<file>.meta.json` when it can. The provenance sidecar has the shape below. `provenance` uses the same key names as `asset-meta.schema.json`. `akari clean` reads it and shows the origin, and it warns when the `origin` target is missing. Implementing the generator that writes the sidecar is outside this addendum.
 
 ```json
 {
@@ -204,49 +153,34 @@ updated: 2026-09-06
 }
 ```
 
-## 10. 追記（2026-09-03）— 変更履歴に何を入れるか（`.gitignore` 雛形）
+## 10. Addendum (2026-09-03). What goes into change history (the `.gitignore` template)
 
-§2-2 と §9 が扱うのは「ディスク上で消してよいか」である。本節が定めるのは**別の軸**、
-「変更履歴（節目ごとの自動スナップショット）に入れるか」である。納品した `exports/*.mp4` は
-ディスクでは保持だが履歴には入れない、というように 2 つの軸は独立に決まる。
+Sections 2-2 and 9 are about whether a file may be deleted from disk. This section is a different axis. Whether the file goes into change history (the automatic snapshot at each milestone). The two axes are decided independently. A delivered `exports/*.mp4` is kept on disk and is not put in history.
 
-雛形の `.gitignore` が生成物を除外していなかったため、40 秒の動画 1 本のプロジェクトで
-`.git` が 4.2 GB に達した（6 プロジェクト合計で `.git` が全体の 70%・素材は 4%）。
-原因は「同じ拡張子の知識が 2 か所に分かれ、片方だけが育っていた」ことである。
+The template `.gitignore` was not excluding generated files, so one 40-second video made `.git` reach 4.2 GB. Across six projects, `.git` was 70 percent of the total and footage was 4 percent. The cause was that knowledge of the same extensions lived in two places, and only one of them kept growing.
 
-| 変更履歴に入れる | 入れない |
+| Put in change history | Leave out |
 |---|---|
-| `edit.json` / `captions.json` / `review.json` / `plan.json` | `assets/**`（原本） |
-| `planning/**` / `.akari/events/**` / `motion/**` | 生成された映像・音声・画像（下表の拡張子） |
-| `.akari/reports/**` の JSON・HTML（証跡の実体） | `.akari/render-tmp/**` / `.akari/cache/**` / `.akari/diffs/**` |
-| `.akari/sidecars/**`（映像を含めて全部） | |
+| `edit.json`, `captions.json`, `review.json`, `plan.json` | `assets/**` (originals) |
+| `planning/**`, `.akari/events/**`, `motion/**` | Generated picture, audio, and images (the extensions in the list below) |
+| JSON and HTML under `.akari/reports/**` (the body of a trace) | `.akari/render-tmp/**`, `.akari/cache/**`, `.akari/diffs/**` |
+| `.akari/sidecars/**` (everything, including picture) | |
 
-- 除外する拡張子: `.mp4` `.mov` `.m4v` `.webm` `.mkv` `.avi` `.png` `.jpg` `.jpeg` `.gif`
-  `.webp` `.bmp` `.wav` `.mp3`
-- 例外は 2 つだけである。`.akari/sidecars/**` は分析に手間がかかるため映像でも履歴に残す。
-  `.akari/reports/**` は拡張子で分かれ、png は外れ JSON・HTML は残る
-- 単一の出所は `packages/akari-launcher/src/history-policy.mjs`。`.gitignore` 雛形
-  （`templates/project-default/.gitignore` と `project-scaffold` の `PROJECT_GITIGNORE`）と、
-  「変更を見る」の除外判定（`isInternalOrBinaryPath()`）は**どちらもここから導出する**。
-  片方だけに拡張子を足すことは契約違反である
+- Excluded extensions: `.mp4`, `.mov`, `.m4v`, `.webm`, `.mkv`, `.avi`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.wav`, `.mp3`.
+- There are exactly two exceptions. `.akari/sidecars/**` stays in history even when it is picture, because analysis is expensive. `.akari/reports/**` splits by extension. A png is left out. JSON and HTML stay.
+- The single source is `packages/akari-launcher/src/history-policy.mjs`. The `.gitignore` template (`templates/project-default/.gitignore` and `PROJECT_GITIGNORE` in `project-scaffold`) and the "see changes" exclusion (`isInternalOrBinaryPath()`) are both derived from it. Adding an extension to only one of them violates this contract.
 
-### 移行
+### Migration
 
-アプリはプロジェクトを開いたとき、`.gitignore` を現行の内容へ揃え、新たに対象となった
-追跡済みファイルを `git rm --cached` で履歴から外し、1 本コミットする。
+When the app opens a project, it aligns `.gitignore` with the current content, removes newly covered tracked files from the index with `git rm --cached`, and makes one commit.
 
-- **ディスク上のファイルは消さない**（利用者の成果物であり、消してよいかは §9 の宣言表が別に判断する）
-- 履歴そのもの（過去のコミットが抱える blob）は書き換えない。これは利用者の明示操作の領域であり、
-  移行だけでは `.git` は縮まず横ばいになる
-- `.gitignore` のうちアプリが管理するのは `# >>> AKARI Video ... >>>` から `# <<< ... <<<` までの
-  囲みだけとする。囲みの外に利用者が書き足した行は消さない
-- 自分がルートである git リポジトリのときだけ動く。親リポジトリの中に置かれたプロジェクトは、
-  こちらが管理していないリポジトリの追跡対象を黙って変えないため対象外とする（§3 の
-  「強制的にファイルを移動・削除するスクリプトは作らない」と同じ抑制）
+- Do not delete the files on disk. They are the user's artifacts. Whether they may be deleted is a separate decision, the table in section 9.
+- Do not rewrite history itself (the blobs past commits already hold). That is the user's own explicit operation. Migration alone does not shrink `.git`. It stays about the same size.
+- The app manages only the block of `.gitignore` from `# >>> AKARI Video ... >>>` through `# <<< ... <<<`. Do not delete lines a user added outside that block.
+- Run this only when the project is the root of its own git repository. A project placed inside a parent repository is out of scope, because this must not quietly change the tracked set of a repository it does not manage. The same restraint as section 3, "do not write a script that forcibly moves or deletes files".
 
-### 2026-09-06 追記: 絵コンテの置き場（判子は一回 契約 §5.2 / §14-4）
+### Added 2026-09-06. Where the storyboard goes
 
-絵コンテは `edit.json` / `captions.json` から描くタイムラインの派生ビューで、
-置き場は `.akari/reports/storyboard/`（レポート層 = 削除安全）とする。
-初回だけ描き更新しない・入力側に置かない・AI は後から読まない。直すときはタイムラインを
-直して描き直す。
+Drawn once. Contract sections 5.2 and 14-4.
+
+A storyboard is a derived view of the timeline, drawn from `edit.json` and `captions.json`. It lives at `.akari/reports/storyboard/` (the report layer, safe to delete). Draw it only the first time. Do not update it. Do not put it on the input side. The AI does not read it later. To change it, change the timeline and draw it again.

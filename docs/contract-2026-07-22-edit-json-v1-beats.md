@@ -1,39 +1,31 @@
-# edit.json v1 見せ場マーカー（beats）データ契約
+**English** | [日本語](./contract-2026-07-22-edit-json-v1-beats.ja.md)
 
-- 日付: 2026-07-22
-- 状態: 実装ラウンドの SSOT（`beats` フィールドのみ確定）
-- 前提: `contract-2026-07-17-data-contract-versioning.md`（版必須・追加のみ進化・明示マイグレの三原則）、
-  `contract-2026-07-18-edit-json-v1-sources.md`（§3 座標系 — source 秒アンカー）、
-  `contract-2026-07-20-edit-json-v1-narration.md`（id 規約・検証分担の先例）
-- スコープ: edit.json のトップレベル `beats` フィールド（見せ場マーカー）のみ。
-  beats を**生成する側**（解析・抽出）と**消費する側**（演出同期・編集マップ表示）の実装は
-  **別タスク**。本書はデータの器と検証責務の正文化のみを行う
+# edit.json v1 moment-marker (beats) contract
 
-## 0. version 運用（後方互換）
+- Date: 2026-07-22
+- Status: source of truth for the implementation round. Only the `beats` field is fixed.
+- Depends on: `contract-2026-07-17-data-contract-versioning.md` (version required, additive evolution, and an explicit migration), `contract-2026-07-18-edit-json-v1-sources.md` (section 3, the source-second anchor), and `contract-2026-07-20-edit-json-v1-narration.md` (the precedent for id rules and for who checks what).
+- Scope: only the top-level `beats` field of edit.json, the moment markers. Generating beats (analysis and extraction) and consuming them (syncing a treatment, showing them on the edit map) are separate tasks. This document only writes down the data container and the validation duties.
 
-`contract-2026-07-14-edit-json-v1-audio.md` §0 / `contract-2026-07-20-edit-json-v1-narration.md` §0
-と同じ運用を踏襲する。**`version` は bump しない。**
+## 0. How version is used
 
-- `beats` は edit.json の**トップレベル任意フィールド**（`Option`）。存在しなければ従来
-  （見せ場マーカーなし）と完全に同じ挙動
-- 既存の `edit.json`（`beats` フィールド無し）は一切影響を受けない。既存の読み手は未知フィールドと
-  して素通しできる（tolerant reader）
-- `contract-2026-07-17-data-contract-versioning.md` 原則 1（版必須・追加のみ進化）どおり、
-  任意フィールドの追加のみであり `version` の bump を要しない
-- v0（単一 `source`）と v1（`sources[]`）の双方で使用できる。差は `src` の扱いのみ（§2）
+Backward compatible. Follow section 0 of `contract-2026-07-14-edit-json-v1-audio.md` and section 0 of `contract-2026-07-20-edit-json-v1-narration.md`. **Do not bump `version`.**
 
-## 1. 呼称
+- `beats` is an optional top-level field of edit.json. When it is absent, behavior matches the previous behavior exactly. There are no moment markers.
+- An existing `edit.json` with no `beats` field is unaffected. An existing reader can pass an unknown field through. It is a tolerant reader.
+- This is an optional field only, which is principle 1 of `contract-2026-07-17-data-contract-versioning.md`. No `version` bump is required.
+- Both v0 (a single `source`) and v1 (`sources[]`) may use it. The only difference is how `src` is treated (section 2).
 
-| 文脈 | 呼称 |
+## 1. Names
+
+| Context | Name |
 |---|---|
-| データモデル（edit.json のフィールド名・スキーマ・コード・エラーメッセージ） | `beats[]` |
-| 人間向け（レポート・UI・ドキュメント本文・オーナーとの会話） | **見せ場マーカー** |
+| The data model (the edit.json field name, the schema, code, and error messages) | `beats[]` |
+| For a person (a report, the UI, the body of a document, a conversation with the owner) | moment marker |
 
-この 2 つを正文とし、他の呼称（ハイライト、チャプター、山場マーカー等）を新設しない。
-データ名を英語 1 語（`beats`）に、人間向けを日本語（見せ場マーカー）に固定することで、
-コードとレポートのどちらから読んでも同じものを指していると分かるようにする。
+Those two names are the text. Do not add another name, such as highlight, chapter, or climax marker. The data name is the one English word `beats`. The name for a person is "moment marker". A reader of the code and a reader of a report can tell they are the same thing.
 
-## 2. 確定スキーマ
+## 2. Fixed schema
 
 ```jsonc
 {
@@ -43,143 +35,105 @@
     { "id": "s1", "path": "assets/intro.mp4", "proxy": null },
     { "id": "s2", "path": "assets/main.mov", "proxy": null }
   ],
-  "cuts": [ /* 既存のまま */ ],
+  "cuts": [ /* unchanged */ ],
 
-  "beats": [                    // 省略可。配列
+  "beats": [                    // optional. An array
     {
-      "id": "b-0001",           // 必須。^b-\d{4}$。edit.json 内で一意
-      "src": "s2",              // 任意。sources[].id への参照。省略 = 単一 source 互換
-      "t": 42.0,                // 必須。source 秒。0 以上
-      "kind": "reveal",         // 必須。空でない文字列
-      "strength": 0.8,          // 必須。number。[0, 1]
-      "basis": "音声エネルギーのピーク + 『登場』発話"  // 任意。分析根拠の自由記述
+      "id": "b-0001",           // required. ^b-\d{4}$. Unique inside edit.json
+      "src": "s2",              // optional. A reference to sources[].id. Omitted = single-source compatibility
+      "t": 42.0,                // required. Source seconds. At least 0
+      "kind": "reveal",         // required. A non-empty string
+      "strength": 0.8,          // required. A number in [0, 1]
+      "basis": "a peak in audio energy, plus the spoken line about an entrance"  // optional. Free text for why the analysis marked it
     }
   ]
 }
 ```
 
-### フィールド表
+### Fields
 
-| フィールド | 型 | 必須 | 既定値 | 単位・座標系 |
+| Field | Type | Required | Default | Unit and coordinates |
 |---|---|---|---|---|
-| `beats` | array \| 省略 | 否 | 省略 = 見せ場マーカーなし | — |
-| `beats[].id` | string | **必須** | — | `^b-\d{4}$`。edit.json 内で一意（`audio.narration[].id` と同型の規約） |
-| `beats[].src` | string | 否 | 省略 = 単一 source 互換 | `sources[].id` への参照。v0（単一 `source`）では**使用できない**（参照先が定義できないため） |
-| `beats[].t` | number | **必須** | — | **source 秒**（§3）。0 以上 |
-| `beats[].kind` | string | **必須** | — | 空でない文字列。`hook` / `turn` / `punchline` / `reveal` / `emotion` を例示（enum 強制はしない） |
-| `beats[].strength` | number | **必須** | — | `[0, 1]`。1 に近いほど強い見せ場 |
-| `beats[].basis` | string | 否 | — | 分析根拠の自由記述（§5） |
+| `beats` | array, or omitted | No | Omitted means no moment markers | none |
+| `beats[].id` | string | Required | none | `^b-\d{4}$`. Unique inside edit.json. The same shape of rule as `audio.narration[].id` |
+| `beats[].src` | string | No | Omitted means single-source compatibility | A reference to `sources[].id`. On v0 (a single `source`) it cannot be used, because there is no id to reference |
+| `beats[].t` | number | Required | none | Source seconds (section 3). At least 0 |
+| `beats[].kind` | string | Required | none | A non-empty string. Examples: `hook`, `turn`, `punchline`, `reveal`, `emotion`. Not a forced enum |
+| `beats[].strength` | number | Required | none | `[0, 1]`. Closer to 1 is a stronger moment |
+| `beats[].basis` | string | No | none | Free text for the analysis basis (section 5) |
 
-`kind` は `audio.narration[].provenance.provider` と同じ流儀で、**文書上の例示に留め enum 強制はしない**。
-見せ場の種類は素材ジャンルによって語彙が増えるため、契約側で列挙を固定すると新しい語彙を
-足すたびにスキーマ改訂が要る。書き手が新しい `kind` を使っても検証は通り、消費側は未知の
-`kind` を既定の扱い（§6）へフォールバックする。
+`kind` follows `audio.narration[].provenance.provider`. It stays an example in the document. It is not a forced enum. The vocabulary of a moment grows with the footage genre. Fixing the list in the contract would require a schema revision every time a word is added. A writer may use a new `kind` and validation still passes. A consumer falls back to the default handling for an unknown `kind` (section 6).
 
-`strength` は 0〜1 の連続値で、演出の強度（SE の音量、トランジションの派手さ等）へ写像する
-ための入力ヒントである。上限・下限を持つ正規化値としたのは、消費側が素材ごとの絶対スケール
-を知らずに相対比較・しきい値判定できるようにするためである。
+`strength` is a continuous value from 0 to 1. It is an input hint for mapping onto the strength of a treatment, such as the loudness of a sound effect or how showy a transition is. It is a normalized value with a floor and a ceiling so a consumer can compare relatively, and can test a threshold, without knowing each footage item's absolute scale.
 
-## 3. 座標系 — source 秒アンカー
+## 3. Coordinates
 
-**`beats[].t` は (`src`, source 秒) で永続化し、timeline 秒へ変換した結果を永続化してはならない。**
+A source-second anchor.
 
-これは `contract-2026-07-18-edit-json-v1-sources.md` §3 の次の規則を beats に適用したものである:
+**Persist `beats[].t` as `(src, source seconds). Do not persist the timeline seconds you got by converting them.**
 
-> 字幕、注釈、解析結果は (`src`, source 秒) で永続化し、timeline 秒へ変換した結果を
-> 永続化してはならない。表示や書き出しのたびに、その時点の `cuts[]` から timeline 秒へ
-> 射影する。
+This applies the following rule from section 3 of `contract-2026-07-18-edit-json-v1-sources.md` to beats.
 
-beats は**解析結果**（素材のどこに見せ場があるかという素材固有の事実）であり、編集の結果
-（どこに置いたか）ではない。したがって上記規則の適用対象そのものである。具体的な帰結:
+> Persist captions, annotations, and analysis results as `(src, source seconds)`. Do not persist the timeline seconds you got by converting them. On each display and on each export, project onto timeline seconds from the `cuts[]` of that moment.
 
-- 消費側（演出同期・編集マップ表示・書き出し）は、表示・書き出しのたびに `cuts[]` から
-  timeline 秒へ射影する。射影結果を edit.json へ書き戻さない
-- 同一 source 区間がタイムライン上に複数回現れ得るため、source 秒 → timeline 秒の対応は
-  **一対多**である（同§3）。1 つの beat が複数の timeline 位置へ射影されることは正常であり、
-  エラーではない
-- どの cut にも含まれない source 秒の beat（カットで落とした区間の見せ場）は timeline 上に
-  射影先を持たない。これも正常であり、消費側は単に射影結果 0 件として扱う
-- カットの再配置・同一区間の再利用を行っても beats を書き換える必要がない。焼き込んだ時刻との
-  ずれが原理的に発生しない
+A beat is an analysis result. It is a fact about the footage, where a moment is, not a result of the edit, where someone placed it. It is exactly what that rule covers. The consequences:
 
-`overlays[].start` / `audio.bgm` / `audio.sfx` / `audio.narration[].t` が**タイムライン秒**で
-あることとは対照的である（同§3 の「オーバーレイの `start`、BGM、SFX は従来どおりアウトプット
-タイムライン座標であり、この source 秒アンカー規則の対象外である」）。beats は「素材の事実」、
-narration や SFX は「編集で置いた演出」であり、座標系の違いはこの性質の違いに対応する。
+- A consumer (treatment sync, the edit-map display, export) projects onto timeline seconds from `cuts[]` on every display and every export. It does not write the projected time back into edit.json.
+- The same source range can appear more than once on the timeline, so the map from source seconds to timeline seconds is one-to-many (the same section 3). One beat projecting to several timeline positions is normal. It is not an error.
+- A beat whose source seconds fall in no cut, a moment in a span the cut dropped, has no projection target on the timeline. That is also normal. The consumer treats it as zero projection results.
+- Rearranging cuts, or reusing the same range, does not require rewriting beats. A drift from a baked-in time cannot happen, by construction.
 
-`src` の省略は `captions.json` の `items[].src` / `review.json` の `annotations[].src` と同じく
-**単一ソース互換**を意味する（同§4）。v0（単一 `source`）では参照先を定義できないため、
-`src` の存在自体を不正とする（§7 の検証で**エラー**）。
+This contrasts with `overlays[].start`, `audio.bgm`, `audio.sfx`, and `audio.narration[].t`, which are timeline seconds. Section 3 of the sources contract says overlay `start`, BGM, and sound effects stay in output-timeline coordinates and are outside the source-second rule. A beat is a fact about the footage. Narration and a sound effect are a treatment the edit placed. The coordinate difference matches that difference in kind.
 
-## 4. 劣化規約
+Omitting `src` means single-source compatibility, the same as `items[].src` in `captions.json` and `annotations[].src` in `review.json` (section 4 of the sources contract). On v0, a single `source`, there is no id to reference, so the presence of `src` itself is invalid. Section 7's check reports an error.
 
-`contract-2026-07-14-edit-json-v1-audio.md` §5「音声は装飾であり、映像本体の書き出し成否を
-左右してはならない」と同じ設計哲学を beats にも適用する。**beats は演出の入力ヒントであり、
-映像本体の書き出し成否を左右してはならない。**
+## 4. Degradation
 
-| 状況 | 挙動 |
+Apply the same idea as section 5 of `contract-2026-07-14-edit-json-v1-audio.md`. Audio is decoration and must not decide whether the picture itself exports. **A beat is an input hint for a treatment. It must not decide whether the picture itself exports.**
+
+| Situation | Behavior |
 |---|---|
-| `beats` フィールドなし | 従来どおり（見せ場マーカーなし）。エラーにしない |
-| `beats` が配列でない | 消費側は beats 全体を無いものとして扱い warning。書き出しは継続する |
-| ある要素の `id` / `kind` / `strength` / `t` が不正 | **その 1 要素のみ**無視 + warning。他の beat・映像本体・音声には影響しない |
-| ある要素の `src` が `sources[].id` に解決できない | 同上（その 1 要素のみ無視 + warning）。`cuts[].src` の劣化規約（`contract-2026-07-18-edit-json-v1-sources.md` §6）と同型 |
-| `t` がどの cut にも含まれない | エラーでも warning でもない。射影結果 0 件として扱う（§3） |
-| 未知の `kind` | エラーにしない。消費側は既定の扱いへフォールバックする（§6） |
+| No `beats` field | As before. No moment markers. Not an error. |
+| `beats` is not an array | The consumer treats all beats as absent and warns. Export continues. |
+| An element's `id`, `kind`, `strength`, or `t` is invalid | Ignore that one element and warn. Other beats, the picture, and the audio are unaffected. |
+| An element's `src` does not resolve to a `sources[].id` | Same as above. Ignore that one element and warn. The same shape as the `cuts[].src` degradation in section 6 of `contract-2026-07-18-edit-json-v1-sources.md`. |
+| `t` falls in no cut | Neither an error nor a warning. Treat it as zero projection results (section 3). |
+| An unknown `kind` | Not an error. The consumer falls back to the default handling (section 6). |
 
-**書き手は厳格・読み手は寛容。** 静的検証（`validate-edit.mjs` / `edit-lint`）が形式不正・範囲外を
-**エラー**として弾くことと、消費側（書き出し・プレビュー）が実行時に不正な 1 要素だけを無視して
-継続することは矛盾しない。前者は「壊れたファイルを書かせない」ためのゲート、後者は
-「壊れたファイルを渡されても映像を出す」ための保険であり、役割が異なる。この二段構えは
-`audio.narration`（`contract-2026-07-20-edit-json-v1-narration.md` §4/§8）および
-`audio.bgm` / `audio.sfx`（`contract-2026-07-14-edit-json-v1-audio.md` §5）で確立済みの先例に従う。
+The writer is strict. The reader is tolerant. It is not a contradiction that static validation (`validate-edit.mjs` and `edit-lint`) rejects a bad form or an out-of-range value as an error, while a consumer (export and preview) ignores one bad element at run time and continues. The first is a gate that stops a broken file from being written. The second is insurance that a broken file that was handed over still produces a picture. The roles differ. This two-step pattern follows the precedent already set for `audio.narration` (sections 4 and 8 of `contract-2026-07-20-edit-json-v1-narration.md`) and for `audio.bgm` and `audio.sfx` (section 5 of `contract-2026-07-14-edit-json-v1-audio.md`).
 
-## 5. `basis` の命名経緯
+## 5. Why the field is named `basis`
 
-分析根拠の自由記述フィールドは、内部設計時の仮名が `source`（分析根拠、の意）であった。
-しかし edit.json には既に `source`（v0 の単一素材オブジェクト）、`sources[]`（v1 の素材配列）、
-`src`（`cuts[].src` / `beats[].src` などの素材参照）という 3 つの語が存在し、いずれも
-「映像素材」を意味する。同じファイル内で `source` が「素材」と「分析根拠」の 2 義になると、
-スキーマの読み手・実装者・エラーメッセージの読み手すべてが取り違える。そこで衝突しない語として
-**`basis`**（根拠）へ改名した。以後、分析根拠を指す語は `basis` であり、`source` 系の語は
-すべて映像素材を指す。
+During internal design, the free-text field for the analysis basis was tentatively named `source`, meaning the basis of the analysis. edit.json already had three words: `source` (the v0 single-footage object), `sources[]` (the v1 footage array), and `src` (`cuts[].src`, `beats[].src`, and other footage references). All three mean the picture footage. If `source` in the same file meant both "footage" and "analysis basis", a schema reader, an implementer, and a reader of an error message would all mix them up. It was renamed to `basis`, which does not collide. From then on, the word for an analysis basis is `basis`. Every `source` word means picture footage.
 
-## 6. 消費側の期待（本契約が定めること・定めないこと）
+## 6. What a consumer is expected to do
 
-本契約が定めるのは **beats がどう書かれるか**（形式・座標系・検証）までである。beats を読んで
-実際にどんな演出を発火するか（SE の選択、トランジションの種類、BGM 変化のカーブ、`strength` から
-音量・尺への写像関数、未知 `kind` の既定の扱いの具体）は**本契約のスコープ外**であり、
-消費側の別契約で定める。
+What this contract fixes, and what it does not.
 
-本契約が消費側に課す不変条件は次の 2 点のみである:
+This contract fixes only how a beat is written: the form, the coordinates, and validation. What treatment actually fires when a beat is read (which sound effect, which transition, the curve of a BGM change, the function that maps `strength` onto loudness and duration, and the concrete default for an unknown `kind`) is out of scope. A separate consumer contract fixes that.
 
-1. **source 秒アンカーを尊重する**（§3）。timeline 秒への射影は消費のたびに `cuts[]` から行い、
-   結果を永続化しない
-2. **劣化規約を尊重する**（§4）。不正・解決不能な要素は 1 件単位で無視し、書き出し全体を止めない
+This contract imposes only two invariants on a consumer.
 
-## 7. 検証
+1. Respect the source-second anchor (section 3). Project onto timeline seconds from `cuts[]` on every consume. Do not persist the result.
+2. Respect the degradation rule (section 4). Ignore an invalid or unresolvable element one at a time. Do not stop the whole export.
 
-| 層 | 検証すること |
+## 7. Verification
+
+| Layer | What it checks |
 |---|---|
-| `packages/schemas/edit.schema.json` | `$defs/beatItem` として構造（型・`id` パターン・必須項目・`strength` の範囲・`kind` の最小長）を定義する。`editV0` / `editV1` 双方の `properties.beats` から参照する。`additionalProperties: true`（tolerant reader）を維持する |
-| `packages/schemas/bin/validate-edit.mjs` | 上記に加え、JSON Schema 単体では表せない **`id` のファイル内一意性**と **`src` の参照整合**（v1: `sources[].id` に存在しない場合エラー / v0: `src` の存在自体がエラー）を検証する。`cuts[].src` と同じ扱い |
-| `packages/edit-lint`（`src/edit-lint.mjs`） | validate-edit と同一の構造チェック（エラー）を、依存ゼロ・手書き写しの流儀で実装する |
+| `packages/schemas/edit.schema.json` | Define the structure as `$defs/beatItem` (types, the `id` pattern, required fields, the `strength` range, and the minimum length of `kind`). Both `editV0` and `editV1` reference it from `properties.beats`. Keep `additionalProperties: true` (a tolerant reader). |
+| `packages/schemas/bin/validate-edit.mjs` | In addition, check what JSON Schema alone cannot express. `id` is unique inside the file. `src` references resolve. On v1, an id that is not in `sources[].id` is an error. On v0, the presence of `src` itself is an error. The same treatment as `cuts[].src`. |
+| `packages/edit-lint` (`src/edit-lint.mjs`) | Implement the same structural checks as validate-edit (those are errors), with no extra dependency, as a handwritten copy. |
 
-`id` の一意性と `src` の参照整合を JSON Schema に載せないのは、どちらも**兄弟要素・兄弟フィールドの
-値を突き合わせる必要があり、JSON Schema 標準の語彙では表現できない**ためである
-（`cutV1.src` / `audio.narration[].id` と同じ理由・同じ分担）。
+`id` uniqueness and `src` reference checks are not in JSON Schema because both need to compare values across sibling elements or sibling fields, and the standard JSON Schema vocabulary cannot express that. The same reason, and the same split, as `cutV1.src` and `audio.narration[].id`.
 
-**edit-lint は source の実尺と `beats[].t` を突き合わせない。** `--media` なしでメディアを
-デコードしない規律を維持するためである。「`t` が素材の実尺を超えている」という検査は
-**将来課題**とし、必要になった時点で実尺解析（ffprobe 等）を伴う別契約として設計する。
-`beats` および `analysis.json` の不在は、edit-lint の既存原則どおり**エラーにしない**
-（skipped として報告する）。
+edit-lint does not compare the real source duration with `beats[].t`. That keeps the rule that, without `--media`, it does not decode media. Checking that `t` is past the real footage duration is a later problem. When it is needed, design it as another contract that measures the real duration (ffprobe or similar). A missing `beats` field, and a missing `analysis.json`, are not errors, which matches the existing edit-lint principle. Report them as skipped.
 
-## 8. 将来拡張の席（本契約のスコープ外）
+## 8. Room for a later extension
 
-- **`emphasis_words[]`**（語レベルの強調指定）: beats より細かい粒度で「どの語を強調するか」を
-  持つデータ。本契約では席のみ言及し、フィールドは定義しない
-- **`direction {}`**（演出プリセット・強度の明示指定）: beats を「何が起きたか」の観測に留め、
-  「どう演出するか」を分離して持つためのデータ。本契約では席のみ言及し、フィールドは定義しない
+Out of scope for this contract.
 
-いずれも別契約で扱う。本契約は `beats[]` の器だけを確定し、これらの席が将来開く可能性がある
-ことを記録するに留める。
+- `emphasis_words[]`, word-level emphasis. Data for which word to emphasize, a finer grain than beats. This contract only mentions the seat. It does not define the field.
+- `direction {}`, an explicit treatment preset and strength. Data that keeps beats as the observation of what happened, and holds "how to treat it" separately. This contract only mentions the seat. It does not define the field.
+
+Both are other contracts. This contract fixes only the container for `beats[]`, and it records that these seats may open later.

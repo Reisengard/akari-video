@@ -1,20 +1,18 @@
-# edit.json v1 マルチソース契約
+**English** | [日本語](./contract-2026-07-18-edit-json-v1-sources.ja.md)
 
-- 日付: 2026-07-18
-- 状態: 実装契約
-- スコープ: `edit.json` の `sources[]`、`cuts[].src`、および source 秒アンカーを持つサイドカー
+# edit.json v1 multi-source contract
 
-## 0. version 運用
+- Date: 2026-07-18
+- Status: implementation contract
+- Scope: `sources[]` and `cuts[].src` in `edit.json`, and sidecars that anchor a time in source seconds
 
-**`sources[]` を使うファイルは `version: 1` とする。** `cuts[]` が単一素材の keep-range から、
-素材を指定するクリップ列へ意味を変える構造的変更だからである。旧コンシューマが黙って別の映像を
-組むより、未対応の version を明示的に拒否する方が安全である。
+## 0. How version is used
 
-`version: 0` の単一 `source` 形式は恒久的に合法とし、読み手は v0 と v1 の両方に対応する。
-単一ソースだけを扱う書き手は v0 を維持してよい。`source` と `sources[]` は排他であり、併存は
-不正とする。
+**A file that uses `sources[]` is `version: 1`.** `cuts[]` changes meaning. It stops being the keep-ranges of one footage item and becomes a clip list that names the footage. That is a structural change. Rejecting an unsupported version in the open is safer than letting an old consumer silently assemble a different picture.
 
-## 1. v1 スキーマ
+The single `source` form at `version: 0` stays legal permanently. A reader supports both v0 and v1. A writer that handles only one source may stay on v0. `source` and `sources[]` are exclusive. Having both is invalid.
+
+## 1. v1 schema
 
 ```jsonc
 {
@@ -32,90 +30,68 @@
 }
 ```
 
-### フィールド規則
+### Field rules
 
-| フィールド | 規則 |
+| Field | Rule |
 |---|---|
-| `sources[].id` | 空でない文字列。ファイル内で一意。`s1`, `s2`, … の連番を推奨する |
-| `sources[].path` | edit.json の親ディレクトリを基準とする相対パス、または絶対パス |
-| `sources[].proxy` | `null` またはソースごとのプロキシパス |
-| `cuts[].src` | v1 では必須。`sources[].id` を参照する |
-| `cuts[].in`, `cuts[].out` | 対象ソースの秒。`0 <= in < out` を満たす |
+| `sources[].id` | A non-empty string, unique in the file. Prefer the sequence `s1`, `s2`, and so on. |
+| `sources[].path` | A path relative to the directory that contains edit.json, or an absolute path. |
+| `sources[].proxy` | `null`, or a proxy path for that source. |
+| `cuts[].src` | Required on v1. It references a `sources[].id`. |
+| `cuts[].in`, `cuts[].out` | Seconds in the referenced source. `0 <= in < out`. |
 
-`sources[].proxy` の生成規格は [プレビュー用プロキシの規格](./contract-2026-08-02-preview-parity.md#55-プレビュー用プロキシの規格) に従う。
+`sources[].proxy` is produced to the preview-proxy format. That format is section 5.5 of `contract-2026-08-02-preview-parity.md` (Japanese).
 
-v2 プレビューでは `sources[].proxy` は任意の最適化である。宣言されていれば既定でそれを使い、
-起動を速くする。宣言が無ければ `VideoDecoder.isConfigSupported` で器の実力を調べ、原本を直接読む。
-器が原本を扱えない場合は preview-server が同じプロキシ規格で自動生成する。
+In the v2 preview, `sources[].proxy` is an optional optimization. When it is declared, the preview uses it by default, and startup is faster. When it is not declared, `VideoDecoder.isConfigSupported` checks what the host can decode, and the preview reads the original directly. When the host cannot handle the original, preview-server generates a proxy to the same format.
 
-参照は path ではなく安定した `id` で行う。これにより素材の差し替えや path 変更で cut や
-サイドカーの参照が壊れない。JSON Schema は将来の任意フィールドを許容する tolerant reader とし、
-既知フィールドの型、version ごとの必須形、`source` / `sources[]` の排他を検証する。
+References use a stable `id`, not a path. Replacing footage, or changing a path, then does not break a cut or a sidecar reference. JSON Schema is a tolerant reader for future optional fields. It checks the types of known fields, the required shape of each version, and the exclusion between `source` and `sources[]`.
 
-## 2. タイムライン導出規則
+## 2. How the timeline is derived
 
-アウトプットタイムラインは、`cuts[]` を**配列順にギャップなく連結**して導出する。v1 では
-同じ `src` の再登場と任意の並べ替えを認める。同一 `src` 内でも `in` の昇順や cut 間の
-非重複を強制しない。
+The output timeline is `cuts[]` joined in array order with no gaps. v1 allows the same `src` to appear again, and it allows any order. Inside one `src`, v1 does not require `in` to ascend, and it does not require cuts to be disjoint.
 
-v1 の空または欠落した `cuts` は空タイムラインを表す。v0 の空または欠落した `cuts` が素材全体を
-表す既存の意味は変えない。黒味や間を表す gap エントリは将来拡張の席だけを予約し、v1 では
-定義しない。
+An empty or missing `cuts` on v1 means an empty timeline. The existing v0 meaning, where an empty or missing `cuts` means the whole footage item, does not change. A gap entry for black or for a pause is reserved for a later extension. v1 does not define it.
 
-## 3. 座標系と一対多射影
+## 3. Coordinates and a one-to-many projection
 
-従来の source 秒アンカーは、マルチソースでは **(`src`, source 秒)** の組に一般化する。
-同一ソース区間がタイムライン上に複数回現れ得るため、source 秒から timeline 秒への対応は
-一対多である。
+A source-second anchor becomes the pair `(src, source seconds)` once there is more than one source. The same source range can appear more than once on the timeline, so the map from source seconds to timeline seconds is one-to-many.
 
-**字幕、注釈、解析結果は (`src`, source 秒) で永続化し、timeline 秒へ変換した結果を
-永続化してはならない。** 表示や書き出しのたびに、その時点の `cuts[]` から timeline 秒へ
-射影する。これにより cut の再配置や同一区間の再利用で、焼き込んだ時刻とのずれを防ぐ。
+**Persist captions, annotations, and analysis results as `(src, source seconds). Do not persist the timeline seconds you got by converting them.** On each display and on each export, project onto timeline seconds from the `cuts[]` of that moment. Rearranging a cut, or reusing the same range, then cannot drift from a time that was baked in.
 
-オーバーレイの `start`、BGM、SFX は従来どおりアウトプットタイムライン座標であり、この
-source 秒アンカー規則の対象外である。
+Overlay `start`, BGM, and sound effects stay in output-timeline coordinates, as before. They are outside this source-second rule.
 
-## 4. サイドカーへの波及
+## 4. What changes in sidecars
 
-- `captions.json` の `items[]` は任意フィールド `src` を持てる。値は `sources[].id` への参照で、
-  `start` / `end` と組にして source 座標を表す
-- `review.json` の `annotations[]` は任意フィールド `src` を持てる。値は `sources[].id` への参照で、
-  `sourceT` または `sourceRange` と組にして source 座標を表す
-- `src` の省略は単一ソース互換を意味する
-- 字幕の重なり（`captions.overlap`）と並び順（`captions.order`）の判定は `src` ごとに行う
-- `time_domain: "output"` の行（置いた文字）は重なり・並び順の検査対象外（2026-09-22 裁定。置き物なので同時に何個あってもよい）
+- `items[]` in `captions.json` may have `src`. The value references a `sources[].id`. Together with `start` and `end`, it is a source coordinate.
+- `annotations[]` in `review.json` may have `src`. The value references a `sources[].id`. Together with `sourceT` or `sourceRange`, it is a source coordinate.
+- Omitting `src` means single-source compatibility.
+- Caption overlap (`captions.overlap`) and caption order (`captions.order`) are judged per `src`.
+- A row with `time_domain: "output"` is placed text. Overlap and order checks skip it (decision of 2026-09-22). It is a placed object, so any number of them may share a time.
 
-analysis サイドカーは素材単位のままとし、構造は変更しない。参照時に `src` から source path を
-解決する。
+An analysis sidecar stays one file per footage item. Its structure does not change. A reference resolves `src` to the source path.
 
-## 5. v0 から v1 への機械的変換
+## 5. Mechanical conversion from v0 to v1
 
-version bump は次の変換手順と必ず組にする。実行主体はエージェントとし、対象と差分を提示して
-明示承認を得てから実行する。silent migration は禁止する。未知フィールドは保持する。
+A version bump is paired with the conversion below. The agent runs it. Show the target and the diff, get explicit approval, then run it. Silent migration is forbidden. Keep unknown fields.
 
-1. `sources = [{ "id": "s1", "path": <旧 source.path>, "proxy": <旧 source.proxy> }]` を生成する
-2. 各 `cuts[]` 要素に `"src": "s1"` を付ける。v0 の `cuts` が空または欠落している場合は、
-   `[{ "src": "s1", "in": 0, "out": <素材尺> }]` を生成する
-3. `source` を削除し、`version` を `1` に更新する
+1. Create `sources = [{ "id": "s1", "path": <old source.path>, "proxy": <old source.proxy> }]`.
+2. Set `"src": "s1"` on every `cuts[]` element. When v0 `cuts` is empty or missing, create `[{ "src": "s1", "in": 0, "out": <footage duration> }]`.
+3. Delete `source` and set `version` to `1`.
 
-素材尺が取得できず手順 2 の全体 cut を生成できない場合は、推測で変換せず停止して報告する。
+If the footage duration cannot be read and step 2 cannot build the full-length cut, stop and report that. Do not guess a conversion.
 
-## 6. 劣化規約
+## 6. Degradation
 
-| 状況 | 挙動 |
+| Situation | Behavior |
 |---|---|
-| v0 の単一 `source` | 従来どおり読み書きする |
-| v1 の `cuts[].src` が `sources[].id` にない | 当該 cut を無視し warning。他の cut は継続する |
-| `source` と `sources[]` が併存 | lint エラー。読み手は `sources[]` を優先し warning を出す |
-| `sources[].path` が存在しない | プレビューは欠落表示と warning。書き出しはエラーで停止する |
-| `version` が 1 より大きい | 推測して検証・変換せず読み取り専用に倒す |
+| v0 single `source` | Read and write it as before. |
+| A v1 `cuts[].src` is not a `sources[].id` | Ignore that cut and warn. Continue with the other cuts. |
+| `source` and `sources[]` are both present | Lint error. The reader prefers `sources[]` and warns. |
+| `sources[].path` does not exist | Preview shows a missing-media state and warns. Export stops with an error. |
+| `version` is greater than 1 | Do not guess, validate, or convert. Fall back to read-only. |
 
-未対応の新しい version には、**「このファイルは新しい形式です。スキル / アプリを更新して
-ください」**と正直に報告する。既知フィールドだけを拾って旧形式として処理してはならない。
+For a newer version the reader does not support, report honestly that the file uses a newer format and that the skill or the app needs an update. Do not pick out the known fields and treat the file as the old format.
 
-## 7. 検証責務
+## 7. Who checks what
 
-`edit.schema.json` は v0/v1 の構造を検証する。`validate-edit.mjs` と edit-lint は、JSON Schema
-だけでは表現できない `sources[].id` の一意性、`cuts[].src` の参照整合、`in < out` も検証する。
-edit-lint は v0 の cut 順序・重複・素材尺の既存検査を維持し、v1 では配列順をタイムライン順として
-順序を制限しない。
+`edit.schema.json` checks the v0 and v1 structure. `validate-edit.mjs` and edit-lint also check what JSON Schema cannot express: unique `sources[].id`, `cuts[].src` references that resolve, and `in < out`. edit-lint keeps the existing v0 checks for cut order, overlap, and footage duration. On v1 it treats array order as timeline order and does not restrict that order.

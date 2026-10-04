@@ -1,107 +1,92 @@
-# データ契約の版管理・移行原則（横断契約）
+**English** | [日本語](./contract-2026-07-17-data-contract-versioning.ja.md)
 
-- 日付: 2026-07-17
-- 状態: draft（レビュー後、全データ契約に効く横断 SSOT とする）
-- 前提: `notes-2026-07-13-edit-json-v1.md`（原則「`version` フィールドで段階進化。
-  v0 の後方互換を壊さない」）/ `contract-2026-07-14-edit-json-v1-audio.md` §0
-  （version 運用の実例 — 本書はこの運用を全契約へ一般化する）
-- スコープ: プロジェクト内の全データ契約ファイルと `packages/schemas/` の JSON Schema。
-  既存契約の内容（スキーマそのもの）は変えない。変えるのは「進化のさせ方」の規律のみ
+# Data-contract versioning and migration
 
-## 1. 適用対象
+- Date: 2026-07-17
+- Status: draft. After review, this is the cross-cutting source of truth for every data contract.
+- Depends on: `notes-2026-07-13-edit-json-v1.md` (Japanese), which states that a `version` field evolves in steps and does not break v0 compatibility, and `contract-2026-07-14-edit-json-v1-audio.md` section 0, a worked example of version practice. This contract generalizes that practice.
+- Scope: every data-contract file in a project, and the JSON Schema files under `packages/schemas/`. This contract does not change existing schema content. It changes only the rule for how a contract evolves.
 
-- edit.json / 素材サイドカー（`.meta.json`・`.decisions.json`・`.analysis.json`）/
-  `.akari/` 配下の状態ファイル（`workflow.json` ほか今後の新設を含む）/
-  スキルが読み書きするプロジェクト内 JSON 全般
-- 今後新設されるデータ契約ファイルは**初版から適用する**（`version` 無しで新設しない）
+## 1. What this covers
 
-## 2. 三原則
+- `edit.json`, footage sidecars (`.meta.json`, `.decisions.json`, and `.analysis.json`), state files under `.akari/` (`workflow.json` and files added later), and project JSON that a skill reads or writes.
+- A data contract created after this one follows the rule from its first version. Do not add a contract file that has no `version`.
 
-### 原則 1 — 版必須・追加のみ進化（マイグレを書かずに済む進化が第一）
+## 2. Three principles
 
-- 全データ契約ファイルはトップレベルに `version`（整数）を持つ
-- 進化は**任意フィールドの追加のみ**。既存フィールドの削除・型変更・意味変更は禁止
-- それが本当に必要になった時だけ `version` を bump する（= 破壊的変更の明示宣言）
-- 読み手は tolerant reader — 未知フィールドは**保持する**（読み → 書きの往復で
-  落とさない）、欠損フィールドは既定値で補う
-- 型となる実例: edit.json 音声契約 §0（`audio` は Option 追加・`version: 0` 据え置き・
-  整数 bump は構造的破壊変更のために温存）
+### Principle 1. Version is required, and evolution is additive
 
-### 原則 2 — 破壊的変更は明示マイグレのみ
+The preferred change is one that does not need a migration.
 
-- `version` を bump する契約は、**旧版 → 新版の変換手順（機械実行可能な形）を
-  契約文書に同時に書く**。変換手順の無い bump は受け入れない
-- 変換の実行主体はエージェント（スキル）。対象ファイルと変わる内容を提示 →
-  **明示承認** → 変換。結果は git diff で全部見える。git 未管理プロジェクトでは
-  変換前に `.akari/backup/` へ退避する
-- **silent migration 禁止**: アプリ・スキルが読み込み時に黙って新形式へ変換して
-  保存する経路を作らない
+- Every data-contract file has a top-level integer `version`.
+- Evolution adds optional fields only. Do not delete a field, change its type, or change its meaning.
+- Bump `version` only when that change is actually required. The bump declares a breaking change.
+- A reader is tolerant. Keep unknown fields across a read and a later write. Fill a missing field from its default.
+- Worked example: edit.json audio, section 0. `audio` gained an optional field and stayed at `version: 0`. An integer bump is reserved for a structural breaking change.
 
-### 原則 3 — 新しすぎる版は「壊さず・正直に止まる」
+### Principle 2. A breaking change ships with an explicit migration
 
-- 読み手が自分の知る最新より大きい `version` を見たら、推測・変換をせず
-  **読み取り専用に倒し**、「このファイルは新しい形式です。スキル / アプリを
-  更新してください」と正直に報告する
-- 実例: edit.json の validate が `version != 0` を拒否する現行挙動はこの原則の実装。
-  拒否メッセージは「更新の案内」として出す（無言のエラーにしない）
+- A contract that bumps `version` writes the old-to-new conversion in the same document, in a form a machine can run. Reject a bump that has no conversion.
+- The agent, through a skill, runs the conversion. Show the target files and what will change, wait for explicit approval, then convert. The result is visible in git diff. If the project is not in git, copy the files to `.akari/backup/` before converting.
+- Silent migration is forbidden. An app or a skill must not convert a file to the new form on read and then save it.
 
-## 3. 起草時点の棚卸し（適用ギャップ）
+### Principle 3. A version that is too new stops without damaging the file
 
-| ファイル / スキーマ | `version` | 対応 |
+- When a reader sees a `version` higher than the newest one it knows, it does not guess and it does not convert. It switches to read-only and reports that the file uses a newer format and that the skill or the app needs an update.
+- Example: edit.json validation rejects `version != 0` today. That rejection is this principle. The message tells the reader to update. It is not a silent error.
+
+## 3. Inventory at drafting time
+
+| File or schema | `version` | Action |
 | --- | --- | --- |
-| edit.json | あり（運用明文化済み） | — |
-| `.akari/workflow.json` | あり（`1`） | — |
-| `.analysis.json`（`analysis.schema.json`） | あり | — |
-| `.meta.json`（`asset-meta.schema.json`） | **あり**（2026-07-30 追加。初版 1） | 完了。任意フィールドとして追加し、bump 基準と機械検査は素材ライブラリ契約「素材の版と互換性」に定義 |
-| `.decisions.json` | 未整備 | 次のスキーマ改訂時に追加 |
+| edit.json | Present. The practice is already written down. | None |
+| `.akari/workflow.json` | Present (`1`) | None |
+| `.analysis.json` (`analysis.schema.json`) | Present | None |
+| `.meta.json` (`asset-meta.schema.json`) | Present. Added on 2026-07-30. First version is 1. | Done. Added as an optional field. The bump rule and the machine check are in the asset library contract, under "Asset version and compatibility". |
+| `.decisions.json` | Not yet | Add it at the next schema revision. |
 
-ギャップの解消は各契約側のタスクとして扱う。本書が固定するのは原則のみ。
+Closing a gap is a task for that contract. This document fixes the principles only.
 
-## 4. 新設時チェックリスト
+## 4. Checklist for a new contract
 
-1. トップレベル `version`（整数）を持つ。初版の整数値（0 起点 / 1 起点）は
-   契約側で定めて明記する
-2. 「追加のみ進化・tolerant reader」を契約文書に明記する
-3. 破壊的変更時の変換手順を書く節を契約文書に確保する（bump するまで空でよい）
-4. 読み手の forward-compat 挙動（原則 3）を実装する
+1. The file has a top-level integer `version`. The contract states whether the first version starts at 0 or at 1.
+2. The contract states additive evolution and the tolerant reader.
+3. The contract reserves a section for the conversion steps of a breaking change. The section may stay empty until a bump.
+4. Readers implement the forward-compatible behavior in principle 3.
 
-## 5. 契約ファイル名の `-vN` と edit.json スキーマ版の語彙衝突（2026-08-18 追記）
+## 5. Filename `-vN` is not the edit.json schema version
 
-契約ファイル名の `-vN` サフィックス（例: `contract-2026-08-12-still-image-cut-source-v0.md`）は
-**その契約文書自身のリビジョン**であり、本書が定めるデータ契約の `version` フィールド
-（edit.json 等のスキーマ版）とは無関係である。両者は独立に増減する — 契約文書が改訂されても
-edit.json の `version` は変わらないし、edit.json が `version: 1` に上がっても関連契約が
-`-v1.md` へリネームされるわけではない。
+Added 2026-08-18.
 
-「still-image-cut-source-v0（契約の第 1 版）を読んで edit.json は v1（スキーマ版）で書く」の
-ような読み替えは誤読を招く。edit.json のスキーマ版に言及する契約文書は、本文冒頭で
-**「edit v0」「edit v1」の表記**を使い分け、ファイル名の `-vN` と区別できるようにする（例:
-「本契約は edit v1 の `sources[]` を対象とする」）。読み手（エージェント・人間）も、契約
-ファイル名の `-vN` を見て自動的にスキーマ版だと解釈しない。
+The `-vN` suffix on a contract filename, for example `contract-2026-08-12-still-image-cut-source-v0.md`, is the revision of that contract document. It is not the data-contract `version` field this document defines for edit.json and the other files. The two numbers move independently. Revising the contract document does not change edit.json `version`. Raising edit.json to `version: 1` does not rename the related contract to `-v1.md`.
 
-## 6. edit.json v0/v1 凍結変換器の終了方針（2026-08-18 オーナー裁定）
+Treating "still-image-cut-source-v0, the first revision of the contract" and "write edit.json as v1, the schema version" as the same number causes misreads. A contract that mentions the edit.json schema version says "edit v0" or "edit v1" near the start of the body, so a reader can tell it apart from the filename suffix. Example: "This contract covers `sources[]` on edit v1." A reader, whether an agent or a person, does not treat the filename `-vN` as the schema version.
 
-- 変換器は機能追加禁止・バグ修正のみとする。未知の v0/v1 ケースに対応を
-  追加せず、「このプロジェクトは変換できません」と理由付きで止まる。
-- AKARI Video 本体から変換器を外す期限は、製品版 `1.0.0` の公開日または
-  `2026-12-31` のいずれか早い方とする。
-- 期限到達時は変換器を破棄せず、単体 npm パッケージ `akari-migrate` へ切り出して
-  1 回だけ publish し、以後更新しない。publish 自体は本移行タスクでは行わず、
-  本体から外す作業の一部とする。
-- 本体から外した後のエラー文言は次で固定する。
+## 6. Retirement of the edit.json v0 and v1 freeze converter
 
-  > このプロジェクトは古い形式です。`npx akari-migrate@<版> <dir>` で変換してから開いてください。
+Owner decision, 2026-08-18.
 
-### 6.1 音声トラック化（2026-08-21・凍結前の最後の追加）
+- The converter accepts bug fixes only. Do not add a feature. Do not add a case for an unknown v0 or v1 input. Stop and give the reason that this project cannot be converted.
+- Remove the converter from AKARI Video on the earlier of the `1.0.0` release date and `2026-12-31`.
+- At that date, do not throw the converter away. Extract it once as the standalone npm package `akari-migrate`, publish that package once, and do not update it after that. This migration task does not publish the package. Publishing is part of removing the converter from the product.
+- After removal, the error text is fixed:
 
-task `2026-08-20-v2-audio-tracks` に限り、「機能追加禁止・バグ修正のみ」の明示承認済み・1 回限りの例外として、v0/v1 の `audio.sfx[]`・`audio.narration[]`・`audio.bgm` を v2 の audio lane `tracks[].items[]` へ移す変換を追加した。出力側の `at` / `duration` は整数フレームへ確定し、素材側の `in` / `out` と fade / `bgm.in` は秒のまま保持する。実尺が旧形式だけでは決まらない音声は `duration: 0` センチネルとし、この変換器では ffprobe しない。トップレベル `audio` は `master` が宣言されている場合だけ残す。
+  > This project uses an old format. Convert it with `npx akari-migrate@<version> <dir>`, then open it.
 
-これは凍結前に許可された最後の機能追加である。今後この変換器へさらに変換能力を足さず、§6 の期限どおり本体から分離・削除する。
+### 6.1 Move onto audio tracks
 
-### 6.2 filter レイヤー転写と emphasis_words 移送（2026-08-23・1 回限りの例外）
+2026-08-21. The last addition before the freeze.
 
-task `2026-08-23-migrate-filter-emphasis-exception` に限り、2026-08-23 オーナー裁定による「機能追加禁止・バグ修正のみ」の明示承認済み・1 回限りの例外として、v0/v1 の独立した `kind: "filter"` レイヤーを v2 の filter source へ転写し、トップレベル `emphasis_words[]` を edit.json v2 から除外して object ルートの `captions.json.emphasis_words[]` へ移送する変換を追加した。media 系レイヤー（`video` / `baked`）に直付けされた `filter` は v2 に等価表現が無いため転写対象外とし、理由付きで変換を停止する。移送時は edit.json と captions.json の原文をそれぞれ退避し、1 手の revert で両方を復元する。移送先が無い、配列ルートである、または既に `emphasis_words` を持つ場合は理由付きで停止する。
+Only task `2026-08-20-v2-audio-tracks` is an approved one-time exception to "bug fixes only". It adds a conversion that moves v0 and v1 `audio.sfx[]`, `audio.narration[]`, and `audio.bgm` onto the v2 audio lane `tracks[].items[]`. On output, `at` and `duration` are integer frames. On the footage side, `in`, `out`, fade, and `bgm.in` stay in seconds. Audio whose real duration cannot be decided from the old form alone uses the sentinel `duration: 0`. This converter does not run ffprobe. Top-level `audio` remains only when `master` is declared.
 
-2026-08-21 の廃止裁定は fieldtest 60 本を母集団とし、本番リールでの使用が調査圏外だったという母集団瑕疵があったため、本例外で既存データを損失なく移す。
+This is the last feature the converter may gain before the freeze. Do not add more conversion. Remove it from the product on the schedule in section 6.
 
-これ以後この変換器へさらに変換能力を足さず、§6 の期限どおり本体から分離・削除する。
+### 6.2 Copy filter layers and move emphasis words
+
+2026-08-23. A one-time exception.
+
+Only task `2026-08-23-migrate-filter-emphasis-exception` is an approved one-time exception, by the owner decision of 2026-08-23, to "bug fixes only". It copies a standalone v0 or v1 layer with `kind: "filter"` into a v2 filter source. It removes top-level `emphasis_words[]` from edit.json v2 and moves those words to `captions.json.emphasis_words[]` at the object root. A `filter` attached directly to a media layer (`video` or `baked`) has no v2 equivalent, so the converter does not copy it and stops with a reason. Before the move, the converter saves the original edit.json and the original captions.json, so one revert restores both. It stops with a reason when the destination is missing, when the root is an array, or when `emphasis_words` is already present.
+
+The retirement decision of 2026-08-21 used 60 field-test projects as its population. Production reels were outside that survey, so the population was incomplete. This exception moves existing data without losing it.
+
+After this exception, do not add more conversion. Remove the converter from the product on the schedule in section 6.
