@@ -17,14 +17,14 @@ import { CaptionsApplyPreview, captionsAppliedLine, captionsApplyHistoryLabel, c
 // Local figures are predictions, shown with dashed radar outlines, never detection results.
 // Filler axis calibrated against the 2026-09-08 transcribe-compare dogfood measurements.
 export const TRANSCRIBE_ENGINE_CARDS = [
-    { id: 'speech-analyzer', label: 'SpeechAnalyzer', place: 'この Mac', hourlyUsd: 0, rtf: 0.08, predicted: true,
-        radar: [.95, .75, .8, .85, .8], color: '#4fc3c0', needs: 'macOS 26 + CLT', facts: '句読点あり / フィラーを残す' },
-    { id: 'whisper-cpp', label: 'Whisper · large-v3-turbo', place: 'この Mac', hourlyUsd: 0, rtf: .47, predicted: true,
-        radar: [.4, .8, .8, .3, .85], color: '#b08cf0', needs: '同梱バイナリ + モデル', facts: '句読点あり / フィラーは落ちやすい' },
-    { id: 'cloud:scribe', label: 'ElevenLabs Scribe', place: 'クラウド', hourlyUsd: .40, rtf: .025, predicted: false,
-        radar: [.85, .9, .95, .95, .85], color: '#6fa8ff', needs: 'ElevenLabs の鍵・接続確認', facts: '句読点・フィラーを残す' },
-    { id: 'cloud:groq', label: 'Groq Whisper', place: 'クラウド', hourlyUsd: .04, rtf: .002, predicted: false,
-        radar: [1, .7, .1, .2, .7], color: '#f2b25c', needs: 'Groq の鍵・接続確認 / 25 MB まで', facts: '句読点なし / フィラーは落ちる' }
+    { id: 'speech-analyzer', label: 'SpeechAnalyzer', place: 'This Mac', hourlyUsd: 0, rtf: 0.08, predicted: true,
+        radar: [.95, .75, .8, .85, .8], color: '#4fc3c0', needs: 'macOS 26 + CLT', facts: 'Punctuation kept / fillers kept' },
+    { id: 'whisper-cpp', label: 'Whisper · large-v3-turbo', place: 'This Mac', hourlyUsd: 0, rtf: .47, predicted: true,
+        radar: [.4, .8, .8, .3, .85], color: '#b08cf0', needs: 'Bundled binary + model', facts: 'Punctuation kept / fillers often dropped' },
+    { id: 'cloud:scribe', label: 'ElevenLabs Scribe', place: 'Cloud', hourlyUsd: .40, rtf: .025, predicted: false,
+        radar: [.85, .9, .95, .95, .85], color: '#6fa8ff', needs: 'ElevenLabs key and connection check', facts: 'Punctuation and fillers kept' },
+    { id: 'cloud:groq', label: 'Groq Whisper', place: 'Cloud', hourlyUsd: .04, rtf: .002, predicted: false,
+        radar: [1, .7, .1, .2, .7], color: '#f2b25c', needs: 'Groq key and connection check / up to 25 MB', facts: 'No punctuation / fillers are dropped' }
 ];
 export function transcribeElement<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
     const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
@@ -44,10 +44,10 @@ export async function listenTranscribeRange(commands: CommandService, shell: App
         const preview = value as unknown as { akariPreviewVideoUri?: URI; akariPreviewEditUri?: URI };
         return !preview.akariPreviewEditUri && preview.akariPreviewVideoUri?.normalizePath().toString() === videoUri;
     }) as unknown as { sendMessage(message: unknown): void; akariPreviewLastKnownPlaying?: boolean; akariPreviewLastKnownTime?: number; onDidDispose(callback: () => void): { dispose(): void } };
-    if (!widget) throw new Error('対象素材のプレビューを開けませんでした');
+    if (!widget) throw new Error('Could not open Preview for this footage');
     if (end === undefined) {
         const result = await commands.executeCommand<string>(AKARI_TRANSCRIPT_SEEK_REQUESTED.id, { videoUri, time: start, captionId: 'transcribe-diff' });
-        if (result !== 'seeked') throw new Error('対象素材へシークできませんでした');
+        if (result !== 'seeked') throw new Error('Could not seek to this footage');
         return () => undefined;
     }
     // The host seek is coalesced to rAF. Wait for the media clock to reach the start
@@ -61,11 +61,11 @@ export async function listenTranscribeRange(commands: CommandService, shell: App
             clearTimeout(timer); window.removeEventListener('akari.preview.rawAnnotationState', ready);
             if (error) reject(error); else resolve();
         };
-        const timer = setTimeout(() => finish(new Error('プレビューのシークを確認できませんでした')), 5000);
+        const timer = setTimeout(() => finish(new Error('Could not confirm the Preview seek')), 5000);
         window.addEventListener('akari.preview.rawAnnotationState', ready);
         if (widget.akariPreviewLastKnownPlaying) widget.sendMessage({ type: 'akari-preview-toggle-playback' });
         void commands.executeCommand<string>(AKARI_TRANSCRIPT_SEEK_REQUESTED.id, { videoUri, time: start, captionId: 'transcribe-diff' }).then(result => {
-            if (result !== 'seeked') finish(new Error('対象素材へシークできませんでした'));
+            if (result !== 'seeked') finish(new Error('Could not seek to this footage'));
             else if (Math.abs((widget.akariPreviewLastKnownTime ?? -Infinity) - start) < .1) finish();
         }, error => finish(error));
     });
@@ -129,7 +129,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         protected readonly listen: (start: number, end: number) => Promise<void>,
         protected readonly alreadyTranscribed = false,
         protected readonly autoStart = false, initialBackend?: string) {
-        super({ title: '文字起こし' });
+        super({ title: 'Transcript' });
         this.mode = preferences.get('akari.transcribe.mode') === 'advanced' ? 'advanced' : 'simple';
         this.toDispose.push({ dispose: () => clearInterval(this.progressTimer) });
         this.selection = initialEngineSelection(preferences.get('akari.transcribe.backend', 'auto'), preferences.get<string[]>('akari.transcribe.compareSet', []));
@@ -192,7 +192,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         if (this.sourceId) return this.sourceId;
         const edit = JSON.parse((await this.files.readFile(currentTimelineEditUri(this.root))).value.toString());
         const source = Array.isArray(edit.sources) ? edit.sources.find((item: { path?: string }) => item.path === this.relativePath) : undefined;
-        if (!source?.id) throw new Error('この素材は edit.json の sources[] にありません');
+        if (!source?.id) throw new Error('This footage is not in edit.json sources[]');
         this.sourceId = source.id;
         return this.sourceId;
     }
@@ -242,7 +242,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
     protected render(): void {
         const mode = this.mode;
         const view = transcribeModeView(mode, this.baselineReady, this.selection);
-        this.titleNode.textContent = mode === 'advanced' ? '文字起こしして字幕を作る' : '文字起こし';
+        this.titleNode.textContent = mode === 'advanced' ? 'Transcribe and create captions' : 'Transcript';
         this.node.dataset.akariTranscribeMode = mode;
         this.node.dataset.step = view.steps ? String(this.state.step) : '1';
         const showPreview = this.preview && !this.applied && !this.applyCompleted;
@@ -252,7 +252,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         this.contentNode.replaceChildren(...(view.steps ? [this.steps] : []), this.body, this.notice,
             ...(showPreview ? [this.previewLine] : []), this.foot);
         this.steps.replaceChildren();
-        if (view.steps) ['1 エンジン', '2 起こす', '3 差分', '4 注釈・辞書〔先〕', '5 まとめ〔先〕', '› 字幕へ'].forEach((label, index) => {
+        if (view.steps) ['1 Engine', '2 Transcribe', '3 Diff', '4 Annotations and dictionary [later]', '5 Summary [later]', '› To captions'].forEach((label, index) => {
             const disabled = index >= 3 || (index === 2 ? !this.artifacts.diff : index + 1 > this.state.step) || (index === 0 && this.running);
             const button = transcribeButton(label, () => {
                 if (index === 0 && !this.running) this.state.step = 1;
@@ -270,9 +270,9 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         else if (this.state.step === 2) this.renderProgress();
         else this.renderDiff();
         if (this.applyCompleted) {
-            const applied = transcribeElement('span', this.applied ? captionsAppliedLine(this.applied) : '台本に反映した');
+            const applied = transcribeElement('span', this.applied ? captionsAppliedLine(this.applied) : 'Applied to the script');
             applied.dataset.akariCaptionsApplied = 'true';
-            this.foot.append(applied, transcribeButton('閉じる', () => this.close()));
+            this.foot.append(applied, transcribeButton('Close', () => this.close()));
         } else if (!view.steps) {
             if (this.running) {
                 const progress = transcribeElement('p', this.simpleProgress());
@@ -282,15 +282,15 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             }
             for (const label of view.buttons) {
                 const button = transcribeButton(label, () => {
-                    if (label === '台本へ') this.reuse();
-                    else void this.start(label === '起こし直す' ? 'redo' : undefined);
+                    if (label === 'To the script') this.reuse();
+                    else void this.start(label === 'Transcribe again' ? 'redo' : undefined);
                 }, this.running || this.applying || !this.artifactsLoaded);
                 Object.assign(button.style, { padding: '14px 28px', fontSize: '18px' });
                 if (!this.defaultButton) { this.defaultButton = button; button.style.borderColor = '#f0832b'; }
                 this.foot.append(button);
             }
         } else if (this.state.step === 1) {
-            this.foot.append(transcribeElement('span', 'この場の選択だけに適用'));
+            this.foot.append(transcribeElement('span', 'Apply only to this selection'));
             if (this.baselineReady) {
                 this.defaultButton = transcribeButton(view.buttons[0], () => void this.reuse(), this.applying);
                 this.defaultButton.style.borderColor = '#f0832b';
@@ -302,15 +302,15 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             }
         }
         else {
-            this.foot.append(transcribeElement('span', this.state.step === 3 ? 'まとめは先の機能' : '先に終わったエンジンから列が埋まります'));
+            this.foot.append(transcribeElement('span', this.state.step === 3 ? 'The summary comes later' : 'Columns fill in as each engine finishes'));
             if ((this.state.finished || this.artifacts.diff) && !this.running) {
-                this.foot.append(transcribeButton(`${this.artifacts.transcripts.length} つとも残す（何もしない）`, () => this.close()));
-                this.defaultButton = transcribeButton('字幕へ', () => void this.reuse(), !this.baselineReady || this.applying);
+                this.foot.append(transcribeButton(`Keep all ${this.artifacts.transcripts.length} (do nothing)`, () => this.close()));
+                this.defaultButton = transcribeButton('To captions', () => void this.reuse(), !this.baselineReady || this.applying);
                 this.foot.append(this.defaultButton);
-                if (!this.baselineReady) this.foot.append(transcribeButton('エンジンを選び直す', () => { this.state.step = 1; this.render(); }));
+                if (!this.baselineReady) this.foot.append(transcribeButton('Choose the engine again', () => { this.state.step = 1; this.render(); }));
             }
         }
-        if (this.running) this.foot.append(transcribeButton('中止', () => void this.cancel(), !this.running));
+        if (this.running) this.foot.append(transcribeButton('Stop', () => void this.cancel(), !this.running));
         if (this.applyCompleted) return;
         const switchLink = transcribeButton(view.switchLink, () => void this.switchMode());
         switchLink.dataset.akariTranscribeModeSwitch = 'true';
@@ -322,7 +322,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             const whole = Math.max(0, Math.floor(seconds));
             return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
         };
-        return `起こしています… ${time((Date.now() - this.startedAt) / 1000)} / ${this.duration === undefined ? '—:—' : time(this.duration)}`;
+        return `Transcribing... ${time((Date.now() - this.startedAt) / 1000)} / ${this.duration === undefined ? '—:—' : time(this.duration)}`;
     }
     protected async switchMode(): Promise<void> {
         const mode = this.mode === 'simple' ? 'advanced' : 'simple';
@@ -330,13 +330,13 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             await this.preferences.set('akari.transcribe.mode', mode, PreferenceScope.User);
             this.mode = mode;
             if (!this.isDisposed) this.render();
-        } catch (error) { this.notice.textContent = `設定を保存できませんでした: ${String(error)}`; }
+        } catch (error) { this.notice.textContent = `Could not save settings: ${String(error)}`; }
     }
     protected async cancel(): Promise<void> {
         this.cancelled = true;
         try {
             await this.service.cancelTranscribe({ projectRoot: this.root.toString(), relativePath: this.relativePath });
-            this.notice.textContent = '文字起こしを中止しています…';
+            this.notice.textContent = 'Stopping transcription...';
         } catch (error) {
             this.notice.textContent = error instanceof Error ? error.message : String(error);
         }
@@ -360,8 +360,8 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         const auto = transcribeElement('label');
         const radio = transcribeElement('input'); radio.type = 'radio'; radio.name = 'transcribe-engine'; radio.checked = this.selection.backend === 'auto'; radio.disabled = this.running;
         radio.onchange = () => { this.selection.backend = 'auto'; };
-        auto.append(radio, 'おまかせ（ローカル優先）'); this.body.append(auto);
-        if (view.steps) this.body.append(transcribeButton(this.checkingAvailability ? '確認中…' : '確認し直す', () => void this.refreshAvailability(), this.checkingAvailability));
+        auto.append(radio, 'Automatic (prefer local)'); this.body.append(auto);
+        if (view.steps) this.body.append(transcribeButton(this.checkingAvailability ? 'Checking...' : 'Check again', () => void this.refreshAvailability(), this.checkingAvailability));
         const cards = transcribeElement('div'); Object.assign(cards.style, { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', marginTop: '14px' });
         for (const engine of TRANSCRIBE_ENGINE_CARDS) {
             const card = transcribeElement('section'); card.dataset.backend = engine.id;
@@ -374,7 +374,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             else { use.append(useInput, transcribeElement('strong', engine.label)); card.append(use); }
             const statusLoaded = engine.id.startsWith('cloud:') ? this.connectionStatus !== undefined : this.toolStatus !== undefined;
             if (!statusLoaded) {
-                card.append(transcribeElement('p', '確認中…'));
+                card.append(transcribeElement('p', 'Checking...'));
             } else {
                 const availability = transcribeEngineAvailability(engine.id, this.toolStatus ?? [], this.connectionStatus ?? []);
                 const interactive = view.steps && (availability.state === 'needs' || availability.state === 'unconfigured');
@@ -391,35 +391,35 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             }
             if (view.radar) {
                 const known = this.artifacts.transcripts.some(item => item.backend === backendKey(engine.id));
-                card.append(transcribeElement('p', `${known ? '起こした結果あり' : '未確認'} · ${engine.place} · ${engine.hourlyUsd ? `$${engine.hourlyUsd.toFixed(2)} / 時` : '無料'}`));
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 220 130'); svg.style.width = '200px'; svg.setAttribute('aria-label', '速度・精度・句読点・フィラー・日本語の5軸');
+                card.append(transcribeElement('p', `${known ? 'Transcript available' : 'Not checked'} · ${engine.place} · ${engine.hourlyUsd ? `$${engine.hourlyUsd.toFixed(2)} / hour` : 'Free'}`));
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 220 130'); svg.style.width = '200px'; svg.setAttribute('aria-label', 'Five axes: speed, accuracy, punctuation, filler, and Japanese');
                 const point = (i: number, scale: number) => [110 + Math.cos(-Math.PI / 2 + i * Math.PI * 2 / 5) * 42 * scale, 65 + Math.sin(-Math.PI / 2 + i * Math.PI * 2 / 5) * 42 * scale];
                 for (const scale of [.33, .66, 1]) {
                     const polygon = document.createElementNS(svg.namespaceURI, 'polygon'); polygon.setAttribute('points', engine.radar.map((_, i) => point(i, scale).join(',')).join(' ')); polygon.setAttribute('fill', 'none'); polygon.setAttribute('stroke', '#58606d'); svg.append(polygon);
                 }
                 const polygon = document.createElementNS(svg.namespaceURI, 'polygon'); polygon.setAttribute('points', engine.radar.map((v, i) => point(i, v).join(',')).join(' ')); polygon.setAttribute('fill', engine.color); polygon.setAttribute('fill-opacity', '.2'); polygon.setAttribute('stroke', engine.color); if (engine.predicted) polygon.setAttribute('stroke-dasharray', '4 3'); svg.append(polygon);
-                ['速度', '精度', '句読点', 'フィラー', '日本語'].forEach((label, i) => { const text = document.createElementNS(svg.namespaceURI, 'text'); const [x, y] = point(i, 1.4); text.setAttribute('x', String(x)); text.setAttribute('y', String(y)); text.setAttribute('fill', '#b5becb'); text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '10'); text.textContent = label; svg.append(text); });
-                card.append(svg, transcribeElement('div', `${engine.facts}${engine.predicted ? ' / 数値は予測（点線）' : ''}`), transcribeElement('p', `要るもの: ${engine.needs}`));
+                ['Speed', 'Accuracy', 'Punctuation', 'Filler', 'Japanese'].forEach((label, i) => { const text = document.createElementNS(svg.namespaceURI, 'text'); const [x, y] = point(i, 1.4); text.setAttribute('x', String(x)); text.setAttribute('y', String(y)); text.setAttribute('fill', '#b5becb'); text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '10'); text.textContent = label; svg.append(text); });
+                card.append(svg, transcribeElement('div', `${engine.facts}${engine.predicted ? ' / figures are estimates (dotted)' : ''}`), transcribeElement('p', `Needs: ${engine.needs}`));
             } else card.append(transcribeElement('div', engine.facts));
-            if (view.steps) { use.append(useInput, '使う '); card.append(use); }
+            if (view.steps) { use.append(useInput, 'Use '); card.append(use); }
             if (view.compareToggle) {
                 const compare = transcribeElement('label'), checkbox = transcribeElement('input'); checkbox.type = 'checkbox'; checkbox.checked = this.selection.compareSet.includes(engine.id);
                 checkbox.onchange = () => {
                     this.selection.compareSet = checkbox.checked ? [...this.selection.compareSet, engine.id] : this.selection.compareSet.filter(id => id !== engine.id);
-                    const compareButton = Array.from(this.foot.querySelectorAll('button')).find(button => button.textContent === '比べる');
+                    const compareButton = Array.from(this.foot.querySelectorAll('button')).find(button => button.textContent === 'Compare');
                     if (compareButton) compareButton.disabled = this.selection.compareSet.length < 2;
                 };
                 checkbox.disabled = this.running;
-                compare.append(checkbox, '比べるときに使う'); card.append(compare);
+                compare.append(checkbox, 'Use when comparing'); card.append(compare);
             }
             cards.append(card);
         }
         if (view.steps) {
             const fal = transcribeElement('section');
             Object.assign(fal.style, { padding: '14px', border: '1px dashed #434952', borderRadius: '10px' });
-            fal.append(transcribeElement('strong', 'fal.ai · おすすめ'), transcribeElement('p', '1 つの鍵で画像生成・動画生成・文字起こし'),
-                transcribeElement('p', 'クラウド · 従量 · 未計測 / 要るもの: fal.ai の鍵'),
-                transcribeButton('設定で登録', () => { void this.commands.executeCommand('akari.settings.open'); }));
+            fal.append(transcribeElement('strong', 'fal.ai · recommended'), transcribeElement('p', 'One key for images, video, and transcription'),
+                transcribeElement('p', 'Cloud · metered · not measured / needs a fal.ai key'),
+                transcribeButton('Register in settings', () => { void this.commands.executeCommand('akari.settings.open'); }));
             cards.append(fal);
         }
         this.body.append(cards);
@@ -427,7 +427,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
     protected renderProgress(): void {
         for (const [backend, status] of Object.entries(this.state.engines)) {
             const transcript = this.artifacts.transcripts.find(item => item.backend === backend);
-            this.body.append(transcribeElement('p', `${backend} · ${{ waiting: '待機', transcribing: '起こし中', completed: `完了 · ${transcript?.elapsed_sec?.toFixed(1) ?? '—'} 秒`, failed: '失敗' }[status]}`));
+            this.body.append(transcribeElement('p', `${backend} · ${{ waiting: 'Waiting', transcribing: 'Transcribing', completed: `Done · ${transcript?.elapsed_sec?.toFixed(1) ?? '—'} sec`, failed: 'Failed' }[status]}`));
         }
         const columns = transcribeElement('div'); Object.assign(columns.style, { display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, Object.keys(this.state.engines).length)}, minmax(0, 1fr))`, gap: '12px' });
         const completed = completedColumns(this.state, this.artifacts.transcripts);
@@ -435,21 +435,21 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             const column = transcribeElement('section'); column.dataset.engineColumn = backend; column.append(transcribeElement('strong', backend));
             const transcript = completed.find(item => item.backend === backend);
             if (transcript) for (const segment of transcript.segments) column.append(transcribeElement('p', `${segment.start.toFixed(1)} · ${segment.text}`));
-            else column.append(transcribeElement('p', '…'));
+            else column.append(transcribeElement('p', '...'));
             columns.append(column);
         }
         this.body.append(columns);
     }
     protected renderDiff(): void {
         const diff = this.artifacts.diff;
-        if (!diff) { this.body.append(transcribeElement('p', '差分を読み込み中…')); return; }
-        this.body.append(transcribeElement('p', `差分 ${diff.items.length} 件 · 一致 ${Math.round(diff.agreement * 100)}%`));
+        if (!diff) { this.body.append(transcribeElement('p', 'Loading the diff...')); return; }
+        this.body.append(transcribeElement('p', `Diff ${diff.items.length} items · agreement ${Math.round(diff.agreement * 100)}%`));
         const table = transcribeElement('table'); Object.assign(table.style, { width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' });
-        const head = transcribeElement('tr'); for (const label of ['時刻', ...diff.engines, '人の手']) head.append(transcribeElement('th', label)); table.append(head);
+        const head = transcribeElement('tr'); for (const label of ['Time', ...diff.engines, 'By hand']) head.append(transcribeElement('th', label)); table.append(head);
         for (const item of diff.items) {
             const row = transcribeElement('tr'); row.append(transcribeElement('td', `${item.start.toFixed(1)}–${item.end.toFixed(1)}`));
             for (const engine of diff.engines) row.append(transcribeElement('td', item.texts[engine] || '—'));
-            const actions = transcribeElement('td'); actions.append(transcribeButton('▶ 聞く', () => { void this.listen(item.start, item.end).catch(error => { this.notice.textContent = String(error); }); }), transcribeButton('辞書へ〔先〕', () => undefined, true), transcribeButton('注釈〔先〕', () => undefined, true)); row.append(actions);
+            const actions = transcribeElement('td'); actions.append(transcribeButton('▶ Listen', () => { void this.listen(item.start, item.end).catch(error => { this.notice.textContent = String(error); }); }), transcribeButton('Add to dictionary [later]', () => undefined, true), transcribeButton('Annotations [later]', () => undefined, true)); row.append(actions);
             for (const cell of Array.from(row.children) as HTMLElement[]) Object.assign(cell.style, { padding: '10px 6px', borderBottom: '1px solid #434952', verticalAlign: 'top', overflowWrap: 'anywhere' });
             table.append(row);
         }
@@ -476,8 +476,8 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         if (clouds.length) {
             // Probe is read-only; estimate from source metadata, never from a guessed duration.
             const duration = this.duration;
-            const cost = typeof duration === 'number' ? `$${(duration / 3600 * clouds.reduce((sum, engine) => sum + engine.hourlyUsd, 0)).toFixed(4)}` : `$${clouds.reduce((sum, engine) => sum + engine.hourlyUsd, 0).toFixed(2)} / 時（尺未取得）`;
-            this.approved = !!await new ConfirmDialog({ title: '音声の送信', msg: `音声を ${clouds.map(engine => engine.label).join('・')} に送ります。約 ${cost}`, ok: '送って起こす', cancel: 'キャンセル' }).open();
+            const cost = typeof duration === 'number' ? `$${(duration / 3600 * clouds.reduce((sum, engine) => sum + engine.hourlyUsd, 0)).toFixed(4)}` : `$${clouds.reduce((sum, engine) => sum + engine.hourlyUsd, 0).toFixed(2)} / hour (duration unknown)`;
+            this.approved = !!await new ConfirmDialog({ title: 'Send audio', msg: `Audio will be sent to ${clouds.map(engine => engine.label).join(', ')}. Estimated cost: ${cost}`, ok: 'Send and transcribe', cancel: 'Cancel' }).open();
             if (!this.approved) return;
         }
         if (this.isDisposed) return;
@@ -497,7 +497,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
         try {
             await this.service.transcribeMaterial({ projectRoot: this.root.toString(), relativePath: this.relativePath, ...options, approved: this.approved, autoCuts: this.preferences.get('akari.transcribe.autoCuts', true) });
             this.baselineReady = true;
-        } catch (error) { this.notice.textContent = this.cancelled ? '文字起こしを中止しました' : String(error); }
+        } catch (error) { this.notice.textContent = this.cancelled ? 'Stopped transcription' : String(error); }
         finally {
             // Scan at RPC completion as well: file watcher delivery may be coalesced or late.
             try {
@@ -508,7 +508,7 @@ export class AkariTranscribeDialog extends AbstractDialog<TranscribeDialogResult
             } catch (error) { this.notice.textContent = String(error); }
             this.baselineReady ||= this.state.engines[backendKey(backends[0])] === 'completed';
             clearInterval(this.progressTimer); this.progressTimer = undefined;
-            if (this.cancelled) this.notice.textContent = '文字起こしを中止しました';
+            if (this.cancelled) this.notice.textContent = 'Stopped transcription';
             this.running = false; this.state.finished = true; this.render();
             await this.refreshPreview();
             if (!this.autoStart && backends.length === 1 && this.baselineReady && !this.isDisposed) { this.result = transcribeExitOptions('reuse', options); void this.accept(); }

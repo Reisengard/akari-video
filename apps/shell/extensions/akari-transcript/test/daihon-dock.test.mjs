@@ -44,7 +44,7 @@ test('右クリックは利用できる操作だけ', () => {
 });
 
 test('行ドックのタイトルは複数選択の数か単一行の文言', () => {
-  assert.equal(rowDockTitle(3, '発話1'), '3 行を選択中');
+  assert.equal(rowDockTitle(3, '発話1'), '3 lines selected');
   assert.equal(rowDockTitle(1, '発話1'), '発話1');
 });
 

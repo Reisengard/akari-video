@@ -113,7 +113,7 @@ test('display_text が無い行は replaceCaptionDisplayTextLine で編集でき
 
     assert.throws(
         () => replaceCaptionDisplayTextLine(source, 'c-0002', '追加はしません。'),
-        /字幕 c-0002 に整文（display_text）がありません。/
+        /Caption c-0002 has no cleaned text \(display_text\)\./
     );
 });
 

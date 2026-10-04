@@ -6,14 +6,14 @@ const source = await readFile(new URL('../src/browser/daihon/akari-daihon-widget
 const l1 = await readFile(new URL('../evidence/daihon-history/scripts/l1-daihon-history.mjs', import.meta.url), 'utf8');
 
 test('台本ヘッダに履歴ボタンと幅 360 の履歴ポップオーバーがある', () => {
-  assert.match(source, /historyButton\.textContent = '🕘 履歴'/u);
+  assert.match(source, /historyButton\.textContent = '🕘 History'/u);
   assert.match(source, /openPop\(anchor, 360\)/u);
-  assert.match(source, /'↩ ここまで戻す'/u);
+  assert.match(source, /'↩ Restore to here'/u);
 });
 
 test('復元後は共有 undo スタックを clear して通知する', () => {
   assert.match(source, /restoreEditHistory\([\s\S]*this\.historyService\.clear\(\)/u);
-  assert.match(source, /取り消し履歴はリセットされました/u);
+  assert.match(source, /The undo history was reset/u);
 });
 
 test('push フックは snapshot RPC の失敗を警告だけにする', () => {

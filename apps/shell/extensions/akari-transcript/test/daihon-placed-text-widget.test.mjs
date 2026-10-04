@@ -165,7 +165,7 @@ test('範囲変更/全体/削除は各 1 手で undo・redo。timeDomain を書�
     await instance.editPlacedText('p2', 'all', '全体');
     assert.equal(entries.length, 2);
     assert.deepEqual([calls[1].start, calls[1].end], [0, 31]);
-    await instance.editPlacedText('p2', 'delete', '削除');
+    await instance.editPlacedText('p2', 'delete', 'Delete');
     assert.equal(entries.length, 3);
     assert.equal(instance.sourceCaptions.some(item => item.id === 'p2'), false);
     await entries[2].undo();
@@ -197,7 +197,7 @@ test('札の右クリックメニューは数字の操作を持たず、カー�
   });
   try {
     instance.openPlacedMenu('p2');
-    assert.deepEqual(pop.children.map(button => button.textContent), ['全部の行に', '削除']);
+    assert.deepEqual(pop.children.map(button => button.textContent), ['On every line', 'Delete']);
     pop.children[0].onclick({ stopPropagation() {} });
     pop.children[1].onclick({ stopPropagation() {} });
     assert.deepEqual(actions, [['all', 'p2'], ['delete', 'p2']]);
@@ -235,7 +235,7 @@ test('札のインライン編集は Enter で確定、Esc で取消し、空文
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(calls[0].text, '直した文字');
     assert.equal(calls[0].captionId, 'p2');
-    assert.deepEqual(histories, ['置いた文字: 文字を編集']);
+    assert.deepEqual(histories, ['Placed text: edit text']);
 
     instance.startPlacedEdit('p2');
     const cancel = instance.placedEditing.input;
@@ -251,7 +251,7 @@ test('札のインライン編集は Enter で確定、Esc で取消し、空文
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(calls.length, 1);
     assert.equal(histories.length, 1);
-    assert.ok(notices.some(message => message.includes('空にできません')));
+    assert.ok(notices.some(message => message.includes('cannot be empty')));
   } finally {
     if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument;
     if (oldCss === undefined) delete globalThis.CSS; else globalThis.CSS = oldCss;
@@ -264,7 +264,7 @@ test('札の行移動は setCaptionTiming を 1 履歴で呼び timeDomain を�
     annotationsService: { async setCaptionTiming(request) { calls.push(request); } }
   });
   await instance.movePlacedText('p2', { start: 16, end: 27 });
-  assert.deepEqual(histories, ['置いた文字: 行を移動']);
+  assert.deepEqual(histories, ['Placed text: Move line']);
   assert.equal(calls.length, 1);
   assert.deepEqual([calls[0].start, calls[0].end], [16, 27]);
   assert.equal(Object.hasOwn(calls[0], 'timeDomain'), false);
@@ -302,7 +302,7 @@ test('札の選択は同じドックの文字タブを表示する', () => {
   try {
     instance.renderPlacedEditor(instance.placedRanges().find(range => range.captionId === 'p2'));
     assert.deepEqual(tabs.children.map(button => button.dataset.dockTab), ['text', 'template', 'look', 'anim']);
-    assert.equal(body.children.at(-1).textContent, '範囲は左の棒の両端を引いて変えます');
+    assert.equal(body.children.at(-1).textContent, 'Drag both ends of the bar on the left to change the range');
     assert.equal(editor.dataset.captionId, 'p2');
   } finally { if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument; }
 });
@@ -375,10 +375,10 @@ test('ドックの「すべて」は先頭にテンプレなしを表示して�
   try {
     instance.renderDockTemplates(['r1']);
     const grid = body.children[1];
-    assert.equal(grid.children[0].textContent, 'テンプレなし');
+    assert.equal(grid.children[0].textContent, 'No preset');
     assert.equal(grid.children[0].dataset.presetId, '');
     grid.children[0].listeners.click();
-    assert.deepEqual(applied, [[['r1'], null, 'テンプレなし', true]]);
+    assert.deepEqual(applied, [[['r1'], null, 'No preset', true]]);
   } finally { if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument; }
 });
 
@@ -411,13 +411,13 @@ test('見た目の色は選択印と説明を持つ四角い swatch', () => {
     const white = ink.children.find(node => node.dataset.lookValue === '#ffffff');
     assert.equal(white.textContent, undefined);
     assert.equal(white.style.backgroundColor, '#ffffff');
-    assert.equal(white.attributes['aria-label'], '文字色: #ffffff');
+    assert.equal(white.attributes['aria-label'], 'Text color: #ffffff');
     assert.equal(white.classList.contains('selected'), true);
     assert.equal(plate.dataset.lookField, 'background');
     const none = plate.children.find(node => node.dataset.lookValue === 'none');
     assert.equal(none.classList.contains('none'), true);
     assert.equal(none.classList.contains('selected'), true);
-    assert.equal(none.attributes['aria-label'], '座布団の色: なし');
+    assert.equal(none.attributes['aria-label'], 'Background color: None');
   } finally { if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument; }
   const source = readFileSync(new URL('../src/browser/daihon/akari-daihon-widget.ts', import.meta.url), 'utf8');
   assert.match(source, /button\.akari-daihon-look-swatch \{[^}]*width:20px; height:20px/);
@@ -563,7 +563,7 @@ test('つまみのドラッグ中は仮描画し、離したときだけ 1 回�
     assert.equal(calls.length, 0);
     instance.handlePlacedEdgeUp({ pointerId: 7, type: 'pointerup' });
     await new Promise(resolve => setImmediate(resolve));
-    assert.deepEqual(histories, ['置いた文字: 範囲を変更']);
+    assert.deepEqual(histories, ['Placed text: Change range']);
     assert.equal(calls.length, 1);
     assert.deepEqual([calls[0].start, calls[0].end], [4, 19]);
     assert.equal(Object.hasOwn(calls[0], 'timeDomain'), false);
@@ -625,8 +625,8 @@ test('添付の札は全体・複数行・1 行の接尾辞を出し、同名 ca
     const nodes = [...roots.values()].flatMap(({ root }) => descendants(root));
     const tagText = id => nodes.find(node => node.dataset.attachmentId === id && node.className?.includes('attachment-tag'))
       .children.find(node => node.tag === 'span' && node.className !== 'akari-daihon-attachment-icon').textContent;
-    assert.equal(tagText('p1'), 'ロゴ · 全体');
-    assert.equal(tagText('band'), '下帯 · 3 行');
+    assert.equal(tagText('p1'), 'ロゴ · whole');
+    assert.equal(tagText('band'), '下帯 · 3 lines');
     assert.equal(tagText('image'), 'beans.png');
     const row = descendants(roots.get('r2').root);
     const textBar = row.find(node => node.className === 'akari-daihon-placed-bar' && node.dataset.captionId === 'p1');
@@ -667,7 +667,7 @@ test('添付の移動は v2 snapshot API と 1 手の履歴を使う', async () 
     annotationsService: { async writeEditSnapshot(request) { calls.push(request); } }
   });
   await instance.writeAttachmentTiming('band', 240, 480, '範囲を変更');
-  assert.deepEqual(histories, ['添付: 範囲を変更']);
+  assert.deepEqual(histories, ['Attachments: 範囲を変更']);
   assert.equal(calls.length, 1);
   assert.deepEqual(JSON.parse(calls[0].editSource).tracks[0].items[0],
     { id: 'band', at: 240, duration: 480, source: { kind: 'html', path: 'band.html' } });
@@ -708,7 +708,7 @@ test('行の選択は帯を作らず、ドックのヘッダーと解除を更�
     assert.equal(descendants(node).filter(child => child.className === 'akari-daihon-selbar').length, 0);
     instance.dockTab = 'time';
     instance.setSelection({ selected: ['r1', 'r2', 'r3'], anchorId: 'r1' }, false);
-    assert.equal(title.textContent, '3 行を選択中');
+    assert.equal(title.textContent, '3 lines selected');
     assert.equal(instance.dockTab, 'time');
     assert.equal(descendants(node).filter(child => child.className === 'akari-daihon-selbar').length, 0);
     instance.dismissDock();
@@ -727,7 +727,7 @@ test('行の選択は帯を作らず、ドックのヘッダーと解除を更�
   }
   const source = readFileSync(new URL('../src/browser/daihon/akari-daihon-widget.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /akari-daihon-selbar|selectionBar\s*=|selectionCount\s*=/);
-  assert.match(source, /this\.dockSelectionHint\.textContent = 'Shift=範囲 \/ ⌘=追加'/);
+  assert.match(source, /this\.dockSelectionHint\.textContent = 'Shift=range \/ ⌘=add'/);
   assert.match(source, /dockClose\.addEventListener\('click', \(\) => this\.dismissDock\(\)\)/);
   assert.match(source, /if \(this\.selection\.selected\.length && !this\.dockKind\) this\.openRowDock\('template'\)/);
 });
@@ -760,11 +760,11 @@ test('複数行の右クリックは選択を保ち、結合・発話・カッ�
     assert.deepEqual(menu.children.map(button => button.dataset.rowAction),
       ['cut', 'merge-selected', 'speech-tight']);
     const action = (name, current = menu) => current.children.find(button => button.dataset.rowAction === name);
-    assert.equal(action('cut').textContent, '選択行をカット');
-    assert.equal(action('merge-selected').textContent, '選択行を結合');
+    assert.equal(action('cut').textContent, 'Cut selected lines');
+    assert.equal(action('merge-selected').textContent, 'Merge selected lines');
     assert.equal(action('merge-selected').disabled, false);
-    assert.equal(action('speech-tight').textContent, '発話にぴったり');
-    assert.equal(action('speech-tight').title, '選択行の字幕を語の発話区間だけ表示する');
+    assert.equal(action('speech-tight').textContent, 'Tight to speech');
+    assert.equal(action('speech-tight').title, 'Show selected lines only while the words are spoken');
     action('speech-tight').listeners.click({ stopPropagation() {} });
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(calls.fields.map(request => [request.captionId, request.displayTiming]),
@@ -772,18 +772,18 @@ test('複数行の右クリックは選択を保ち、結合・発話・カッ�
     menu = open(); action('cut', menu).listeners.click({ stopPropagation() {} });
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(calls.cuts.length, 1);
-    assert.equal(calls.cuts[0].label, '選択行を映像ごとカット');
+    assert.equal(calls.cuts[0].label, 'Cut selected lines from the video');
     menu = open(); action('merge-selected', menu).listeners.click({ stopPropagation() {} });
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(calls.merge, [rows.map(row => row.id)]);
-    assert.ok(histories.includes('字幕を結合'));
+    assert.ok(histories.includes('Merge captions'));
     const separated = widget({ rows: widget().rows.slice(1, 5),
       selection: { selected: ['r1', 'r3'], anchorId: 'r1' }, closePop() {},
       setSelection(next) { this.selection = next; } });
     separated.openRowMenu({ clientX: 40, clientY: 50 }, separated.rows[0]);
     const disabled = menus.at(-1).children.find(button => button.dataset.rowAction === 'merge-selected');
     assert.equal(disabled.disabled, true);
-    assert.match(disabled.title, /離れた行/);
+    assert.match(disabled.title, /apart/);
   } finally {
     if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument;
     if (oldWindow === undefined) delete globalThis.window; else globalThis.window = oldWindow;

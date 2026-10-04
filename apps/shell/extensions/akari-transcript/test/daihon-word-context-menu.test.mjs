@@ -5,8 +5,8 @@ const groups = wordContextMenuGroups({ rangeCount: 2, wordCount: 4, text: '選�
   splitAvailable: false, mergeAvailable: false,
   mergeNextAvailable: true, wordInsertAvailable: false, itemCaptionsAvailable: false });
 test('declares operation groups in order and multi-range heading', () => {
-  assert.deepEqual(groups.map(group => group.title), ['2 範囲を一括「選択」', '挿入', '行', 'マーク']);
-  assert.match(groups[0].title, /2 範囲を一括/); assert.equal(groups[3].colors.length, 6);
+  assert.deepEqual(groups.map(group => group.title), ['2 ranges at once: "選択"', 'Insert', 'Line', 'Mark']);
+  assert.match(groups[0].title, /2 ranges at once/); assert.equal(groups[3].colors.length, 6);
 });
 test('declares insertion placeholders and next-row merge action', () => {
   assert.equal(groups[1].items.filter(item => item.action?.kind === 'coming-soon').length, 4);

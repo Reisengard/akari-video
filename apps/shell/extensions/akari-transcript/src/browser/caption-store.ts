@@ -78,7 +78,7 @@ export { replaceCaptionLine } from '@akari-video/edit-store/lib/caption-line-ops
 
 export function replaceCaptionDisplayTextLine(source: string, captionId: string, text: string): string {
     if (!captionId) {
-        throw new Error('字幕の識別情報がありません。');
+        throw new Error('This caption has no id.');
     }
     const lines = source.match(/.*(?:\r\n|\n|$)/g)?.filter(line => line.length > 0) ?? [];
     let matches = 0;
@@ -89,7 +89,7 @@ export function replaceCaptionDisplayTextLine(source: string, captionId: string,
         }
         matches++;
         if (!/"display_text"\s*:\s*"(?:\\.|[^"\\])*"/.test(line)) {
-            throw new Error(`字幕 ${captionId} に整文（display_text）がありません。`);
+            throw new Error(`Caption ${captionId} has no cleaned text (display_text).`);
         }
         return line.replace(
             /("display_text"\s*:\s*)"(?:\\.|[^"\\])*"/,
@@ -98,8 +98,8 @@ export function replaceCaptionDisplayTextLine(source: string, captionId: string,
     }).join('');
     if (matches !== 1) {
         throw new Error(matches === 0
-            ? `字幕 ${captionId} が字幕データにありません。`
-            : `字幕 ${captionId} が字幕データに複数あります。`);
+            ? `Caption ${captionId} is missing from the caption data.`
+            : `Caption ${captionId} appears more than once in the caption data.`);
     }
     return updated;
 }
@@ -112,7 +112,7 @@ export function replaceCaptionDisplayTextLine(source: string, captionId: string,
  */
 export function removeCaptionWordsLine(source: string, captionId: string): string {
     if (!captionId) {
-        throw new Error('字幕の識別情報がありません。');
+        throw new Error('This caption has no id.');
     }
     const lines = source.match(/.*(?:\r\n|\n|$)/g)?.filter(line => line.length > 0) ?? [];
     let matches = 0;
@@ -125,7 +125,7 @@ export function removeCaptionWordsLine(source: string, captionId: string): strin
         const openIndex = line.indexOf('{');
         const closeIndex = line.lastIndexOf('}');
         if (openIndex < 0 || closeIndex < openIndex) {
-            throw new Error(`字幕 ${captionId} の1行形式を確認できません。`);
+            throw new Error(`Could not confirm that caption ${captionId} is in single-line format.`);
         }
         const record = JSON.parse(line.slice(openIndex, closeIndex + 1)) as Record<string, unknown>;
         if (record.words === undefined) {
@@ -136,8 +136,8 @@ export function removeCaptionWordsLine(source: string, captionId: string): strin
     }).join('');
     if (matches !== 1) {
         throw new Error(matches === 0
-            ? `字幕 ${captionId} が字幕データにありません。`
-            : `字幕 ${captionId} が字幕データに複数あります。`);
+            ? `Caption ${captionId} is missing from the caption data.`
+            : `Caption ${captionId} appears more than once in the caption data.`);
     }
     return updated;
 }
@@ -167,11 +167,11 @@ export interface CaptionLineOpsOptions {
     displayTextIds?: ReadonlySet<string>;
 }
 
-const EMPTY_LINE_NOTICE = '空の行は字幕になりません。文字を入れると保存します。';
-const SPLIT_TOO_SHORT_NOTICE = 'この行は短すぎて分割できません。';
-const INSERT_NO_GAP_NOTICE = 'ここには字幕を追加できません（前後に隙間がありません）。';
-const MERGE_STYLE_LOST_NOTICE = '結合したため 2 行目以降のスタイル指定は失われました。';
-const UNREADABLE_RECORD_NOTICE = 'この行の字幕データを解釈できないため、この操作は保存しません。';
+const EMPTY_LINE_NOTICE = 'An empty line is not a caption. Add text to save it.';
+const SPLIT_TOO_SHORT_NOTICE = 'This line is too short to split.';
+const INSERT_NO_GAP_NOTICE = 'Cannot add a caption here (no gap before or after).';
+const MERGE_STYLE_LOST_NOTICE = 'Style settings from the second line onward were dropped by the merge.';
+const UNREADABLE_RECORD_NOTICE = 'Could not read the caption data for this row, so this edit was not saved.';
 
 /**
  * diffCaptionLines が返した操作列を captions.json 本文へ適用する
@@ -409,7 +409,7 @@ function extractCaptionRecords(value: unknown): { records: unknown[]; shape: Cap
             }
         };
     }
-    throw new Error('字幕データの形式を確認できません。');
+    throw new Error('Could not read the caption data.');
 }
 
 export function parseCaptions(source: string): {
@@ -424,11 +424,11 @@ export function parseCaptions(source: string): {
     for (let index = 0; index < records.length; index++) {
         const caption = normalizeCaption(records[index]);
         if (!caption) {
-            warnings.push(`${index + 1} 番目の字幕は時刻または内容が不正なため表示しません。`);
+            warnings.push(`Caption ${index + 1} was hidden because its time or text is invalid.`);
             continue;
         }
         if (seenIds.has(caption.id)) {
-            warnings.push(`字幕 ${caption.id} が重複しているため、後の行は表示しません。`);
+            warnings.push(`Caption ${caption.id} is duplicated, so later rows are hidden.`);
             continue;
         }
         seenIds.add(caption.id);
@@ -440,7 +440,7 @@ export function parseCaptions(source: string): {
 export function regenerateCaptions(analysisSource: string, existingSource?: string): RegenerationResult {
     const analysis = JSON.parse(analysisSource);
     if (!Array.isArray(analysis?.transcript)) {
-        throw new Error('文字起こしの内容がありません。');
+        throw new Error('The transcript has no text.');
     }
 
     const warnings: string[] = [];
@@ -450,7 +450,7 @@ export function regenerateCaptions(analysisSource: string, existingSource?: stri
         if (segment) {
             segments.set(index, segment);
         } else {
-            warnings.push(`${index + 1} 番目の文字起こしは時刻または内容が不正なため使いません。`);
+            warnings.push(`Transcript line ${index + 1} was skipped because its time or text is invalid.`);
         }
     }
 
@@ -463,13 +463,13 @@ export function regenerateCaptions(analysisSource: string, existingSource?: stri
         } catch (error) {
             throw error instanceof SyntaxError
                 ? error
-                : new Error('既存の字幕データの形式を確認できません。');
+                : new Error('Could not read the existing caption data.');
         }
         for (let index = 0; index < records.length; index++) {
             const value = records[index];
             const caption = normalizeCaptionForRegeneration(value);
             if (!caption) {
-                warnings.push(`既存の ${index + 1} 番目の字幕は時刻または内容が不正なため使いません。`);
+                warnings.push(`Existing caption ${index + 1} was skipped because its time or text is invalid.`);
                 continue;
             }
             existing.push(caption);
@@ -543,7 +543,7 @@ export function regenerateCaptions(analysisSource: string, existingSource?: stri
 
     for (const caption of [...bySegment.values(), ...unpaired]) {
         if (caption.sourceRef !== null) {
-            warnings.push(`字幕 ${caption.id} の元の文字起こしが見つからないため、ID と内容を保持しました。`);
+            warnings.push(`Caption ${caption.id} kept its id and text because the original transcript was not found.`);
         }
         captions.push({ ...caption, sourceRef: null });
     }

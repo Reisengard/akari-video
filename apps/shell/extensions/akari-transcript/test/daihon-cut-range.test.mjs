@@ -228,13 +228,13 @@ test('空の波形は空配列', () => assert.deepEqual(resampleCutRangePeaks([]
 test('出力数が 0 以下なら空配列', () => assert.deepEqual(resampleCutRangePeaks([1], { start: 0, end: 1 }, { start: 0, end: 1 }, 0), []));
 test('ソース幅が 0 なら空配列', () => assert.deepEqual(resampleCutRangePeaks([1], { start: 1, end: 1 }, { start: 0, end: 1 }, 1), []));
 
-test('無音の正の残しは従来どおり残す秒数を表示する', () => assert.equal(cutRangeReadout(silence, { from: 1.15, to: 1.6 }), '切る 0.45 秒 · 残す 0.15 秒 · 1.15–1.60'));
-test('無音の頭より前へ出た範囲は食い込み秒数を表示する', () => assert.equal(cutRangeReadout(silence, { from: 0.6, to: 2 }), '切る 1.40 秒 · 食い込み 0.40 秒 · 0.60–2.00'));
-test('無音の頭ちょうどは負のゼロにせず残す 0.00 秒を表示する', () => assert.equal(cutRangeReadout(silence, { from: 1, to: 1.5 }), '切る 0.50 秒 · 残す 0.00 秒 · 1.00–1.50'));
-test('語の読み値には切る秒数だけが入る', () => assert.equal(cutRangeReadout(word, { from: 1.23, to: 1.68 }), '切る 0.45 秒 · 1.23–1.68'));
+test('無音の正の残しは従来どおり残す秒数を表示する', () => assert.equal(cutRangeReadout(silence, { from: 1.15, to: 1.6 }), 'Cut 0.45 sec · keep 0.15 sec · 1.15–1.60'));
+test('無音の頭より前へ出た範囲は食い込み秒数を表示する', () => assert.equal(cutRangeReadout(silence, { from: 0.6, to: 2 }), 'Cut 1.40 sec · overlaps words by 0.40 sec · 0.60–2.00'));
+test('無音の頭ちょうどは負のゼロにせず残す 0.00 秒を表示する', () => assert.equal(cutRangeReadout(silence, { from: 1, to: 1.5 }), 'Cut 0.50 sec · keep 0.00 sec · 1.00–1.50'));
+test('語の読み値には切る秒数だけが入る', () => assert.equal(cutRangeReadout(word, { from: 1.23, to: 1.68 }), 'Cut 0.45 sec · 1.23–1.68'));
 test('語を渡した読み値は食い込みを表示する', () => assert.equal(
     cutRangeReadout(silence, { from: 0.9, to: 1.12 }, [{ text: '前', start: 0.8, end: 1 }]),
-    '切る 0.22 秒 · 食い込み 0.10 秒 · 0.90–1.12 · 語に食い込み 0.10 秒'
+    'Cut 0.22 sec · overlaps words by 0.10 sec · 0.90–1.12 · overlaps words by 0.10 sec'
 ));
 
 test('オーナー実データで窓全体を動かせ、無音末尾へ吸着する', async () => {
@@ -251,15 +251,15 @@ test('オーナー実データで窓全体を動かせ、無音末尾へ吸着�
     assert.equal(moveCutRangeEdge(selection, 'to', 11.1, bounds).to, 11.1);
     const detected = silenceRaw.silences.map(([start, end]) => ({ start, end }));
     assert.equal(cutRangeWordIntrusion(selection, words, detected), 0);
-    assert.doesNotMatch(cutRangeReadout(target, selection, words, detected), /語に食い込み/u);
+    assert.doesNotMatch(cutRangeReadout(target, selection, words, detected), /overlaps words by/u);
     assert.equal(cutRangeWordIntrusion({ from: 8.7, to: 11.9 }, words, detected), 0.54);
-    assert.match(cutRangeReadout(target, { from: 8.7, to: 11.9 }, words, detected), /語に食い込み 0\.54 秒/u);
+    assert.match(cutRangeReadout(target, { from: 8.7, to: 11.9 }, words, detected), /overlaps words by 0\.54 sec/u);
     assert.ok(cutRangeWordIntrusion(selection, words) > 0);
     const magnets = cutRangeMagnets(detected, words);
     assert.deepEqual(snapToMagnet(11.25, magnets), { seconds: 11.3, magnet: { seconds: 11.3, kind: 'silence' } });
     assert.deepEqual(snapToMagnet(11.25, magnets, 0.08, true), { seconds: 11.25, magnet: null });
     assert.deepEqual(snapToMagnet(11.1, magnets), { seconds: 11.1, magnet: null });
-    assert.match(cutRangeReadout(target, { from: 8.7, to: 11.25 }, words), /語に食い込み/u);
+    assert.match(cutRangeReadout(target, { from: 8.7, to: 11.25 }, words), /overlaps words by/u);
 });
 test('秒から比率への変換は範囲内で往復する', () => assert.equal(cutRangeTime(cutRangeRatio(2, { start: 1, end: 3 }), { start: 1, end: 3 }), 2));
 test('秒から比率への変換は 0..1 に収める', () => assert.deepEqual([-1, 4].map(value => cutRangeRatio(value, { start: 1, end: 3 })), [0, 1]));

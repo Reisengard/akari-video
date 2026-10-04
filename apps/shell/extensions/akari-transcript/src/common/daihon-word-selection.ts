@@ -84,6 +84,6 @@ export function wordRangeSummary(rows: readonly DaihonWordRow[], ranges: readonl
         text: ranges.map(range => {
             const row = byId.get(range.row);
             return row ? row.words.slice(range.a, range.b + 1).map(word => word.text).join('') : '';
-        }).filter(Boolean).join('・')
+        }).filter(Boolean).join(', ')
     };
 }

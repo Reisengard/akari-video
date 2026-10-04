@@ -43,6 +43,6 @@ test('appends properties at sibling indentation and leaves the closing brace on 
 test('／自身が自動・手置き共通メニューを開き、行クリックと分離される', async () => {
   const source = await readFile(new URL('../src/browser/daihon/akari-daihon-widget.ts', import.meta.url), 'utf8');
   assert.match(source, /INTERACTIVE_SELECTOR[^;]+\.akari-daihon-slash/u);
-  assert.match(source, /✕ ここの区切りをやめる/u);
+  assert.match(source, /✕ Remove this break/u);
   assert.match(source, /freezeAndRemoveCaptionBoundary/u);
 });

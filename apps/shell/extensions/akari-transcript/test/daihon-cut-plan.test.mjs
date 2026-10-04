@@ -3,7 +3,7 @@ import test from 'node:test';
 import { clampRowCutRange, normalizeCutRanges } from '../lib/common/daihon-cut-plan.js';
 
 const row = (id, start, end) => ({ id, start, end });
-const cut = (inside, extra = {}) => ({ in: inside[0], out: inside[1], kind: 'row', captionId: 'a', label: '行', ...extra });
+const cut = (inside, extra = {}) => ({ in: inside[0], out: inside[1], kind: 'row', captionId: 'a', label: 'Line', ...extra });
 
 test('単独行へ前後 0.04 秒を足す', () => assert.deepEqual(clampRowCutRange(row('a', 1, 2)), cut([0.96, 2.04])));
 test('先頭行は 0 秒より前へ出さない', () => assert.equal(clampRowCutRange(row('a', 0.01, 1)).in, 0));
@@ -14,4 +14,4 @@ test('normalize は source 秒の降順へ並べる', () => assert.deepEqual(nor
 test('同じ属性の重なりレンジを結合する', () => assert.deepEqual(normalizeCutRanges([cut([1, 3]), cut([2, 4])]), [cut([1, 4])]));
 test('異なる kind の重なりは結合しない', () => assert.equal(normalizeCutRanges([cut([1, 3]), cut([2, 4], { kind: 'silence' })]).length, 2));
 test('異なる captionId の重なりは結合しない', () => assert.equal(normalizeCutRanges([cut([1, 3]), cut([2, 4], { captionId: 'b' })]).length, 2));
-test('不正レンジを拒否する', () => assert.throws(() => normalizeCutRanges([cut([2, 1])]), /不正/));
+test('不正レンジを拒否する', () => assert.throws(() => normalizeCutRanges([cut([2, 1])]), /invalid/));

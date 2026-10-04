@@ -1,9 +1,9 @@
 import type { TranscribeCuts } from 'akari-project/lib/common/akari-project-protocol';
 
-export const CUT_KIND_LABELS = { filler: 'フィラー', redo: '言い直し', silence: '無音', unrecognized: '未認識' };
+export const CUT_KIND_LABELS = { filler: 'Filler', redo: 'Retake', silence: 'Silence', unrecognized: 'Unrecognized' };
 export function cutsViewNotice(hasRoot: boolean, error?: unknown): string {
     if (error !== undefined) return String(error);
-    return hasRoot ? '' : 'edit.json のあるプロジェクトを開いてください';
+    return hasRoot ? '' : 'Open a project that has edit.json';
 }
 export function cutsSummary(cuts: TranscribeCuts | null): { count: number; seconds: number; kinds: Record<string, number> } {
     const candidates = cuts?.candidates ?? [];
@@ -20,7 +20,7 @@ export function handEditedLines(cuts: TranscribeCuts | null): number[] {
     return [...new Set((cuts?.hand_edited ?? []).map(item => item.line).filter(line => Number.isInteger(line) && line > 0))];
 }
 export function cutsJumpButtonLabel(cuts: TranscribeCuts | null): string {
-    return `カット候補へ（${cutsSummary(cuts).count} / ${cuts?.candidates.length ?? 0}）`;
+    return `To cut candidates (${cutsSummary(cuts).count} / ${cuts?.candidates.length ?? 0})`;
 }
 export function isHandEditedCandidate(cuts: TranscribeCuts | null, id: string): boolean {
     return !!cuts?.hand_edited?.some(item => item.candidate === id);

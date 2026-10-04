@@ -11,9 +11,9 @@ export function transcribeModeView(mode: unknown, alreadyTranscribed: boolean, _
     const advanced = mode === 'advanced';
     return {
         steps: advanced, compareToggle: advanced, radar: advanced,
-        buttons: advanced ? (alreadyTranscribed ? ['このまま字幕へ', '起こし直す', '比べる'] : ['起こす ▸'])
-            : (alreadyTranscribed ? ['台本へ', '起こし直す'] : ['起こす']),
-        switchLink: advanced ? '簡単モードに戻す' : 'アドバンス（比較・差分）に切り替える'
+        buttons: advanced ? (alreadyTranscribed ? ['Continue to captions', 'Transcribe again', 'Compare'] : ['Transcribe ▸'])
+            : (alreadyTranscribed ? ['To the script', 'Transcribe again'] : ['Transcribe']),
+        switchLink: advanced ? 'Back to simple mode' : 'Switch to advanced (compare and diff)'
     };
 }
 
@@ -32,16 +32,16 @@ export function analysisTranscriptSummary(analysis: unknown): string | undefined
     const transcript = Array.isArray(value.transcript) ? value.transcript : undefined;
     const hasTranscript = !!transcript;
     if (!timestamp && !backend && !hasTranscript) return undefined;
-    return `${timestamp ?? '日時不明'} · ${backend ?? 'エンジン不明'} · ${transcript?.length ?? 0} 行`;
+    return `${timestamp ?? 'Unknown date'} · ${backend ?? 'Unknown engine'} · ${transcript?.length ?? 0} lines`;
 }
 
 /** Keep artifact timestamps verbatim so the summary is independent of locale/timezone. */
 export function transcribeSummary(artifacts: Pick<TranscribeArtifacts, 'transcripts' | 'diff'>,
     alreadyTranscribed = false, fallback?: string): string[] {
     const lines = artifacts.transcripts.map(transcript =>
-        `${transcript.generated_at || '日時不明'} · ${transcript.backend || 'エンジン不明'} · ${transcript.segments.length} 行`);
-    if (!lines.length && alreadyTranscribed) lines.push(fallback ?? '文字起こし済み · 日時・エンジン・行数の記録なし');
-    if (lines.length || artifacts.diff) lines.push(`比べる組: ${artifacts.diff?.engines.length ? artifacts.diff.engines.join(' / ') : 'なし'}`);
+        `${transcript.generated_at || 'Unknown date'} · ${transcript.backend || 'Unknown engine'} · ${transcript.segments.length} lines`);
+    if (!lines.length && alreadyTranscribed) lines.push(fallback ?? 'Transcribed · no record of date, engine, or line count');
+    if (lines.length || artifacts.diff) lines.push(`Compare set: ${artifacts.diff?.engines.length ? artifacts.diff.engines.join(' / ') : 'None'}`);
     return lines;
 }
 
@@ -112,27 +112,27 @@ export interface TranscribeAvailability {
 }
 export function transcribeEngineAvailability(backend: string, tools: readonly TranscribeToolStatus[],
     connections: readonly TranscribeConnectionStatus[]): TranscribeAvailability {
-    const ready = (): TranscribeAvailability => ({ state: 'available', label: '使える', needs: [] });
-    const needs = (items: string[]): TranscribeAvailability => ({ state: 'needs', label: `準備が要る（${items.join('・')}）`, needs: items });
+    const ready = (): TranscribeAvailability => ({ state: 'available', label: 'Available', needs: [] });
+    const needs = (items: string[]): TranscribeAvailability => ({ state: 'needs', label: `Setup required (${items.join(', ')})`, needs: items });
     if (backend.startsWith('cloud:')) {
         const providerId = backend === 'cloud:scribe' ? 'elevenlabs' : backend.slice(6);
         const connection = connections.find(row => row.id === providerId);
-        if (!connection) { return needs(['接続状況を確認できませんでした']); }
+        if (!connection) { return needs(['Could not check the connection']); }
         if (!connection.configured || connection.doctor.status === 'unconfigured') {
-            return { state: 'unconfigured', label: '鍵が未登録', needs: [] };
+            return { state: 'unconfigured', label: 'No key registered', needs: [] };
         }
         if (connection.doctor.status === 'ok') { return ready(); }
-        return needs([connection.doctor.status === 'unauthorized' ? '鍵の接続確認に失敗' : '接続確認が必要']);
+        return needs([connection.doctor.status === 'unauthorized' ? 'The key failed its connection check' : 'Connection check required']);
     }
     const tool = tools.find(row => row.id === (backend === 'whisper-cpp' ? 'whisper' : backend));
-    if (!tool) { return needs(['道具の状態を確認できませんでした']); }
-    if (tool.unsupported) { return { state: 'unsupported', label: 'この OS では使えない', needs: tool.needs ?? [] }; }
+    if (!tool) { return needs(['Could not check the tool status']); }
+    if (tool.unsupported) { return { state: 'unsupported', label: 'Not available on this OS', needs: tool.needs ?? [] }; }
     if (tool.available) { return ready(); }
     if (tool.needs?.length) { return needs(tool.needs); }
     if (backend === 'whisper-cpp') {
-        return needs([...(!tool.executable ? ['本体が無い'] : []), ...(!tool.model?.available ? ['モデルが無い'] : [])]);
+        return needs([...(!tool.executable ? ['Program missing'] : []), ...(!tool.model?.available ? ['Model missing'] : [])]);
     }
-    return needs(['利用条件の確認が必要']);
+    return needs(['Accept the terms to continue']);
 }
 
 export interface TranscribeEngineItem {
@@ -150,12 +150,12 @@ export function transcribeEngineList(cards: readonly { id: string; label: string
     preferredBackend: string): TranscribeEngineItem[] {
     const preferred = initialEngineSelection(preferredBackend, []).backend;
     const known = preferred === 'auto' || cards.some(card => card.id === preferred);
-    const items: TranscribeEngineItem[] = [{ id: 'auto', label: 'おまかせ（ローカル優先）', place: 'ローカル優先', price: '無料',
-        availability: { state: 'available', label: '使える' }, hourlyUsd: 0, ...(!known || preferred === 'auto' ? { default: true as const } : {}) }];
+    const items: TranscribeEngineItem[] = [{ id: 'auto', label: 'Automatic (prefer local)', place: 'Prefer local', price: 'Free',
+        availability: { state: 'available', label: 'Available' }, hourlyUsd: 0, ...(!known || preferred === 'auto' ? { default: true as const } : {}) }];
     for (const card of cards) {
         const availability = transcribeEngineAvailability(card.id, tools, connections);
         items.push({ id: card.id, label: card.label, place: card.place,
-            price: card.hourlyUsd ? `$${card.hourlyUsd.toFixed(2)} / 時` : '無料',
+            price: card.hourlyUsd ? `$${card.hourlyUsd.toFixed(2)} / hour` : 'Free',
             availability: { state: availability.state === 'available' ? 'available'
                 : availability.state === 'needs' ? 'needs' : 'unavailable', label: availability.label },
             hourlyUsd: card.hourlyUsd, ...(card.id === preferred ? { default: true as const } : {}) });
