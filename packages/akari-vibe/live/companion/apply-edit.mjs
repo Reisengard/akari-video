@@ -36,7 +36,7 @@ export async function sendApplyEdit(input, link, { rebuild, sleep = ms => new Pr
             log(`companion applyEdit ${result.error}`); task('[要確認] companion の編集指示が不正');
         } else if (result.error === 'busy') task('[要確認] companion が処理中のため編集できない');
         else if (result.error === 'stale-session') log('companion applyEdit stale-session');
-        else if (['not-connected', 'timeout'].includes(result.error)) banner(result.error === 'timeout' ? 'シェルから応答がありません' : 'シェルに接続されていません');
+        else if (['not-connected', 'timeout'].includes(result.error)) banner(result.error === 'timeout' ? 'The shell did not respond' : 'Not connected to the shell');
         else log(`companion applyEdit ${result.error ?? 'unknown-error'}`);
         return { ok: false, result, input: current };
     }

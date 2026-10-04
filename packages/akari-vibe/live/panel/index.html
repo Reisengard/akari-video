@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AKARI バイブ</title>
+<title>AKARI Vibe</title>
 <style>
   :root {
     color-scheme: dark;
@@ -291,34 +291,34 @@
 </style>
 </head>
 <body>
-<main id="panel" class="panel" aria-label="AKARI バイブ" data-testid="panel-root">
+<main id="panel" class="panel" aria-label="AKARI Vibe" data-testid="panel-root">
   <div id="mainbar" class="mainbar">
-    <button id="mic" class="mic off" type="button" aria-label="AKARI バイブ" title="止まっています（押すと始める）">
+    <button id="mic" class="mic off" type="button" aria-label="AKARI Vibe" title="Stopped (click to start)">
       <span class="orb" aria-hidden="true"></span>
     </button>
     <div class="summary">
       <div id="heard" class="heard" data-testid="heard"></div>
       <div class="outcome-row">
-        <div id="outcome" class="outcome">待機中</div>
-        <span id="state" class="state" hidden>待機</span>
+        <div id="outcome" class="outcome">Idle</div>
+        <span id="state" class="state" hidden>Idle</span>
       </div>
     </div>
   </div>
   <div id="setup-banner" class="setup-banner" role="status" hidden><span id="setup-message"></span><button id="setup-action" type="button" hidden></button></div>
   <section class="content">
     <div class="toolbar">
-      <button id="history-toggle" class="plain-button" type="button" aria-expanded="false">履歴 <span id="history-count">0</span></button>
-      <button id="details-toggle" class="plain-button" type="button" aria-expanded="false" aria-label="くわしく">⋯</button>
+      <button id="history-toggle" class="plain-button" type="button" aria-expanded="false">History <span id="history-count">0</span></button>
+      <button id="details-toggle" class="plain-button" type="button" aria-expanded="false" aria-label="Details">⋯</button>
       <span class="spacer"></span>
-      <span id="mic-note" class="status-note">聞き取り停止中</span>
+      <span id="mic-note" class="status-note">Listening is off</span>
     </div>
     <div id="delete-banner" class="delete-banner" data-testid="delete-banner" hidden></div>
     <section id="history-panel" class="subpanel" data-testid="history-panel" hidden>
-      <div class="panel-heading">履歴 <button id="undo-latest" class="plain-button" type="button">↶ 直前を戻す</button></div>
+      <div class="panel-heading">History <button id="undo-latest" class="plain-button" type="button">↶ Undo last</button></div>
       <div id="history-list" class="history-list"></div>
     </section>
     <section id="details-panel" class="subpanel" data-testid="details-panel" hidden>
-      <div class="panel-heading">くわしく</div>
+      <div class="panel-heading">Details</div>
       <div id="details" class="details"></div>
     </section>
   </section>
@@ -368,41 +368,41 @@
   // labels で人の言葉が届いたときはそれを優先する。届かない新しい
   // 内部 id は、そのまま見せずに意味の広い言葉へ落とす。
   const OPERATION_LABELS = Object.freeze({
-    none: '編集', split: '分割', delete: '削除', delete_item: '削除', scale: '大きさ',
-    move_time: 'タイミング', move_pos: '画面内の位置', color: '色', volume: '音量',
-    select: '選択', multi_select: '複数選択', edit_text: '文言', add_text: '文字入れ',
-    undo: '取り消し', redo: 'やり直し', repeat: 'もう一回',
-    item_opacity: '不透明度', item_rotate: '回転', item_duration: '長さ', item_blend: '重なり方',
-    playback_relative_seek: '再生位置', playback_relative_play: '再生', playback_relative_pause: '停止',
-    playback_relative_fit: '全体表示', playback_relative_loop: '繰り返し再生',
-    playback_relative_zoom_in: 'タイムラインを拡大', playback_relative_zoom_out: 'タイムラインを縮小',
-    cut_look_freeze: '止め絵', cut_look_transition: '切り替え', cut_look_transition_remove: '切り替えを外す',
-    audio_duck: '音量の自動調整', audio_fade: 'フェード', audio_mute: 'ミュート',
-    speed: '再生速度', text_style_preset: '文字スタイル', motion_keyframes: '動き',
-    followup_replies_listen: '聞き取り', shell_ui_open: 'パネルを開く'
+    none: 'Edit', split: 'Split', delete: 'Delete', delete_item: 'Delete', scale: 'Size',
+    move_time: 'Timing', move_pos: 'Position on screen', color: 'Color', volume: 'Volume',
+    select: 'Select', multi_select: 'Select multiple', edit_text: 'Edit text', add_text: 'Add text',
+    undo: 'Undo', redo: 'Redo', repeat: 'Again',
+    item_opacity: 'Opacity', item_rotate: 'Rotate', item_duration: 'Duration', item_blend: 'Blend',
+    playback_relative_seek: 'Playhead', playback_relative_play: 'Play', playback_relative_pause: 'Pause',
+    playback_relative_fit: 'Fit', playback_relative_loop: 'Loop',
+    playback_relative_zoom_in: 'Zoom in on the timeline', playback_relative_zoom_out: 'Zoom out on the timeline',
+    cut_look_freeze: 'Freeze frame', cut_look_transition: 'Transition', cut_look_transition_remove: 'Remove transition',
+    audio_duck: 'Auto volume', audio_fade: 'Fade', audio_mute: 'Mute',
+    speed: 'Speed', text_style_preset: 'Text style', motion_keyframes: 'Motion',
+    followup_replies_listen: 'Listen', shell_ui_open: 'Open panel'
   });
   const GRAMMAR_LABELS = Object.freeze({
-    'play.start': '再生', 'play.pause': '停止', 'mic.pause': '聞き取り停止', 'mic.resume': '聞き取り再開',
-    'history.repeat': 'もう一回', 'history.repeat-times': '指定回数だけくり返す', 'history.redo': 'やり直し',
-    'history.redo-as-undo': '取り消し', 'history.undo': '取り消し', 'seek.absolute-time': '時刻へ移動',
-    'seek.cut': 'カットへ移動', 'seek.first': '先頭へ移動', 'seek.last': '最後へ移動',
-    'seek.relative-back': '前へ移動', 'seek.relative-forward': '後ろへ移動',
-    'selected.move.pixels': '画面内の位置', 'selected.rotate.degrees': '回転',
-    'selected.scale.percent': '大きさ', 'selected.scale.multiplier': '大きさ'
+    'play.start': 'Play', 'play.pause': 'Pause', 'mic.pause': 'Stop listening', 'mic.resume': 'Resume listening',
+    'history.repeat': 'Again', 'history.repeat-times': 'Repeat a set number of times', 'history.redo': 'Redo',
+    'history.redo-as-undo': 'Undo', 'history.undo': 'Undo', 'seek.absolute-time': 'Move to a time',
+    'seek.cut': 'Move to a cut', 'seek.first': 'Move to the start', 'seek.last': 'Move to the end',
+    'seek.relative-back': 'Move backward', 'seek.relative-forward': 'Move forward',
+    'selected.move.pixels': 'Position on screen', 'selected.rotate.degrees': 'Rotate',
+    'selected.scale.percent': 'Size', 'selected.scale.multiplier': 'Size'
   });
   const VALUE_LABELS = Object.freeze({
-    none: 'なし', bigger: '大きく', smaller: '小さく', increase: '上げる', decrease: '下げる',
-    set: '指定する', left: '左へ', right: '右へ', up: '上へ', down: '下へ',
-    top_left: '左上へ', top_right: '右上へ', bottom_left: '左下へ', bottom_right: '右下へ',
-    earlier: '前へ', later: '後ろへ', clockwise: '右回り', counterclockwise: '左回り'
+    none: 'None', bigger: 'Bigger', smaller: 'Smaller', increase: 'Increase', decrease: 'Decrease',
+    set: 'Set', left: 'Left', right: 'Right', up: 'Up', down: 'Down',
+    top_left: 'Toward the top left', top_right: 'Toward the top right', bottom_left: 'Toward the bottom left', bottom_right: 'Toward the bottom right',
+    earlier: 'Earlier', later: 'Later', clockwise: 'Clockwise', counterclockwise: 'Counterclockwise'
   });
   const MISSING_LABELS = Object.freeze({
-    which_knob: 'どの値', direction: '方向', amount: '量', position: '位置', color: '色', target: '対象'
+    which_knob: 'Which value', direction: 'Direction', amount: 'Amount', position: 'Position', color: 'Color', target: 'Target'
   });
   const REJECT_LABELS = Object.freeze({
-    missing_arg: '値が足りません', low_confidence: '確信が足りません', no_op: 'この操作はまだ対応していません'
+    missing_arg: 'A value is missing', low_confidence: 'Not confident enough', no_op: 'This action is not supported yet'
   });
-  const RISK_LABELS = Object.freeze({ none: '変更なし', reversible: '戻せる編集', destructive: '削除を含む編集' });
+  const RISK_LABELS = Object.freeze({ none: 'No change', reversible: 'Reversible edit', destructive: 'Edit includes a delete' });
   const INTERNAL_TOKEN = /\b(?:[a-z][a-z0-9]*(?:_[a-z0-9]+)+|[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)+)\b/giu;
   const tidy = (value) => String(value ?? '').replace(INTERNAL_TOKEN, '').replace(/「\s*」/g, '').replace(/\s{2,}/g, ' ').trim();
   const providedLabel = (id, prefix = '', allowSame = false) => {
@@ -410,15 +410,15 @@
     if (raw == null || (!allowSame && (String(raw) === String(id) || String(raw) === `${prefix}${id}`))) return null;
     return tidy(raw) || null;
   };
-  const operationLabel = (id) => providedLabel(id, 'op:') ?? OPERATION_LABELS[id] ?? '編集';
-  const grammarLabel = (id) => GRAMMAR_LABELS[id] ?? '操作';
+  const operationLabel = (id) => providedLabel(id, 'op:') ?? OPERATION_LABELS[id] ?? 'Edit';
+  const grammarLabel = (id) => GRAMMAR_LABELS[id] ?? 'Action';
   const targetLabel = (id) => {
     if (id == null || id === '' || id === 'none') return null;
-    return providedLabel(id, '', true) ?? '対象';
+    return providedLabel(id, '', true) ?? 'Target';
   };
   const seekLabel = (id) => {
     if (id == null || id === '' || id === 'none') return null;
-    return providedLabel(id) ?? '移動先';
+    return providedLabel(id) ?? 'Destination';
   };
   const valueLabel = (id) => {
     if (id == null || id === '' || id === 'none' || id === '—') return null;
@@ -440,8 +440,8 @@
       return await response.json();
     } catch (error) {
       expand();
-      outcome.textContent = `通信できません: ${error.message}`;
-      setState('保留', 'hold');
+      outcome.textContent = `Cannot reach the service: ${error.message}`;
+      setState('Hold', 'hold');
       return { ok: false };
     }
   }
@@ -449,12 +449,12 @@
   function renderSetup() {
     if (!setup) return;
     let text = '', action = '', route = null;
-    if (setup.platform === 'unsupported' || setup.mic === 'unsupported') text = 'この OS ではまだ聞き取れません（macOS 26 以降で使えます）';
-    else if (setup.lab === 'missing') { text = 'AKARI Video Lab に接続すると使えます（接続は無料）'; action = '接続する'; route = '/open-settings'; }
-    else if (setup.providerKey === 'missing') { text = 'OpenRouter の API キーを登録してください。料金はご自身の OpenRouter のアカウントにかかります'; action = '登録する'; route = '/open-settings'; }
-    else if (setupFailure === 'rejected') { text = 'OpenRouter がこのキーを受け付けませんでした'; action = '登録し直す'; route = '/open-settings'; }
-    else if (setupFailure === 'limit') text = '今日の上限に達しました';
-    else if (setup.mic === 'denied') { text = 'マイクの使用が許可されていません'; action = 'システム設定を開く'; route = '/open-privacy'; }
+    if (setup.platform === 'unsupported' || setup.mic === 'unsupported') text = 'Listening is not available on this OS yet (macOS 26 or later)';
+    else if (setup.lab === 'missing') { text = 'Connect to AKARI Video Lab to use this (the connection is free)'; action = 'Connect'; route = '/open-settings'; }
+    else if (setup.providerKey === 'missing') { text = 'Register an OpenRouter API key. Charges go to your OpenRouter account'; action = 'Register'; route = '/open-settings'; }
+    else if (setupFailure === 'rejected') { text = 'OpenRouter rejected this key'; action = 'Register again'; route = '/open-settings'; }
+    else if (setupFailure === 'limit') text = 'You reached the daily limit';
+    else if (setup.mic === 'denied') { text = 'Microphone access is not allowed'; action = 'Open System Settings'; route = '/open-privacy'; }
     mic.disabled = !listening && (setup.platform !== 'ok' || setup.mic === 'unsupported' || setup.lab === 'missing' || setup.providerKey === 'missing');
     $('setup-message').textContent = text;
     $('setup-action').textContent = action;
@@ -482,20 +482,20 @@
   void refreshStatus();
 
   function renderMicNote() {
-    const listeningText = listening ? '聞いています' : '聞き取り停止中';
-    const statusText = micStatus == null ? '' : ` · マイク ${micStatus}`;
+    const listeningText = listening ? 'Listening' : 'Listening is off';
+    const statusText = micStatus == null ? '' : ` · mic ${micStatus}`;
     $('mic-note').textContent = listeningText + statusText;
   }
 
   function setListening(on) {
     listening = Boolean(on);
     mic.classList.toggle('off', !listening);
-    mic.title = listening ? '聞いています（押すと止める）' : '止まっています（押すと始める）';
-    if (outcome.textContent === '待機中' || outcome.textContent === '話しかけてください') {
-      outcome.textContent = listening ? '話しかけてください' : '待機中';
+    mic.title = listening ? 'Listening (click to stop)' : 'Stopped (click to start)';
+    if (outcome.textContent === 'Idle' || outcome.textContent === 'Speak when you are ready') {
+      outcome.textContent = listening ? 'Speak when you are ready' : 'Idle';
     }
-    if (state.textContent === '待機' || state.textContent === '聞いています') {
-      setState(listening ? '聞いています' : '待機');
+    if (state.textContent === 'Idle' || state.textContent === 'Listening') {
+      setState(listening ? 'Listening' : 'Idle');
     }
     renderMicNote();
   }
@@ -508,7 +508,7 @@
   function setState(text, kind = '') {
     state.textContent = text;
     state.className = `state${kind ? ` ${kind}` : ''}`;
-    state.hidden = text === '待機' || text === '聞いています';
+    state.hidden = text === 'Idle' || text === 'Listening';
   }
 
   function formatTimestamp(seconds) {
@@ -520,7 +520,7 @@
 
   function navigationSeconds(fired) {
     for (const item of fired) {
-      const match = String(item).match(/^seek\s*→\s*(-?\d+(?:\.\d+)?)秒/u);
+      const match = String(item).match(/^seek\s*→\s*(-?\d+(?:\.\d+)?)(?:秒| seconds)/u);
       if (match) return Number(match[1]);
     }
     return null;
@@ -534,7 +534,7 @@
     const color = valueLabel(extra.color);
     const position = valueLabel(extra.position);
     if (direction) parts.push(direction);
-    if (Number.isFinite(extra.amount) && ![0, 1].includes(extra.amount)) parts.push(`量 ${extra.amount}`);
+    if (Number.isFinite(extra.amount) && ![0, 1].includes(extra.amount)) parts.push(`Amount ${extra.amount}`);
     if (color) parts.push(color);
     if (position && position !== direction) parts.push(position);
     return parts;
@@ -546,44 +546,44 @@
     const missingArgs = Array.isArray(payload.missingArgs) ? payload.missingArgs : [];
     const gate = snapshot?.gate ?? {};
     const parts = editParts(payload);
-    const destination = parts.slice(0, 2).join(' › ') || '編集';
+    const destination = parts.slice(0, 2).join(' › ') || 'Edit';
     const missing = Boolean(payload.held) && (payload.reject === 'missing_arg' || missingArgs.length > 0);
     const confidenceHold = Boolean(payload.held) && (payload.reject === 'low_confidence'
-      || /(?:確信度|言い切っていない)/.test(payload.held?.reason ?? ''));
+      || /(?:確信度|言い切っていない|Confidence|not confident)/i.test(payload.held?.reason ?? ''));
     const localFailed = payload.decisionSource === 'local-grammar' && payload.applied === false;
 
     if (missing) {
-      const prompt = missingArgs.includes('target') ? '対象を選んでください' : '値を入れてください';
-      return { text: `連れていった: ${destination}（${prompt}）`, state: '案内', kind: 'hold' };
+      const prompt = missingArgs.includes('target') ? 'Select a target' : 'Enter a value';
+      return { text: `Moved to: ${destination} (${prompt})`, state: 'Guided', kind: 'hold' };
     }
     if (confidenceHold) {
-      return { text: `連れていった: ${destination}（確信が足りないので実行していません）`, state: '案内', kind: 'hold' };
+      return { text: `Moved to: ${destination} (Not confident enough, so this did not run)`, state: 'Guided', kind: 'hold' };
     }
     if (localFailed || payload.held) {
-      const reason = tidy(payload.held?.reason) || '操作を実行できませんでした';
-      return { text: `保留: ${reason}`, state: '保留', kind: 'hold' };
+      const reason = tidy(payload.held?.reason) || 'Could not run the action';
+      return { text: `Hold: ${reason}`, state: 'Hold', kind: 'hold' };
     }
     const navigationOnly = fired.length > 0 && fired.every((item) => /^(?:seek|select)\b/u.test(String(item)));
     const selected = navigationOnly && fired.some((item) => /^select\b/u.test(String(item)));
     if (selected) {
-      return { text: `選択: ${targetLabel(decision.target) ?? '対象'}`, state: '選択', kind: '' };
+      return { text: `Selected: ${targetLabel(decision.target) ?? 'target'}`, state: 'Selected', kind: '' };
     }
     const seconds = navigationSeconds(fired);
     const moved = navigationOnly && (seconds != null || fired.some((item) => /^seek\b/u.test(String(item))));
     if (moved) {
-      const where = seconds == null ? seekLabel(decision.seek_to) ?? '移動先' : formatTimestamp(seconds);
-      return { text: `移動: ${where}`, state: '移動', kind: '' };
+      const where = seconds == null ? seekLabel(decision.seek_to) ?? 'destination' : formatTimestamp(seconds);
+      return { text: `Moved: ${where}`, state: 'Moved', kind: '' };
     }
     if (fired.length) {
-      return { text: `変えた: ${parts.join(' › ') || '編集'}`, state: '実行', kind: 'exec' };
+      return { text: `Changed: ${parts.join(' › ') || 'Edit'}`, state: 'Ran', kind: 'exec' };
     }
     if (payload.reject) {
-      return { text: `保留: ${REJECT_LABELS[payload.reject] ?? '操作を実行していません'}`, state: '保留', kind: 'hold' };
+      return { text: `Hold: ${REJECT_LABELS[payload.reject] ?? 'This action is not supported yet'}`, state: 'Hold', kind: 'hold' };
     }
     if (Number.isFinite(gate.command) && number(decision.is_command) < gate.command) {
-      return { text: '操作の依頼ではないため、何もしません', state: '依頼ではない', kind: 'ignore' };
+      return { text: 'This was not a request, so nothing ran', state: 'Ignored', kind: 'ignore' };
     }
-    return { text: '実行する操作はありませんでした', state: '保留', kind: 'hold' };
+    return { text: 'There was no action to run', state: 'Hold', kind: 'hold' };
   }
 
   function renderHistory() {
@@ -594,7 +594,7 @@
     if (!done.length) {
       const empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = 'まだありません';
+      empty.textContent = 'Nothing yet';
       list.append(empty);
       return;
     }
@@ -605,14 +605,14 @@
       const copy = document.createElement('span');
       copy.className = 'history-copy';
       const title = document.createElement('b');
-      title.textContent = tidy(entry.label) || targetLabel(entry.target) || '変更';
+      title.textContent = tidy(entry.label) || targetLabel(entry.target) || 'Change';
       const detail = document.createElement('small');
       detail.textContent = tidy(entry.text) || [operationLabel(entry.op), targetLabel(entry.target)].filter(Boolean).join(' › ');
       copy.append(title, detail);
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'undo-button';
-      button.textContent = '戻す';
+      button.textContent = 'Undo';
       button.dataset.undoId = entry.id;
       button.addEventListener('click', () => post('/undo-entry', { id: entry.id }));
       row.append(copy, button);
@@ -629,7 +629,7 @@
     const topName = humanize(top[0]) ?? '—';
     const topProbability = probability(top[1]);
     const next = items.slice(1, 3).map(([id, value]) => `${humanize(id) ?? '—'} ${fixed(value)}`).join(' / ');
-    const confidenceText = typeof confidence === 'number' && Number.isFinite(confidence) ? `確信度 ${confidence.toFixed(2)}` : '';
+    const confidenceText = typeof confidence === 'number' && Number.isFinite(confidence) ? `Confidence ${confidence.toFixed(2)}` : '';
     return { name, topName, topProbability, threshold, next: [confidenceText, next].filter(Boolean).join(' · ') };
   }
 
@@ -639,7 +639,7 @@
     if (!lastDecision) {
       const empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = 'まだ判断がありません';
+      empty.textContent = 'No decision yet';
       box.append(empty);
       return;
     }
@@ -648,7 +648,7 @@
     if (payload.decisionSource === 'local-grammar') {
       const note = document.createElement('div');
       note.className = 'detail-meta';
-      note.textContent = `${payload.applied === false ? 'ローカルで保留' : 'ローカルで実行'} · ${grammarLabel(payload.grammarRule)}`;
+      note.textContent = `${payload.applied === false ? 'Held locally' : 'Ran locally'} · ${grammarLabel(payload.grammarRule)}`;
       box.append(note);
       return;
     }
@@ -661,21 +661,21 @@
     const editGate = Number.isFinite(riskGate)
       ? (Number.isFinite(payload.editGate) ? payload.editGate : riskGate) : undefined;
     const rows = [
-      distributionRow('依頼か', [['依頼', probability(decision.is_command)]], gate.command, 'literal', null),
-      distributionRow('言い切り', [['言い切った', probability(decision.complete)]], final ? gate.completeOnFinal : gate.complete, 'literal', null),
-      distributionRow('操作', probs.op, editGate, 'operation', conf.op),
-      distributionRow('対象', probs.target, editGate, 'target', conf.target, ['none', 0]),
-      distributionRow('移動先', probs.seek_to, final ? gate.seekOnFinal : gate.seek, 'seek', conf.seek_to, ['none', 0])
+      distributionRow('Request', [['Request', probability(decision.is_command)]], gate.command, 'literal', null),
+      distributionRow('Complete', [['Complete', probability(decision.complete)]], final ? gate.completeOnFinal : gate.complete, 'literal', null),
+      distributionRow('Action', probs.op, editGate, 'operation', conf.op),
+      distributionRow('Target', probs.target, editGate, 'target', conf.target, ['none', 0]),
+      distributionRow('Destination', probs.seek_to, final ? gate.seekOnFinal : gate.seek, 'seek', conf.seek_to, ['none', 0])
     ];
-    const decisionText = payload.reject ? REJECT_LABELS[payload.reject] ?? '保留'
-      : Number.isFinite(editGate) ? `しきい値 ${editGate.toFixed(2)} / ${RISK_LABELS[payload.risk] ?? '編集'}`
-        : RISK_LABELS[payload.risk] ?? '編集';
-    rows.push({ name: '判定', topName: decisionText, topProbability: editGate, threshold: editGate,
-      next: (payload.missingArgs ?? []).map((id) => MISSING_LABELS[id] ?? '詳細').join('、') });
+    const decisionText = payload.reject ? REJECT_LABELS[payload.reject] ?? 'Hold'
+      : Number.isFinite(editGate) ? `Threshold ${editGate.toFixed(2)} / ${RISK_LABELS[payload.risk] ?? 'Edit'}`
+        : RISK_LABELS[payload.risk] ?? 'Edit';
+    rows.push({ name: 'Decision', topName: decisionText, topProbability: editGate, threshold: editGate,
+      next: (payload.missingArgs ?? []).map((id) => MISSING_LABELS[id] ?? 'Details').join(', ') });
 
     const grid = document.createElement('div');
     grid.className = 'detail-grid';
-    ['項目', 'いちばん上', '確率バー', '確信', rows.some(row => Number.isFinite(row.threshold)) ? '次点 ／ ｜= しきい値' : '次点'].forEach((text) => {
+    ['Item', 'Top', 'Probability', 'Confidence', rows.some(row => Number.isFinite(row.threshold)) ? 'Next / | = threshold' : 'Next'].forEach((text) => {
       const cell = document.createElement('span');
       cell.className = 'head';
       cell.textContent = text;
@@ -718,7 +718,7 @@
     cost.textContent = `¥${(costUsd * JPY_PER_USD).toFixed(2)}`;
     const rate = document.createElement('small');
     rate.className = 'rate-note';
-    rate.textContent = `¥（1 USD = ${JPY_PER_USD} 円の概算）`;
+    rate.textContent = `About ${JPY_PER_USD} yen per 1 USD`;
     meta.append(latency, cost, rate);
     box.append(grid, meta);
   }
@@ -733,10 +733,10 @@
   function showDeleteBanner(entry) {
     hideDeleteBanner();
     const text = document.createElement('span');
-    text.textContent = `消した: ${entry.label || '項目'} — `;
+    text.textContent = `Deleted: ${entry.label || 'Item'} — `;
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = '戻す';
+    button.textContent = 'Undo';
     button.dataset.undoId = entry.id;
     button.addEventListener('click', () => {
       post('/undo-entry', { id: entry.id });
@@ -752,8 +752,8 @@
   function onSnapshot(payload) {
     snapshot = payload;
     setListening(payload.listening);
-    if (/OpenRouter.*拒否/.test(payload.banner?.text ?? '')) setupFailure = 'rejected';
-    else if (/今日の上限/.test(payload.banner?.text ?? '')) setupFailure = 'limit';
+    if (/OpenRouter.*(?:拒否|rejected)/i.test(payload.banner?.text ?? '')) setupFailure = 'rejected';
+    else if (/(?:今日の上限|daily limit)/.test(payload.banner?.text ?? '')) setupFailure = 'limit';
     renderSetup();
     renderHistory();
     if (!detailsPanel.hidden) renderDetails();
@@ -772,8 +772,8 @@
     expand();
     heard.textContent = payload.text ?? '';
     heard.classList.toggle('partial', payload.final !== true);
-    outcome.textContent = payload.final ? '言葉を判断しています' : '聞き取り中…';
-    setState('判断中', 'judging');
+    outcome.textContent = payload.final ? 'Deciding' : 'Listening…';
+    setState('Deciding', 'judging');
     setJudging(true);
   }
 
@@ -785,9 +785,9 @@
     heard.classList.toggle('partial', payload.final !== true);
     const presentation = decisionPresentation(payload);
     const localExecution = payload.decisionSource === 'local-grammar' && payload.applied !== false
-      ? `ローカルで実行 · ${grammarLabel(payload.grammarRule)}` : null;
-    outcome.textContent = localExecution ? `${localExecution} — ${presentation.text}` : presentation.text;
-    setState(localExecution ? '実行' : presentation.state, localExecution ? 'exec' : presentation.kind);
+      ? `Ran locally · ${grammarLabel(payload.grammarRule)}` : null;
+    outcome.textContent = localExecution ? `${localExecution} · ${presentation.text}` : presentation.text;
+    setState(localExecution ? 'Ran' : presentation.state, localExecution ? 'exec' : presentation.kind);
     const fired = Array.isArray(payload.fired) ? payload.fired : [];
     if (!detailsPanel.hidden) renderDetails();
 
@@ -940,14 +940,14 @@
     else if (type === 'stt') onStt(payload);
     else if (type === 'level') onLevel(payload);
     else if (type === 'mic') {
-      micStatus = payload.status ?? '不明';
+      micStatus = payload.status ?? 'unknown';
       renderMicNote();
       void refreshStatus();
     }
     else if (type === 'error') {
       expand();
-      outcome.textContent = payload.message ?? 'エラー';
-      setState('保留', 'hold');
+      outcome.textContent = payload.message ?? 'Error';
+      setState('Hold', 'hold');
     }
   };
   // 検査は係と同じ受信口に payload を流し込む。表示専用の別経路は持たない。
