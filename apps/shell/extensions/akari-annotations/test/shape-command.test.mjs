@@ -40,5 +40,5 @@ test('editUri なしでタイムラインが得られないときは元の案内
     let execute;
     setup.call(owner, { registerCommand: (_id, handler) => { execute = handler.execute; } });
     assert.equal(await execute({ preset: 'star-5' }), undefined);
-    assert.deepEqual(warnings, ['タイムラインを開いてから図形を置いてください。']);
+    assert.deepEqual(warnings, ['Open the timeline before placing a shape.']);
 });

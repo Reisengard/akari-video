@@ -18,12 +18,12 @@ test('preview multi receiver opens ancestors and records item rows without an ec
 });
 
 test('group guards give a reason and menu command reuses the shortcut mutation', () => {
-  assert.match(widget, /キャンバスをほどくときは 1 つだけ選んでください/u);
-  assert.match(widget, /キャンバスにするものを 2 つ以上選んでください/u);
-  assert.match(widget, /袋の部品はキャンバスにできません。先に出してください/u);
+  assert.match(widget, /Select only one canvas to ungroup\./u);
+  assert.match(widget, /Select two or more items to group into a canvas\./u);
+  assert.match(widget, /Parts inside a group cannot be grouped into a canvas\. Move them out first\./u);
   assert.match(widget, /runPreviewGroupCommand\([\s\S]*this\.runRegisteredShortcut\(/u);
-  assert.match(widget, /commitEditMutation\('キャンバスにする', doc =>/u);
-  assert.match(widget, /commitEditMutation\('キャンバスをほどく', doc =>/u);
+  assert.match(widget, /commitEditMutation\('Group into canvas', doc =>/u);
+  assert.match(widget, /commitEditMutation\('Ungroup canvas', doc =>/u);
   assert.match(widget, /notifyPreviewBagGrouping\([\s\S]*this\.previewBagSelection\?\.editUri === editUri/u);
 });
 

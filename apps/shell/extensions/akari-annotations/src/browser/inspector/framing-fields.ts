@@ -82,23 +82,23 @@ export function normalizeCutFramingKeyframes(
     value: readonly CutFramingKeyframe[]
 ): CutFramingKeyframe[] {
     if (value.length < 2) {
-        throw new Error('ズーム KF は 2 点以上で指定してください。');
+        throw new Error('Zoom keyframes need at least 2 points.');
     }
     const normalized = value.map((point, index) => {
         if (!point || typeof point !== 'object' || Array.isArray(point)) {
-            throw new Error(`ズーム KF ${index + 1} はオブジェクトで指定してください。`);
+            throw new Error(`Zoom keyframe ${index + 1} must be an object.`);
         }
         const candidate = point as unknown as Record<string, unknown>;
         if (!finiteNumber(candidate.t) || candidate.t < 0) {
-            throw new Error(`ズーム KF ${index + 1} の時刻は 0 以上の有限数で指定してください。`);
+            throw new Error(`The time of zoom keyframe ${index + 1} must be a finite number of 0 or more.`);
         }
         if (!finiteNumber(candidate.scale) || candidate.scale <= 0) {
-            throw new Error(`ズーム KF ${index + 1} の倍率は 0 より大きい有限数で指定してください。`);
+            throw new Error(`The scale of zoom keyframe ${index + 1} must be a finite number greater than 0.`);
         }
-        for (const [field, label] of [['cx', '中心 X'], ['cy', '中心 Y']] as const) {
+        for (const [field, label] of [['cx', 'Center X'], ['cy', 'Center Y']] as const) {
             const coordinate = candidate[field];
             if (coordinate !== undefined && (!finiteNumber(coordinate) || coordinate < 0 || coordinate > 1)) {
-                throw new Error(`ズーム KF ${index + 1} の${label}は 0〜100% の範囲で指定してください。`);
+                throw new Error(`${label} of zoom keyframe ${index + 1} must be between 0 and 100%.`);
             }
         }
         return {
@@ -109,7 +109,7 @@ export function normalizeCutFramingKeyframes(
         };
     }).sort((left, right) => left.t - right.t);
     if (normalized.some((point, index) => index > 0 && point.t === normalized[index - 1].t)) {
-        throw new Error('ズーム KF の時刻は重複できません。');
+        throw new Error('Zoom keyframe times must be unique.');
     }
     return normalized;
 }
@@ -133,7 +133,7 @@ export function updateCutFraming(
         const axis = cutFramingCropAxis(request.kind);
         const crop = updateInspectorCrop(next.crop, axis, request.value);
         if (crop && (crop.w <= 0 || crop.h <= 0)) {
-            throw new Error('フレーミングの幅と高さは 0 より大きく指定してください。');
+            throw new Error('Framing width and height must be greater than 0.');
         }
         if (crop) next.crop = crop;
         else delete next.crop;
@@ -172,7 +172,7 @@ export function addCutFramingKeyframe(
     if (points.length === 0) {
         const targetT = playhead < 0.1 ? duration : playhead;
         if (targetT <= 0) {
-            throw new Error('カット尺が 0 秒のためズーム KF を追加できません。');
+            throw new Error('Cannot add a zoom keyframe because the cut length is 0 sec.');
         }
         return normalizeCutFramingKeyframes([
             { t: 0, scale: 1 },
@@ -189,7 +189,7 @@ export function addCutFramingKeyframe(
         targetT = Math.min(duration, targetT + 0.1);
     }
     if (normalized.some(point => point.t === targetT)) {
-        throw new Error('この位置には既にズーム KF があり、0.1 秒ずらしても追加できません。');
+        throw new Error('A zoom keyframe already exists here and cannot be added even when shifted by 0.1 sec.');
     }
     return normalizeCutFramingKeyframes([...normalized, { t: targetT, scale: nearest.scale }]);
 }

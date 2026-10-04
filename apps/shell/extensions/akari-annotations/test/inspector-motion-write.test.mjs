@@ -26,8 +26,8 @@ test('motion の語彙・日本語ラベルと既定値は契約どおり', () =
     assert.deepEqual(MOTION_IN_OUT_PRESETS, ['fade', 'slide-up', 'slide-down', 'slide-left', 'slide-right', 'scale', 'wipe', 'pop', 'zoom', 'twirl']);
     assert.deepEqual(MOTION_LOOP_PRESETS, ['pulse', 'float', 'spin', 'blink', 'jiggle']);
     assert.deepEqual([...MOTION_IN_OUT_PRESETS, ...MOTION_LOOP_PRESETS].map(id => MOTION_PRESET_LABELS[id]), [
-        'フェード', 'スライド（上へ）', 'スライド（下へ）', 'スライド（左へ）', 'スライド（右へ）',
-        '拡縮', 'ワイプ', 'ポップ', 'ズーム', '回転', '脈動', '浮遊', '回り続ける', '点滅', '小刻みな動き'
+        'Fade', 'Slide up', 'Slide down', 'Slide left', 'Slide right',
+        'Scale', 'Wipe', 'Pop', 'Zoom', 'Twirl', 'Pulse', 'Float', 'Spin', 'Blink', 'Jiggle'
     ]);
     assert.deepEqual(MOTION_EASES, ['linear', 'ease-in-out', 'in-quad', 'out-quad', 'in-out-quad',
         'in-cubic', 'out-cubic', 'in-out-cubic', 'in-quart', 'out-quart', 'in-out-quart',
@@ -36,7 +36,7 @@ test('motion の語彙・日本語ラベルと既定値は契約どおり', () =
     for (const id of ['slide-up', 'slide-down', 'slide-left', 'slide-right']) {
         assert.deepEqual(MOTION_AMOUNT_DEFAULTS[id], { value: 40, unit: 'px' });
     }
-    for (const [id, value, unit] of [['scale', 0.2, '倍'], ['pulse', 0.05, '倍'], ['float', 6, 'px'], ['spin', 1, '方向']]) {
+    for (const [id, value, unit] of [['scale', 0.2, 'x'], ['pulse', 0.05, 'x'], ['float', 6, 'px'], ['spin', 1, 'direction']]) {
         assert.deepEqual(MOTION_AMOUNT_DEFAULTS[id], { value, unit });
     }
     assert.equal(MOTION_AMOUNT_DEFAULTS.fade, undefined);
@@ -70,12 +70,12 @@ test('席の新規選択は preset と duration / period の2キーだけを書�
 
 test('なし・preset reset は対象席だけ削除し、3席空なら null', () => {
     let motion = structuredClone(allMotion);
-    motion = updateInspectorMotion(motion, 'in', 'preset', 'なし');
+    motion = updateInspectorMotion(motion, 'in', 'preset', 'None');
     assert.deepEqual(motion, { out: allMotion.out, loop: allMotion.loop });
     motion = updateInspectorMotion(motion, 'out', 'preset', null);
     assert.deepEqual(motion, { loop: allMotion.loop });
-    assert.equal(updateInspectorMotion(motion, 'loop', 'preset', 'なし'), null);
-    assert.equal(updateInspectorMotion(undefined, 'in', 'preset', 'なし'), null);
+    assert.equal(updateInspectorMotion(motion, 'loop', 'preset', 'None'), null);
+    assert.equal(updateInspectorMotion(undefined, 'in', 'preset', 'None'), null);
 });
 
 test('尺・周期・ease・amount の更新と reset は他の席を保持する', () => {
@@ -98,7 +98,7 @@ test('尺・周期・ease・amount の更新と reset は他の席を保持す�
 
 test('不正入力・未選択席への更新は throw、量の符号やゼロは保持する', () => {
     for (const value of [0, -1, 1.5, Infinity, NaN, '', 'no']) {
-        assert.throws(() => updateInspectorMotion(allMotion, 'in', 'duration', value), /整数フレーム/u);
+        assert.throws(() => updateInspectorMotion(allMotion, 'in', 'duration', value), /whole frames/u);
     }
     for (const field of ['duration', 'ease', 'amount']) assert.throws(() => updateInspectorMotion(null, 'in', field, '1'));
     assert.throws(() => updateInspectorMotion(allMotion, 'in', 'preset', 'spin'));
@@ -106,11 +106,11 @@ test('不正入力・未選択席への更新は throw、量の符号やゼロ�
     assert.throws(() => updateInspectorMotion(allMotion, 'in', 'ease', 'bad'));
     for (const input of ['', ' ', 'Infinity', 'NaN']) assert.throws(() => updateInspectorMotion(allMotion, 'in', 'amount', input));
     for (const input of [0, -1, 0.05]) assert.equal(updateInspectorMotion(allMotion, 'in', 'amount', input).in.amount, input);
-    assert.throws(() => updateInspectorMotion(allMotion, 'out', 'amount', 1), /このプリセットに量はありません/u);
+    assert.throws(() => updateInspectorMotion(allMotion, 'out', 'amount', 1), /This preset has no amount/u);
 });
 
 test('validate は入り12 + 抜き8 の尺15超過と整数でない尺・周期を拒否する', () => {
-    assert.throws(() => validateInspectorMotion(allMotion, 15), /合計 20.*尺 15.*超え/u);
+    assert.throws(() => validateInspectorMotion(allMotion, 15), /combined in\/out motion \(20 frames\).*clip duration \(15 frames\)/u);
     assert.doesNotThrow(() => validateInspectorMotion(allMotion, 20));
     assert.doesNotThrow(() => validateInspectorMotion({ loop: { preset: 'spin', period: 90 } }, 1));
     assert.doesNotThrow(() => validateInspectorMotion(null, 15));
@@ -118,7 +118,7 @@ test('validate は入り12 + 抜き8 の尺15超過と整数でない尺・周�
         for (const value of [undefined, 0, -1, 1.2, '12', NaN, Infinity]) {
             assert.throws(() => validateInspectorMotion({ [slot]: {
                 preset: slot === 'loop' ? 'float' : 'fade', [slot === 'loop' ? 'period' : 'duration']: value
-            } }, 150), /整数フレーム/u);
+            } }, 150), /whole frames/u);
         }
     }
 });
@@ -128,16 +128,16 @@ test('layer / item 行から正確な motion リクエストを発行し、超�
         const snapshot = visualSnapshot(kind);
         const requests = [];
         const fields = rows(snapshot, async request => { requests.push(request); return { ok: true }; }, factory);
-        assert.deepEqual(await fields[0].write(snapshot, 'スライド（上へ）'), { ok: true });
+        assert.deepEqual(await fields[0].write(snapshot, 'Slide up'), { ok: true });
         assert.deepEqual(requests.pop(), { kind: 'item-field', id: snapshot.id, path: 'motion',
             value: { in: { preset: 'slide-up', duration: 12 } } });
-        await fields[0].write({ ...snapshot, motion: { in: allMotion.in } }, 'なし');
+        await fields[0].write({ ...snapshot, motion: { in: allMotion.in } }, 'None');
         assert.equal(requests.pop().value, null);
         const short = { ...snapshot, durationFrames: 15, motion: { in: allMotion.in } };
         const shortRows = rows(short, async () => assert.fail('超過時は保存しない'), factory);
-        const result = await shortRows[4].write(short, 'フェード');
+        const result = await shortRows[4].write(short, 'Fade');
         assert.equal(result.ok, false);
-        assert.match(result.message, /合計 20.*尺 15/u);
+        assert.match(result.message, /\(20 frames\).*\(15 frames\)/u);
     }
 });
 
@@ -194,7 +194,7 @@ test('書き込みブリッジは motion を保存・席削除・全削除し、
     for (const value of [allMotion, { loop: allMotion.loop }, null]) {
         assert.deepEqual(await handleWrite.call(state, { ...request, value }), { ok: true });
         assert.deepEqual(state.rawKeyframeItem().motion, value ?? undefined);
-        assert.equal(state.label, 'クリップの動きを変更');
+        assert.equal(state.label, 'Change clip motion');
     }
     assert.equal(Object.hasOwn(state.rawKeyframeItem(), 'motion'), false);
     state.rawKeyframeItem().duration = 15;

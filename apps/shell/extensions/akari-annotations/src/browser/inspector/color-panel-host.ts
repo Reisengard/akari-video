@@ -143,7 +143,7 @@ export class ColorPanelHost {
                 else resolved.preview?.(paint);
             },
             onClose: close,
-            onBrandAdd: color => void this.updateBrand(BRAND_KIT_ADD_COLOR_COMMAND_ID, color, 'ブランドキットに入れました（どのプロジェクトでも使えます）'),
+            onBrandAdd: color => void this.updateBrand(BRAND_KIT_ADD_COLOR_COMMAND_ID, color, 'Added to the brand kit (available in every project)'),
             onBrandRemove: color => void this.updateBrand(BRAND_KIT_REMOVE_COLOR_COMMAND_ID, color),
             notice: message => this.deps.notice(message)
         });
@@ -160,7 +160,7 @@ export class ColorPanelHost {
         }
         if (!result.ok) {
             if (this.session === session) session.view.resetDraft();
-            this.deps.notice(result.message ?? '色を反映できませんでした。');
+            this.deps.notice(result.message ?? 'Could not apply the color.');
             return;
         }
         this.history = pushColorHistory(this.history, paint);
@@ -174,12 +174,12 @@ export class ColorPanelHost {
     protected async updateBrand(command: string, color: string, done?: string): Promise<void> {
         try {
             const next = await this.deps.executeCommand<string[]>(command, color);
-            if (!Array.isArray(next)) throw new Error('ブランドキットが見つかりません');
+            if (!Array.isArray(next)) throw new Error('Brand kit not found.');
             this.brand = next;
             if (done) this.deps.notice(done);
             this.updateView();
         } catch (error) {
-            this.deps.notice(`ブランドキットを保存できませんでした: ${error instanceof Error ? error.message : String(error)}`);
+            this.deps.notice(`Could not save the brand kit: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

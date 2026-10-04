@@ -39,7 +39,7 @@ test('イベント detail を素材の対象に変換する', () => {
 for (const kind of ['audio', 'video']) {
   test(`${kind} 素材に押せる文字起こしが出る`, () => withDom(() => {
     const groups = describeAiTiles(aiActionCatalog([]), `material-${kind}`);
-    assert.deepEqual(groups.flatMap(group => group.tiles.map(tile => [tile.label, tile.enabled])), [['文字起こし', true]]);
+    assert.deepEqual(groups.flatMap(group => group.tiles.map(tile => [tile.label, tile.enabled])), [['Transcribe', true]]);
     const root = new Node('div');
     let view;
     const selection = materialSelectionFromDetail(detail(kind, kind === 'audio' ? 'assets/interview.wav' : 'assets/ordinary.mp4'));
@@ -49,21 +49,21 @@ for (const kind of ['audio', 'video']) {
     assert.ok(find(root, byData('data-akari-inspector-ai-tab', 'info')));
     const tile = find(root, byData('data-akari-inspector-ai-tile', 'transcribe'));
     assert.equal(tile.attributes.get('aria-disabled'), 'false');
-    assert.ok(find(tile, byText('済み')));
+    assert.ok(find(tile, byText('Done')));
     tile.click();
     assert.equal(view, 'transcribe');
     const panel = new Node('div');
     appendAiMaterialView(panel, { selection, tab: 'generation', view, summary, running: false,
       commands: { executeCommand: async () => 'opened' }, onTab: () => {}, onView: () => {}, onDialogResult: () => {} });
     assert.ok(find(panel, byText('冒頭の発話')));
-    assert.ok(find(panel, byText('台本で開く')));
+    assert.ok(find(panel, byText('Open in script')));
   }));
 }
 
 test('画像素材は動画にするタイルを表示し、情報タブにパスと種類', () => withDom(() => {
   const selection = materialSelectionFromDetail(detail('image', 'assets/still.png'));
   assert.deepEqual(describeAiTiles(aiActionCatalog([{ id: 'video', kind: 'video' }]), 'material-image')
-    .flatMap(group => group.tiles.map(tile => [tile.label, tile.enabled])), [['動画にする', true]]);
+    .flatMap(group => group.tiles.map(tile => [tile.label, tile.enabled])), [['Generate video', true]]);
   const root = new Node('div');
   let selectedTab;
   const options = { selection, tab: 'generation', view: 'tiles', summary: { state: 'none', segments: [], total: 0 },
@@ -71,13 +71,13 @@ test('画像素材は動画にするタイルを表示し、情報タブにパ�
     onView: () => {}, onDialogResult: () => {} };
   appendAiMaterialView(root, options);
   assert.equal(all(root, byData('data-akari-inspector-ai-tile', 'transcribe')).length, 0);
-  assert.equal(all(root, byText('この素材で使える編集はまだありません')).length, 0);
+  assert.equal(all(root, byText('No edits are available for this footage yet')).length, 0);
   find(root, byData('data-akari-inspector-ai-tab', 'info')).click();
   assert.equal(selectedTab, 'info');
   const info = new Node('div');
   appendAiMaterialView(info, { ...options, tab: 'info' });
-  assert.ok(find(info, byText('パス: assets/still.png')));
-  assert.ok(find(info, byText('種類: 画像の素材')));
+  assert.ok(find(info, byText('Path: assets/still.png')));
+  assert.ok(find(info, byText('Type: Image footage')));
 }));
 
 const source = readFileSync(new URL('../src/browser/akari-inspector-widget.ts', import.meta.url), 'utf8');
@@ -120,9 +120,9 @@ test('widget: 素材を選ぶと編集を表示し、タイムライン選択変
   const selection = materialSelectionFromDetail(detail('audio', 'assets/interview.wav'));
   instance.selectMaterial(selection);
   assert.ok(find(instance.body, byText('interview.wav')));
-  assert.ok(find(instance.body, byText('音声の素材')));
+  assert.ok(find(instance.body, byText('Audio footage')));
   const tabs = all(instance.body, node => node.attributes.get('role') === 'tab');
-  assert.deepEqual(tabs.map(node => node.textContent), ['ホーム', '情報']);
+  assert.deepEqual(tabs.map(node => node.textContent), ['Home', 'Info']);
   assert.equal(tabs[0].attributes.get('aria-selected'), 'true');
   const tile = find(instance.body, byData('data-akari-inspector-ai-tile', 'transcribe'));
   assert.equal(tile.attributes.get('aria-disabled'), 'false');

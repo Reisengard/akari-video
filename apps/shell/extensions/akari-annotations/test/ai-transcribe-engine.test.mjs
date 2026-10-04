@@ -52,27 +52,27 @@ test('使えないエンジンは disabled、既定の選択と有料確認を�
 
   const paid = new Node('div');
   appendAiTranscribePanel(paid, { ...options, selectedBackend: 'cloud:groq', mediaDuration: 3600 });
-  find(paid, byText('文字起こしする')).click(); await tick();
-  assert.match(confirmations[0], /^Groq に音声を送ります。約 \$0\.0400（長さ 3600\.0 秒 × \$0\.04 \/ 時）$/);
+  find(paid, byText('Transcribe')).click(); await tick();
+  assert.match(confirmations[0], /^Audio will be sent to Groq\. About \$0\.0400 \(3600\.0 sec × \$0\.04 \/ hour\)$/);
   const short = new Node('div');
   appendAiTranscribePanel(short, { ...options, selectedBackend: 'cloud:groq', mediaDuration: 5 });
-  find(short, byText('文字起こしする')).click(); await tick();
-  assert.match(confirmations[1], /約 \$0\.0001（長さ 5\.0 秒 × \$0\.04 \/ 時）/);
+  find(short, byText('Transcribe')).click(); await tick();
+  assert.match(confirmations[1], /About \$0\.0001 \(5\.0 sec × \$0\.04 \/ hour\)/);
   const scribe = new Node('div');
   appendAiTranscribePanel(scribe, { ...options, selectedBackend: 'cloud:scribe', mediaDuration: 5,
     engines: engines.map(engine => engine.id === 'cloud:scribe'
       ? { ...engine, availability: { state: 'available', label: '使える' } } : engine) });
-  find(scribe, byText('文字起こしする')).click(); await tick();
-  assert.match(confirmations[2], /約 \$0\.0006（長さ 5\.0 秒 × \$0\.40 \/ 時）/);
+  find(scribe, byText('Transcribe')).click(); await tick();
+  assert.match(confirmations[2], /About \$0\.0006 \(5\.0 sec × \$0\.40 \/ hour\)/);
   const unknown = new Node('div');
   appendAiTranscribePanel(unknown, { ...options, target: { ...target, duration: 0 },
     selectedBackend: 'cloud:groq', mediaDuration: Number.NaN });
-  find(unknown, byText('文字起こしする')).click(); await tick();
-  assert.equal(confirmations[3], 'Groq に音声を送ります。約 $0.04 / 時（尺未取得）');
+  find(unknown, byText('Transcribe')).click(); await tick();
+  assert.equal(confirmations[3], 'Audio will be sent to Groq. About $0.04 / hour (length unknown)');
   assert.equal(calls.length, 0);
   const free = new Node('div');
   appendAiTranscribePanel(free, { ...options, selectedBackend: 'speech-analyzer' });
-  find(free, byText('文字起こしする')).click(); await tick();
+  find(free, byText('Transcribe')).click(); await tick();
   assert.deepEqual(calls[0], ['akari.transcribe.openDialog', {
     projectRoot: 'file:///project', relativePath: 'assets/interview.wav', backend: 'speech-analyzer', autoStart: true
   }]);
@@ -86,10 +86,10 @@ test('済みのやり直すでエンジン一覧へ移る', () => withDom(async 
   const panel = new Node('div');
   appendAiTranscribePanel(panel, options);
   assert.ok(find(panel, byText('こんにちは')));
-  find(panel, byText('やり直す')).click();
+  find(panel, byText('Redo')).click();
   assert.equal(redo, true);
   const chooser = new Node('div');
   appendAiTranscribePanel(chooser, { ...options, redo });
   assert.ok(find(chooser, node => node.attributes.get('data-akari-inspector-ai-transcribe-engine') === 'auto'));
-  assert.ok(find(chooser, byText('文字起こしする')));
+  assert.ok(find(chooser, byText('Transcribe')));
 }));

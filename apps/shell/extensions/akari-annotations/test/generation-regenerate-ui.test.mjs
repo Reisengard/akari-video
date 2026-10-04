@@ -40,11 +40,11 @@ test('作り直しは N 案ボタンに変わり、今の候補だけに使用�
     instance.generationCatalog = [{ id: 'fal:h3-i2v', kind: 'video', family: 'H3', inputs: { first_frame: 'optional' } }];
     instance.appendVideoCandidatesPanel({ key: 'clip-a', itemId: 'clip-a', sourcePath: oldPath, duration: 6 });
     const create = document.body.querySelector('[data-akari-inspector-video-create]');
-    assert.match(create.textContent, /^1 案を作り直す/u);
+    assert.match(create.textContent, /^Regenerate 1 option/u);
     const badges = document.body.querySelectorAll('[data-akari-inspector-video-in-use]');
     assert.equal(badges.length, 1);
     assert.equal(badges[0].attributes.get('data-akari-inspector-video-in-use'), oldPath);
-    assert.equal(badges[0].textContent, '使用中');
+    assert.equal(badges[0].textContent, 'In use');
   } finally {
     delete InspectorElement.prototype.querySelector;
     delete InspectorElement.prototype.querySelectorAll;

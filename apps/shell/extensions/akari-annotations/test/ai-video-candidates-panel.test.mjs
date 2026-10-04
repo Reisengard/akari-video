@@ -46,10 +46,10 @@ test('モデル別の丸め尺・最長の点線・枠超過の注意を示す',
   assert.equal(videoRequestedDuration(state), 0.8);
   appendAiVideoCandidatesPanel(document.body, state,
   [h3, kling], { select() {}, generate() {}, cancel() {}, pick() {}, adopt() {}, thumbnail() {} });
-  assert.equal(attr(document.body, 'data-akari-inspector-video-model-duration', h3.id).textContent, '5 秒で作ります');
-  assert.equal(attr(document.body, 'data-akari-inspector-video-model-duration', kling.id).textContent, '3 秒で作ります');
+  assert.equal(attr(document.body, 'data-akari-inspector-video-model-duration', h3.id).textContent, 'Generates 5 sec');
+  assert.equal(attr(document.body, 'data-akari-inspector-video-model-duration', kling.id).textContent, 'Generates 3 sec');
   assert.match(attr(document.body, 'data-akari-inspector-video-duration-note', 'true').textContent,
-    /枠 0\.8 秒 → 5 秒の動画を作ります.*残りはタイムラインに点線で出ます/u);
+    /Slot 0\.8 sec → generates a 5 sec video.*the rest appears as a dotted line on the timeline/u);
 }));
 
 test('見積キーがまだ無くても承認時の batchDraft から要求尺を読む', () => {
@@ -77,25 +77,25 @@ test('いつものだけを選び、★ は未選択・呼べないモデルは�
 test('ボタンの合計・料金未確認と費用承認のモデル別内訳', () => withInspectorDom(({ document }) => {
   const selected = new Set(['fal:h3-i2v', 'fal:kling']);
   assert.deepEqual(videoSelectionEstimate(estimate, selected), {
-    count: 2, total: 0.36, unknown: 1, invalid: false, label: '2 案を作る · 見積 $0.36 + 未確認 1'
+    count: 2, total: 0.36, unknown: 1, invalid: false, label: 'Generate 2 options · estimate $0.36 + 1 unconfirmed'
   });
   const message = videoApprovalMessage(estimate, selected, models);
-  assert.match(message, /H3: \$0\.36（as_of 2026-09-12）/u);
-  assert.match(message, /Kling: 料金 未確認/u);
-  assert.match(message, /合計 見積 \$0\.36 \+ 料金未確認 1 件/u);
+  assert.match(message, /H3: \$0\.36\(as_of 2026-09-12\)/u);
+  assert.match(message, /Kling: Price unconfirmed/u);
+  assert.match(message, /Total estimate \$0\.36 \+ 1 with unconfirmed prices/u);
   appendAiVideoCandidatesPanel(document.body, { selected, preferred, estimate, thumbnails: new Map(), running: false }, models,
     { select() {}, generate() {}, cancel() {}, pick() {}, adopt() {}, thumbnail() {} });
   assert.equal(attr(document.body, 'data-akari-inspector-video-create', 'true').textContent,
-    '2 案を作る · 見積 $0.36 + 未確認 1');
+    'Generate 2 options · estimate $0.36 + 1 unconfirmed');
 }));
 
 test('待ち・生成中の秒数・失敗の理由と再試行行', () => withInspectorDom(({ document }) => {
   for (const [candidate, state, label] of [
-    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'IN_QUEUE' }, 'waiting', '待ち'],
-    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'IN_PROGRESS' }, 'running', '生成中 · 5 秒'],
-    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'COMPLETED' }, 'running', '仕上げ中'],
-    [{ route: 'a', ok: true, status: 'done', queueStatus: 'COMPLETED' }, 'done', '完了'],
-    [{ route: 'a', ok: false, status: 'failed', reason: 'stub failure' }, 'failed', '失敗 · stub failure']
+    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'IN_QUEUE' }, 'waiting', 'Waiting'],
+    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'IN_PROGRESS' }, 'running', 'Generating · 5 sec'],
+    [{ route: 'a', ok: false, status: 'generating', queueStatus: 'COMPLETED' }, 'running', 'Finishing up'],
+    [{ route: 'a', ok: true, status: 'done', queueStatus: 'COMPLETED' }, 'done', 'Done'],
+    [{ route: 'a', ok: false, status: 'failed', reason: 'stub failure' }, 'failed', 'Failed · stub failure']
   ]) assert.deepEqual(videoProgress(candidate, 5), { state, label });
   const state = { selected: new Set(['fal:h3-i2v']), preferred, estimate, thumbnails: new Map(), running: false,
     batch: { routes: ['fal:h3-i2v'], completed: 1, running: false, results: [], candidates: [
@@ -121,9 +121,9 @@ test('動画候補は 160px のサムネイルと 2 列のコンパクトな行�
 test('候補の尺・作成秒を札付きで示し、未取得の値は省く', () => {
   assert.equal(videoCandidateDetail({ durationSeconds: 4, elapsedSeconds: 20.6,
     width: 640, height: 360, costUsd: 1.21 }, 'Seedance 2.0'),
-  'Seedance 2.0 · 尺 4 秒 · 作成 21 秒 · 640×360 · $1.21');
+  'Seedance 2.0 · Length 4 sec · Took 21 sec · 640×360 · $1.21');
   assert.equal(videoCandidateDetail({ durationSeconds: 4.25, elapsedSeconds: 1.4, costUsd: null }, 'H3'),
-    'H3 · 尺 4.3 秒 · 作成 1 秒 · 料金 未確認');
+    'H3 · Length 4.3 sec · Took 1 sec · Price unconfirmed');
   assert.equal(videoCandidateDetail({}, 'H3'), 'H3');
 });
 
@@ -131,14 +131,14 @@ test('同名モデルはカタログの入力種別をモデル行・進捗・�
   const h3 = catalog.find(row => row.id === 'fal:h3-i2v');
   const h3Ref = catalog.find(row => row.id === 'fal:h3-ref');
   const veo = catalog.find(row => row.id === 'fal:veo-3.1-flf');
-  assert.equal(videoModelName(h3), 'MiniMax H3（画像から）');
-  assert.equal(videoModelName(h3Ref), 'MiniMax H3（参照から）');
-  assert.equal(videoModelName(veo), 'Veo 3.1（最初と最後）');
+  assert.equal(videoModelName(h3), 'MiniMax H3 (from image)');
+  assert.equal(videoModelName(h3Ref), 'MiniMax H3 (from references)');
+  assert.equal(videoModelName(veo), 'Veo 3.1 (first and last frame)');
   const estimates = { models: [
     { modelId: h3.id, estimateUsd: 0.3, asOf: '2026-09-12' },
     { modelId: h3Ref.id, estimateUsd: 0.3, asOf: '2026-09-22' }
   ] };
-  assert.match(videoApprovalMessage(estimates, new Set([h3.id, h3Ref.id]), [h3, h3Ref]), /MiniMax H3（画像から）.*MiniMax H3（参照から）/su);
+  assert.match(videoApprovalMessage(estimates, new Set([h3.id, h3Ref.id]), [h3, h3Ref]), /MiniMax H3 [(]from image[)].*MiniMax H3 [(]from references[)]/su);
   const state = { selected: new Set([h3.id]), preferred: { defaultModelId: h3.id, favorites: [], source: 'project' },
     estimate: estimates, thumbnails: new Map(), running: false,
     batch: { routes: [h3.id], completed: 1, running: false, results: [], candidates: [
@@ -146,7 +146,7 @@ test('同名モデルはカタログの入力種別をモデル行・進捗・�
     ] } };
   appendAiVideoCandidatesPanel(document.body, state, [h3, h3Ref],
     { select() {}, generate() {}, cancel() {}, pick() {}, adopt() {}, thumbnail() {} });
-  assert.ok(descendants(document.body).some(row => row.textContent?.includes('MiniMax H3（画像から）')));
+  assert.ok(descendants(document.body).some(row => row.textContent?.includes('MiniMax H3 (from image)')));
 }));
 
 test('進捗は前回結果より今回の候補 meta を選び、queue の変化では全体再描画を要しない', () => {
@@ -357,7 +357,7 @@ test('node の queue 状態は再描画なしで表示中の進捗行へ即反�
   candidate.queueStatus = 'IN_PROGRESS';
   widgetInstance.syncVideoProgressRows(state);
   assert.equal(row.attrs.get('data-akari-inspector-video-progress-state'), 'running');
-  assert.match(row.textContent, /生成中 · 2 秒/u);
+  assert.match(row.textContent, /Generating · 2 sec/u);
   assert.equal(row.attrs.get('data-akari-inspector-video-progress-queue'), 'IN_PROGRESS');
   state.batch.results = [{ route: candidate.route, ok: true }];
   widgetInstance.syncVideoProgressRows(state);
@@ -421,7 +421,7 @@ test('費用承認を断ると batch は一度も始まらない', async () => {
   const script = ts.transpileModule(`class Widget { ${method('startVideoCandidates')} }`,
     { compilerOptions: { target: ts.ScriptTarget.ES2021 } }).outputText;
   let confirmations = 0;
-  const ConfirmDialog = class { constructor(options) { assert.match(options.msg, /合計 見積/u); confirmations++; } async open() { return false; } };
+  const ConfirmDialog = class { constructor(options) { assert.match(options.msg, /Total estimate/u); confirmations++; } async open() { return false; } };
   const Widget = new Function('ConfirmDialog', 'videoApprovalMessage', `${script}; return Widget;`)(ConfirmDialog, videoApprovalMessage);
   const instance = new Widget();
   const state = { selected: new Set(['fal:h3-i2v', 'fal:kling']), estimate, running: false };

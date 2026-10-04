@@ -19,7 +19,7 @@ test('AI 行為カタログは動画モデルから実働 route を作る', () =
 for (const [name, target, count, stillEnabled, videoEnabled, videoReason] of [
   ['静止画', 'still', 2, true, true, undefined],
   ['空の枠', 'empty-frame', 2, true, true, undefined],
-  ['ふつうの動画', 'video', 2, false, false, '静止画か空の枠で使えます'],
+  ['ふつうの動画', 'video', 2, false, false, 'Works on a still or an empty slot'],
   ['生成済み動画', 'generated-video', 2, false, true, undefined],
   ['音声', 'audio', 1, undefined, undefined, undefined]
 ]) {
@@ -27,19 +27,19 @@ for (const [name, target, count, stillEnabled, videoEnabled, videoReason] of [
     const groups = describeAiTiles(catalog, target);
     assert.equal(groups.length, count);
     if (target !== 'audio') assert.deepEqual(groups[0], { group: 'make', tiles: [
-      { id: 'still', label: '静止画', image: 'still', enabled: stillEnabled,
-        ...(!stillEnabled ? { reason: '空の枠か静止画で使えます' } : {}) },
-      { id: 'video', label: '動画にする', image: 'video', enabled: videoEnabled,
+      { id: 'still', label: 'Still', image: 'still', enabled: stillEnabled,
+        ...(!stillEnabled ? { reason: 'Works on an empty slot or a still' } : {}) },
+      { id: 'video', label: 'Generate video', image: 'video', enabled: videoEnabled,
         ...(videoReason ? { reason: videoReason } : {}) }
     ] });
     assert.deepEqual(groups[target === 'audio' ? 0 : 1], { group: 'refine', tiles: [
       ...(target === 'audio' ? [] : ['cutout', 'eraser'].map((id, index) => ({
-        id, label: index === 0 ? '背景を消す' : '消しゴム', image: id,
+        id, label: index === 0 ? 'Remove background' : 'Eraser', image: id,
         enabled: target !== 'empty-frame',
-        ...(target === 'empty-frame' ? { reason: '写真で使えます' } : {})
+        ...(target === 'empty-frame' ? { reason: 'Works on a photo' } : {})
       }))),
-      { id: 'transcribe', label: '文字起こし', image: 'transcribe', enabled: target === 'video' || target === 'audio',
-        ...(target === 'video' || target === 'audio' ? {} : { reason: '声の入った音声か動画で使えます' }) }
+      { id: 'transcribe', label: 'Transcribe', image: 'transcribe', enabled: target === 'video' || target === 'audio',
+        ...(target === 'video' || target === 'audio' ? {} : { reason: 'Works on audio or video with speech' }) }
     ] });
   });
 }
@@ -75,7 +75,7 @@ for (const [name, kind, hasIdentity, groups, expected] of [
 
 test('タブは id edit・表示 ホーム、ふつうの動画 cut でも enabled', () => {
   const tab = tabsForKind('cut', { generationAvailable: true }).find(tab => tab.id === 'edit');
-  assert.equal(tab.label, 'ホーム');
+  assert.equal(tab.label, 'Home');
   assert.equal(tab.enabled, true);
   assert.equal(tab.disabledTitle, undefined);
 });

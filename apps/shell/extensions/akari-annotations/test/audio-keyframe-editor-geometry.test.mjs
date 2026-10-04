@@ -83,7 +83,7 @@ test('フレームスナップは時間境界をクランプし不正 fps では
 test('追加先が既存点と同一 t なら拒否メッセージを返す', () => {
   assert.deepEqual(validateAudioKeyframeTime([{ t: 1 }, { t: 2 }], 2), {
     ok: false,
-    message: '同じ時刻には複数のキーフレームを置けません。',
+    message: 'Two keyframes cannot share the same time.',
   });
 });
 

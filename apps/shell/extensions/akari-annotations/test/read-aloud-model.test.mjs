@@ -13,10 +13,10 @@ test('クラウドは鍵ありを先にし、初期 3 行と前回選択を表�
 
 test('価格の単位と見積不可を表示し、見積不可の承認は従量と伝える', () => {
     const cloud = { id: 'gemini-3.1-flash-tts', place: 'cloud', provider: 'fal', price: { unit: null, value: null, verified: false } };
-    assert.equal(readAloudPrice(cloud), '見積不可');
-    assert.equal(narrationEstimate(cloud, 'こんにちは').label, '見積不可（従量）');
-    assert.match(readAloudPreviewPlan(cloud, 'こんにちは').confirm.msg, /見積を出せません。送ると fal の従量で課金されます。送りますか/);
-    assert.equal(readAloudPrice({ ...cloud, price: { unit: 'usd_per_second', value: .0002, verified: true } }), '$0.0002 / 秒');
+    assert.equal(readAloudPrice(cloud), 'Estimate unavailable');
+    assert.equal(narrationEstimate(cloud, 'こんにちは').label, 'Estimate unavailable (pay as you go)');
+    assert.match(readAloudPreviewPlan(cloud, 'こんにちは').confirm.msg, /No estimate available\. Sending is billed per use by fal\. Send it\?/);
+    assert.equal(readAloudPrice({ ...cloud, price: { unit: 'usd_per_second', value: .0002, verified: true } }), '$0.0002 / sec');
 });
 
 test('自分の声の作り手は使える彩、前回、先頭の順で選ぶ', () => {
@@ -37,8 +37,8 @@ test('使えない作り手は鍵・写し・彩の接続で理由を分ける',
     const rows = readAloudCopyEngines(profile, [engine('irodori', 'unconfigured'), engine('fish-s2.1-pro', 'unconfigured'),
         engine('index-tts-2'), engine('minimax-2.6-hd'), engine('chatterbox')]).options;
     assert.deepEqual(rows.map(row => [row.engine.id, row.reason]), [
-        ['irodori', 'つながりません'], ['minimax-2.6-hd', '写しなし'],
-        ['fish-s2.1-pro', '鍵なし'], ['chatterbox', undefined], ['index-tts-2', '写しなし']
+        ['irodori', 'not connected'], ['minimax-2.6-hd', 'no copy'],
+        ['fish-s2.1-pro', 'no key'], ['chatterbox', undefined], ['index-tts-2', 'no copy']
     ]);
 });
 
@@ -53,16 +53,16 @@ test('stale の彩は既定で選べて注記が付き、stale の MiniMax も�
     assert.equal(localChoice.selected, 'irodori');
     const local = localChoice.options.find(row => row.engine.id === 'irodori');
     assert.equal(local.usable, true);
-    assert.equal(readAloudCopyOptionLabel(local), '彩（無料・自分の PC）（写しが古い）');
-    assert.equal(readAloudCopyNote(local), '写しを使います · 写しが古いです');
+    assert.equal(readAloudCopyOptionLabel(local), 'Irodori (free, on your PC) (copy is outdated)');
+    assert.equal(readAloudCopyNote(local), 'Uses a saved copy · Copy is outdated');
     const cloudChoice = readAloudCopyEngines(profile, [minimax, chatterbox], 'minimax-2.6-hd');
     assert.equal(cloudChoice.selected, 'minimax-2.6-hd');
     const cloud = cloudChoice.options.find(row => row.engine.id === 'minimax-2.6-hd');
     assert.equal(cloud.usable, true);
-    assert.equal(readAloudCopyOptionLabel(cloud), 'MiniMax（写しが古い）');
-    assert.equal(readAloudCopyNote(cloud), '写しを使います · 写しが古いです');
+    assert.equal(readAloudCopyOptionLabel(cloud), 'MiniMax (copy is outdated)');
+    assert.equal(readAloudCopyNote(cloud), 'Uses a saved copy · Copy is outdated');
     assert.equal(readAloudCopyNote({ engine: { id: 'gemini-3.8-flash-tts', supports: { clone: 'registered' } }, stale: false }),
-        '写しを使います · 写しには Google の透かしが入ります');
+        'Uses a saved copy · The copy includes a Google watermark');
 });
 
 test('彩の既製声は話し方を送らず、custom だけ必須欄を使う', () => {
@@ -82,7 +82,7 @@ test('Chatterbox の自動聞き取りはローカル検証が使えるときだ
 test('配置後はクレジットを優先し、無ければ自分の声の名前を表示する', () => {
     const profiles = [{ id: 'sample', label: 'サンプルの声' }];
     assert.equal(readAloudProvenanceLabel({ credit: 'VOICEVOX:キャラ', voice: 'profile:sample' }, profiles), 'VOICEVOX:キャラ');
-    assert.equal(readAloudProvenanceLabel({ voice: 'profile:sample' }, profiles), '自分の声（サンプルの声）');
+    assert.equal(readAloudProvenanceLabel({ voice: 'profile:sample' }, profiles), 'Your voice (サンプルの声)');
     assert.equal(readAloudProvenanceLabel({ voice: 'profile:unknown' }, profiles), 'profile:unknown');
 });
 
@@ -125,7 +125,7 @@ const engines = [
 ];
 
 test('ローカル見積はゼロ、クラウド見積は文字数と暫定価格に従う', () => {
-    assert.equal(narrationEstimate(engines[0], '読み').label, '費用 ¥0');
+    assert.equal(narrationEstimate(engines[0], '読み').label, 'Cost ¥0');
     const quote = narrationEstimate(engines[1], 'あ'.repeat(100));
     assert.equal(quote.chars, 100);
     assert.ok(Math.abs(quote.usd - .005) < 1e-9);
@@ -168,19 +168,19 @@ test('Gemini を available に差し替えた試聴計画は Leda・見積・費
     assert.equal(selectReadAloudEngine([gemini])?.id, 'gemini-tts');
     assert.equal(selectReadAloudVoice(voices)?.id, gemini.default_voice);
     const plan = readAloudPreviewPlan(gemini, 'あ'.repeat(100));
-    assert.equal(plan.buttonLabel, '費用を見て試聴…');
+    assert.equal(plan.buttonLabel, 'Review cost and preview...');
     assert.equal(plan.needsApproval, true);
-    assert.equal(plan.confirm?.title, '費用承認');
-    assert.equal(plan.confirm?.ok, '費用承認する');
-    assert.equal(plan.confirm?.cancel, 'キャンセル');
+    assert.equal(plan.confirm?.title, 'Cost approval');
+    assert.equal(plan.confirm?.ok, 'Approve cost');
+    assert.equal(plan.confirm?.cancel, 'Cancel');
     assert.match(plan.confirm.msg, /\$0\.005/);
     assert.match(plan.confirm.msg, /as_of 2026-09-22/);
-    assert.match(plan.confirm.msg, /読み原稿 100 字/);
+    assert.match(plan.confirm.msg, /100 chars of reading text/);
 });
 
 test('VOICEVOX の試聴計画は費用承認を要求しない', () => {
     const plan = readAloudPreviewPlan(engines[0], 'こんにちは');
-    assert.equal(plan.buttonLabel, '▶ 試聴');
+    assert.equal(plan.buttonLabel, '▶ Listen');
     assert.equal(plan.needsApproval, false);
     assert.equal(plan.confirm, undefined);
 });
@@ -190,7 +190,7 @@ test('彩は接続状態に従って選べ、別 PC でも無料・自由入力�
         availability: { state: 'available', label: 'お試し · 接続済み' }, price: { usd_per_1000_chars: 0, verified: true } };
     assert.equal(selectReadAloudEngine([irodori])?.id, 'irodori');
     assert.equal(selectReadAloudEngine([{ ...irodori, availability: { state: 'unconfigured', label: 'つながりません' } }]), undefined);
-    assert.equal(narrationEstimate(irodori, 'こんにちは').label, '費用 ¥0');
+    assert.equal(narrationEstimate(irodori, 'こんにちは').label, 'Cost ¥0');
     assert.equal(readAloudPreviewPlan(irodori, 'こんにちは').needsApproval, false);
     assert.equal(irodoriCustomVoiceMissing('irodori', 'custom', ' '), true);
     assert.equal(irodoriCustomVoiceMissing('irodori', 'custom', '低い声'), false);
@@ -210,7 +210,7 @@ test('まとめた費用見積は各行の読み原稿の合計で、承認は 1
     const quote = batchNarrationEstimate(engines[1], ['あ'.repeat(40), 'い'.repeat(60)]);
     assert.equal(quote.chars, 100);
     assert.ok(Math.abs(quote.usd - 0.005) < 1e-9);
-    assert.match(quote.label, /承認 1 回/);
+    assert.match(quote.label, /1 approval/);
 });
 
 test('枠超過の既定は出力字幕を次の字幕で止め、source は local のみ再生成', () => {
@@ -242,7 +242,7 @@ test('needs の VOICEVOX は生成前に start 1 回、カードを available �
     assert.deepEqual(calls, ['start', 'refresh', 'generate']);
     await prepareReadAloudEngine(engines[0], async () => { calls.push('unexpected'); }, async () => []);
     assert.equal(calls.includes('unexpected'), false);
-    await assert.rejects(prepareReadAloudEngine(needs, async () => {}, async () => [needs]), /起動を確認/);
+    await assert.rejects(prepareReadAloudEngine(needs, async () => {}, async () => [needs]), /Could not confirm that VOICEVOX started/);
 });
 
 test('彩カードの注記と必要時のバッジは名前の行と分ける', () => {

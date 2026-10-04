@@ -43,7 +43,7 @@ test('選んだ効果に関係する調整だけを示す', () => {
     assert.ok(captionEffectAdjustmentKeys('combo-neon-shadow').includes('glow.spread'));
     assert.deepEqual(captionEffectAdjustmentPatch({ shadow: { color: '#123456' } }, 'shadow.distancePx', '9'),
         { shadow: { color: '#123456', distancePx: 9 } });
-    assert.throws(() => captionEffectAdjustmentPatch({}, 'glow.color', 'red'), /hex|色/u);
+    assert.throws(() => captionEffectAdjustmentPatch({}, 'glow.color', 'red'), /hex|color/u);
     assert.deepEqual(captionEffectAdjustmentKeys('ol-double-black'),
         ['stroke.color', 'stroke.widthPx', 'strokeInner.color', 'strokeInner.widthPx']);
     assert.deepEqual(captionEffectAdjustmentKeys('fill-ocean'),

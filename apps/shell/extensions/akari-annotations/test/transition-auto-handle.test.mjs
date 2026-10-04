@@ -38,8 +38,8 @@ test('旧自動のりしろの削除救済だけが byte-preserving text commit 
   assert.equal((apply.match(/commitEditTextMutation\(/gu) ?? []).length, 1);
   assert.match(apply, /areCutsAdjacent\(earlier, later, this\.fps\)/u);
   assert.match(apply, /removeV2TransitionOutWithHandleRetractInSource/u);
-  assert.match(apply, /のりしろも戻しました/u);
-  assert.match(apply, /クリップの重なりが残っています/u);
+  assert.match(apply, /Transition deleted \(overlap also restored\)\./u);
+  assert.match(apply, /Transition deleted\. The clips still overlap\./u);
   assert.match(apply, /this\.showNotice\(message\)/u);
 });
 
@@ -52,10 +52,10 @@ test('text commit は before/after 1 組を 1 history に積み、undo/redo が�
 });
 
 test('クランプ・不能は日本語通知され、不能と layers 退避は警告バッジ導線を持つ', () => {
-  assert.match(source, /トランジションが \$\{seconds\} 秒に短くなります（素材の余りが足りません）/u);
-  assert.match(source, /このトランジションは効きません: 素材に余りがありません/u);
-  assert.match(source, /のりしろにできる素材の余りがない/u);
+  assert.match(source, /Transition shortened to \$\{seconds\} sec \(not enough spare footage\)/u);
+  assert.match(source, /This transition has no effect\. /u);
+  assert.match(source, /There is no extra footage to use as overlap/u);
   assert.match(source, /zeroOverlapTransitionIndexes\.has\(cutIndex\)/u);
   assert.match(source, /dataset\.akariLayerTransitionWarning = layer\.id/u);
-  assert.match(source, /他トラックのアイテム（\$\{cause\.causeItemId\}）.*PiP 経路へ退避/u);
+  assert.match(source, /on another track \(\$\{cause\.causeItemId\}\).*moved to the PiP path/u);
 });

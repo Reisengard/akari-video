@@ -58,7 +58,7 @@ function buildSection(id) {
 
 test('音声プレビューは 6 セクションを保ち、audio アイテム用グレー節は空にする', () => {
   assert.deepEqual(AUDIO_PREVIEW_SECTIONS.map(section => section.label), [
-    '音量', 'フェード', '音声強調', 'ダッキング', 'A/V リンク', 'ピッチ・タイム'
+    'Volume', 'Fade', 'Voice enhancement', 'Ducking', 'A/V link', 'Pitch and time'
   ]);
   assert.deepEqual(AUDIO_ITEM_PREVIEW_SECTIONS, []);
 });
@@ -83,7 +83,7 @@ test('音声強調の近日行はクリップ単位ノイズ除去とボイス�
   const rows = descendants(buildSection('enhancement'))
     .filter(element => hasClass(element, 'akari-audio-preview-row'));
   assert.deepEqual(rows.map(row => row.children[0].textContent), [
-    'ノイズ除去（クリップ単位）', 'ボイス分離'
+    'Denoise (per clip)', 'Voice isolation'
   ]);
 }));
 

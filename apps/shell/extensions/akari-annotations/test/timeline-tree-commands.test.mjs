@@ -46,7 +46,7 @@ test('帯 D&D の確定は at 更新も tree-ops に委譲し、重なれば段�
     ['source-stays'], ['occupied'], ['dragged']
   ]);
   assert.match(widgetSource, /this\.moveV2PreviewItem/);
-  assert.match(widgetSource, /を追加しました/);
+  assert.match(widgetSource, /\$\{name\} added/);
 });
 
 test('⌘G は最前面メンバーの段へ親を作り、前後変更 id と通知文を返す', () => {
@@ -57,7 +57,7 @@ test('⌘G は最前面メンバーの段へ親を作り、前後変更 id と�
   const grouped = groupTreeV2Items(doc, ['back', 'front']);
   assert.equal(grouped.value.group.source.kind, 'group');
   assert.ok(grouped.value.changedOrderIds.includes('between'));
-  assert.match(widgetSource, /の前後が変わりました/);
+  assert.match(widgetSource, /Order changed for/);
 });
 
 test('⌘⇧G は tree-ops へ委譲し、袋拒否文を UI に固定する', () => {
@@ -70,7 +70,7 @@ test('⌘⇧G は tree-ops へ委譲し、袋拒否文を UI に固定する', (
   assert.equal(child.at, 12);
   assert.equal(child.transform.x, 5);
   assert.equal(child.opacity, 0.5);
-  assert.match(widgetSource, /キャンバスをほどけません: \$\{canvasOperationReason\(error\)\}/u);
+  assert.match(widgetSource, /Could not ungroup canvas: \$\{canvasOperationReason\(error\)\}/u);
 });
 
 test('写しの子のプレビュー選択は既存 selectOverlay が mount の共通 id をそのまま報告する', () => {

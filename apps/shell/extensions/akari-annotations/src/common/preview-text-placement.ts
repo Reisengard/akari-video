@@ -26,7 +26,7 @@ export function centeredPreviewTextPlacement(input: {
     const padding = (typeof declaredPadding === 'number' && Number.isFinite(declaredPadding)
         ? Math.max(0, declaredPadding) * scale : fontSize * 0.42);
     const letterSpacing = selected?.letter_spacing_em ?? input.defaultStyle?.letterSpacingEm ?? 0;
-    const text = input.text ?? 'テキストを入力';
+    const text = input.text ?? 'Enter text';
     const glyphWidth = [...text].reduce((width, character) => width + fontSize * (
         /[\u0020-\u007e]/u.test(character) ? character === ' ' ? 0.35 : 0.55 : 1
     ), 0);

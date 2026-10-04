@@ -28,18 +28,18 @@ export interface ReviewSessionBadge {
 
 export function reviewSessionBadge(session: ReviewSessionSummaryLike): ReviewSessionBadge {
     if (session.orphaned === true) {
-        return { key: 'orphaned', label: '未完了' };
+        return { key: 'orphaned', label: 'Incomplete' };
     }
     if (session.status === 'transcribed') {
-        return { key: 'transcribed', label: '文字起こし済み' };
+        return { key: 'transcribed', label: 'Transcribed' };
     }
     if (session.status === 'compiled') {
-        return { key: 'compiled', label: 'コンパイル済み' };
+        return { key: 'compiled', label: 'Compiled' };
     }
     return {
         key: 'recorded',
-        label: '録音済み',
-        hint: 'まだチケットになっていません — コンパイルでチケット化'
+        label: 'Recorded',
+        hint: 'Not a ticket yet — compile to create tickets'
     };
 }
 
@@ -179,7 +179,7 @@ export class ReviewModel {
     ): Promise<{ annotation: Annotation; committed: boolean }> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.createAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -205,7 +205,7 @@ export class ReviewModel {
     ): Promise<{ annotation: Annotation; committed: boolean }> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.createAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -232,7 +232,7 @@ export class ReviewModel {
     async addDocAnnotation(text: string, selection: DocBlockSelection): Promise<{ annotation: Annotation; committed: boolean }> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.createAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -260,7 +260,7 @@ export class ReviewModel {
     ): Promise<{ annotation: Annotation; committed: boolean }> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.createAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -287,7 +287,7 @@ export class ReviewModel {
     async addUiAnnotation(text: string, sourceT: number, uiTarget: string): Promise<{ annotation: Annotation; committed: boolean }> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.createAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -312,7 +312,7 @@ export class ReviewModel {
     async saveCanvas(request: Omit<SaveCanvasRequest, 'projectRootUri'>): Promise<SaveCanvasResult> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         return this.annotationsService.saveCanvas({ ...request, projectRootUri: location.root.toString() });
     }
@@ -320,7 +320,7 @@ export class ReviewModel {
     async resolveAnnotation(annotationId: string): Promise<Annotation> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.resolveAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -336,7 +336,7 @@ export class ReviewModel {
     async deleteAnnotation(annotationId: string): Promise<Annotation> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.deleteAnnotation({
             reviewUri: location.reviewUri.toString(),
@@ -350,7 +350,7 @@ export class ReviewModel {
     async restoreAnnotation(annotation: Annotation): Promise<Annotation> {
         const location = this._location;
         if (!location) {
-            throw new Error('プロジェクトを特定できません。');
+            throw new Error('Could not identify the project.');
         }
         const result = await this.annotationsService.restoreAnnotation({
             reviewUri: location.reviewUri.toString(),

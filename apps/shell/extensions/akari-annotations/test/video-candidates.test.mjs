@@ -148,7 +148,7 @@ test('動画バッチは見積合計と価格不明を返し、承認なしで�
   await assert.rejects(() => service.startGenerateVideoBatch({ ...request,
     models: ['fal:h3-i2v', 'fal:h3-ref'], approved: true }), /fal:h3-ref/u);
   assert.equal(starts, 0);
-  await assert.rejects(() => service.startGenerateVideoBatch(request), /費用承認/u);
+  await assert.rejects(() => service.startGenerateVideoBatch(request), /Cost approval/u);
   assert.equal(starts, 0);
   const directory = path.join(root, 'assets/generated/candidates/clip-a');
   await mkdir(directory, { recursive: true });

@@ -30,19 +30,19 @@ export class AkariTimelineCreateDialog extends AbstractDialog<TimelineCreateResu
         this.contentNode.style.gap = '12px';
         this.nameInput.className = this.slugInput.className = 'theia-input';
         this.nameInput.value = props.defaultTitle ?? '';
-        this.appendField('名前', this.nameInput);
+        this.appendField('Name', this.nameInput);
         this.slugInput.value = this.suggestSlug();
-        if (!props.firstTimeline) this.appendField('ファイル名（slug）', this.slugInput);
+        if (!props.firstTimeline) this.appendField('File name (slug)', this.slugInput);
         this.nameInput.addEventListener('input', () => {
             if (!this.slugEdited) this.slugInput.value = this.suggestSlug();
             this.update();
         });
         this.slugInput.addEventListener('input', () => { this.slugEdited = true; this.update(); });
         for (const preset of TIMELINE_ASPECT_PRESETS) this.aspectSelect.add(new Option(preset.label, preset.id));
-        this.aspectSelect.add(new Option('カスタム', 'custom'));
+        this.aspectSelect.add(new Option('Custom', 'custom'));
         const preset = TIMELINE_ASPECT_PRESETS.find(p => p.width === props.defaultAspect.width && p.height === props.defaultAspect.height);
         this.aspectSelect.value = preset?.id ?? 'custom';
-        this.appendField('縦横比', this.aspectSelect);
+        this.appendField('Aspect ratio', this.aspectSelect);
         this.widthInput.value = String(props.defaultAspect.width);
         this.heightInput.value = String(props.defaultAspect.height);
         for (const input of [this.widthInput, this.heightInput]) {
@@ -55,8 +55,8 @@ export class AkariTimelineCreateDialog extends AbstractDialog<TimelineCreateResu
         const dimensions = document.createElement('div');
         dimensions.style.display = preset ? 'none' : 'flex';
         dimensions.style.gap = '12px';
-        this.appendField('幅（px）', this.widthInput, dimensions);
-        this.appendField('高さ（px）', this.heightInput, dimensions);
+        this.appendField('Width (px)', this.widthInput, dimensions);
+        this.appendField('Height (px)', this.heightInput, dimensions);
         this.contentNode.appendChild(dimensions);
         this.aspectSelect.addEventListener('change', () => {
             const selected = TIMELINE_ASPECT_PRESETS.find(p => p.id === this.aspectSelect.value);
@@ -67,8 +67,8 @@ export class AkariTimelineCreateDialog extends AbstractDialog<TimelineCreateResu
             dimensions.style.display = selected ? 'none' : 'flex';
             this.update();
         });
-        this.appendCloseButton('キャンセル');
-        this.appendAcceptButton('作成');
+        this.appendCloseButton('Cancel');
+        this.appendAcceptButton('Create');
     }
 
     protected appendField(text: string, input: HTMLElement, parent = this.contentNode): void {
@@ -86,7 +86,7 @@ export class AkariTimelineCreateDialog extends AbstractDialog<TimelineCreateResu
 
     get value(): TimelineCreateResult {
         return {
-            title: this.nameInput.value.trim() || 'タイムライン',
+            title: this.nameInput.value.trim() || 'Timeline',
             slug: this.props.firstTimeline ? '' : this.slugInput.value,
             width: Number(this.widthInput.value), height: Number(this.heightInput.value)
         };
@@ -94,10 +94,10 @@ export class AkariTimelineCreateDialog extends AbstractDialog<TimelineCreateResu
 
     protected isValid(value: TimelineCreateResult): DialogError {
         if (!this.props.firstTimeline) {
-            if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug)) return 'slug は半角小文字・数字をハイフンでつないでください。';
-            if (this.props.takenSlugs?.includes(value.slug)) return 'この slug は使われています。';
+            if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug)) return 'The slug must use lowercase letters and digits joined by hyphens.';
+            if (this.props.takenSlugs?.includes(value.slug)) return 'This slug is already in use.';
         }
-        if (![value.width, value.height].every(n => Number.isSafeInteger(n) && n >= 1)) return '幅と高さは 1 以上の整数にしてください。';
+        if (![value.width, value.height].every(n => Number.isSafeInteger(n) && n >= 1)) return 'Width and height must be whole numbers of 1 or more.';
         return '';
     }
 

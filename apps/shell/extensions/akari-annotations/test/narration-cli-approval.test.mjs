@@ -11,8 +11,8 @@ for (const engine of ['gemini-tts', 'fal-qwen3']) {
             projectRootUri: 'file:///unused', engine, voice: 'Leda', script: '表示原稿',
             reading: '読み原稿', t: 0, approved: false
         };
-        await assert.rejects(manager.generate(request, '/unused'), /費用承認が必要です。/);
-        await assert.rejects(manager.generate({ ...request, approved: undefined }, '/unused'), /費用承認が必要です。/);
+        await assert.rejects(manager.generate(request, '/unused'), /Cost approval is required\./);
+        await assert.rejects(manager.generate({ ...request, approved: undefined }, '/unused'), /Cost approval is required\./);
         assert.equal(spawned, 0);
     });
 }

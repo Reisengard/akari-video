@@ -87,7 +87,7 @@ test('v2 cut snapshot は埋め込み音声を読み、audio 節の2項目とミ
   assert.equal(snapshot.audioMute, true);
   assert.deepEqual(sections.slice(-3).map(section => section.id), ['timing', 'audio', 'info']);
   assert.deepEqual(Object.keys(fields), ['gain-db', 'mute']);
-  assert.equal(fields['gain-db'].getValue(snapshot), '-12（ミュート中）');
+  assert.equal(fields['gain-db'].getValue(snapshot), '-12 (muted)');
   assert.equal(fields['gain-db'].getEditValue(snapshot), '-12');
   assert.equal(fields['gain-db'].unit, 'dB');
   assert.equal(fields['gain-db'].scrubStep, 0.5);
@@ -105,7 +105,7 @@ test('gain-db の実 write は source.gain_db を変更し尺を保持する', a
   assert.equal(source().gain_db, -12);
   before.tracks[0].items[0].source.gain_db = -12;
   assert.deepEqual(context.editDocument, before);
-  assert.deepEqual(context.labels, ['埋め込み音声の音量を変更']);
+  assert.deepEqual(context.labels, ['Change embedded audio volume']);
 });
 
 test('gain-db は範囲外・非数値を拒否し v2 を変更しない', async () => {
@@ -128,7 +128,7 @@ test('boolean-select の文字列 true / false は mute の設定 / キー削除
   assert.equal(source().mute, true);
   assert.deepEqual(await fields.mute.write(snapshot, 'false'), { ok: true });
   assert.equal(Object.hasOwn(source(), 'mute'), false);
-  assert.deepEqual(context.labels, ['埋め込み音声をミュート', '埋め込み音声のミュートを解除']);
+  assert.deepEqual(context.labels, ['Mute embedded audio', 'Unmute embedded audio']);
 });
 
 test('gain-db reset は null mutation でキーを削除し mute と尺を保持する', async () => {

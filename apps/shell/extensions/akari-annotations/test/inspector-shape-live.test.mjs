@@ -36,10 +36,10 @@ test('塗りの色は hex のときだけ降ろし、途中の入力では送ら
 });
 
 test('色なし・色ありは枠の自動太さまで書き込みと同じにする', () => {
-    assert.equal(shapeLiveParams('rounded-rect', rect.params, 'fillMode', 'なし').fill, 'none');
-    assert.deepEqual(shapeLiveParams('rounded-rect', rect.params, 'strokeMode', '色'),
+    assert.equal(shapeLiveParams('rounded-rect', rect.params, 'fillMode', 'None').fill, 'none');
+    assert.deepEqual(shapeLiveParams('rounded-rect', rect.params, 'strokeMode', 'Color'),
         { ...rect.params, stroke: '#000000', strokeWidth: 4 });
-    assert.equal(shapeLiveParams('bubble', { tail: 'point' }, 'fillMode', '色').fill, '#ffffff');
+    assert.equal(shapeLiveParams('bubble', { tail: 'point' }, 'fillMode', 'Color').fill, '#ffffff');
     assert.equal(shapeLiveParams('rounded-rect', rect.params, 'fillMode', '変な値'), undefined);
 });
 
@@ -60,8 +60,8 @@ test('吹き出しのしっぽの角度・長さ・幅が SVG の形へ届く', 
 });
 
 test('線種やしっぽの選択も保存値へ戻せる', () => {
-    assert.equal(shapeLiveParams('line', {}, 'dash', '破線').dash, 'dash');
-    assert.equal(shapeLiveParams('bubble', {}, 'tail', '小さな丸').tail, 'dots');
+    assert.equal(shapeLiveParams('line', {}, 'dash', 'Dashed').dash, 'dash');
+    assert.equal(shapeLiveParams('bubble', {}, 'tail', 'Small dots').tail, 'dots');
     assert.equal(shapeLiveParams('bubble', {}, 'tail', '変な値'), undefined);
 });
 

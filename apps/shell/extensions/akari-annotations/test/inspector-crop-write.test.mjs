@@ -168,7 +168,7 @@ test('4 軸を既定へ戻すと layer / v2 item から crop フィールド自�
 
 test('クロップ節は layer / overlay / item の動画タブで変形直後に出て caption / audio には出ない', () => {
   const cropFieldsSource = sourceBetween(inspectorSource, 'function CROP_FIELDS', 'function CUT_SECTIONS');
-  for (const label of ['左', '上', '幅', '高さ']) {
+  for (const label of ['Left', 'Top', 'Width', 'Height']) {
     assert.match(cropFieldsSource, new RegExp(`label: '${label}'`, 'u'));
   }
   assert.match(cropFieldsSource, /displayScale: INSPECTOR_CROP_DISPLAY_SCALE/u);
@@ -183,12 +183,12 @@ test('クロップ節は layer / overlay / item の動画タブで変形直後�
   ];
   for (const source of mediaFactories) {
     assert.match(source, /const cropFields = CROP_FIELDS/u);
-    assert.match(source, /id: 'transform', label: '変形'[\s\S]*id: 'crop', label: '(?:クロップ|切り抜き)'/u);
+    assert.match(source, /id: 'transform', label: 'Transform'[\s\S]*id: 'crop', label: 'Crop'/u);
   }
   const captionFactory = sourceBetween(inspectorSource, 'function CAPTION_SECTIONS(', 'function MULTI_CAPTION_SECTIONS(');
   const audioFactory = sourceBetween(inspectorSource, 'function AUDIO_SECTIONS(', 'function OVERLAY_SECTIONS(');
-  assert.doesNotMatch(captionFactory, /label: 'クロップ'|CROP_FIELDS/u);
-  assert.doesNotMatch(audioFactory, /label: 'クロップ'|CROP_FIELDS/u);
+  assert.doesNotMatch(captionFactory, /label: 'Crop'|CROP_FIELDS/u);
+  assert.doesNotMatch(audioFactory, /label: 'Crop'|CROP_FIELDS/u);
 
   for (const kind of ['layer', 'overlay', 'item']) {
     assert.equal(assignSectionToTab(kind, 'crop'), 'video');

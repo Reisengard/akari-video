@@ -1,13 +1,13 @@
 {
   "cases": [
-    { "state": "planned", "meta": { "kind": "still", "status": "planned", "inputs": { "prompt": "" } }, "badge": "空の枠" },
-    { "state": "planned", "meta": { "kind": "still", "status": "planned", "inputs": { "prompt": "朝の海" } }, "badge": "予定" },
-    { "state": "generating", "meta": { "kind": "still", "status": "generating", "progress": 62 }, "badge": "生成中 62%" },
-    { "state": "stale", "meta": { "kind": "still", "status": "generating" }, "badge": "応答なし・再取得" },
-    { "state": "failed", "meta": { "kind": "still", "status": "failed" }, "badge": "失敗" },
-    { "state": "orphan", "meta": { "kind": "still", "status": "done" }, "badge": "孤児" },
-    { "state": "done", "meta": { "kind": "video", "status": "done" }, "badge": "生成" },
-    { "state": "none", "badge": "静止画" }
+    { "state": "planned", "meta": { "kind": "still", "status": "planned", "inputs": { "prompt": "" } }, "badge": "Empty slot" },
+    { "state": "planned", "meta": { "kind": "still", "status": "planned", "inputs": { "prompt": "朝の海" } }, "badge": "Planned" },
+    { "state": "generating", "meta": { "kind": "still", "status": "generating", "progress": 62 }, "badge": "Generating 62%" },
+    { "state": "stale", "meta": { "kind": "still", "status": "generating" }, "badge": "No response · retry" },
+    { "state": "failed", "meta": { "kind": "still", "status": "failed" }, "badge": "Failed" },
+    { "state": "orphan", "meta": { "kind": "still", "status": "done" }, "badge": "Orphaned" },
+    { "state": "done", "meta": { "kind": "video", "status": "done" }, "badge": "Generated" },
+    { "state": "none", "badge": "Still" }
   ],
   "widths": [
     { "width": 390, "duration": true, "name": true, "fullBadge": true },

@@ -22,7 +22,7 @@ const previewCode = between(widget, "if (state.kind === 'cut-trim') {", "if (sta
 const previewFn = new Function('state', 'delta', 'showGuide', 'still_cut_length_1', previewCode);
 const commitCode = between(widget, "case 'cut-trim': {", "case 'cut-move': {");
 const commitFn = new Function('preview', 'still_cut_length_1', 'edit_v2_mutations_1', `const MINIMUM_ITEM_DURATION = 0.15; let mutate, label, message; switch (preview.kind) { ${commitCode} } return mutate;`);
-const patchCode = between(widget, "const input = request.kind === 'cut-source-in'", "label = '素材の範囲を変更';");
+const patchCode = between(widget, "const input = request.kind === 'cut-source-in'", "label = 'Change footage range';");
 const patchFn = new Function('request', 'cut', 'indexed', 'still_cut_length_1', `let patch; ${patchCode} return patch;`);
 const overlapCode = between(widget, 'cutWouldOverlap(index, at, duration, track) {', '/**');
 const overlap = new Function(`return ({ ${overlapCode} }).cutWouldOverlap;`)();
@@ -58,7 +58,7 @@ for (const path of ['still.PNG', 'photo.jpg', 'photo.jpeg', 'card.webp', 'card.b
         assert.equal(result.output, 3.2);
         assert.equal(result.maxOutSeconds, undefined);
         assert.deepEqual([calls.cache, calls.fetch, calls.notice, calls.durationWarning], [0, 0, 0, false]);
-        assert.doesNotMatch(calls.footer, /実尺確認中|実尺不明/);
+        assert.doesNotMatch(calls.footer, /checking duration|duration unknown/);
         const item = commit(ctx, result);
         assert.equal(item.duration, 96);
         assert.equal(item.source.in, 0);
@@ -121,7 +121,7 @@ const durationField = snapshot => new Function('snapshot', 'requestWrite', 'form
 test('長さ欄 → cut-source-out → duration/source.out を同時更新・手入力は 0.1 秒精度', async () => {
     const snapshot = { sourcePath: 'frame.png', index: 0, outputStart: 1, outputEnd: 3 };
     const field = durationField(snapshot);
-    assert.equal(field.label, '長さ');
+    assert.equal(field.label, 'Duration');
     assert.equal(field.inputKind, 'scrub-number');
     assert.equal(field.scrubStep, 0.5);
     assert.equal(field.displayPrecision, 1);
@@ -155,11 +155,11 @@ test('丸めは小数 fps でも 0.5 秒以上かつ隣の手前のフレーム�
 });
 test('動画の尺は write のない読み取り専用・音声の尺も読み取り専用', () => {
     const field = durationField({ sourcePath: 'generated.mp4', outputStart: 0, outputEnd: 2 });
-    assert.equal(field.label, '尺');
+    assert.equal(field.label, 'Duration');
     assert.equal(field.write, undefined);
     assert.equal(field.inputKind, undefined);
     const audio = between(inspectorSource, 'function AUDIO_SECTIONS(', 'function ');
-    assert.match(audio, /name: 'audio-duration', label: '尺', getValue:/);
+    assert.match(audio, /name: 'audio-duration', label: 'Duration', getValue:/);
 });
 test('undo は共通 mutation の 1 手、数値欄のスクラブ途中は onPreview のみ', () => {
     assert.equal(durationField({ sourcePath: 'frame.png', outputStart: 0, outputEnd: 2 }).liveField, undefined);

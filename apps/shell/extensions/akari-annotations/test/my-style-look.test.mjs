@@ -85,7 +85,7 @@ test('旧予約形と未来の attach 部品は適用せず保持対象として
   assert.equal(supportedMyStyleAttachPart(future), false);
   assert.equal(supportedMyStyleAttachPart(extended), false);
   assert.deepEqual(appliedMyStyleKinds([old, future, extended], ['sfx', 'decor']), []);
-  assert.match(myStyleApplyNotice([old, future, extended]), /効果音・装飾/);
+  assert.match(myStyleApplyNotice([old, future, extended]), /Sound effects, Decoration/);
 });
 
 test('実効の動きを snake_case で保存し、無い字幕は motion を作らない', () => {
@@ -155,17 +155,17 @@ test('置換後の default layout と cue layout を事前に検出し、置い�
   const source = JSON.stringify({ default_text_style: { layout }, captions: [
     { id: 'one', text_style: { color: '#fff' } }, { id: 'two', text_style: { color: '#fff' } }
   ] });
-  assert.throws(() => replaceMyStyleLookInSource(source, ['one', 'two'], look), /layout.*基準高さ/);
+  assert.throws(() => replaceMyStyleLookInSource(source, ['one', 'two'], look), /layout.*base height/);
   assert.throws(() => placedMyStyleTextStyle({ position: { y: .5 } }, look,
-    { layout: { mode: 'reference-pixel' } }), /layout.*基準高さ/);
+    { layout: { mode: 'reference-pixel' } }), /layout.*base height/);
 });
 
 test('未対応部品と見た目項目の名前を 1 行で知らせ、未対応が無ければ通知しない', () => {
   assert.equal(myStyleApplyNotice([{ kind: 'look', text_style: { color: '#fff', italic: true,
     background: { width_pct: 60 } } }, { kind: 'motion' }]),
-  '斜体・座布団の幅 は当てません。');
+  'Italic, Background width will not be applied.');
   assert.equal(myStyleApplyNotice([{ kind: 'look', text_style: { color: '#fff' } }]), undefined);
-  assert.equal(myStyleApplyNotice([{ kind: 'camera' }]), 'カメラ は当てません。');
+  assert.equal(myStyleApplyNotice([{ kind: 'camera' }]), 'Camera will not be applied.');
   assert.deepEqual(placedMyStyleTextStyle({ position: { y: .4625 }, textAnchor: 'tc' },
     { color: '#ff1744', shadow: null }),
   { position: { y: .4625 }, textAnchor: 'tc', color: '#ff1744' });

@@ -97,11 +97,11 @@ export function updateAudioSfx(
     }
     if (Object.prototype.hasOwnProperty.call(patch, 'track')
         && (!Number.isInteger(patch.track) || (patch.track as number) < 0)) {
-        throw new Error('audio.sfx[].track は 0 以上の整数で指定してください。');
+        throw new Error('audio.sfx[].track must be an integer of 0 or more.');
     }
     if (Object.prototype.hasOwnProperty.call(patch, 'gain_db') && patch.gain_db !== null
         && (typeof patch.gain_db !== 'number' || !Number.isFinite(patch.gain_db))) {
-        throw new Error('audio.sfx[].gain_db は有限数で指定してください。');
+        throw new Error('audio.sfx[].gain_db must be a finite number.');
     }
     sfx[index] = mergeNullable(sfx[index], patch);
     return value;
@@ -121,17 +121,17 @@ export function insertAudioSfx(
 ): EditV2Document {
     const value = cloneDocument(doc);
     const sfx = audioSfxOf(value, true);
-    const id = stringId(item, '音声クリップ');
+    const id = stringId(item, 'Audio clip');
     if (sfx.some((entry, entryIndex) => audioSfxId(entry, entryIndex) === id)) {
-        throw new Error(`音声クリップ id が重複しています: ${id}`);
+        throw new Error(`Duplicate audio clip id: ${id}`);
     }
     requireSeconds(item.t, 'audio.sfx[].t');
     if (typeof item.path !== 'string' || item.path.trim() === '') {
-        throw new Error('音声クリップの path がありません。');
+        throw new Error('The audio clip has no path.');
     }
     const insertAt = index === undefined ? sfx.length : index;
     if (!Number.isInteger(insertAt) || insertAt < 0 || insertAt > sfx.length) {
-        throw new Error('音声クリップの挿入位置が範囲外です。');
+        throw new Error('The audio clip insert position is out of range.');
     }
     sfx.splice(insertAt, 0, cloneValue(item));
     return value;
@@ -164,7 +164,7 @@ export interface KeyframeMotionWrite {
 function editTree(doc: EditV2Document): EditableEditV2 {
     const value = cloneDocument(doc) as unknown as EditableEditV2;
     if (value.version !== 2 || !Array.isArray(value.tracks)) {
-        throw new Error('木の操作は edit.json v2 のみ対応しています。');
+        throw new Error('Tree operations support edit.json v2 only.');
     }
     attachEditHelpers(value);
     return value;
@@ -238,7 +238,7 @@ export function insertTreeV2ItemIntoCanvas(
     const edit = editTree(doc);
     const canvas = locate(edit, canvasId);
     if (!canvas || canvas.item.source.kind !== 'group' || !canvas.item.source.canvas) {
-        throw new Error('置き先がキャンバスではありません。');
+        throw new Error('The destination is not a canvas.');
     }
     const parentTransform = composeTransforms(worldTransformOfAncestors(canvas.ancestors), canvas.item.transform);
     const child = insertTreeItem(edit, canvasId, {
@@ -341,12 +341,12 @@ export function setV2Keyframe(
     const group = groupOfProperty(options.property);
     if (group) {
         const item = edit.find(options.itemId);
-        if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+        if (!item) throw new Error(`Item not found: ${options.itemId}`);
         const activated = activateItemKeyframeGroup(item as never, options.t, group);
         const field = options.property.startsWith('transform.')
             ? options.property.slice('transform.'.length) as TransformField : undefined;
         if (typeof options.value !== 'number' || !Number.isFinite(options.value)) {
-            throw new Error('キーフレームの数値が不正です。');
+            throw new Error('Invalid keyframe value.');
         }
         const updated = field ? writeItemTransformAt(activated, options.t, { [field]: options.value })
             : writeItemOpacityAt(activated, options.t, options.value);
@@ -364,7 +364,7 @@ export function activateV2ItemTransformKeyframe(
     const edit = editForKeyframes(doc, { itemId: options.itemId, property: `transform.${options.field}`,
         ...(options.hydratedPoints ? { hydratedPoints: options.hydratedPoints } : {}) });
     const item = edit.find(options.itemId);
-    if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+    if (!item) throw new Error(`Item not found: ${options.itemId}`);
     const updated = activateItemTransformKeyframe(item as never, options.t, options.field);
     updateTreeItem(edit, options.itemId, itemPatch(updated));
     return finishKeyframeMutation(edit);
@@ -377,7 +377,7 @@ export function writeV2ItemTransformAt(
     const edit = editForKeyframes(doc, { itemId: options.itemId, property: 'transform.x',
         ...(options.hydratedPoints ? { hydratedPoints: options.hydratedPoints } : {}) });
     const item = edit.find(options.itemId);
-    if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+    if (!item) throw new Error(`Item not found: ${options.itemId}`);
     const updated = writeItemTransformAt(item as never, options.t, options.patch);
     updateTreeItem(edit, options.itemId, { transform: updated.transform, keyframes: updated.keyframes });
     return finishKeyframeMutation(edit);
@@ -390,7 +390,7 @@ export function writeV2ItemOpacityAt(
     const edit = editForKeyframes(doc, { itemId: options.itemId, property: 'opacity',
         ...(options.hydratedPoints ? { hydratedPoints: options.hydratedPoints } : {}) });
     const item = edit.find(options.itemId);
-    if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+    if (!item) throw new Error(`Item not found: ${options.itemId}`);
     updateTreeItem(edit, options.itemId, itemPatch(writeItemOpacityAt(item as never, options.t, options.opacity)));
     return finishKeyframeMutation(edit);
 }
@@ -403,7 +403,7 @@ export function removeV2Keyframe(
     const group = groupOfProperty(options.property);
     if (group) {
         const item = edit.find(options.itemId);
-        if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+        if (!item) throw new Error(`Item not found: ${options.itemId}`);
         updateTreeItem(edit, options.itemId, itemPatch(removeItemKeyframeGroup(item as never, options.t, group)));
     } else removeTreeKeyframe(edit, options.itemId, options.property, options.t);
     return finishKeyframeMutation(edit);
@@ -413,7 +413,7 @@ export function removeV2KeyframePoint(doc: EditV2Document,
     options: { itemId: string; t: number; hydratedPoints?: readonly Record<string, unknown>[] }): EditV2Document {
     const edit = editForKeyframes(doc, { ...options, property: 'transform.x' });
     const item = edit.find(options.itemId);
-    if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+    if (!item) throw new Error(`Item not found: ${options.itemId}`);
     updateTreeItem(edit, options.itemId, itemPatch(removeItemKeyframePoint(item as never, options.t)));
     return finishKeyframeMutation(edit);
 }
@@ -426,7 +426,7 @@ export function moveV2Keyframe(
     const group = groupOfProperty(options.property);
     if (group) {
         const item = edit.find(options.itemId);
-        if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+        if (!item) throw new Error(`Item not found: ${options.itemId}`);
         updateTreeItem(edit, options.itemId, itemPatch(moveItemKeyframeGroup(item as never,
             options.fromT, options.toT, group)));
     } else moveTreeKeyframe(edit, options.itemId, options.property, options.fromT, options.toT);
@@ -441,7 +441,7 @@ export function setV2SegmentEasing(
     const group = groupOfProperty(options.property);
     if (group && group !== 'opacity') {
         const raw = edit.find(options.itemId);
-        if (!raw) throw new Error(`item が見つかりません: ${options.itemId}`);
+        if (!raw) throw new Error(`Item not found: ${options.itemId}`);
         updateTreeItem(edit, options.itemId, itemPatch(normalizeItemKeyframeGroup(raw as never, group)));
         const properties = group === 'position' ? ['transform.x', 'transform.y']
             : group === 'size' ? ['transform.scale', 'transform.scaleX', 'transform.scaleY']
@@ -487,9 +487,9 @@ export function prepareV2KeyframeDistribution(doc: EditV2Document): {
 function editForKeyframes(doc: EditV2Document, options: KeyframeMutationOptions): EditableEditV2 {
     const edit = editTree(doc);
     const item = edit.find(options.itemId);
-    if (!item) throw new Error(`item が見つかりません: ${options.itemId}`);
+    if (!item) throw new Error(`Item not found: ${options.itemId}`);
     if (!Array.isArray(item.keyframes) && item.keyframes !== undefined) {
-        if (!options.hydratedPoints) throw new Error('motion 袋を読み込んでから編集してください。');
+        if (!options.hydratedPoints) throw new Error('Load the motion bag before editing.');
         item.keyframes = cloneValue(options.hydratedPoints) as unknown as typeof item.keyframes;
     }
     return edit;
@@ -506,9 +506,9 @@ export function indexEditV2Items(doc: EditV2Document): Map<string, ItemLocation>
         if (!Array.isArray(track.items)) return;
         const visit = (items: unknown[], parentId?: string): void => items.forEach((item, itemIndex) => {
             if (!isRecord(item) || typeof item.id !== 'string') return;
-            if (result.has(item.id)) throw new Error(`クリップ id が重複しています: ${item.id}`);
+            if (result.has(item.id)) throw new Error(`Duplicate clip id: ${item.id}`);
             result.set(item.id, {
-                trackId: stringId(track, 'トラック'), trackIndex, itemIndex,
+                trackId: stringId(track, 'Track'), trackIndex, itemIndex,
                 ...(parentId === undefined ? {} : { parentId })
             });
             if (Array.isArray(item.items)) visit(item.items, item.id);
@@ -566,7 +566,7 @@ export function insertAudioSfxPreferV2(
     if (options.trackId !== undefined) {
         const track = trackById(doc, options.trackId);
         if (track.lane !== 'audio') {
-            throw new Error('映像のレーンには音を置けません。');
+            throw new Error('Audio cannot be placed on a video lane.');
         }
         return insertItem(doc, options.trackId, options.item, options.index);
     }
@@ -602,12 +602,12 @@ export function updateAudioNarrationGainPreferV2(
     const value = cloneDocument(doc);
     if (!isRecord(value.audio) || !Array.isArray(value.audio.narration)
         || !value.audio.narration.every(isRecord)) {
-        throw new Error('edit.json.audio.narration が見つかりません。');
+        throw new Error('edit.json.audio.narration not found.');
     }
     const index = value.audio.narration.findIndex((entry, entryIndex) =>
         (typeof entry.id === 'string' && entry.id.trim() ? entry.id : `narration-${entryIndex}`)
         === options.narrationId);
-    if (index < 0) throw new Error(`ナレーションが見つかりません: ${options.narrationId}`);
+    if (index < 0) throw new Error(`Narration not found: ${options.narrationId}`);
     value.audio.narration[index] = mergeNullable(
         value.audio.narration[index], { gain_db: options.gainDb }
     );
@@ -624,12 +624,12 @@ export function updateAudioNarrationPreferV2(
     const value = cloneAudioDocument(doc);
     if (!isRecord(value.audio) || !Array.isArray(value.audio.narration)
         || !value.audio.narration.every(isRecord)) {
-        throw new Error('edit.json.audio.narration が見つかりません。');
+        throw new Error('edit.json.audio.narration not found.');
     }
     const index = value.audio.narration.findIndex((entry, entryIndex) =>
         (typeof entry.id === 'string' && entry.id.trim() ? entry.id : `narration-${entryIndex}`)
         === options.narrationId);
-    if (index < 0) throw new Error(`ナレーションが見つかりません: ${options.narrationId}`);
+    if (index < 0) throw new Error(`Narration not found: ${options.narrationId}`);
     value.audio.narration[index] = mergeNullable(
         value.audio.narration[index], normalizeLegacyAudioPatch(options.legacyPatch)
     );
@@ -647,10 +647,10 @@ function normalizeV2AudioPatch(patch: UnknownRecord): UnknownRecord {
     const next = { ...patch };
     if (Object.prototype.hasOwnProperty.call(next, 'keyframes')) {
         const raw = next.keyframes;
-        if (raw !== null && !Array.isArray(raw)) throw new Error('keyframes は配列で指定してください。');
+        if (raw !== null && !Array.isArray(raw)) throw new Error('keyframes must be an array.');
         const normalized = normalizeAudioKeyframes(raw as AudioEnvelopeKeyframe[] | null);
         if (normalized?.some(point => !Number.isInteger(point.t))) {
-            throw new Error('v2 keyframes[].t は整数フレームで指定してください。');
+            throw new Error('v2 keyframes[].t must be an integer frame number.');
         }
         next.keyframes = normalized;
     }
@@ -662,7 +662,7 @@ function normalizeLegacyAudioPatch(patch: UnknownRecord): UnknownRecord {
     const next = { ...patch };
     if (Object.prototype.hasOwnProperty.call(next, 'keyframes')) {
         const raw = next.keyframes;
-        if (raw !== null && !Array.isArray(raw)) throw new Error('keyframes は配列で指定してください。');
+        if (raw !== null && !Array.isArray(raw)) throw new Error('keyframes must be an array.');
         next.keyframes = normalizeAudioKeyframes(raw as AudioEnvelopeKeyframe[] | null);
     }
     validateAudioEnvelopePatch(next);
@@ -677,11 +677,11 @@ function validateAudioEnvelopePatch(patch: UnknownRecord): void {
         const value = patch[key];
         if (value !== undefined && value !== null
             && (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max)) {
-            throw new Error(`${key} は ${min}〜${max} の範囲で指定してください。`);
+            throw new Error(`${key} must be between ${min} and ${max}.`);
         }
     }
     if (patch.ducking !== undefined && patch.ducking !== null && typeof patch.ducking !== 'boolean') {
-        throw new Error('ducking は boolean で指定してください。');
+        throw new Error('ducking must be a boolean.');
     }
 }
 
@@ -693,12 +693,12 @@ export function removeAudioNarrationPreferV2(
     const value = cloneDocument(doc);
     if (!isRecord(value.audio) || !Array.isArray(value.audio.narration)
         || !value.audio.narration.every(isRecord)) {
-        throw new Error('edit.json.audio.narration が見つかりません。');
+        throw new Error('edit.json.audio.narration not found.');
     }
     const index = value.audio.narration.findIndex((entry, entryIndex) =>
         (typeof entry.id === 'string' && entry.id.trim() ? entry.id : `narration-${entryIndex}`)
         === narrationId);
-    if (index < 0) throw new Error(`ナレーションが見つかりません: ${narrationId}`);
+    if (index < 0) throw new Error(`Narration not found: ${narrationId}`);
     value.audio.narration.splice(index, 1);
     return value;
 }
@@ -707,12 +707,12 @@ export function moveItem(
     doc: EditV2Document,
     options: { itemId: string; toTrackId: string; atFrames: number }
 ): EditV2Document {
-    requireFrame(options.atFrames, '移動先の時刻');
+    requireFrame(options.atFrames, 'Target time');
     const itemExists = indexEditV2Items(doc).has(options.itemId);
     const audioIndex = findAudioSfxIndexOptional(doc, options.itemId);
     if (!itemExists && audioIndex >= 0) {
         const match = /^implicit-audio-(\d+)$/.exec(options.toTrackId);
-        if (!match) throw new Error('音声クリップの移動先トラックを特定できません。');
+        if (!match) throw new Error('Could not identify the target track for the audio clip.');
         return moveAudioSfx(doc, {
             sfxId: options.itemId,
             t: options.atFrames / fpsOf(doc),
@@ -723,13 +723,13 @@ export function moveItem(
     const tracks = tracksOf(value);
     const found = findItem(tracks, options.itemId);
     const targetIndex = tracks.findIndex(track => track.id === options.toTrackId);
-    if (targetIndex < 0) throw new Error(`移動先のトラックが見つかりません: ${options.toTrackId}`);
+    if (targetIndex < 0) throw new Error(`Target track not found: ${options.toTrackId}`);
     const target = tracks[targetIndex];
-    requireItemsTrack(target, `移動先のトラック ${options.toTrackId}`);
+    requireItemsTrack(target, `target track ${options.toTrackId}`);
     if (target.lane !== found.track.lane) {
         throw new Error(found.track.lane === 'visual'
-            ? '音のレーンには映像を置けません。'
-            : '映像のレーンには音を置けません。');
+            ? 'Video cannot be placed on an audio lane.'
+            : 'Audio cannot be placed on a video lane.');
     }
     const [item] = found.track.items.splice(found.itemIndex, 1);
     const moved = { ...item, at: options.atFrames };
@@ -755,10 +755,10 @@ export function moveItemToNewTrack(
     doc: EditV2Document,
     options: { itemId: string; insertIndex: number; atFrames: number }
 ): EditV2Document {
-    requireFrame(options.atFrames, '移動先の時刻');
+    requireFrame(options.atFrames, 'Target time');
     const edit = editTree(doc);
     const found = indexEditV2Items(edit as unknown as EditV2Document).get(options.itemId);
-    if (!found) throw new Error(`クリップが見つかりません: ${options.itemId}`);
+    if (!found) throw new Error(`Clip not found: ${options.itemId}`);
     const sourceTrack = edit.tracks[found.trackIndex];
     requireInsertIndex(edit.tracks as unknown as UnknownRecord[], options.insertIndex, sourceTrack.lane as EditV2Lane);
     const created = createTrackAt(edit, String(sourceTrack.lane), options.insertIndex);
@@ -825,8 +825,8 @@ export function updateItem(
     delete patch.source;
     const next = mergeNullable(found.item, patch);
     if (sourcePatch !== undefined) {
-        if (!isRecord(sourcePatch)) throw new Error('source の更新値は object で指定してください。');
-        const source = recordOf(found.item.source, 'クリップの source');
+        if (!isRecord(sourcePatch)) throw new Error('The source update must be an object.');
+        const source = recordOf(found.item.source, 'Clip source');
         if (Object.prototype.hasOwnProperty.call(sourcePatch, 'in')) requireSeconds(sourcePatch.in, 'source.in');
         if (Object.prototype.hasOwnProperty.call(sourcePatch, 'out')) requireSeconds(sourcePatch.out, 'source.out');
         next.source = mergeNullable(source, sourcePatch);
@@ -844,12 +844,12 @@ export function updateItemDurationAndShiftFollowing(
     options: { itemId: string; patch: UnknownRecord }
 ): EditV2Document {
     if (!Object.prototype.hasOwnProperty.call(options.patch, 'duration')) {
-        throw new Error('duration の更新値がありません。');
+        throw new Error('No duration update value.');
     }
     requireFrame(options.patch.duration, 'duration');
     const original = findItem(tracksOf(doc), options.itemId);
-    requireFrame(original.item.at, '対象クリップの at');
-    requireFrame(original.item.duration, '対象クリップの duration');
+    requireFrame(original.item.at, 'Target clip at');
+    requireFrame(original.item.duration, 'Target clip duration');
     const oldEnd = original.item.at + original.item.duration;
     const delta = options.patch.duration - original.item.duration;
     const value = updateItem(doc, options);
@@ -858,7 +858,7 @@ export function updateItemDurationAndShiftFollowing(
     const updated = findItem(tracksOf(value), options.itemId);
     for (const item of updated.track.items) {
         if (item.id === options.itemId) continue;
-        requireFrame(item.at, `クリップ ${String(item.id ?? '')} の at`);
+        requireFrame(item.at, `Clip ${String(item.id ?? '')} at`);
         if (item.at >= oldEnd) item.at += delta;
     }
     return value;
@@ -880,15 +880,15 @@ export function insertItem(
     const value = cloneDocument(doc);
     const tracks = tracksOf(value);
     const target = tracks.find(track => track.id === trackId);
-    if (!target) throw new Error(`挿入先のトラックが見つかりません: ${trackId}`);
-    requireItemsTrack(target, `挿入先のトラック ${trackId}`);
-    const itemId = stringId(item, 'クリップ');
-    if (indexEditV2Items(value).has(itemId)) throw new Error(`クリップ id が重複しています: ${itemId}`);
+    if (!target) throw new Error(`Insert track not found: ${trackId}`);
+    requireItemsTrack(target, `insert track ${trackId}`);
+    const itemId = stringId(item, 'Clip');
+    if (indexEditV2Items(value).has(itemId)) throw new Error(`Duplicate clip id: ${itemId}`);
     requireFrame(item.at, 'at');
     requireFrame(item.duration, 'duration');
     const insertAt = index === undefined ? target.items.length : index;
     if (!Number.isInteger(insertAt) || insertAt < 0 || insertAt > target.items.length) {
-        throw new Error('クリップの挿入位置が範囲外です。');
+        throw new Error('The clip insert position is out of range.');
     }
     target.items.splice(insertAt, 0, cloneValue(item));
     return value;
@@ -912,14 +912,14 @@ export function splitItem(
     doc: EditV2Document,
     options: { itemId: string; atFrames: number }
 ): EditV2Document {
-    requireFrame(options.atFrames, '分割位置');
+    requireFrame(options.atFrames, 'Split position');
     const value = cloneDocument(doc);
     const tracks = tracksOf(value);
     const found = findItem(tracks, options.itemId);
-    const at = numberOf(found.item.at, 'クリップの at');
-    const duration = numberOf(found.item.duration, 'クリップの duration');
+    const at = numberOf(found.item.at, 'Clip at');
+    const duration = numberOf(found.item.duration, 'Clip duration');
     const offset = options.atFrames - at;
-    if (offset <= 0 || offset >= duration) throw new Error('分割位置はクリップの内側に置いてください。');
+    if (offset <= 0 || offset >= duration) throw new Error('The split position must be inside the clip.');
 
     const first = cloneValue(found.item);
     const second = cloneValue(found.item);
@@ -947,11 +947,11 @@ export function reorderTracks(
     const tracks = tracksOf(value);
     for (const index of [options.fromIndex, options.toIndex]) {
         if (!Number.isInteger(index) || index < 0 || index >= tracks.length) {
-            throw new Error('トラックの並べ替え位置が範囲外です。');
+            throw new Error('The track reorder position is out of range.');
         }
     }
     if (tracks[options.fromIndex].lane !== tracks[options.toIndex].lane) {
-        throw new Error('音と映像のレーンをまたいでトラックを並べ替えることはできません。');
+        throw new Error('Tracks cannot be reordered across audio and video lanes.');
     }
     const [moved] = tracks.splice(options.fromIndex, 1);
     tracks.splice(options.toIndex, 0, moved);
@@ -979,7 +979,7 @@ export function removeTrack(doc: EditV2Document, trackId: string): EditV2Documen
     const value = cloneDocument(doc);
     const tracks = tracksOf(value);
     const index = tracks.findIndex(track => track.id === trackId);
-    if (index < 0) throw new Error(`トラックが見つかりません: ${trackId}`);
+    if (index < 0) throw new Error(`Track not found: ${trackId}`);
     tracks.splice(index, 1);
     return value;
 }
@@ -1014,13 +1014,13 @@ export function setTrackFlag(
 
 /** legacy audio.* の更新では tracks が存在しない文書も保持する。 */
 function cloneAudioDocument(doc: EditV2Document): EditV2Document {
-    if (!isRecord(doc)) throw new Error('edit.json は object である必要があります。');
+    if (!isRecord(doc)) throw new Error('edit.json must be an object.');
     if (doc.tracks !== undefined) return cloneDocument(doc);
     return cloneValue(doc);
 }
 
 function cloneDocument(doc: EditV2Document): EditV2Document {
-    if (!isRecord(doc)) throw new Error('edit.json は object である必要があります。');
+    if (!isRecord(doc)) throw new Error('edit.json must be an object.');
     const value = cloneValue(doc);
     tracksOf(value);
     return value;
@@ -1036,7 +1036,7 @@ function cloneValue<T>(value: T): T {
 
 function tracksOf(doc: EditV2Document): UnknownRecord[] {
     if (!Array.isArray(doc.tracks) || !doc.tracks.every(isRecord)) {
-        throw new Error('edit.json.tracks は object の配列である必要があります。');
+        throw new Error('edit.json.tracks must be an array of objects.');
     }
     return doc.tracks;
 }
@@ -1046,17 +1046,17 @@ function audioSfxOf(doc: EditV2Document, create = false): UnknownRecord[] {
     if (isRecord(doc.audio)) {
         audio = doc.audio;
     } else {
-        if (!create) throw new Error('edit.json.audio が見つかりません。');
+        if (!create) throw new Error('edit.json.audio not found.');
         audio = {};
         doc.audio = audio;
     }
     if (Array.isArray(audio.sfx)) {
         if (!audio.sfx.every(isRecord)) {
-            throw new Error('edit.json.audio.sfx は object の配列である必要があります。');
+            throw new Error('edit.json.audio.sfx must be an array of objects.');
         }
         return audio.sfx;
     }
-    if (!create) throw new Error('edit.json.audio.sfx が見つかりません。');
+    if (!create) throw new Error('edit.json.audio.sfx not found.');
     const sfx: UnknownRecord[] = [];
     audio.sfx = sfx;
     return sfx;
@@ -1068,7 +1068,7 @@ function audioSfxId(entry: UnknownRecord, index: number): string {
 
 function findAudioSfxIndex(sfx: UnknownRecord[], sfxId: string): number {
     const index = sfx.findIndex((entry, entryIndex) => audioSfxId(entry, entryIndex) === sfxId);
-    if (index < 0) throw new Error(`音声クリップが見つかりません: ${sfxId}`);
+    if (index < 0) throw new Error(`Audio clip not found: ${sfxId}`);
     return index;
 }
 
@@ -1079,14 +1079,14 @@ function findAudioSfxIndexOptional(doc: EditV2Document, sfxId: string): number {
 
 function fpsOf(doc: EditV2Document): number {
     if (!isRecord(doc.output) || !Number.isInteger(doc.output.fps) || (doc.output.fps as number) <= 0) {
-        throw new Error('edit.json.output.fps が不正です。');
+        throw new Error('edit.json.output.fps is invalid.');
     }
     return doc.output.fps as number;
 }
 
 function trackById(doc: EditV2Document, trackId: string): UnknownRecord {
     const track = tracksOf(doc).find(candidate => candidate.id === trackId);
-    if (!track) throw new Error(`トラックが見つかりません: ${trackId}`);
+    if (!track) throw new Error(`Track not found: ${trackId}`);
     return track;
 }
 
@@ -1101,11 +1101,11 @@ function findItem(tracks: UnknownRecord[], itemId: string): {
         if (!Array.isArray(track.items)) continue;
         const itemIndex = track.items.findIndex(item => isRecord(item) && item.id === itemId);
         if (itemIndex >= 0) {
-            requireItemsTrack(track, `トラック ${String(track.id ?? trackIndex)}`);
+            requireItemsTrack(track, `track ${String(track.id ?? trackIndex)}`);
             return { track, trackIndex, item: track.items[itemIndex], itemIndex };
         }
     }
-    throw new Error(`クリップが見つかりません: ${itemId}`);
+    throw new Error(`Clip not found: ${itemId}`);
 }
 
 function requireItemsTrack(
@@ -1113,17 +1113,17 @@ function requireItemsTrack(
     label: string
 ): asserts track is UnknownRecord & { items: UnknownRecord[] } {
     if (!Array.isArray(track.items) || !track.items.every(isRecord)) {
-        throw new Error(`${label} はクリップを置けるトラックではありません。`);
+        throw new Error(`${label} is not a track that can hold clips.`);
     }
 }
 
 function requireInsertIndex(tracks: UnknownRecord[], index: number, lane: EditV2Lane): void {
     if (!Number.isInteger(index) || index < 0 || index > tracks.length) {
-        throw new Error('トラックの挿入位置が範囲外です。');
+        throw new Error('The track insert position is out of range.');
     }
     const audioCount = tracks.filter(track => track.lane === 'audio').length;
     const valid = lane === 'audio' ? index <= audioCount : index >= audioCount;
-    if (!valid) throw new Error('音のレーンは最下段から動かせません。');
+    if (!valid) throw new Error('Audio lanes cannot be moved from the bottom.');
 }
 
 function nextTrackId(tracks: UnknownRecord[], lane: EditV2Lane): string {
@@ -1152,27 +1152,27 @@ function mergeNullable(base: UnknownRecord, patch: UnknownRecord): UnknownRecord
 }
 
 function recordOf(value: unknown, label: string): UnknownRecord {
-    if (!isRecord(value)) throw new Error(`${label} は object である必要があります。`);
+    if (!isRecord(value)) throw new Error(`${label} must be an object.`);
     return value;
 }
 
 function numberOf(value: unknown, label: string): number {
-    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`${label} は有限数である必要があります。`);
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`${label} must be a finite number.`);
     return value;
 }
 
 function stringId(value: UnknownRecord, label: string): string {
-    if (typeof value.id !== 'string' || value.id.trim() === '') throw new Error(`${label} id がありません。`);
+    if (typeof value.id !== 'string' || value.id.trim() === '') throw new Error(`${label} id is missing.`);
     return value.id;
 }
 
 function requireFrame(value: unknown, label: string): asserts value is number {
-    if (!Number.isInteger(value) || (value as number) < 0) throw new Error(`${label}は 0 以上の整数フレームで指定してください。`);
+    if (!Number.isInteger(value) || (value as number) < 0) throw new Error(`${label} must be an integer frame number of 0 or more.`);
 }
 
 function requireSeconds(value: unknown, label: string): asserts value is number {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-        throw new Error(`${label} は 0 以上の秒で指定してください。`);
+        throw new Error(`${label} must be 0 or more seconds.`);
     }
 }
 

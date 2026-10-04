@@ -129,7 +129,7 @@ test('lock toggle persists locally, survives reload, and does not change edit.js
   await context.toggleTimelineTrackFlag(context.timelineTracks[1], 'locked');
   assert.equal(stored.get(key('audio')), true);
   assert.equal(context.timelineTracks[1].locked, true);
-  assert.equal(context.footer.textContent, 'トラックをロックしました。');
+  assert.equal(context.footer.textContent, 'Done: Lock track.');
   const reloaded = fixture(stored).context;
   await reloaded.applyStoredTrackFlags();
   assert.equal(reloaded.isTrackLocked('audio'), true);
@@ -137,7 +137,7 @@ test('lock toggle persists locally, survives reload, and does not change edit.js
   await reloaded.toggleTimelineTrackFlag(reloaded.timelineTracks[1], 'locked');
   assert.equal(stored.get(key('audio')), false);
   assert.equal(reloaded.isTrackLocked('audio'), false);
-  assert.equal(reloaded.footer.textContent, 'トラックをロック解除しました。');
+  assert.equal(reloaded.footer.textContent, 'Done: Unlock track.');
   assert.equal(JSON.stringify(context.editDocument), before);
 });
 
@@ -168,7 +168,7 @@ for (const selection of [
     context.selection = selection;
     const before = JSON.stringify(context.editDocument);
     await context.performDeleteSelected();
-    assert.match(context.footer.textContent, /はロック中です/);
+    assert.match(context.footer.textContent, /is locked \(unlock it to edit\)/);
     assert.equal(context.selection, selection);
     assert.equal(JSON.stringify(context.editDocument), before);
   });
@@ -196,7 +196,7 @@ test('mixed deletion removes only unlocked items and clears obsolete selection i
   assert.deepEqual(JSON.parse(disk).tracks[0], context.editDocument.tracks[0]);
   assert.deepEqual(JSON.parse(disk).tracks[1].items, []);
   assert.deepEqual(context.multiSelection, []);
-  assert.equal(context.footer.textContent, '1 件はロック中のため残しました');
+  assert.equal(context.footer.textContent, 'Locked items kept: 1');
   await context.history.undo();
   assert.equal(JSON.parse(disk).tracks[1].items[0].id, 'sound');
 });
@@ -205,7 +205,7 @@ test('all-locked multi selection returns before any file IO', async () => {
   const { context } = fixture();
   context.multiSelection = [{ kind: 'cut', index: 0 }, { kind: 'caption', id: 'caption' }];
   await context.performDeleteMultiSelected();
-  assert.equal(context.footer.textContent, '2 件はロック中のため残しました');
+  assert.equal(context.footer.textContent, 'Locked items kept: 2');
 });
 
 test('unlocked drag and single deletion still reach their existing mutation paths', async () => {
@@ -268,7 +268,7 @@ for (const [name, args] of [
     const { context } = fixture();
     context.selectionModel.keyframeSelection = { itemId: 'child', times: [0], property: 'opacity' };
     await context[name](...args);
-    assert.match(context.footer.textContent, /はロック中です/);
+    assert.match(context.footer.textContent, /is locked \(unlock it to edit\)/);
   });
 }
 
@@ -297,7 +297,7 @@ for (const [name, map, installed, detail] of [
     assert.equal(event.prevented, true);
     assert.equal(context.dragState, undefined);
     assert.equal(context.selection.kind, detail.kind.startsWith('audio') ? 'audio' : 'cut');
-    assert.match(context.footer.textContent, /はロック中です/);
+    assert.match(context.footer.textContent, /is locked \(unlock it to edit\)/);
   });
 }
 
@@ -341,7 +341,7 @@ test('material hover shows a rejected ghost on a locked target, then drop reject
   assert.equal(context.ghostHidden, false);
   assert.equal(context.materialGhost.style.display, 'block');
   assert.equal(classes.has('akari-annotations-ghost-rejected'), true);
-  assert.equal(context.materialGhost.textContent, 'ロック中');
+  assert.equal(context.materialGhost.textContent, 'Locked');
   assert.equal(context.materialGhost.style.outline, '2px solid #f14c4c');
   const target = context.resolveMaterialDropTarget('video', 10);
   assert.equal(target.rejected, true);

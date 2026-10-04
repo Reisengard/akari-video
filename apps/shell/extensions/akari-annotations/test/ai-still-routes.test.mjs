@@ -80,7 +80,7 @@ test('fal はキー状態を示し、費用承認を断ると送信処理へ進�
     await writeFile(credentialsFile, 'AKARI_IMAGE_AI_FAL_KEY=stub-image-file-key\n', { mode: 0o600 });
     assert.equal((await manager(dir, { FAL_KEY: '', AKARI_CREDENTIALS_FILE: credentialsFile }).probeImageRoutes(['fal']))[0].state, 'ready');
     assert.deepEqual(await withKey.startGenerateStill(dir, { ...request, route: 'fal', approved: false }),
-      { ok: false, reason: '費用承認が必要です。' });
+      { ok: false, reason: 'Cost approval is required.' });
     assert.equal(await readFile(join(dir, 'calls.jsonl'), 'utf8').catch(() => ''), '');
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
@@ -123,7 +123,7 @@ test('Antigravity / Grok は打ち切りを一回確かめ直して unknown に�
     assert.equal(states[0].state, 'ready');
     assert.equal(states[1].state, 'unknown');
     assert.equal(states[2].state, 'unknown');
-    assert.equal(states[1].detail, '確かめられませんでした（1.5 秒で打ち切り）');
+    assert.equal(states[1].detail, 'Could not check (timed out after 1.5 sec)');
     const calls = (await readFile(join(dir, 'calls.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
     assert.ok(calls.every(x => x.keys.length === 0));
     for (const route of ['agy', 'grok']) assert.equal(calls.filter(x => x.route === route && x.args[0] === 'models').length, 2);
@@ -168,7 +168,7 @@ test('Codex は 5 秒で打ち切って missing にし、確かめ直さない',
     t.mock.timers.tick(5000);
     const [route] = await pending;
     assert.equal(route.state, 'missing');
-    assert.equal(route.detail, '確かめられませんでした（5 秒で打ち切り）');
+    assert.equal(route.detail, 'Could not check (timed out after 5 sec)');
     assert.equal(calls, 1);
   } finally { t.mock.timers.reset(); await rm(dir, { recursive: true, force: true }); }
 });
@@ -293,20 +293,20 @@ test('パネルは手段ごとの確認中と unknown の案内・作成可否�
     const missing = new Node('root');
     appendAiStillPanel(missing, state, { change() {}, probe() {}, generate() {}, cancel() {} });
     assert.equal(walk(missing).find(x => x.attributes.get('data-akari-inspector-ai-create') === 'true').disabled, true);
-    state.routes[2] = { id: 'grok', state: 'unknown', detail: '確かめられませんでした（20 秒で打ち切り）' };
+    state.routes[2] = { id: 'grok', state: 'unknown', detail: 'Could not check (timed out after 20 sec)' };
     state.error = '生成に失敗しました';
     const unknown = new Node('root');
     appendAiStillPanel(unknown, state, { change() {}, probe() {}, generate() {}, cancel() {} });
     assert.equal(walk(unknown).find(x => x.attributes.get('data-akari-inspector-ai-create') === 'true').disabled, false);
     assert.equal(walk(unknown).find(x => x.attributes.get('data-akari-inspector-ai-retry') === 'true').disabled, false);
-    assert.ok(walk(unknown).some(x => x.className === 'akari-inspector-ai-still-next' && x.textContent === '状態を確かめ直すか、そのまま作ってみてください'));
-    assert.ok(walk(unknown).some(x => x.className === 'akari-inspector-ai-still-badge' && x.textContent === '確かめられませんでした'));
+    assert.ok(walk(unknown).some(x => x.className === 'akari-inspector-ai-still-next' && x.textContent === 'Check the status again, or just try generating.'));
+    assert.ok(walk(unknown).some(x => x.className === 'akari-inspector-ai-still-badge' && x.textContent === 'Could not check'));
     state.probing = true;
     state.probingRoutes = new Set(['antigravity']);
     const checking = new Node('root');
     appendAiStillPanel(checking, state, { change() {}, probe() {}, generate() {}, cancel() {} });
     const badges = walk(checking).filter(x => x.className === 'akari-inspector-ai-still-badge');
-    assert.deepEqual(badges.map(x => x.textContent), ['使える', '確かめています…', '確かめられませんでした', '入っていない']);
+    assert.deepEqual(badges.map(x => x.textContent), ['Available', 'Checking…', 'Could not check', 'Not installed']);
     assert.deepEqual(badges.map(x => x.attributes.get('data-akari-inspector-ai-route-state')), ['ready', 'checking', 'unknown', 'checking']);
     assert.equal(walk(checking).find(x => x.attributes.get('data-akari-inspector-ai-refresh') === 'true').disabled, true);
     assert.equal(walk(checking).find(x => x.attributes.get('data-akari-inspector-ai-create') === 'true').disabled, false);
@@ -395,7 +395,7 @@ test('一手段の失敗は他の候補と edit を壊さず、有料の拒否�
   try {
     const instance = manager(dir, { AKARI_GROK_BIN: join(dir, 'missing-grok') });
     const before = await readFile(join(dir, 'edit.json'));
-    await assert.rejects(instance.startGenerateStillBatch(dir, { ...request, routes: ['codex', 'fal'], approved: false }), /費用承認/u);
+    await assert.rejects(instance.startGenerateStillBatch(dir, { ...request, routes: ['codex', 'fal'], approved: false }), /Cost approval/u);
     assert.equal(await readFile(join(dir, 'calls.jsonl'), 'utf8').catch(() => ''), '');
     const result = await instance.startGenerateStillBatch(dir, { ...request, routes: ['codex', 'antigravity', 'grok'] });
     assert.equal(result.candidates.filter(row => row.ok).length, 2);
@@ -414,7 +414,7 @@ test('同じ枠でも別手段のバッチは併走し、重なる手段だけ�
     const instance = manager(dir);
     const first = instance.startGenerateStillBatch(dir, { ...request, routes: ['codex'] });
     const second = instance.startGenerateStillBatch(dir, { ...request, routes: ['antigravity', 'grok'] });
-    await assert.rejects(instance.startGenerateStillBatch(dir, { ...request, routes: ['grok'] }), /枠と手段/u);
+    await assert.rejects(instance.startGenerateStillBatch(dir, { ...request, routes: ['grok'] }), /slot and method/u);
     await waitForCalls(dir, calls => ['agy', 'grok'].every(route => calls.some(row =>
       row.route === route && row.args[0] !== 'models')));
     const running = await instance.readStillCandidates(dir, 'clip-1');
@@ -503,6 +503,6 @@ test('候補と失敗行は手段 id ではなく表示名を使う', () => {
     const walk = node => [node, ...node.children.flatMap(walk)];
     const nodes = walk(parent);
     assert.match(nodes.find(row => row.attributes.get('data-akari-inspector-ai-candidate'))?.children[1].textContent, /ChatGPT（Codex）/u);
-    assert.match(nodes.find(row => row.attributes.get('data-akari-inspector-ai-failed-route'))?.textContent, /Antigravity · 失敗/u);
+    assert.match(nodes.find(row => row.attributes.get('data-akari-inspector-ai-failed-route'))?.textContent, /Antigravity · Failed/u);
   } finally { if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document; }
 });

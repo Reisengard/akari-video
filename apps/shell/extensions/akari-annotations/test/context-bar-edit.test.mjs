@@ -164,7 +164,7 @@ test('ロック・線の始点と終点の入れ替え', () => {
     assert.equal(swapped.endCap, 'none');
     assert.equal(swapped.startCapFilled, false);
     assert.equal(swapped.endCapFilled, true);
-    assert.throws(() => swapLineEnds(doc(), 'photo-1'), /ライン/);
+    assert.throws(() => swapLineEnds(doc(), 'photo-1'), /Select a line/);
 });
 
 test('角の丸み: 直線だけの閉じた形に出す・v0 の四角は path へ直してから付ける', () => {
@@ -222,7 +222,7 @@ test('レイヤー一覧の並べ替え: 前面へ / 背面へ・キャンバス
     assert.deepEqual(order(moveLayer(d, 'line', 'shape-a')), ['canvas-1', 'shape-b', 'shape-a', 'line', 'photo-1', 'cut-1']);
     const kids = moveLayer(d, 'kid-1', 'kid-2');
     assert.deepEqual(findItemPlace(kids, 'canvas-1').item.items.map(item => item.id), ['kid-2', 'kid-1']);
-    assert.throws(() => moveLayer(d, 'kid-1', 'line'), /同じキャンバス/);
+    assert.throws(() => moveLayer(d, 'kid-1', 'line'), /within the same canvas/);
 });
 
 test('ロック中の id の一覧: キャンバスの子も拾う（プレビューがつまみ・ドラッグを止めるのに使う）', () => {

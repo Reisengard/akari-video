@@ -7,16 +7,16 @@ import { join } from 'node:path';
 
 test('missing helper leaves inference unavailable without writing', async () => {
   assert.deepEqual(await visionCandidates('/unused', '/unused', undefined, 'foreground'),
-    { ok: false, message: 'この Mac では使えません' });
+    { ok: false, message: 'Not available on this Mac.' });
   assert.deepEqual(await preparePhotoClick('/unused', undefined),
-    { ok: false, message: 'この Mac では使えません' });
+    { ok: false, message: 'Not available on this Mac.' });
 });
 
 test('missing model and failed retrieval are contained', async () => {
   const root = await mkdtemp(join(tmpdir(), 'akari-photo-model-test-'));
   const original = globalThis.fetch;
   globalThis.fetch = async () => { throw new Error('offline'); };
-  try { await assert.rejects(ensurePhotoModels(undefined, root), /offline|この Mac では使えません/); }
+  try { await assert.rejects(ensurePhotoModels(undefined, root), /offline|Not available on this Mac/); }
   finally { globalThis.fetch = original; await rm(root, { recursive: true, force: true }); }
 });
 

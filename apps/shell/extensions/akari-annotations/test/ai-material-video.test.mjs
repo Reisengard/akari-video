@@ -46,7 +46,7 @@ test('画像の素材のタイルから同じフォームへ進み、新しい�
     const form = new Node('div');
     appendAiMaterialView(form, { ...options, view, onVideoForm: () => { rendered = true; }, createdPath: 'assets/generated/still-video-123.mp4' });
     assert.equal(rendered, true);
-    assert.ok(find(form, node => node.textContent.includes('新しい素材 still-video-123.mp4 を作りました')));
+    assert.ok(find(form, node => node.textContent.includes('Created new footage still-video-123.mp4')));
     const action = aiActionCatalog([{ id: 'fal:h3-i2v', kind: 'video' }]).find(item => item.id === 'video');
     assert.equal(aiActionPlacement(action, 'material-image'), 'new-material');
     assert.equal(aiActionPlacement(action, 'still'), 'replace');
@@ -70,7 +70,7 @@ test('node は fromImage を渡し CLI の --item 経路を保つ', async () => 
   const service = new AkariAnnotationsServiceImpl();
   let sent;
   service.generationCli = { startFromImage: async (_root, rel) => { sent = rel; return { ok: true, stdout: '' }; } };
-  await assert.rejects(service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'material:assets/still.png', fromImage: 'assets/still.png' }), /費用承認/);
+  await assert.rejects(service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'material:assets/still.png', fromImage: 'assets/still.png' }), /Cost approval/);
   assert.equal((await service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'material:assets/still.png', fromImage: 'assets/still.png', approved: true })).ok, true);
   assert.equal(sent, 'assets/still.png');
 });
@@ -210,18 +210,18 @@ test('実 widget: L1 fixture の画像を選び動画タイルを押すとフォ
     const tile = widget.body.querySelector('[data-akari-inspector-ai-tile="video"]');
     assert.ok(tile, '動画タイルが出る');
     tile.click();
-    assert.equal(widget.body.querySelector('.akari-inspector-ai-material-status')?.textContent, '読み込み中');
+    assert.equal(widget.body.querySelector('.akari-inspector-ai-material-status')?.textContent, 'Loading');
     await waitFor(() => !!widget.body.querySelector('[data-akari-field="generation-model"]'));
     assert.ok(widget.body.querySelector('[data-akari-field="generation-model"]'), 'モデル欄が DOM に出る');
     const currentImage = widget.body.querySelector('[data-akari-generation-action="first-frame-current"]');
-    assert.equal(currentImage?.textContent, 'この素材の絵');
-    assert.notEqual(currentImage?.textContent, 'このクリップの絵');
+    assert.equal(currentImage?.textContent, 'Image from this footage');
+    assert.notEqual(currentImage?.textContent, 'Current clip frame');
     await writeFile(path.join(project, '.akari/connections.json'), JSON.stringify({ providers: [], defaults: {}, policy: {}, memory: [] }));
     const broken = new AkariInspectorWidget();
     wire(broken, new AkariAnnotationsServiceImpl());
     broken.selectMaterial({ ...selection, projectRoot: pathToFileURL(project).href });
     broken.body.querySelector('[data-akari-inspector-ai-tile="video"]').click();
-    await waitFor(() => broken.body.querySelector('.akari-inspector-ai-material-status')?.textContent !== '読み込み中');
+    await waitFor(() => broken.body.querySelector('.akari-inspector-ai-material-status')?.textContent !== 'Loading');
     assert.match(broken.body.querySelector('.akari-inspector-ai-material-status')?.textContent ?? '', /policy\.currency/u);
   } catch (error) {
     failure = error;

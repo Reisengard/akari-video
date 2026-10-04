@@ -44,7 +44,7 @@ test('いつもの 1 件とお気に入りの別順、合計 1 回の承認文',
   assert.deepEqual(selectedNarrationEngines(engines), ['voicevox']);
   assert.deepEqual(orderedNarrationEngines(engines, ['fal-qwen3']).map(x => x.id), ['fal-qwen3', 'voicevox', 'gemini-tts']);
   const confirm = narrationBatchConfirm(engines, 'あ'.repeat(1000));
-  assert.match(confirm.msg, /Gemini.*\$0\.040.*Qwen.*\$0\.200.*合計 \$0\.240/su);
+  assert.match(confirm.msg, /Gemini.*\$0\.040.*Qwen.*\$0\.200.*Total \$0\.240/su);
   assert.equal(narrationBatchConfirm([engines[0]], '無料'), undefined);
 });
 test('G8 voice の id は catalog ref を経てエンジン id に対応する', async t => {
@@ -76,7 +76,7 @@ test('3 エンジン同時、1 失敗、edit 不変、採用 2 回の番号予�
   const before = await readFile(path.join(root, 'edit.json'), 'utf8');
   const request = { projectRootUri: uri, itemId: 'frame-a', script: '比較', reading: '比較', t: 0,
     routes: engines.map(e => ({ engine: e.id, voice: 'v' })) };
-  await assert.rejects(service.startNarrationBatch(request), /費用承認/u);
+  await assert.rejects(service.startNarrationBatch(request), /Cost approval is required/u);
   assert.equal(calls.length, 0);
   const batch = await service.startNarrationBatch({ ...request, approved: true });
   assert.equal(batch.completed, 3);
@@ -128,7 +128,7 @@ test('root × エンジンの鍵は同じエンジンだけ拒否し、中止は
   const b = manager.generate({ ...base, engine: 'gemini-tts' }, root);
   for (let i = 0; i < 100 && children.length < 2; i++) await new Promise(resolve => setTimeout(resolve, 10));
   assert.equal(children.length, 2);
-  await assert.rejects(manager.generate({ ...base, engine: 'voicevox' }, root), /生成中/u);
+  await assert.rejects(manager.generate({ ...base, engine: 'voicevox' }, root), /already being generated/u);
   await manager.cancel(root);
   await Promise.allSettled([a,b]);
   assert.equal(children.length, 2);

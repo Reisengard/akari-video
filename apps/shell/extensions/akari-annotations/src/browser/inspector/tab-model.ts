@@ -14,25 +14,25 @@ export interface InspectorTabSnapshotHints {
     generationAvailable?: boolean;
 }
 
-const VIDEO_TAB = { id: 'video', label: '映像', enabled: true } as const;
-const INFO_TAB = { id: 'info', label: '情報', enabled: true } as const;
+const VIDEO_TAB = { id: 'video', label: 'Video', enabled: true } as const;
+const INFO_TAB = { id: 'info', label: 'Info', enabled: true } as const;
 
 export function tabsForKind(
     kind: InspectorTabKind,
     snapshotHints: InspectorTabSnapshotHints = {}
 ): InspectorTabDef[] {
-    if (kind === 'world') return [{ id: 'world', label: '地図', enabled: true }, { ...INFO_TAB }];
+    if (kind === 'world') return [{ id: 'world', label: 'Map', enabled: true }, { ...INFO_TAB }];
     if (kind === 'caption') {
         return [
-            { id: 'text', label: 'テキスト', enabled: true },
-            { id: 'motion', label: '動き', enabled: true },
+            { id: 'text', label: 'Text', enabled: true },
+            { id: 'motion', label: 'Motion', enabled: true },
             { ...INFO_TAB }
         ];
     }
     if (kind === 'audio') {
         return [
-            { id: 'edit', label: 'ホーム', enabled: true },
-            { id: 'audio', label: '音声', enabled: true },
+            { id: 'edit', label: 'Home', enabled: true },
+            { id: 'audio', label: 'Audio', enabled: true },
             { ...INFO_TAB }
         ];
     }
@@ -40,11 +40,11 @@ export function tabsForKind(
     const hasMediaSource = typeof snapshotHints.src === 'string' && snapshotHints.src.length > 0;
     const hasMediaPreview = kind === 'cut' || hasMediaSource;
     return [
-        { id: 'edit', label: 'ホーム', enabled: true },
+        { id: 'edit', label: 'Home', enabled: true },
         { ...VIDEO_TAB },
-        { id: 'adjust', label: '色', enabled: hasMediaPreview },
-        { id: 'audio', label: '音声', enabled: hasMediaPreview },
-        { id: 'motion', label: '動き', enabled: true },
+        { id: 'adjust', label: 'Color', enabled: hasMediaPreview },
+        { id: 'audio', label: 'Audio', enabled: hasMediaPreview },
+        { id: 'motion', label: 'Motion', enabled: true },
         { ...INFO_TAB }
     ];
 }
@@ -112,4 +112,4 @@ export class InspectorTabState {
 
 export const COMING_SOON_ADJUST_SECTIONS = [] as const;
 
-export const ACTIVE_ADJUST_SECTIONS = ['基本補正', 'RGB カーブ', 'カラーホイール', 'Hue カーブ', 'LUT', 'エフェクト'] as const;
+export const ACTIVE_ADJUST_SECTIONS = ['Basic', 'RGB curves', 'Color wheels', 'Hue curves', 'LUT', 'Effects'] as const;

@@ -6,11 +6,11 @@ import { planPlacedTextMove } from '../lib/common/placed-text-drag.js';
 test('拒否の詳細理由を枠内用の短い語へ変換する', () => {
     for (const reason of ['映像のレーンには音を置けません。', '音のレーンには映像を置けません。',
         '音は音の段へドロップしてください。']) {
-        assert.equal(materialGhostRejectLabel(reason), 'レーン違い');
+        assert.equal(materialGhostRejectLabel(reason), 'Wrong lane');
     }
-    assert.equal(materialGhostRejectLabel('「V1」はロック中です（鍵を外すと編集できます）'), 'ロック中');
-    assert.equal(materialGhostRejectLabel('locked: reject'), '置けません');
-    assert.equal(materialGhostRejectLabel(''), '置けません');
+    assert.equal(materialGhostRejectLabel('「V1」はロック中です（鍵を外すと編集できます）'), 'Locked');
+    assert.equal(materialGhostRejectLabel('locked: reject'), 'Locked');
+    assert.equal(materialGhostRejectLabel(''), 'Cannot place');
 });
 
 test('置いた文字の縦ドラッグは映像段・新しい段・文字の行を選び、音の行を拒否する', () => {

@@ -107,13 +107,13 @@ test('数値境界は受理し、範囲外・非有限値・オフ中の下位�
   }).audio.master.true_peak_dbtp, 0);
   assert.throws(() => updateAudioMasterDocument(base, {
     kind: 'audio-master-loudnorm', value: -70.1
-  }), /-70〜0/u);
+  }), /between -70 and 0/u);
   assert.throws(() => updateAudioMasterDocument(base, {
     kind: 'audio-master-true-peak', value: Number.NaN
-  }), /-9〜0/u);
+  }), /between -9 and 0/u);
   assert.throws(() => updateAudioMasterDocument({ audio: {} }, {
     kind: 'audio-master-denoise', value: 'strong'
-  }), /マスタリングがオフ/u);
+  }), /Mastering is off/u);
   assert.match(inspectorSource, /scrubStep: 0\.5, min: -70, max: 0/u);
   assert.match(inspectorSource, /scrubStep: 0\.1, min: -9, max: 0/u);
 });

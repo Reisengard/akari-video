@@ -39,7 +39,7 @@ test('最小点数と notice 文言はシェル共通の固定値にする', () 
   assert.equal(AUDIO_KEYFRAME_MIN_POINTS, 2);
   assert.equal(
     AUDIO_KEYFRAME_MIN_POINTS_NOTICE,
-    'キーフレームは 2 点以上必要です。点を追加するか、この 1 点を削除してください。',
+    'At least 2 keyframes are required. Add a point or delete this one.',
   );
 });
 

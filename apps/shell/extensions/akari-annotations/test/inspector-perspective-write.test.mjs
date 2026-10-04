@@ -33,18 +33,18 @@ test('perspective update は指定座標だけを変更し、identity へ戻す�
 test('perspective validate は preview と同文で形・範囲・非有限値・退化を拒否する', () => {
     assert.doesNotThrow(() => validateInspectorPerspective(INSPECTOR_PERSPECTIVE_IDENTITY));
     assert.throws(() => validateInspectorPerspective([]), {
-        message: 'perspective.corners は [TL,TR,BL,BR] の 4 要素配列である必要があります。'
+        message: 'perspective.corners must be an array of 4 elements [TL,TR,BL,BR].'
     });
     assert.throws(() => validateInspectorPerspective([[0], [1, 0], [0, 1], [1, 1]]), {
-        message: 'perspective.corners[0] (TL) は [x, y] の 2 要素配列である必要があります。'
+        message: 'perspective.corners[0] (TL) must be a 2-element array [x, y].'
     });
     for (const value of [-0.1, 1.1, NaN, Infinity, '0']) {
         assert.throws(() => validateInspectorPerspective([[value, 0], [1, 0], [0, 1], [1, 1]]), {
-            message: 'perspective.corners[0] (TL) は 0 から 1 の範囲の有限数である必要があります。'
+            message: 'perspective.corners[0] (TL) must be a finite number between 0 and 1.'
         });
     }
     assert.throws(() => validateInspectorPerspective([[0, 0], [0.3, 0.3], [0.6, 0.6], [1, 1]]), {
-        message: 'perspective.corners は退化した四角形（面積がほぼ 0）であってはなりません。'
+        message: 'perspective.corners must not form a degenerate quadrilateral (area close to 0).'
     });
     // preview の area2 境界を維持する（TL,TR,BR,BL の順に巡回）。
     assert.doesNotThrow(() => validateInspectorPerspective([[0, 0], [1, 0], [0, 0.00005], [1, 0.00005]]));
@@ -81,7 +81,7 @@ test('perspective 行は範囲外と退化四角形を ok:false にして書き�
         assert.equal((await fields[0].write(snapshot, input)).ok, false);
     }
     assert.deepEqual(await fields[7].write(snapshot, '1'), {
-        ok: false, message: 'perspective.corners は退化した四角形（面積がほぼ 0）であってはなりません。'
+        ok: false, message: 'perspective.corners must not form a degenerate quadrilateral (area close to 0).'
     });
 });
 
@@ -127,7 +127,7 @@ test('perspective item-field は v2 mutation で保存・削除され、無効�
     const request = { kind: 'item-field', id: 'visual-1', path: 'perspective', value };
     assert.deepEqual(await handleWriteV2.call(context, request), { ok: true });
     assert.deepEqual(context.rawKeyframeItem().perspective, value);
-    assert.equal(context.label, 'クリップのパースを変更');
+    assert.equal(context.label, 'Change clip perspective');
     assert.equal((await handleWriteV2.call(context, { ...request, value: { corners: [[0, 0], [0, 0], [0, 0], [0, 0]] } })).ok, false);
     assert.deepEqual(context.rawKeyframeItem().perspective, value);
     assert.deepEqual(await handleWriteV2.call(context, { ...request, value: null }), { ok: true });
@@ -137,7 +137,7 @@ test('perspective item-field は v2 mutation で保存・削除され、無効�
 test('legacy perspective item-field は既存の v2-only メッセージで拒否する', async () => {
     assert.deepEqual(await handleWriteV2.call({ legacyReadOnly: true, cutItemIds: [] }, {
         kind: 'item-field', id: 'visual-1', path: 'perspective', value: null
-    }), { ok: false, message: 'この項目の編集は edit.json v2 のみ対応です。' });
+    }), { ok: false, message: 'Editing this item is only supported in edit.json v2.' });
 });
 
 test('layer snapshot は rawKeyframeItem の perspective を運び、専用 path 分岐へ接続する', () => {

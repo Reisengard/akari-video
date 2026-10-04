@@ -83,6 +83,6 @@ test('相手が無い場合は書き込みも履歴も作らない', async () =>
     assert.equal(await state.handler.applyLibraryItem({ kind: 'textstyle', id: 'news' }, { kind: 'caption', id: 'caption-1' }), false);
     assert.equal(state.writes.length, 0);
     assert.equal(state.history.length, 0);
-    assert.deepEqual(state.notices, ['文字を選んでから当ててください。',
-        '写真や映像を選んでから当ててください。', 'カードの内容を読み取れませんでした。']);
+    assert.deepEqual(state.notices, ['Select text before applying.',
+        'Select a photo or video before applying.', 'Could not read the card contents.']);
 });

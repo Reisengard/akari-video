@@ -26,7 +26,7 @@ test('materialDropDecision: video/image は overlays/captions/audio 行を理由
     for (const trackKind of ['overlays', 'captions', 'audio']) {
         const decision = materialDropDecision('video', trackKind);
         assert.equal(decision.accept, false);
-        assert.match(decision.reason, /映像は映像の段へ/);
+        assert.match(decision.reason, /Drop video on a video lane/);
     }
 });
 
@@ -47,7 +47,7 @@ test('materialDropDecision: audio は音源以外の行を理由付きで拒否�
     for (const trackKind of ['cuts', 'overlays', 'captions', 'layers']) {
         const decision = materialDropDecision('audio', trackKind);
         assert.equal(decision.accept, false);
-        assert.match(decision.reason, /音は音の段へ/);
+        assert.match(decision.reason, /Drop audio on an audio lane/);
     }
 });
 

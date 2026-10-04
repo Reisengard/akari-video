@@ -37,7 +37,7 @@ test('preview needs a key and reports dimensions, bytes and model price', async 
         assert.equal(inspected.width, 1024);
         assert.equal(inspected.height, 512);
         assert.equal(inspected.priceUsd, 0.0629);
-        await assert.rejects(() => service.upscale({ projectRootUri: f.uri, binding: inspected.binding, jobId: 'job-1' }), /キーを設定/);
+        await assert.rejects(() => service.upscale({ projectRootUri: f.uri, binding: inspected.binding, jobId: 'job-1' }), /Set a key to use this/);
     } finally { await f.cleanup(); }
 });
 
@@ -117,7 +117,7 @@ test('failed authorization is reported without leaking the key', async () => {
     const provider = new FalImageAiProvider(async () => new Response('{}', { status: 401 }));
     await assert.rejects(() => provider.upscale({ bytes: image, mime: 'image/png', key: 'very-secret',
         signal: new AbortController().signal, setCancel: () => undefined }), error => {
-        assert.match(error.message, /キーが無効/);
+        assert.match(error.message, /The key is invalid/);
         assert.doesNotMatch(error.message, /very-secret/);
         return true;
     });

@@ -208,7 +208,7 @@ test('menu additions preserve the relative order of every existing entry and sho
             const next = buildTimelineClipMenuItems('cut', hasClipboard, tree, { split });
             assert.deepEqual(next.filter(entry => entry.id !== 'split-audio'), original);
             const entry = next.find(entry => entry.id === 'split-audio');
-            assert.equal(entry.label, '音声を分離');
+            assert.equal(entry.label, 'Detach audio');
             assert.equal(entry.disabled, split.ok ? undefined : true);
             assert.equal(entry.disabledReason, split.message);
         }
@@ -226,17 +226,17 @@ test('split and unlink dispatch through one snapshot history entry, with one-ste
     context.dispatchTimelineClipMenuAction('split-audio', cutSelection, 0, true);
     await context.pending;
     assert.equal(context.commitCount, 1);
-    assert.equal(context.history[0].label, '音声を分離');
+    assert.equal(context.history[0].label, 'Detach audio');
     assert.equal(item(context.editDocument, 'cut').audio, false);
     assert.equal(item(context.editDocument, 'cut-audio').link, 'cut');
-    assert.ok(context.notices.includes('音声を分離しました'));
+    assert.ok(context.notices.includes('Audio detached.'));
     await context.history[0].undo();
     assert.deepEqual(context.editDocument, before);
     await context.history[0].redo();
     const split = structuredClone(context.editDocument);
     context.dispatchTimelineClipMenuAction('unlink-audio', audioSelection, 0);
     await context.pending;
-    assert.equal(context.history[1].label, 'リンクを解除');
+    assert.equal(context.history[1].label, 'Unlink');
     assert.equal(item(context.editDocument, 'cut-audio').link, undefined);
     assert.equal(item(context.editDocument, 'cut').audio, false);
     await context.history[1].undo();
@@ -321,7 +321,7 @@ for (const locked of ['visual', 'audio']) test(`linked operations reject a locke
             await context.performDeleteSelected();
         } else context.dispatchTimelineClipMenuAction('unlink-audio', audioSelection, 0);
         assert.equal(context.commitCount, 0, action);
-        assert.match(context.footer.textContent, /ロック中/);
+        assert.match(context.footer.textContent, /is locked/);
         assert.deepEqual(context.editDocument, before);
     }
 });
@@ -356,7 +356,7 @@ test('split checks the cut and an existing destination track before committing',
         context.localLockedTrackIds.add(destinationLocked ? 'destination' : 'visual');
         context.dispatchTimelineClipMenuAction('split-audio', cutSelection, 0, true);
         assert.equal(context.commitCount, 0);
-        assert.match(context.footer.textContent, /ロック中/);
+        assert.match(context.footer.textContent, /is locked/);
     }
 });
 

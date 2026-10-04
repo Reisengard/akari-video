@@ -48,12 +48,12 @@ test('参照 0・1・2 枚と 3 手段の可否はカタログの上限に従う
     for (const route of ['codex', 'grok', 'antigravity']) {
       const actual = stillRouteAvailability(route, count);
       assert.equal(actual.disabled, route === 'antigravity' ? count > 0 : route === 'grok' ? count > 1 : false);
-      assert.equal(actual.note, route === 'grok' && count > 0 ? '参照は縮めて送られます' : undefined);
+      assert.equal(actual.note, route === 'grok' && count > 0 ? 'References are downscaled before sending' : undefined);
     }
   }
-  assert.equal(stillRouteAvailability('antigravity', 1).reason, 'この手段は画像を受け取れません');
-  assert.equal(stillRouteAvailability('grok', 2).reason, 'Grok は 1 枚まで');
-  assert.equal(stillRouteAvailability('grok', 1).note, '参照は縮めて送られます');
+  assert.equal(stillRouteAvailability('antigravity', 1).reason, 'This route cannot take images');
+  assert.equal(stillRouteAvailability('grok', 2).reason, 'Grok: up to 1 images');
+  assert.equal(stillRouteAvailability('grok', 1).note, 'References are downscaled before sending');
 });
 
 test('参照欄の選択・撮影・削除と手段の理由、画角と切りそろえの data 属性', () => {
@@ -173,7 +173,7 @@ test('8 画角の寸法と切りそろえ閾値', () => {
     assert.ok(stillAspectText[aspect].includes(aspect));
   }
   assert.deepEqual(stillCropPlan(1254, 1254, '9:16'), { width: 705, height: 1254, filter: 'crop=705:1254:274:0' });
-  assert.equal(stillCroppedNotice('9:16', '1254x1254'), '9:16 を頼んで正方形 → 切りそろえました');
+  assert.equal(stillCroppedNotice('9:16', '1254x1254'), 'Requested 9:16, got a square → cropped to fit');
   assert.equal(stillCropPlan(1376, 768, '16:9'), undefined);
 });
 

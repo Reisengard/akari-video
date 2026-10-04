@@ -143,7 +143,7 @@ for (const kind of ['video', 'image', 'audio']) {
         assert.equal(f.handler.trackInsertIndicator.style.display, 'block');
         assert.equal(f.handler.trackInsertIndicator.style.top, kind === 'audio' ? '46px' : '14px');
         assert.equal(f.handler.materialGhost.dataset.akariInsertionPreview, 'true');
-        assert.match(f.handler.footer.textContent, /重なるので新しいトラック/);
+        assert.match(f.handler.footer.textContent, /Overlaps, so it will be placed on a new track/);
         drag(f, kind, 6, 'target');
         assert.equal(f.handler.trackInsertIndicator.style.display, 'none');
         assert.equal(f.handler.materialGhost.dataset.akariInsertionPreview, undefined);
@@ -158,7 +158,7 @@ test('ロック行・レーン違いの拒否と本編・行間・音0本のタ�
     f.handler.lockedId = 'v1';
     assert.equal(drag(f, 'video', 3, 'v1').dataTransfer.dropEffect, 'none');
     assert.equal(f.handler.materialGhost.style.display, 'block');
-    assert.equal(f.handler.materialGhost.textContent, '置けません');
+    assert.equal(f.handler.materialGhost.textContent, 'Locked');
     f.handler.lockedId = undefined;
     assert.equal(drag(f, 'audio', 3, 'v1').dataTransfer.dropEffect, 'copy');
     assert.equal(drag(f, 'video', 3, 'a1').dataTransfer.dropEffect, 'none');
@@ -536,7 +536,7 @@ for (const kind of ['video', 'image']) {
                 hover('valid');
                 assert.equal(h.trackInsertIndicator.style.display, 'block');
                 const rejectedEvent = hover('reject');
-                const reason = locked ? 'locked: reject' : '音のレーンには映像を置けません。';
+                const reason = locked ? 'locked: reject' : 'Video cannot be placed in an audio lane.';
                 assert.equal(rejectedEvent.dataTransfer.dropEffect, 'none');
                 assert.equal(h.materialGhost.style.display, 'block');
                 assert.equal(h.materialGhost.style.top, '47px', '最上段への fallback ではなく実際の行に描く');
@@ -547,7 +547,7 @@ for (const kind of ['video', 'image']) {
                 assert.equal(h.materialGhost.style.outline, '2px solid #f14c4c');
                 assert.equal(h.materialGhost.style.color, '#f14c4c');
                 assert.equal(h.materialGhost.style.background, 'rgba(241, 76, 76, .25)');
-                assert.equal(h.materialGhost.textContent, locked ? '置けません' : 'レーン違い');
+                assert.equal(h.materialGhost.textContent, locked ? 'Locked' : 'Wrong lane');
                 assert.equal(h.footer.textContent, reason);
                 assert.equal(h.materialGhost.dataset.akariInsertionPreview, undefined);
                 assert.equal(h.trackInsertIndicator.style.display, 'none');

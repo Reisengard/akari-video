@@ -64,7 +64,7 @@ test('9 本目は日本語 Error になり既存 8 本を変更しない', () =>
     let list = [];
     for (let i = 0; i < INSPECTOR_ANIMATOR_MAX_ITEMS; i++) list = addInspectorAnimator(list);
     assert.equal(list.length, 8);
-    assert.throws(() => addInspectorAnimator(list), { message: 'アニメーターは 8 本までです。' });
+    assert.throws(() => addInspectorAnimator(list), { message: 'Up to 8 animators are allowed.' });
     assert.equal(list.length, 8);
 });
 
@@ -114,15 +114,15 @@ test('↑ ↓ は隣だけを入れ替え、境界で順序と入力を維持す
     const moved = moveInspectorAnimator(list, 1, -1);
     moved[0].amount.y = 50;
     assert.equal(list[1].amount.y, 24);
-    assert.throws(() => moveInspectorAnimator(list, 0, 2), /上か下/u);
+    assert.throws(() => moveInspectorAnimator(list, 0, 2), /up or down/u);
 });
 
 test('全更新操作は不正 index を日本語 Error にする', () => {
     for (const index of [-1, 1, 0.5, NaN]) {
         const list = [animator()];
-        assert.throws(() => removeInspectorAnimator(list, index), /アニメーターを選択/u);
-        assert.throws(() => moveInspectorAnimator(list, index, 1), /アニメーターを選択/u);
-        assert.throws(() => updateInspectorAnimator(list, index, 'start', 0.2), /アニメーターを選択/u);
+        assert.throws(() => removeInspectorAnimator(list, index), /Select an animator/u);
+        assert.throws(() => moveInspectorAnimator(list, index, 1), /Select an animator/u);
+        assert.throws(() => updateInspectorAnimator(list, index, 'start', 0.2), /Select an animator/u);
     }
 });
 
@@ -134,7 +134,7 @@ test('数値は範囲・有限数・整数を検証し、単位付きの日本�
         if (field.max !== undefined) invalid.push(field.max + 0.01);
         if (field.integer) invalid.push(0.5);
         for (const value of invalid) assert.throws(() => updateInspectorAnimator(list, 0, field.key, value), error => {
-            assert.match(error.message, /範囲/u);
+            assert.match(error.message, /must be/u);
             assert.ok(error.message.includes(field.label));
             assert.ok(error.message.includes(field.unit));
             return true;
@@ -145,7 +145,7 @@ test('数値は範囲・有限数・整数を検証し、単位付きの日本�
             assert.deepEqual(updateInspectorAnimator(updated, 0, field.key, null), list);
         }
     }
-    assert.throws(() => updateInspectorAnimator([animator()], 0, 'unknown', null), /未対応/u);
+    assert.throws(() => updateInspectorAnimator([animator()], 0, 'unknown', null), /not supported/u);
 });
 
 test('単位と形は閉じた語彙を保存し、null は既定に戻す', () => {
@@ -155,7 +155,7 @@ test('単位と形は閉じた語彙を保存し、null は既定に戻す', () 
             assert.equal(updated[0][key], option.id);
             assert.deepEqual(updateInspectorAnimator(updated, 0, key, null), [animator()]);
         }
-        assert.throws(() => updateInspectorAnimator([animator()], 0, key, 'unknown'), /一覧から/u);
+        assert.throws(() => updateInspectorAnimator([animator()], 0, key, 'unknown'), /from the list/u);
     }
 });
 
@@ -184,7 +184,7 @@ function fixture(initial, itemKind = 'captions') {
 test('字幕袋 captions と caption item の動きタブに畳んだアニメーター節を出す', () => {
     for (const kind of ['captions', 'caption']) {
         const f = fixture(undefined, kind);
-        assert.equal(f.section().label, '詳細設定（上級）: アニメーター');
+        assert.equal(f.section().label, 'Advanced settings: Animator');
         assert.equal(f.section().collapsedByDefault, true);
         const ids = f.all().map(section => section.id);
         assert.equal(ids[ids.indexOf('motion') + 1], 'animator');
@@ -197,17 +197,17 @@ test('media・telop・group・bag・part item にはアニメーター節を出�
 
 test('追加 select の選択…は no-op、追加は必須キー付き配列一括 write', async () => {
     const f = fixture();
-    assert.deepEqual(f.row('add').options, ['選択…', 'アニメーター']);
-    assert.deepEqual(await f.row('add').write(f.snapshot(), '選択…'), { ok: true });
+    assert.deepEqual(f.row('add').options, ['Select...', 'Animator']);
+    assert.deepEqual(await f.row('add').write(f.snapshot(), 'Select...'), { ok: true });
     assert.deepEqual(f.writes, []);
-    assert.deepEqual(await f.row('add').write(f.snapshot(), 'アニメーター'), { ok: true });
+    assert.deepEqual(await f.row('add').write(f.snapshot(), 'Animator'), { ok: true });
     assert.deepEqual(f.writes, [{ kind: 'item-field', id: 'visual-1', path: 'animator', value: [animator()] }]);
 });
 
 test('snapshot 上の animator から行を作り量 Y 24 を animator path に書く', async () => {
     const f = fixture([animator()]);
     const row = f.row('a1-amount-y');
-    assert.equal(row.label, '量 Y');
+    assert.equal(row.label, 'Amount Y');
     assert.equal(row.inputKind, 'scrub-number');
     await row.write(f.snapshot(), '24');
     assert.deepEqual(f.writes, [{ kind: 'item-field', id: 'visual-1', path: 'animator', value: [animator('a1', { amount: { y: 24 } })] }]);
@@ -223,7 +223,7 @@ test('最後の削除は空配列を null にして animator を除去する', a
 
 test('小見出しの ↑ ↓ 削除は順序と端の disabled を反映する', async () => {
     const f = fixture([animator(), animator('a2'), animator('a3')]);
-    assert.deepEqual(f.row('a1-heading').actions.map(action => action.label), ['↑', '↓', '削除']);
+    assert.deepEqual(f.row('a1-heading').actions.map(action => action.label), ['↑', '↓', 'Delete']);
     assert.equal(f.row('a1-heading').actions[0].disabled, true);
     assert.equal(f.row('a3-heading').actions[1].disabled, true);
     await f.row('a2-heading').actions[0].action(f.snapshot());
@@ -239,16 +239,16 @@ test('UI の不正入力・9 本目は ok:false となり要求を送らない',
     assert.equal((await f.row('add').write(f.snapshot(), '不明')).ok, false);
     assert.deepEqual(f.writes, []);
     const full = fixture(Array.from({ length: 8 }, (_, i) => animator(`a${i + 1}`)));
-    assert.deepEqual(await full.row('add').write(full.snapshot(), 'アニメーター'), { ok: false, message: 'アニメーターは 8 本までです。' });
+    assert.deepEqual(await full.row('add').write(full.snapshot(), 'Animator'), { ok: false, message: 'Up to 8 animators are allowed.' });
     assert.deepEqual(full.writes, []);
 });
 
 test('行順・単位・表示倍率・step・注記は定数に従い全行 KF 無効', () => {
     const f = fixture([animator()]);
     assert.deepEqual(f.section().fields.map(field => field.label), [
-        '文字を 1 文字 / 1 語ずつずらして動かす仕組みです', 'ひな形から始める',
-        'アニメーターを追加', 'a1', '単位', '形', '範囲 始', '範囲 終', 'オフセット',
-        '量 X', '量 Y', '量 拡縮', '量 回転', '量 不透明度', '量 字間', '量 ぼかし', 'イージング', 'ランダム seed'
+        'Animates text one character or word at a time, with a stagger between each', 'Start from a template',
+        'Add animator', 'a1', 'Split by', 'Shape', 'Range start', 'Range end', 'Offset',
+        'Amount X', 'Amount Y', 'Amount scale', 'Amount rotation', 'Amount opacity', 'Amount letter spacing', 'Amount blur', 'Easing', 'Random seed'
     ]);
     assert.ok(f.section().fields.slice(1).every(field => field.keyframeDisabled && !field.liveField));
     for (const field of INSPECTOR_ANIMATOR_NUMBER_FIELDS) {
@@ -256,11 +256,11 @@ test('行順・単位・表示倍率・step・注記は定数に従い全行 KF 
         assert.deepEqual([row.label, row.min, row.max, row.scrubStep, row.unit, row.displayScale, row.title],
             [field.label, field.min, field.max, field.step, field.unit, field.displayScale, field.title]);
     }
-    assert.deepEqual(f.row('a1-basis').options, ['文字', '単語', '行', '文節']);
-    assert.equal(f.row('a1-basis').optionTitles['文節'], 'v1 では words と同じ扱いです');
-    assert.deepEqual(f.row('a1-shape').options, ['上り', '下り', '三角', '丸', 'なめらか', '矩形']);
+    assert.deepEqual(f.row('a1-basis').options, ['Characters', 'Words', 'Lines', 'Phrases']);
+    assert.equal(f.row('a1-basis').optionTitles['Phrases'], 'Treated the same as words in v1');
+    assert.deepEqual(f.row('a1-shape').options, ['Ramp up', 'Ramp down', 'Triangle', 'Round', 'Smooth', 'Square']);
     assert.deepEqual(f.row('a1-ease').options, MOTION_EASES);
-    assert.equal(f.row('a1-amount-blur').title, 'gpu 出口では v1 未対応');
+    assert.equal(f.row('a1-amount-blur').title, 'Not supported in v1 on the GPU path');
     const fields = fixture([animator('add'), animator('a1-start'), animator('a1_45_start'), animator('\ud800'), animator()])
         .all().flatMap(section => section.fields);
     assert.equal(new Set(fields.map(field => field.name)).size, fields.length);
@@ -351,8 +351,8 @@ test('DOM の seed は空欄と 0 を区別し、空欄で randomize ごと削�
 test('DOM の単位 option は segments 注記を持ち、選択すると id を保存する', () => withRows(async render => {
     const f = fixture([animator()]);
     const select = render(f.row('a1-basis'), f.snapshot()).children[1];
-    assert.equal(select.children.find(option => option.value === '文節').title, 'v1 では words と同じ扱いです');
-    select.value = '文節';
+    assert.equal(select.children.find(option => option.value === 'Phrases').title, 'Treated the same as words in v1');
+    select.value = 'Phrases';
     select.emit('change');
     await settle();
     assert.equal(f.value()[0].basis, 'segments');
@@ -362,7 +362,7 @@ test('DOM 小見出しは id と 3 ボタンを描画し、クリックで null 
     const f = fixture([animator()]);
     const row = render(f.row('a1-heading'), f.snapshot());
     assert.equal(row.children[0].textContent, 'a1');
-    assert.deepEqual(row.children[1].children.map(button => button.textContent), ['↑', '↓', '削除']);
+    assert.deepEqual(row.children[1].children.map(button => button.textContent), ['↑', '↓', 'Delete']);
     assert.deepEqual(row.children[1].children.map(button => button.disabled), [true, true, false]);
     row.children[1].children[2].emit('click');
     await settle();

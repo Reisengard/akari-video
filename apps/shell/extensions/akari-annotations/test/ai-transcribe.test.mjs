@@ -15,7 +15,7 @@ const transcribe = catalog.find(row => row.id === 'transcribe');
 test('文字起こしは直す・字幕への行で音声と動画だけ押せる', () => {
   assert.deepEqual([transcribe.group, transcribe.output, transcribe.placement, transcribe.image],
     ['refine', 'captions', 'captions', 'transcribe']);
-  assert.deepEqual(transcribe.routes, [{ id: 'transcript', label: '台本パネルのエンジン', kind: 'local', cost: 'free' }]);
+  assert.deepEqual(transcribe.routes, [{ id: 'transcript', label: 'Script panel engine', kind: 'local', cost: 'free' }]);
   for (const target of ['audio', 'video']) {
     const group = describeAiTiles(catalog, target).find(row => row.group === 'refine');
     assert.equal(group.tiles.find(tile => tile.id === 'transcribe').enabled, true);
@@ -24,7 +24,7 @@ test('文字起こしは直す・字幕への行で音声と動画だけ押せ�
     const tile = describeAiTiles(catalog, target).find(row => row.group === 'refine').tiles
       .find(tile => tile.id === 'transcribe');
     assert.equal(tile.enabled, false);
-    assert.equal(tile.reason, '声の入った音声か動画で使えます');
+    assert.equal(tile.reason, 'Works on audio or video with speech');
   }
   assert.equal(aiTargetKindFor({ hasIdentity: false, audio: true, audioPlanned: true }), 'empty-audio-frame');
 });
@@ -33,19 +33,19 @@ test('静止画クリップの AI タブは作るに静止画・動画にする�
   const target = aiTargetKindFor({ hasIdentity: true });
   const groups = describeAiTiles(aiActionCatalog([{ id: 'fal:h3-i2v', kind: 'video' }]), target);
   assert.deepEqual(groups.map(group => [group.group, group.tiles.map(tile => tile.label)]), [
-    ['make', ['静止画', '動画にする']],
-    ['refine', ['背景を消す', '消しゴム', '文字起こし']]
+    ['make', ['Still', 'Generate video']],
+    ['refine', ['Remove background', 'Eraser', 'Transcribe']]
   ]);
   assert.deepEqual(groups[0].tiles.map(tile => tile.enabled), [true, true]);
   assert.deepEqual(groups[1].tiles.find(tile => tile.id === 'transcribe'), {
-    id: 'transcribe', label: '文字起こし', image: 'transcribe', enabled: false,
-    reason: '声の入った音声か動画で使えます'
+    id: 'transcribe', label: 'Transcribe', image: 'transcribe', enabled: false,
+    reason: 'Works on audio or video with speech'
   });
 });
 
 test('音声のタブはホーム・音声・情報、既定はホーム', () => {
   const tabs = tabsForKind('audio');
-  assert.deepEqual(tabs.map(tab => [tab.id, tab.label]), [['edit', 'ホーム'], ['audio', '音声'], ['info', '情報']]);
+  assert.deepEqual(tabs.map(tab => [tab.id, tab.label]), [['edit', 'Home'], ['audio', 'Audio'], ['info', 'Info']]);
   assert.equal(initialTabFor({ kind: 'audio', tabs, generationTodo: false }), 'edit');
   assert.equal(initialTabFor({ kind: 'audio', tabs, generationTodo: false, persisted: 'audio' }), 'audio');
 });
@@ -94,10 +94,10 @@ test('タイルには済みの札が付き、タイトルと別の要素にな�
   const parent = new Node('div');
   appendAiTiles(parent, describeAiTiles(catalog, 'audio'), () => {}, true);
   const tile = find(parent, node => node.attributes.get('data-akari-inspector-ai-tile') === 'transcribe');
-  assert.equal(find(tile, byText('済み')).className, 'akari-inspector-ai-done-badge');
-  assert.equal(find(tile, byText('文字起こし')).className, 'akari-inspector-ai-title');
+  assert.equal(find(tile, byText('Done')).className, 'akari-inspector-ai-done-badge');
+  assert.equal(find(tile, byText('Transcribe')).className, 'akari-inspector-ai-title');
   const titleRow = tile.children.find(child => child.className === 'akari-inspector-ai-title-row');
-  assert.equal(titleRow.children[0].textContent, '文字起こし');
+  assert.equal(titleRow.children[0].textContent, 'Transcribe');
   assert.match(titleRow.children[1].className, /akari-inspector-cloud/u);
 }));
 
@@ -113,18 +113,18 @@ test('専用パネル: 対象解決・まだの openDialog 引数・running・�
       availability: { state: 'available', label: '使える' }, default: true }] };
   const parent = new Node('div');
   appendAiTranscribePanel(parent, { ...base, summary: { state: 'none', segments: [], total: 0 }, running: false });
-  find(parent, byText('文字起こしする')).click();
+  find(parent, byText('Transcribe')).click();
   await tick();
   assert.deepEqual(calls[0], ['akari.transcribe.openDialog', { projectRoot: 'file:///project', relativePath: 'assets/interview.wav', backend: 'auto', autoStart: true }]);
   assert.equal(result, 'running');
   const running = new Node('div');
   appendAiTranscribePanel(running, { ...base, summary: { state: 'none', segments: [], total: 0 }, running: true });
-  assert.ok(find(running, byText('文字起こし中です')));
+  assert.ok(find(running, byText('Transcribing…')));
   const done = new Node('div');
   appendAiTranscribePanel(done, { ...base, summary: { state: 'done', segments: [{ start: 0, end: 1, text: 'こんにちは' }], total: 7 }, running: false });
-  assert.ok(find(done, byText('文字起こし済み · 7 行')));
+  assert.ok(find(done, byText('Transcribed · 7 lines')));
   assert.ok(find(done, byText('こんにちは')));
-  find(done, byText('台本で開く')).click();
+  find(done, byText('Open in script')).click();
   await tick();
   assert.deepEqual(calls[1], ['akari.daihon.open', { atSeconds: 12.5 }]);
 }));

@@ -27,6 +27,6 @@ for (const [name, names, lane, expected] of [
 
 test('planned audio generation chip uses the green empty-audio label', () => {
   assert.deepEqual(describeGenerationChip('planned', { version: 1, kind: 'audio', status: 'planned' }), {
-    badge: '空の枠（音）', className: 'akari-generation-planned-audio', title: '音の空の枠'
+    badge: 'Empty slot (audio)', className: 'akari-generation-planned-audio', title: 'Empty audio slot'
   });
 });

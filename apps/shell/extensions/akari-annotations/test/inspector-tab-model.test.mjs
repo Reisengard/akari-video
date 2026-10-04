@@ -15,23 +15,23 @@ const tabShape = tabs => tabs.map(({ label, enabled }) => [label, enabled]);
 
 test('選択 kind ごとに正しいタブ語彙と enabled 状態を返す', () => {
   assert.deepEqual(tabShape(tabsForKind('cut')), [
-    ['ホーム', true], ['映像', true], ['色', true], ['音声', true], ['動き', true], ['情報', true]
+    ['Home', true], ['Video', true], ['Color', true], ['Audio', true], ['Motion', true], ['Info', true]
   ]);
   for (const kind of ['layer', 'overlay', 'item']) {
     assert.deepEqual(tabShape(tabsForKind(kind, {})), [
-      ['ホーム', true], ['映像', true], ['色', false], ['音声', false], ['動き', true], ['情報', true]
+      ['Home', true], ['Video', true], ['Color', false], ['Audio', false], ['Motion', true], ['Info', true]
     ], `${kind}: src なし`);
     assert.deepEqual(tabShape(tabsForKind(kind, { src: 'assets/source.mp4' })), [
-      ['ホーム', true], ['映像', true], ['色', true], ['音声', true], ['動き', true], ['情報', true]
+      ['Home', true], ['Video', true], ['Color', true], ['Audio', true], ['Motion', true], ['Info', true]
     ], `${kind}: src あり`);
   }
   assert.deepEqual(tabShape(tabsForKind('caption')), [
-    ['テキスト', true], ['動き', true], ['情報', true]
+    ['Text', true], ['Motion', true], ['Info', true]
   ]);
   assert.deepEqual(tabShape(tabsForKind('audio')), [
-    ['ホーム', true], ['音声', true], ['情報', true]
+    ['Home', true], ['Audio', true], ['Info', true]
   ]);
-  assert.deepEqual(tabShape(tabsForKind('world')), [['地図', true], ['情報', true]]);
+  assert.deepEqual(tabShape(tabsForKind('world')), [['Map', true], ['Info', true]]);
 });
 
 test('既存セクションを kind に応じたタブへ振り分ける', () => {
@@ -76,7 +76,7 @@ test('アクティブタブは kind ごとに永続し disabled 保存値をフ�
 });
 
 test('調整タブは実働 6 件と Coming soon 0 件を裁定どおり分ける', () => {
-  assert.deepEqual([...ACTIVE_ADJUST_SECTIONS], ['基本補正', 'RGB カーブ', 'カラーホイール', 'Hue カーブ', 'LUT', 'エフェクト']);
+  assert.deepEqual([...ACTIVE_ADJUST_SECTIONS], ['Basic', 'RGB curves', 'Color wheels', 'Hue curves', 'LUT', 'Effects']);
   assert.deepEqual([...COMING_SOON_ADJUST_SECTIONS], []);
   assert.equal(assignSectionToTab('item', 'adjust:fx'), 'adjust');
 });
@@ -253,7 +253,7 @@ for (const kind of ['cut', 'layer']) {
       widget.render();
       assert.equal(widget.sections.some(section => section.id === 'adjust-scope'), available);
       if (!available) {
-        widget.editAdjustScope = '選択エリア';
+        widget.editAdjustScope = 'Selected area';
         widget.sections = [];
         widget.explicitTabId = 'adjust';
         widget.render();
@@ -304,9 +304,9 @@ for (const kind of ['cut', 'layer']) {
 
 test('caption / audio / world: id・ラベル・disabled title の語彙を固定する', () => withTabDom(() => {
   const vocabulary = {
-    caption: [['text', 'テキスト', true, ''], ['motion', '動き', true, ''], ['info', '情報', true, '']],
-    audio: [['edit', 'ホーム', true, ''], ['audio', '音声', true, ''], ['info', '情報', true, '']],
-    world: [['world', '地図', true, ''], ['info', '情報', true, '']]
+    caption: [['text', 'Text', true, ''], ['motion', 'Motion', true, ''], ['info', 'Info', true, '']],
+    audio: [['edit', 'Home', true, ''], ['audio', 'Audio', true, ''], ['info', 'Info', true, '']],
+    world: [['world', 'Map', true, ''], ['info', 'Info', true, '']]
   };
   for (const [kind, expected] of Object.entries(vocabulary)) {
     const widget = renderFixture('cut');
@@ -319,8 +319,8 @@ test('caption / audio / world: id・ラベル・disabled title の語彙を固�
     widget.appendTabStrip(kind, tabs.map(tab => ({ ...tab, enabled: false })), '');
     assert.deepEqual(widget.body.children.find(child => child.className === 'akari-inspector-tab-strip').children.map(button => button.title),
       kind === 'audio' || kind === 'caption'
-        ? ['この要素では使えません', 'この要素では使えません', 'この要素では使えません']
-        : ['この要素では使えません', 'この要素では使えません']);
+        ? ['Not available for this element', 'Not available for this element', 'Not available for this element']
+        : ['Not available for this element', 'Not available for this element']);
   }
 }));
 
@@ -359,7 +359,7 @@ test('generation: 節割付・enabled・disabled title・やること印の DOM 
     else widget.model.snapshot.src = 'done.mp4';
     widget.render();
     assert.equal(widget.currentTab, 'adjust', 'same item after source replacement');
-    const generation = widget.body.children.find(child => child.className === 'akari-inspector-tab-strip').children.find(button => button.textContent === 'ホーム');
+    const generation = widget.body.children.find(child => child.className === 'akari-inspector-tab-strip').children.find(button => button.textContent === 'Home');
     assert.equal(generation.disabled, false);
     assert.equal(generation.children.length, 0);
   }
@@ -410,7 +410,7 @@ test('非同期 next 読込後に初期タブを確定し、手動選択・同�
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(widget.currentTab, explicit ?? 'edit');
     assert.deepEqual(widget.generationTabMeta.get(key), {});
-    const generation = widget.body.children.find(child => child.className === 'akari-inspector-tab-strip').children.find(button => button.textContent === 'ホーム');
+    const generation = widget.body.children.find(child => child.className === 'akari-inspector-tab-strip').children.find(button => button.textContent === 'Home');
     assert.equal(generation.children.length, 0, 'removing next clears the dot');
   }
 }));

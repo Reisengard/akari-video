@@ -12,20 +12,20 @@ export type InspectorMotionSlot = 'in' | 'out' | 'loop';
 export type InspectorMotionField = 'preset' | 'duration' | 'ease' | 'amount';
 type MotionPreset = typeof MOTION_IN_OUT_PRESETS[number] | typeof MOTION_LOOP_PRESETS[number];
 export const MOTION_PRESET_LABELS: Record<MotionPreset, string> = {
-    fade: 'フェード', 'slide-up': 'スライド（上へ）', 'slide-down': 'スライド（下へ）',
-    'slide-left': 'スライド（左へ）', 'slide-right': 'スライド（右へ）',
-    scale: '拡縮', wipe: 'ワイプ', pop: 'ポップ', zoom: 'ズーム', twirl: '回転',
-    pulse: '脈動', float: '浮遊', spin: '回り続ける', blink: '点滅', jiggle: '小刻みな動き'
+    fade: 'Fade', 'slide-up': 'Slide up', 'slide-down': 'Slide down',
+    'slide-left': 'Slide left', 'slide-right': 'Slide right',
+    scale: 'Scale', wipe: 'Wipe', pop: 'Pop', zoom: 'Zoom', twirl: 'Twirl',
+    pulse: 'Pulse', float: 'Float', spin: 'Spin', blink: 'Blink', jiggle: 'Jiggle'
 };
 export const MOTION_DURATION_DEFAULTS = { in: 12, out: 8, loop: 90 } as const;
 export const MOTION_AMOUNT_DEFAULTS: Partial<Record<MotionPreset, { value: number; unit: string }>> = {
     'slide-up': { value: 40, unit: 'px' }, 'slide-down': { value: 40, unit: 'px' },
     'slide-left': { value: 40, unit: 'px' }, 'slide-right': { value: 40, unit: 'px' },
-    scale: { value: 0.2, unit: '倍' }, pulse: { value: 0.05, unit: '倍' },
-    float: { value: 6, unit: 'px' }, spin: { value: 1, unit: '方向' },
-    pop: { value: 0.25, unit: '倍' }, zoom: { value: 0.55, unit: '倍' },
-    twirl: { value: 200, unit: '°' }, blink: { value: 0.75, unit: '量' },
-    jiggle: { value: 1, unit: '量' }
+    scale: { value: 0.2, unit: 'x' }, pulse: { value: 0.05, unit: 'x' },
+    float: { value: 6, unit: 'px' }, spin: { value: 1, unit: 'direction' },
+    pop: { value: 0.25, unit: 'x' }, zoom: { value: 0.55, unit: 'x' },
+    twirl: { value: 200, unit: '°' }, blink: { value: 0.75, unit: 'amount' },
+    jiggle: { value: 1, unit: 'amount' }
 };
 type MotionSeat = { preset: MotionPreset; ease?: string; amount?: number };
 export type InspectorMotion = {
@@ -78,10 +78,10 @@ export function updateInspectorMotion(
 ): InspectorMotion | null {
     const motion = normalizeInspectorMotion(raw);
     if (field === 'preset') {
-        if (value === null || value === 'なし') delete motion[slot];
+        if (value === null || value === 'なし' || value === 'None') delete motion[slot];
         else {
             const preset = presets(slot).find(id => id === value || MOTION_PRESET_LABELS[id] === value);
-            if (!preset) throw new Error('一覧から動きのプリセットを選択してください。');
+            if (!preset) throw new Error('Select a motion preset from the list.');
             const previous = motion[slot];
             const seat = previous ? { ...previous, preset } : slot === 'loop'
                 ? { preset, period: MOTION_DURATION_DEFAULTS.loop }
@@ -92,23 +92,23 @@ export function updateInspectorMotion(
         }
     } else {
         const seat = motion[slot];
-        if (!seat) throw new Error('プリセットを選ぶと変更できます。');
+        if (!seat) throw new Error('Select a preset to change this.');
         if (field === 'duration') {
             const frames = value === null ? MOTION_DURATION_DEFAULTS[slot] : Number(value);
-            if (!Number.isInteger(frames) || frames < 1) throw new Error('尺・周期は 1 以上の整数フレームで入力してください。');
+            if (!Number.isInteger(frames) || frames < 1) throw new Error('Enter a duration/period of 1 or more whole frames.');
             if (slot === 'loop') motion.loop!.period = frames;
             else motion[slot]!.duration = frames;
         } else if (field === 'ease') {
             if (value === null) delete seat.ease;
             else {
-                if (!validEase(value)) throw new Error('一覧からイージングを選択してください。');
+                if (!validEase(value)) throw new Error('Select an easing from the list.');
                 seat.ease = value;
             }
         } else if (value === null) delete seat.amount;
         else {
-            if (!MOTION_AMOUNT_DEFAULTS[seat.preset]) throw new Error('このプリセットに量はありません');
+            if (!MOTION_AMOUNT_DEFAULTS[seat.preset]) throw new Error('This preset has no amount.');
             if ((typeof value === 'string' && !value.trim()) || !Number.isFinite(Number(value))) {
-                throw new Error('量は有限数で入力してください。');
+                throw new Error('Enter a finite number for the amount.');
             }
             seat.amount = Number(value);
         }
@@ -118,22 +118,22 @@ export function updateInspectorMotion(
 
 export function validateInspectorMotion(motion: unknown, itemDurationFrames: number): void {
     if (motion === null) return;
-    if (!record(motion)) throw new Error('動きはオブジェクトで指定してください。');
+    if (!record(motion)) throw new Error('Motion must be specified as an object.');
     for (const slot of ['in', 'out', 'loop'] as const) {
         const seat = motion[slot];
         if (seat === undefined) continue;
         const key = slot === 'loop' ? 'period' : 'duration';
         if (!record(seat) || !Number.isInteger(seat[key]) || Number(seat[key]) < 1) {
-            throw new Error('尺・周期は 1 以上の整数フレームで入力してください。');
+            throw new Error('Enter a duration/period of 1 or more whole frames.');
         }
     }
     if (!Number.isInteger(itemDurationFrames) || itemDurationFrames < 1) {
-        throw new Error('クリップの尺は 1 以上の整数フレームである必要があります。');
+        throw new Error('Clip duration must be 1 or more whole frames.');
     }
     const total = Number((motion.in as Record<string, unknown> | undefined)?.duration ?? 0)
         + Number((motion.out as Record<string, unknown> | undefined)?.duration ?? 0);
     if (total > itemDurationFrames) {
-        throw new Error(`motion の入り・抜きの合計 ${total} フレームがクリップの尺 ${itemDurationFrames} フレームを超えています。`);
+        throw new Error(`The combined in/out motion (${total} frames) exceeds the clip duration (${itemDurationFrames} frames).`);
     }
 }
 

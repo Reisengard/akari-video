@@ -79,12 +79,12 @@ export function videoModelName(row: GenerationCatalogRow): string {
     if (!row.inputs) return name;
     const references = row.inputs.first_frame === 'none' && [row.inputs.reference_images,
         row.inputs.reference_videos, row.inputs.reference_audios].some(capability => capability && capability.max !== 0);
-    const mode = references ? '参照から' : row.inputs.last_frame === 'required' ? '最初と最後' : '画像から';
-    return `${name}（${mode}）`;
+    const mode = references ? 'from references' : row.inputs.last_frame === 'required' ? 'first and last frame' : 'from image';
+    return `${name} (${mode})`;
 }
 export const videoMakerId = (modelId: string): string => shelfById.get(modelId)?.maker ?? 'fal';
 export const videoPrice = (value: number | null | undefined): string =>
-    value === null || value === undefined ? '料金 未確認' : `$${value.toFixed(2)}`;
+    value === null || value === undefined ? 'Price unconfirmed' : `$${value.toFixed(2)}`;
 
 export function videoModelGroups(rows: readonly GenerationCatalogRow[], preferred: PreferredVideoRoutes | undefined):
     { usual: GenerationCatalogRow[]; favorites: GenerationCatalogRow[]; others: GenerationCatalogRow[] } {
@@ -102,34 +102,34 @@ export function videoSelectionEstimate(estimate: VideoBatchEstimate | undefined,
     const unknown = models.filter(row => !row.error && row.estimateUsd === null).length;
     const invalid = !count || !estimate || models.length !== count || models.some(row => !!row.error);
     return { count, total, unknown, invalid,
-        label: `${count} 案を作る · ${!estimate ? '見積確認中' : `見積 $${total.toFixed(2)}${unknown ? ` + 未確認 ${unknown}` : ''}`}` };
+        label: `Generate ${count} ${count === 1 ? 'option' : 'options'} · ${!estimate ? 'checking estimate…' : `estimate $${total.toFixed(2)}${unknown ? ` + ${unknown} unconfirmed` : ''}`}` };
 }
 
 export function videoApprovalMessage(estimate: VideoBatchEstimate, selected: ReadonlySet<string>, rows: readonly GenerationCatalogRow[]): string {
     const entries = estimate.models.filter(row => selected.has(row.modelId));
-    const detail = entries.map(row => `${videoModelName(rows.find(model => model.id === row.modelId) ?? { id: row.modelId } as GenerationCatalogRow)}: ${videoPrice(row.estimateUsd)}（as_of ${row.asOf ?? '不明'}）`).join('\n');
+    const detail = entries.map(row => `${videoModelName(rows.find(model => model.id === row.modelId) ?? { id: row.modelId } as GenerationCatalogRow)}: ${videoPrice(row.estimateUsd)} (as of ${row.asOf ?? 'unknown'})`).join('\n');
     const unknown = entries.filter(row => row.estimateUsd === null).length;
-    return `${detail}\n合計 見積 $${estimate.models.filter(row => selected.has(row.modelId)).reduce((sum, row) => sum + (row.estimateUsd ?? 0), 0).toFixed(2)}${unknown ? ` + 料金未確認 ${unknown} 件（実際の費用が見積もれません）` : ''}で送ります。費用承認しますか`;
+    return `${detail}\nTotal estimate $${estimate.models.filter(row => selected.has(row.modelId)).reduce((sum, row) => sum + (row.estimateUsd ?? 0), 0).toFixed(2)}${unknown ? ` + ${unknown} with unconfirmed prices (the actual cost cannot be estimated)` : ''}. Approve the cost and send?`;
 }
 
 export function videoProgress(candidate: VideoCandidate | undefined, elapsed: number): { state: string; label: string } {
     if (candidate?.status === 'failed' || candidate && !candidate.ok && candidate.status !== 'generating')
-        return { state: 'failed', label: `失敗 · ${candidate.reason ?? '生成できませんでした。'}` };
-    if (candidate?.status === 'done' || candidate?.ok) return { state: 'done', label: '完了' };
-    if (candidate?.queueStatus === 'IN_PROGRESS') return { state: 'running', label: `生成中 · ${Math.round(elapsed)} 秒` };
+        return { state: 'failed', label: `Failed · ${candidate.reason ?? 'Could not generate.'}` };
+    if (candidate?.status === 'done' || candidate?.ok) return { state: 'done', label: 'Done' };
+    if (candidate?.queueStatus === 'IN_PROGRESS') return { state: 'running', label: `Generating · ${Math.round(elapsed)} sec` };
     if (candidate?.status === 'generating' && candidate.queueStatus === 'COMPLETED') {
-        return { state: 'running', label: '仕上げ中' };
+        return { state: 'running', label: 'Finishing up' };
     }
-    return { state: 'waiting', label: '待ち' };
+    return { state: 'waiting', label: 'Waiting' };
 }
 
 export function videoCandidateDetail(candidate: VideoCandidate, name: string): string {
     const parts = [name];
     if (Number.isFinite(candidate.durationSeconds)) {
         const duration = candidate.durationSeconds!;
-        parts.push(`尺 ${Number.isInteger(duration) ? duration : duration.toFixed(1)} 秒`);
+        parts.push(`Length ${Number.isInteger(duration) ? duration : duration.toFixed(1)} sec`);
     }
-    if (Number.isFinite(candidate.elapsedSeconds)) parts.push(`作成 ${Math.round(candidate.elapsedSeconds!)} 秒`);
+    if (Number.isFinite(candidate.elapsedSeconds)) parts.push(`Took ${Math.round(candidate.elapsedSeconds!)} sec`);
     if (Number.isFinite(candidate.width) && Number.isFinite(candidate.height)) {
         parts.push(`${candidate.width}×${candidate.height}`);
     }
@@ -170,7 +170,7 @@ export function videoCandidatePreviewDetail(editUri: string, itemId: string, fra
         inSeconds: number; outSeconds: number; freeze?: { atSeconds: number; durationSeconds: number } } {
     if (!candidate.ok || !candidate.relativePath || !Number.isFinite(candidate.durationSeconds)
         || candidate.durationSeconds! <= 0 || !Number.isFinite(frameSeconds) || frameSeconds <= 0) {
-        throw new Error('完成した候補と正の枠尺が必要です。');
+        throw new Error('A finished candidate and a positive slot duration are required.');
     }
     const outSeconds = Number(Math.min(frameSeconds, candidate.durationSeconds!).toFixed(6));
     return { editUri, itemId, relativePath: candidate.relativePath, inSeconds: 0, outSeconds,
@@ -187,10 +187,10 @@ export function replaceVideoInEdit<T extends { sources?: Array<{ id: string; pat
     tracks?: Array<{ items?: Array<{ id: string; source: { kind: string; src: string; in: number; out: number } }> }> }>(
     doc: T, itemId: string, candidate: VideoCandidate
 ): T {
-    if (!candidate.ok || !candidate.relativePath || !Number.isFinite(candidate.durationSeconds)) throw new Error('完成した候補を選んでください。');
+    if (!candidate.ok || !candidate.relativePath || !Number.isFinite(candidate.durationSeconds)) throw new Error('Select a finished candidate.');
     const track = doc.tracks?.find(row => row.items?.some(item => item.id === itemId));
     const index = track?.items?.findIndex(item => item.id === itemId) ?? -1;
-    if (!track?.items || index < 0) throw new Error('差し替える枠がありません。');
+    if (!track?.items || index < 0) throw new Error('No slot to replace.');
     const replaced = replaceVideoCandidateItem(track.items[index], candidate.durationSeconds!);
     const sourceId = `gen-${itemId}-video`;
     const source = doc.sources?.find(row => row.id === sourceId);
@@ -213,12 +213,12 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
     const panel = make('div', 'akari-inspector-ai-still-panel akari-inspector-ai-video-panel');
     panel.setAttribute('data-akari-inspector-video-panel', 'true');
     const groups = videoModelGroups(catalog, state.preferred);
-    const entries = [['いつもの', groups.usual], ['★ お気に入り', groups.favorites], ['ほかのモデル', groups.others]] as const;
+    const entries = [['Usual', groups.usual], ['★ Favorites', groups.favorites], ['Other models', groups.others]] as const;
     for (const [heading, models] of entries) {
         if (!models.length) continue;
         const section = make('div', 'akari-inspector-ai-still-route-group');
         section.setAttribute('data-akari-inspector-video-model-group', heading);
-        if (heading === 'ほかのモデル') {
+        if (heading === 'Other models') {
             const toggle = make('button', 'akari-inspector-ai-still-secondary', heading);
             toggle.type = 'button'; toggle.setAttribute('data-akari-inspector-video-more', 'true');
             toggle.setAttribute('aria-expanded', String(!!state.moreOpen));
@@ -244,7 +244,7 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
             const requested = videoRequestedDuration(state);
             const seconds = videoRoundedDuration(model, requested ?? NaN);
             if (seconds !== undefined) {
-                const duration = make('span', 'akari-inspector-ai-video-model-duration', `${videoSecondsLabel(seconds)} 秒で作ります`);
+                const duration = make('span', 'akari-inspector-ai-video-model-duration', `Generates ${videoSecondsLabel(seconds)} sec`);
                 duration.setAttribute('data-akari-inspector-video-model-duration', model.id);
                 duration.style.display = 'block';
                 duration.style.fontSize = '10px';
@@ -252,7 +252,7 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
                 name.appendChild(duration);
             }
             label.append(check, name, make('span', 'akari-inspector-ai-still-route-price',
-                estimate ? videoPrice(estimate.estimateUsd) : '見積もりを確認中'));
+                estimate ? videoPrice(estimate.estimateUsd) : 'Checking estimate…'));
             if (estimate?.error) {
                 const reason = make('span', 'akari-inspector-ai-still-route-reason', estimate.error);
                 reason.setAttribute('data-akari-inspector-video-model-reason', model.id);
@@ -268,7 +268,7 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
         .map(row => videoRoundedDuration(row, requested ?? NaN) ?? 0));
     if (requested !== undefined && videoOverhangSeconds(requested, longest) > 0) {
         const note = make('div', 'akari-inspector-ai-video-duration-note',
-            `枠 ${videoSecondsLabel(requested)} 秒 → ${videoSecondsLabel(longest)} 秒の動画を作ります（枠に入るのは ${videoSecondsLabel(requested)} 秒ぶん。残りはタイムラインに点線で出ます）`);
+            `Slot ${videoSecondsLabel(requested)} sec → generates a ${videoSecondsLabel(longest)} sec video (${videoSecondsLabel(requested)} sec fits in the slot; the rest appears as a dotted line on the timeline)`);
         note.setAttribute('data-akari-inspector-video-duration-note', 'true');
         note.style.cssText = 'font-size:11px;line-height:1.4;opacity:.82;margin:6px 0';
         panel.appendChild(note);
@@ -297,20 +297,20 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
         panel.appendChild(progress);
     }
     if (state.running) {
-        const cancel = make('button', 'akari-inspector-ai-still-secondary', '中止');
+        const cancel = make('button', 'akari-inspector-ai-still-secondary', 'Stop');
         cancel.type = 'button'; cancel.setAttribute('data-akari-inspector-video-cancel', 'true');
         cancel.addEventListener('click', actions.cancel); panel.appendChild(cancel);
     }
     if (state.batch?.candidates.length) {
-        panel.appendChild(make('div', 'akari-inspector-ai-still-label', '候補（押すとここで再生します）'));
+        panel.appendChild(make('div', 'akari-inspector-ai-still-label', 'Candidates (click to play here)'));
         for (const candidate of state.batch.candidates) {
             if (candidate.status === 'generating') continue;
             const model = catalog.find(row => row.id === candidate.route);
             const name = model ? videoModelName(model) : candidate.route;
             if (!candidate.ok || !candidate.relativePath) {
-                const failed = make('div', 'akari-inspector-ai-still-error', `${name} · 失敗 · ${candidate.reason ?? '生成できませんでした。'}`);
+                const failed = make('div', 'akari-inspector-ai-still-error', `${name} · Failed · ${candidate.reason ?? 'Could not generate.'}`);
                 failed.setAttribute('data-akari-inspector-video-failed-model', candidate.route);
-                const retry = make('button', 'akari-inspector-ai-still-secondary', '同じ入力でもう一度');
+                const retry = make('button', 'akari-inspector-ai-still-secondary', 'Retry with same input');
                 retry.type = 'button'; retry.disabled = state.running;
                 retry.setAttribute('data-akari-inspector-video-retry-model', candidate.route);
                 retry.addEventListener('click', () => actions.generate([candidate.route]));
@@ -321,7 +321,7 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
             button.setAttribute('data-akari-inspector-video-candidate-selected', String(state.picked === candidate.relativePath));
             button.setAttribute('aria-pressed', String(state.picked === candidate.relativePath));
             const image = make('img', 'akari-inspector-ai-video-candidate-thumbnail');
-            image.alt = `${name} の候補`; image.setAttribute('data-akari-inspector-video-candidate-thumbnail', candidate.relativePath);
+            image.alt = `${name} candidate`; image.setAttribute('data-akari-inspector-video-candidate-thumbnail', candidate.relativePath);
             image.style.aspectRatio = Number.isFinite(candidate.width) && Number.isFinite(candidate.height)
                 && candidate.width! > 0 && candidate.height! > 0 ? `${candidate.width} / ${candidate.height}` : '16 / 9';
             actions.thumbnail(candidate, image);
@@ -340,16 +340,16 @@ export function appendAiVideoCandidatesPanel(parent: HTMLElement, state: AiVideo
                 panel.appendChild(player);
             }
         }
-        const adopt = make('button', 'akari-inspector-ai-still-primary', 'この案を使う');
+        const adopt = make('button', 'akari-inspector-ai-still-primary', 'Use this option');
         adopt.type = 'button'; adopt.disabled = !state.picked || state.running || !!state.adopting;
         adopt.setAttribute('data-akari-inspector-video-adopt', 'true');
         adopt.addEventListener('click', actions.adopt); panel.appendChild(adopt);
-        const note = make('p', 'akari-inspector-ai-still-next', 'ほかの候補は素材に残ります');
+        const note = make('p', 'akari-inspector-ai-still-next', 'Other candidates stay in your footage');
         note.setAttribute('data-akari-inspector-video-candidates-remain', 'true'); panel.appendChild(note);
     }
     if (state.error) {
         panel.appendChild(make('p', 'akari-inspector-ai-still-error', state.error));
-        const retry = make('button', 'akari-inspector-ai-still-secondary', 'もう一度');
+        const retry = make('button', 'akari-inspector-ai-still-secondary', 'Try again');
         retry.type = 'button'; retry.setAttribute('data-akari-inspector-video-retry', 'true');
         retry.addEventListener('click', () => actions.generate()); panel.appendChild(retry);
     }

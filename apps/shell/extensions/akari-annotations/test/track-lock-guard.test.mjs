@@ -19,5 +19,5 @@ test('only an explicitly locked matching track rejects editing', () => {
 });
 
 test('refusal names the track and explains how to unlock it', () => {
-  assert.equal(lockedTrackMessage('本編 1'), '「本編 1」はロック中です（鍵を外すと編集できます）');
+  assert.equal(lockedTrackMessage('本編 1'), '"本編 1" is locked (unlock it to edit)');
 });

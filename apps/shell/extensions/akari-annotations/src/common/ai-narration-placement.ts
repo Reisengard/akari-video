@@ -28,13 +28,13 @@ export function aiNarrationSourcePath(edit: Pick<NarrationEdit, 'tracks' | 'sour
 export function planAiNarrationPlacement(tracks: readonly NarrationTrack[], itemId: string,
     durationSeconds: number, fps: number, choice: 'lower' | 'shift' = 'lower'): NarrationPlacement {
     if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || !Number.isFinite(fps) || fps <= 0) {
-        throw new Error('声の長さか fps が正しくありません。');
+        throw new Error('Invalid voice duration or fps.');
     }
     const trackIndex = tracks.findIndex(track => track.items.some(item => item.id === itemId));
     const track = tracks[trackIndex];
     const frame = track?.items.find(item => item.id === itemId);
     if (!track || track.lane !== 'audio' || !frame || !Number.isInteger(frame.at) || !Number.isInteger(frame.duration)) {
-        throw new Error('音の空の枠が見つかりません。');
+        throw new Error('Empty audio slot not found.');
     }
     const durationFrames = Math.max(1, Math.ceil(durationSeconds * fps - 1e-9));
     const audioTracks = tracks.filter(row => row.lane === 'audio');
@@ -45,22 +45,22 @@ export function planAiNarrationPlacement(tracks: readonly NarrationTrack[], item
     const empty = (row: NarrationTrack, excludeFrame: boolean): boolean => row.items.every(item =>
         excludeFrame && item.id === itemId || item.at + item.duration <= start || item.at >= start + durationFrames);
     const excess = Math.max(0, durationSeconds - frame.duration / fps);
-    const suffix = excess > 0 ? `（枠より ${excess.toFixed(1)} 秒長いため）` : '';
+    const suffix = excess > 0 ? ` (${excess.toFixed(1)} sec longer than the slot)` : '';
     if (durationFrames <= frame.duration || empty(track, true)) return { mode: durationFrames <= frame.duration ? 'replace' : 'extend',
-        trackId: track.id, at: start, durationFrames, label: `${name(track.id)} に置きました${suffix}` };
+        trackId: track.id, at: start, durationFrames, label: `Placed on ${name(track.id)}${suffix}` };
     if (choice === 'shift' && aiNarrationNeedsChoice(tracks, itemId, durationSeconds, fps)) {
         const shiftFrames = durationFrames - frame.duration;
         return { mode: 'shift', trackId: track.id, at: start, durationFrames,
-            label: `後ろのクリップを ${(shiftFrames / fps).toFixed(1)} 秒ずらして ${name(track.id)} に置きました` };
+            label: `Shifted later clips by ${(shiftFrames / fps).toFixed(1)} sec and placed on ${name(track.id)}` };
     }
     for (let index = trackIndex - 1; index >= 0; index--) {
         const row = tracks[index];
         if (row.lane !== 'audio') break;
         if (empty(row, false)) return { mode: 'lower-track', trackId: row.id, at: start,
-            durationFrames, label: `${name(row.id)} に置きました${suffix}` };
+            durationFrames, label: `Placed on ${name(row.id)}${suffix}` };
     }
     return { mode: 'new-track', trackId: '', at: start, durationFrames,
-        label: `A${audioTracks.length + 1} に置きました${suffix}` };
+        label: `Placed on A${audioTracks.length + 1}${suffix}` };
 }
 
 /** A choice is useful only when extending the frame reaches a later item on its own track. */
@@ -80,7 +80,7 @@ export function aiNarrationNeedsChoice(tracks: readonly NarrationTrack[], itemId
 export function placeAiNarration<T extends NarrationEdit>(doc: T, itemId: string,
     relativePath: string, durationSeconds: number, fps: number, choice: 'lower' | 'shift' = 'lower'): T {
     if (!/^out\/narration\/[\w.-]+\.(?:wav|mp3)$/u.test(relativePath)) {
-        throw new Error('声のファイルの場所が正しくありません。');
+        throw new Error('Invalid voice file location.');
     }
     const placement = planAiNarrationPlacement(doc.tracks, itemId, durationSeconds, fps, choice);
     const next = structuredClone(doc);

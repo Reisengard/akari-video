@@ -174,9 +174,9 @@ export function paintToCss(paint: Paint | undefined): string {
 export function paintLabel(paint: Paint | undefined): string {
     const parsed = parsePaint(paint);
     if (parsed === undefined) return '';
-    if (parsed === TRANSPARENT_PAINT) return '透明';
+    if (parsed === TRANSPARENT_PAINT) return 'Transparent';
     if (typeof parsed === 'string') return parsed;
-    return `グラデーション（${parsed.stops.map(stop => stop.color).join(' → ')}）`;
+    return `Gradient (${parsed.stops.map(stop => stop.color).join(' → ')})`;
 }
 
 // ---- 既定の色 ----
@@ -189,18 +189,18 @@ export interface NamedColor {
 
 /** デフォルトの単色。先頭 28 色（4 段）が既定の表示、「すべて表示」で 42 色（6 段）。 */
 export const DEFAULT_SOLID_COLORS: readonly NamedColor[] = ([
-    ['#000000', '黒 くろ ブラック'], ['#545454', 'グレー 灰 はい 濃い'], ['#737373', 'グレー 灰 はい'], ['#A6A6A6', 'グレー 灰 はい'],
-    ['#B4B4B4', 'グレー 灰 はい 薄い'], ['#D9D9D9', 'グレー 灰 はい 薄い'], ['#FFFFFF', '白 しろ ホワイト'],
-    ['#FF3131', '赤 あか レッド'], ['#FF5757', '赤 あか 薄い'], ['#FF66C4', 'ピンク 桃 もも'], ['#E2A9F1', '紫 むらさき 薄い ラベンダー'],
-    ['#CB6CE6', '紫 むらさき パープル'], ['#8C52FF', '紫 むらさき バイオレット'], ['#5E17EB', '紫 むらさき 濃い'],
-    ['#0097B2', '青緑 あおみどり 青 あお ティール'], ['#0CC0DF', '水色 みずいろ 青 あお シアン'], ['#5CE1E6', '水色 みずいろ 青 あお 薄い'],
-    ['#38B6FF', '空色 そらいろ 青 あお'], ['#5271FF', '青 あお ブルー'], ['#004AAD', '紺 こん 青 あお'], ['#1800AD', '紺 こん 青 あお 濃い'],
-    ['#00BF63', '緑 みどり グリーン'], ['#7ED957', '黄緑 きみどり 緑 みどり'], ['#C1FF72', '黄緑 きみどり ライム'], ['#FFDE59', '黄 き 黄色 きいろ イエロー'],
-    ['#FFBD59', '山吹 やまぶき 黄 き オレンジ'], ['#FF914D', 'オレンジ 橙 だいだい'], ['#FF751F', 'オレンジ 橙 だいだい 濃い'],
-    ['#FFD6D6', 'ピンク 桃 もも 薄い パステル'], ['#FFE4F2', 'ピンク 桃 もも パステル'], ['#F3E5FF', '紫 むらさき パステル'],
-    ['#E0ECFF', '青 あお パステル'], ['#DCFCE7', '緑 みどり パステル'], ['#FEF9C3', '黄 き 黄色 きいろ パステル'], ['#FFEDD5', 'オレンジ 橙 だいだい パステル'],
-    ['#7F1D1D', '赤 あか 濃い 茶 ちゃ'], ['#831843', 'ピンク 桃 もも 濃い'], ['#4C1D95', '紫 むらさき 濃い'], ['#1E3A8A', '紺 こん 青 あお 濃い'],
-    ['#064E3B', '緑 みどり 濃い'], ['#713F12', '茶 ちゃ 茶色 ちゃいろ ブラウン'], ['#7C2D12', '茶 ちゃ オレンジ 濃い']
+    ['#000000', 'Black 黒 くろ ブラック'], ['#545454', 'Charcoal gray dark グレー 灰 はい 濃い'], ['#737373', 'Gray グレー 灰 はい'], ['#A6A6A6', 'Silver gray グレー 灰 はい'],
+    ['#B4B4B4', 'Smoke gray light グレー 灰 はい 薄い'], ['#D9D9D9', 'Mist gray light グレー 灰 はい 薄い'], ['#FFFFFF', 'White 白 しろ ホワイト'],
+    ['#FF3131', 'Red 赤 あか レッド'], ['#FF5757', 'Coral red light 赤 あか 薄い'], ['#FF66C4', 'Pink ピンク 桃 もも'], ['#E2A9F1', 'Lavender purple light 紫 むらさき 薄い ラベンダー'],
+    ['#CB6CE6', 'Purple 紫 むらさき パープル'], ['#8C52FF', 'Violet purple 紫 むらさき バイオレット'], ['#5E17EB', 'Indigo purple dark 紫 むらさき 濃い'],
+    ['#0097B2', 'Teal blue green 青緑 あおみどり 青 あお ティール'], ['#0CC0DF', 'Cyan blue 水色 みずいろ 青 あお シアン'], ['#5CE1E6', 'Aqua blue light 水色 みずいろ 青 あお 薄い'],
+    ['#38B6FF', 'Sky blue 空色 そらいろ 青 あお'], ['#5271FF', 'Blue 青 あお ブルー'], ['#004AAD', 'Navy blue 紺 こん 青 あお'], ['#1800AD', 'Midnight blue dark 紺 こん 青 あお 濃い'],
+    ['#00BF63', 'Green 緑 みどり グリーン'], ['#7ED957', 'Lime green yellow-green 黄緑 きみどり 緑 みどり'], ['#C1FF72', 'Chartreuse lime yellow-green 黄緑 きみどり ライム'], ['#FFDE59', 'Yellow 黄 き 黄色 きいろ イエロー'],
+    ['#FFBD59', 'Amber yellow orange 山吹 やまぶき 黄 き オレンジ'], ['#FF914D', 'Orange オレンジ 橙 だいだい'], ['#FF751F', 'Tangerine orange dark オレンジ 橙 だいだい 濃い'],
+    ['#FFD6D6', 'Blush pink light pastel ピンク 桃 もも 薄い パステル'], ['#FFE4F2', 'Rose pink pastel ピンク 桃 もも パステル'], ['#F3E5FF', 'Lilac purple pastel 紫 むらさき パステル'],
+    ['#E0ECFF', 'Ice blue pastel 青 あお パステル'], ['#DCFCE7', 'Mint green pastel 緑 みどり パステル'], ['#FEF9C3', 'Cream yellow pastel 黄 き 黄色 きいろ パステル'], ['#FFEDD5', 'Peach orange pastel オレンジ 橙 だいだい パステル'],
+    ['#7F1D1D', 'Maroon red dark brown 赤 あか 濃い 茶 ちゃ'], ['#831843', 'Plum pink dark ピンク 桃 もも 濃い'], ['#4C1D95', 'Grape purple dark 紫 むらさき 濃い'], ['#1E3A8A', 'Cobalt blue dark 紺 こん 青 あお 濃い'],
+    ['#064E3B', 'Forest green dark 緑 みどり 濃い'], ['#713F12', 'Brown 茶 ちゃ 茶色 ちゃいろ ブラウン'], ['#7C2D12', 'Rust brown orange dark 茶 ちゃ オレンジ 濃い']
 ] as const).map(([color, names]) => ({ color, names }));
 
 export const DEFAULT_SOLID_COLLAPSED = 28;
@@ -233,11 +233,11 @@ export interface GradientStyle {
 
 /** 色を作る窓のスタイル 5 種（linear の角度 4 つ + radial）。 */
 export const GRADIENT_STYLES: readonly GradientStyle[] = [
-    { id: 'horizontal', label: '横', type: 'linear', angle: 90 },
-    { id: 'vertical', label: '縦', type: 'linear', angle: 180 },
-    { id: 'diagonal-down', label: '斜め ↘', type: 'linear', angle: 135 },
-    { id: 'radial', label: '放射', type: 'radial' },
-    { id: 'diagonal-up', label: '斜め ↗', type: 'linear', angle: 45 }
+    { id: 'horizontal', label: 'Horizontal', type: 'linear', angle: 90 },
+    { id: 'vertical', label: 'Vertical', type: 'linear', angle: 180 },
+    { id: 'diagonal-down', label: 'Diagonal ↘', type: 'linear', angle: 135 },
+    { id: 'radial', label: 'Radial', type: 'radial' },
+    { id: 'diagonal-up', label: 'Diagonal ↗', type: 'linear', angle: 45 }
 ];
 
 /** 今の値がどのスタイルか（無ければ -1）。 */
@@ -312,7 +312,7 @@ export function searchColors(query: string, palette: readonly NamedColor[] = DEF
     const exact = /^#?[0-9a-f]{3}$|^#?[0-9a-f]{6}$|^#?[0-9a-f]{8}$/iu.test(q) ? normalizeHex(q) : undefined;
     const lower = q.toLowerCase();
     const hexQuery = lower.replace(/^#/u, '');
-    const hits = palette.filter(entry => entry.names.split(/\s+/u).some(name => name.includes(q))
+    const hits = palette.filter(entry => entry.names.split(/\s+/u).some(name => name.includes(q) || name.toLowerCase().includes(lower))
         || (/^[0-9a-f]+$/u.test(hexQuery) && entry.color.toLowerCase().slice(1).startsWith(hexQuery)));
     return { exact, hits: hits.filter(entry => entry.color !== exact) };
 }

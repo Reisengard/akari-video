@@ -17,7 +17,7 @@ import { AKARI_WARNING_TEXT_COLOR } from './akari-notice-banner';
 const MAX_DISPLAY_WIDTH_RATIO = 0.72;
 const MAX_DISPLAY_HEIGHT_RATIO = 0.62;
 const MAX_BACKGROUND_BYTES = 25 * 1024 * 1024;
-const BACKGROUND_FILTERS = { '画像': ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] };
+const BACKGROUND_FILTERS = { 'Images': ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] };
 
 export interface AkariCanvasDialogProps extends DialogProps {
     /** 'create' = 「キャンバスを開く」からの新規記録。'view' = 既存キャンバスの静止再表示。 */
@@ -105,7 +105,7 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
         this.stage.append(this.image, this.canvas);
 
         if (this.props.mode === 'create') {
-            this.hint.textContent = 'ペンで描いて構図を伝えてください（背景は白紙のままでも画像を選んでもかまいません）。';
+            this.hint.textContent = 'Draw with the pen to show the composition (the background can stay blank, or you can pick an image).';
             Object.assign(this.hint.style, {
                 fontSize: '11px', color: 'var(--theia-descriptionForeground)', margin: '0 0 6px'
             });
@@ -116,13 +116,13 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
             });
             this.blankButton.type = 'button';
             this.blankButton.className = 'theia-button secondary';
-            this.blankButton.textContent = '白紙のまま';
+            this.blankButton.textContent = 'Keep blank';
             this.blankButton.addEventListener('click', () => this.clearBackground());
             this.pickButton.type = 'button';
             this.pickButton.className = 'theia-button secondary';
-            this.pickButton.textContent = '画像を選ぶ...';
+            this.pickButton.textContent = 'Choose image...';
             this.pickButton.addEventListener('click', () => void this.pickBackgroundImage());
-            this.backgroundLabel.textContent = '背景: 白紙';
+            this.backgroundLabel.textContent = 'Background: blank';
             Object.assign(this.backgroundLabel.style, { fontSize: '11px', color: 'var(--theia-descriptionForeground)' });
             this.backgroundRow.append(this.blankButton, this.pickButton, this.backgroundLabel);
             this.contentNode.appendChild(this.backgroundRow);
@@ -132,8 +132,8 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
 
         if (this.props.mode === 'create') {
             this.memoInput.type = 'text';
-            this.memoInput.placeholder = 'メモ（任意・録音なしのときはこの内容がそのまま注釈になります）';
-            this.memoInput.setAttribute('aria-label', 'キャンバスのメモ');
+            this.memoInput.placeholder = 'Memo (optional; without a recording, this text becomes the annotation as is)';
+            this.memoInput.setAttribute('aria-label', 'Canvas memo');
             Object.assign(this.memoInput.style, { width: '100%', boxSizing: 'border-box', margin: '8px 0 4px' });
             this.memoInput.addEventListener('input', () => this.update());
             this.contentNode.appendChild(this.memoInput);
@@ -149,9 +149,9 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
         this.contentNode.appendChild(this.errorNotice);
 
         if (this.props.mode === 'create') {
-            this.appendAcceptButton('キャンバスを記録');
+            this.appendAcceptButton('Save canvas');
         }
-        this.appendCloseButton(this.props.mode === 'create' ? 'キャンセル' : '閉じる');
+        this.appendCloseButton(this.props.mode === 'create' ? 'Cancel' : 'Close');
 
         // stage のサイズ（アスペクト比）は window.innerWidth/innerHeight だけに依存するため、
         // DOM 未接続の時点で計算しても問題ない。一方 setupCanvas() は
@@ -288,13 +288,13 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
         this.backgroundLoaded = false;
         this.image.style.display = 'none';
         this.image.removeAttribute('src');
-        this.backgroundLabel.textContent = '背景: 白紙';
+        this.backgroundLabel.textContent = 'Background: blank';
         this.hideNotice();
     }
 
     protected async pickBackgroundImage(): Promise<void> {
         const uri = await this.fileDialogService.showOpenDialog({
-            title: '背景に使う画像を選ぶ',
+            title: 'Choose a background image',
             canSelectFiles: true,
             canSelectFolders: false,
             filters: BACKGROUND_FILTERS
@@ -303,7 +303,7 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
             return;
         }
         if (!await this.fileService.exists(uri)) {
-            this.showNotice('選んだ画像が見つかりません。');
+            this.showNotice('The selected image was not found.');
             return;
         }
         this.backgroundUri = uri;
@@ -314,7 +314,7 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
         try {
             const stat = await this.fileService.resolve(uri, { resolveMetadata: true });
             if (typeof stat.size === 'number' && stat.size > MAX_BACKGROUND_BYTES) {
-                this.showNotice('この画像はサイズが大きすぎるため使用できません。白紙のまま続けられます。');
+                this.showNotice('This image is too large to use. You can continue with a blank background.');
                 this.backgroundUri = undefined;
                 return;
             }
@@ -330,12 +330,12 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
             this.image.style.display = 'block';
             this.backgroundLoaded = true;
             if (this.props.mode === 'create') {
-                this.backgroundLabel.textContent = `背景: ${uri.path.base}`;
+                this.backgroundLabel.textContent = `Background: ${uri.path.base}`;
             }
             this.hideNotice();
         } catch (error) {
             console.warn('[akari-annotations] canvas dialog failed to load background image', error);
-            this.showNotice('画像を読み込めませんでした。白紙のまま続けられます。');
+            this.showNotice('Could not load the image. You can continue with a blank background.');
             this.backgroundUri = undefined;
             this.image.style.display = 'none';
         }
@@ -362,7 +362,7 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
         const hasText = this.memoInput.value.trim().length > 0;
         const hasStrokes = this.completedStrokes.length > 0;
         if (!hasText && !hasStrokes) {
-            return { message: 'ペンで描くかメモを入力してください。', result: false };
+            return { message: 'Draw with the pen or enter a memo.', result: false };
         }
         if (mode === 'preview' || this.saved) {
             return true;
@@ -380,7 +380,7 @@ export class AkariCanvasDialog extends AbstractDialog<string | undefined> {
             this.saved = true;
             return true;
         } catch (error) {
-            return { message: `キャンバスを記録できません: ${this.errorMessage(error)}`, result: false };
+            return { message: `Could not save the canvas: ${this.errorMessage(error)}`, result: false };
         }
     }
 

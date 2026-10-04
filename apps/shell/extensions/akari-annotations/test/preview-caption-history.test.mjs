@@ -37,7 +37,7 @@ test('an intervening write rejects undo, reports one failed execution, and consu
     const executions = [];
     f.history.onDidExecute(execution => executions.push(execution));
     f.disk = 'external edit\n';
-    await assert.rejects(f.history.undo(), /字幕ファイルが後から変更されています/);
+    await assert.rejects(f.history.undo(), /The caption file has been modified since/);
     assert.equal(f.disk, 'external edit\n');
     assert.deepEqual(f.writes, []);
     assert.equal(f.history.canUndo, false);
@@ -45,7 +45,7 @@ test('an intervening write rejects undo, reports one failed execution, and consu
     assert.equal(executions.length, 1);
     assert.equal(executions[0].kind, 'undo');
     assert.equal(executions[0].entry, f.entry);
-    assert.match(executions[0].error.message, /字幕ファイルが後から変更されています/);
+    assert.match(executions[0].error.message, /The caption file has been modified since/);
 });
 
 test('an intervening write rejects redo, reports one failed execution, and consumes the entry', async () => {
@@ -54,7 +54,7 @@ test('an intervening write rejects redo, reports one failed execution, and consu
     const executions = [];
     f.history.onDidExecute(execution => executions.push(execution));
     f.disk = 'external edit\n';
-    await assert.rejects(f.history.redo(), /字幕ファイルが後から変更されています/);
+    await assert.rejects(f.history.redo(), /The caption file has been modified since/);
     assert.equal(f.disk, 'external edit\n');
     assert.deepEqual(f.writes, [f.before]);
     assert.equal(f.history.canUndo, false);
@@ -62,5 +62,5 @@ test('an intervening write rejects redo, reports one failed execution, and consu
     assert.equal(executions.length, 1);
     assert.equal(executions[0].kind, 'redo');
     assert.equal(executions[0].entry, f.entry);
-    assert.match(executions[0].error.message, /字幕ファイルが後から変更されています/);
+    assert.match(executions[0].error.message, /The caption file has been modified since/);
 });

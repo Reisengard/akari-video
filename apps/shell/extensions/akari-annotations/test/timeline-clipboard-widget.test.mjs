@@ -154,7 +154,7 @@ test('リンク解除先のロックは従来の理由を投げ、入力全文�
     const fragment = fragmentForSelection({ ...f.fragmentOptions, selections: [selections[0]] });
     assert.throws(() => cutTimelineFragment(f.before, {
         ...f.cutOptions, fragment, isTrackLocked: id => id === 'a1'
-    }), { message: 'リンク先の音声トラックはロック中です。' });
+    }), { message: 'The linked audio track is locked.' });
     assert.deepEqual(f.before, before);
 });
 
@@ -169,8 +169,8 @@ test('BGM とナレーションは複数選択に含まれても断片へ入れ�
 });
 
 for (const [name, target, locked, reason] of [
-    ['種別違い', ['a1'], false, '種別が違うトラックには貼り付けできません。'],
-    ['ロック段', ['v2'], true, '貼り先のトラックはロック中です。']
+    ['種別違い', ['a1'], false, 'Cannot paste onto a track of a different type.'],
+    ['ロック段', ['v2'], true, 'The destination track is locked.']
 ]) {
     test(`${name}への貼り付けは理由付きで拒否し、全文対を返さない`, () => {
         const f = fixture();

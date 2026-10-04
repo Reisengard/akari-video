@@ -12,15 +12,15 @@ import { createGeminiConsentPrompt } from './gemini-consent-step';
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] => {
     const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
-const MIC_ERROR = 'マイクが使えません。システム設定 → プライバシー → マイク で AKARI を許可するか、録音ファイルを落としてください。';
+const MIC_ERROR = 'Microphone unavailable. Allow AKARI in System Settings > Privacy > Microphone, or drop in a recording file.';
 const TRY_TEXT = 'こんにちは。今日は新しい機能を紹介します。';
 
 export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
     protected readonly body = el('div');
     protected readonly note = el('div');
     protected readonly footer = el('div');
-    protected readonly next = el('button', '次へ');
-    protected readonly back = el('button', '戻る');
+    protected readonly next = el('button', 'Next');
+    protected readonly back = el('button', 'Back');
     protected step: VoiceStep = 'consent';
     protected scripts: VoiceScript[] = [];
     protected script: VoiceScript['id'] = 'quick-v1';
@@ -57,8 +57,8 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
     constructor(protected readonly service: AkariAnnotationsService, protected readonly files: FileService,
         protected readonly preferences: PreferenceService, protected readonly avatar: string,
         avatarDisplayName?: string) {
-        super({ title: '自分の声をつくる' });
-        this.label = `${avatarDisplayName || avatar}（ナレーション）`;
+        super({ title: 'Create my voice' });
+        this.label = `${avatarDisplayName || avatar} (narration)`;
         this.node.dataset.akariVoiceCloneDialog = 'true';
         this.node.dataset.voiceAvatar = avatar;
         this.controlPanel.style.display = 'none';
@@ -105,16 +105,16 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
         this.back.disabled = this.step === 'consent' || this.busy;
         this.next.disabled = !voiceCanNext(this.step, { consentSelf: this.consentSelf, audioPath: this.audioPath,
             check: this.check, consentAudioPath: this.consentAudioPath, consentCheck: this.consentCheck, busy: this.busy, label: this.label });
-        this.next.textContent = this.step === 'save' ? '保存する' : this.step === 'copy' ?
-            (this.selected.length ? 'この場所でつくる' : '録音だけ保存') : '次へ';
+        this.next.textContent = this.step === 'save' ? 'Save' : this.step === 'copy' ?
+            (this.selected.length ? 'Create here' : 'Save recording only') : 'Next';
     }
     protected render(): void {
         this.body.replaceChildren();
         const total = this.selected.includes('gemini-3.8-flash-tts') ? 7 : 6;
         const current = VOICE_STEPS.indexOf(this.step) + 1 - (this.step === 'gemini-consent' || VOICE_STEPS.indexOf(this.step) < 4 ? 0 : total === 6 ? 1 : 0);
         const title = el('h2', `${current} / ${total}  ${{
-            consent: '同意', record: '読んで録る', check: '録音を確かめる', copy: 'どこでつくる',
-            'gemini-consent': 'Google への口頭同意', compare: '試して聞き比べ', save: '保存'
+            consent: 'Consent', record: 'Read and record', check: 'Check recording', copy: 'Where to create',
+            'gemini-consent': 'Spoken consent for Google', compare: 'Try and compare', save: 'Save'
         }[this.step]}`);
         this.body.append(title);
         if (this.step === 'consent') this.renderConsent();
@@ -124,24 +124,24 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
         if (this.step === 'gemini-consent') this.renderGeminiConsent();
         if (this.step === 'compare') this.renderCompare();
         if (this.step === 'save') this.renderSave();
-        this.note.textContent = this.error ?? (this.busy ? '処理中…' : `${current} / ${total}`);
+        this.note.textContent = this.error ?? (this.busy ? 'Working...' : `${current} / ${total}`);
         this.updateButtons();
     }
     protected renderConsent(): void {
-        this.body.append(el('p', '録るのはあなた自身の声だけです。他の人の声・動画から切り出した声は使えません。'));
+        this.body.append(el('p', 'You can only record your own voice. Voices of other people, or voices extracted from videos, cannot be used.'));
         const self = el('input'); self.type = 'checkbox'; self.checked = this.consentSelf; self.dataset.voiceConsentSelf = 'true';
         self.addEventListener('change', () => { this.consentSelf = self.checked; this.updateButtons(); });
         const cloud = el('input'); cloud.type = 'checkbox'; cloud.checked = this.consentCloud; cloud.dataset.voiceConsentCloud = 'true';
         cloud.addEventListener('change', () => { this.consentCloud = cloud.checked; this.updateButtons(); });
-        const row1 = el('label'); row1.append(self, ' これから録るのは私本人の声で、私の声の読み上げに使うことに同意します');
-        const row2 = el('label'); row2.append(cloud, ' クラウドでつくるなら録音が選んだ作り手（fal.ai または Google）に送られると理解しています');
-        this.body.append(row1, row2, el('small', '同意は日時と一緒に声の記録に残ります。'));
+        const row1 = el('label'); row1.append(self, ' The voice I am about to record is my own, and I agree to it being used to read text aloud in my voice');
+        const row2 = el('label'); row2.append(cloud, ' I understand that if I create the voice in the cloud, my recording is sent to the engine I choose (fal.ai or Google)');
+        this.body.append(row1, row2, el('small', 'My consent is saved with the date and time in the voice record.'));
     }
     protected renderRecord(consent = false): void {
         if (consent) this.body.append(createGeminiConsentPrompt());
         else {
-            this.body.append(el('p', 'いつものナレーションの声で、ゆっくり読んでください。約 20 秒。'));
-            const script = this.scripts.find(item => item.id === this.script)?.text ?? '原稿を読み込んでいます…';
+            this.body.append(el('p', 'Read slowly in your usual narration voice. About 20 seconds.'));
+            const script = this.scripts.find(item => item.id === this.script)?.text ?? 'Loading text...';
             const box = el('div'); box.dataset.voiceScript = 'true';
             Object.assign(box.style, { fontSize: '18px', lineHeight: '1.8', padding: '16px', border: '1px solid #777', borderRadius: '8px' });
             const parts = script.split(/(?<=。)/u).filter(Boolean);
@@ -154,26 +154,26 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
             }
             this.body.append(box);
         }
-        const select = el('select'); select.setAttribute('aria-label', 'マイクを選択'); select.dataset.voiceMicrophone = 'true';
-        const option = el('option', '既定のマイク'); option.value = ''; select.append(option);
+        const select = el('select'); select.setAttribute('aria-label', 'Select microphone'); select.dataset.voiceMicrophone = 'true';
+        const option = el('option', 'Default microphone'); option.value = ''; select.append(option);
         void navigator.mediaDevices?.enumerateDevices?.().then(devices => {
             for (const device of devices.filter(value => value.kind === 'audioinput')) {
-                const item = el('option', device.label || 'マイク'); item.value = device.deviceId; select.append(item);
+                const item = el('option', device.label || 'Microphone'); item.value = device.deviceId; select.append(item);
             }
         }).catch(() => {});
         this.body.append(select);
         const row = el('div'); Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '8px' });
-        const rec = el('button', this.recorder?.state === 'recording' ? '■ 止める' : '● 録音する'); rec.dataset.voiceRecord = 'true';
+        const rec = el('button', this.recorder?.state === 'recording' ? '■ Stop' : '● Record'); rec.dataset.voiceRecord = 'true';
         rec.disabled = !this.consentSelf;
         rec.addEventListener('click', () => { if (this.recorder?.state === 'recording') this.stopRecording(); else void this.startRecording(select.value); });
         const meter = el('progress'); meter.max = 100; meter.value = this.meterPeak; meter.dataset.voiceMeter = 'true';
         const clock = el('span', `${Math.floor(this.elapsed / 60).toString().padStart(2, '0')}:${(this.elapsed % 60).toString().padStart(2, '0')}`); clock.dataset.voiceElapsed = 'true';
         row.append(rec, meter, clock); this.body.append(row);
-        if (consent ? this.consentAudioPath : this.audioPath) { const again = el('button', '録り直す'); again.addEventListener('click', () => {
+        if (consent ? this.consentAudioPath : this.audioPath) { const again = el('button', 'Record again'); again.addEventListener('click', () => {
             if (consent) { this.consentAudioPath = undefined; this.consentCheck = undefined; this.render(); }
             else void this.resetRecording();
         }); this.body.append(again); }
-        const drop = el('div', '録音ファイルをここに落とす（m4a / wav / mp3 / webm）'); drop.dataset.voiceDrop = 'true';
+        const drop = el('div', 'Drop a recording file here (m4a / wav / mp3 / webm)'); drop.dataset.voiceDrop = 'true';
         Object.assign(drop.style, { padding: '20px', border: '2px dashed #777', borderRadius: '8px', cursor: 'pointer' });
         const input = el('input'); input.type = 'file'; input.accept = '.m4a,.wav,.mp3,.webm'; input.style.display = 'none';
         input.addEventListener('change', () => { if (input.files?.[0]) void this.useFile(input.files[0]); });
@@ -227,7 +227,7 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
     }
     protected async useFile(file: File): Promise<void> {
         const extension = file.name.split('.').pop()?.toLowerCase();
-        if (!['m4a', 'wav', 'mp3', 'webm'].includes(extension ?? '')) { this.error = 'm4a / wav / mp3 / webm を選んでください。'; this.render(); return; }
+        if (!['m4a', 'wav', 'mp3', 'webm'].includes(extension ?? '')) { this.error = 'Choose an m4a / wav / mp3 / webm file.'; this.render(); return; }
         await this.useBlob(file, extension as 'm4a' | 'wav' | 'mp3' | 'webm');
     }
     protected async useBlob(blob: Blob, extension: 'm4a' | 'wav' | 'mp3' | 'webm'): Promise<void> {
@@ -258,26 +258,26 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
         finally { this.busy = false; this.render(); }
     }
     protected renderCheck(): void {
-        this.body.append(el('p', '録った音声を、この PC の中だけで確かめます（どこにも送りません）。'));
+        this.body.append(el('p', 'Your recording is checked on this PC only (nothing is sent anywhere).'));
         if (this.check) {
             for (const row of voiceCheckRows(this.check)) {
                 const item = el('div', `${row.mark}  ${row.label}: ${row.detail}`); item.dataset.voiceCheck = row.label;
                 item.style.padding = '8px'; this.body.append(item);
             }
             if (!this.check.pass) this.body.append(el('p', voiceCheckReason(this.check)));
-            if (this.check.checks.script.ok === 'unavailable') this.body.append(el('p', 'この PC では聞き取りができないため、クラウドでは作れません（自分の PC なら作れます）'));
+            if (this.check.checks.script.ok === 'unavailable') this.body.append(el('p', 'Speech checking is unavailable on this PC, so the voice cannot be created in the cloud (it can be created on your own PC).'));
         }
         if (this.audioUrl) { const audio = el('audio'); audio.controls = true; audio.src = this.audioUrl; audio.dataset.voiceOriginal = 'true'; this.body.append(audio); }
-        const retry = el('button', '録り直す'); retry.addEventListener('click', () => { void this.resetRecording(); this.step = 'record'; this.render(); }); this.body.append(retry);
+        const retry = el('button', 'Record again'); retry.addEventListener('click', () => { void this.resetRecording(); this.step = 'record'; this.render(); }); this.body.append(retry);
     }
     protected renderCopy(): void {
         const options: Array<{ engine: VoiceEngine; title: string; note: string; available: boolean }> = [
-            { engine: 'irodori', title: '自分の PC でつくる · 彩 · 無料 · お試し', note: this.irodoriUrl(),
+            { engine: 'irodori', title: 'Create on my PC · Irodori · Free · Trial', note: this.irodoriUrl(),
                 available: this.engines.some(item => item.id === 'irodori' && item.availability.state === 'available') },
-            { engine: 'fal-qwen3', title: 'クラウド（fal）でつくる', note: '声づくり 約 $0.01 · 読み上げ $0.09 / 1000 字',
+            { engine: 'fal-qwen3', title: 'Create in the cloud (fal)', note: 'Voice creation about $0.01 · Read aloud $0.09 / 1000 chars',
                 available: falKeyAvailable(this.engines.find(item => item.id === 'fal-qwen3'))
                     && this.consentCloud && this.check?.checks.script.ok === true },
-            { engine: 'gemini-3.8-flash-tts', title: 'Google Gemini 3.8 でつくる', note: '声づくりの料金は見積不可 · 本人の口頭同意録音が必要',
+            { engine: 'gemini-3.8-flash-tts', title: 'Create with Google Gemini 3.8', note: 'Voice creation cost cannot be estimated · Requires a recording of your spoken consent',
                 available: this.engines.some(item => item.id === 'gemini-3.8-flash-tts' && item.availability.state !== 'unconfigured')
                     && this.consentCloud && this.check?.checks.script.ok === true && (this.check?.checks.duration.value_s ?? 0) >= 10 }
         ];
@@ -287,34 +287,34 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
             const input = el('input'); input.type = 'checkbox'; input.value = option.engine;
             input.checked = this.selected.includes(option.engine); input.disabled = !option.available;
             input.addEventListener('change', () => { this.selected = input.checked ? [...this.selected, option.engine] : this.selected.filter(item => item !== option.engine); this.render(); });
-            card.append(input, ` ${option.title}`, el('div', option.available ? option.note : 'つながりません・同意か照合を確認してください'));
+            card.append(input, ` ${option.title}`, el('div', option.available ? option.note : 'Unavailable · check consent and voice matching'));
             if (option.engine === 'gemini-3.8-flash-tts') card.append(el('div', GEMINI_WATERMARK_NOTICE));
             this.body.append(card);
         }
-        this.body.append(el('small', '使える作り手は最初からチェック済みです。両方選ぶこともできます。'));
+        this.body.append(el('small', 'Available engines are checked by default. You can select both.'));
     }
     protected renderCompare(): void {
-        this.body.append(el('p', '同じ文を、録った声と作った声で聞き比べます。'));
-        const text = el('input'); text.type = 'text'; text.value = this.tryText; text.setAttribute('aria-label', '試す文'); text.style.width = '100%';
+        this.body.append(el('p', 'Compare the same sentence in your recorded voice and the created voice.'));
+        const text = el('input'); text.type = 'text'; text.value = this.tryText; text.setAttribute('aria-label', 'Sample sentence'); text.style.width = '100%';
         text.addEventListener('input', () => { this.tryText = text.value; }); this.body.append(text);
-        if (this.audioUrl) { const card = el('div'); card.append(el('div', 'A 録った声')); const row = el('div');
+        if (this.audioUrl) { const card = el('div'); card.append(el('div', 'A: Recorded voice')); const row = el('div');
             Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '8px' });
             const audio = el('audio'); audio.controls = true; audio.src = this.audioUrl; row.append(audio); card.append(row); this.body.append(card); }
         for (const engine of this.copied) {
-            const card = el('div', `B 作った声（${engine === 'irodori' ? '彩（自分の PC）' : engine === 'fal-qwen3' ? 'クラウド（fal）' : 'Google Gemini 3.8'}）`);
+            const card = el('div', `B: Created voice (${engine === 'irodori' ? 'Irodori (my PC)' : engine === 'fal-qwen3' ? 'Cloud (fal)' : 'Google Gemini 3.8'})`);
             card.dataset.voiceCompare = engine;
             const row = el('div'); Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '8px' });
             const audio = el('audio'); audio.controls = true; audio.src = this.generated[engine] ?? ''; row.append(audio);
-            if (engine !== 'gemini-3.8-flash-tts') { const button = el('button', '試す'); button.addEventListener('click', () => void this.tryEngine(engine)); row.append(button); }
+            if (engine !== 'gemini-3.8-flash-tts') { const button = el('button', 'Try'); button.addEventListener('click', () => void this.tryEngine(engine)); row.append(button); }
             card.append(row); this.body.append(card);
         }
-        const retry = el('button', 'もう一度つくる'); retry.addEventListener('click', () => { this.step = 'copy'; this.render(); });
-        const extended = el('button', 'もっと似せる（60 秒の原稿を追加で録る）'); extended.addEventListener('click', () => void this.restartWithScript('extended-v1'));
-        const reRecord = el('button', '似ていないので録り直す'); reRecord.addEventListener('click', () => void this.restartWithScript('quick-v1'));
+        const retry = el('button', 'Create again'); retry.addEventListener('click', () => { this.step = 'copy'; this.render(); });
+        const extended = el('button', 'Make it closer (record an extra 60-second text)'); extended.addEventListener('click', () => void this.restartWithScript('extended-v1'));
+        const reRecord = el('button', 'Does not sound like me, record again'); reRecord.addEventListener('click', () => void this.restartWithScript('quick-v1'));
         this.body.append(retry, extended, reRecord);
         if (this.staleWarning) {
-            const warning = el('div', '写しが古くなりました。作り直しますか？');
-            const remake = el('button', '写しを作り直す'); remake.addEventListener('click', () => { this.step = 'copy'; this.render(); });
+            const warning = el('div', 'The voice copy is out of date. Recreate it?');
+            const remake = el('button', 'Recreate voice copy'); remake.addEventListener('click', () => { this.step = 'copy'; this.render(); });
             warning.append(remake); this.body.append(warning);
         }
     }
@@ -334,15 +334,15 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
         this.generated = {};
     }
     protected renderSave(): void {
-        const label = el('input'); label.type = 'text'; label.value = this.label; label.setAttribute('aria-label', '名前');
+        const label = el('input'); label.type = 'text'; label.value = this.label; label.setAttribute('aria-label', 'Name');
         label.addEventListener('input', () => { this.label = label.value; this.updateButtons(); });
-        this.body.append(el('label', '名前'), label);
+        this.body.append(el('label', 'Name'), label);
         const id = this.profile ?? voiceId(this.label, this.existingIds, `${this.avatar}-narration`);
         const display = voiceStorageDisplay(this.storage.root, this.storage.home, this.avatar, id);
-        this.body.append(el('div', `保存先: ${display}`),
-            el('div', '正本: 録音 ref-recording.wav・同意と照合の記録'),
-            el('div', `写し: ${this.copied.map(engine => engine === 'irodori' ? '彩（自分の PC）' : engine === 'fal-qwen3' ? 'クラウド（fal）' : 'Google Gemini 3.8').join('・') || 'なし（録音だけ）'}`),
-            el('div', '消すとき: 設定「読み上げ」→ 自分の声 → 消す。fal / Google 側の声は残ります。'));
+        this.body.append(el('div', `Saved to: ${display}`),
+            el('div', 'Source: recording ref-recording.wav, consent and matching records'),
+            el('div', `Voice copies: ${this.copied.map(engine => engine === 'irodori' ? 'Irodori (my PC)' : engine === 'fal-qwen3' ? 'Cloud (fal)' : 'Google Gemini 3.8').join(', ') || 'None (recording only)'}`),
+            el('div', 'To delete: Settings > Read aloud > My voice > Delete. Voices on the fal / Google side remain.'));
     }
     protected async advance(): Promise<void> {
         if (!voiceCanNext(this.step, { consentSelf: this.consentSelf, audioPath: this.audioPath, check: this.check,
@@ -356,7 +356,7 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
             } else if (this.step === 'check') {
                 if (this.extending && this.profile) {
                     const updated = await this.service.voiceExtend({ profile: this.profile, audioPath: this.audioPath! });
-                    this.staleWarning = updated.warnings?.length ? '写しが古くなりました。作り直しますか？' : '';
+                    this.staleWarning = updated.warnings?.length ? 'The voice copy is out of date. Recreate it?' : '';
                     const audio = await this.files.readFile(URI.fromFilePath(updated.path));
                     if (this.audioUrl) URL.revokeObjectURL(this.audioUrl);
                     this.audioUrl = URL.createObjectURL(new Blob([audio.value.buffer as ArrayBuffer], { type: 'audio/wav' }));
@@ -374,11 +374,11 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
                     this.consentCheck = await this.service.voiceCheck({ audioPath: this.consentAudioPath!, script: 'consent-gemini' }); return;
                 }
                 if (this.selected.includes('fal-qwen3')) {
-                    const approved = await new ConfirmDialog({ title: '費用承認', msg: 'fal.ai に録音を送って声をつくります。見積 約 $0.01。続けますか？', ok: '費用承認する', cancel: 'キャンセル' }).open();
+                    const approved = await new ConfirmDialog({ title: 'Cost approval', msg: 'Your recording will be sent to fal.ai to create the voice. Estimated cost: about $0.01. Continue?', ok: 'Approve cost', cancel: 'Cancel' }).open();
                     if (!approved) return;
                 }
                 if (this.selected.includes('gemini-3.8-flash-tts')) {
-                    const approved = await new ConfirmDialog({ title: '費用承認', msg: 'Google に正本と本人の同意録音を送って声をつくります。声づくりの料金は見積不可です。続けますか？', ok: '費用承認する', cancel: 'キャンセル' }).open();
+                    const approved = await new ConfirmDialog({ title: 'Cost approval', msg: 'Your source recording and your spoken consent recording will be sent to Google to create the voice. The voice creation cost cannot be estimated. Continue?', ok: 'Approve cost', cancel: 'Cancel' }).open();
                     if (!approved) return;
                 }
                 if (!this.profile) {
@@ -389,7 +389,7 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
                 }
                 this.copied = [];
                 for (const engine of this.selected) {
-                    this.note.textContent = `${engine === 'irodori' ? '彩（自分の PC）' : engine === 'fal-qwen3' ? 'クラウド（fal）' : 'Google Gemini 3.8'} の写しを作っています…`;
+                    this.note.textContent = `Creating the voice copy for ${engine === 'irodori' ? 'Irodori (my PC)' : engine === 'fal-qwen3' ? 'Cloud (fal)' : 'Google Gemini 3.8'}...`;
                     await this.service.voiceCopy({ profile: this.profile, engine, irodoriUrl: this.irodoriUrl(),
                         consentAudioPath: engine === 'gemini-3.8-flash-tts' ? this.consentAudioPath : undefined, approved: engine !== 'irodori' });
                     this.copied.push(engine);
@@ -407,7 +407,7 @@ export class AkariVoiceCloneDialog extends AbstractDialog<string | undefined> {
         if (!this.profile || !this.tryText.trim()) return;
         try {
             if (engine === 'fal-qwen3') {
-                const ok = await new ConfirmDialog({ title: '費用承認', msg: 'fal.ai で試しの音声を作ります。読み上げ $0.09 / 1000 字。続けますか？', ok: '費用承認する', cancel: 'キャンセル' }).open();
+                const ok = await new ConfirmDialog({ title: 'Cost approval', msg: 'A sample will be generated with fal.ai. Read aloud costs $0.09 / 1000 chars. Continue?', ok: 'Approve cost', cancel: 'Cancel' }).open();
                 if (!ok) return;
             }
             const result = await this.service.voiceTry({ profile: this.profile, engine, text: this.tryText,

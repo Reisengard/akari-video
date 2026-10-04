@@ -34,7 +34,7 @@ test('applyNarrations は複数件と置き換えを edit.json へ 1 回で書�
         assert.deepEqual(edit.audio.narration.map(item => item.id), ['n-0002', 'n-0003']);
         assert.deepEqual(edit.audio.narration.map(item => item.caption_ref), ['c-0001', 'c-0002']);
         assert.equal(edit.tracks.filter(track => track.lane === 'audio').length, 1);
-        await assert.rejects(service.applyNarrations({ projectRootUri, items, replaceIds: ['missing'] }), /置き換え元/);
+        await assert.rejects(service.applyNarrations({ projectRootUri, items, replaceIds: ['missing'] }), /The audio to replace was not found/);
         assert.equal(service.writes, 1);
     } finally { await rm(root, { recursive: true, force: true }); }
 });

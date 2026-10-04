@@ -35,7 +35,7 @@ test('mask 候補は動画拡張子だけを抽出し、ファイル名と sourc
 test('mask 同名ファイルは id 付きラベルで一意になり正しい id に戻る', () => {
     const duplicates = [
         { id: 'a', label: 'mask.mp4' }, { id: 'b', label: 'mask.mp4' },
-        { id: 'c', label: 'mask.mp4 (a)' }, { id: 'd', label: 'なし' }
+        { id: 'c', label: 'mask.mp4 (a)' }, { id: 'd', label: 'None' }
     ];
     const labels = maskOptionLabels(duplicates);
     assert.equal(new Set(labels).size, labels.length);
@@ -48,12 +48,12 @@ test('mask 同名ファイルは id 付きラベルで一意になり正しい i
 });
 
 test('mask「なし」は null、不明ラベルは拒否し、不明 id の表示は保持する', () => {
-    assert.deepEqual(maskOptionLabels([]), ['なし']);
-    assert.equal(maskSourceIdForLabel(options, 'なし'), null);
-    assert.equal(maskOptionLabel(options, undefined), 'なし');
+    assert.deepEqual(maskOptionLabels([]), ['None']);
+    assert.equal(maskSourceIdForLabel(options, 'None'), null);
+    assert.equal(maskOptionLabel(options, undefined), 'None');
     assert.equal(maskOptionLabel(options, 'missing'), 'missing');
     assert.throws(() => maskSourceIdForLabel(options, 'missing'));
-    assert.throws(() => createMaskWriteRequest(visualSnapshot(), 'なし'), /media item/);
+    assert.throws(() => createMaskWriteRequest(visualSnapshot(), 'None'), /media item/);
 });
 
 test('layer / item の mask 行は label を id / null のリクエストに変換する', async () => {
@@ -65,7 +65,7 @@ test('layer / item の mask 行は label を id / null のリクエストに変�
         assert.equal(row.getValue(snapshot), 'mask.mp4');
         assert.equal(row.getEditValue(snapshot), 'mask.mp4');
         assert.deepEqual(await row.write(snapshot, 'mask.mp4'), { ok: true });
-        assert.deepEqual(await row.write(snapshot, 'なし'), { ok: true });
+        assert.deepEqual(await row.write(snapshot, 'None'), { ok: true });
         await row.reset(snapshot);
         assert.deepEqual(requests, ['maskgrad', null, null].map(value => ({
             kind: 'item-field', id: snapshot.id, path: 'mask', value
@@ -119,7 +119,7 @@ test('mask 保存と「なし」は動画・静止画どちらでも item 直下
         const originalSource = structuredClone(state.rawKeyframeItem().source);
         assert.deepEqual(await handleWrite.call(state, request), { ok: true });
         assert.equal(state.rawKeyframeItem().mask, 'maskgrad');
-        assert.equal(state.label, 'クリップのマスクを変更');
+        assert.equal(state.label, 'Change clip mask');
         assert.deepEqual(await handleWrite.call(state, { ...request, value: null }), { ok: true });
         assert.equal(Object.hasOwn(state.rawKeyframeItem(), 'mask'), false);
         assert.deepEqual(state.rawKeyframeItem().source, originalSource);
@@ -130,7 +130,7 @@ test('mask 保存と「なし」は動画・静止画どちらでも item 直下
 test('mask sources に無い id と不正な値は保存前に拒否する', async () => {
     const state = context();
     assert.deepEqual(await handleWrite.call(state, { ...request, value: 'missing' }), {
-        ok: false, message: 'sources に無い id です'
+        ok: false, message: 'This id is not in sources.'
     });
     for (const value of [23, {}, undefined]) assert.equal((await handleWrite.call(state, { ...request, value })).ok, false);
     assert.equal(state.commits, 0);
@@ -149,7 +149,7 @@ test('mask は media 以外と legacy 文書への書き込みを拒否する', 
         assert.equal(state.commits, 0);
     }
     assert.deepEqual(await handleWrite.call({ legacyReadOnly: true, cutItemIds: [] }, request), {
-        ok: false, message: 'この項目の編集は edit.json v2 のみ対応です。'
+        ok: false, message: 'Editing this item is only supported in edit.json v2.'
     });
 });
 

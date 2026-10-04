@@ -98,7 +98,7 @@ for (const [kind, path, width] of [
         assert.equal(rendererReads(), 0, '実体がまだ無いものを読みに行かない');
         assert.equal(calls[0][0], path);
         assert.deepEqual(calls[0][4], { transform: { x: 0, y: 0, scale: 1 }, placeOnTop: true });
-        assert.match(notices[0], /既定の大きさ/);
+        assert.match(notices[0], /placed at the default size/);
     });
 
     test(`参照 ${kind} は初回だけ読めなくても引き直して正しい幅で置く`, async () => {
@@ -136,7 +136,7 @@ test('寸法が取れなければ落下位置に既定の大きさで置き通�
     const { handler, calls, notices } = fixture(path, undefined);
     await handler.addMaterialAtOutputPoint(path, 'image', 3, { x: 50, y: -20 });
     assert.deepEqual(calls[1][4], { transform: { x: 50, y: -20, scale: 1 }, placeOnTop: true });
-    assert.match(notices[0], /既定の大きさ/);
+    assert.match(notices[0], /placed at the default size/);
 });
 
 test('初回の実体取得が未完了でも参照表から引き直して正しい幅で置く', async () => {

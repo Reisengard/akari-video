@@ -69,7 +69,7 @@ test('video + done の通常画質も前回の入力と作り直しを表示す�
   }));
   assert.ok(defs.some(field => field.name === 'generation-current-video'));
   assert.equal(defs.find(field => field.name === 'prompt').getValue({}), 'A garden.');
-  assert.ok(defs.flatMap(field => field.actions ?? []).some(action => action.name === 'generate' && action.label === '作り直す'));
+  assert.ok(defs.flatMap(field => field.actions ?? []).some(action => action.name === 'generate' && action.label === 'Regenerate'));
 });
 test('下書き done + 元静止画 next だけに本番の画質にする…と説明を出す', async () => {
   for (const [meta, original, visible] of [[doneMeta, originalMeta, true], [doneMeta, undefined, false], [{ ...doneMeta, output: { resolution: '768P' } }, originalMeta, false], [{ ...doneMeta, status: 'failed' }, originalMeta, false]]) {
@@ -77,7 +77,7 @@ test('下書き done + 元静止画 next だけに本番の画質にする…と
     const defs = fields.generationFields(options(h3, draftFor(h3), { state: 'done', doneMeta: meta, originalNext: original }, { finalQuality: async () => { called++; return { ok: true }; } }));
     const button = defs.flatMap(field => field.actions ?? []).find(action => action.name === 'final-quality');
     assert.equal(!!button, visible);
-    if (visible) { assert.equal(button.label, '本番の画質にする…'); await button.action({}); assert.equal(called, 1); assert.match(defs.map(field => field.getValue({})).join(''), /絵は変わることがあります/); }
+    if (visible) { assert.equal(button.label, 'Upgrade to final quality...'); await button.action({}); assert.equal(called, 1); assert.match(defs.map(field => field.getValue({})).join(''), /the picture may change/); }
   }
 });
 function harness(file, className, names, dependencies = {}) {
@@ -113,7 +113,7 @@ class Element {
 const retryFrames = [];
 const Timeline = harness('akari-annotations-widget.ts', 'AkariAnnotationsWidget', ['applyGenerationChip', 'appendGenerationRetry', 'openGenerationRetry'], { describeGenerationChip, generationChipLabel, window: { setTimeout, clearTimeout, requestAnimationFrame: callback => retryFrames.push(callback) }, document: { createElement: () => new Element() }, OPEN_AKARI_INSPECTOR_ID: 'akari.inspector.open' });
 test('失敗チップ「もう一度」・狭い幅では出ない・pointerdown はドラッグへ伝播しない', () => {
-  assert.match(describeGenerationChip('failed').title, /もう一度/); assert.doesNotMatch(describeGenerationChip('stale').title, /もう一度/);
+  assert.match(describeGenerationChip('failed').title, /try again/); assert.doesNotMatch(describeGenerationChip('stale').title, /try again/);
   for (const width of [60, 127, 199, 300]) {
     const w = new Timeline(), chip = new Element(), header = new Element(), badge = new Element(), time = new Element();
     chip.width = width; chip.dataset.akariItemId = 'clip'; chip.dataset.akariGenerationState = 'failed'; badge.width = 32; time.width = 40; time.textContent = '6.00s';
@@ -121,7 +121,7 @@ test('失敗チップ「もう一度」・狭い幅では出ない・pointerdown
     const calls = []; w.resolveFocusSelection = id => ({ kind: 'cut', index: 2, id }); w.applySelection = selection => calls.push(['select', selection]); w.commands = { executeCommand: (...args) => calls.push(args) };
     w.appendGenerationRetry(chip, header, badge, time); assert.equal(header.children.length, width >= 200 ? 1 : 0);
     if (width < 200) continue;
-    const button = header.children[0]; assert.equal(button.textContent, 'もう一度'); assert.ok(button.style.border && button.style.background);
+    const button = header.children[0]; assert.equal(button.textContent, 'Try again'); assert.ok(button.style.border && button.style.background);
     let stopped = 0; button.listeners.pointerdown({ stopPropagation: () => stopped++ }); assert.equal(stopped, 1); assert.equal(calls.length, 0);
     button.listeners.click({ detail: 0, stopPropagation() {}, preventDefault() {} }); assert.equal(calls[0][0], 'select');
     assert.deepEqual(calls[1], ['akari.inspector.open', { tabId: 'generation', sectionId: 'generation', fieldName: 'akari-generation-retry' }]);
@@ -150,7 +150,7 @@ test('再試行: style.width が 53.4759% でも実幅 226px なら表示し、�
     const f = retryFixture(width); f.update();
     assert.equal(!!f.button(), width === 226);
     f.frame(); assert.equal(!!f.button(), width === 226);
-    assert.match(f.chip.title, /もう一度/);
+    assert.match(f.chip.title, /try again/);
   }
   const f = retryFixture(127, '226px'); f.update(); f.frame();
   assert.equal(f.button(), undefined, 'style の px も実描画幅の代用にしない');
@@ -160,7 +160,7 @@ test('再試行: 初回 rect 0 でも描画後 rAF で実幅を再測定する',
   const f = retryFixture(0); f.chip.isConnected = false; f.update();
   assert.equal(f.button(), undefined); assert.equal(retryFrames.length, 1);
   f.chip.isConnected = true; f.chip.width = 226; f.frame();
-  assert.equal(f.button().textContent, 'もう一度');
+  assert.equal(f.button().textContent, 'Try again');
 });
 
 test('再試行: ズーム・リサイズ・パンの再描画と描画後の幅変化に表示が追従し重複しない', () => {
@@ -254,7 +254,7 @@ test('再試行: 遅れた選択 snapshot を待ってから open コマンド�
 let approval, dialogCount = 0;
 const Inspector = harness('akari-inspector-widget.ts', 'AkariInspectorWidget', ['focusField', 'retryGenerationFromTimeline', 'confirmAndStartGeneration', 'updateGenerationDraft', 'prepareGenerationFinal', 'readGenerationOriginalNext'], {
   generationFields: fields.generationFields, window: { setTimeout, clearTimeout },
-  ConfirmDialog: class { constructor(options) { assert.equal(options.title, '費用承認'); dialogCount++; } open() { return approval; } }
+  ConfirmDialog: class { constructor(options) { assert.equal(options.title, 'Approve cost'); dialogCount++; } open() { return approval; } }
 });
 const identity = { key: 'clip', itemId: 'clip', sourcePath: 'still.png', duration: 6 };
 function inspector() {

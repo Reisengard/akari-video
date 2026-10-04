@@ -30,9 +30,9 @@ test('コマンド入口は payload・プロジェクト・タイムライン欠
     assert.equal(await state.execute({ payload: { kind: 'lut', id: 'film-warm' }, editUri: 'file:///missing/edit.json' }), false);
     assert.equal(await state.execute({ payload: { kind: 'textanim', id: 'fade' } }), false);
     assert.deepEqual(state.notices, [
-        '当てるものを読み取れませんでした。',
-        'プロジェクトを特定できません。',
-        'タイムラインを開いてから当ててください。'
+        'Could not read what to apply.',
+        'Could not identify the project.',
+        'Open the timeline before applying.'
     ]);
 });
 
@@ -45,5 +45,5 @@ test('対象のタイムラインがあるときだけ適用へ渡し、例外�
     assert.deepEqual(calls, [[request.payload, undefined]]);
     state.owner.configureQuietTimeline = async () => { throw new Error('読み込み失敗'); };
     assert.equal(await state.execute(request), false);
-    assert.deepEqual(state.notices, ['当てられませんでした: 読み込み失敗']);
+    assert.deepEqual(state.notices, ['Could not apply: 読み込み失敗']);
 });

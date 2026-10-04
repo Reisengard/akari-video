@@ -58,9 +58,9 @@ const ANNOTATION_UNDO_TIMEOUT_MS = 6000;
 type BoardColumn = 'open' | 'addressed' | 'resolved';
 
 const COLUMN_DEFS: ReadonlyArray<{ status: BoardColumn; title: string; hint: string }> = [
-    { status: 'open', title: '未対応', hint: '人間からの指摘（AI 対応待ち）' },
-    { status: 'addressed', title: '対応済み', hint: '人間の確認待ち — ここだけ「完了にする」操作あり' },
-    { status: 'resolved', title: '確認済み', hint: '確認済み。読み取り専用アーカイブ' }
+    { status: 'open', title: 'Open', hint: 'Flagged by a person (waiting for AI)' },
+    { status: 'addressed', title: 'Addressed', hint: 'Waiting for human confirmation — only here you can "Mark done"' },
+    { status: 'resolved', title: 'Resolved', hint: 'Confirmed. Read-only archive' }
 ];
 
 interface ReviewSessionUiState {
@@ -69,9 +69,9 @@ interface ReviewSessionUiState {
 }
 
 const INPUT_LABELS: Record<Annotation['input'], string> = {
-    typed: 'タイプ',
-    voice: '音声',
-    session: 'セッション'
+    typed: 'Typed',
+    voice: 'Voice',
+    session: 'Session'
 };
 
 interface VideoSourceCache {
@@ -130,8 +130,8 @@ export class AkariReviewBoardWidget extends BaseWidget {
     @postConstruct()
     protected init(): void {
         this.id = AkariReviewBoardWidget.FACTORY_ID;
-        this.title.label = 'レビューボード';
-        this.title.caption = 'レビューボード（review.json のかんばん）';
+        this.title.label = 'Review board';
+        this.title.caption = 'Review board (review.json kanban)';
         this.title.iconClass = 'codicon codicon-project';
         this.title.closable = true;
         this.node.classList.add('akari-review-board-widget');
@@ -304,7 +304,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
 
     protected renderSessionBand(): void {
         const sessions = pendingCompileSessions(this.reviewSessions);
-        this.sessionBandHeading.textContent = `録音済みセッション（未コンパイル）${sessions.length} 件`;
+        this.sessionBandHeading.textContent = `Recorded sessions (not compiled): ${sessions.length}`;
         this.sessionBandHeading.setAttribute('data-board-sessions-count', String(sessions.length));
         this.sessionBand.style.display = sessions.length === 0 ? 'none' : 'block';
         this.sessionBandList.replaceChildren();
@@ -338,7 +338,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             const compileButton = document.createElement('button');
             compileButton.type = 'button';
             compileButton.className = 'theia-button secondary';
-            compileButton.textContent = 'コンパイル';
+            compileButton.textContent = 'Compile';
             Object.assign(compileButton.style, { fontSize: '11px', padding: '1px 10px', minWidth: 'auto' });
             compileButton.setAttribute('data-board-session-compile', session.id);
             compileButton.addEventListener('click', () => void this.compileSession(session.id));
@@ -395,7 +395,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             elements.list.replaceChildren();
             if (annotations.length === 0) {
                 const empty = document.createElement('div');
-                empty.textContent = 'チケットはありません。';
+                empty.textContent = 'No tickets.';
                 empty.style.color = 'var(--theia-descriptionForeground)';
                 empty.style.padding = '8px 2px';
                 elements.list.appendChild(empty);
@@ -425,11 +425,11 @@ export class AkariReviewBoardWidget extends BaseWidget {
             border: '1px solid var(--theia-widget-border)', borderRadius: '4px'
         });
         const message = document.createElement('span');
-        message.textContent = '消しました';
+        message.textContent = 'Deleted';
         const undoButton = document.createElement('button');
         undoButton.type = 'button';
         undoButton.className = 'theia-button secondary';
-        undoButton.textContent = '元に戻す';
+        undoButton.textContent = 'Undo';
         undoButton.addEventListener('click', event => {
             event.stopPropagation();
             void this.undoDeleteAnnotation(annotation.id);
@@ -470,7 +470,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         const originSessionId = sessionIdForAnnotation(annotation, this.reviewSessions);
         if (originSessionId) {
             const originBadge = document.createElement('span');
-            originBadge.textContent = `${originSessionId} 由来`;
+            originBadge.textContent = `From ${originSessionId}`;
             originBadge.setAttribute('data-board-session-origin', originSessionId);
             Object.assign(originBadge.style, {
                 fontSize: '11px', color: 'var(--theia-descriptionForeground)',
@@ -482,7 +482,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         const flagged = annotation.text.trim().startsWith('[要確認]');
         if (flagged) {
             const flagBadge = document.createElement('span');
-            flagBadge.textContent = '要確認';
+            flagBadge.textContent = 'Needs review';
             flagBadge.setAttribute('data-board-flag', annotation.id);
             Object.assign(flagBadge.style, {
                 fontSize: '11px', color: 'var(--theia-errorForeground)',
@@ -508,7 +508,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         if (hasStrokes) {
             const strokesBadge = document.createElement('span');
             strokesBadge.textContent = '✏️';
-            strokesBadge.title = 'ペン描画あり（カードクリックで静止表示）';
+            strokesBadge.title = 'Has pen strokes (click the card to show)';
             head.appendChild(strokesBadge);
         }
         const actions = document.createElement('div');
@@ -517,7 +517,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             const resolveButton = document.createElement('button');
             resolveButton.type = 'button';
             resolveButton.className = 'theia-button secondary';
-            resolveButton.textContent = '完了にする';
+            resolveButton.textContent = 'Mark done';
             resolveButton.setAttribute('data-board-resolve', annotation.id);
             resolveButton.addEventListener('click', event => {
                 event.stopPropagation();
@@ -528,7 +528,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'theia-button secondary';
-        deleteButton.textContent = '消す';
+        deleteButton.textContent = 'Delete';
         deleteButton.setAttribute('data-delete-button', annotation.id);
         deleteButton.addEventListener('click', event => {
             event.stopPropagation();
@@ -581,8 +581,8 @@ export class AkariReviewBoardWidget extends BaseWidget {
             const response = document.createElement('div');
             response.style.color = 'var(--theia-descriptionForeground)';
             response.style.fontSize = '11px';
-            const actionLabel = annotation.response.action === 'edited' ? '編集しました' : '見送りました';
-            response.textContent = `対応（${actionLabel}）: ${annotation.response.summary}`;
+            const actionLabel = annotation.response.action === 'edited' ? 'edited' : 'skipped';
+            response.textContent = `Response (${actionLabel}): ${annotation.response.summary}`;
             card.appendChild(response);
         }
 
@@ -603,7 +603,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         if (row instanceof HTMLButtonElement) row.type = 'button';
         row.setAttribute('data-board-ui-target', uiTarget.id);
         row.textContent = `🎛️ ${model.label}`;
-        row.title = model.revealable ? `${model.title} — クリックで該当クリップを選択` : model.title;
+        row.title = model.revealable ? `${model.title} — click to select the clip` : model.title;
         Object.assign(row.style, {
             fontSize: '11px',
             color: model.revealable ? 'var(--theia-textLink-foreground)' : 'var(--theia-descriptionForeground)',
@@ -665,14 +665,14 @@ export class AkariReviewBoardWidget extends BaseWidget {
         }
         const imageUri = location.root.resolve(path);
         if (!await this.fileService.exists(imageUri)) {
-            this.messages.warn(`${path} が見つからないため、ポップアップを再表示できません。`);
+            this.messages.warn(`Could not reopen the popup: ${path} not found.`);
             return;
         }
         const imageRectStrokes = (strokes ?? []).filter(
             (stroke): stroke is Extract<AnnotationStroke, { space: 'image-rect' }> => stroke.space === 'image-rect'
         );
         const dialog = new AkariImageAnnotationDialog(
-            { title: '画像の注釈', mode: 'view', imageUri, relativePath: path, existingStrokes: imageRectStrokes, maxWidth: 960 },
+            { title: 'Image annotation', mode: 'view', imageUri, relativePath: path, existingStrokes: imageRectStrokes, maxWidth: 960 },
             this.fileService,
             this.model
         );
@@ -685,14 +685,14 @@ export class AkariReviewBoardWidget extends BaseWidget {
         Object.assign(row.style, { fontSize: '11px', color: 'var(--theia-descriptionForeground)' });
         row.setAttribute('data-board-image-target', imageTarget.path);
         row.textContent = `🖼️ ${imageTarget.path}`;
-        row.title = `${imageTarget.path} — クリックでポップアップを再表示`;
+        row.title = `${imageTarget.path} — click to reopen the popup`;
         void this.imageTargetHealth(imageTarget.path).then(health => {
             if (!row.isConnected) {
                 return;
             }
             if (health === 'path-missing') {
                 row.textContent = `🖼️⚠️ ${imageTarget.path}`;
-                row.title = `${imageTarget.path} が見つかりません（再表示は不可。注釈自体は有効です）`;
+                row.title = `${imageTarget.path} not found (cannot reopen; the annotation itself is still valid)`;
                 row.style.color = AKARI_WARNING_TEXT_COLOR;
             }
         });
@@ -718,7 +718,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
         }
         const canvasJsonUri = location.root.resolve(`review/canvas/${id}/canvas.json`);
         if (!await this.fileService.exists(canvasJsonUri)) {
-            this.messages.warn(`review/canvas/${id} が見つからないため、キャンバスを再表示できません。`);
+            this.messages.warn(`Could not reopen the canvas: review/canvas/${id} not found.`);
             return;
         }
         let aspect = { w: 1920, h: 1080 };
@@ -746,7 +746,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             if (await this.fileService.exists(candidate)) {
                 backgroundUri = candidate;
             } else {
-                backgroundWarning = `背景画像（${backgroundRef}）が見つからないため、ペン描画のみ表示します。`;
+                backgroundWarning = `Background image (${backgroundRef}) not found; showing pen strokes only.`;
             }
         }
 
@@ -756,7 +756,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
 
         const dialog = new AkariCanvasDialog(
             {
-                title: `キャンバスの表示（${id}）`, mode: 'view', aspect, backgroundUri, backgroundWarning,
+                title: `Canvas view (${id})`, mode: 'view', aspect, backgroundUri, backgroundWarning,
                 existingStrokes, maxWidth: 1200
             },
             this.fileService,
@@ -797,14 +797,14 @@ export class AkariReviewBoardWidget extends BaseWidget {
         Object.assign(row.style, { fontSize: '11px', color: 'var(--theia-textLink-foreground)' });
         row.setAttribute('data-board-canvas-target', canvasTarget.id);
         row.textContent = `🎨 ${canvasTarget.id}`;
-        row.title = `${canvasTarget.id} — クリックでキャンバスを再表示`;
+        row.title = `${canvasTarget.id} — click to reopen the canvas`;
         void this.canvasTargetHealth(canvasTarget.id).then(health => {
             if (!row.isConnected) {
                 return;
             }
             if (health === 'dir-missing') {
                 row.textContent = `🎨⚠️ ${canvasTarget.id}`;
-                row.title = `review/canvas/${canvasTarget.id} が見つかりません（再表示は不可。注釈自体は有効です）`;
+                row.title = `review/canvas/${canvasTarget.id} not found (cannot reopen; the annotation itself is still valid)`;
                 row.style.color = AKARI_WARNING_TEXT_COLOR;
             }
         });
@@ -836,10 +836,10 @@ export class AkariReviewBoardWidget extends BaseWidget {
             }
             if (health === 'path-missing') {
                 row.textContent = `📄⚠️ ${docTarget.path}`;
-                row.title = `${docTarget.path} が見つかりません（ピン表示は不可。注釈自体は有効です）`;
+                row.title = `${docTarget.path} not found (cannot pin; the annotation itself is still valid)`;
             } else if (health === 'block-missing') {
-                row.textContent = `📄 ${docTarget.path}（対象消失）`;
-                row.title = `block-id が現在のレポートにありません: ${docTarget.blockId}`;
+                row.textContent = `📄 ${docTarget.path} (target missing)`;
+                row.title = `block-id is not in the current report: ${docTarget.blockId}`;
                 row.style.color = AKARI_WARNING_TEXT_COLOR;
             }
         });
@@ -859,7 +859,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
                 opened.sendMessage({ type: 'akari-doc-annotation-reveal', blockId: docTarget.blockId });
             }
         } catch (error) {
-            this.messages.error(`レポートを開けません: ${this.errorMessage(error)}`);
+            this.messages.error(`Could not open the report: ${this.errorMessage(error)}`);
         }
     }
 
@@ -899,7 +899,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             await this.model.resolveAnnotation(id);
         } catch (error) {
             const detail = this.errorMessage(error);
-            this.messages.error(`完了にできません: ${detail}`);
+            this.messages.error(`Could not mark done: ${detail}`);
         }
     }
 
@@ -920,7 +920,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             this.pendingUndo.delete(id);
             this.renderColumns();
             const detail = this.errorMessage(error);
-            this.messages.error(`削除できません: ${detail}`);
+            this.messages.error(`Could not delete: ${detail}`);
         }
     }
 
@@ -940,7 +940,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
             }, ANNOTATION_UNDO_TIMEOUT_MS);
             this.pendingUndo.set(id, { annotation: entry.annotation, timer });
             const detail = this.errorMessage(error);
-            this.messages.error(`元に戻せません: ${detail}`);
+            this.messages.error(`Could not undo: ${detail}`);
         } finally {
             this.renderColumns();
         }
@@ -983,7 +983,7 @@ export class AkariReviewBoardWidget extends BaseWidget {
                 this.hideNotice();
             }
         } catch (error) {
-            this.showNotice(`レビューデータを読み取れません: ${this.errorMessage(error)}`);
+            this.showNotice(`Could not read review data: ${this.errorMessage(error)}`);
         }
     }
 

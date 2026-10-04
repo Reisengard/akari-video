@@ -62,11 +62,11 @@ test('version 1 の review.json には追加・復元せず元ファイルを保
     await writeFile(review, newer);
     await assert.rejects(
         service.createAnnotation({ reviewUri, projectRootUri, text: '新規', sourceT: 1 }),
-        /version 1 は新しい形式です/
+        /review\.json version 1 uses a newer format/
     );
     await assert.rejects(
         service.restoreAnnotation({ reviewUri, annotation: annotation('a-0002') }),
-        /version 1 は新しい形式です/
+        /review\.json version 1 uses a newer format/
     );
     assert.equal(await readFile(review, 'utf8'), newer);
 }));

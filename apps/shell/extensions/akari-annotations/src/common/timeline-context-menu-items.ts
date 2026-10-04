@@ -72,29 +72,29 @@ export function buildTimelineClipMenuItems(
 ): TimelineClipMenuItem[] {
     const items: TimelineClipMenuItem[] = [];
     if (audio.copyable !== false) {
-        items.push({ id: 'copy', label: 'コピー' }, { id: 'cut', label: '切り取り' });
+        items.push({ id: 'copy', label: 'Copy' }, { id: 'cut', label: 'Cut' });
     }
-    items.push({ id: 'paste', label: '貼り付け', ...(!hasClipboard ? { disabled: true } : {}) });
-    if (audio.copyable !== false) items.push({ id: 'duplicate', label: '複製' });
+    items.push({ id: 'paste', label: 'Paste', ...(!hasClipboard ? { disabled: true } : {}) });
+    if (audio.copyable !== false) items.push({ id: 'duplicate', label: 'Duplicate' });
     if (tree.canSplit ?? SPLIT_CAPABLE_KINDS.has(kind)) {
-        items.push({ id: 'split', label: '分割' });
+        items.push({ id: 'split', label: 'Split' });
     }
-    if (tree.canDetach) items.push({ id: 'detach', label: 'キャンバスから出す' });
-    if (tree.canGroup) items.push({ id: 'group', label: 'キャンバスにする' });
-    if (tree.canUngroup) items.push({ id: 'ungroup', label: 'キャンバスをほどく' });
+    if (tree.canDetach) items.push({ id: 'detach', label: 'Move out of canvas' });
+    if (tree.canGroup) items.push({ id: 'group', label: 'Group into canvas' });
+    if (tree.canUngroup) items.push({ id: 'ungroup', label: 'Ungroup canvas' });
     if (tree.canToggleCollapse) {
-        items.push({ id: 'toggle-collapse', label: tree.collapsed ? '展開' : '折りたたむ' });
+        items.push({ id: 'toggle-collapse', label: tree.collapsed ? 'Expand' : 'Collapse' });
     }
-    if (tree.hasParent) items.push({ id: 'select-parent', label: '親を選択' });
+    if (tree.hasParent) items.push({ id: 'select-parent', label: 'Select parent' });
     if (kind === 'cut' && audio.split) items.push({
-        id: 'split-audio', label: '音声を分離',
+        id: 'split-audio', label: 'Detach audio',
         ...(audio.split.ok === false ? { disabled: true, disabledReason: audio.split.message } : {})
     });
-    if (kind === 'audio' && audio.linked) items.push({ id: 'unlink-audio', label: 'リンクを解除' });
-    if (kind === 'audio' && audio.narrationRedo) items.push({ id: 'narrate-redo', label: '作り直す…' });
-    if (kind === 'caption') items.push({ id: 'narrate', label: '音声を作る…' });
-    items.push({ id: 'annotate', label: '注釈…' });
-    items.push({ id: 'delete', label: '削除', danger: true });
+    if (kind === 'audio' && audio.linked) items.push({ id: 'unlink-audio', label: 'Unlink audio' });
+    if (kind === 'audio' && audio.narrationRedo) items.push({ id: 'narrate-redo', label: 'Regenerate...' });
+    if (kind === 'caption') items.push({ id: 'narrate', label: 'Create audio...' });
+    items.push({ id: 'annotate', label: 'Annotate...' });
+    items.push({ id: 'delete', label: 'Delete', danger: true });
     return items;
 }
 

@@ -7,7 +7,7 @@ export function createGeminiConsentPrompt(): HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.dataset.geminiConsentPrompt = 'true';
     const lead = document.createElement('p');
-    lead.textContent = 'Google が指定した文を本人の声で読み上げてください。録音はこの PC で照合します。';
+    lead.textContent = 'Read aloud the sentence specified by Google in your own voice. Your recording is matched on this PC.';
     const phrase = document.createElement('div');
     phrase.dataset.voiceScript = 'consent-gemini';
     phrase.dataset.geminiConsentScript = 'true';

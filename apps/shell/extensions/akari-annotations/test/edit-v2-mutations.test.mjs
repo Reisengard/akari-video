@@ -61,7 +61,7 @@ test('moveItem は visual 段どうしを種別なしで移動し、空になっ
   ]);
   assert.throws(
     () => moveItem(fixture, { itemId: 'clip-1', toTrackId: 'a-sfx', atFrames: 0 }),
-    /音のレーンには映像を置けません/
+    /Video cannot be placed on an audio lane/
   );
 });
 
@@ -238,7 +238,7 @@ test('insertItem は指定位置へ一意な item を挿入する', () => {
     source: { kind: 'media', src: 'main', in: 22, out: 23 }
   }, 0));
   assert.equal(result.tracks.find(track => track.id === 'v-main').items[0].id, 'clip-2');
-  assert.throws(() => insertItem(fixture, 'v-main', fixture.tracks[1].items[0]), /重複/);
+  assert.throws(() => insertItem(fixture, 'v-main', fixture.tracks[1].items[0]), /Duplicate clip id/);
 });
 
 test('v2 HTML クリップのコピー＆ペーストは同じ段へ新 id・playhead at で挿入できる', () => {
@@ -270,7 +270,7 @@ test('reorderTracks は tracks[] の順だけを動かし lane 越えを拒否�
   assert.deepEqual(result.tracks.map(track => track.id), [
     'a-sfx', 'a-narration', 'a-bgm', 'v-main', 'captions', 'v-filter', 'v-telop', 'v-html'
   ]);
-  assert.throws(() => reorderTracks(fixture, { fromIndex: 0, toIndex: 3 }), /レーンをまたいで/);
+  assert.throws(() => reorderTracks(fixture, { fromIndex: 0, toIndex: 3 }), /cannot be reordered across audio and video lanes/);
 });
 
 test('reorderTracks は content 型の captions トラック自体を visual レーン内で双方向に動かせる', () => {
@@ -298,7 +298,7 @@ test('insertTrack / removeTrack は audio 最下段規約と一意 id を守る'
   assert.equal(inserted.tracks[3].id, 'v1');
   assert.equal(inserted.tracks[3].name, '差し込み');
   assert.deepEqual(inserted.tracks[3].items, []);
-  assert.throws(() => insertTrack(fixture, { index: 2, lane: 'visual' }), /最下段/);
+  assert.throws(() => insertTrack(fixture, { index: 2, lane: 'visual' }), /Audio lanes cannot be moved from the bottom/);
   const removed = valid(removeTrack(inserted, 'v1'));
   assert.equal(removed.tracks.some(track => track.id === 'v1'), false);
 });
@@ -333,7 +333,7 @@ test('setTrackFlag は muted true を保存し false でキーを削除する', 
 
 test('setTrackFlag は存在しない trackId を拒否する', () => {
   for (const field of ['muted', 'hidden', 'locked']) {
-    assert.throws(() => setTrackFlag(fixture, { trackId: 'missing', field, value: true }), /トラック/u);
+    assert.throws(() => setTrackFlag(fixture, { trackId: 'missing', field, value: true }), /Track not found/u);
   }
 });
 

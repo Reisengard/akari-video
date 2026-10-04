@@ -44,7 +44,7 @@ export function renderableCaptionFonts<T extends { id: string }>(fonts: readonly
 }
 
 export function captionFontRowDetail(tags: readonly string[]): string {
-    return `Aa Bb 123 · 同梱${tags.includes('japanese') ? '' : ' · 日本語は代わりの書体で表示'}`;
+    return `Aa Bb 123 · Bundled${tags.includes('japanese') ? '' : ' · Japanese uses a substitute font'}`;
 }
 
 /** Only verified, bundled font files get weight choices. Reference fonts have no known local axes. */

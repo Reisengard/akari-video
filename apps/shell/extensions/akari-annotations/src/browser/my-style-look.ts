@@ -41,7 +41,7 @@ export function myStyleOutputHeight(editSource: string): number {
     const edit = JSON.parse(editSource) as { output?: { height?: unknown } };
     const height = edit.output?.height;
     if (typeof height !== 'number' || !Number.isInteger(height) || height < 1) {
-        throw new Error('出力解像度の高さを確認できません。');
+        throw new Error('Could not determine the output resolution height.');
     }
     return height;
 }
@@ -109,7 +109,7 @@ export function assertMyStyleLayoutCompatible(defaultStyle: unknown, cueStyle: u
     const height = cue.reference_height_px ?? cue.referenceHeightPx
         ?? base.reference_height_px ?? base.referenceHeightPx;
     if (layout !== undefined && height !== undefined) {
-        throw new Error('既定のスタイルを含めて layout と基準高さが重なるため、マイスタイルを当てられません。');
+        throw new Error('Could not apply the my style: layout and base height overlap, including the default style.');
     }
 }
 
@@ -135,10 +135,10 @@ export function replaceMyStylePartsInSource(source: string, ids: readonly string
     const document = JSON.parse(source) as unknown;
     const rows = Array.isArray(document) ? document
         : record(document) && Array.isArray(document.captions) ? document.captions : undefined;
-    if (!rows) throw new Error('字幕データを読み取れません。');
+    if (!rows) throw new Error('Could not read the caption data.');
     for (const id of new Set(ids)) {
         const matches = rows.filter(row => record(row) && row.id === id);
-        if (matches.length !== 1) throw new Error(`字幕 ${id} が一意に見つかりません。`);
+        if (matches.length !== 1) throw new Error(`Caption ${id} was not found uniquely.`);
         const row = matches[0] as Record<string, unknown>;
         const before = record(row.text_style) ? row.text_style : {};
         const next = { ...before };
@@ -266,7 +266,7 @@ export function applyMyStyleAttachedParts(edit: StyleEdit, captions: readonly { 
     };
     for (const captionId of targets) {
         const caption = captions.find(candidate => candidate.id === captionId);
-        if (!caption) throw new Error(`字幕 ${captionId} が見つかりません。`);
+        if (!caption) throw new Error(`Caption ${captionId} not found.`);
         for (const part of parts) {
             if (!supportedMyStyleAttachPart(part)) continue;
             const attach = part.attach as { at?: string; offset_frames?: number } | undefined;
@@ -287,7 +287,7 @@ export function applyMyStyleAttachedParts(edit: StyleEdit, captions: readonly { 
                 const category = part.kind === 'sfx' ? 'audio' : 'overlay';
                 if (asset?.category !== category || typeof asset.id !== 'string' || typeof part.file !== 'string'
                     || !assetLocation(`assets/${category}/${asset.id}/${part.file}`, category))
-                    throw new Error(`${part.kind} の素材参照が不正です。`);
+                    throw new Error(`Invalid footage reference for ${part.kind}.`);
                 const path = `assets/${category}/${asset.id}/${part.file}`;
                 if (part.kind === 'sfx') {
                     let source = next.sources.find(candidate => candidate.path === path);
@@ -317,7 +317,7 @@ export function applyMyStyleAttachedParts(edit: StyleEdit, captions: readonly { 
 export function appendMyStyleUsage(source: string | undefined, entry: MyStyleUsageEntry): string {
     const document = source ? JSON.parse(source) as unknown : { version: 1, entries: [] };
     if (!record(document) || document.version !== 1 || !Array.isArray(document.entries)) {
-        throw new Error('スタイル利用台帳の保存形を確認できません。');
+        throw new Error('Could not verify the format of the style usage ledger.');
     }
     return `${JSON.stringify({ ...document, entries: [...document.entries, entry] }, null, 2)}\n`;
 }
@@ -385,12 +385,12 @@ export function unsupportedMyStyleLookFields(value: unknown): string[] {
 }
 
 const PART_LABELS: Readonly<Record<string, string>> = {
-    look: '見た目', motion: '動き', sfx: '効果音', fx: '画面効果', decor: '装飾', camera: 'カメラ'
+    look: 'Look', motion: 'Motion', sfx: 'Sound effects', fx: 'Screen effects', decor: 'Decoration', camera: 'Camera'
 };
 const FIELD_LABELS: Readonly<Record<string, string>> = {
-    italic: '斜体', underline: '下線', align: '文字揃え', vertical: '縦書き',
-    'background.width_pct': '座布団の幅', 'background.height_pct': '座布団の高さ',
-    max_width_pct: '文字の最大幅', text_transform: '文字変換'
+    italic: 'Italic', underline: 'Underline', align: 'Text align', vertical: 'Vertical text',
+    'background.width_pct': 'Background width', 'background.height_pct': 'Background height',
+    max_width_pct: 'Max text width', text_transform: 'Text transform'
 };
 
 export function myStyleApplyNotice(parts: readonly { kind: string; mode?: unknown; text_style?: unknown }[],
@@ -402,8 +402,8 @@ export function myStyleApplyNotice(parts: readonly { kind: string; mode?: unknow
         ...unsupportedMyStyleLookFields(look?.text_style).map(field => FIELD_LABELS[field] ?? field)
     ])];
     if (!ignored.length) return undefined;
-    const labels = ignored.length > 3 ? `${ignored.slice(0, 3).join('・')}ほか` : ignored.join('・');
-    return `${labels} は当てません。`;
+    const labels = ignored.length > 3 ? `${ignored.slice(0, 3).join(', ')}, and more` : ignored.join(', ');
+    return `${labels} will not be applied.`;
 }
 
 /** Put the look in the new cue before insertCaption, keeping its default position. */

@@ -16,8 +16,8 @@ test('全ショートカットは日本語ラベル・分類・有効な Theia �
     assert.ok(shortcuts.length >= 35);
     for (const shortcut of shortcuts) {
         assert.match(shortcut.command.id, /^akari\./);
-        assert.match(shortcut.command.label, /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u);
-        assert.ok(['編集', 'タイムライン', '再生', '台本', '編集パネル'].includes(shortcut.command.category));
+        assert.match(shortcut.command.label, /[A-Za-z]/u);
+        assert.ok(['Edit', 'Timeline', 'Playback', 'Script', 'Inspector'].includes(shortcut.command.category));
         assert.ok(shortcut.when);
         for (const key of shortcut.keys) assert.equal(KeySequence.parse(key).length, 1, key);
     }

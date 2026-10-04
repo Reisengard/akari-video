@@ -1,10 +1,10 @@
 const AUDIO_PREVIEW_LABELS = [
-    '音量',
-    'フェード',
-    '音声強調',
-    'ダッキング',
-    'A/V リンク',
-    'ピッチ・タイム'
+    'Volume',
+    'Fade',
+    'Voice enhancement',
+    'Ducking',
+    'A/V link',
+    'Pitch and time'
 ] as const;
 
 export interface AudioPreviewSection {
@@ -43,8 +43,8 @@ function buildRows(id: string, rows: ReadonlyArray<readonly [string, string]>): 
 
 function buildVolume(): HTMLElement {
     return buildRows('volume', [
-        ['ゲイン', '0.0 dB'],
-        ['ミュート', 'オフ']
+        ['Gain', '0.0 dB'],
+        ['Mute', 'Off']
     ]);
 }
 
@@ -57,30 +57,30 @@ function buildFades(): HTMLElement {
 
 function buildEnhancement(): HTMLElement {
     return buildRows('enhancement', [
-        ['ノイズ除去（クリップ単位）', '0'],
-        ['ボイス分離', '0']
+        ['Denoise (per clip)', '0'],
+        ['Voice isolation', '0']
     ]);
 }
 
 function buildDucking(): HTMLElement {
     return buildRows('ducking', [
-        ['BGM を下げる', 'オフ'],
-        ['深さ', '0 dB']
+        ['Lower music', 'Off'],
+        ['Depth', '0 dB']
     ]);
 }
 
 function buildAvLink(): HTMLElement {
     return buildRows('av-link', [
-        ['リンク', '維持'],
-        ['J カット', '0.00 s'],
-        ['L カット', '0.00 s']
+        ['Link', 'Keep'],
+        ['J-cut', '0.00 s'],
+        ['L-cut', '0.00 s']
     ]);
 }
 
 function buildPitchTime(): HTMLElement {
     return buildRows('pitch-time', [
-        ['ピッチ保持', 'オン'],
-        ['ピッチ', '±0 st']
+        ['Preserve pitch', 'On'],
+        ['Pitch', '±0 st']
     ]);
 }
 

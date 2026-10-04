@@ -37,12 +37,12 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
     protected readonly notice = element('div');
     protected readonly foot = element('div');
     protected readonly footnote = element('span');
-    protected readonly previewButton = element('button', '▶ 試聴');
-    protected readonly verifyButton = element('button', '🔍 聞き取りで確かめる');
+    protected readonly previewButton = element('button', '▶ Listen');
+    protected readonly verifyButton = element('button', '🔍 Check pronunciation');
     protected readonly verifyNode = element('div');
     protected readonly verifyBatch = element('input');
     protected verificationAvailable = false;
-    protected readonly placeButton = element('button', '置く');
+    protected readonly placeButton = element('button', 'Place');
     protected engines: NarrationEngine[] = [];
     protected engine?: NarrationEngine;
     protected voices: NarrationVoice[] = [];
@@ -56,7 +56,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
     protected readonly copyNote = element('small');
     protected cloudExpanded = false;
     protected lastCopyEngine?: string;
-    protected readonly voiceLabel = element('label', '声');
+    protected readonly voiceLabel = element('label', 'Voice');
     protected result?: GenerateNarrationResult;
     protected audioUrl?: string;
     protected running = false;
@@ -66,14 +66,14 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
     protected readonly batchRows: BatchRowState[];
     protected readonly batchList = element('div');
     protected readonly progress = element('div');
-    protected readonly cancelButton = element('button', '残りをやめる');
+    protected readonly cancelButton = element('button', 'Cancel remaining');
     protected cancelled = false;
 
     constructor(protected readonly target: ReadAloudTarget, protected readonly service: AkariAnnotationsService,
         protected readonly files: FileService, protected readonly preferences: PreferenceService,
         protected readonly commands: CommandService,
         protected readonly onPlace: (placements: ReadAloudPlacement[]) => Promise<void>) {
-        super({ title: '読み上げ' });
+        super({ title: 'Read aloud' });
         this.batchRows = (target.rows ?? []).map(row => ({ row, reading: row.text, status: 'wait', choice: 'keep', remainder: 0 }));
         this.node.dataset.akariReadAloudDialog = 'true';
         this.controlPanel.style.display = 'none';
@@ -81,14 +81,14 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         Object.assign(this.contentNode.style, { padding: '0', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: 'calc(100vh - 80px)' });
         Object.assign(this.body.style, { padding: '16px', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' });
         Object.assign(this.cards.style, { display: 'flex', flexDirection: 'column', gap: '10px' });
-        this.body.append(element('h2', this.batchRows.length > 1 ? `読み上げ — ${this.batchRows.length} 行`
-            : target.captionId ? '読み上げ — この 1 行' : '読み上げ — 自由入力'));
+        this.body.append(element('h2', this.batchRows.length > 1 ? `Read aloud — ${this.batchRows.length} lines`
+            : target.captionId ? 'Read aloud — this line' : 'Read aloud — free text'));
         if (target.captionId && this.batchRows.length <= 1) {
-            this.body.append(element('div', target.text), element('small', '表示は字幕のまま。読みだけ直す'));
+            this.body.append(element('div', target.text), element('small', 'Caption text stays as is; only the reading changes'));
             this.reading.value = target.text;
         } else if (this.batchRows.length <= 1) {
-            this.freeScript.placeholder = '読ませたい文を打つ';
-            this.freeScript.setAttribute('aria-label', '読ませたい文を打つ');
+            this.freeScript.placeholder = 'Type the text to read aloud';
+            this.freeScript.setAttribute('aria-label', 'Type the text to read aloud');
             this.body.append(this.freeScript);
             this.freeScript.addEventListener('input', () => { this.invalidate(); this.updateEstimate(); });
         }
@@ -96,32 +96,32 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         this.estimate.dataset.readAloudEstimate = 'true';
         this.copyRow.dataset.readAloudCopyRow = 'true';
         this.copyNote.dataset.readAloudCopyNote = 'true';
-        this.voiceSelect.setAttribute('aria-label', '声');
+        this.voiceSelect.setAttribute('aria-label', 'Voice');
         this.voiceSelect.addEventListener('change', () => { this.invalidate(); this.updateStyleInput(); this.updateEstimate(); void this.saveVoice(); });
         this.body.append(this.voiceLabel, this.voiceSelect);
         this.speed.type = 'range'; this.speed.min = '0.5'; this.speed.max = '2'; this.speed.step = '0.05'; this.speed.value = '1';
-        this.speedRow.append(element('span', '速さ '), this.speed, element('span', '1.00×'));
+        this.speedRow.append(element('span', 'Speed '), this.speed, element('span', '1.00×'));
         this.speed.addEventListener('input', () => { this.speedRow.lastElementChild!.textContent = `${Number(this.speed.value).toFixed(2)}×`; this.invalidate(); });
         this.body.append(this.speedRow);
-        this.styleInput.placeholder = '話し方の指示（任意）'; this.styleInput.setAttribute('aria-label', '話し方の指示（任意）');
-        this.styleRow.append(element('span', '話し方の指示（任意） '), this.styleInput);
+        this.styleInput.placeholder = 'Delivery instructions (optional)'; this.styleInput.setAttribute('aria-label', 'Delivery instructions (optional)');
+        this.styleRow.append(element('span', 'Delivery instructions (optional) '), this.styleInput);
         this.styleInput.addEventListener('input', () => { this.invalidate(); this.updatePreviewAvailability(); });
         this.body.append(this.styleRow);
-        this.reading.placeholder = '読み原稿'; this.reading.setAttribute('aria-label', '読み原稿');
+        this.reading.placeholder = 'Reading text'; this.reading.setAttribute('aria-label', 'Reading text');
         this.reading.addEventListener('input', () => { this.invalidate(); this.updateEstimate(); });
         if (this.batchRows.length > 1) {
             this.verifyBatch.type = 'checkbox'; this.verifyBatch.disabled = true;
             this.verifyBatch.dataset.readAloudVerifyBatch = 'true';
-            const verifyLabel = element('label', 'できたら聞き取りで確かめる'); verifyLabel.prepend(this.verifyBatch);
-            this.body.append(verifyLabel, element('small', '聞き取りはこの Mac の中だけ。費用も送信もありません。'), this.batchList, this.progress);
+            const verifyLabel = element('label', 'Check pronunciation when done'); verifyLabel.prepend(this.verifyBatch);
+            this.body.append(verifyLabel, element('small', 'Checking runs on this Mac only. No cost, nothing is sent.'), this.batchList, this.progress);
             this.renderBatchRows();
             this.body.append(this.estimate, this.resultNode, this.notice);
         } else {
             this.verifyButton.disabled = true; this.verifyButton.style.display = 'none';
             this.verifyButton.dataset.readAloudAction = 'verify';
             this.verifyButton.addEventListener('click', () => void this.verifySingle());
-            this.body.append(element('label', '読み原稿'), this.reading, this.estimate, this.resultNode,
-                this.verifyButton, this.verifyNode, element('small', '聞き取りはこの Mac の中だけ。費用も送信もありません。'), this.notice);
+            this.body.append(element('label', 'Reading text'), this.reading, this.estimate, this.resultNode,
+                this.verifyButton, this.verifyNode, element('small', 'Checking runs on this Mac only. No cost, nothing is sent.'), this.notice);
         }
         Object.assign(this.foot.style, { display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderTop: '1px solid #555' });
         this.footnote.style.flex = '1';
@@ -157,9 +157,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         const custom = readAloudStyleEnabled(this.engine, this.voiceSelect.value, this.voiceMode)
             && this.engine?.id === 'irodori';
         this.styleRow.style.display = readAloudStyleEnabled(this.engine, this.voiceSelect.value, this.voiceMode) ? '' : 'none';
-        this.styleRow.firstElementChild!.textContent = custom ? '声の指示（必須） ' : '話し方の指示（任意） ';
-        this.styleInput.setAttribute('aria-label', custom ? '声の指示（必須）' : '話し方の指示（任意）');
-        this.styleInput.placeholder = custom ? '声の特徴と話し方を入力' : '話し方の指示（任意）';
+        this.styleRow.firstElementChild!.textContent = custom ? 'Voice instructions (required) ' : 'Delivery instructions (optional) ';
+        this.styleInput.setAttribute('aria-label', custom ? 'Voice instructions (required)' : 'Delivery instructions (optional)');
+        this.styleInput.placeholder = custom ? 'Describe the voice and delivery' : 'Delivery instructions (optional)';
         this.styleInput.required = custom;
         this.updatePreviewAvailability();
     }
@@ -187,9 +187,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             this.cards.replaceChildren();
             const groups = readAloudEngineGroups(this.engines, preferred);
             const localGroup = element('section'); localGroup.dataset.engineGroup = 'local';
-            localGroup.append(element('h3', 'この Mac（無料）'));
+            localGroup.append(element('h3', 'This Mac (free)'));
             const cloudGroup = element('section'); cloudGroup.dataset.engineGroup = 'cloud';
-            cloudGroup.append(element('h3', 'クラウド（有料・鍵ごと）'));
+            cloudGroup.append(element('h3', 'Cloud (paid, bring your own key)'));
             for (const engine of [...groups.local, ...(this.cloudExpanded ? groups.cloud : groups.visible)]) {
                 const card = element('label'); card.dataset.engine = engine.id;
                 Object.assign(card.style, { display: 'block', padding: '7px 10px', marginBottom: '4px', border: '1px solid #777', borderRadius: '6px', opacity: readAloudKeyMissing(engine) ? '.5' : '1' });
@@ -200,11 +200,11 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 radio.addEventListener('change', () => void this.chooseEngine(engine));
                 const line = element('div');
                 Object.assign(line.style, { display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: '8px', rowGap: '2px' });
-                line.append(radio, element('strong', engine.id === 'irodori' ? '彩（お試し）' : engine.label),
-                    element('span', `${engine.place === 'cloud' ? readAloudProvider(engine) : engine.place === 'network' ? '別の PC' : 'この Mac'} · ${readAloudPrice(engine)}`));
+                line.append(radio, element('strong', engine.id === 'irodori' ? 'Irodori (trial)' : engine.label),
+                    element('span', `${engine.place === 'cloud' ? readAloudProvider(engine) : engine.place === 'network' ? 'Another PC' : 'This Mac'} · ${readAloudPrice(engine)}`));
                 card.append(line);
                 if (engine.caution) { const caution = element('small', engine.caution); caution.style.display = 'block'; card.append(caution); }
-                if (engine.id === 'irodori') { const note = element('small', 'GPU 推奨 · 処理が重い'); note.style.display = 'block'; card.append(note); }
+                if (engine.id === 'irodori') { const note = element('small', 'GPU recommended · heavy processing'); note.style.display = 'block'; card.append(note); }
                 if (engine.availability.state === 'needs' || engine.availability.state === 'unconfigured') {
                     const badge = element('button', engine.availability.label);
                     badge.dataset.availability = engine.availability.state;
@@ -218,7 +218,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 (engine.place === 'cloud' ? cloudGroup : localGroup).append(card);
             }
             if (groups.hidden.length || this.cloudExpanded) {
-                const more = element('button', this.cloudExpanded ? '閉じる' : `ほかのクラウド（${groups.hidden.length}）`);
+                const more = element('button', this.cloudExpanded ? 'Collapse' : `More cloud engines (${groups.hidden.length})`);
                 more.dataset.readAloudMoreCloud = 'true';
                 more.addEventListener('click', () => { this.cloudExpanded = !this.cloudExpanded; void this.refreshEngines(); });
                 cloudGroup.append(more);
@@ -226,7 +226,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             this.cards.append(localGroup, cloudGroup);
             const card = element('section'); card.dataset.engine = 'voice'; card.dataset.engineGroup = 'voice';
             Object.assign(card.style, { padding: '10px', border: '1px solid #777', borderRadius: '8px' });
-            card.append(element('h3', '🎙 自分の声'));
+            card.append(element('h3', '🎙 My voice'));
             const radio = element('input'); radio.type = 'radio'; radio.name = 'read-aloud-engine'; radio.value = 'voice';
             radio.checked = preferred.startsWith('voice:');
             radio.addEventListener('change', () => void this.chooseProfile(
@@ -234,30 +234,30 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 ?? this.profiles.find(voiceProfileConsent)?.id ?? ''));
             const profileRow = element('div');
             Object.assign(profileRow.style, { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' });
-            const radioLabel = element('label'); radioLabel.append(radio, element('span', '声'));
+            const radioLabel = element('label'); radioLabel.append(radio, element('span', 'Voice'));
             profileRow.append(radioLabel);
-            this.profileSelect.setAttribute('aria-label', '自分の声');
+            this.profileSelect.setAttribute('aria-label', 'My voice');
             this.profileSelect.replaceChildren(...ordered.map(({ profile, selectable }) => {
-                const option = element('option', `${profile.label}${profile.legacy ? ' · 旧い場所' : ''}`);
+                const option = element('option', `${profile.label}${profile.legacy ? ' · old location' : ''}`);
                 option.value = profile.id; option.disabled = !selectable; return option;
             }));
-            const create = element('option', '＋ 新しくつくる…'); create.value = '__create__'; this.profileSelect.append(create);
+            const create = element('option', '+ Create new...'); create.value = '__create__'; this.profileSelect.append(create);
             this.profileSelect.onchange = () => {
                 if (this.profileSelect.value === '__create__') void this.commands.executeCommand('akari.voice.create').then(() => this.refreshEngines());
                 else void this.chooseProfile(this.profileSelect.value);
             };
             profileRow.append(this.profileSelect); card.append(profileRow);
-            this.copySelect.setAttribute('aria-label', '自分の声の作り手');
+            this.copySelect.setAttribute('aria-label', 'My voice engine');
             this.copySelect.dataset.readAloudCopyEngine = 'true';
             this.copyRow.hidden = this.copyNote.hidden = !this.voiceMode;
             Object.assign(this.copyRow.style, { display: this.voiceMode ? 'block' : 'none', marginTop: '8px' });
             Object.assign(this.copySelect.style, { display: 'block', width: '100%', boxSizing: 'border-box', marginTop: '4px' });
             Object.assign(this.copyNote.style, { display: this.voiceMode ? 'block' : 'none', marginTop: '4px' });
             this.copySelect.onchange = () => void this.chooseCopyEngine(this.copySelect.value);
-            this.copyRow.replaceChildren(element('span', '作り手'), this.copySelect);
+            this.copyRow.replaceChildren(element('span', 'Engine'), this.copySelect);
             card.append(this.copyRow, this.copyNote);
             if (!this.profiles.length) {
-                const empty = element('button', 'まだありません · つくる');
+                const empty = element('button', 'None yet · Create');
                 empty.addEventListener('click', () => void this.commands.executeCommand('akari.voice.create').then(() => this.refreshEngines()));
                 card.append(empty);
             }
@@ -282,7 +282,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         try {
             const result = await this.service.narrationVerificationBackend(this.target.projectRootUri);
             this.verificationAvailable = result.status === 'ok';
-            const tooltip = 'この Mac の文字起こし（SpeechAnalyzer / Whisper）が必要です';
+            const tooltip = 'Requires transcription on this Mac (SpeechAnalyzer / Whisper)';
             this.verifyButton.disabled = !this.verificationAvailable || !this.result;
             this.verifyButton.title = this.verificationAvailable ? '' : tooltip;
             this.verifyBatch.disabled = !this.verificationAvailable;
@@ -291,13 +291,13 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         } catch {
             this.verificationAvailable = false;
             this.verifyButton.disabled = true; this.verifyBatch.disabled = true;
-            this.verifyButton.title = this.verifyBatch.title = 'この Mac の文字起こし（SpeechAnalyzer / Whisper）が必要です';
+            this.verifyButton.title = this.verifyBatch.title = 'Requires transcription on this Mac (SpeechAnalyzer / Whisper)';
         }
     }
 
     protected async ensureVoicevoxReady(): Promise<void> {
         if (!this.engine || this.engine.id !== 'voicevox' || this.engine.availability.state !== 'needs') return;
-        this.notice.textContent = 'VOICEVOX を起動しています…';
+        this.notice.textContent = 'Starting VOICEVOX...';
         await prepareReadAloudEngine(this.engine,
             () => this.service.startNarrationEngine(this.target.projectRootUri, 'voicevox'),
             () => this.refreshEngines());
@@ -310,7 +310,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         await this.ensureVoicevoxReady();
         if (this.engine?.id !== engine.id || this.engine.availability.state !== 'available'
             && !falKeyAvailable(this.engine)) {
-            throw new Error(`${engine.label} を利用できません。`);
+            throw new Error(`${engine.label} is not available.`);
         }
     }
 
@@ -329,9 +329,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         this.speed.min = engine.id === 'irodori' ? '0.25' : '0.5'; this.speed.max = engine.id === 'irodori' ? '4' : '2';
         const plan = readAloudPreviewPlan(engine, this.readingText());
         this.previewButton.textContent = this.batchRows.length > 1
-            ? engine.place === 'cloud' ? '費用を見てまとめて作る…' : 'まとめて作る' : plan.buttonLabel;
+            ? engine.place === 'cloud' ? 'Review cost and generate all...' : 'Generate all' : plan.buttonLabel;
         this.footnote.textContent = this.batchRows.length > 1 && engine.place === 'cloud'
-            ? 'クラウド。合計見積で費用承認は 1 回。送るのは読み原稿の文字だけ。' : plan.footnote;
+            ? 'Cloud. One cost approval for the total estimate. Only the reading text is sent.' : plan.footnote;
         await this.preferences.set('akari.narration.engine', engine.id, PreferenceScope.User);
         try {
             const response = await this.service.listNarrationVoices(this.target.projectRootUri, engine.id, this.irodoriUrl());
@@ -363,23 +363,23 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             option.value = row.engine.id; option.disabled = !row.usable; return option;
         }));
         this.copySelect.value = selected ?? '';
-        this.renderVoiceBadge(selected ? '' : '使える作り手がありません', !selected);
+        this.renderVoiceBadge(selected ? '' : 'No engine available', !selected);
         if (changed) this.invalidate();
         this.voiceLabel.style.display = this.voiceSelect.style.display = 'none';
         this.voiceSelect.replaceChildren();
         const option = element('option', profile.label); option.value = profile.id; this.voiceSelect.append(option); this.voiceSelect.value = profile.id;
         this.engine = selected ? this.engines.find(item => item.id === selected) : undefined;
         const copy = choice.options.find(row => row.engine.id === selected);
-        this.copyNote.textContent = !selected || !copy ? '設定「読み上げ」で写しと鍵を確認してください。' : readAloudCopyNote(copy);
+        this.copyNote.textContent = !selected || !copy ? 'Check voice copies and keys in Settings > Read aloud.' : readAloudCopyNote(copy);
         this.speedRow.style.display = this.engine?.supports?.speed ? '' : 'none';
         this.styleRow.style.display = readAloudStyleEnabled(this.engine, this.voiceSelect.value, true) ? '' : 'none';
         if (this.engine) {
             const plan = readAloudPreviewPlan(this.engine, this.readingText());
-            this.previewButton.textContent = this.batchRows.length > 1 ? this.engine.place === 'cloud' ? '費用を見てまとめて作る…' : 'まとめて作る' : plan.buttonLabel;
+            this.previewButton.textContent = this.batchRows.length > 1 ? this.engine.place === 'cloud' ? 'Review cost and generate all...' : 'Generate all' : plan.buttonLabel;
             this.footnote.textContent = this.engine.supports?.clone === 'per-request'
-                ? 'クラウド。試聴の前に費用承認を 1 回。録音を毎回送ります。' : plan.footnote;
+                ? 'Cloud. One cost approval before listening. Your recording is sent every time.' : plan.footnote;
         }
-        else { this.estimate.textContent = '使える作り手がありません'; this.footnote.textContent = '設定「読み上げ」→ 自分の声で写しを確認してください。'; }
+        else { this.estimate.textContent = 'No engine available'; this.footnote.textContent = 'Check the voice copy in Settings > Read aloud > My voice.'; }
         this.updateEstimate(); this.updatePreviewAvailability();
         if (selected) await this.preferences.set('akari.narration.engine', `voice:${id}`, PreferenceScope.User);
     }
@@ -409,7 +409,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             ? batchNarrationEstimate(this.engine, this.batchRows.map(state => state.reading))
             : narrationEstimate(this.engine, this.readingText());
         const voice = this.voices.find(item => item.id === this.voiceSelect.value);
-        this.estimate.textContent = `${this.voiceMode ? '🎙 自分の声' : this.engine.label} · ${this.batchRows.length > 1 ? this.batchRows.length : 1} 行 · 合計 ${quote.chars} 字 · ${quote.label}${this.engine.id === 'voicevox' && voice?.group ? ` · クレジット VOICEVOX:${voice.group}` : ''}`;
+        this.estimate.textContent = `${this.voiceMode ? '🎙 My voice' : this.engine.label} · Lines: ${this.batchRows.length > 1 ? this.batchRows.length : 1} · Total: ${quote.chars} chars · ${quote.label}${this.engine.id === 'voicevox' && voice?.group ? ` · Credit: VOICEVOX:${voice.group}` : ''}`;
     }
 
     protected async preview(): Promise<void> {
@@ -424,7 +424,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             if (!approved) return;
         }
         let generated = false;
-        this.running = true; this.previewButton.disabled = true; this.previewButton.textContent = '生成中…'; this.notice.textContent = engine.id === 'irodori' ? '彩は時間がかかります（お試し）' : '';
+        this.running = true; this.previewButton.disabled = true; this.previewButton.textContent = 'Generating...'; this.notice.textContent = engine.id === 'irodori' ? 'Irodori takes a while (trial)' : '';
         try {
             await this.prepareGenerationEngine(engine);
             const result = await this.service.generateNarration({ projectRootUri: this.target.projectRootUri,
@@ -432,7 +432,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 style: readAloudStyleEnabled(engine, this.voiceSelect.value, this.voiceMode) ? this.styleInput.value : undefined,
                 irodoriUrl: engine.id === 'irodori' ? this.irodoriUrl() : undefined, script: this.script(), reading,
                 captionId: this.target.captionId ?? null, t: this.target.start, approved });
-            if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('音声を生成できませんでした。');
+            if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('Could not generate audio.');
             this.result = result;
             generated = true;
             this.verifyButton.style.display = '';
@@ -445,9 +445,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             const frame = this.target.frameSeconds;
             const comparison = compareNarrationDuration(frame, duration, this.target.timeDomain, !!engine.supports?.speed);
             if (comparison.overflow === 0) this.overflowChoice = 'keep';
-            this.resultNode.replaceChildren(audio, element('div', `字幕の枠 ${frame === undefined ? '—' : frame.toFixed(1) + ' s'} · できた音声 ${duration.toFixed(1)} s`));
+            this.resultNode.replaceChildren(audio, element('div', `Caption slot ${frame === undefined ? '—' : frame.toFixed(1) + ' s'} · generated audio ${duration.toFixed(1)} s`));
             if (comparison.overflow > 0) {
-                this.resultNode.append(element('div', `はみ出し +${comparison.overflow.toFixed(1)} s`));
+                this.resultNode.append(element('div', `Overflow +${comparison.overflow.toFixed(1)} s`));
                 const options = element('div');
                 const add = (choice: 'extend' | 'retry' | 'keep', label: string, disabled: boolean, title?: string): void => {
                     const line = element('label'); const radio = element('input'); radio.type = 'radio'; radio.name = 'read-aloud-overflow';
@@ -457,10 +457,10 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                     line.append(radio, element('span', label)); options.append(line);
                 };
                 this.overflowChoice = comparison.extendEnabled ? 'extend' : 'keep';
-                add('extend', `字幕の枠を ${duration.toFixed(1)} s に伸ばす（既定）`, !comparison.extendEnabled,
-                    this.target.timeDomain === 'source' ? '話した言葉の行は伸ばせません' : undefined);
-                if (engine.supports?.speed) add('retry', `${comparison.recommendedSpeed.toFixed(2)}× で作り直す`, !comparison.retryEnabled);
-                add('keep', 'そのまま置く（はみ出しは QC に残す）', false);
+                add('extend', `Extend caption slot to ${duration.toFixed(1)} s (default)`, !comparison.extendEnabled,
+                    this.target.timeDomain === 'source' ? 'Lines tied to spoken words cannot be extended' : undefined);
+                if (engine.supports?.speed) add('retry', `Regenerate at ${comparison.recommendedSpeed.toFixed(2)}×`, !comparison.retryEnabled);
+                add('keep', 'Place as is (overflow stays flagged in QC)', false);
                 this.resultNode.append(options);
             }
         } catch (error) { this.notice.textContent = String(error); }
@@ -472,14 +472,14 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
 
     protected async verifySingle(): Promise<void> {
         if (!this.result?.path || !this.verificationAvailable || this.running) return;
-        this.verifyButton.disabled = true; this.verifyNode.textContent = '聞き取り中…';
+        this.verifyButton.disabled = true; this.verifyNode.textContent = 'Checking...';
         try {
             const result = await this.service.verifyNarration({ projectRootUri: this.target.projectRootUri,
                 audio: this.result.path, text: this.script(), reading: this.readingText() });
-            this.verifyNode.replaceChildren(element('div', `一致 ${Math.round(result.score * 100)}% · ${result.verdict}`));
-            for (const diff of result.diffs) this.verifyNode.append(element('div', `予定: ${diff.expected || '（なし）'} → 聞こえた: ${diff.heard || '（なし）'}`));
+            this.verifyNode.replaceChildren(element('div', `Match ${Math.round(result.score * 100)}% · ${result.verdict}`));
+            for (const diff of result.diffs) this.verifyNode.append(element('div', `Expected: ${diff.expected || '(none)'} → Heard: ${diff.heard || '(none)'}`));
             if (result.diffs.length) {
-                const revise = element('button', '読み原稿を直して作り直す');
+                const revise = element('button', 'Edit reading text and regenerate');
                 revise.addEventListener('click', () => this.reading.focus()); this.verifyNode.append(revise);
             }
         } catch (error) { this.verifyNode.textContent = String(error); }
@@ -495,10 +495,10 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 let approved = false;
                 if (engine.place === 'cloud') {
                     const quote = batchNarrationEstimate(engine, retryRows.map(state => state.reading));
-                    approved = await new ConfirmDialog({ title: '費用承認',
-                        msg: quote.usd === null ? `見積を出せません。送ると ${readAloudProvider(engine)} の従量で課金されます。送りますか` :
-                            `作り直す ${retryRows.length} 行 · 合計 $${quote.usd.toFixed(3)}。費用承認しますか`,
-                        ok: '費用承認する', cancel: 'キャンセル' }).open();
+                    approved = await new ConfirmDialog({ title: 'Cost approval',
+                        msg: quote.usd === null ? `Could not estimate the cost. Sending will be billed at ${readAloudProvider(engine)} usage rates. Send?` :
+                            `Regenerate ${retryRows.length} lines · total $${quote.usd.toFixed(3)}. Approve the cost?`,
+                        ok: 'Approve cost', cancel: 'Cancel' }).open();
                     if (!approved) return;
                 }
                 this.running = true; this.placeButton.disabled = true;
@@ -511,7 +511,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                             style: readAloudStyleEnabled(engine, this.voiceSelect.value, this.voiceMode) ? this.styleInput.value : undefined,
                             irodoriUrl: engine.id === 'irodori' ? this.irodoriUrl() : undefined, script: state.row.text,
                             reading: state.reading, captionId: state.row.id, t: state.row.outputStart!, approved });
-                        if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('作り直せませんでした。');
+                        if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('Could not regenerate.');
                         state.result = result; state.remainder = Math.max(0, result.duration_s - (state.row.end - state.row.start));
                         state.choice = 'keep'; state.retried = true;
                     } catch (error) { state.status = 'failed'; state.error = String(error); }
@@ -552,40 +552,40 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
             const line = element('div'); line.dataset.readAloudRow = state.row.id;
             Object.assign(line.style, { display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', borderBottom: '1px solid #555' });
             line.append(element('span', `${state.row.outputStart?.toFixed(1) ?? '—'} s`), element('span', state.row.text));
-            const input = element('input'); input.value = state.reading; input.setAttribute('aria-label', `読み原稿 ${index + 1}`);
+            const input = element('input'); input.value = state.reading; input.setAttribute('aria-label', `Reading text ${index + 1}`);
             input.style.flex = '1'; input.disabled = this.running; input.addEventListener('input', () => {
                 state.reading = input.value;
                 if (state.status !== 'failed') state.status = state.verifiedReading === state.reading ? 'done' : 'wait';
                 this.placeButton.disabled = state.status !== 'done'; this.updateEstimate();
-                statusLabel.textContent = state.status === 'done' ? doneLabel : state.status === 'failed' ? `失敗: ${state.error ?? ''}` : '読みを修正中';
+                statusLabel.textContent = state.status === 'done' ? doneLabel : state.status === 'failed' ? `Failed: ${state.error ?? ''}` : 'Editing reading';
                 if (verificationBadge) verificationBadge.style.display = state.status === 'done' ? '' : 'none';
                 if (playButton) playButton.style.display = state.status === 'done' ? '' : 'none';
             }); line.append(input);
-            const doneLabel = `✓ ${(state.result?.duration_s ?? 0).toFixed(1)} s / 枠 ${(state.row.end - state.row.start).toFixed(1)}`
-                    + `${state.choice === 'extend' ? ' · 枠を伸ばす' : ''}`
-                    + `${state.remainder ? ` · はみ出し +${state.remainder.toFixed(1)} s` : ''}`;
+            const doneLabel = `✓ ${(state.result?.duration_s ?? 0).toFixed(1)} s / slot ${(state.row.end - state.row.start).toFixed(1)}`
+                    + `${state.choice === 'extend' ? ' · slot extended' : ''}`
+                    + `${state.remainder ? ` · overflow +${state.remainder.toFixed(1)} s` : ''}`;
             const statusLabel = element('span', state.status === 'done' ? doneLabel
-                : state.status === 'running' ? '◌ 生成中' : state.status === 'failed' ? `失敗: ${state.error ?? ''}`
-                    : state.verifiedReading !== undefined ? '読みを修正中' : '待ち');
+                : state.status === 'running' ? '◌ Generating' : state.status === 'failed' ? `Failed: ${state.error ?? ''}`
+                    : state.verifiedReading !== undefined ? 'Editing reading' : 'Waiting');
             line.append(statusLabel);
             let verificationBadge: HTMLSpanElement | undefined;
             let playButton: HTMLButtonElement | undefined;
             if (state.status === 'done' && state.verification) {
-                const badge = element('span', `一致 ${Math.round(state.verification.score * 100)}% · ${state.verification.verdict}`);
+                const badge = element('span', `Match ${Math.round(state.verification.score * 100)}% · ${state.verification.verdict}`);
                 badge.dataset.verifyVerdict = state.verification.verdict;
                 badge.style.color = state.verification.verdict === 'ng' ? '#ff7777' : state.verification.verdict === 'check' ? '#e9bc55' : '#aaa';
                 verificationBadge = badge;
                 line.append(badge);
-            } else if (state.verificationError) line.append(element('span', `聞き取り失敗: ${state.verificationError}`));
+            } else if (state.verificationError) line.append(element('span', `Check failed: ${state.verificationError}`));
             if (state.status === 'done' && state.result?.path) {
-                const play = element('button', '▶'); play.type = 'button'; play.setAttribute('aria-label', `試聴 ${index + 1}`);
+                const play = element('button', '▶'); play.type = 'button'; play.setAttribute('aria-label', `Listen ${index + 1}`);
                 play.addEventListener('click', () => void this.playBatchRow(state)); line.append(play);
                 playButton = play;
             }
             const retryAction = () => batchRetryAction({ status: state.status, verdict: state.verification?.verdict,
                 reading: state.reading, verifiedReading: state.verifiedReading });
             if (retryAction() !== 'none') {
-                const retry = element('button', 'もう一度'); retry.type = 'button'; retry.disabled = this.running;
+                const retry = element('button', 'Retry'); retry.type = 'button'; retry.disabled = this.running;
                 retry.addEventListener('click', () => {
                     const action = retryAction();
                     if (action === 'focus-reading') input.focus();
@@ -593,8 +593,8 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                 }); line.append(retry);
             }
             if (state.status === 'done' && (state.result?.duration_s ?? 0) > state.row.end - state.row.start) {
-                const choice = element('select'); choice.setAttribute('aria-label', `枠超過 ${index + 1}`);
-                for (const [value, label] of [['extend', '枠を伸ばす'], ['retry', '速さで作り直す'], ['keep', 'そのまま置く']] as const) {
+                const choice = element('select'); choice.setAttribute('aria-label', `Overflow ${index + 1}`);
+                for (const [value, label] of [['extend', 'Extend slot'], ['retry', 'Regenerate at new speed'], ['keep', 'Place as is']] as const) {
                     if (value === 'extend' && state.row.timeDomain !== 'output') continue;
                     if (value === 'retry' && !this.engine?.supports?.speed) continue;
                     const option = element('option', label); option.value = value; choice.append(option);
@@ -618,7 +618,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         const done = this.batchRows.filter(state => state.status === 'done').length;
         this.progress.textContent = `${done} / ${this.batchRows.length}`;
         this.progress.setAttribute('data-progress', `${done}/${this.batchRows.length}`);
-        this.placeButton.textContent = `${done} 件を置く`;
+        this.placeButton.textContent = `Place ${done}`;
         this.placeButton.disabled = done === 0 || this.running;
     }
 
@@ -638,14 +638,14 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         let approved = false;
         if (engine.place === 'cloud') {
             const quote = batchNarrationEstimate(engine, pending.map(state => state.reading));
-            approved = await new ConfirmDialog({ title: '費用承認',
-                msg: quote.usd === null ? `見積を出せません。送ると ${readAloudProvider(engine)} の従量で課金されます。送りますか` :
-                    `合計 $${quote.usd.toFixed(3)}（as_of ${engine.price?.as_of ?? '未確認'}）で ${pending.length} 行を送ります。費用承認しますか`,
-                ok: '費用承認する', cancel: 'キャンセル' }).open();
+            approved = await new ConfirmDialog({ title: 'Cost approval',
+                msg: quote.usd === null ? `Could not estimate the cost. Sending will be billed at ${readAloudProvider(engine)} usage rates. Send?` :
+                    `Sending ${pending.length} lines for a total of $${quote.usd.toFixed(3)} (as_of ${engine.price?.as_of ?? 'unverified'}). Approve the cost?`,
+                ok: 'Approve cost', cancel: 'Cancel' }).open();
             if (!approved) return;
         }
         this.running = true; this.cancelled = false; this.cancelButton.style.display = '';
-        this.notice.textContent = engine.id === 'irodori' ? '彩は時間がかかります（お試し）' : '';
+        this.notice.textContent = engine.id === 'irodori' ? 'Irodori takes a while (trial)' : '';
         this.previewButton.disabled = true;
         try { await this.prepareGenerationEngine(engine); }
         catch (error) {
@@ -663,7 +663,7 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                     irodoriUrl: engine.id === 'irodori' ? this.irodoriUrl() : undefined,
                     script: state.row.text, reading: state.reading, captionId: state.row.id, t: state.row.outputStart!, approved });
                 let result = await generate();
-                if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('音声を生成できませんでした。');
+                if (result.status !== 'ok' || !result.path || result.duration_s === undefined) throw new Error('Could not generate audio.');
                 let action = defaultOverflowAction({ frameSeconds: state.row.end - state.row.start,
                     durationSeconds: result.duration_s, timeDomain: state.row.timeDomain, enginePlace: engine.place,
                     speedSupported: !!engine.supports?.speed, start: state.row.outputStart!, nextStart: state.row.nextStart });
@@ -671,9 +671,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
                     state.retried = true;
                     try {
                         const retry = await generate(action.recommendedSpeed);
-                        if (retry.status !== 'ok' || !retry.path || retry.duration_s === undefined) throw new Error('作り直せませんでした。');
+                        if (retry.status !== 'ok' || !retry.path || retry.duration_s === undefined) throw new Error('Could not regenerate.');
                         result = retry;
-                    } catch (error) { state.error = `推奨速度での作り直しに失敗: ${String(error)}`; }
+                    } catch (error) { state.error = `Regeneration at the recommended speed failed: ${String(error)}`; }
                     action = { ...action, choice: 'keep', remainder: Math.max(0, result.duration_s - (state.row.end - state.row.start)) };
                 }
                 state.result = result; state.verifiedReading = state.reading; state.verificationError = undefined;
@@ -697,9 +697,9 @@ export class AkariReadAloudDialog extends AbstractDialog<ReadAloudPlacement[] | 
         const extended = placements.filter(item => item.extendEnd !== undefined).length;
         const overflow = placements.filter(item => (item.overflow ?? 0) > 0).length;
         const credits = [...new Set(placements.map(item => readAloudProvenanceLabel(item.result.provenance, this.profiles)))];
-        this.body.replaceChildren(element('h2', '置いた'), element('div', `${placements.length} 件を置いた · 伸ばした行 ${extended} · はみ出しのまま ${overflow}`),
+        this.body.replaceChildren(element('h2', 'Placed'), element('div', `Placed: ${placements.length} · Extended: ${extended} · Left overflowing: ${overflow}`),
             element('div', `provenance: ${credits.join(' / ')}`));
         this.foot.replaceChildren();
-        const close = element('button', '閉じる'); close.addEventListener('click', () => void this.accept()); this.foot.append(close);
+        const close = element('button', 'Close'); close.addEventListener('click', () => void this.accept()); this.foot.append(close);
     }
 }

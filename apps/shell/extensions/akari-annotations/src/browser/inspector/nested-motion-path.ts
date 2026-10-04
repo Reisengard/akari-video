@@ -16,7 +16,7 @@ export function nestedMotionPath(item: ItemV2, ancestors: ItemV2[],
         }
         const result = relativeTransform(parent, point.transform);
         if (!result || !Number.isFinite(result.x) || !Number.isFinite(result.y)) {
-            throw new Error('親の変形を逆算できません');
+            throw new Error('Could not invert the parent transform.');
         }
         return { t: point.t, transform: { x: result.x, y: result.y } };
     });

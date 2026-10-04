@@ -29,7 +29,7 @@ test('startGenerateVideo は approved true 以外では spawn 前に拒否する
   const service = new AkariAnnotationsServiceImpl();
   let starts = 0;
   service.generationCli = { start: async () => { starts += 1; return { ok: true, stdout: '' }; } };
-  await assert.rejects(() => service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'clip' }), /費用承認/);
+  await assert.rejects(() => service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'clip' }), /Cost approval is required/);
   assert.equal(starts, 0);
   assert.equal((await service.startGenerateVideo({ projectRootUri: 'file:///tmp/project', itemId: 'clip', approved: true })).ok, true);
   assert.equal(starts, 1);
@@ -71,11 +71,11 @@ test('meta の無い静止画でない素材（mp4・音声・html）には meta
   try {
     for (const sourcePath of ['clip.mp4', 'audio.mp3', 'card.html']) {
       await fixture(root, sourcePath);
-      await assert.rejects(new AkariAnnotationsServiceImpl().writeGenerationDraft(requestFor(root)), /この素材には生成の記録がありません/u);
+      await assert.rejects(new AkariAnnotationsServiceImpl().writeGenerationDraft(requestFor(root)), /This footage has no generation record/u);
       await assert.rejects(stat(path.join(root, `${sourcePath}.meta.json`)), { code: 'ENOENT' });
     }
     await writeFile(path.join(root, 'edit.json'), JSON.stringify({ tracks: [{ items: [{ id: 'clip-a', source: { kind: 'caption' } }] }] }));
-    await assert.rejects(new AkariAnnotationsServiceImpl().writeGenerationDraft(requestFor(root)), /生成対象の素材/u);
+    await assert.rejects(new AkariAnnotationsServiceImpl().writeGenerationDraft(requestFor(root)), /Footage to generate was not found/u);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -295,7 +295,7 @@ test('新設時もプロジェクト外の画像 symlink と壊れた PNG を拒
   await rm(path.join(root, 'still.png'));
   await symlink(path.join(outside, 'outside.png'), path.join(root, 'still.png'));
   const service = new AkariAnnotationsServiceImpl();
-  await assert.rejects(service.writeGenerationDraft(requestFor(root)), /プロジェクト内/);
+  await assert.rejects(service.writeGenerationDraft(requestFor(root)), /inside the project/);
   await rm(path.join(root, 'still.png'));
   await writeFile(path.join(root, 'still.png'), 'broken');
   await assert.rejects(service.writeGenerationDraft(requestFor(root)), /PNG/);

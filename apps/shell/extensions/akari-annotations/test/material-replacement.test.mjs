@@ -45,7 +45,7 @@ test('main footage, non-media, and legacy BGM do not qualify', () => {
 test('invalid duration and locked tracks fail', () => {
  for (const actualDurationS of [NaN, Infinity, -1]) assert.throws(() => planReplacement({ actualDurationS, cutsDurationS: 6 }));
  const doc = fixture(); doc.tracks[0].locked = true;
- assert.throws(() => replaceMaterial(doc, { itemId: 'item', relativePath: 'new.png', kind: 'image' }), /ロック/);
+ assert.throws(() => replaceMaterial(doc, { itemId: 'item', relativePath: 'new.png', kind: 'image' }), /locked/);
 });
 
 test('nested audio respects the next leaf on the same track in output frames', () => {

@@ -98,10 +98,10 @@ test('shortcut and preview receiver share the plan, and mismatched selection exi
   const widget = readFileSync(new URL('../src/browser/akari-annotations-widget.ts', import.meta.url), 'utf8');
   const receiver = widget.slice(widget.indexOf('    runPreviewZOrderCommand('), widget.indexOf('    protected moveSelectedZOrder('));
   assert.match(receiver, /if \(!matchesPreviewZOrderSelection\(id, selectedIds, this\.multiSelection\.length > 0\)\) return;/u);
-  assert.match(receiver, /this\.moveSelectedZOrder\(id, op, '重なり順を変更'\)/u);
+  assert.match(receiver, /this\.moveSelectedZOrder\(id, op, 'Change stacking order'\)/u);
   assert.match(widget, /this\.moveSelectedZOrder\(id, event\.key === '\]' \? 'forward' : 'backward'/u);
   assert.match(widget, /const plan = planZOrderMove\(this\.editDocument, id, op\)/u);
   assert.match(widget, /commitEditMutation\(label, doc =>/u);
-  assert.match(widget, /いちばん前面です/u);
-  assert.match(widget, /いちばん背面です/u);
+  assert.match(widget, /Already at the front\./u);
+  assert.match(widget, /Already at the back\./u);
 });

@@ -112,12 +112,12 @@ const panel = root => find(root, byData('data-akari-ui', 'section:inspector-gene
 test('widget: ふつうの動画 cut は編集が押せ、動画タイルは理由付き disabled でクリックしても戻らない', () => withDom(() => {
   const instance = fixture({ sourcePath: 'ordinary.mp4' });
   instance.render();
-  assert.equal(aiTab(instance.body).textContent, 'ホーム');
+  assert.equal(aiTab(instance.body).textContent, 'Home');
   assert.equal(aiTab(instance.body).disabled, false);
   const tile = aiTile(instance.body);
   assert.match(tile.className, /akari-inspector-ai-disabled/u);
   assert.equal(tile.attributes.get('aria-disabled'), 'true');
-  assert.equal(find(tile, byClass('akari-inspector-ai-reason')).textContent, '静止画か空の枠で使えます');
+  assert.equal(find(tile, byClass('akari-inspector-ai-reason')).textContent, 'Works on a still or an empty slot');
   tile.click();
   assert.ok(aiTile(instance.body));
   assert.equal(panel(instance.body), undefined);
@@ -127,11 +127,11 @@ test('widget: 静止画の別案一覧から動画タイル → 専用パネル 
   const instance = fixture();
   instance.render();
   assert.deepEqual(instance.body.children.flatMap(node => node.className === 'akari-inspector-ai-list'
-    ? node.children.map(group => group.children[0].textContent) : []), ['作る', '直す']);
+    ? node.children.map(group => group.children[0].textContent) : []), ['Create', 'Refine']);
   assert.equal(find(instance.body, byData('data-akari-inspector-ai-tile', 'transcribe')).attributes.get('aria-disabled'), 'true');
-  assert.equal(find(instance.body, byClass('akari-inspector-ai-reason')).textContent, '声の入った音声か動画で使えます');
+  assert.equal(find(instance.body, byClass('akari-inspector-ai-reason')).textContent, 'Works on audio or video with speech');
   aiTile(instance.body).click();
-  assert.equal(find(instance.body, byClass('akari-inspector-ai-back')).textContent, '← ホーム');
+  assert.equal(find(instance.body, byClass('akari-inspector-ai-back')).textContent, '← Home');
   assert.ok(panel(instance.body));
   find(instance.body, byClass('akari-inspector-ai-back')).click();
   assert.ok(aiTile(instance.body));
@@ -230,7 +230,7 @@ test('ホームは読込中も別案だけを出し、補正を描かない', ()
     .map(node => node.attributes.get('data-akari-ui') ?? node.children[0].attributes.get('data-akari-ui')),
   ['section:inspector-edit-alternatives']);
   assert.equal(find(instance.body, byData('data-akari-ui', 'section:inspector-edit-material-choice')), undefined);
-  assert.ok(find(instance.body, node => node.textContent === '別案を読み込んでいます…'));
+  assert.ok(find(instance.body, node => node.textContent === 'Loading alternatives...'));
 }));
 
 test('図形のホームも空にならず、別案なしを示して近日の素材の選択を描かない', () => withDom(() => {
@@ -242,7 +242,7 @@ test('図形のホームも空にならず、別案なしを示して近日の�
   instance.render();
   assert.equal(find(instance.body, byData('data-akari-ui', 'section:inspector-edit-correction')), undefined);
   assert.equal(find(instance.body, byData('data-akari-ui', 'section:inspector-edit-material-choice')), undefined);
-  assert.ok(find(instance.body, node => node.textContent === 'この要素で使える別案はまだありません'));
+  assert.ok(find(instance.body, node => node.textContent === 'No alternatives are available for this item yet'));
 }));
 
 test('sources の id を持つ写真 item / layer と cut は色タブ先頭に範囲を出す', () => withDom(() => {
@@ -269,7 +269,7 @@ test('sources の id を持つ写真 item / layer と cut は色タブ先頭に�
     assert.ok(find(instance.body, byData('data-akari-ui', 'section:inspector-adjust:basic')), snapshot.kind);
     const scope = instance.sections.find(section => section.id === 'adjust-scope').fields
       .find(field => field.name === 'edit-adjust-scope');
-    assert.deepEqual(scope.options, ['画像全体', '選択エリア']);
+    assert.deepEqual(scope.options, ['Whole image', 'Selected area']);
   }
 }));
 
@@ -286,7 +286,7 @@ test('写真の背景透過は専用パネル、選択エリアは色タブで�
     const cutout = instance.sections.find(section => section.id === 'photo-cutout');
     assert.ok(cutout, kind);
     assert.deepEqual(cutout.fields.filter(field => field.name === 'photo-cutout-panel').map(field => field.actionLabel),
-      ['背景透過を開く']);
+      ['Open background removal']);
     assert.equal(cutout.fields.some(field => field.name === 'photo-region-panel'), false);
     assert.equal(instance.sections.some(section => section.id === 'photo-edit'), false);
     await cutout.fields.find(field => field.name === 'photo-cutout-panel').action(instance.model.snapshot);
@@ -296,10 +296,10 @@ test('写真の背景透過は専用パネル、選択エリアは色タブで�
     instance.render();
     const scope = instance.sections.find(section => section.id === 'adjust-scope').fields.find(field => field.name === 'edit-adjust-scope');
     instance.sections = [];
-    await scope.write(instance.model.snapshot, '選択エリア');
+    await scope.write(instance.model.snapshot, 'Selected area');
     const area = instance.sections.find(section => section.id === 'adjust-scope');
     assert.deepEqual(area.fields.filter(field => field.name === 'photo-region-panel').map(field => field.actionLabel),
-      ['エリアを選択']);
+      ['Select area']);
     assert.equal(instance.sections.some(section => section.id === 'adjust:basic'), false);
     await area.fields.find(field => field.name === 'photo-region-panel').action(instance.model.snapshot);
     assert.deepEqual([openedPhotoPanel.id, openedPhotoPanel.mode], ['photo-1', 'regions']);
@@ -322,7 +322,7 @@ test('写真の直すタイルは端末処理の専用パネルを開き、カ�
   assert.ok(find(instance.body, byData('data-akari-inspector-ai-tile', 'transcribe')));
   cutoutTile.click();
   assert.ok(instance.sections.find(section => section.id === 'photo-cutout'));
-  assert.equal(find(instance.body, byClass('akari-inspector-ai-back')).textContent, '← ホーム');
+  assert.equal(find(instance.body, byClass('akari-inspector-ai-back')).textContent, '← Home');
   find(instance.body, byClass('akari-inspector-ai-back')).click();
   find(instance.body, byData('data-akari-inspector-ai-tile', 'eraser')).click();
   const eraser = instance.sections.findLast(section => section.id === 'photo-eraser');
@@ -338,11 +338,11 @@ test('写真の直すタイルは端末処理の専用パネルを開き、カ�
 }));
 
 for (const [label, options, reason] of [
-  ['動画', { sourcePath: 'ordinary.mp4' }, '写真で使えます'],
-  ['空の枠', { state: 'planned' }, '空の枠では使えません'],
-  ['生成中', { state: 'generating' }, '生成が終わると使えます'],
-  ['失敗', { state: 'failed' }, '生成が終わると使えます'],
-  ['古い生成', { state: 'stale' }, '生成が終わると使えます']
+  ['動画', { sourcePath: 'ordinary.mp4' }, 'Available for photos'],
+  ['空の枠', { state: 'planned' }, 'Not available for empty slots'],
+  ['生成中', { state: 'generating' }, 'Available once generation finishes'],
+  ['失敗', { state: 'failed' }, 'Available once generation finishes'],
+  ['古い生成', { state: 'stale' }, 'Available once generation finishes']
 ]) {
   test(`${label}では写真の直すタイルを理由つきで無効にする`, () => withDom(() => {
     const instance = fixture(options);
@@ -377,7 +377,7 @@ test('高画質化は直すに入り、背景生成（近日）は描かない',
   assert.ok(alternatives);
   assert.ok(refine);
   assert.ok(find(refine, byData('data-akari-image-ai-panel', 'photo-1')));
-  assert.equal(find(instance.body, node => node.textContent === '写真を直す'), undefined);
-  assert.ok(find(refine, node => node.textContent === '高画質化'));
-  assert.equal(find(instance.body, node => node.textContent === '背景生成（近日）'), undefined);
+  assert.equal(find(instance.body, node => node.textContent === 'Refine photo'), undefined);
+  assert.ok(find(refine, node => node.textContent === 'Enhance quality'));
+  assert.equal(find(instance.body, node => node.textContent === 'Background generation (coming soon)'), undefined);
 }));

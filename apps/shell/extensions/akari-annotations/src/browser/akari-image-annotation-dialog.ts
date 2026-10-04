@@ -110,13 +110,13 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
         this.contentNode.appendChild(this.stage);
 
         if (this.props.mode === 'create') {
-            this.hint.textContent = 'ペンで領域を描き、必要ならメモを入力してください（どちらか一方でも確定できます）。';
+            this.hint.textContent = 'Draw an area with the pen and add a note if needed (either one is enough to confirm).';
             Object.assign(this.hint.style, {
                 fontSize: '11px', color: 'var(--theia-descriptionForeground)', margin: '8px 0 4px'
             });
             this.textInput.type = 'text';
-            this.textInput.placeholder = 'この画像についてコメント（任意）';
-            this.textInput.setAttribute('aria-label', 'この画像についてコメント');
+            this.textInput.placeholder = 'Comment on this image (optional)';
+            this.textInput.setAttribute('aria-label', 'Comment on this image');
             Object.assign(this.textInput.style, { width: '100%', boxSizing: 'border-box', margin: '2px 0 6px' });
             this.textInput.addEventListener('input', () => this.update());
             this.contentNode.append(this.hint, this.textInput);
@@ -128,9 +128,9 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
         this.contentNode.appendChild(this.errorNotice);
 
         if (this.props.mode === 'create') {
-            this.appendAcceptButton('注釈を追加');
+            this.appendAcceptButton('Add annotation');
         }
-        this.appendCloseButton(this.props.mode === 'create' ? 'キャンセル' : '閉じる');
+        this.appendCloseButton(this.props.mode === 'create' ? 'Cancel' : 'Close');
 
         void this.load();
     }
@@ -139,7 +139,7 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
         try {
             const stat = await this.fileService.resolve(this.props.imageUri, { resolveMetadata: true });
             if (typeof stat.size === 'number' && stat.size > 25 * 1024 * 1024) {
-                this.showLoadError('この画像はサイズが大きすぎるためプレビューできません。');
+                this.showLoadError('This image is too large to preview.');
                 return;
             }
             const content = await this.fileService.readFile(this.props.imageUri);
@@ -162,7 +162,7 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
         } catch (error) {
             console.warn('[akari-annotations] image annotation dialog failed to load image', error);
             this.imageLoadFailed = true;
-            this.showLoadError('画像を読み込めませんでした。');
+            this.showLoadError('Could not load the image.');
         }
     }
 
@@ -286,12 +286,12 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
             return true;
         }
         if (this.imageLoadFailed) {
-            return { message: '画像を読み込めなかったため注釈を追加できません。', result: false };
+            return { message: 'Could not add the annotation because the image failed to load.', result: false };
         }
         const hasText = this.textInput.value.trim().length > 0;
         const hasStrokes = this.completedStrokes.length > 0;
         if (!hasText && !hasStrokes) {
-            return { message: 'テキストまたはペンでの描画のいずれかが必要です。', result: false };
+            return { message: 'Enter text or draw with the pen.', result: false };
         }
         if (mode === 'preview' || this.saved) {
             return true;
@@ -304,7 +304,7 @@ export class AkariImageAnnotationDialog extends AbstractDialog<boolean> {
             this.saved = true;
             return true;
         } catch (error) {
-            return { message: `注釈を追加できません: ${this.errorMessage(error)}`, result: false };
+            return { message: `Could not add annotation: ${this.errorMessage(error)}`, result: false };
         }
     }
 

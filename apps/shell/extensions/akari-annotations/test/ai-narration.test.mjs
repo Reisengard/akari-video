@@ -34,7 +34,7 @@ test('カタログ: 音の空の枠だけ押せる・入った音声は理由付
   assert.equal(describeAiTiles(catalog, 'empty-audio-frame')[0].tiles[0].enabled, true);
   const filled = describeAiTiles(catalog, 'audio')[0].tiles[0];
   assert.equal(filled.enabled, false);
-  assert.equal(filled.reason, '空いている音声の枠で使えます');
+  assert.equal(filled.reason, 'Works on an empty audio slot');
   assert.equal(describeAiTiles(aiActionCatalog([], []), 'empty-audio-frame').some(group =>
     group.tiles.some(tile => tile.id === 'narration')), false);
 });
@@ -231,9 +231,9 @@ test('本物の commitEditMutation は replace / lower-track / new-track を 1 �
         return { status: 'ok', path: 'out/narration/n-0001.wav', duration_s: seconds };
       } },
       commit: (title, mutate) => timeline.commitEditMutation(title, mutate) });
-    assert.deepEqual(labels, ['ナレーションを置く'], name);
+    assert.deepEqual(labels, ['Place narration'], name);
     assert.equal(history.canUndo, true, name);
-    assert.match(label, /A\d+ に置きました/u);
+    assert.match(label, /Placed on A\d+/u);
     const current = JSON.parse(disk);
     assert.equal(current.tracks.length, expectedTracks, name);
     const destination = current.tracks.find(track => track.items.some(item => item.id === 'frame'));

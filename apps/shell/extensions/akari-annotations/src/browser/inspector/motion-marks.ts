@@ -1,4 +1,4 @@
-export type MotionMark = 'キーフレーム' | '入り・抜き' | 'キャンバス';
+export type MotionMark = 'Keyframe' | 'In/out' | 'Canvas';
 
 export function itemMotionMarks(input: {
     keyframes?: readonly Record<string, unknown>[];
@@ -12,8 +12,8 @@ export function itemMotionMarks(input: {
             ? !!seat && typeof seat === 'object' && property.slice(10) in seat
             : seat !== undefined;
     });
-    if (hasKeyframe) marks.push('キーフレーム');
-    if (input.motion?.in || input.motion?.out || input.motion?.loop) marks.push('入り・抜き');
-    if (input.canvasMotion) marks.push('キャンバス');
+    if (hasKeyframe) marks.push('Keyframe');
+    if (input.motion?.in || input.motion?.out || input.motion?.loop) marks.push('In/out');
+    if (input.canvasMotion) marks.push('Canvas');
     return marks;
 }

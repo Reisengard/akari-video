@@ -12,9 +12,9 @@ const record = (value: unknown): Record<string, any> => value && typeof value ==
 const filled = (value: unknown): string | undefined => typeof value === 'string' && value.trim() ? value : undefined;
 const amount = (value: unknown): string | undefined => typeof value === 'number' && Number.isFinite(value)
     ? String(value) : undefined;
-const seconds = (value: unknown): string | undefined => amount(value) ? `${amount(value)} 秒` : undefined;
+const seconds = (value: unknown): string | undefined => amount(value) ? `${amount(value)} sec` : undefined;
 const elapsedSeconds = (value: unknown): string | undefined => typeof value === 'number' && Number.isFinite(value)
-    ? value < 1 ? '1 秒未満' : `${Math.round(value)} 秒` : undefined;
+    ? value < 1 ? 'under 1 sec' : `${Math.round(value)} sec` : undefined;
 const localDateTime = (value: string | undefined): string | undefined => {
     if (!value) return undefined;
     const date = new Date(value);
@@ -42,37 +42,37 @@ export function generationProvenance(meta: unknown, modelName?: (id: string) => 
         if (value !== undefined) rows.push({ key, label, value, ...(referencePath ? { referencePath } : {}) });
     };
     const modelId = filled(model.id);
-    add('model', '手段', modelId && (modelName?.(modelId) ?? modelId));
-    add('prompt', kind === 'audio' ? '原稿' : '指示文', filled(inputs.prompt) ?? filled(inputs.script) ?? filled(inputs.text));
-    add('negative-prompt', '入れたくないもの', filled(inputs.negative_prompt));
+    add('model', 'Model', modelId && (modelName?.(modelId) ?? modelId));
+    add('prompt', kind === 'audio' ? 'Script' : 'Prompt', filled(inputs.prompt) ?? filled(inputs.script) ?? filled(inputs.text));
+    add('negative-prompt', 'Negative prompt', filled(inputs.negative_prompt));
     const camera = filled(record(inputs.camera).value);
-    add('camera', 'カメラの動き', camera && (GENERATION_CAMERA_MOVES.find(move =>
+    add('camera', 'Camera move', camera && (GENERATION_CAMERA_MOVES.find(move =>
         move.bracket === camera || move.prose === camera)?.label ?? camera));
-    for (const [key, label] of [['first_frame', '最初の絵'], ['last_frame', '最後の絵'],
-        ['source_video', '元の動画']] as const) {
+    for (const [key, label] of [['first_frame', 'First frame'], ['last_frame', 'Last frame'],
+        ['source_video', 'Source video']] as const) {
         const path = filled(record(inputs[key]).path);
         add(key, label, path && fileName(path), path);
     }
-    for (const [key, label] of [['reference_images', '参照画像'], ['reference_videos', '参照動画'],
-        ['reference_audios', '参照音声']] as const) {
+    for (const [key, label] of [['reference_images', 'Reference images'], ['reference_videos', 'Reference videos'],
+        ['reference_audios', 'Reference audio']] as const) {
         if (!Array.isArray(inputs[key])) continue;
         inputs[key].forEach((entry: unknown, index: number) => {
             const path = filled(record(entry).path);
             add(`${key}-${index}`, label, path && fileName(path), path);
         });
     }
-    add('duration', '作った長さ', seconds(output.duration_s));
-    add('actual-duration', '実尺', seconds(result.duration_s_actual));
-    add('resolution', '解像度', filled(output.resolution)
+    add('duration', 'Generated length', seconds(output.duration_s));
+    add('actual-duration', 'Actual length', seconds(result.duration_s_actual));
+    add('resolution', 'Resolution', filled(output.resolution)
         ?? (amount(result.width) && amount(result.height) ? `${result.width}×${result.height}` : undefined));
-    add('audio-out', '音声', typeof result.has_audio === 'boolean' ? result.has_audio ? 'あり' : 'なし'
-        : typeof output.audio_out === 'boolean' ? output.audio_out ? 'あり' : 'なし' : undefined);
-    add('cost', '料金', amount(cost.estimate_usd) && `見積 $${Number(cost.estimate_usd).toFixed(2)}${filled(model.as_of) ? ` · as_of ${model.as_of}` : ''}`);
-    add('created', '作った日時', localDateTime(filled(provenance.created_at) ?? filled(job.started_at)));
-    add('elapsed', '所要秒', elapsedSeconds(result.elapsed_s ?? job.elapsed_s));
+    add('audio-out', 'Audio', typeof result.has_audio === 'boolean' ? result.has_audio ? 'Yes' : 'No'
+        : typeof output.audio_out === 'boolean' ? output.audio_out ? 'Yes' : 'No' : undefined);
+    add('cost', 'Cost', amount(cost.estimate_usd) && `Estimate $${Number(cost.estimate_usd).toFixed(2)}${filled(model.as_of) ? ` · as_of ${model.as_of}` : ''}`);
+    add('created', 'Created', localDateTime(filled(provenance.created_at) ?? filled(job.started_at)));
+    add('elapsed', 'Elapsed', elapsedSeconds(result.elapsed_s ?? job.elapsed_s));
     const voiceId = filled(source.voice) ?? filled(inputs.voice) ?? filled(inputs.voice_id) ?? filled(inputs.voiceId);
     const engineId = filled(source.route) ?? modelId?.replace(/:tts$/u, '');
-    add('voice', '声', voiceId && (kind === 'audio' ? voiceName?.(voiceId, engineId) ?? voiceId : voiceId));
+    add('voice', 'Voice', voiceId && (kind === 'audio' ? voiceName?.(voiceId, engineId) ?? voiceId : voiceId));
     return { kind, modelId, rows };
 }
 

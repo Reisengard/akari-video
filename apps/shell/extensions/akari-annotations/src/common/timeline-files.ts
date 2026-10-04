@@ -42,7 +42,7 @@ export function estimateAspectFromOrientation(width?: number, height?: number): 
 }
 
 export function timelineDisplayName(slug: string | undefined, metaTitle?: string): string {
-    return metaTitle?.trim() || slug || 'タイムライン';
+    return metaTitle?.trim() || slug || 'Timeline';
 }
 
 export function timelineWidgetId(slug?: string): string {

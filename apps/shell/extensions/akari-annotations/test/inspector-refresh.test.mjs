@@ -63,7 +63,7 @@ test('選択帯は既存スナップショットから名前・範囲・種別�
     const header = createSelectionHeader({ kind: 'cut', clipName: 'タイトル.mp4', sourcePath: 'assets/title.mp4',
         outputStart: 3.2, outputEnd: 8 }, async path => { paths.push(path); return 'data:image/png;base64,AA'; });
     assert.equal(header.children[1].children[0].textContent, 'タイトル.mp4');
-    assert.equal(header.children[1].children[1].textContent, '00:03.2 – 00:08.0 · カット');
+    assert.equal(header.children[1].children[1].textContent, '00:03.2 – 00:08.0 · Cut');
     await Promise.resolve();
     assert.deepEqual(paths, ['assets/title.mp4']);
     assert.equal(header.children[0].children[0].src, 'data:image/png;base64,AA');
@@ -72,9 +72,9 @@ test('選択帯は既存スナップショットから名前・範囲・種別�
 
 test('字幕・音声・複数選択とサムネなしにも選択帯を描画し、外れた帯には非同期結果を入れない', () => withInspectorDom(async () => {
     for (const [snapshot, label, meta] of [
-        [{ kind: 'caption', text: '字幕', outputStart: undefined, outputEnd: undefined }, '字幕', '字幕'],
-        [{ kind: 'audio', clipName: 'BGM', outputStart: 1, duration: 2 }, 'BGM', '00:01.0 – 00:03.0 · 音声'],
-        [{ kind: 'multi', count: 2, items: [{ outputStart: 1, outputEnd: 2 }, { outputStart: 4, duration: 2 }] }, '2 個を選択中', '00:01.0 – 00:06.0 · 複数選択']
+        [{ kind: 'caption', text: '字幕', outputStart: undefined, outputEnd: undefined }, '字幕', 'Caption'],
+        [{ kind: 'audio', clipName: 'BGM', outputStart: 1, duration: 2 }, 'BGM', '00:01.0 – 00:03.0 · Audio'],
+        [{ kind: 'multi', count: 2, items: [{ outputStart: 1, outputEnd: 2 }, { outputStart: 4, duration: 2 }] }, '2 selected', '00:01.0 – 00:06.0 · Multiple selection']
     ]) {
         const header = createSelectionHeader(snapshot, async () => assert.fail('no source'));
         assert.equal(header.children[1].children[0].textContent, label);

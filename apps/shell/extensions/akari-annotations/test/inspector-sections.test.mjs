@@ -18,23 +18,23 @@ test('media layer / item は映像タブに要約、動きタブに3段を表示
     const summary = video.findIndex(section => section.id === 'motion-summary');
     assert.ok(summary > 0);
     assert.equal(video[summary - 1].id, 'perspective');
-    assert.equal(video[summary].fields[1].actionLabel, '動きタブで開く');
+    assert.equal(video[summary].fields[1].actionLabel, 'Open in Motion tab');
     const motion = sections.find(section => section.id === 'motion:in');
     assert.equal(assignSectionToTab(kind, motion.id), 'motion');
     assert.equal(motion.collapsedByDefault, undefined);
     assert.deepEqual(sections.filter(section => ['motion:in', 'motion:loop', 'motion:out'].includes(section.id))
-      .map(section => section.label), ['登場', '強調', '退場']);
+      .map(section => section.label), ['Enter', 'Emphasis', 'Exit']);
     const entrance = sections.find(section => section.id === 'motion:in').fields[0].options;
     const emphasis = sections.find(section => section.id === 'motion:loop').fields[0].options;
     const exit = sections.find(section => section.id === 'motion:out').fields[0].options;
-    assert.ok(entrance.includes('ポップ') && exit.includes('ポップ'));
-    assert.ok(emphasis.includes('点滅') && emphasis.includes('小刻みな動き'));
-    assert.equal(entrance.includes('点滅'), false);
-    assert.equal(emphasis.includes('ズーム'), false);
+    assert.ok(entrance.includes('Pop') && exit.includes('Pop'));
+    assert.ok(emphasis.includes('Blink') && emphasis.includes('Jiggle'));
+    assert.equal(entrance.includes('Blink'), false);
+    assert.equal(emphasis.includes('Zoom'), false);
     assert.deepEqual(motionRows(sections).map(field => field.label), [
-      '登場', '登場の尺', '登場のイージング', '登場の量',
-      '退場', '退場の尺', '退場のイージング', '退場の量',
-      '強調', '周期', '強調のイージング', '強調の量'
+      'Enter', 'Enter duration', 'Enter easing', 'Enter amount',
+      'Exit', 'Exit duration', 'Exit easing', 'Exit amount',
+      'Emphasis', 'Period', 'Emphasis easing', 'Emphasis amount'
     ]);
     assert.deepEqual(motionRows(sections).map(field => field.inputKind),
       Array(3).fill(['select', 'scrub-number', 'select', 'scrub-number']).flat());
@@ -52,12 +52,12 @@ test('cut / overlay も映像の要約と動きタブの 12 行を同じ motion 
     const sections = factory(snapshot, async request => { writes.push(request); return { ok: true }; });
     const summary = sections.find(section => section.id === 'motion-summary');
     assert.equal(assignSectionToTab(kind, summary.id), 'video');
-    assert.equal(summary.fields[0].getValue(), '登場: フェード');
+    assert.equal(summary.fields[0].getValue(), 'Enter: Fade');
     const motion = sections.find(section => section.id === 'motion:in');
     assert.equal(assignSectionToTab(kind, motion.id), 'motion');
     assert.equal(motion.collapsedByDefault, undefined);
     assert.equal(motionRows(sections).length, 12);
-    await motion.fields[0].write(snapshot, 'なし');
+    await motion.fields[0].write(snapshot, 'None');
     assert.deepEqual(writes, [{ kind: 'item-field', id: kind === 'cut' ? 'cut-1' : 'overlay-1',
       path: 'motion', value: null }]);
   }
@@ -68,7 +68,7 @@ test('HTML item / layer にも動きの3段を出す', () => {
     const snapshot = visualSnapshot('item', { sourceKind: 'html', itemKind: 'part' });
     assert.deepEqual(factory(snapshot, () => {}).filter(section =>
       ['motion:in', 'motion:loop', 'motion:out'].includes(section.id)).map(section => section.label),
-    ['登場', '強調', '退場']);
+    ['Enter', 'Emphasis', 'Exit']);
   }
 });
 
@@ -78,7 +78,7 @@ test('motion 未選択席の尺・ease・量は disabled、fade / wipe の量に
     const fields = motionRows(factory(snapshot, async () => assert.fail('未選択席には書かない')));
     for (const offset of [0, 4, 8]) {
       assert.equal(fields[offset].disabled, false);
-      assert.equal(fields[offset].options[0], 'なし');
+      assert.equal(fields[offset].options[0], 'None');
       for (const index of [1, 2, 3]) {
         assert.equal(fields[offset + index].disabled, true);
         assert.equal((await fields[offset + index].write(snapshot, '1')).ok, false);
@@ -93,7 +93,7 @@ test('motion 未選択席の尺・ease・量は disabled、fade / wipe の量に
       const current = { ...snapshot, motion: { in: { preset, duration: 12 } } };
       const row = motionRows(factory(current, async () => assert.fail('量を書かない')))[3];
       assert.equal(row.disabled, true);
-      assert.equal(row.title, 'このプリセットに量はありません');
+      assert.equal(row.title, 'This preset has no amount');
       assert.equal((await row.write(current, '20')).ok, false);
     }
   }
@@ -103,12 +103,12 @@ test('media layer / item の外観末尾に「なし」+ 動画候補のマス�
   for (const [kind, factory] of [['layer', layerSections], ['item', itemSections]]) {
     const snapshot = visualSnapshot(kind, { maskSourceOptions: [{ id: 'maskgrad', label: 'mask.mp4' }] });
     const row = factory(snapshot, async () => ({ ok: true })).find(section => section.id === 'appearance').fields.at(-1);
-    assert.equal(row.label, 'マスク');
+    assert.equal(row.label, 'Mask');
     assert.equal(row.inputKind, 'select');
-    assert.deepEqual(row.options, ['なし', 'mask.mp4']);
-    assert.equal(row.getValue(snapshot), 'なし');
+    assert.deepEqual(row.options, ['None', 'mask.mp4']);
+    assert.equal(row.getValue(snapshot), 'None');
     assert.equal(row.disabled, false);
-    assert.match(row.title, /グレースケール動画（白 = 表示・黒 = 透過）/u);
+    assert.match(row.title, /Grayscale video [(]white = visible, black = transparent[)]/u);
   }
 });
 
@@ -128,10 +128,10 @@ test('mask 候補0件の行は disabled と理由を表示し、書き込みを�
     const row = factory(snapshot, async () => assert.fail('disabled write'))
       .find(section => section.id === 'appearance').fields.at(-1);
     assert.equal(row.disabled, true);
-    assert.deepEqual(row.options, ['なし']);
-    assert.match(row.title, /プロジェクトにマスクがありません/u);
-    assert.match(row.title, /グレースケール動画（白 = 表示・黒 = 透過）/u);
-    assert.equal((await row.write(snapshot, 'なし')).ok, false);
+    assert.deepEqual(row.options, ['None']);
+    assert.match(row.title, /No masks in the project/u);
+    assert.match(row.title, /Grayscale video [(]white = visible, black = transparent[)]/u);
+    assert.equal((await row.write(snapshot, 'None')).ok, false);
   }
 });
 
@@ -221,10 +221,10 @@ test('layer / item の動画タブにクロップ直後のパース（4 隅）8�
     const index = sections.findIndex(section => section.id === 'perspective');
     assert.ok(index > 0);
     assert.equal(sections[index - 1].id, 'crop');
-    assert.equal(sections[index].label, 'パース（4 隅）');
+    assert.equal(sections[index].label, 'Perspective (4 corners)');
     assert.equal(sections[index].collapsedByDefault, true);
     assert.deepEqual(sections[index].fields.map(field => field.label), [
-      '左上 X', '左上 Y', '右上 X', '右上 Y', '左下 X', '左下 Y', '右下 X', '右下 Y', '解除'
+      'Top left X', 'Top left Y', 'Top right X', 'Top right Y', 'Bottom left X', 'Bottom left Y', 'Bottom right X', 'Bottom right Y', 'Clear'
     ]);
   }
 });
@@ -234,7 +234,7 @@ test('cut の時間セクションに実働のトランジション選択・尺�
   const time = sections.find(section => section.id === 'time');
   const rows = time.fields.filter(field => field.name.startsWith('transition-'));
   assert.deepEqual(rows.map(field => [field.label, field.inputKind]), [
-    ['トランジション', 'select'], ['トランジション尺', 'scrub-number']
+    ['Transition', 'select'], ['Transition duration', 'scrub-number']
   ]);
   assert.ok(rows.every(field => typeof field.write === 'function'));
   assert.equal(sections.flatMap(section => section.fields).filter(field => field.name?.startsWith('transition-')).length, 2);
@@ -410,7 +410,7 @@ test('cut の動画タブだけにフレーミングがクロップの直後へ�
   assert.equal(assignSectionToTab('cut', 'framing'), 'video');
 
   const cutFactory = sourceBetween('function CUT_SECTIONS(', 'const LAYER_BLEND_OPTIONS');
-  assert.match(cutFactory, /id: 'framing', label: 'フレーミング'/u);
+  assert.match(cutFactory, /id: 'framing', label: 'Framing'/u);
   assert.match(cutFactory, /cutFramingFields\(snapshot, requestWrite\)/u);
   for (const [start, end] of [
     ['function LAYER_SECTIONS(', 'function CAPTION_SECTIONS('],
@@ -419,7 +419,7 @@ test('cut の動画タブだけにフレーミングがクロップの直後へ�
     ['function OVERLAY_SECTIONS(', 'function TREE_ITEM_SECTIONS('],
     ['function TREE_ITEM_SECTIONS(', '@injectable()']
   ]) {
-    assert.doesNotMatch(sourceBetween(start, end), /label: 'フレーミング'/u);
+    assert.doesNotMatch(sourceBetween(start, end), /label: 'Framing'/u);
   }
 });
 
@@ -430,7 +430,7 @@ test('cut の動画タブだけにフリーズがフレーミングの直後へ�
   assert.equal(assignSectionToTab('cut', 'freeze'), 'video');
 
   const cutFactory = sourceBetween('function CUT_SECTIONS(', 'const LAYER_BLEND_OPTIONS');
-  assert.match(cutFactory, /id: 'framing', label: 'フレーミング'[\s\S]{0,180}id: 'freeze', label: 'フリーズ'/u);
+  assert.match(cutFactory, /id: 'framing', label: 'Framing'[\s\S]{0,180}id: 'freeze', label: 'Freeze'/u);
   assert.match(cutFactory, /cutFreezeFields\(snapshot, requestWrite\)/u);
   for (const [start, end] of [
     ['function LAYER_SECTIONS(', 'function CAPTION_SECTIONS('],
@@ -439,7 +439,7 @@ test('cut の動画タブだけにフリーズがフレーミングの直後へ�
     ['function OVERLAY_SECTIONS(', 'function TREE_ITEM_SECTIONS('],
     ['function TREE_ITEM_SECTIONS(', '@injectable()']
   ]) {
-    assert.doesNotMatch(sourceBetween(start, end), /label: 'フリーズ'/u);
+    assert.doesNotMatch(sourceBetween(start, end), /label: 'Freeze'/u);
   }
 });
 
@@ -463,13 +463,13 @@ test('イージング節は外観の直後に入り、KF 席から disabled 属�
 test('木 item snapshot がインスペクターへ時間・変形・外観を渡す', () => {
   assert.match(widgetSource, /this\.treeItemSnapshot\(treeSelection, raw\)/u);
   assert.match(inspectorWidgetSource, /case 'item':\s+sections = TREE_ITEM_SECTIONS/u);
-  assert.match(inspectorWidgetSource, /id: 'transform', label: '変形'/u);
+  assert.match(inspectorWidgetSource, /id: 'transform', label: 'Transform'/u);
 });
 
 test('音声タブ末尾のマスターは cut と audio アイテムの両方へ出る', () => {
   const masterFactory = sourceBetween('function AUDIO_MASTER_SECTION(', 'function OVERLAY_SECTIONS(');
-  assert.match(masterFactory, /label: 'マスター（書き出し全体）'/u);
-  assert.match(masterFactory, /プロジェクト全体に適用・プレビューは未対応（書き出し時のみ）/u);
+  assert.match(masterFactory, /label: 'Master [(]entire export[)]'/u);
+  assert.match(masterFactory, /Applies to the whole project. Not available in preview [(]export only[)]/u);
   assert.equal((masterFactory.match(/name: 'audio-master-/gu) ?? []).length, 4);
 
   const render = sourceBetween('protected render(): void', 'protected tabSourceHint(');
@@ -482,7 +482,7 @@ test('字幕位置は 3x3 grid から preview 所有の hover/preset イベン�
   assert.match(inspectorWidgetSource, /akari-caption-zone-grid/u);
   assert.match(inspectorWidgetSource, /akari\.caption\.zoneHover/u);
   assert.match(inspectorWidgetSource, /akari\.caption\.zonePreset/u);
-  assert.match(inspectorWidgetSource, /saved\.textContent = '保存中'/u);
+  assert.match(inspectorWidgetSource, /saved\.textContent = 'Saved'/u);
   assert.doesNotMatch(inspectorWidgetSource, /name: 'caption-zone'[\s\S]{0,500}kind: 'caption-style-zone'/u);
 });
 
@@ -593,7 +593,7 @@ test('audio の formant select 上の右クリックから既定値に戻すと 
     assert.equal(prevented, true);
     const menus = document.body.querySelectorAll('.akari-inspector-row-menu');
     assert.equal(menus.length, 1);
-    const button = menus[0].children.find(child => child.textContent === '既定値に戻す');
+    const button = menus[0].children.find(child => child.textContent === 'Reset to default');
     assert.ok(button);
     assert.equal(resetSnapshots.length, 0);
     button.emit('click');
@@ -714,7 +714,7 @@ test('cut / layer / overlay / item の変形節は拡縮・回転を既定 field
     assert.match(transformFields, /name: 'transform-scale'/u);
     assert.match(transformFields, /name: 'transform-rotate'/u);
     assert.doesNotMatch(source, /const optionalFields/u);
-    assert.match(source, /\{ id: 'transform', label: '変形', fields: (?:transformFields|\(\['group', 'bag'\]\.includes\(snapshot\.itemKind\))/u);
+    assert.match(source, /\{ id: 'transform', label: 'Transform', fields: (?:transformFields|\(\['group', 'bag'\]\.includes\(snapshot\.itemKind\))/u);
   }
 });
 
@@ -849,13 +849,13 @@ test('nudge は keydown 相当の更新が複数回でも release で1回だけ�
 });
 
 test('前後移動は重なり時も拒否せず新しい段を通知し、legacy item-field は v2 限定文言を返す', () => {
-  assert.match(widgetSource, /を追加しました/);
-  assert.match(widgetSource, /この項目の編集は edit\.json v2 のみ対応です。/);
+  assert.match(widgetSource, /\$\{name\} added/);
+  assert.match(widgetSource, /Editing this item is only supported in edit\.json v2\./);
 });
 
 test('BGM と音声クリップは共通のフェード・ダッキング節と固定既定値を使う', () => {
   assert.match(inspectorWidgetSource, /const AUDIO_DUCK_DEFAULTS = \{ duckDb: -12, duckAttack: 0\.3, duckRelease: 0\.8 \}/u);
-  assert.equal((inspectorWidgetSource.match(/label: 'フェード・ダッキング'/gu) ?? []).length, 2);
+  assert.equal((inspectorWidgetSource.match(/label: 'Fades and ducking'/gu) ?? []).length, 2);
   assert.match(inspectorWidgetSource, /function duckingFields\(/u);
   assert.match(inspectorWidgetSource, /'audio-duck-preset'[\s\S]{0,300}options: \['-3', '-6', '-12'\]/u);
 });
@@ -871,8 +871,8 @@ test('sfx / bgm 音声タブはピッチ・タイム→音声強調、narration 
         const sections = audioSections(audioSnapshot(kind), async () => ({ ok: true }))
             .filter(section => assignSectionToTab('audio', section.id) === 'audio');
         assert.deepEqual(sections.map(section => section.label), [
-            '音声', '時間', ...(kind === 'narration' ? [] : ['フェード・ダッキング']), '音量キーフレーム',
-            ...(kind === 'narration' ? [] : ['ピッチ・タイム']), '音声強調'
+            'Audio', 'Time', ...(kind === 'narration' ? [] : ['Fades and ducking']), 'Volume keyframes',
+            ...(kind === 'narration' ? [] : ['Pitch and time']), 'Audio enhancement'
         ]);
         assert.ok(sections.find(section => section.id === 'audio:enhancement').fields[0].write);
     }
@@ -916,14 +916,14 @@ test('ダッキング数値 UI は契約範囲と step を固定する', () => {
   assert.match(inspectorWidgetSource, /AUDIO_DUCK_DEFAULTS\.duckDb, -40, 0, 0\.5, 'dB'/u);
   assert.match(inspectorWidgetSource, /AUDIO_DUCK_DEFAULTS\.duckAttack, 0, 2, 0\.01, 's'/u);
   assert.match(inspectorWidgetSource, /AUDIO_DUCK_DEFAULTS\.duckRelease, 0, 5, 0\.05, 's'/u);
-  assert.match(inspectorWidgetSource, /gain_db は -60〜12 の範囲/u);
+  assert.match(inspectorWidgetSource, /gain_db must be between -60 and 12/u);
 });
 
 test('音量キーフレーム節は追加・時刻・gain・easing・削除を配列 write へ戻す', () => {
-  assert.match(inspectorWidgetSource, /id: 'audio:keyframes', label: '音量キーフレーム'/u);
-  assert.match(inspectorWidgetSource, /actionLabel: '再生ヘッド位置に追加'/u);
+  assert.match(inspectorWidgetSource, /id: 'audio:keyframes', label: 'Volume keyframes'/u);
+  assert.match(inspectorWidgetSource, /actionLabel: 'Add at playhead'/u);
   assert.match(inspectorWidgetSource, /AUDIO_KEYFRAME_EASING_OPTIONS = \['linear', 'hold', 'ease-in-out'\]/u);
-  assert.match(inspectorWidgetSource, /actionLabel: '削除'/u);
+  assert.match(inspectorWidgetSource, /actionLabel: 'Delete'/u);
   const requestStart = inspectorWidgetSource.indexOf("kind: 'audio-keyframes'");
   const requestBlock = inspectorWidgetSource.slice(requestStart, requestStart + 420);
   assert.match(requestBlock, /gain_db: point\.gain_db \?\? 0/u);

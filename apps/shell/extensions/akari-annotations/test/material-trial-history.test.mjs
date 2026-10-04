@@ -46,7 +46,7 @@ test('real commit mutation → three different candidates → cancel restores ex
  const f = fixture();
  for (const key of ['one','two','three','four']) {
  await f.w.tryMaterialSwap(candidate(key)); assert.deepEqual(f.errors, []); assert.notEqual(f.disk(), f.original); assert.equal(f.past.length, 0);
- assert.equal(f.trial.entry.label, 'お試し中'); assert.equal(f.w.editDocument.tracks[0].items[0].at, 30);
+ assert.equal(f.trial.entry.label, 'Trying out'); assert.equal(f.w.editDocument.tracks[0].items[0].at, 30);
  }
  await f.w.finishMaterialSwap(false);
  assert.equal(f.disk(), f.original); assert.equal(f.trial.entry, undefined); assert.equal(f.past.length, 0); assert.deepEqual(f.errors, []);
@@ -55,7 +55,7 @@ test('real commit mutation → three different candidates → cancel restores ex
 test('confirm records one entry, one undo restores exact original, redo restores candidate', async () => {
  const f = fixture(); await f.w.tryMaterialSwap(candidate('one')); await f.w.tryMaterialSwap(candidate('two'));
  const after = f.disk(); await f.w.finishMaterialSwap(true);
- assert.equal(f.past.length, 1); assert.equal(f.past[0].label, '素材の入れ替え'); assert.equal(f.disk(), after);
+ assert.equal(f.past.length, 1); assert.equal(f.past[0].label, 'Replace footage'); assert.equal(f.disk(), after);
  await f.past[0].undo(); assert.equal(f.disk(), f.original);
  await f.past[0].redo(); assert.equal(f.disk(), after);
 });
@@ -121,11 +121,11 @@ for (const failure of ['failed','throw']) test(`startup ${failure} retains confi
   return result;
  };
  await f.w.tryMaterialSwap(candidate('one')); assert.ok(f.trial.entry);assert.equal(f.errors.length,1);
- assert.match(f.errors[0],/再生できませんでした/);assert.equal(f.warnings.length,0);
+ assert.match(f.errors[0],/Could not play/);assert.equal(f.warnings.length,0);
  const show=f.commands.findIndex(([id,args])=>id==='akari.preview.materialTrial'&&args.title);
  assert.ok(show>=0&&show<f.commands.findIndex(([id])=>id==='akari.preview.playSwapTrial'));
  await f.w.finishMaterialSwap(failure==='failed');
- if(failure==='failed'){assert.equal(f.past[0].label,'素材の入れ替え');await f.past[0].undo();}
+ if(failure==='failed'){assert.equal(f.past[0].label,'Replace footage');await f.past[0].undo();}
  assert.equal(f.disk(),f.original);
 });
 test('successful or user-cancelled playback produces no fallback toast', async () => {
@@ -215,7 +215,7 @@ test('cancel during resolution of another candidate restores the original and ne
 });
 test('provisional replacement rejects a different baseline without losing the rollback entry',()=>{
  const h=new MaterialTrialHistory(),entry={label:'お試し中',before:'original',undo:async()=>{},redo:async()=>{}};
- h.set(entry);assert.throws(()=>h.replace({...entry,before:'different'}),/一致/);assert.equal(h.entry,entry);
+ h.set(entry);assert.throws(()=>h.replace({...entry,before:'different'}),/does not match/);assert.equal(h.entry,entry);
 });
 
 test('trying the same candidate again does not write or replace the baseline',async()=>{

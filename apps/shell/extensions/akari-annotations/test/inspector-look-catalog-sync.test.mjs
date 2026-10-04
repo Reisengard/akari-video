@@ -45,7 +45,7 @@ test('look replaces basic and wheels in one write and preserves other adjustment
   assert.equal(updateInspectorAdjust({}, 'adjust', { basic: { exposure: 0 }, wheels: { lift: { r: 0 } } }), null);
   for (const invalid of [[], 4, { basic: [] }, { basic: { wrong: 1 } }, { basic: { exposure: 4 } },
     { wheels: { wrong: {} } }, { wheels: { lift: { r: 1 } } }, { wheels: [] }]) {
-    assert.throws(() => updateInspectorAdjust(current, 'adjust', invalid), /[ぁ-んァ-ヶ一-龠]/u);
+    assert.throws(() => updateInspectorAdjust(current, 'adjust', invalid), /[A-Za-z]/u);
   }
 });
 test('bundled LUT options use their catalog display names in both photo and color controls', () => {
@@ -58,12 +58,12 @@ test('bundled LUT options use their catalog display names in both photo and colo
 test('LUT labels compose bundled and project options and round trip values', () => {
   const options = buildLutOptions(['assets/luts/My.CUBE']);
   assert.equal(options.length, 12);
-  assert.deepEqual(options[0], { label: 'なし', value: null });
-  assert.deepEqual(options.at(-1), { label: 'My.CUBE（プロジェクト）', value: 'assets/luts/My.CUBE' });
+  assert.deepEqual(options[0], { label: 'None', value: null });
+  assert.deepEqual(options.at(-1), { label: 'My.CUBE (project)', value: 'assets/luts/My.CUBE' });
   assert.equal(lutOptionLabel('natural'), 'ナチュラル');
   assert.equal(lutOptionLabel('mono'), 'モノクロ');
   assert.equal(lutOptionLabel('unknown'), 'unknown');
-  assert.equal(lutOptionLabel(undefined), 'なし');
+  assert.equal(lutOptionLabel(undefined), 'None');
   assert.equal(updateInspectorAdjust({ lut: { lut: 'natural', intensity: 0.4 } }, 'adjust.lut.lut', options.at(-1).value).lut.intensity, 0.4);
 });
 test('compare releases once on selection change, tab departure and disposal', () => {
@@ -95,10 +95,10 @@ test('look row sends exactly one replacement request and custom sends none', asy
   const write = async request => { writes.push(request); return { ok: true }; };
   const row = sections(snapshot, write, { projectLutRefs: [] })[0].fields[0];
   assert.equal(row.name, 'adjust-look');
-  assert.equal(row.getValue(), 'カスタム');
+  assert.equal(row.getValue(), 'Custom');
   await row.write(snapshot, catalog[0].name);
   assert.deepEqual(writes, [{ kind: 'item-field', id: 'media-1', path: 'adjust', value: catalog[0].adjust }]);
-  await row.write(snapshot, 'カスタム');
+  await row.write(snapshot, 'Custom');
   assert.equal(writes.length, 1);
   assert.equal((await row.write(snapshot, 'missing')).ok, false);
   const disabled = sections({ ...snapshot, adjust: { sections: { basic: false } } }, write, { projectLutRefs: [] })[0].fields[0];

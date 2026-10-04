@@ -18,8 +18,8 @@ export function createSelectionHeader(
     let source: string | undefined;
     switch (snapshot.kind) {
         case 'multi': {
-            name = `${snapshot.count} 個を選択中`;
-            kind = '複数選択';
+            name = `${snapshot.count} selected`;
+            kind = 'Multiple selection';
             const ranges = snapshot.items.flatMap(item => {
                 const from = item.outputStart;
                 const to = 'outputEnd' in item ? item.outputEnd
@@ -34,24 +34,24 @@ export function createSelectionHeader(
         }
         case 'world':
             name = snapshot.world.label;
-            kind = 'ワールド';
+            kind = 'World';
             start = snapshot.stop?.at;
             end = snapshot.stop?.leave;
             break;
         case 'gap':
-            name = 'クリップ間のすき間';
-            kind = 'すき間';
+            name = 'Gap between clips';
+            kind = 'Gap';
             start = snapshot.startSeconds;
             end = snapshot.endSeconds;
             break;
         default:
             name = snapshot.kind === 'caption' ? snapshot.text : snapshot.clipName;
-            kind = snapshot.kind === 'cut' ? 'カット'
-                : snapshot.kind === 'caption' ? '字幕'
-                    : snapshot.kind === 'audio' ? '音声'
-                        : snapshot.kind === 'item' ? ({ group: 'キャンバス', bag: '袋', part: 'パート',
-                            caption: '字幕', captions: '字幕', telop: 'テロップ', filter: 'フィルター',
-                            media: '素材', item: '素材' }[snapshot.itemKind]) : '素材';
+            kind = snapshot.kind === 'cut' ? 'Cut'
+                : snapshot.kind === 'caption' ? 'Caption'
+                    : snapshot.kind === 'audio' ? 'Audio'
+                        : snapshot.kind === 'item' ? ({ group: 'Canvas', bag: 'Group', part: 'Part',
+                            caption: 'Caption', captions: 'Caption', telop: 'Caption', filter: 'Filter',
+                            media: 'Footage', item: 'Footage' }[snapshot.itemKind]) : 'Footage';
             start = snapshot.outputStart;
             end = 'outputEnd' in snapshot ? snapshot.outputEnd
                 : 'duration' in snapshot && start !== undefined ? start + snapshot.duration : undefined;
@@ -84,7 +84,7 @@ export function createSelectionHeader(
         const menuButton = document.createElement('button');
         menuButton.type = 'button';
         menuButton.setAttribute('data-akari-my-style-inspector-menu', '');
-        menuButton.setAttribute('aria-label', '字幕のその他の操作');
+        menuButton.setAttribute('aria-label', 'More caption actions');
         menuButton.style.position = 'relative';
         menuButton.style.width = '24px';
         menuButton.style.height = '24px';
@@ -97,7 +97,7 @@ export function createSelectionHeader(
         menuButton.setAttribute('aria-expanded', 'false');
         menuButton.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="13" cy="8" r="1.3"/></svg>';
         const tip = document.createElement('span');
-        tip.textContent = '字幕のその他の操作';
+        tip.textContent = 'More caption actions';
         tip.setAttribute('data-akari-my-style-inspector-tip', '');
         Object.assign(tip.style, { display: 'none', position: 'absolute', bottom: '100%', right: '0',
             padding: '4px 6px', whiteSpace: 'nowrap', background: 'var(--theia-editor-background)',
@@ -107,7 +107,7 @@ export function createSelectionHeader(
         menuButton.append(tip);
         const save = document.createElement('button');
         save.type = 'button';
-        save.textContent = 'マイスタイルに保存…';
+        save.textContent = 'Save to My styles...';
         save.setAttribute('data-akari-my-style-inspector-save', '');
         save.hidden = true;
         save.setAttribute('role', 'menuitem');

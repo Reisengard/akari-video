@@ -1,7 +1,7 @@
 // 保存起点フッターが、今回書いていないファイルの既存指摘まで編集へ誤帰属するのを防ぐ。
 // lint の実行・記録・プロジェクト全体の合否は変えず、フッター表示の責任範囲だけを分ける。
 
-import type { UiLintFinding } from './lint-message-ja';
+import type { UiLintFinding } from './lint-message';
 
 export interface LintBlameSplit {
     own: UiLintFinding[];

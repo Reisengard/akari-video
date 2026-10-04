@@ -74,7 +74,7 @@ test('色を作る窓: 3 色・放射にすると 3 色の radial / 5 色まで 
     assert.equal(two.stops.length, 2);
     assert.equal(removeGradientStop(paint, 4).stops.length, 4);
     assert.deepEqual(GRADIENT_STYLES.map(style => [style.label, style.type, style.angle]),
-        [['横', 'linear', 90], ['縦', 'linear', 180], ['斜め ↘', 'linear', 135], ['放射', 'radial', undefined], ['斜め ↗', 'linear', 45]]);
+        [['Horizontal', 'linear', 90], ['Vertical', 'linear', 180], ['Diagonal ↘', 'linear', 135], ['Radial', 'radial', undefined], ['Diagonal ↗', 'linear', 45]]);
 });
 
 test('色相 × 鮮やかさ × 明るさ: 往復で色が保たれる', () => {

@@ -26,7 +26,7 @@ export function readAloudProvenanceLabel(provenance: Record<string, unknown> | u
     if (voice.startsWith('profile:')) {
         const id = voice.slice('profile:'.length);
         const profile = profiles.find(item => item.id === id);
-        return profile ? `自分の声（${profile.label}）` : voice;
+        return profile ? `Your voice (${profile.label})` : voice;
     }
     return voice || '—';
 }
@@ -76,13 +76,13 @@ export function readAloudEngineGroups(engines: readonly NarrationEngine[], previ
 }
 
 export function readAloudPrice(engine: NarrationEngine): string {
-    if (engine.place !== 'cloud') return '無料';
+    if (engine.place !== 'cloud') return 'Free';
     const price = engine.price;
     const unit = price?.unit ?? (price?.usd_per_1000_chars !== undefined ? 'usd_per_1000_chars' : null);
     const value = price?.value ?? price?.usd_per_1000_chars;
-    if (unit === null || value === undefined || value === null) return '見積不可';
-    const suffix = unit === 'usd_per_second' ? '秒' : unit === 'usd_per_request' ? '回' : '1000 字';
-    return `$${value} / ${suffix}${price?.verified === false ? '（暫定）' : ''}`;
+    if (unit === null || value === undefined || value === null) return 'Estimate unavailable';
+    const suffix = unit === 'usd_per_second' ? 'sec' : unit === 'usd_per_request' ? 'request' : '1000 chars';
+    return `$${value} / ${suffix}${price?.verified === false ? ' (provisional)' : ''}`;
 }
 
 export function readAloudCopyEngines(profile: VoiceProfileSummary, engines: readonly NarrationEngine[], last?: string): {
@@ -91,9 +91,9 @@ export function readAloudCopyEngines(profile: VoiceProfileSummary, engines: read
     const usable = new Set(profile.usable_engines ?? profile.engines);
     const options = READ_ALOUD_COPY_IDS.flatMap(id => engines.filter(engine => engine.id === id)).map(engine => {
         const stale = profile.copies?.[engine.id]?.stale === true;
-        const reason = engine.id === 'irodori' && engine.availability.state !== 'available' ? 'つながりません'
-            : engine.availability.state === 'unconfigured' ? '鍵なし'
-            : !usable.has(engine.id) || engine.availability.state !== 'available' ? '写しなし' : undefined;
+        const reason = engine.id === 'irodori' && engine.availability.state !== 'available' ? 'not connected'
+            : engine.availability.state === 'unconfigured' ? 'no key'
+            : !usable.has(engine.id) || engine.availability.state !== 'available' ? 'no copy' : undefined;
         return { engine, usable: reason === undefined, stale, reason };
     });
     const selected = (options.find(row => row.engine.id === 'irodori' && row.usable)
@@ -103,12 +103,12 @@ export function readAloudCopyEngines(profile: VoiceProfileSummary, engines: read
 }
 
 export function readAloudCopyOptionLabel(row: { engine: NarrationEngine; stale: boolean; reason?: string }): string {
-    const name = row.engine.id === 'irodori' ? '彩（無料・自分の PC）' : row.engine.label;
-    return `${name}${row.stale ? '（写しが古い）' : ''}${row.reason ? `（${row.reason}）` : ''}`;
+    const name = row.engine.id === 'irodori' ? 'Irodori (free, on your PC)' : row.engine.label;
+    return `${name}${row.stale ? ' (copy is outdated)' : ''}${row.reason ? ` (${row.reason})` : ''}`;
 }
 
 export function readAloudCopyNote(row: { engine: NarrationEngine; stale: boolean }): string {
-    return `${row.engine.supports?.clone === 'per-request' ? '録音を毎回送ります' : '写しを使います'}${row.stale ? ' · 写しが古いです' : ''}`
+    return `${row.engine.supports?.clone === 'per-request' ? 'Sends the recording each time' : 'Uses a saved copy'}${row.stale ? ' · Copy is outdated' : ''}`
         + (row.engine.id === 'gemini-3.8-flash-tts' ? ` · ${GEMINI_WATERMARK_NOTICE}` : '');
 }
 
@@ -130,7 +130,7 @@ export async function prepareReadAloudEngine(engine: NarrationEngine,
     await start();
     const engines = await refresh();
     if (!engines.some(item => item.id === 'voicevox' && item.availability.state === 'available')) {
-        throw new Error('VOICEVOX の起動を確認できませんでした。');
+        throw new Error('Could not confirm that VOICEVOX started.');
     }
 }
 
@@ -156,8 +156,8 @@ export function narrationEstimate(engine: NarrationEngine, reading: string): {
     const usd = engine.place !== 'cloud' ? 0 : value == null ? null : unit === 'usd_per_second'
         ? chars / 5 * value : unit === 'usd_per_request' ? value : chars / 1000 * value;
     return { chars, usd, yen: usd === null ? null : Math.round(usd * 150), provisional: engine.price?.verified === false,
-        label: engine.place !== 'cloud' ? '費用 ¥0' : usd === null ? '見積不可（従量）' :
-            `見積 $${usd.toFixed(3)}（≈ ¥${Math.round(usd * 150)}）· 承認 1 回` };
+        label: engine.place !== 'cloud' ? 'Cost ¥0' : usd === null ? 'Estimate unavailable (pay as you go)' :
+            `Estimate $${usd.toFixed(3)} (≈ ¥${Math.round(usd * 150)}) · 1 approval` };
 }
 
 export interface ReadAloudRow { id: string; text: string; start: number; end: number;
@@ -205,20 +205,20 @@ export function readAloudPreviewPlan(engine: NarrationEngine, reading: string): 
     confirm?: { title: string; msg: string; ok: string; cancel: string };
 } {
     if (engine.place !== 'cloud') return {
-        buttonLabel: '▶ 試聴',
-        footnote: engine.id === 'irodori' ? '彩は時間がかかります（お試し）。作った音声を試聴してから置きます。' : 'ローカルなので費用承認なし。作った音声はまず試聴、置くのはその後。',
+        buttonLabel: '▶ Listen',
+        footnote: engine.id === 'irodori' ? 'Irodori is slow (trial). Preview the generated audio before placing it.' : 'Runs locally, so no cost approval. Preview the generated audio first, then place it.',
         needsApproval: false
     };
     const quote = narrationEstimate(engine, reading);
     return {
-        buttonLabel: '費用を見て試聴…',
-        footnote: 'クラウド。試聴の前に費用承認を 1 回。送るのは読み原稿の文字だけ。',
+        buttonLabel: 'Review cost and preview...',
+        footnote: 'Cloud. One cost approval before previewing. Only the reading text is sent.',
         needsApproval: true,
         confirm: {
-            title: '費用承認',
-            msg: quote.usd === null ? `見積を出せません。送ると ${readAloudProvider(engine)} の従量で課金されます。送りますか` :
-                `$${quote.usd.toFixed(3)}（as_of ${engine.price?.as_of ?? '未確認'}）で ${readAloudProvider(engine)} に 読み原稿 ${quote.chars} 字 を送ります。費用承認しますか`,
-            ok: '費用承認する', cancel: 'キャンセル'
+            title: 'Cost approval',
+            msg: quote.usd === null ? `No estimate available. Sending is billed per use by ${readAloudProvider(engine)}. Send it?` :
+                `Sends ${quote.chars} chars of reading text to ${readAloudProvider(engine)} for $${quote.usd.toFixed(3)} (as_of ${engine.price?.as_of ?? 'unconfirmed'}). Approve the cost?`,
+            ok: 'Approve cost', cancel: 'Cancel'
         }
     };
 }

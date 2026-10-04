@@ -54,5 +54,5 @@ test('同期タイムラインの動画・画像・音声は node 解決表を�
         assert.equal(handler.resolveEditMediaUri(path, editUri).toString(), uri);
     }
     assert.equal(handler.resolveEditMediaUri('assets/old.wav', editUri).toString(), 'file:///project/assets/old.wav');
-    assert.throws(() => handler.resolveEditMediaUri('assets/../../outside.wav', editUri), /外/);
+    assert.throws(() => handler.resolveEditMediaUri('assets/../../outside.wav', editUri), /outside the project/);
 });

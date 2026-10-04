@@ -25,7 +25,7 @@ test('v2 の未定義 item キーを検証した例外はメッセージ全文�
   assert.ok(validationError instanceof Error);
   const failure = classifyEditLoadFailure(validationError);
   assert.equal(failure.kind, 'invalid');
-  assert.equal(failure.notice, `edit.json を読み込めませんでした: ${validationError.message}`);
+  assert.equal(failure.notice, `Could not load edit.json: ${validationError.message}`);
   assert.match(failure.notice, /未定義キーを使用できません: name/);
 });
 
@@ -40,12 +40,12 @@ test('未定義キーと新しい版の stamp の組だけ更新を案内する'
   assert.doesNotMatch(newer.notice, /取り除く|\.akari\/backup/);
   for (const input of [context(undefined), context(stamp('0.1.86'))]) {
     const old = classifyEditLoadFailure(error, input);
-    assert.equal(old.notice, `edit.json を読み込めませんでした: ${error.message}`);
+    assert.equal(old.notice, `Could not load edit.json: ${error.message}`);
     assert.equal(old.updateAvailable, undefined);
   }
   const syntaxError = new SyntaxError('Unexpected token');
   assert.equal(classifyEditLoadFailure(syntaxError, context(stamp('9.9.9'))).notice,
-    `edit.json を読み込めませんでした: ${syntaxError.message}`);
+    `Could not load edit.json: ${syntaxError.message}`);
 });
 
 test('Theia の 2 種類の NotFound 相当エラーは missing になる', () => {

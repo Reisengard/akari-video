@@ -108,7 +108,7 @@ test('speaker toggle writes tracks[].muted through commit and undo/redo; unmute 
   await context.toggleTimelineTrackFlag(context.timelineTracks[0], 'muted');
   assert.equal(read().tracks[0].muted, true);
   assert.equal(context.timelineTracks[0].muted, true);
-  assert.equal(context.footer.textContent, 'トラックの音声をオフにしました。');
+  assert.equal(context.footer.textContent, 'Done: Mute track audio.');
   assert.equal(context.writes.length, 1);
   assert.equal(context.history.length, 1);
   assert.equal(context.syncCount, 1);
@@ -120,7 +120,7 @@ test('speaker toggle writes tracks[].muted through commit and undo/redo; unmute 
   await context.toggleTimelineTrackFlag(context.timelineTracks[0], 'muted');
   assert.equal(Object.hasOwn(read().tracks[0], 'muted'), false);
   assert.equal(context.timelineTracks[0].muted, undefined);
-  assert.equal(context.footer.textContent, 'トラックの音声をオンにしました。');
+  assert.equal(context.footer.textContent, 'Done: Unmute track audio.');
   assert.deepEqual(context.storageWrites, []);
 });
 
@@ -168,7 +168,7 @@ test('failed migration retains storage and document state and can retry', async 
   assert.equal(context.timelineTracks[0].muted, undefined);
   assert.equal(stored.get(key('visual')), true);
   assert.deepEqual(context.storageWrites, []);
-  assert.match(context.footer.textContent, /保存できません.*write failed/u);
+  assert.match(context.footer.textContent, /Could not save track mute.*write failed/u);
   context.failWrite = false;
   await context.applyStoredTrackFlags();
   assert.equal(read().tracks[0].muted, true);
@@ -181,7 +181,7 @@ test('derived track toggle and migration fail without creating a track or fallin
   const before = read();
   const derived = { id: 'implicit', kind: 'audio', ref: 9 };
   await context.toggleTimelineTrackFlag(derived, 'muted');
-  assert.match(context.footer.textContent, /編集できません/u);
+  assert.match(context.footer.textContent, /Could not edit track audio/u);
   assert.deepEqual(context.storageWrites, []);
   context.timelineTracks.push(derived);
   stored.set(key('implicit'), true);
@@ -202,7 +202,7 @@ test('mute toggle handles missing edit and non-v2 documents without writing', as
       context.fileService.readFile = async () => ({ value: JSON.stringify({ version: 0 }) });
     }
     await context.toggleTimelineTrackFlag(context.timelineTracks[0], 'muted');
-    assert.match(context.footer.textContent, /編集できません/u);
+    assert.match(context.footer.textContent, /Could not edit track audio/u);
     assert.equal(context.writes.length, 0);
     assert.deepEqual(context.storageWrites, []);
   }

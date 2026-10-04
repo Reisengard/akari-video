@@ -10,7 +10,7 @@ export function writeNestedPreviewLayer(
     if (command.kind !== 'layer') return undefined;
     const location = locate(doc as unknown as EditableEditV2, command.itemId);
     if (!location || location.ancestors.length === 0) return undefined;
-    if (location.item.source.kind !== 'media') throw new Error('キャンバス内の写真を選んでください');
+    if (location.item.source.kind !== 'media') throw new Error('Select a photo inside the canvas.');
     let next = doc;
     if (command.patch.xyKeyframes) {
         next = updateTreeV2Item(next, command.itemId, {
@@ -21,7 +21,7 @@ export function writeNestedPreviewLayer(
     if (command.patch.transform) {
         const parent = worldTransformOfAncestors(location.ancestors);
         const local = relativeTransform(parent, command.patch.transform);
-        if (!local) throw new Error('写真の変形を計算できません');
+        if (!local) throw new Error('Could not calculate the photo transform.');
         const output = doc.output as { fps?: number };
         const frame = Math.round((command.playheadSeconds ?? NaN) * (output?.fps ?? NaN)) - absoluteAt(location);
         if (Number.isFinite(frame) && Array.isArray(location.item.keyframes)

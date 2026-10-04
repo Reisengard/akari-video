@@ -7,9 +7,9 @@ export type ApplyPlan = { kind: 'caption'; id: string; parts: Part[] }
     | { kind: 'lut'; id: string; lut: string };
 
 export function captionLibraryApplyFeedback(kind?: ApplyPayload['kind']): { history: string; footer: string } | undefined {
-    if (kind === 'textanim') return { history: '動きを当てる', footer: '動きを当てました。' };
-    if (kind === 'textstyle') return { history: 'スタイルを当てる', footer: 'スタイルを当てました。' };
-    if (kind === 'font') return { history: 'フォントを変える', footer: 'フォントを変えました。' };
+    if (kind === 'textanim') return { history: 'Apply motion', footer: 'Motion applied.' };
+    if (kind === 'textstyle') return { history: 'Apply style', footer: 'Style applied.' };
+    if (kind === 'font') return { history: 'Change font', footer: 'Font changed.' };
     return undefined;
 }
 

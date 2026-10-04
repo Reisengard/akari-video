@@ -33,8 +33,8 @@ test('crop / perspective は編集可能行として必要時だけ現れる', (
   });
   assert.equal(rows.find(row => row.property === 'crop').editable, true);
   assert.equal(rows.find(row => row.property === 'perspective').editable, true);
-  assert.equal(rows.find(row => row.property === 'crop').label, 'クロップ');
-  assert.equal(rows.find(row => row.property === 'perspective').label, 'パース');
+  assert.equal(rows.find(row => row.property === 'crop').label, 'Crop');
+  assert.equal(rows.find(row => row.property === 'perspective').label, 'Perspective');
 });
 
 test('seat leaves map to their single timeline row', () => {
