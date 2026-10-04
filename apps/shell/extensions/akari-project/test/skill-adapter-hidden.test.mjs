@@ -14,7 +14,7 @@ function stringArray(source, pattern) {
     return [...match[1].matchAll(/'([^']+)'/g)].map(entry => entry[1]);
 }
 
-test('3 か所の fallback hidden がスキルリンク置き場を含み、既存 workflow は和集合で読み込む', async () => {
+test('three fallback hidden locations include skill links; existing workflows read the union', async () => {
     const files = [
         'apps/shell/extensions/akari-project/src/browser/akari-workflow-service.ts',
         'apps/shell/extensions/akari-project/src/node/akari-project-service.ts',

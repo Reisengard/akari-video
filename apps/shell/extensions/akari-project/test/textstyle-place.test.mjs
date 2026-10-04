@@ -6,14 +6,14 @@ import { presetShowcaseBottomPadding, textStylePlaceOptions } from '../lib/commo
 const widget = readFileSync(new URL('../src/browser/akari-role-buckets-widget.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../src/common/library-home-view.ts', import.meta.url), 'utf8');
 
-test('テキストスタイルだけが placeText の stylePreset 引数になる', () => {
+test('only text styles become placeText stylePreset arguments', () => {
   assert.deepEqual(textStylePlaceOptions({ kind: 'textstyle', id: 'telop-title' }), { stylePreset: 'telop-title' });
   assert.equal(textStylePlaceOptions({ kind: 'textanim', id: 'fade' }), undefined);
   assert.equal(textStylePlaceOptions({ kind: 'lut', id: 'warm' }), undefined);
   assert.equal(textStylePlaceOptions({ kind: 'textstyle', id: ' ' }), undefined);
 });
 
-test('マイスタイルの＋は見た目込みの placeText を一度だけ呼ぶ', () => {
+test('My styles ＋ calls placeText exactly once with appearance', () => {
   const start = widget.indexOf('protected async addMyStyleAtPlayhead(');
   const end = widget.indexOf('\n    protected ', start + 1);
   const body = widget.slice(start, end);
@@ -21,7 +21,7 @@ test('マイスタイルの＋は見た目込みの placeText を一度だけ呼
   assert.doesNotMatch(body, /akari\.mystyle\.apply/);
 });
 
-test('grid と list のかけるカードはドラッグでき、文字の新規配置は右クリックと情報カードへ畳む', () => {
+test('grid and list apply cards can be dragged; new text placement lives in context menus and info cards', () => {
   const start = widget.indexOf('protected renderPresetLibraryCard(');
   const end = widget.indexOf('\n    protected ', start + 1);
   const body = widget.slice(start, end);
@@ -39,12 +39,12 @@ test('grid と list のかけるカードはドラッグでき、文字の新規
   assert.match(widget, /executeCommand\('akari\.caption\.placeText', options\)/);
 });
 
-test('テキストスタイルの hint はタイムラインへの配置を案内する', () => {
-  assert.match(home, /hint: '選んだ文字に当てる・新しい文字として置く'/);
-  assert.doesNotMatch(home, /プレビューへドラッグ/);
+test('text style hints explain timeline placement', () => {
+  assert.match(home, /hint: 'Apply to selected text or add as new text'/);
+  assert.doesNotMatch(home, /Drag to Preview/);
 });
 
-test('FAB を避ける下余白は textstyle の grid/list 共通の一覧だけに付く', () => {
+test('FAB bottom clearance applies only to shared textstyle grid/list item lists', () => {
   assert.equal(presetShowcaseBottomPadding('textstyle'), 110);
   assert.equal(presetShowcaseBottomPadding('textanim'), undefined);
   assert.equal(presetShowcaseBottomPadding('lut'), undefined);

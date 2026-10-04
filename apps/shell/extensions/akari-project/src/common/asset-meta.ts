@@ -19,13 +19,13 @@ export interface AssetMetaDescription {
 
 export function describeAssetMeta(meta: AssetMeta | undefined): AssetMetaDescription {
     return {
-        duration: typeof meta?.durationSeconds === 'number' ? formatDuration(meta.durationSeconds) : '未分析',
-        resolution: meta?.width && meta?.height ? `${meta.width} × ${meta.height}` : '未分析',
-        transcript: meta?.transcript?.available === true ? 'あり' : meta?.transcript?.available === false ? 'なし' : '未分析',
-        analysis: meta?.analysis?.summary || '未分析',
+        duration: typeof meta?.durationSeconds === 'number' ? formatDuration(meta.durationSeconds) : 'Not analyzed',
+        resolution: meta?.width && meta?.height ? `${meta.width} × ${meta.height}` : 'Not analyzed',
+        transcript: meta?.transcript?.available === true ? 'Yes' : meta?.transcript?.available === false ? 'No' : 'Not analyzed',
+        analysis: meta?.analysis?.summary || 'Not analyzed',
         decisions: meta?.decisions?.length
-            ? meta.decisions.map(item => item.summary || item.id || '判断').join(' / ')
-            : '未分析'
+            ? meta.decisions.map(item => item.summary || item.id || 'Decision').join(' / ')
+            : 'Not analyzed'
     };
 }
 

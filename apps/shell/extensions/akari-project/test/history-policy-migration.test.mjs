@@ -6,26 +6,13 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
-import { PROJECT_GITIGNORE } from 'akari-video/src/history-policy.mjs';
+import { PROJECT_GITIGNORE, LEGACY_PROJECT_GITIGNORES } from 'akari-video/src/history-policy.mjs';
 
 import { AkariProjectServiceImpl } from '../lib/node/akari-project-service.js';
 
 const execFileAsync = promisify(execFile);
 
-const LEGACY_GITIGNORE = [
-    '# Source video and audio are intentionally kept outside the project history.',
-    'assets/**',
-    '!assets/.gitkeep',
-    '',
-    '# Temporary files used by the friendly "変更を見る" view.',
-    '.akari/diffs/**',
-    '!.akari/diffs/.gitkeep',
-    '',
-    '# Local operating-system files.',
-    '.DS_Store',
-    'Thumbs.db',
-    ''
-].join('\n');
+const LEGACY_GITIGNORE = LEGACY_PROJECT_GITIGNORES[0];
 
 class MigrationService extends AkariProjectServiceImpl {
     fsPath(uri) {
@@ -58,7 +45,7 @@ async function legacyProject(files = {}) {
         '.gitignore': LEGACY_GITIGNORE,
         'edit.json': '{}\n',
         'captions.json': '[]\n',
-        'planning/plan.md': '# 企画\n',
+        'planning/plan.md': '# Planning\n',
         'exports/.gitkeep': '',
         'exports/final.mp4': 'video-bytes',
         'exports/master.gpu-video.mp4': 'intermediate-bytes',
@@ -70,15 +57,15 @@ async function legacyProject(files = {}) {
         ...files
     });
     await git(root, ['add', '-A', '--', '.']);
-    await git(root, ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', '動画を書き出し']);
+    await git(root, ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', 'Export video']);
     return root;
 }
 
-test('プロジェクトを開いたとき: 旧世代の .gitignore を書き換え、生成物を履歴から外す', async () => {
+test('opening a project: updates legacy .gitignore and removes generated files from history', async () => {
     const root = await legacyProject();
     try {
         const before = await trackedFiles(root);
-        assert.ok(before.includes('exports/final.mp4'), '前提: 旧世代では書き出しが履歴に入る');
+        assert.ok(before.includes('exports/final.mp4'), 'precondition: legacy exports are tracked in history');
         assert.ok(before.includes('.akari/render-tmp/run-1/frame-000001.png'));
 
         await new MigrationService().migrateHistoryPolicy(root);
@@ -91,7 +78,7 @@ test('プロジェクトを開いたとき: 旧世代の .gitignore を書き換
             '.akari/reports/contact-sheet.png',
             '.akari/render-tmp/run-1/frame-000001.png'
         ]) {
-            assert.ok(!after.includes(gone), `${gone} が履歴に残っている`);
+            assert.ok(!after.includes(gone), `${gone} remains in history`);
         }
         for (const kept of [
             'edit.json',
@@ -102,14 +89,14 @@ test('プロジェクトを開いたとき: 旧世代の .gitignore を書き換
             '.akari/sidecars/shot-01/proxy.mp4',
             '.akari/events/2026-09-03-export-completed.json'
         ]) {
-            assert.ok(after.includes(kept), `${kept} が履歴から落ちた`);
+            assert.ok(after.includes(kept), `${kept} was removed from history`);
         }
     } finally {
         await rm(root, { recursive: true, force: true });
     }
 });
 
-test('プロジェクトを開いたとき: ディスク上のファイルは 1 つも消さない', async () => {
+test('opening a project: deletes no files on disk', async () => {
     const root = await legacyProject();
     try {
         await new MigrationService().migrateHistoryPolicy(root);
@@ -120,7 +107,7 @@ test('プロジェクトを開いたとき: ディスク上のファイルは 1 
             '.akari/reports/contact-sheet.png',
             '.akari/render-tmp/run-1/frame-000001.png'
         ]) {
-            assert.equal((await stat(join(root, relative))).isFile(), true, `${relative} を消してしまった`);
+            assert.equal((await stat(join(root, relative))).isFile(), true, `${relative} was deleted`);
         }
         assert.equal(await readFile(join(root, 'exports/final.mp4'), 'utf8'), 'video-bytes');
     } finally {
@@ -128,17 +115,17 @@ test('プロジェクトを開いたとき: ディスク上のファイルは 1 
     }
 });
 
-test('プロジェクトを開いたとき: 移行は 1 本のコミットで終わり、作業ツリーを汚さない', async () => {
+test('opening a project: migration finishes in one commit and leaves a clean working tree', async () => {
     const root = await legacyProject();
     try {
         await new MigrationService().migrateHistoryPolicy(root);
 
         const { stdout: status } = await git(root, ['status', '--porcelain']);
-        assert.equal(status.trim(), '', '移行後に未コミットの変更が残っている');
+        assert.equal(status.trim(), '', 'uncommitted changes remain after migration');
         const { stdout: log } = await git(root, ['log', '--format=%s']);
         assert.deepEqual(log.split('\n').filter(Boolean), [
-            '変更履歴に入れない生成物を整理（ファイルはそのまま残っています）',
-            '動画を書き出し'
+            'Organize generated files excluded from change history (files remain in place)',
+            'Export video'
         ]);
         // 過去のコミットは書き換えない（.git は横ばい）。
         const { stdout: historical } = await git(root, ['ls-tree', '-r', '--name-only', 'HEAD^']);
@@ -148,7 +135,7 @@ test('プロジェクトを開いたとき: 移行は 1 本のコミットで終
     }
 });
 
-test('プロジェクトを開いたとき: 2 度目は何もしない', async () => {
+test('opening a project: the second run does nothing', async () => {
     const root = await legacyProject();
     try {
         const service = new MigrationService();
@@ -156,19 +143,19 @@ test('プロジェクトを開いたとき: 2 度目は何もしない', async (
         const { stdout: first } = await git(root, ['rev-parse', 'HEAD']);
         await service.migrateHistoryPolicy(root);
         const { stdout: second } = await git(root, ['rev-parse', 'HEAD']);
-        assert.equal(second, first, '変更が無いのにコミットが増えた');
+        assert.equal(second, first, 'commit count increased without changes');
     } finally {
         await rm(root, { recursive: true, force: true });
     }
 });
 
-test('プロジェクトを開いたとき: 利用者が書き換えた .gitignore は消さず末尾へ足す', async () => {
-    const root = await legacyProject({ '.gitignore': `${LEGACY_GITIGNORE}\n# 自分のメモ\nscratch/**\n` });
+test('opening a project: preserves user edits to .gitignore and appends entries', async () => {
+    const root = await legacyProject({ '.gitignore': `${LEGACY_GITIGNORE}\n# My notes\nscratch/**\n` });
     try {
         await new MigrationService().migrateHistoryPolicy(root);
 
         const updated = await readFile(join(root, '.gitignore'), 'utf8');
-        assert.ok(updated.includes('# 自分のメモ'), '利用者が書いた行を消した');
+        assert.ok(updated.includes('# My notes'), 'removed a user-written line');
         assert.ok(updated.includes('scratch/**'));
         assert.ok(updated.includes('!.akari/sidecars/**'));
         assert.ok(!(await trackedFiles(root)).includes('exports/final.mp4'));
@@ -177,7 +164,7 @@ test('プロジェクトを開いたとき: 利用者が書き換えた .gitigno
     }
 });
 
-test('親リポジトリの中にあるプロジェクトには触れない', async () => {
+test('leaves projects inside a parent repository untouched', async () => {
     const parent = await mkdtemp(join(tmpdir(), 'akari-history-parent-'));
     try {
         await git(parent, ['init', '-q']);
@@ -188,7 +175,7 @@ test('親リポジトリの中にあるプロジェクトには触れない', as
             'exports/final.mp4': 'video-bytes'
         });
         await git(parent, ['add', '-A', '--', '.']);
-        await git(parent, ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', '取り込み']);
+        await git(parent, ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', 'Import']);
 
         await new MigrationService().migrateHistoryPolicy(root);
 
@@ -199,7 +186,7 @@ test('親リポジトリの中にあるプロジェクトには触れない', as
     }
 });
 
-test('git の無いプロジェクトでは黙って何もしない', async () => {
+test('silently does nothing for projects without git', async () => {
     const root = await mkdtemp(join(tmpdir(), 'akari-history-gitless-'));
     try {
         await writeAll(root, { '.gitignore': LEGACY_GITIGNORE, 'edit.json': '{}\n' });

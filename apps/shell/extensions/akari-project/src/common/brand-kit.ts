@@ -58,10 +58,10 @@ export function serializeBrandKit(colors: readonly string[]): string {
 /** 足す = 末尾へ（既にあれば何もしない）。 */
 export function addBrandColor(colors: readonly string[], color: string): string[] {
     const normalized = normalizeBrandColor(color);
-    if (!normalized) throw new Error('ブランドカラーは #RRGGBB で指定してください');
+    if (!normalized) throw new Error('Specify brand colors in #RRGGBB format');
     const current = uniqueColors(colors);
     if (current.includes(normalized)) return current;
-    if (current.length >= BRAND_KIT_MAX_COLORS) throw new Error(`ブランドカラーは ${BRAND_KIT_MAX_COLORS} 色までです`);
+    if (current.length >= BRAND_KIT_MAX_COLORS) throw new Error(`Brand colors are limited to ${BRAND_KIT_MAX_COLORS} colors`);
     return [...current, normalized];
 }
 

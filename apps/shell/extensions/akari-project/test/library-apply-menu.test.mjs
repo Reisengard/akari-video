@@ -23,8 +23,8 @@ function fixture(lutPresets = []) {
     return { handler, calls, notices };
 }
 
-test('LUT の右クリックは棚一覧の再取得状態に依存せず、直接呼び出しと同じ payload を待って送る', async () => {
-    for (const presets of [[], [{ kind: 'lut', id: 'film-warm', name: '暖色', tags: ['film'] }]]) {
+test('LUT context menu waits for the same payload as direct invocation regardless of shelf refresh state', async () => {
+    for (const presets of [[], [{ kind: 'lut', id: 'film-warm', name: 'Warm', tags: ['film'] }]]) {
         const state = fixture(presets);
         await state.handler.runLibraryAction({ kind: 'lut', key: 'lut/film-warm' }, 'apply');
         assert.deepEqual(state.calls, [['akari.timeline.applyLibraryItem', {
@@ -38,11 +38,11 @@ test('LUT の右クリックは棚一覧の再取得状態に依存せず、直�
     assert.deepEqual(loading.calls[0][1].payload, { kind: 'lut', id: 'film-warm' });
 });
 
-test('プリセット payload は種類に必要な値だけを載せる', () => {
-    assert.deepEqual(presetApplyPayload({ kind: 'lut', id: 'film-warm', name: '暖色', tags: [] }),
+test('preset payloads contain only values required for their kind', () => {
+    assert.deepEqual(presetApplyPayload({ kind: 'lut', id: 'film-warm', name: 'Warm', tags: [] }),
         { kind: 'lut', id: 'film-warm' });
-    assert.deepEqual(presetApplyPayload({ kind: 'textanim', id: 'fade', name: 'フェード', tags: ['in'] }),
+    assert.deepEqual(presetApplyPayload({ kind: 'textanim', id: 'fade', name: 'Fade', tags: ['in'] }),
         { kind: 'textanim', id: 'fade', slot: 'in' });
-    assert.deepEqual(presetApplyPayload({ kind: 'textstyle', id: 'news', name: 'ニュース', tags: [], style: { color: '#fff' } }),
+    assert.deepEqual(presetApplyPayload({ kind: 'textstyle', id: 'news', name: 'News', tags: [], style: { color: '#fff' } }),
         { kind: 'textstyle', id: 'news', style: { color: '#fff' } });
 });

@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import { waveformCardFilter } from '../lib/common/waveform-card-filter.js';
 
 const cases = [
-    ['5 秒', 5, 1],
-    ['30 秒', 30, 1],
-    ['45 秒', 45, 2],
-    ['3 分', 180, 4],
-    ['20 分', 1200, 4],
-    ['尺不明', undefined, 1]
+    ['5 seconds', 5, 1],
+    ['30 seconds', 30, 1],
+    ['45 seconds', 45, 2],
+    ['3 minutes', 180, 4],
+    ['20 minutes', 1200, 4],
+    ['Duration unknown', undefined, 1]
 ];
 
 for (const [label, duration, rows] of cases) {
-    test(`waveformCardFilter: ${label} は ${rows} 行`, () => {
+    test(`waveformCardFilter: ${label} has ${rows} rows`, () => {
         for (const size of [640, 320]) {
             const filter = waveformCardFilter(duration, size);
             const wave = `showwavespic=s=${size}x${Math.floor(size / rows)}:colors=0d6efd:draw=full:scale=sqrt`;

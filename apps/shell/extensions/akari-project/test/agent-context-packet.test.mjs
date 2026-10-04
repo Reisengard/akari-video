@@ -4,7 +4,7 @@ import { composeAgentContextPacket, composeMaterialAskAgentPrompt, composeOutput
 
 // composer 単体テスト（task.md L0: 要素の有無 4 パターン — 分析済み/未分析 × 入力の改行畳み込み）。
 
-test('composeMaterialAskAgentPrompt: 分析済み・改行なし入力 — 5 要素すべて出る', () => {
+test('composeMaterialAskAgentPrompt: analyzed input without line breaks — includes all five elements', () => {
     const packet = composeMaterialAskAgentPrompt(
         {
             relativePath: 'assets/clip.mp4',
@@ -12,16 +12,16 @@ test('composeMaterialAskAgentPrompt: 分析済み・改行なし入力 — 5 要
             durationSeconds: 6,
             analysisRelativePath: '.akari/sidecars/assets/clip.mp4.analysis/analysis.json'
         },
-        'この素材を要約して'
+        'Summarize this footage'
     );
     assert.equal(
         packet,
-        '【素材】assets/clip.mp4（尺 0:06・分析済み・analysis: .akari/sidecars/assets/clip.mp4.analysis/analysis.json）について: この素材を要約して'
+        '【Footage】assets/clip.mp4（Duration 0:06 · Analyzed · analysis: .akari/sidecars/assets/clip.mp4.analysis/analysis.json）: Summarize this footage'
     );
-    assert.equal(/[\r\n]/.test(packet), false, 'パケットは 1 行でなければならない');
+    assert.equal(/[\r\n]/.test(packet), false, 'Packet must be a single line');
 });
 
-test('composeMaterialAskAgentPrompt: 分析済み・改行を含む入力 — 空白に畳まれる', () => {
+test('composeMaterialAskAgentPrompt: analyzed input with line breaks — collapsed to spaces', () => {
     const packet = composeMaterialAskAgentPrompt(
         {
             relativePath: 'assets/clip.mp4',
@@ -29,57 +29,57 @@ test('composeMaterialAskAgentPrompt: 分析済み・改行を含む入力 — �
             durationSeconds: 66,
             analysisRelativePath: '.akari/sidecars/assets/clip.mp4.analysis/analysis.json'
         },
-        '1行目\n2行目\r\n3行目'
+        'Line 1\nLine 2\r\nLine 3'
     );
     assert.equal(
         packet,
-        '【素材】assets/clip.mp4（尺 1:06・分析済み・analysis: .akari/sidecars/assets/clip.mp4.analysis/analysis.json）について: 1行目 2行目 3行目'
+        '【Footage】assets/clip.mp4（Duration 1:06 · Analyzed · analysis: .akari/sidecars/assets/clip.mp4.analysis/analysis.json）: Line 1 Line 2 Line 3'
     );
-    assert.equal(/[\r\n]/.test(packet), false, 'パケットは 1 行でなければならない');
+    assert.equal(/[\r\n]/.test(packet), false, 'Packet must be a single line');
 });
 
-test('composeMaterialAskAgentPrompt: 未分析・改行なし入力 — 尺不明/未分析・analysis 要素なし', () => {
+test('composeMaterialAskAgentPrompt: unanalyzed input without line breaks — duration unknown/unanalyzed, no analysis element', () => {
     const packet = composeMaterialAskAgentPrompt(
         { relativePath: 'assets/raw.mov', analyzed: false },
-        'これを分析して'
+        'Analyze this'
     );
-    assert.equal(packet, '【素材】assets/raw.mov（尺不明・未分析）について: これを分析して');
-    assert.equal(packet.includes('analysis:'), false, '未分析では analysis パス要素が出てはいけない');
+    assert.equal(packet, '【Footage】assets/raw.mov（Duration unknown · Not analyzed）: Analyze this');
+    assert.equal(packet.includes('analysis:'), false, 'Unanalyzed footage must not include an analysis path element');
 });
 
-test('composeMaterialAskAgentPrompt: 未分析・改行を含む入力 — 空白に畳まれ analysis 要素なし', () => {
+test('composeMaterialAskAgentPrompt: unanalyzed input with line breaks — collapsed to spaces, no analysis element', () => {
     const packet = composeMaterialAskAgentPrompt(
         { relativePath: 'assets/raw.mov', analyzed: false },
-        '何を\nすればいい？'
+        'What\nshould I do?'
     );
-    assert.equal(packet, '【素材】assets/raw.mov（尺不明・未分析）について: 何を すればいい？');
-    assert.equal(packet.includes('analysis:'), false, '未分析では analysis パス要素が出てはいけない');
-    assert.equal(/[\r\n]/.test(packet), false, 'パケットは 1 行でなければならない');
+    assert.equal(packet, '【Footage】assets/raw.mov（Duration unknown · Not analyzed）: What should I do?');
+    assert.equal(packet.includes('analysis:'), false, 'Unanalyzed footage must not include an analysis path element');
+    assert.equal(/[\r\n]/.test(packet), false, 'Packet must be a single line');
 });
 
-test('composeAgentContextPacket: フィールド 0 件は例外', () => {
-    assert.throws(() => composeAgentContextPacket('素材', [], '依頼文'));
+test('composeAgentContextPacket: zero fields throws', () => {
+    assert.throws(() => composeAgentContextPacket('Footage', [], 'Request'));
 });
 
-test('composeAgentContextPacket: 汎用シグネチャ（対象種別 + フィールド辞書 + 依頼文）は素材以外の対象種別にも使える', () => {
+test('composeAgentContextPacket: generic signature (target type + field dictionary + request) supports target types other than footage', () => {
     const packet = composeAgentContextPacket(
-        'プラン',
-        [{ value: 'planning/plan.json#shot-3' }, { label: '状態', value: 'draft' }],
-        '尺を詰めて'
+        'Plan',
+        [{ value: 'planning/plan.json#shot-3' }, { label: 'Status', value: 'draft' }],
+        'Shorten the duration'
     );
-    assert.equal(packet, '【プラン】planning/plan.json#shot-3（状態 draft）について: 尺を詰めて');
+    assert.equal(packet, '【Plan】planning/plan.json#shot-3（Status draft）: Shorten the duration');
 });
 
 // できたもの（export 行）版 composer（task 2026-08-09-material-context-menu-mvp 指示8）。
 
-test('composeOutputAskAgentPrompt: relativePath が含まれる', () => {
-    const packet = composeOutputAskAgentPrompt({ relativePath: 'exports/cut-01.mp4' }, 'テロップの誤字を直して');
+test('composeOutputAskAgentPrompt: includes relativePath', () => {
+    const packet = composeOutputAskAgentPrompt({ relativePath: 'exports/cut-01.mp4' }, 'Fix the typo in the text overlay');
     assert.equal(packet.includes('exports/cut-01.mp4'), true);
-    assert.equal(packet, '【書き出し済みの成果物】exports/cut-01.mp4について: テロップの誤字を直して');
+    assert.equal(packet, '【Exported output】exports/cut-01.mp4: Fix the typo in the text overlay');
 });
 
-test('composeOutputAskAgentPrompt: 改行を含む依頼文は 1 行に畳まれる', () => {
-    const packet = composeOutputAskAgentPrompt({ relativePath: 'exports/cut-01.mp4' }, '1行目\n2行目');
-    assert.equal(packet, '【書き出し済みの成果物】exports/cut-01.mp4について: 1行目 2行目');
-    assert.equal(/[\r\n]/.test(packet), false, 'パケットは 1 行でなければならない');
+test('composeOutputAskAgentPrompt: requests with line breaks collapse to a single line', () => {
+    const packet = composeOutputAskAgentPrompt({ relativePath: 'exports/cut-01.mp4' }, 'Line 1\nLine 2');
+    assert.equal(packet, '【Exported output】exports/cut-01.mp4: Line 1 Line 2');
+    assert.equal(/[\r\n]/.test(packet), false, 'Packet must be a single line');
 });

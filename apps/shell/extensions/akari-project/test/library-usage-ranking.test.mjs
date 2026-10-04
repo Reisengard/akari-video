@@ -6,7 +6,7 @@ import { libraryCardContextMenuItems, libraryRemovalWarning } from '../lib/commo
 const item = (id, fields = {}) => ({ key: `audio/${id}`, id, category: 'audio', origin: 'resolver',
     sourceKind: 'lab', state: 'available', title: id, tags: [], ...fields });
 
-test('並び順の決定表: 意味、★、使用、回数、最近さ、own/site、取得済み、未取得、同点', () => {
+test('ordering decision table: meaning, ★, use, count, recency, own/site, downloaded, undownloaded, ties', () => {
     const rows = [
         item('z-remote'), item('lab-cached', { state: 'cached' }),
         item('site', { sourceKind: 'site' }), item('own', { sourceKind: 'own' }),
@@ -23,16 +23,16 @@ test('並び順の決定表: 意味、★、使用、回数、最近さ、own/si
     assert.deepEqual(rows.map(row => row.id).slice(0, 2), ['z-remote', 'lab-cached']);
 });
 
-test('消す前の警告は使用プロジェクトを 3 件まで表示し、own/site だけ取り直し不可', () => {
+test('removal warning shows up to three using projects; only own/site cannot be downloaded again', () => {
     const projects = ['/tmp/P1', '/tmp/P2', '/tmp/P3', '/tmp/P4'];
     for (const sourceKind of ['own', 'site', 'lab']) {
         const warning = libraryRemovalWarning(item('tone', { sourceKind }), projects);
-        assert.match(warning, /4 本のプロジェクトで使用中/);
+        assert.match(warning, /Used by 4 projects/);
         for (const name of ['P1', 'P2', 'P3']) assert.match(warning, new RegExp(name));
         assert.doesNotMatch(warning, /P4/);
-        assert.equal(warning.includes('取り直せません'), sourceKind !== 'lab');
+        assert.equal(warning.includes('It cannot be downloaded again'), sourceKind !== 'lab');
     }
-    assert.match(libraryRemovalWarning(item('tone'), []), /使用中のプロジェクトはありません/);
+    assert.match(libraryRemovalWarning(item('tone'), []), /No projects use this asset/);
     assert.deepEqual(libraryCardContextMenuItems(item('none')), []);
     assert.deepEqual(libraryCardContextMenuItems(item('own', { libraryDir: '/tmp/library/audio/own' })).map(row => row.id), ['reveal', 'remove-library']);
 });

@@ -10,82 +10,82 @@ import { composeCatalogImportPrompt, composeCatalogAskAgentPrompt, composeCatalo
 const FULL_ITEM = {
     id: 'vintage-camera',
     category: '3d',
-    title: 'ヴィンテージカメラ 3D モデル',
-    when_to_use: 'レトロ・アナログ演出のプロダクト紹介、写真/映像機材を扱う動画のヒーローショット',
+    title: 'Vintage camera 3D model',
+    when_to_use: 'Retro product presentations and hero shots of photo or video equipment',
     license: { spdx: 'CC0-1.0' },
     source: { url: 'https://polyhaven.com/a/Camera_01', preview_url: 'https://cdn.polyhaven.com/x.png' }
 };
 
 const MINIMAL_ITEM = { id: 'noto-sans-jp', category: 'font', title: 'Noto Sans JP' };
 
-test('composeCatalogImportPrompt: 固定パケットに id/category/title/source.url/license.spdx + 依頼文が全て出る', () => {
+test('composeCatalogImportPrompt: includes ID, category, title, URL, license and request', () => {
     const packet = composeCatalogImportPrompt(FULL_ITEM);
     assert.equal(
         packet,
-        '【カタログ素材】vintage-camera（category 3d・title ヴィンテージカメラ 3D モデル・source: https://polyhaven.com/a/Camera_01・license: CC0-1.0）について: この素材をカタログの参照情報から取得し、ライセンス表記を確認の上プロジェクトへ配置してください（setup-library 系スキルの手順に従う）'
+        '【Catalog footage】vintage-camera（category 3d · title Vintage camera 3D model · source: https://polyhaven.com/a/Camera_01 · license: CC0-1.0）: Retrieve this footage from its catalog references, verify the license, and place it in the project (follow the setup-library skill)'
     );
 });
 
-test('composeCatalogImportPrompt: source.url/license.spdx が無い項目は要素ごと出ない（欠落で例外にならない）', () => {
+test('composeCatalogImportPrompt: missing URL and license omit their fields', () => {
     const packet = composeCatalogImportPrompt(MINIMAL_ITEM);
     assert.equal(
         packet,
-        '【カタログ素材】noto-sans-jp（category font・title Noto Sans JP）について: この素材をカタログの参照情報から取得し、ライセンス表記を確認の上プロジェクトへ配置してください（setup-library 系スキルの手順に従う）'
+        '【Catalog footage】noto-sans-jp（category font · title Noto Sans JP）: Retrieve this footage from its catalog references, verify the license, and place it in the project (follow the setup-library skill)'
     );
     assert.equal(packet.includes('source:'), false);
     assert.equal(packet.includes('license:'), false);
 });
 
-test('composeCatalogAskAgentPrompt: 同要素 + when_to_use 先頭1文 + ユーザー入力文', () => {
-    const packet = composeCatalogAskAgentPrompt(FULL_ITEM, 'この素材で何をしますか');
+test('composeCatalogAskAgentPrompt: includes fields, first use sentence and user request', () => {
+    const packet = composeCatalogAskAgentPrompt(FULL_ITEM, 'What would you like to do with this footage?');
     assert.equal(
         packet,
-        '【カタログ素材】vintage-camera（category 3d・title ヴィンテージカメラ 3D モデル・source: https://polyhaven.com/a/Camera_01・license: CC0-1.0・用途: レトロ・アナログ演出のプロダクト紹介、写真/映像機材を扱う動画のヒーローショット）について: この素材で何をしますか'
+        '【Catalog footage】vintage-camera（category 3d · title Vintage camera 3D model · source: https://polyhaven.com/a/Camera_01 · license: CC0-1.0 · Use: Retro product presentations and hero shots of photo or video equipment）: What would you like to do with this footage?'
     );
 });
 
-test('composeCatalogAskAgentPrompt: when_to_use が句点区切りの複文でも先頭の1文だけを使う', () => {
+test('composeCatalogAskAgentPrompt: keeps only the first sentence of when_to_use', () => {
     const item = {
         id: 'noto-sans-jp',
         category: 'font',
         title: 'Noto Sans JP',
-        when_to_use: '特定の作風を狙わず、まず崩れなく読める日本語テロップ・字幕・UI テキストが欲しいシーン。企業紹介・解説動画など幅広いトーンの標準書体として'
+        when_to_use: 'Readable captions and UI text without a specific visual style. A standard typeface for corporate and explainer videos'
     };
-    const packet = composeCatalogAskAgentPrompt(item, '検討したい');
+    const packet = composeCatalogAskAgentPrompt(item, 'Consider this');
     assert.equal(
         packet,
-        '【カタログ素材】noto-sans-jp（category font・title Noto Sans JP・用途: 特定の作風を狙わず、まず崩れなく読める日本語テロップ・字幕・UI テキストが欲しいシーン。）について: 検討したい'
+        '【Catalog footage】noto-sans-jp（category font · title Noto Sans JP · Use: Readable captions and UI text without a specific visual style.）: Consider this'
     );
-    assert.equal(packet.includes('企業紹介'), false, '句点以降（2文目）は含まれてはいけない');
+    assert.equal(packet.includes('corporate'), false, 'the second sentence must be omitted');
 });
 
-test('composeCatalogAskAgentPrompt: when_to_use が無い項目でも用途要素なしで組み立つ', () => {
-    const packet = composeCatalogAskAgentPrompt(MINIMAL_ITEM, '色を変えたい');
-    assert.equal(packet, '【カタログ素材】noto-sans-jp（category font・title Noto Sans JP）について: 色を変えたい');
-    assert.equal(packet.includes('用途:'), false);
+test('composeCatalogAskAgentPrompt: missing when_to_use omits the use field', () => {
+    const packet = composeCatalogAskAgentPrompt(MINIMAL_ITEM, 'Change the color');
+    assert.equal(packet, '【Catalog footage】noto-sans-jp（category font · title Noto Sans JP）: Change the color');
+    assert.equal(packet.includes('Use:'), false);
 });
 
 // composeCatalogPackImportPrompt — パック棚ヘッダ「まとめて取り込む」の定型パケット。
 
-test('composeCatalogPackImportPrompt: パック名 + 対象件数 + 品目一覧（id・category・title）が全て出る', () => {
-    const packet = composeCatalogPackImportPrompt('テロップ向け必須フォント 25 選', [
-        { id: '851-chikara-dzuyoku', category: 'font', title: '851チカラヅヨク' },
-        { id: 'zero-gothic', category: 'font', title: 'ゼロゴシック' }
+test('composeCatalogPackImportPrompt: includes pack name, count, and item list', () => {
+    const packet = composeCatalogPackImportPrompt('25 essential fonts for Captions', [
+        { id: '851-chikara-dzuyoku', category: 'font', title: '851 Chikara Dzuyoku' },
+        { id: 'zero-gothic', category: 'font', title: 'Zero Gothic' }
     ]);
     assert.equal(
         packet,
-        '【カタログ素材パック】テロップ向け必須フォント 25 選 — 対象 2 件: 851-chikara-dzuyoku（font・851チカラヅヨク）、zero-gothic（font・ゼロゴシック）について: このパックの未取得の無料素材をまとめて取得し、ライセンス表記を確認の上プロジェクトへ配置してください（setup-library 系スキルの手順に従う）'
+        '【Catalog footage pack】25 essential fonts for Captions — 2 items: 851-chikara-dzuyoku（font · 851 Chikara Dzuyoku）、zero-gothic（font · Zero Gothic）: Retrieve all unacquired free footage in this pack, verify the licenses, and place it in the project (follow the setup-library skill)'
     );
 });
 
-test('composeCatalogPackImportPrompt: 1 行に畳み込まれる（改行が紛れ込んでも壊れない）', () => {
-    const packet = composeCatalogPackImportPrompt('改行\nを含む\nパック名', [
-        { id: 'x', category: 'font', title: '改行\nを含む題名' }
+test('composeCatalogPackImportPrompt: collapses embedded newlines to one line', () => {
+    const packet = composeCatalogPackImportPrompt('Pack name\nwith\nnewlines', [
+        { id: 'x', category: 'font', title: 'Title\nwith newlines' }
     ]);
     assert.equal(packet.includes('\n'), false);
 });
 
-test('composeCatalogPackImportPrompt: 対象 0 件でも例外にならない', () => {
-    const packet = composeCatalogPackImportPrompt('空パック', []);
-    assert.equal(packet.includes('対象 0 件'), true);
+test('composeCatalogPackImportPrompt: no target items does not throw', () => {
+    const packet = composeCatalogPackImportPrompt('Empty pack', []);
+    assert.equal(packet.includes('0 items'), true);
 });

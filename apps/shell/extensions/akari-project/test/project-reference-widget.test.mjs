@@ -52,7 +52,7 @@ function fixture() {
 }
 const reference = { category: 'audio', id: 'sound', tags: [], sourceKind: 'lab', libraryDir: '/library/audio/sound', files: [{ name: 'sound.wav', path: '/legacy/audio/sound/sound.wav', bytes: 10 }] };
 
-test('台帳→参照カードは媒体の実ルートを使い、宣言パスを保つ。欠落も表示入力に残す', async () => {
+test('registry reference cards use actual media roots, preserve declared paths, and retain missing inputs', async () => {
     const f = fixture();
     const missing = { ...reference, id: 'missing', libraryDir: undefined, files: [] };
     const cards = await f.handler.buildReferenceMaterials(f.root, [reference, missing]);
@@ -62,11 +62,11 @@ test('台帳→参照カードは媒体の実ルートを使い、宣言パス�
     assert.equal(cards[0].reference.id, 'sound');
     assert.equal(cards[0].missing, false);
     assert.equal(cards[1].missing, true);
-    assert.equal(referencePresentation(cards[1].reference).recovery, 'もう一度取得');
-    assert.equal(referencePresentation({ ...missing, tags: ['origin:site'] }, true).recovery, '入れ直してください');
+    assert.equal(referencePresentation(cards[1].reference).recovery, 'Download again');
+    assert.equal(referencePresentation({ ...missing, tags: ['origin:site'] }, true).recovery, 'Please add it again');
 });
 
-test('コピー時代の実体には参照カードを重ねない。空ディレクトリなら参照を表示', async () => {
+test('physical legacy copies have no overlaid reference card; empty directories display references', async () => {
     const f = fixture();
     f.handler.files.resolve = async uri => ({ resource: uri, children: [{ name: 'sound.wav', isDirectory: false }] });
     assert.deepEqual(await f.handler.buildReferenceMaterials(f.root, [reference]), []);
@@ -74,13 +74,13 @@ test('コピー時代の実体には参照カードを重ねない。空ディ�
     assert.equal((await f.handler.buildReferenceMaterials(f.root, [reference])).length, 1);
 });
 
-test('外す前に edit.json 使用件数を一度ずつ数え、キャンセルでは台帳を変えない', async () => {
+test('counts edit.json references once before removal; cancellation preserves registry', async () => {
     const f = fixture();
     f.handler.readProjectReferenceDocuments = async () => ({ failed: false, documents: [JSON.stringify({ paths: ['assets/audio/sound/sound.wav', 'assets/audio/sound/sound.wav', 'assets/audio/sound-extra/other.wav'] })] });
     const card = { reference, relativePath: 'assets/audio/sound' };
     f.reject();
     await f.handler.removeMaterialReference(card);
-    assert.match(f.dialogs[0].msg, /2 箇所参照/);
+    assert.match(f.dialogs[0].msg, /2 locations/);
     assert.equal(f.calls.length, 0);
     const g = fixture();
     g.handler.readProjectReferenceDocuments = f.handler.readProjectReferenceDocuments;
@@ -91,22 +91,22 @@ test('外す前に edit.json 使用件数を一度ずつ数え、キャンセル
 // 2026-09-26 オーナー指示: 確認ダイアログは「何件・何 MB」だけでなく、対象そのものと
 // 「ライブラリの実体をこのプロジェクトへ複製する」という意味を出す。結果はパネルに
 // 貼り付けず通知で流し、取りこぼしだけダイアログに残す。
-test('まとめるは dry-run→対象一覧・複製の説明・権利警告→実行。結果は通知、失敗だけダイアログ', async () => {
+test('collect runs dry-run, target list, copy explanation, rights warning, then execution; notifies results and dialogs only failures', async () => {
     const f = fixture(), calls = [];
     const result = { planned: [reference], bytes: 1048576, unknownSizeCount: 0, restrictedCount: 1,
         materialized: ['audio/success'], failures: [{ key: 'audio/missing', message: 'offline' }] };
     f.handler.projectService.bundleProjectAssets = async (_, dry) => { calls.push(dry); if (!dry) assert.equal(f.dialogs.length, 1); return result; };
     await f.handler.bundleMaterials();
     assert.deepEqual(calls, [true, false]);
-    assert.equal(f.dialogs[0].title, 'ライブラリの素材をプロジェクトへ複製する');
-    assert.equal(f.dialogs[0].ok, '複製する');
+    assert.equal(f.dialogs[0].title, 'Copy library assets into the project');
+    assert.equal(f.dialogs[0].ok, 'Copy');
     const body = domText(f.dialogs[0].msg);
-    assert.match(body, /assets\/ へ複製します/);
+    assert.match(body, /assets\//);
     assert.match(body, /sound/);                                  // 対象そのものが一覧に出る
     assert.match(body, /→ assets\/audio\/sound\//);                // どこへ入るかが分かる
-    assert.match(body, /合計 1 件・1\.00 MB/);
-    assert.match(body, /再配布できない素材が 1 件含まれます/);
-    assert.deepEqual(f.infos, ['1 件をこのプロジェクトへ複製しました。']);
+    assert.match(body, /Total: 1 items · 1\.00 MB/);
+    assert.match(body, /Contains assets that cannot be redistributed: 1/);
+    assert.deepEqual(f.infos, ['Copied into this project: 1']);
     assert.match(f.dialogs[1].msg, /audio\/missing: offline/);    // 失敗は読み返せる形で残す
     assert.equal(f.handler.bundleBusy, false);
     f.reject(); calls.length = 0;
@@ -115,7 +115,7 @@ test('まとめるは dry-run→対象一覧・複製の説明・権利警告→
 });
 
 
-test('Lab の欠落媒体はメタデータだけ残っていても強制再取得する', async () => {
+test('missing Lab media forces redownload even when metadata remains', async () => {
     const f = fixture();
     f.handler.projectService.resolveAsset = async (...args) => { f.calls.push(args); return { success: true }; };
     await f.handler.retryMaterialReference({ reference });

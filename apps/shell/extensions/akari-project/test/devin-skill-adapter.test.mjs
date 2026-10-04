@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { AkariProjectServiceImpl } from '../lib/node/akari-project-service.js';
 
-test('installSkillAdapters は Devin のスキル入口を .claude/skills へ張る', async () => {
+test('installSkillAdapters links the Devin skill entry to .claude/skills', async () => {
     const root = await mkdtemp(join(tmpdir(), 'akari-devin-skills-'));
     const service = new AkariProjectServiceImpl();
     service.fsImpl = fs;

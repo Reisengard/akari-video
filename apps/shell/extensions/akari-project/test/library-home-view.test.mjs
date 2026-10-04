@@ -4,7 +4,7 @@ import { LIBRARY_DETAIL_GROUPS, LIBRARY_GROUPS, LIBRARY_PRIMARY_TILES, resolveOp
 
 // 2026-09-27 オーナー改訂: 9 枚 → 16 枚。仕上げ・まとめて・マイスタイルも同じカードで
 // 最上段へ出し、B-roll は「動画」と呼ぶ（データキー broll は維持）。
-test('最上段は 16 タイルで、作る/選ぶを分け、段の切れ目を宣言する', () => {
+test('top row has 16 tiles, separates Create and Choose, and declares row breaks', () => {
     assert.deepEqual(LIBRARY_PRIMARY_TILES.map(tile => tile.key), [
         'text', 'shapes', 'stamps',
         'image', 'broll', 'bgm', 'sfx', 'overlay', 'scene3d',
@@ -19,24 +19,24 @@ test('最上段は 16 タイルで、作る/選ぶを分け、段の切れ目を
     ]);
     assert.deepEqual(LIBRARY_PRIMARY_TILES.filter(tile => tile.status === 'soon').map(tile => tile.key),
         ['stamps', 'fx', 'motion', 'mypresets', 'template']);
-    assert.equal(LIBRARY_PRIMARY_TILES[0].hint, '押すと一覧・ドラッグで置く');
+    assert.equal(LIBRARY_PRIMARY_TILES[0].hint, 'Click to browse or drag to place');
     // 段の区切りは見出しではなく線 1 本。線を引く位置は startsGroup が持つ。
     assert.deepEqual(LIBRARY_PRIMARY_TILES.filter(tile => tile.startsGroup).map(tile => tile.key),
         ['image', 'lut', 'mypresets']);
     // 画面語と内部キーを切り離す（B-roll → 動画・パック → セット・テンプレート → ひな形）。
     const label = key => LIBRARY_PRIMARY_TILES.find(tile => tile.key === key).label;
-    assert.equal(label('broll'), '動画');
-    assert.equal(label('pack'), 'セット');
-    assert.equal(label('template'), 'ひな形');
-    assert.equal(label('mypresets'), 'マイスタイル');
+    assert.equal(label('broll'), 'Video');
+    assert.equal(label('pack'), 'Set');
+    assert.equal(label('template'), 'Template');
+    assert.equal(label('mypresets'), 'My styles');
     // 2 枚重ねカードの絵と台座色は全タイルが持つ。
     assert.ok(LIBRARY_PRIMARY_TILES.every(tile => typeof tile.art === 'string' && tile.art.length > 0));
     assert.ok(LIBRARY_PRIMARY_TILES.every(tile => tile.plate.length === 2
         && tile.plate.every(color => /^#[0-9a-f]{6}$/.test(color))));
 });
 
-test('詳細はマイだけに絞り、全カテゴリの外部解決を保つ', () => {
-    assert.deepEqual(LIBRARY_DETAIL_GROUPS.map(group => group.label), ['マイ']);
+test('details show only My items while preserving external resolution for all categories', () => {
+    assert.deepEqual(LIBRARY_DETAIL_GROUPS.map(group => group.label), ['My library']);
     const detailKeys = LIBRARY_DETAIL_GROUPS.flatMap(group => group.categories.map(category => category.key));
     assert.deepEqual(detailKeys, ['fav', 'brandkit']);
     const primaryCategoryKeys = LIBRARY_PRIMARY_TILES.filter(tile => tile.key !== 'text').map(tile => tile.key);
@@ -49,9 +49,9 @@ test('詳細はマイだけに絞り、全カテゴリの外部解決を保つ',
     assert.equal(resolveOpenableLibraryCategory('shapes'), 'shapes');
 });
 
-test('LIBRARY_GROUPS: 5 グループとカテゴリ語彙を宣言順で保持する', () => {
+test('LIBRARY_GROUPS: preserves five groups and category vocabulary in declared order', () => {
     assert.deepEqual(LIBRARY_GROUPS.map(group => group.label), [
-        'マイ', '音・映像・画像', '文字・飾り', '仕上げ', '雛形'
+        'My library', 'Audio, video, and images', 'Text and decorations', 'Finishing', 'Template'
     ]);
     assert.deepEqual(LIBRARY_GROUPS.map(group => group.categories.map(category => category.key)), [
         ['fav', 'brandkit', 'mypresets'],
@@ -62,7 +62,7 @@ test('LIBRARY_GROUPS: 5 グループとカテゴリ語彙を宣言順で保持�
     ]);
 });
 
-test('LIBRARY_GROUPS: ラベル・soon・chipKey 対応を固定する', () => {
+test('LIBRARY_GROUPS: fixes label, soon, and chipKey mapping', () => {
     const categories = Object.fromEntries(LIBRARY_GROUPS.flatMap(group => group.categories.map(category => [category.key, category])));
     assert.deepEqual(
         ['fav', 'brandkit', 'mypresets', 'shapes', 'stamps', 'fx', 'motion', 'template']
@@ -77,41 +77,41 @@ test('LIBRARY_GROUPS: ラベル・soon・chipKey 対応を固定する', () => {
             textstyle: 'preset:textstyle', textanim: 'preset:textanim', font: 'font', lut: 'preset:lut'
         }
     );
-    assert.equal(categories.fav.label, 'お気に入り');
+    assert.equal(categories.fav.label, 'Favorites');
     assert.equal(categories.brandkit.icon, '◈');
     assert.equal(categories.mypresets.icon, '✎');
 });
 
-test('LIBRARY_GROUPS: 操作導線の文言を固定する', () => {
+test('LIBRARY_GROUPS: fixes action entry wording', () => {
     const categories = Object.fromEntries(LIBRARY_GROUPS.flatMap(group => group.categories.map(category => [category.key, category])));
     for (const key of ['bgm', 'sfx', 'broll', 'image']) {
-        assert.equal(categories[key].hint, 'タイムラインへドラッグ、右クリックでプレイヘッド位置に置く');
+        assert.equal(categories[key].hint, 'Drag onto the timeline, or right-click to place at the playhead');
     }
     for (const key of ['overlay', 'scene3d']) {
-        assert.equal(categories[key].hint, '右クリックの「取り込む」でプロジェクトに追加');
+        assert.equal(categories[key].hint, 'Right-click and select Import to add to the project');
     }
-    assert.equal(categories.textstyle.hint, '選んだ文字に当てる・新しい文字として置く');
-    assert.equal(categories.textanim.hint, '選んだ文字に当てる・ホバーで見本を再生');
-    assert.equal(categories.font.hint, '選んだ文字に書体を当てる');
-    assert.equal(categories.transition.hint, 'タイムラインのカット境界へドラッグして適用');
-    assert.equal(categories.lut.hint, '選択中のカットに適用（強さはインスペクター）');
+    assert.equal(categories.textstyle.hint, 'Apply to selected text or add as new text');
+    assert.equal(categories.textanim.hint, 'Apply to selected text or hover to play a preview');
+    assert.equal(categories.font.hint, 'Apply a font to selected text');
+    assert.equal(categories.transition.hint, 'Drag onto a cut boundary in the timeline to apply');
+    assert.equal(categories.lut.hint, 'Apply to the selected cut (adjust strength in the Inspector)');
 });
 
 const SEARCH_SOURCES = {
-    catalogItems: [{ id: 'spark-se', category: 'audio', title: 'Spark 決定音', tags: ['sfx'] }],
+    catalogItems: [{ id: 'spark-se', category: 'audio', title: 'Spark confirmation', tags: ['sfx'] }],
     presetShowcase: {
         lut: [],
-        textanim: [{ kind: 'textanim', id: 'spark-in', name: 'Spark 登場', tags: ['in'] }],
+        textanim: [{ kind: 'textanim', id: 'spark-in', name: 'Spark entrance', tags: ['in'] }],
         textstyle: []
     },
-    transitions: [{ id: 'spark-wipe', labelJa: 'Spark ワイプ', category: 'ワイプ' }]
+    transitions: [{ id: 'spark-wipe', labelJa: 'Spark wipe', category: 'Wipe' }]
 };
 
-test('searchLibraryHome: カタログ・プリセット・トランジションを横断する', () => {
+test('searchLibraryHome: searches catalog, presets, and transitions', () => {
     assert.deepEqual(searchLibraryHome('SPARK', SEARCH_SOURCES), [
-        { categoryKey: 'sfx', label: 'Spark 決定音', kind: 'catalog' },
-        { categoryKey: 'textanim', label: 'Spark 登場', kind: 'preset' },
-        { categoryKey: 'transition', label: 'Spark ワイプ', kind: 'transition' }
+        { categoryKey: 'sfx', label: 'Spark confirmation', kind: 'catalog' },
+        { categoryKey: 'textanim', label: 'Spark entrance', kind: 'preset' },
+        { categoryKey: 'transition', label: 'Spark wipe', kind: 'transition' }
     ]);
     assert.deepEqual(searchLibraryHome(' ', SEARCH_SOURCES), []);
 });

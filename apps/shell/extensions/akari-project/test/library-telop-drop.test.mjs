@@ -10,7 +10,7 @@ const method = widget.members.find(member => member.name?.getText(source) === 'h
 const code = ts.transpileModule(`class DropHandler { ${method} }`, { compilerOptions: { target: ts.ScriptTarget.ES2021 } }).outputText;
 const DropHandler = new Function('LIBRARY_DRAG_MIME', `${code}\nreturn DropHandler;`)('application/x-akari-library-item');
 
-test('未購入テロップのドロップは促しのシートを呼び、配置しない', async () => {
+test('dropping unpurchased title cards opens a prompt sheet without placement', async () => {
     const handler = new DropHandler();
     const calls = [];
     handler.isMaterialDragTransfer = () => true;
@@ -19,7 +19,7 @@ test('未購入テロップのドロップは促しのシートを呼び、配�
     handler.hideMaterialGhost = () => calls.push('hide');
     handler.commands = { executeCommand: async (...args) => calls.push(args) };
     const payload = { kind: 'overlay', key: 'overlay/telop-fixture', id: 'telop-fixture',
-        category: 'overlay', title: 'テロップ', locked: true, price: 1980 };
+        category: 'overlay', title: 'On-screen text', locked: true, price: 1980 };
     handler.handleMaterialDrop({ clientX: 100, clientY: 10, target: null,
         dataTransfer: { types: ['application/x-akari-library-item'], getData: () => JSON.stringify(payload) },
         preventDefault() {}, stopPropagation() {} });

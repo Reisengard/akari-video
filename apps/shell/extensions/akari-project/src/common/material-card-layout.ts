@@ -17,7 +17,7 @@ export interface MaterialCardLayoutOptions {
 export function materialCardLayout(entry: MaterialCardLayoutEntry, options: MaterialCardLayoutOptions = {}) {
     const kindLabel = entry.assetGroupCategory
         || (/\.html?$/i.test(entry.name ?? '') ? 'HTML'
-            : { video: '動画', audio: '音声', image: '画像', other: '素材' }[entry.kind]);
+            : { video: 'Video', audio: 'Audio', image: 'Image', other: 'Footage' }[entry.kind]);
     return {
         aspectRatio: '1 / 1' as const,
         objectFit: 'contain' as const,

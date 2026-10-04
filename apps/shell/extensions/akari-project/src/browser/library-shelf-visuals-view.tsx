@@ -24,7 +24,7 @@ export function LibraryShelfVisualStyles(): React.ReactElement { return <style d
 
 export function LutPreview(props: { url?: string }): React.ReactElement {
     return <span data-akari-lut-preview style={{ width: '100%', height: '100%', display: 'block', background: AKARI_SURFACE.card }}>
-        {props.url && <img src={props.url} alt='ビフォー｜アフター' draggable={false}
+        {props.url && <img src={props.url} alt='Before | After' draggable={false}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
     </span>;
 }
@@ -57,9 +57,9 @@ export function FontShelfCard(props: { item: AssetCatalogViewItem; layout: 'grid
         draggable onDragStart={props.onDragStart} onDragEnd={props.onDragEnd}
         onClick={props.onApply} onContextMenu={props.onContextMenu} onInfo={props.onInfo}
         face={item.previewUrl
-            ? <img src={item.previewUrl} alt={`${item.title} の見本`} draggable={false}
+            ? <img src={item.previewUrl} alt={`${item.title} — Sample`} draggable={false}
                 style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
             : <span data-akari-font-fallback style={{ fontFamily: item.title.replace(/（.*$/, ''), fontSize: '0.72em', textAlign: 'center', padding: '4px', color: 'var(--akari-muted)' }}>
-                あア亜 ABC 123
+                ABC abc 123
             </span>} />;
 }

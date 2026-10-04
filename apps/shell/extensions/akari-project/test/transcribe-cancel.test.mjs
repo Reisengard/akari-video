@@ -42,11 +42,11 @@ async function recordedEvents(root) {
     return Promise.all((await readdir(directory)).map(async name => JSON.parse(await readFile(join(directory, name), 'utf8'))));
 }
 
-for (const [label, ignoreTerm] of [['SIGTERM', false], ['3 秒後の SIGKILL', true]]) {
-    test(`cancelTranscribe は実子プロセスを ${label} で止め cancelled イベントを記録する`, { timeout: 9000 }, async t => {
+for (const [label, ignoreTerm] of [['SIGTERM', false], ['SIGKILL after 3 seconds', true]]) {
+    test(`cancelTranscribe stops a real child process with ${label} and records a cancelled event`, { timeout: 9000 }, async t => {
         const { root, ready, service, request } = await fixture(t, ignoreTerm);
         const running = service.transcribeMaterial(request);
-        const rejected = assert.rejects(running, /文字起こしを中止しました/);
+        const rejected = assert.rejects(running, /Transcription canceled/);
         await until(async () => readFile(ready, 'utf8').then(() => true, () => false));
         const pid = Number(await readFile(ready, 'utf8'));
         const started = Date.now();

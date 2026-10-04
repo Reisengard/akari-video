@@ -87,7 +87,7 @@ function Codicon(props: { name: string; size?: number; style?: React.CSSProperti
 
 export function PremiumCrownBadge(): React.ReactElement {
     return (
-        <span data-akari-premium-crown title='Lab のプレミアム' aria-label='Lab のプレミアム'
+        <span data-akari-premium-crown title='Lab premium' aria-label='Lab premium'
             style={{
                 position: 'absolute', left: '5px', top: '5px', zIndex: 1, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', width: '22px', height: '22px', borderRadius: '999px',
@@ -102,8 +102,8 @@ export function PremiumCrownBadge(): React.ReactElement {
 export function AssetStateMark(props: { state: 'cached' | 'remote' }): React.ReactElement {
     const cached = props.state === 'cached';
     return (
-        <span data-akari-asset-mark={props.state} title={cached ? '取得済み' : '未取得（使うときに取得）'}
-            aria-label={cached ? '取得済み' : '未取得'}
+        <span data-akari-asset-mark={props.state} title={cached ? 'Downloaded' : 'Not downloaded (downloaded when used)'}
+            aria-label={cached ? 'Downloaded' : 'Not downloaded'}
             style={{
                 position: 'absolute', left: '5px', bottom: '5px', zIndex: 1, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', width: '20px', height: '16px', borderRadius: '999px',
@@ -123,7 +123,7 @@ export function LibraryDotsButton(props: {
     const variant = props.variant ?? 'thumb';
     const onThumb = variant === 'thumb';
     return (
-        <button type='button' data-akari-library-dots aria-label={`${props.label} の情報`} title='情報を見る'
+        <button type='button' data-akari-library-dots aria-label={`${props.label} — Information`} title='View information'
             aria-haspopup='dialog' aria-expanded={props.expanded ? 'true' : 'false'}
             draggable={false}
             onMouseDown={event => event.stopPropagation()}
@@ -240,10 +240,10 @@ export function LibraryAssetCard(props: LibraryAssetCardProps): React.ReactEleme
                     </span>
                     {props.audioError}
                 </div>
-                {props.premium && <span data-akari-premium-crown title='Lab のプレミアム' aria-label='Lab のプレミアム'
+                {props.premium && <span data-akari-premium-crown title='Lab premium' aria-label='Lab premium'
                     style={{ flex: '0 0 auto', color: ACCENT_LIGHT, display: 'flex' }}><CrownIcon size={13} /></span>}
                 {!props.premium && <span data-akari-asset-mark={props.cached ? 'cached' : 'remote'}
-                    title={props.cached ? '取得済み' : '未取得（使うときに取得）'}
+                    title={props.cached ? 'Downloaded' : 'Not downloaded (downloaded when used)'}
                     style={{ flex: '0 0 auto', color: AKARI_FAINT, display: 'flex' }}><Codicon name={props.cached ? 'check' : 'cloud'} size={12} /></span>}
                 {props.pickBadge}
                 {props.interactive && props.audioControl}
@@ -450,7 +450,7 @@ export function LibraryInfoCard(props: LibraryInfoCardProps): React.ReactElement
                     width: `${anchor.width + 6}px`, height: `${anchor.height + 6}px`, borderRadius: `${AKARI_RADIUS.panel + 3}px`,
                     boxShadow: `0 0 0 2px ${ACCENT_LIGHT}, 0 0 0 200vmax rgba(0, 0, 0, 0.56)`, pointerEvents: 'none'
                 }} />
-                <div ref={ref} role='dialog' aria-label={`${model.name} の情報`} data-akari-library-info-card={model.key}
+                <div ref={ref} role='dialog' aria-label={`${model.name} — Information`} data-akari-library-info-card={model.key}
                     onMouseDown={event => event.stopPropagation()}
                     style={{ ...floatingSurface, position: 'fixed', left: `${left}px`, top: `${top}px`, width: `${INFO_WIDTH}px`, overflow: 'hidden' }}>
                     <div style={{ padding: '14px 16px 10px' }}>
@@ -462,10 +462,10 @@ export function LibraryInfoCard(props: LibraryInfoCardProps): React.ReactElement
                                 color: ACCENT_LIGHT, fontWeight: 800, fontSize: '12px'
                             }}>{initial}</span>
                             <div style={{ minWidth: 0, fontSize: '11.5px', lineHeight: 1.5 }}>
-                                <div data-akari-info-creator style={{ color: MUTED, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>作成: {model.creator}</div>
+                                <div data-akari-info-creator style={{ color: MUTED, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Created by: {model.creator}</div>
                                 {props.onCreator && <button type='button' data-akari-info-creator-more data-akari-library-link onClick={props.onCreator}
                                     style={{ padding: 0, margin: 0, border: 'none', background: 'transparent', color: ACCENT_LIGHT, cursor: 'pointer', fontSize: '11.5px', fontFamily: 'inherit', textAlign: 'left' }}>
-                                    この作成元の素材をもっと見る
+                                    More assets from this creator
                                 </button>}
                             </div>
                         </div>
@@ -475,7 +475,7 @@ export function LibraryInfoCard(props: LibraryInfoCardProps): React.ReactElement
                             {model.price.kind === 'premium' && <span style={{ color: ACCENT_LIGHT, display: 'flex' }}><CrownIcon size={14} /></span>}
                             {model.price.label}
                         </span>
-                        <button type='button' data-akari-license-open onClick={props.onOpenLicense} title='ライセンスを詳しく見る' aria-label='ライセンスを詳しく見る'
+                        <button type='button' data-akari-license-open onClick={props.onOpenLicense} title='View license details' aria-label='View license details'
                             style={{
                                 width: '26px', height: '26px', flex: '0 0 auto', margin: 0, padding: 0, borderRadius: '999px', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -496,7 +496,7 @@ export function LibraryInfoCard(props: LibraryInfoCardProps): React.ReactElement
                         ? <button type='button' data-akari-info-keywords-all data-akari-library-link onClick={props.onToggleKeywords}
                             style={{ display: 'block', margin: 0, padding: '4px 16px 12px', border: 'none', background: 'transparent',
                                 color: ACCENT_LIGHT, cursor: 'pointer', fontSize: '11.5px', fontFamily: 'inherit' }}>
-                            {props.keywordsExpanded ? 'キーワードをたたむ' : 'すべてのキーワードを表示'}
+                            {props.keywordsExpanded ? 'Collapse keywords' : 'Show all keywords'}
                         </button>
                         : <div style={{ height: '10px' }} />}
                     {model.actions.length > 0 && <>
@@ -529,7 +529,7 @@ export function LibraryLicenseDialog(props: LibraryLicenseDialogProps): React.Re
                 style={{ position: 'fixed', inset: 0, zIndex: 9100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 0, 0, 0.5)' }}>
                 <div role='dialog' aria-modal='true' aria-label={sheet.title} data-akari-license-dialog={sheet.kind}
                     style={{ ...floatingSurface, position: 'relative', width: 'min(460px, 92vw)', maxHeight: '88vh', overflow: 'auto', padding: '26px 26px 22px' }}>
-                    <button type='button' data-akari-license-close aria-label='閉じる' title='閉じる' onClick={props.onClose}
+                    <button type='button' data-akari-license-close aria-label='Close' title='Close' onClick={props.onClose}
                         style={{
                             position: 'absolute', right: '14px', top: '14px', width: '30px', height: '30px', margin: 0, padding: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '999px', cursor: 'pointer',
@@ -546,7 +546,7 @@ export function LibraryLicenseDialog(props: LibraryLicenseDialogProps): React.Re
                     </div>
                     <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 900, lineHeight: 1.3 }}>{sheet.title}</h2>
                     <p style={{ margin: '0 0 18px', color: MUTED, fontSize: '13px', lineHeight: 1.6 }}>{sheet.lead}</p>
-                    <h4 style={{ margin: '0 0 10px', fontSize: '12.5px', fontWeight: 700 }}>ライセンス権限の内容：</h4>
+                    <h4 style={{ margin: '0 0 10px', fontSize: '12.5px', fontWeight: 700 }}>License permissions:</h4>
                     <ul style={{ listStyle: 'none', margin: '0 0 14px', padding: 0 }}>
                         {sheet.items.map((row, index) => (
                             <li key={index} data-akari-license-item={row.mark}
@@ -560,7 +560,7 @@ export function LibraryLicenseDialog(props: LibraryLicenseDialogProps): React.Re
                         ? <button type='button' data-akari-license-more data-akari-library-link onClick={() => props.onMore?.(sheet.moreUrl!)}
                             style={{ display: 'block', margin: '0 0 18px 30px', padding: 0, border: 'none', background: 'transparent', color: AKARI_INK,
                                 textDecoration: 'underline', cursor: 'pointer', fontSize: '12.5px', fontFamily: 'inherit', textAlign: 'left' }}>
-                            このライセンスについて詳しくはこちら（{sheet.name}）
+                            Learn more about this license ({sheet.name})
                         </button>
                         : <div data-akari-license-name style={{ margin: '0 0 18px 30px', color: MUTED, fontSize: '12px' }}>{sheet.name}</div>}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -570,13 +570,13 @@ export function LibraryLicenseDialog(props: LibraryLicenseDialogProps): React.Re
                                 border: AKARI_BORDER.hairline, background: AKARI_SURFACE.elevated, color: AKARI_INK, fontSize: '12.5px', fontFamily: 'inherit',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                             }}>
-                            <Codicon name='copy' size={13} />クレジットをコピー
+                            <Codicon name='copy' size={13} />Copy credits
                         </button>}
                         <button type='button' data-akari-license-close onClick={props.onClose}
                             style={{
                                 width: '100%', height: '38px', margin: 0, borderRadius: `${AKARI_RADIUS.panel}px`, cursor: 'pointer',
                                 border: '1px solid transparent', background: ACCENT, color: 'var(--akari-bg)', fontWeight: 800, fontSize: '13.5px', fontFamily: 'inherit'
-                            }}>閉じる</button>
+                            }}>Close</button>
                     </div>
                 </div>
             </div>
@@ -614,12 +614,12 @@ export function LibraryPremiumSheet(props: LibraryPremiumSheetProps): React.Reac
                     </div>
                     <div style={{ margin: '14px 0 0', padding: '7px 10px', borderRadius: `${AKARI_RADIUS.panel}px`, background: AKARI_SURFACE.card,
                         border: AKARI_BORDER.hairline, color: MUTED, fontSize: '11.5px' }}>
-                        検索の右の絞り込みで「料金 › 無料」を選ぶと、無料の素材だけを表示できます
+                        Select “Price › Free” in the filters to the right of search to show only free assets
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
                         <button type='button' data-akari-premium-close onClick={props.onClose}
                             style={{ height: '32px', padding: '0 14px', margin: 0, borderRadius: `${AKARI_RADIUS.panel}px`, cursor: 'pointer', fontFamily: 'inherit',
-                                border: AKARI_BORDER.hairline, background: AKARI_SURFACE.elevated, color: AKARI_INK, fontSize: '12.5px' }}>閉じる</button>
+                                border: AKARI_BORDER.hairline, background: AKARI_SURFACE.elevated, color: AKARI_INK, fontSize: '12.5px' }}>Close</button>
                         <button type='button' data-akari-premium-lab onClick={props.onLab}
                             style={{ height: '32px', padding: '0 14px', margin: 0, borderRadius: `${AKARI_RADIUS.panel}px`, cursor: 'pointer', fontFamily: 'inherit',
                                 border: '1px solid transparent', background: ACCENT, color: 'var(--akari-bg)', fontWeight: 800, fontSize: '12.5px',
@@ -646,7 +646,7 @@ export function LibraryFilterButton(props: LibraryFilterButtonProps): React.Reac
     const active = count > 0;
     return (
         <button type='button' data-akari-library-filter-button aria-haspopup='dialog' aria-expanded={props.open ? 'true' : 'false'}
-            aria-label={active ? `絞り込み（${count} 件の条件）` : '絞り込み'} title='絞り込み（出どころ・料金・ライセンス・状態）'
+            aria-label={active ? `Filters (${count} conditions)` : 'Filters'} title='Filters (source, price, license, status)'
             onClick={event => { event.stopPropagation(); props.onToggle(); }}
             style={{
                 position: 'relative', flex: '0 0 auto', width: '30px', margin: 0, padding: 0, cursor: 'pointer',
@@ -681,7 +681,7 @@ export function LibraryFilterPopover(props: LibraryFilterPopoverProps): React.Re
         <Portal>
             <div data-akari-library-filter-layer onMouseDown={event => { if (event.target === event.currentTarget) props.onClose(); }}
                 style={{ position: 'fixed', inset: 0, zIndex: 9000 }}>
-                <div role='dialog' aria-label='絞り込み' data-akari-library-filter-popover onMouseDown={event => event.stopPropagation()}
+                <div role='dialog' aria-label='Filters' data-akari-library-filter-popover onMouseDown={event => event.stopPropagation()}
                     style={{ ...floatingSurface, position: 'fixed', left: `${left}px`, top: `${props.anchor.bottom + 6}px`, width: `${POPOVER_WIDTH}px`, padding: '6px 12px 10px' }}>
                     {LIBRARY_FILTER_SECTIONS.map(section => (
                         <div key={section.key} data-akari-filter-section={section.key}>
@@ -711,10 +711,10 @@ export function LibraryFilterPopover(props: LibraryFilterPopoverProps): React.Re
                         </div>
                     ))}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '12px', paddingTop: '9px', borderTop: `1px solid ${AKARI_LINE.hairline}` }}>
-                        <span style={{ color: AKARI_FAINT, fontSize: '10.5px' }}>タグは出しません（検索語には効きます）</span>
+                        <span style={{ color: AKARI_FAINT, fontSize: '10.5px' }}>Tags are hidden (they still affect search)</span>
                         <button type='button' data-akari-filter-clear onClick={props.onClear}
                             style={{ margin: 0, padding: 0, border: 'none', background: 'transparent', color: ACCENT_LIGHT, cursor: 'pointer', fontSize: '11.5px', fontFamily: 'inherit' }}>
-                            クリア
+                            Clear
                         </button>
                     </div>
                 </div>

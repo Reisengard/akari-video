@@ -78,7 +78,7 @@ async function fireNextTimer(harness) {
     await flushMicrotasks();
 }
 
-test('開始すると承認 URL を開き pending と確認コードを通知する', async () => {
+test('start opens approval URL and notifies pending with verification code', async () => {
     const harness = createHarness();
 
     await harness.controller.start();
@@ -89,7 +89,7 @@ test('開始すると承認 URL を開き pending と確認コードを通知す
     assert.equal(harness.timers.size, 1);
 });
 
-test('pending から approved になると接続済みになり idle へ戻る', async () => {
+test('pending to approved marks connected and returns to idle', async () => {
     const harness = createHarness({
         pollOutcome: {
             status: 'approved',
@@ -107,7 +107,7 @@ test('pending から approved になると接続済みになり idle へ戻る',
     assert.equal(state.userCode, undefined);
 });
 
-test('pending をキャンセルすると idle へ戻り stale タイマーも無視する', async () => {
+test('cancelling pending returns to idle and ignores stale timers', async () => {
     const harness = createHarness();
     await harness.controller.start();
     const staleTimer = harness.timers.values().next().value;
@@ -121,7 +121,7 @@ test('pending をキャンセルすると idle へ戻り stale タイマーも�
     assert.equal(harness.pollCalls(), 0);
 });
 
-test('有効期限を過ぎた pending は expired になる', async () => {
+test('overdue pending becomes expired', async () => {
     let currentTime = 0;
     const harness = createHarness({ now: () => currentTime });
     await harness.controller.start();
@@ -130,11 +130,11 @@ test('有効期限を過ぎた pending は expired になる', async () => {
     await fireNextTimer(harness);
 
     assert.equal(harness.states.at(-1).phase, 'expired');
-    assert.match(harness.states.at(-1).error, /有効期限/);
+    assert.match(harness.states.at(-1).error, /expired/);
     assert.equal(harness.pollCalls(), 0);
 });
 
-test('開始 RPC の reject は error とメッセージを通知する', async () => {
+test('start RPC rejection notifies error and message', async () => {
     const harness = createHarness({ startOutcome: new Error('offline') });
 
     await harness.controller.start();
@@ -143,18 +143,18 @@ test('開始 RPC の reject は error とメッセージを通知する', async 
     assert.match(harness.states.at(-1).error, /offline/);
 });
 
-test('開始 RPC の network-error outcome は error とメッセージを通知する', async () => {
+test('start RPC network-error outcome notifies error and message', async () => {
     const harness = createHarness({
-        startOutcome: { status: 'network-error', error: 'ネットワークに接続できません。' }
+        startOutcome: { status: 'network-error', error: 'Cannot connect to the network.' }
     });
 
     await harness.controller.start();
 
     assert.equal(harness.states.at(-1).phase, 'error');
-    assert.equal(harness.states.at(-1).error, 'ネットワークに接続できません。');
+    assert.equal(harness.states.at(-1).error, 'Cannot connect to the network.');
 });
 
-test('poll RPC の reject は error とメッセージを通知する', async () => {
+test('poll RPC rejection notifies error and message', async () => {
     const harness = createHarness({ pollOutcome: new Error('claim failed') });
     await harness.controller.start();
 
@@ -164,14 +164,14 @@ test('poll RPC の reject は error とメッセージを通知する', async ()
     assert.match(harness.states.at(-1).error, /claim failed/);
 });
 
-test('poll RPC の network-error outcome は error とメッセージを通知する', async () => {
+test('poll RPC network-error outcome notifies error and message', async () => {
     const harness = createHarness({
-        pollOutcome: { status: 'network-error', error: 'ストアに到達できません。' }
+        pollOutcome: { status: 'network-error', error: 'Cannot reach the store.' }
     });
     await harness.controller.start();
 
     await fireNextTimer(harness);
 
     assert.equal(harness.states.at(-1).phase, 'error');
-    assert.equal(harness.states.at(-1).error, 'ストアに到達できません。');
+    assert.equal(harness.states.at(-1).error, 'Cannot reach the store.');
 });

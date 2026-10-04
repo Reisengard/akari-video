@@ -7,7 +7,7 @@ const DIRNAME = '/Applications/AKARI Video.app/Contents/Resources/app.asar/node_
 const RESOURCES_PATH = '/Applications/AKARI Video.app/Contents/Resources';
 
 for (const [tool, candidatesFor] of [['media', mediaCliCandidates], ['captions', captionsCliCandidates]]) {
-    test(`${tool}: 同梱版の候補を開発時の全候補より先に探索する`, () => {
+    test(`${tool}: searches bundled candidates before all development candidates`, () => {
         const development = candidatesFor(DIRNAME, '/repo/apps/shell');
         assert.equal(development.length, 4);
         assert.ok(development.includes(resolve(`/repo/packages/akari-tools/bin/${tool}.mjs`)));

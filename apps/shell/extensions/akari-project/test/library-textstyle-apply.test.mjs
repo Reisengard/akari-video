@@ -5,7 +5,7 @@ import { libraryTextstyleApplyPayload } from '../lib/common/library-textstyle-ap
 import { planLibraryApply } from '../../akari-annotations/lib/browser/library-apply-plan.js';
 import { replaceMyStylePartsInSource } from '../../akari-annotations/lib/browser/my-style-look.js';
 
-test('既存字幕へ同梱スタイルを当てると大文字化と animation が captions.json に残る', () => {
+test('applying bundled styles to existing Captions preserves uppercase and animation in captions.json', () => {
     for (const id of ['glitch', 'neon', 'emphasis-red']) {
         const preset = JSON.parse(readFileSync(new URL(`../../../../../presets/textstyle/${id}.json`, import.meta.url)));
         const payload = libraryTextstyleApplyPayload({ kind: 'textstyle', id, name: preset.name,

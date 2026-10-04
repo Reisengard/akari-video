@@ -12,21 +12,21 @@ const code = ts.transpileModule(`class Handler { ${names.map(name => widget.memb
 const Handler = new Function('isOsFileDropInput', `${code}\nreturn Handler;`)(isOsFileDropInput);
 
 const cases = [
-    ['Files のみ', ['Files'], true],
-    ['Finder の URI 付き Files', ['Files', 'text/uri-list'], true],
-    ['対象外', [], false],
-    ['テキストだけ', ['text/plain', 'text/uri-list'], false],
+    ['Files only', ['Files'], true],
+    ['Files with Finder URI', ['Files', 'text/uri-list'], true],
+    ['Unsupported', [], false],
+    ['Text only', ['text/plain', 'text/uri-list'], false],
     ...[MATERIAL_DRAG_MIME, LIBRARY_DRAG_MIME].flatMap(mime => [
-        [`${mime} のみ`, [mime], false],
-        [`Files と ${mime}`, ['Files', mime, 'text/uri-list'], false]
+        [`${mime} only`, [mime], false],
+        [`Files and ${mime}`, ['Files', mime, 'text/uri-list'], false]
     ])
 ];
 
 for (const [label, types, expected] of cases) {
-    test(`OS ファイル判定: ${label}`, () => {
+    test(`OS file detection: ${label}`, () => {
         assert.equal(isOsFileDropInput(types), expected);
     });
-    test(`パネルの dragover / drop: ${label}`, () => {
+    test(`panel dragover / drop: ${label}`, () => {
         const imported = [], warnings = [];
         let classifications = 0;
         const accepted = [{ name: 'sound.mp3', sourcePath: '/tmp/sound.mp3' }];
@@ -40,21 +40,21 @@ for (const [label, types, expected] of cases) {
             prevented: false, stopped: false,
             preventDefault() { this.prevented = true; }, stopPropagation() { this.stopped = true; } };
         handler.handleDragOver(event);
-        assert.equal(handler.dragActive, expected, '内部ドラッグなら古い取り込み表示も消す');
+        assert.equal(handler.dragActive, expected, 'internal drags also clear stale import indicators');
         assert.equal(event.dataTransfer.dropEffect, expected ? 'copy' : 'none');
         assert.equal(event.prevented, expected);
         assert.equal(event.stopped, expected);
         handler.handleDrop(event);
         assert.equal(handler.dragActive, false);
-        assert.equal(classifications, expected ? 1 : 0, '内部 MIME はファイル・URI の分類前に除外');
+        assert.equal(classifications, expected ? 1 : 0, 'excludes internal MIME before classifying files and URIs');
         assert.deepEqual(imported, expected ? [accepted] : []);
         assert.equal(warnings.length, expected ? 1 : 0);
     });
 }
 
-test('dataTransfer が無い場合も取り込み表示を消し、取り込まない', () => {
+test('missing dataTransfer clears the import indicator and imports nothing', () => {
     const handler = Object.assign(new Handler(), {
-        dragActive: true, update() {}, classifyDropped: () => assert.fail('分類しない')
+        dragActive: true, update() {}, classifyDropped: () => assert.fail('Do not classify')
     });
     const event = { dataTransfer: null, preventDefault() {}, stopPropagation() {} };
     handler.handleDragOver(event);
@@ -65,7 +65,7 @@ test('dataTransfer が無い場合も取り込み表示を消し、取り込ま�
 });
 
 // task 2026-09-23-finder-drop-frame: 動画の drop は document capture に取られても枠を消す。
-test('window capture の drop / dragend が枠だけ消し、dispose で両方を外す', () => {
+test('window capture drop / dragend only clears the outline, and dispose removes both', () => {
     const init = widget.members.find(member => member.name?.getText(source) === 'init');
     const body = init.getText(source);
     for (const event of ['drop', 'dragend']) {
@@ -83,12 +83,12 @@ test('window capture の drop / dragend が枠だけ消し、dispose で両方�
     ).outputText;
     const handler = Object.assign(new Handler(), { dragActive: true, update() {} });
     const clearDropOverlay = new Function(callbackCode).call(handler);
-    clearDropOverlay({ preventDefault: () => assert.fail('drop の処理は変えない'),
-        stopPropagation: () => assert.fail('drop の処理は変えない') });
+    clearDropOverlay({ preventDefault: () => assert.fail('preserves drop handling'),
+        stopPropagation: () => assert.fail('preserves drop handling') });
     assert.equal(handler.dragActive, false);
 });
 
-test('dragenter は dragover と同じ OS ファイル判定へ渡す', () => {
+test('dragenter uses the same OS file detection as dragover', () => {
     const init = widget.members.find(member => member.name?.getText(source) === 'init');
     assert.match(init.getText(source), /this\.node\.addEventListener\('dragenter', event => this\.handleDragOver\(event\)\)/);
     const handler = Object.assign(new Handler(), { dragActive: false, update() {} });
@@ -100,7 +100,7 @@ test('dragenter は dragover と同じ OS ファイル判定へ渡す', () => {
     assert.equal(handler.dragActive, false);
 });
 
-test('素材・ライブラリ・プリセットのカード画像はネイティブの画像ドラッグを起動しない', () => {
+test('Footage, Library, and preset card images do not start native image drags', () => {
     let images = 0;
     const visitImages = (file, root, label) => {
         const visit = node => {

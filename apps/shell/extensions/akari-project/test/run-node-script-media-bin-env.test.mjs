@@ -29,7 +29,7 @@ async function fixture(t, overrides = {}) {
     return { root, script, service: new Service() };
 }
 
-test('runNodeScript: 解決した ffmpeg / ffprobe と ELECTRON_RUN_AS_NODE を実子プロセスへ渡す', async t => {
+test('runNodeScript: passes resolved ffmpeg / ffprobe and ELECTRON_RUN_AS_NODE to a real child process', async t => {
     const { root, script, service } = await fixture(t);
     const result = await service.runNodeScript(script, [], root);
     assert.equal(result.code, 0, result.stderr);
@@ -41,7 +41,7 @@ test('runNodeScript: 解決した ffmpeg / ffprobe と ELECTRON_RUN_AS_NODE を�
     assert.equal(process.env.ELECTRON_RUN_AS_NODE, undefined);
 });
 
-test('runNodeScript: 明示指定の AKARI_FFMPEG_BIN を resolver の結果で上書きしない', async t => {
+test('runNodeScript: resolver does not override explicitly specified AKARI_FFMPEG_BIN', async t => {
     const explicit = '/user/selected/ffmpeg';
     const { root, script, service } = await fixture(t, { AKARI_FFMPEG_BIN: explicit });
     const result = await service.runNodeScript(script, [], root);

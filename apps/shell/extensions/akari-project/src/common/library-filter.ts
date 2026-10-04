@@ -37,13 +37,13 @@ export interface LibraryFilterSection {
 }
 
 export const LIBRARY_FILTER_SECTIONS: readonly LibraryFilterSection[] = [
-    { key: 'source', label: '出どころ', single: true, options: LIBRARY_SOURCE_FILTERS },
-    { key: 'price', label: '料金', single: false, options: [
-        { key: 'free', label: '無料' }, { key: 'premium', label: 'プレミアム' }, { key: 'purchased', label: '購入済み' }] },
-    { key: 'license', label: 'ライセンス', single: false, options: [
-        { key: 'commercial', label: '商用 OK' }, { key: 'attribution', label: '帰属表示あり' }, { key: 'noncommercial', label: '商用不可' }] },
-    { key: 'status', label: '状態', single: false, options: [
-        { key: 'cached', label: '取得済み' }, { key: 'remote', label: '未取得' }, { key: 'favorite', label: 'お気に入り' }] }
+    { key: 'source', label: 'Source', single: true, options: LIBRARY_SOURCE_FILTERS },
+    { key: 'price', label: 'Price', single: false, options: [
+        { key: 'free', label: 'Free' }, { key: 'premium', label: 'Premium' }, { key: 'purchased', label: 'Purchased' }] },
+    { key: 'license', label: 'License', single: false, options: [
+        { key: 'commercial', label: 'Commercial use allowed' }, { key: 'attribution', label: 'Attribution required' }, { key: 'noncommercial', label: 'No commercial use' }] },
+    { key: 'status', label: 'Status', single: false, options: [
+        { key: 'cached', label: 'Downloaded' }, { key: 'remote', label: 'Not downloaded' }, { key: 'favorite', label: 'Favorites' }] }
 ];
 
 /** 絞り込み中の条件の数（ボタンの件数の座布団）。0 なら座布団を出さない。 */

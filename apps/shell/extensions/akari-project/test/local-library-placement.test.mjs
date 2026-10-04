@@ -38,7 +38,7 @@ async function assertRejected(f, source) {
     assert.equal(await readFile(join(f.source.libraryDir, 'sound.wav'), 'utf8'), 'original media');
 }
 
-test('実子プロセスで置き場を検証し、コピーせず参照を記帳（既存実体と大元は維持）', async t => {
+test('real subprocess validates storage and records references without copying; preserves existing files and originals', async t => {
     const f = await fixture(t);
     const result = await f.service.placeLibraryAsset(f.source, f.projectUri);
     assert.deepEqual(result, { success: true, projectAssetPath: f.destination, reference: true, libraryDir: f.source.libraryDir });
@@ -55,7 +55,7 @@ test('実子プロセスで置き場を検証し、コピーせず参照を記�
     ]);
 });
 
-test('移行前の置き場も resolver の read roots に従って参照できる', async t => {
+test('legacy storage references follow resolver read roots', async t => {
     const f = await fixture(t);
     const legacy = join(f.env.AKARI_HOME, 'assets', 'audio', 'sample');
     await mkdir(legacy, { recursive: true });
@@ -65,28 +65,28 @@ test('移行前の置き場も resolver の read roots に従って参照でき�
 });
 
 for (const id of ['..', '../sample', 'nested/sample', 'nested\\sample', 'a..b', '.', '']) {
-    test(`不正なid ${JSON.stringify(id)} をコピー前に拒否する`, async t => {
+    test(`Rejects invalid ID ${JSON.stringify(id)} before copying`, async t => {
         const f = await fixture(t);
         await assertRejected(f, { ...f.source, id });
     });
 }
 for (const [label, changes] of [
-    ['basename不一致', { id: 'different' }], ['親カテゴリ不一致', { category: 'still' }],
-    ['カテゴリのパス逸脱', { category: '../audio' }], ['相対パス', { libraryDir: 'audio/sample' }]
+    ['basename mismatch', { id: 'different' }], ['parent category mismatch', { category: 'still' }],
+    ['category path escape', { category: '../audio' }], ['relative path', { libraryDir: 'audio/sample' }]
 ]) {
-    test(`${label}を拒否する`, async t => {
+    test(`${label} is rejected`, async t => {
         const f = await fixture(t);
         await assertRejected(f, { ...f.source, ...changes });
     });
 }
 
-test('置き場と同じ接頭辞の外部フォルダを拒否する', async t => {
+test('rejects external folders sharing the storage prefix', async t => {
     const f = await fixture(t), outside = join(f.root, 'library-outside', 'audio', 'sample');
     await mkdir(outside, { recursive: true });
     await assertRejected(f, { ...f.source, libraryDir: outside });
 });
 
-test('置き場内に見える外部へのsymlinkもrealpathで拒否する', async t => {
+test('realpath rejects outward symlinks that appear inside storage', async t => {
     const f = await fixture(t), outside = join(f.root, 'outside', 'audio', 'escaped');
     await mkdir(outside, { recursive: true });
     const link = join(f.root, 'library', 'audio', 'escaped');
@@ -94,7 +94,7 @@ test('置き場内に見える外部へのsymlinkもrealpathで拒否する', as
     await assertRejected(f, { category: 'audio', id: 'escaped', libraryDir: link });
 });
 
-test('配置先assetsが外を向くsymlinkなら外部もプロジェクトも変更しない', async t => {
+test('outward destination assets symlink leaves both external files and project unchanged', async t => {
     const f = await fixture(t), outside = join(f.root, 'external-project-assets');
     await mkdir(outside, { recursive: true });
     const project = join(f.root, 'linked-project');
@@ -102,11 +102,11 @@ test('配置先assetsが外を向くsymlinkなら外部もプロジェクトも�
     await symlink(outside, join(project, 'assets'), 'dir');
     const result = await f.service.placeLibraryAsset(f.source, pathToFileURL(project).href);
     assert.equal(result.success, false);
-    assert.match(result.error, /プロジェクトの外/);
+    assert.match(result.error, /outside the project/);
     await assert.rejects(readFile(join(outside, 'audio', 'sample', 'sound.wav')), { code: 'ENOENT' });
 });
 
-test('配置先が大元と同じならコピー関数の削除処理へ渡さない', async t => {
+test('destination matching original never reaches copy deletion logic', async t => {
     const f = await fixture(t);
     // project/assets → library として、大元が配置先になる条件を作る。
     const project = join(f.root, 'same-project');
@@ -120,11 +120,11 @@ test('配置先が大元と同じならコピー関数の削除処理へ渡さ�
     await symlink(ownLibrary, join(project, 'assets'), 'dir');
     const result = await f.service.placeLibraryAsset({ ...f.source, libraryDir: sourceDir }, pathToFileURL(project).href);
     assert.equal(result.success, false);
-    assert.match(result.error, /大元/);
+    assert.match(result.error, /asset source/);
     assert.equal(await readFile(join(sourceDir, 'sound.wav'), 'utf8'), 'keep');
 });
 
-test('リンク経由で開いたプロジェクトもwidgetが相対化できるパスを返す', async t => {
+test('projects opened through links return paths the widget can relativize', async t => {
     const f = await fixture(t), alias = join(f.root, 'project-alias');
     await symlink(f.project, alias, 'dir');
     const result = await f.service.placeLibraryAsset(f.source, pathToFileURL(alias).href);
@@ -132,16 +132,16 @@ test('リンク経由で開いたプロジェクトもwidgetが相対化でき�
     assert.equal(await readFile(join(result.libraryDir, 'sound.wav'), 'utf8'), 'original media');
 });
 
-test('素材の大元の中へ再帰コピーする配置を拒否する', async t => {
+test('rejects placement recursively copying into the original asset directory', async t => {
     const f = await fixture(t), nestedProject = join(f.source.libraryDir, 'project');
     await mkdir(nestedProject);
     const result = await f.service.placeLibraryAsset(f.source, pathToFileURL(nestedProject).href);
     assert.equal(result.success, false);
-    assert.match(result.error, /大元/);
+    assert.match(result.error, /asset source/);
     assert.equal(await readFile(join(f.source.libraryDir, 'sound.wav'), 'utf8'), 'original media');
 });
 
-test('Lab は reference:true で記帳し、まとめる dry-run は無変更・実行は部分成功・再実行は冪等', async t => {
+test('Lab records reference:true; collect dry-run is unchanged, execution permits partial success, and reruns are idempotent', async t => {
     const f = await fixture(t);
     await rm(f.destination, { recursive: true });
     const catalog = join(f.root, 'catalog.json');
@@ -170,7 +170,7 @@ test('Lab は reference:true で記帳し、まとめる dry-run は無変更・
     const bundled = await f.service.bundleProjectAssets(f.projectUri, false);
     assert.deepEqual(bundled.materialized, ['audio/sample']);
     assert.equal(bundled.failures[0].key, 'audio/missing');
-    assert.match(bundled.failures[0].message, /未知/);
+    assert.match(bundled.failures[0].message, /^未知の素材 id です: missing$/u);
     assert.equal(await readFile(join(f.destination, 'sound.wav'), 'utf8'), 'original media');
     assert.deepEqual(JSON.parse(await readFile(ledger, 'utf8')).references, [{ category: 'audio', id: 'missing' }]);
     await f.service.removeProjectAssetReference(f.projectUri, { category: 'audio', id: 'missing' });

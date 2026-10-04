@@ -53,18 +53,18 @@ export class AssetSiteMain implements ElectronMainApplicationContribution {
         });
         ipcMain.handle(CHANNEL_ASSET_SITE, async (event, operation: string, input?: any) => {
             const window = BrowserWindow.fromWebContents(event.sender);
-            if (!window) throw new Error('ウィンドウが見つかりません');
+            if (!window) throw new Error('Window not found');
             if (operation === 'open') return this.open(window, input?.site, input?.url);
             const state = this.states.get(window.id);
-            if (!state) throw new Error('素材サイトが開いていません');
+            if (!state) throw new Error('No asset website is open');
             if (operation === 'close') return this.close(state);
             if (operation === 'inspect' || operation === 'testWindowBounds') {
-                if (!testHttp) throw new Error('この検証操作は開発時のみ使用できます');
+                if (!testHttp) throw new Error('This verification action is available only during development');
                 if (operation === 'inspect') return { viewBounds: state.view.getBounds(), windowBounds: window.getBounds(),
                     navigationLog: state.navigationLog.slice(-12) };
                 const { x, y, width, height } = input ?? {};
                 if (![x, y, width, height].every((value: unknown) => typeof value === 'number' && Number.isFinite(value))
-                    || width < 600 || height < 450 || width > 2400 || height > 1600) throw new Error('ウィンドウ位置が不正です');
+                    || width < 600 || height < 450 || width > 2400 || height > 1600) throw new Error('Invalid window position');
                 window.setBounds({ x: Math.floor(x), y: Math.floor(y), width: Math.floor(width), height: Math.floor(height) });
                 return;
             }
@@ -76,7 +76,7 @@ export class AssetSiteMain implements ElectronMainApplicationContribution {
                 return;
             }
             if (operation === 'navigate') {
-                if (!siteUrlAllowed(input?.url, state.site.hosts, testHttp)) throw new Error('このサイトの外へは移動できません');
+                if (!siteUrlAllowed(input?.url, state.site.hosts, testHttp)) throw new Error('Cannot navigate outside this website');
                 await state.view.webContents.loadURL(input.url); return;
             }
             if (operation === 'highlight') {
@@ -95,14 +95,14 @@ export class AssetSiteMain implements ElectronMainApplicationContribution {
                 }
                 return;
             }
-            throw new Error('操作が不正です');
+            throw new Error('Invalid action');
         });
     }
 
     private async open(window: BrowserWindow, site: AssetSite, url: string): Promise<void> {
         const trusted = await this.readTrustedSite(site?.id);
         if (!trusted || !siteUrlAllowed(url, trusted.hosts, testHttp) ||
-            !siteUrlAllowed(trusted.entry_url, trusted.hosts, testHttp)) throw new Error('サイト定義または URL が不正です');
+            !siteUrlAllowed(trusted.entry_url, trusted.hosts, testHttp)) throw new Error('Invalid site definition or URL');
         const previous = this.states.get(window.id);
         if (previous) await this.close(previous);
         const root = await this.libraryRoot();
@@ -185,8 +185,8 @@ export class AssetSiteMain implements ElectronMainApplicationContribution {
         // file:, data:, javascript: and non-HTTPS destinations are never opened.
         if (url.protocol !== 'https:' || url.username || url.password || testHttp || state.window.isDestroyed()) return;
         const answer = await dialog.showMessageBox(state.window, { type: 'question',
-            title: '素材サイトの外へ移動', message: `${url.hostname} を既定のブラウザで開きますか？`,
-            detail: raw, buttons: ['開かない', '既定ブラウザで開く'], defaultId: 0, cancelId: 0 });
+            title: 'Leave asset website', message: `${url.hostname} in your default browser?`,
+            detail: raw, buttons: ['Do not open', 'Open in default browser'], defaultId: 0, cancelId: 0 });
         if (answer.response === 1) await shell.openExternal(url.toString());
     }
     private async close(state: SiteState): Promise<void> {

@@ -8,12 +8,12 @@ import { composeState } from '../../../../../packages/asset-resolver/src/state.m
 import { AkariProjectServiceImpl } from '../lib/node/akari-project-service.js';
 import { filterLibraryCatalogItems } from '../lib/common/library-source-view.js';
 
-test('オフラインの実置き場を resolver → loadResolverCatalogItems で読み、BGM/SFXとfile URIを保持', async t => {
+test('resolver → loadResolverCatalogItems reads offline storage and preserves BGM/SFX and file URIs', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-library-consumer-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     const env = { AKARI_HOME: join(root, 'home'), AKARI_LIBRARY_ROOT: join(root, 'library'),
         AKARI_CREATOR_ROOT: join(root, 'creator'), AKARI_ASSETS_CATALOG: 'https://offline.invalid/catalog.json' };
-    for (const [id, tags, source] of [['site-bgm', ['明るい'], { url: 'https://example.test/song' }], ['own-sfx', ['sfx', 'origin:own'], undefined]]) {
+    for (const [id, tags, source] of [['site-bgm', ['Bright'], { url: 'https://example.test/song' }], ['own-sfx', ['sfx', 'origin:own'], undefined]]) {
         const dir = join(env.AKARI_LIBRARY_ROOT, 'audio', id);
         await mkdir(dir, { recursive: true });
         await writeFile(join(dir, 'meta.json'), JSON.stringify({ id, category: 'audio', title: id, tags, source, license: { spdx: 'CC0-1.0' } }));

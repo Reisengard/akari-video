@@ -48,7 +48,7 @@ const css = `
 `;
 
 export function libraryImportReadinessText(rejectedCount: number): string {
-    return `✓ 全部読み込めることを確認しました${rejectedCount > 0 ? `（取り込まない ${rejectedCount} 件）` : ''}`;
+    return `✓ Confirmed that all files can be loaded${rejectedCount > 0 ? `(Skipped: ${rejectedCount} items)` : ''}`;
 }
 
 export function focusLibraryImportSheet(element: HTMLElement | null): void {
@@ -140,7 +140,7 @@ export function LibraryImportSheet(props: Props): React.ReactElement {
                     const uri = URI.fromFilePath(item.path);
                     if (alive) setVisual({ image: uri.toString() });
                 }
-            } catch { if (alive) setVisual({ error: 'プレビューを表示できません' }); }
+            } catch { if (alive) setVisual({ error: 'Cannot display preview' }); }
         })();
         const hide = (): void => setHover(undefined);
         window.addEventListener('scroll', hide, true); window.addEventListener('resize', hide);
@@ -158,10 +158,10 @@ export function LibraryImportSheet(props: Props): React.ReactElement {
             // Same file-URI route as the library's existing audio cards, including external sources.
             const player = audio.current ?? (audio.current = new Audio());
             player.onended = stop;
-            player.onerror = () => { stop(); setError(`${item.name} を試聴できません`); };
+            player.onerror = () => { stop(); setError(`${item.name} — Cannot preview audio`); };
             player.src = uri.toString();
             await player.play();
-        } catch (e) { if (current === playGeneration.current) { stop(); setError(`試聴できません: ${String(e)}`); } }
+        } catch (e) { if (current === playGeneration.current) { stop(); setError(`Cannot preview audio: ${String(e)}`); } }
     };
     const apply = async (): Promise<void> => {
         if (!plan || busy || (asSet && !title.trim())) return;
@@ -180,92 +180,92 @@ export function LibraryImportSheet(props: Props): React.ReactElement {
         onMouseEnter={event => { const position = hoverPopupPosition(event.currentTarget.getBoundingClientRect(),
             { width: window.innerWidth, height: window.innerHeight }, { width: 300, height: 220 }); hideHover(); hoverDelay.current = setTimeout(() => setHover({ item, ...position }), 250); }}
         onMouseLeave={hideHover}>
-        {item.category === 'audio' && <button type='button' aria-label={`${item.name} を試聴`} aria-pressed={playing === item.path}
+        {item.category === 'audio' && <button type='button' aria-label={`${item.name} — Preview audio`} aria-pressed={playing === item.path}
             onClick={() => void play(item)}>{playing === item.path ? '■' : '▶'}</button>}
         <span className='akari-import-name' title={item.path}>{item.name}</span>
-        <small>{item.durationSec !== null ? `${item.durationSec.toFixed(1)} 秒` : `${((item.bytes ?? 0) / 1024).toFixed(0)} KB`}</small>
-        {item.ambiguous && <span role='group' aria-label={`${item.name} の種類`} className='akari-import-kind-toggle'>
+        <small>{item.durationSec !== null ? `${item.durationSec.toFixed(1)} seconds` : `${((item.bytes ?? 0) / 1024).toFixed(0)} KB`}</small>
+        {item.ambiguous && <span role='group' aria-label={`${item.name} — Type`} className='akari-import-kind-toggle'>
             {(['sfx', 'bgm'] as const).map(kind => <button type='button' key={kind} aria-pressed={item.kind === kind}
                 disabled={busy === 'apply'} onClick={() => setPlan(previous => previous && ({ ...previous,
-                    items: previous.items.map(entry => entry.path === item.path ? { ...entry, kind } : entry) }))}>{kind === 'sfx' ? '効果音' : 'BGM'}</button>)}
+                    items: previous.items.map(entry => entry.path === item.path ? { ...entry, kind } : entry) }))}>{kind === 'sfx' ? 'Sound effects' : 'BGM'}</button>)}
         </span>}
     </div>;
     const count = plan?.items.filter(item => item.selected !== false).length ?? 0;
     return createPortal(<div className='akari-library-import'>
         <style>{css}</style>
-        <button type='button' className='theia-button akari-library-import-add' aria-label='ライブラリに追加' aria-haspopup='menu' aria-expanded={menu}
+        <button type='button' className='theia-button akari-library-import-add' aria-label='Add to library' aria-haspopup='menu' aria-expanded={menu}
             style={{ position: 'fixed', left: bounds.right - 58, top: bounds.bottom - 100, width: 42, height: 42, borderRadius: '50%', fontSize: 24, zIndex: 30 }}
             onClick={() => setMenu(!menu)}>＋</button>
         {menu && <div style={{ position: 'fixed', left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height, zIndex: 40 }} onClick={() => setMenu(false)}>
             <div role='menu' style={{ position: 'absolute', right: 16, bottom: 108, padding: 10, display: 'grid', gap: 8,
                 background: 'var(--theia-editor-background)', border: '1px solid var(--theia-panel-border)', boxShadow: '0 4px 16px #0005' }}
                 onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key === 'Escape') setMenu(false); }}>
-                <button type='button' role='menuitem' onClick={() => { setMenu(false); setPlan(undefined); setError(''); setOpen(true); }}>ローカルから取り込む</button>
-                <button type='button' role='menuitem' onClick={showSites}>素材サイトでさがす</button>
-                <button type='button' role='menuitem' disabled>URL を貼って入れる（今後追加）</button><hr style={{ width: '100%' }} />
-                <button type='button' role='menuitem' onClick={() => { setMenu(false); props.overlayHost.dispatchEvent(new CustomEvent('akari.library.changeLocation')); }}>素材の置き場を変える…</button>
+                <button type='button' role='menuitem' onClick={() => { setMenu(false); setPlan(undefined); setError(''); setOpen(true); }}>Import from local files</button>
+                <button type='button' role='menuitem' onClick={showSites}>Find on asset websites</button>
+                <button type='button' role='menuitem' disabled>Paste a URL to import (coming soon)</button><hr style={{ width: '100%' }} />
+                <button type='button' role='menuitem' onClick={() => { setMenu(false); props.overlayHost.dispatchEvent(new CustomEvent('akari.library.changeLocation')); }}>Change asset storage location…</button>
                 <button type='button' role='menuitem' onClick={() => { setMenu(false); setCheckOpen(true); setCheckBusy(true); setCheckResult(undefined); setError('');
-                    void props.service.checkLibrary(props.projectUri).then(setCheckResult).catch(e => setError(String(e))).finally(() => setCheckBusy(false)); }}>ライブラリを点検</button>
+                    void props.service.checkLibrary(props.projectUri).then(setCheckResult).catch(e => setError(String(e))).finally(() => setCheckBusy(false)); }}>Check library</button>
             </div>
         </div>}
         {checkOpen && <div className='akari-import-backdrop' data-akari-library-check-sheet
             style={{ left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}
             onMouseDown={event => { if (event.target === event.currentTarget) setCheckOpen(false); }}>
-            <div tabIndex={-1} role='dialog' aria-modal='true' aria-label='ライブラリを点検' className='akari-import-sheet'>
-                <header><strong>ライブラリを点検</strong></header>
+            <div tabIndex={-1} role='dialog' aria-modal='true' aria-label='Check library' className='akari-import-sheet'>
+                <header><strong>Check library</strong></header>
                 <div className='akari-import-scroll'>
-                    {checkBusy && <p role='status'>点検しています…</p>}
-                    {checkResult && <><p>問題なし {checkResult.ok} 件 · 注意 {checkResult.warnings.length} 件 · エラー {checkResult.errors.length} 件</p>
+                    {checkBusy && <p role='status'>Checking…</p>}
+                    {checkResult && <><p>OK: {checkResult.ok}  items · Warnings: {checkResult.warnings.length}  items · Errors: {checkResult.errors.length}  items</p>
                         {[...checkResult.errors, ...checkResult.warnings].map((finding, index) =>
                             <div className='akari-import-row' key={`${finding.code}-${finding.category}-${finding.id}-${index}`}>
-                                <span className='akari-import-name'>{finding.level === 'error' ? 'エラー' : '注意'} · {finding.category}/{finding.id}: {finding.message}</span>
-                                {finding.level === 'error' && <button type='button' onClick={() => props.revealLibraryPath(finding.dir)}>Finder で場所を見る</button>}
+                                <span className='akari-import-name'>{finding.level === 'error' ? 'Errors' : 'Warnings'} · {finding.category}/{finding.id}: {finding.message}</span>
+                                {finding.level === 'error' && <button type='button' onClick={() => props.revealLibraryPath(finding.dir)}>Show location in Finder</button>}
                             </div>)}</>}
                     {error && <p role='alert'>{error}</p>}
                 </div>
-                <footer><button type='button' onClick={() => setCheckOpen(false)}>閉じる</button></footer>
+                <footer><button type='button' onClick={() => setCheckOpen(false)}>Close</button></footer>
             </div>
         </div>}
         {sitesOpen && <div className='akari-import-backdrop' data-akari-site-sheet
             style={{ left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}
             onMouseDown={event => { if (event.target === event.currentTarget) setSitesOpen(false); }}>
-            <div tabIndex={-1} role='dialog' aria-modal='true' aria-label='素材サイトでさがす' className='akari-import-sheet'>
-                <header><strong>素材サイトでさがす</strong></header>
+            <div tabIndex={-1} role='dialog' aria-modal='true' aria-label='Find on asset websites' className='akari-import-sheet'>
+                <header><strong>Find on asset websites</strong></header>
                 <div className='akari-import-scroll'>
-                    <button type='button' onClick={() => { setSitesOpen(false); props.openLab(); }}>まず AKARI Video Lab から</button>
-                    <div style={{ margin: '12px 0' }}><label>エージェントに頼む（自由文）
+                    <button type='button' onClick={() => { setSitesOpen(false); props.openLab(); }}>Start with AKARI Video Lab</button>
+                    <div style={{ margin: '12px 0' }}><label>Ask the agent (free text)
                         <textarea value={siteRequest} onChange={event => setSiteRequest(event.target.value)} /></label>
-                        <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(undefined, siteRequest)); }}>エージェントに頼む</button>
+                        <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(undefined, siteRequest)); }}>Ask the agent</button>
                     </div>
-                    <div role='tablist' aria-label='素材サイトの種類'>
-                        {([['audio', '音'], ['font', 'フォント'], ['visual', '映像・画像']] as const).map(([key, label]) =>
+                    <div role='tablist' aria-label='Asset website category'>
+                        {([['audio', 'Audio'], ['font', 'Fonts'], ['visual', 'Video and images']] as const).map(([key, label]) =>
                             <button key={key} type='button' role='tab' aria-selected={siteTab === key} onClick={() => setSiteTab(key)}>{label}</button>)}
                     </div>
                     {sites.filter(value => value.site.tab === siteTab && value.site.price === 'free').map(value =>
                         <div className='akari-import-group' key={value.site.id} style={{ padding: 10 }}>
-                            <strong>{value.site.name}</strong> <small>無料</small>
-                            <div><small>{siteTab === 'audio' ? '音素材' : siteTab === 'font' ? 'フォント' : '映像・画像'}</small></div>
+                            <strong>{value.site.name}</strong> <small>Free</small>
+                            <div><small>{siteTab === 'audio' ? 'Audio assets' : siteTab === 'font' ? 'Fonts' : 'Video and images'}</small></div>
                             <p>{value.site.terms.summary_ja}</p>
-                            {value.recommendations.length > 0 && <small>定番 {value.recommendations.length} 件</small>}
-                            <div><button type='button' onClick={() => { setSitesOpen(false); void props.openSite(value.site.id); }}>開く</button>
-                                <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(value.site, siteRequest)); }}>エージェントに頼む</button></div>
+                            {value.recommendations.length > 0 && <small>Popular {value.recommendations.length}  items</small>}
+                            <div><button type='button' onClick={() => { setSitesOpen(false); void props.openSite(value.site.id); }}>Open</button>
+                                <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(value.site, siteRequest)); }}>Ask the agent</button></div>
                         </div>)}
-                    <details className='akari-import-group'><summary>有料・サブスクのサービス（{sites.filter(value => value.site.tab === siteTab && value.site.price !== 'free').length}）</summary>
+                    <details className='akari-import-group'><summary>Paid and subscription services ({sites.filter(value => value.site.tab === siteTab && value.site.price !== 'free').length})</summary>
                         {sites.filter(value => value.site.tab === siteTab && value.site.price !== 'free').map(value =>
                             <div className='akari-import-row' key={value.site.id}><strong>{value.site.name}</strong>
-                                <small>{value.site.price === 'subscription' ? 'サブスク' : '買い切り'}</small>
-                                <small>{siteTab === 'audio' ? '音素材' : siteTab === 'font' ? 'フォント' : '映像・画像'}</small>
+                                <small>{value.site.price === 'subscription' ? 'Subscription' : 'One-time purchase'}</small>
+                                <small>{siteTab === 'audio' ? 'Audio assets' : siteTab === 'font' ? 'Fonts' : 'Video and images'}</small>
                                 <span>{value.site.terms.summary_ja}</span>
-                                <button type='button' onClick={() => { setSitesOpen(false); void props.openSite(value.site.id); }}>開く</button>
-                                <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(value.site, siteRequest)); }}>エージェントに頼む</button></div>)}</details>
+                                <button type='button' onClick={() => { setSitesOpen(false); void props.openSite(value.site.id); }}>Open</button>
+                                <button type='button' onClick={() => { setSitesOpen(false); void props.askSiteAgent(composeSiteAgentPrompt(value.site, siteRequest)); }}>Ask the agent</button></div>)}</details>
                     {error && <p role='alert'>{error}</p>}
                 </div>
-                <footer><button type='button' onClick={() => setSitesOpen(false)}>閉じる</button></footer>
+                <footer><button type='button' onClick={() => setSitesOpen(false)}>Close</button></footer>
             </div>
         </div>}
         {open && <div className='akari-import-backdrop' style={{ left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }}
             onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
-            <div ref={dialog} tabIndex={-1} role='dialog' aria-modal='true' aria-label='ローカルから取り込む' className='akari-import-sheet'
+            <div ref={dialog} tabIndex={-1} role='dialog' aria-modal='true' aria-label='Import from local files' className='akari-import-sheet'
                 onKeyDown={event => {
                     if (event.key === 'Escape') { event.stopPropagation(); close(); }
                     if (event.key === 'Tab') {
@@ -275,38 +275,38 @@ export function LibraryImportSheet(props: Props): React.ReactElement {
                         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
                     }
                 }}>
-                <header><strong>{plan ? `${count} 個を取り込みます` : 'ローカルから取り込む'}</strong></header>
+                <header><strong>{plan ? `${count} items will be imported` : 'Import from local files'}</strong></header>
                 <div className='akari-import-scroll'>
-                    {busy === 'plan' && <p role='status'>ファイルを確認しています…</p>}
-                    {!plan && !busy && <><p>ファイルやフォルダをここへ落とすか、選んでください。</p>
-                        {props.isOSX ? <button type='button' onClick={() => void pick('both')}>ファイル・フォルダを選ぶ</button>
-                            : <><button type='button' onClick={() => void pick('files')}>ファイルを選ぶ</button> <button type='button' onClick={() => void pick('folders')}>フォルダを選ぶ</button></>}
+                    {busy === 'plan' && <p role='status'>Checking files…</p>}
+                    {!plan && !busy && <><p>Drop files or folders here, or select them.</p>
+                        {props.isOSX ? <button type='button' onClick={() => void pick('both')}>Choose files or folders</button>
+                            : <><button type='button' onClick={() => void pick('files')}>Choose files</button> <button type='button' onClick={() => void pick('folders')}>Choose folder</button></>}
                     </>}
                     {plan && <>
                         <p>{libraryImportReadinessText(plan.rejected.length)}</p>
-                        {plan.truncated && <p role='alert'>一度に確認できる {plan.limit} 件まで表示しています。残りは分けて取り込んでください。</p>}
+                        {plan.truncated && <p role='alert'>Showing up to {plan.limit}  items that can be checked at once. Import the rest in separate batches.</p>}
                         {plan.warnings.map((warning, index) => <p key={index} role='status'>{warning}</p>)}
                         {libraryImportGroups(plan).map(group => <details key={group.kind} className='akari-import-group'>
-                            <summary>{group.icon} {group.label} · {group.items.length} 件 <small>{group.items[0].name}</small></summary>
+                            <summary>{group.icon} {group.label} · {group.items.length}  items <small>{group.items[0].name}</small></summary>
                             {group.items.map(row)}
                         </details>)}
-                        {plan.items.some(item => item.ambiguous) && <section className='akari-import-group' aria-label='迷ったもの'>
-                            <h4 style={{ padding: 8, margin: 0 }}>迷ったもの · {plan.items.filter(item => item.ambiguous).length} 件</h4>
+                        {plan.items.some(item => item.ambiguous) && <section className='akari-import-group' aria-label='Needs review'>
+                            <h4 style={{ padding: 8, margin: 0 }}>Needs review · {plan.items.filter(item => item.ambiguous).length}  items</h4>
                             {plan.items.filter(item => item.ambiguous).map(row)}
                         </section>}
-                        {!!plan.duplicates.length && <section><h4>もう入っています · {plan.duplicates.length} 件</h4>
+                        {!!plan.duplicates.length && <section><h4>Already imported · {plan.duplicates.length}  items</h4>
                             {plan.duplicates.map((item, index) => <p key={`${item.path}-${index}`}>{item.name} → {item.title || item.id}</p>)}</section>}
-                        {!!plan.rejected.length && <section><h4>取り込まない · {plan.rejected.length} 件</h4>
+                        {!!plan.rejected.length && <section><h4>Skipped · {plan.rejected.length}  items</h4>
                             {plan.rejected.map((item, index) => <p key={`${item.path}-${index}`}>{item.name} — {item.reason}</p>)}</section>}
-                        <label><input type='checkbox' checked={asSet} disabled={busy === 'apply'} onChange={event => setAsSet(event.target.checked)} />ひとまとまりのセットにする</label>
-                        {asSet && <input type='text' aria-label='セットの名前' placeholder='セットの名前' value={title} disabled={busy === 'apply'} onChange={event => setTitle(event.target.value)} />}
-                        <details><summary>くわしく</summary><label>クレジット文面（任意）<textarea value={credit} disabled={busy === 'apply'} onChange={event => setCredit(event.target.value)} /></label></details>
+                        <label><input type='checkbox' checked={asSet} disabled={busy === 'apply'} onChange={event => setAsSet(event.target.checked)} />Group into a set</label>
+                        {asSet && <input type='text' aria-label='Set name' placeholder='Set name' value={title} disabled={busy === 'apply'} onChange={event => setTitle(event.target.value)} />}
+                        <details><summary>Details</summary><label>Credit text (optional)<textarea value={credit} disabled={busy === 'apply'} onChange={event => setCredit(event.target.value)} /></label></details>
                     </>}
                     {error && <p role='alert'>{error}</p>}
                 </div>
-                <footer><button type='button' disabled={busy === 'apply'} onClick={close}>閉じる</button>
+                <footer><button type='button' disabled={busy === 'apply'} onClick={close}>Close</button>
                     {plan && <button type='button' className='theia-button' disabled={!!busy || !count || (asSet && !title.trim())} onClick={() => void apply()}>
-                        {busy === 'apply' ? '取り込み中…' : '取り込む'}</button>}</footer>
+                        {busy === 'apply' ? 'Importing…' : 'Import'}</button>}</footer>
             </div>
         </div>}
         {hover && createPortal(<div role='tooltip' className='akari-import-hover' style={{ position: 'fixed', left: hover.left, top: hover.top,
@@ -314,10 +314,10 @@ export function LibraryImportSheet(props: Props): React.ReactElement {
             background: 'var(--theia-editor-background)', color: 'var(--theia-editor-foreground)', boxShadow: '0 4px 24px #0008', border: '1px solid var(--theia-panel-border)' }}>
             <div style={{ height: 145, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {visual.image ? <img src={visual.image} alt={hover.item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                    : <span>{visual.error || (hover.item.category === 'audio' || hover.item.kind === 'still' ? '読み込み中…' : LIBRARY_IMPORT_KINDS.find(kind => kind.kind === hover.item.kind)?.label)}</span>}
+                    : <span>{visual.error || (hover.item.category === 'audio' || hover.item.kind === 'still' ? 'Loading…' : LIBRARY_IMPORT_KINDS.find(kind => kind.kind === hover.item.kind)?.label)}</span>}
             </div>
             <div className='akari-import-name'>{hover.item.name}</div>
-            <small>{hover.item.durationSec === null ? (hover.item.durationSource === 'size' ? '尺は未取得・サイズで推定 · ' : '') : `${hover.item.durationSec.toFixed(1)} 秒 · `}
+            <small>{hover.item.durationSec === null ? (hover.item.durationSource === 'size' ? 'Duration unavailable; estimated from size · ' : '') : `${hover.item.durationSec.toFixed(1)} seconds · `}
                 {((hover.item.bytes ?? 0) / 1024).toFixed(0)} KB</small>
         </div>, document.body)}
     </div>, props.overlayHost);

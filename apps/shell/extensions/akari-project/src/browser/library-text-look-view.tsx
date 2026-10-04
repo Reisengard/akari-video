@@ -24,7 +24,7 @@ export function LibraryTextFontRow(props: { item: AssetCatalogViewItem; faceFami
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label.english}</small>}
     </span>;
     const actions = <span style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: '0 0 auto' }}>
-        {card.favorite && <span className='codicon codicon-star-full' aria-label='お気に入り' />}
+        {card.favorite && <span className='codicon codicon-star-full' aria-label='Favorites' />}
         <LibraryDotsButton variant='inline' label={item.title} onOpen={card.onInfo} />
     </span>;
     return <div role='button' tabIndex={0} draggable data-akari-library-card='list'
@@ -49,7 +49,7 @@ export function LibraryTextFontRow(props: { item: AssetCatalogViewItem; faceFami
             {item.previewUrl
                 ? <img src={item.previewUrl} alt='' draggable={false}
                     style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'left center' }} />
-                : <small style={{ opacity: 0.6, fontSize: '0.66em' }}>見本は取得後</small>}
+                : <small style={{ opacity: 0.6, fontSize: '0.66em' }}>Samples available after download</small>}
             </div>
         </>}
     </div>;
@@ -64,16 +64,16 @@ export function LibraryTextLookPage(props: { onBack(): void; onPlace(): void; ta
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                 <button type='button' data-akari-library-back onClick={props.onBack}
                     style={{ padding: 0, border: 'none', background: 'transparent', color: 'var(--theia-textLink-foreground)',
-                        cursor: 'pointer', fontSize: '0.8em' }}>← ライブラリ</button>
-                <strong style={{ fontSize: '0.86em' }}>テキスト</strong>
+                        cursor: 'pointer', fontSize: '0.8em' }}>← Library</button>
+                <strong style={{ fontSize: '0.86em' }}>Text</strong>
             </div>
             <button type='button' data-akari-library-place-text onClick={props.onPlace}
                 style={{ width: '100%', margin: '10px 0 9px', padding: '7px 8px', cursor: 'pointer',
                     borderRadius: `${AKARI_RADIUS.panel}px`, border: AKARI_BORDER.ghost,
                     background: AKARI_SURFACE.raised, color: AKARI_INK, textAlign: 'left', fontWeight: 700 }}>
-                ＋ 文字を置く
+                ＋ Place text
             </button>
-            <div role='tablist' aria-label='テキストの種類' data-akari-caption-panel-switch={props.tab}
+            <div role='tablist' aria-label='Text type' data-akari-caption-panel-switch={props.tab}
                 style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '3px',
                     borderRadius: '8px', background: AKARI_SURFACE.elevated, border: AKARI_BORDER.edge }}>
                 <span aria-hidden='true' style={{ position: 'absolute', top: '3px', bottom: '3px', left: '3px',
@@ -86,18 +86,18 @@ export function LibraryTextLookPage(props: { onBack(): void; onPlace(): void; ta
                     style={{ position: 'relative', border: 0, background: 'transparent', padding: '7px 4px',
                         color: props.tab === tab ? 'var(--akari-accent)' : AKARI_INK,
                         fontWeight: props.tab === tab ? 700 : 400, cursor: 'pointer', fontSize: '12px' }}>
-                    {tab === 'style' ? 'スタイル' : 'フォント'}
+                    {tab === 'style' ? 'Style' : 'Fonts'}
                 </button>)}
             </div>
         </div>
         {props.tab === 'style' ? <div role='tabpanel' data-akari-text-look-section='style'>
-            <ShelfHeading label='テキストスタイル' hint='置く / かける' />
+            <ShelfHeading label='Text style' hint='Place / Apply' />
             <div style={GRID}>{props.styles}</div>
             {props.myStyles}
-            <ShelfHeading label='テキストアニメ' hint='かける・ホバーで再生' />
+            <ShelfHeading label='Text animation' hint='Apply · Hover to play' />
             <div style={GRID}>{props.motions}</div>
         </div> : <div role='tabpanel' data-akari-text-look-section='font'>
-            <ShelfHeading label='フォント' hint='置く / かける' />
+            <ShelfHeading label='Fonts' hint='Place / Apply' />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '8px 10px 12px' }}>{props.fonts}</div>
         </div>}
     </div>;

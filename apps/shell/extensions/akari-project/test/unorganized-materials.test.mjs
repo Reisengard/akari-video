@@ -9,7 +9,7 @@ const POLICY = {
     sidecarSuffixes: ['.meta.json', '.decisions.json', '.analysis.json']
 };
 
-test('classifyUnorganizedMediaKind: 動画/音声/画像の対象拡張子を分類する', () => {
+test('classifyUnorganizedMediaKind: classifies supported video/audio/image extensions', () => {
     assert.equal(classifyUnorganizedMediaKind('clip.mp4'), 'video');
     assert.equal(classifyUnorganizedMediaKind('clip.MOV'), 'video');
     assert.equal(classifyUnorganizedMediaKind('clip.webm'), 'video');
@@ -22,45 +22,45 @@ test('classifyUnorganizedMediaKind: 動画/音声/画像の対象拡張子を分
     assert.equal(classifyUnorganizedMediaKind('frame-01.webp'), 'image');
 });
 
-test('classifyUnorganizedMediaKind: 対象外拡張子は undefined', () => {
+test('classifyUnorganizedMediaKind: unsupported extensions return undefined', () => {
     assert.equal(classifyUnorganizedMediaKind('notes.txt'), undefined);
     assert.equal(classifyUnorganizedMediaKind('clip.mkv'), undefined);
     assert.equal(classifyUnorganizedMediaKind('README.md'), undefined);
 });
 
-test('isUnorganizedRootEntry: ルート直下のメディアファイルは未整理として拾う', () => {
+test('isUnorganizedRootEntry: collects root-level media files as unorganized', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'clip.mp4', isDirectory: false }, POLICY), true);
     assert.equal(isUnorganizedRootEntry({ name: 'narration.wav', isDirectory: false }, POLICY), true);
     assert.equal(isUnorganizedRootEntry({ name: 'frame-01.png', isDirectory: false }, POLICY), true);
 });
 
-test('isUnorganizedRootEntry: レガシー証跡画像（frame-*.png）も未整理として拾ってよい', () => {
+test('isUnorganizedRootEntry: legacy evidence images (frame-*.png) may be unorganized too', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'frame-09.png', isDirectory: false }, POLICY), true);
 });
 
-test('isUnorganizedRootEntry: ディレクトリは常に除外（非再帰）— assets/exports/.akari 等', () => {
+test('isUnorganizedRootEntry: always excludes directories without recursion, including assets/exports/.akari', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'assets', isDirectory: true }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: 'exports', isDirectory: true }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: '.akari', isDirectory: true }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: 'planning', isDirectory: true }, POLICY), false);
 });
 
-test('isUnorganizedRootEntry: ルート直下契約 JSON（edit.json 等）は除外', () => {
+test('isUnorganizedRootEntry: excludes root-level contract JSON such as edit.json', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'edit.json', isDirectory: false }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: 'captions.json', isDirectory: false }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: 'review.json', isDirectory: false }, POLICY), false);
 });
 
-test('isUnorganizedRootEntry: policy.hidden に一致するファイルは除外（既存ノイズ方針と矛盾しない）', () => {
+test('isUnorganizedRootEntry: excludes policy.hidden matches consistently with existing noise rules', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'CLAUDE.md', isDirectory: false }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: '.gitignore', isDirectory: false }, POLICY), false);
 });
 
-test('isUnorganizedRootEntry: サイドカー拡張子は除外', () => {
+test('isUnorganizedRootEntry: excludes sidecar extensions', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'clip.mp4.analysis.json', isDirectory: false }, POLICY), false);
 });
 
-test('isUnorganizedRootEntry: メディア拡張子でないファイルは対象外', () => {
+test('isUnorganizedRootEntry: excludes files without media extensions', () => {
     assert.equal(isUnorganizedRootEntry({ name: 'notes.txt', isDirectory: false }, POLICY), false);
     assert.equal(isUnorganizedRootEntry({ name: 'package.json', isDirectory: false }, POLICY), false);
 });

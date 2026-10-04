@@ -51,27 +51,27 @@ import { EXPLORER_VIEW_CONTAINER_ID } from '@theia/navigator/lib/browser/navigat
  */
 export const NEW_AKARI_PROJECT: Command = {
     id: 'akari.project.new',
-    label: '場所を選んで新規作成…'
+    label: 'New project in a folder...'
 };
 export const SHOW_AKARI_CHANGES: Command = {
     id: 'akari.project.showChanges',
-    label: '変更を見る'
+    label: 'View changes'
 };
 export const TOGGLE_AKARI_DEVELOPER_MODE: Command = {
     id: 'akari.project.toggleDeveloperMode',
-    label: '開発者モードを切り替える'
+    label: 'Toggle developer mode'
 };
 export const DISCONNECT_AKARI_STORE_ACCOUNT: Command = {
     id: 'akari.project.disconnectStoreAccount',
-    label: 'AKARI アカウントの接続を解除'
+    label: 'Disconnect AKARI account'
 };
 const PROJECT_CONSENT_MESSAGE =
-    'このフォルダを AKARI Video プロジェクトとして使いますか？' +
-    '（フォルダ構成の作成と、作業の節目の記録を始めます）';
-const PROJECT_CONSENT_ACTION_USE = '使う';
-const PROJECT_CONSENT_ACTION_OPEN_ONLY = '開くだけ';
+    'Use this folder as an AKARI Video project?' +
+    '(This creates the folder structure and starts recording project milestones.)';
+const PROJECT_CONSENT_ACTION_USE = 'Use this folder';
+const PROJECT_CONSENT_ACTION_OPEN_ONLY = 'Just open';
 const PARENT_HISTORY_NOTICE_MESSAGE =
-    'このフォルダは別の変更履歴の中にあるため、このプロジェクト単体の変更履歴は記録されません。';
+    'This folder is inside another version history, so a separate history will not be recorded for this project.';
 
 /**
  * タイムラインへ「落とした位置」で置く内部コマンド（task 2026-09-08-timeline-file-drop 指示9・10）。
@@ -311,7 +311,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
 
     protected async createProject(): Promise<void> {
         const destination = await this.dialogs.showOpenDialog({
-            title: '新しいプロジェクトの保存先を選ぶ',
+            title: 'Choose where to save the new project',
             canSelectFiles: false,
             canSelectFolders: true
         });
@@ -322,7 +322,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
             await this.projectService.createProject(destination.toString());
             await this.workspace.open(destination);
         } catch (error) {
-            this.messages.error(`プロジェクトを作成できませんでした: ${this.errorMessage(error)}`);
+            this.messages.error(`Could not create project: ${this.errorMessage(error)}`);
         }
     }
 
@@ -403,7 +403,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
         const roots = await this.workspace.roots;
         const root = roots[0]?.resource;
         if (!root) {
-            this.messages.warn('先にプロジェクトを開いてください。');
+            this.messages.warn('Open a project first.');
             return;
         }
         try {
@@ -415,22 +415,22 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
                     ? await this.placeImportedOnTimeline(results, options.clientX, options.clientY)
                     : 0;
                 this.messages.info(placed > 0
-                    ? `${imported} 本の動画をタイムラインに置きました。`
-                    : `${imported} 本の動画を素材に取り込みました。`
-                        + 'タイムラインへ置くには素材カードを右クリック →「タイムラインに追加」。');
+                    ? `${imported} videos added to the timeline.`
+                    : `${imported} videos imported as footage.`
+                        + 'To place footage on the timeline, right-click its card → “Add to timeline”.');
                 const navigator = await this.widgets.getOrCreateWidget('files') as any;
                 await navigator.model?.refresh?.();
             }
             if (failed) {
-                const message = '動画を取り込めませんでした。Finder からもう一度ドラッグしてください。';
+                const message = 'Could not import videos. Drag them from Finder again.';
                 if (imported) {
-                    this.messages.warn(`${failed} 本の${message}`);
+                    this.messages.warn(`${failed} videos of ${message}`);
                 } else {
                     this.messages.error(message);
                 }
             }
         } catch {
-            this.messages.error('動画を取り込めませんでした。Finder からもう一度ドラッグしてください。');
+            this.messages.error('Could not import videos. Drag them from Finder again.');
         }
     }
 
@@ -534,17 +534,17 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
         const roots = await this.workspace.roots;
         const root = roots[0]?.resource;
         if (!root) {
-            this.messages.warn('プロジェクトを開いてください。');
+            this.messages.warn('Open a project.');
             return;
         }
         try {
             const { capable, pairs } = await this.projectService.prepareDiffs(root.toString());
             if (!capable) {
-                this.messages.info('このフォルダーでは変更履歴を使えません。');
+                this.messages.info('Version history is unavailable in this folder.');
                 return;
             }
             if (!pairs.length) {
-                this.messages.info('表示できる変更はまだありません。');
+                this.messages.info('There are no changes to display yet.');
                 return;
             }
             for (const pair of pairs) {
@@ -552,7 +552,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
                 await open(this.openers, diffUri, { mode: 'activate' });
             }
         } catch (error) {
-            this.messages.error(`変更を表示できませんでした: ${this.errorMessage(error)}`);
+            this.messages.error(`Could not display changes: ${this.errorMessage(error)}`);
         }
     }
 
@@ -565,17 +565,17 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
     protected async revealInFileManager(uri: URI): Promise<void> {
         const exists = await this.files.exists(uri);
         if (!exists) {
-            this.messages.error(`見つかりませんでした: ${uri.path.fsPath()}`);
+            this.messages.error(`Not found: ${uri.path.fsPath()}`);
             return;
         }
         const api = (window as Window & { electronAkariProject?: ElectronAkariProjectApi }).electronAkariProject;
         if (!api) {
-            this.messages.error('この機能は AKARI Video アプリでのみ使えます。');
+            this.messages.error('This feature is only available in the AKARI Video app.');
             return;
         }
         const result = await api.revealInFileManager(uri.path.fsPath());
         if (!result.ok) {
-            this.messages.error(result.message ?? `開けませんでした: ${uri.path.fsPath()}`);
+            this.messages.error(result.message ?? `Could not open: ${uri.path.fsPath()}`);
         }
     }
 
@@ -587,7 +587,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
         const roots = await this.workspace.roots;
         const root = roots[0]?.resource;
         if (!root) {
-            this.messages.warn('プロジェクトを開いてください。');
+            this.messages.warn('Open a project.');
             return;
         }
         await this.revealInFileManager(root);
@@ -611,7 +611,7 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
             await this.shell.activateWidget(inspector.id);
             await inspector.showAsset(uri, { force: true });
         } catch (error) {
-            this.messages.warn(`素材の情報を表示できませんでした: ${this.errorMessage(error)}`);
+            this.messages.warn(`Could not display footage information: ${this.errorMessage(error)}`);
         }
     }
 
@@ -627,22 +627,22 @@ export class AkariProjectContribution implements CommandContribution, MenuContri
         try {
             const connection = await this.projectService.getStoreConnectionStatus();
             if (!connection.connected) {
-                this.messages.info('AKARI アカウントは未接続です。');
+                this.messages.info('No AKARI account is connected.');
                 return;
             }
             const action = await this.messages.warn(
-                `${connection.identifier} として接続中です。この端末の接続情報を削除しますか？`,
-                '切断する'
+                `${connection.identifier} is connected. Remove the connection information from this device?`,
+                'Disconnect'
             );
-            if (action !== '切断する') {
+            if (action !== 'Disconnect') {
                 return;
             }
             await this.projectService.disconnectStoreAccount();
             const widget = await this.widgets.getOrCreateWidget(AkariRoleBucketsWidget.ID) as AkariRoleBucketsWidget;
             await widget.refreshStoreConnectionStatus();
-            this.messages.info('AKARI アカウントの接続を解除しました。');
+            this.messages.info('AKARI account disconnected.');
         } catch (error) {
-            this.messages.error(`接続を解除できませんでした: ${this.errorMessage(error)}`);
+            this.messages.error(`Could not disconnect: ${this.errorMessage(error)}`);
         }
     }
 

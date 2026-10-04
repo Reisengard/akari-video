@@ -22,12 +22,12 @@ export function planFontApply(item: Pick<AssetCatalogViewItem, 'category' | 'id'
     selection: FontSelection | null | undefined, previousStyle: Record<string, unknown> = {}): { ok: true; captionId: string; detail: {
         ids: string[]; selectedParts: string[]; style: { parts: Array<{ kind: 'look'; text_style: Record<string, unknown> }> }
     } } | { ok: false; message: string } {
-    if (item.category !== 'font' || !item.id.trim()) return { ok: false, message: 'フォントが見つかりません。' };
+    if (item.category !== 'font' || !item.id.trim()) return { ok: false, message: 'Font not found.' };
     if (!selection || selection.kind !== 'caption' || !selection.id.trim()) {
-        return { ok: false, message: '先に文字を選んでください。' };
+        return { ok: false, message: 'Select text first.' };
     }
     const family = item.title.replace(/（.*$/, '').trim();
-    if (!family) return { ok: false, message: 'フォントの名前を確認できません。' };
+    if (!family) return { ok: false, message: 'Could not identify the font name.' };
     return { ok: true, captionId: selection.id, detail: {
         ids: [selection.id], selectedParts: ['look'],
         style: { parts: [{ kind: 'look', text_style: { ...previousStyle, font_family: family } }] }

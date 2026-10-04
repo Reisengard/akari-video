@@ -24,7 +24,7 @@ export class AkariProjectElectronApi implements ElectronMainApplicationContribut
     onStart(_application: ElectronMainApplication): void {
         ipcMain.handle(CHANNEL_REVEAL_IN_FILE_MANAGER, async (_event, fsPath: unknown): Promise<RevealInFileManagerResult> => {
             if (typeof fsPath !== 'string' || !fsPath) {
-                return { ok: false, message: '対象のパスが指定されていません。' };
+                return { ok: false, message: 'No target path specified.' };
             }
             shell.showItemInFolder(fsPath);
             return { ok: true };
@@ -34,10 +34,10 @@ export class AkariProjectElectronApi implements ElectronMainApplicationContribut
         // `public.file-url` へ file URL を書き込む（⌘V での貼り付けに必要な形式）。
         ipcMain.handle(CHANNEL_COPY_FILE_TO_CLIPBOARD, async (_event, fsPath: unknown): Promise<CopyFileToClipboardResult> => {
             if (typeof fsPath !== 'string' || !fsPath) {
-                return { ok: false, message: '対象のパスが指定されていません。' };
+                return { ok: false, message: 'No target path specified.' };
             }
             if (!isOSX) {
-                return { ok: false, message: 'この機能は現在 macOS のみ対応しています。' };
+                return { ok: false, message: 'This feature currently supports only macOS.' };
             }
             clipboard.writeBuffer('public.file-url', Buffer.from(toFileUrl(fsPath)));
             return { ok: true };

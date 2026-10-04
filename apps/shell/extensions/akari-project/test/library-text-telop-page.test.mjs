@@ -19,7 +19,7 @@ function nodes(tree, predicate) {
     return [...(predicate(tree) ? [tree] : []), ...(tree.children ?? []).flatMap(child => nodes(child, predicate))];
 }
 
-test('テキストのページはスタイル・フォント・テロップを切り替え、テロップカードを同じ棚に置く', () => {
+test('text page switches styles, fonts, and title cards and places title cards on the same shelf', () => {
     const calls = [];
     const props = { onBack() {}, onPlace() {}, onTabChange: tab => calls.push(tab),
         styles: 'styles', myStyles: 'my-styles', motions: 'motions', fonts: 'fonts',

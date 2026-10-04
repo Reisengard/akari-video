@@ -31,7 +31,7 @@ const faceCode = ts.transpileModule(faceDeclaration.getText(ast), { compilerOpti
 const captionRowFontFace = new Function('CAPTION_FONT_FAMILY', 'CAPTION_PANEL_FONTS',
     `${faceCode}\nreturn captionRowFontFace;`)(CAPTION_FONT_FAMILY, CAPTION_PANEL_FONTS);
 
-test('字幕と置いた文字のフォント行は書体名を示し、フォントパネルのコマンドへつなぐ', async () => {
+test('Captions and placed text font rows show font names and link to font panel commands', async () => {
     assert.match(source, /captionFontFamilyField\(rowSnapshot as TimelineCaptionSelection/u);
     assert.match(source, /executeCommand<boolean>\('akari\.captionPanel\.toggle', \{ panel: 'font' \}\)/u);
     for (const timeDomain of ['source', 'output']) {
@@ -41,7 +41,7 @@ test('字幕と置いた文字のフォント行は書体名を示し、フォ�
         const row = captionFontFamilyField(snapshot, async () => {
             calls.push(['akari.captionPanel.toggle', { panel: 'font' }]); return true;
         });
-        assert.equal(row.label, 'フォント');
+        assert.match(row.label, /^フォント$/u);
         assert.equal(row.getValue(), 'Noto Serif JP');
         assert.equal(row.actionLabel, 'Noto Serif JP  ›');
         assert.deepEqual(await row.action(snapshot), { ok: true });

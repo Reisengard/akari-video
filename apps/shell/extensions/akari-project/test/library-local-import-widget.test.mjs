@@ -24,7 +24,7 @@ function fixture() {
     return { handler, calls };
 }
 const event = (files, uriList = '') => ({ preventDefault() {}, stopPropagation() {}, dataTransfer: { files, types: ['Files'], getData: () => uriList } });
-test('catalog ドロップは形式を判定せずフォルダ・cube・docx も plan へ。project は従来処理のみ', () => {
+test('catalog drops send folders, cube, and docx to plan without format detection; project uses existing processing', () => {
     const { handler, calls } = fixture();
     const paths = ['/input/folder', '/input/look.cube', '/input/doc.docx'];
     handler.handleDrop(event(paths.map(path => ({ path }))));
@@ -34,7 +34,7 @@ test('catalog ドロップは形式を判定せずフォルダ・cube・docx も
     handler.handleDrop(event(paths.map(path => ({ path }))));
     assert.deepEqual(calls, ['classify-project', [{ name: 'one.wav' }]]);
 });
-test('URI ドロップ、内部ドラッグの除外、元パス欠落の表示', () => {
+test('URI drops, internal drag exclusion, and missing source path display', () => {
     const { handler, calls } = fixture();
     handler.handleDrop(event([], '# comment\nfile:///input/space%20name\nhttps://example.com'));
     assert.deepEqual(handler.libraryImportRequest.paths, ['/input/space name']);
@@ -42,9 +42,9 @@ test('URI ドロップ、内部ドラッグの除外、元パス欠落の表示'
     const internal = event([]); internal.dataTransfer.types = ['application/x-akari-material'];
     handler.handleDrop(internal); assert.deepEqual(calls, []);
     handler.handleDrop(event([{ name: 'no-path' }]));
-    assert.equal(handler.libraryImportRequest, undefined); assert.match(calls[0], /場所を読み取れません/);
+    assert.equal(handler.libraryImportRequest, undefined); assert.match(calls[0], /Could not read the file location/);
 });
-test('ダイアログは macOS の両方と他 OS の 2 ボタンに対応、複数選択・キャンセル', async () => {
+test('dialog supports both macOS options and two buttons on other OSes, multiple selection, and cancellation', async () => {
     const { handler } = fixture(); let options;
     handler.dialogs = { showOpenDialog: async value => { options = value; return [URI.fromFilePath('/one'), URI.fromFilePath('/two')]; } };
     for (const [mode, files, folders] of [['both', true, true], ['files', true, false], ['folders', false, true]]) {
@@ -54,7 +54,7 @@ test('ダイアログは macOS の両方と他 OS の 2 ボタンに対応、複
     handler.dialogs.showOpenDialog = async () => undefined;
     assert.deepEqual(await handler.pickLibraryImport('both'), []);
 });
-test('ライブラリに保管は単一ファイル plan/apply だけでプロジェクト操作なし', async () => {
+test('Save to Library uses only single-file plan/apply without project operations', async () => {
     const { handler, calls } = fixture();
     const plan = { items: [{ path: '/project/assets/one.wav' }] };
     const result = { added: [], duplicates: [], rejected: [], failures: [] };
@@ -66,7 +66,7 @@ test('ライブラリに保管は単一ファイル plan/apply だけでプロ�
     calls.length = 0;
     await handler.storeMaterialInLibrary({ reference: { id: 'one' } }); assert.deepEqual(calls, []);
 });
-test('取り込み後はフィルタを解除しホーム再読込→帯を表示', async () => {
+test('importing clears filters, reloads home, and shows the strip', async () => {
     const { handler, calls } = fixture();
     Object.assign(handler, { libraryCategory: 'sfx', librarySourceFilter: 'lab', libraryFolderFilter: 'old', catalogQuery: 'old',
         reportLibraryImportResult() {}, loadAssetCatalogView: async () => calls.push('reload'),
@@ -75,7 +75,7 @@ test('取り込み後はフィルタを解除しホーム再読込→帯を表�
     assert.deepEqual([handler.topView, handler.libraryCategory, handler.librarySourceFilter, handler.libraryFolderFilter, handler.catalogQuery, handler.catalogCategory], ['catalog', undefined, 'all', undefined, '', 'all']);
     assert.deepEqual(calls, ['reload', 'update', 'scroll']);
 });
-test('シートを開く focus はスクロール容器の scrollTop を変えない', () => {
+test('focus opening the sheet does not change scroll container scrollTop', () => {
     const container = { clientHeight: 190, scrollHeight: 720, scrollTop: 137 };
     const dialog = { focus(options) { if (!options?.preventScroll) container.scrollTop = 561; } };
     focusLibraryImportSheet(dialog);
@@ -85,17 +85,17 @@ test('シートを開く focus はスクロール容器の scrollTop を変え�
     assert.match(sheet, /focusLibraryImportSheet\(dialog\.current\)/);
     assert.match(sheet, /<\/div>, props\.overlayHost\);/);
 });
-test('シート先頭行は rejected 0 件と 2 件の両方で確認済みを表示', () => {
-    assert.equal(libraryImportReadinessText(0), '✓ 全部読み込めることを確認しました');
-    assert.equal(libraryImportReadinessText(2), '✓ 全部読み込めることを確認しました（取り込まない 2 件）');
+test('sheet first row shows verification for both 0 and 2 rejected items', () => {
+    assert.equal(libraryImportReadinessText(0), '✓ Confirmed that all files can be loaded');
+    assert.equal(libraryImportReadinessText(2), '✓ Confirmed that all files can be loaded(Skipped: 2 items)');
 });
-test('完了トーストは件数だけ、rejected・プレースホルダ警告を繰り返さず失敗だけ通知', () => {
+test('completion toast shows only count; does not repeat rejected or placeholder warnings; only reports failures', () => {
     const { handler } = fixture();
     const info = [], warn = [];
     handler.messages = { info: value => info.push(value), warn: value => warn.push(value) };
-    handler.reportLibraryImportResult({ added: [{ warnings: ['サムネイルはプレースホルダです'] }],
-        duplicates: [{ title: '既存' }], rejected: [{ path: '/bad.docx', reason: '対象外' }],
-        failures: [{ path: '/broken.wav', reason: '読み取れません' }] });
-    assert.deepEqual(info, ['1 件を取り込みました']);
-    assert.deepEqual(warn, ['/broken.wav: 読み取れません']);
+    handler.reportLibraryImportResult({ added: [{ warnings: ['Thumbnail is a placeholder'] }],
+        duplicates: [{ title: 'Existing' }], rejected: [{ path: '/bad.docx', reason: 'Unsupported' }],
+        failures: [{ path: '/broken.wav', reason: 'Cannot read' }] });
+    assert.deepEqual(info, ['Imported: 1']);
+    assert.deepEqual(warn, ['/broken.wav: Cannot read']);
 });

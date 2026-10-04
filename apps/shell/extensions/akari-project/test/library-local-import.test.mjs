@@ -32,7 +32,7 @@ async function fixture(t) {
     return { root, input, env, file, service: new Service() };
 }
 
-test('resolver の全形式と rejected をシート用のグループに変換（再分類なし）', async t => {
+test('converts all resolver formats and rejected entries into sheet groups without reclassification', async t => {
     const f = await fixture(t);
     const extensions = { sfx: 'mp3 wav m4a aac flac ogg aif aiff', still: 'png jpg jpeg webp gif svg', broll: 'mp4 mov webm m4v', font: 'ttf otf woff woff2', scene3d: 'glb gltf' };
     for (const values of Object.values(extensions)) for (const ext of values.split(' ')) await f.file(`one.${ext}`);
@@ -46,7 +46,7 @@ test('resolver の全形式と rejected をシート用のグループに変換�
 });
 
 for (const [seconds, kind, ambiguous] of [[9.9, 'sfx', false], [10, 'sfx', true], [29.9, 'sfx', true], [30, 'bgm', false]]) {
-    test(`尺 ${seconds} 秒の機械層結果をそのまま扱う`, async t => {
+    test(`Uses machine-layer results for duration ${seconds} seconds unchanged`, async t => {
         const f = await fixture(t);
         const plan = await planAdd([await f.file('sound.wav')], { env: f.env, probe: () => seconds });
         assert.deepEqual([plan.items[0].kind, plan.items[0].ambiguous], [kind, ambiguous]);
@@ -54,22 +54,22 @@ for (const [seconds, kind, ambiguous] of [[9.9, 'sfx', false], [10, 'sfx', true]
     });
 }
 
-test('サイズ推定の ambiguous は常時展開対象、壊れた音は rejected', async t => {
+test('ambiguous size estimates always expand; broken audio is rejected', async t => {
     const f = await fixture(t);
     for (const [bytes, kind, ambiguous] of [[1199999, 'sfx', false], [1200000, 'sfx', true], [4000000, 'sfx', true], [4000001, 'bgm', false]]) {
         const source = await f.file(`${bytes}.wav`, Buffer.alloc(bytes));
         const plan = await planAdd([source], { env: f.env, probe: () => null });
         assert.deepEqual([plan.items[0].kind, plan.items[0].ambiguous, plan.items[0].durationSource], [kind, ambiguous, 'size']);
     }
-    const plan = await planAdd([await f.file('bad.wav')], { env: f.env, probe: () => { throw Error('壊れた音'); } });
-    assert.match(plan.rejected[0].reason, /壊れた音/);
+    const plan = await planAdd([await f.file('bad.wav')], { env: f.env, probe: () => { throw Error('Broken audio'); } });
+    assert.match(plan.rejected[0].reason, /Broken audio/);
 });
 
-test('service → apply: 元ファイル不変、meta 検証、folder/pack/credit、duplicate の既存タイトル', async t => {
+test('service → apply: preserves source, validates meta, folder/pack/credit, and existing duplicate title', async t => {
     const f = await fixture(t);
     const source = await f.file('image.png', png);
     const plan = await f.service.planLibraryImport([f.input]);
-    plan.pack = { id: 'my-pack', title: '私のセット' }; plan.credit = '作者 A';
+    plan.pack = { id: 'my-pack', title: 'My set' }; plan.credit = 'Creator A';
     const result = await f.service.applyLibraryImport(plan);
     assert.equal(result.failures.length, 0); assert.equal(result.added.length, 1);
     const directory = result.added[0].libraryDir;
@@ -77,17 +77,17 @@ test('service → apply: 元ファイル不変、meta 検証、folder/pack/credi
     for (const tag of ['origin:own', 'folder:input', 'pack:my-pack']) assert.ok(meta.tags.includes(tag));
     assert.equal(meta.license.scope, 'private-owned'); assert.equal(meta.license.ai_training_allowed, false);
     assert.equal(meta.license.attribution_required, true); assert.equal(meta.price, 0);
-    assert.equal((await readFile(join(directory, 'CREDIT.txt'), 'utf8')).trim(), '作者 A');
+    assert.equal((await readFile(join(directory, 'CREDIT.txt'), 'utf8')).trim(), 'Creator A');
     assert.deepEqual(await readFile(source), png);
     assert.deepEqual(await readdir(f.input), ['image.png']);
     const repeated = await f.service.planLibraryImport([source]);
     assert.equal(repeated.items.length, 0); assert.equal(repeated.duplicates[0].title, 'image');
     assert.equal(repeated.duplicates[0].id, result.added[0].id);
     assert.equal((await f.service.applyLibraryImport(repeated)).added.length, 0);
-    assert.equal((await f.service.loadLibraryPacks())[0].title, '私のセット');
+    assert.equal((await f.service.loadLibraryPacks())[0].title, 'My set');
 });
 
-test('id 衝突と apply 時の入力変更失敗は機械層の結果を保つ', async t => {
+test('ID collisions and changed inputs at apply preserve machine-layer results', async t => {
     const f = await fixture(t);
     const source = await f.file('font.otf');
     let plan = await f.service.planLibraryImport([source]);
@@ -103,35 +103,35 @@ test('id 衝突と apply 時の入力変更失敗は機械層の結果を保つ'
     assert.deepEqual(await readdir(join(f.env.AKARI_LIBRARY_ROOT, 'font')), ['font', 'font-2']);
 });
 
-test('validate 失敗時に配置物と一時ディレクトリを残さない', async t => {
+test('validation failure leaves no placed files or temporary directory', async t => {
     const f = await fixture(t);
     const plan = await planAdd([await f.file('image.png', png)], { env: f.env });
-    const result = await applyAdd(plan, { env: f.env, validate: () => { throw Error('検証エラー'); } });
+    const result = await applyAdd(plan, { env: f.env, validate: () => { throw Error('Validation error'); } });
     assert.equal(result.failures.length, 1);
     const walk = async path => (await readdir(path, { withFileTypes: true })).flatMap(entry => entry.isFile() ? [entry.name] : []);
     assert.deepEqual(await walk(f.env.AKARI_LIBRARY_ROOT), []);
     assert.deepEqual(await readdir(join(f.env.AKARI_LIBRARY_ROOT, 'still')).catch(error => { if (error.code === 'ENOENT') return []; throw error; }), []);
 });
 
-test('packs は全 read ルートを寛容に読み、同 id は同梱優先・同梱不在でもローカル表示', async t => {
+test('packs tolerantly read all read roots; bundled IDs take priority; local entries display without bundles', async t => {
     const f = await fixture(t);
     const builtin = join(f.root, 'catalog');
     await mkdir(builtin); await mkdir(f.env.AKARI_LIBRARY_ROOT); await mkdir(join(f.env.AKARI_HOME, 'assets'), { recursive: true });
     const packs = rows => JSON.stringify({ schema: 'akari-catalog-packs/v0', packs: rows });
     const row = (id, title = id) => ({ id, title, category: 'audio' });
-    await writeFile(join(builtin, 'packs.json'), packs([row('same', '同梱')]));
-    await writeFile(join(f.env.AKARI_LIBRARY_ROOT, 'packs.json'), packs([row('same', '置き場'), row('new'), { id: 'invalid' }]));
-    await writeFile(join(f.env.AKARI_HOME, 'assets/packs.json'), packs([row('legacy'), row('new', '旧') ]));
+    await writeFile(join(builtin, 'packs.json'), packs([row('same', 'Bundled')]));
+    await writeFile(join(f.env.AKARI_LIBRARY_ROOT, 'packs.json'), packs([row('same', 'Storage'), row('new'), { id: 'invalid' }]));
+    await writeFile(join(f.env.AKARI_HOME, 'assets/packs.json'), packs([row('legacy'), row('new', 'Legacy') ]));
     f.service.loadResolverCatalogItems = async () => ({ items: [], status: 'ok', entitledProducts: [] });
     f.service.loadLocalCatalogViewItems = async () => ({ items: [], packs: await f.service.loadCatalogPacks(builtin) });
-    assert.deepEqual((await f.service.getAssetCatalogView()).packs.map(pack => pack.title), ['同梱', 'new', 'legacy']);
+    assert.deepEqual((await f.service.getAssetCatalogView()).packs.map(pack => pack.title), ['Bundled', 'new', 'legacy']);
     await writeFile(join(f.env.AKARI_LIBRARY_ROOT, 'packs.json'), '{bad');
     assert.deepEqual((await f.service.loadLibraryPacks()).map(pack => pack.id), ['legacy', 'new']);
     f.service.loadLocalCatalogViewItems = async () => ({ items: [], packs: [] });
     assert.equal((await f.service.getAssetCatalogView()).packs.length, 2);
 });
 
-test('実体用メニューだけにライブラリに保管、参照の操作は不変', () => {
+test('only physical file menus include Save to Library; reference actions remain unchanged', () => {
     for (const target of ['material', 'unorganized']) {
         const items = buildMaterialContextMenuItems(target, true, { materialKind: 'audio' });
         assert.equal(items[items.findIndex(item => item.id === 'rename') - 1].id, 'store-library');
@@ -140,7 +140,7 @@ test('実体用メニューだけにライブラリに保管、参照の操作�
     assert.ok(!buildMaterialContextMenuItems('report', true).some(item => item.id === 'store-library'));
 });
 
-test('ambiguous の選択と selected=false を apply に透過、セット既定なし', async t => {
+test('passes ambiguous selection and selected=false through to apply; no default set', async t => {
     const f = await fixture(t);
     const plan = await planAdd([await f.file('mid.wav'), await f.file('skip.otf')], { env: f.env, probe: () => 14 });
     plan.items.find(item => item.kind === 'sfx').kind = 'bgm';
@@ -152,7 +152,7 @@ test('ambiguous の選択と selected=false を apply に透過、セット既�
     assert.equal(meta.license.attribution_required, false);
 });
 
-test('一部成功・一部失敗を service がどちらも捨てずに返す', async t => {
+test('service returns both partial success and failure without dropping either', async t => {
     const f = await fixture(t);
     const plan = await f.service.planLibraryImport([await f.file('good.png', png), await f.file('changed.otf')]);
     await writeFile(join(f.input, 'changed.otf'), 'content changed after planning');

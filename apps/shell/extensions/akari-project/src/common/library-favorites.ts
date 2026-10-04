@@ -37,7 +37,7 @@ export function serializeLibraryFavorites(keys: readonly string[]): string {
 
 /** 付ける = 先頭へ（最近 ★ したものが前）。外す = 取り除く。 */
 export function toggleLibraryFavorite(keys: readonly string[], key: string, favorite: boolean): string[] {
-    if (!isLibraryFavoriteKey(key)) throw new Error('お気に入りの key が不正です');
+    if (!isLibraryFavoriteKey(key)) throw new Error('Invalid favorite key');
     const rest = keys.filter(value => value !== key);
     return favorite ? [key, ...rest] : rest;
 }

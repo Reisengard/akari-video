@@ -14,7 +14,7 @@ const names = ['resolveCatalogMaterial', 'canDragCatalogAsset', 'handleCatalogAs
 const code = ts.transpileModule(`class Handler { ${names.map(name => widget.members.find(member => member.name?.getText(source) === name).getText(source)).join('\n')} }`, { compilerOptions: { target: ts.ScriptTarget.ES2021 } }).outputText;
 const events = [];
 const Handler = new Function('URI', 'canPlaceLibraryAsset', 'canPlaceOverlay', 'libraryDragKind', 'localLibraryAssetPlacementSource', 'resolveLibraryAssetMedia', 'RESOLVE_LIBRARY_MATERIAL_COMMAND_ID', 'TIMELINE_ADD_MATERIAL_AT_PLAYHEAD_COMMAND_ID', 'LIBRARY_DRAG_MIME', 'LIBRARY_DRAG_START_EVENT', 'window', 'CustomEvent', 'isPremiumLocked', 'isPlaceableLibraryCategory', `${code}\nreturn Handler;`)(URI, canPlaceLibraryAsset, canPlaceOverlay, libraryDragKind, localLibraryAssetPlacementSource, resolveLibraryAssetMedia, RESOLVE_LIBRARY_MATERIAL_COMMAND_ID, 'akari.timeline.addMaterialAtPlayhead', 'application/x-akari-library-item', 'akari.library.dragStart', { dispatchEvent: event => events.push(event) }, class { constructor(type, init) { this.type = type; this.detail = init.detail; } }, isPremiumLocked, isPlaceableLibraryCategory);
-const item = { origin: 'resolver', key: 'audio/sample', id: 'sample', category: 'audio', title: '素材', state: 'available', mediaUrl: 'https://example.test/b.mp3' };
+const item = { origin: 'resolver', key: 'audio/sample', id: 'sample', category: 'audio', title: 'Footage', state: 'available', mediaUrl: 'https://example.test/b.mp3' };
 function fixture() {
     const handler = new Handler(), calls = [], messages = [];
     handler.workflow = { workspaceRoot: URI.fromFilePath('/project') };
@@ -37,7 +37,7 @@ function fixture() {
     return { handler, calls, messages, prompts };
 }
 
-test('取得後は試聴ファイルをプロジェクト相対パスで返し、cached を更新する', async () => {
+test('after download returns project-relative preview path and updates cached', async () => {
     const { handler, calls } = fixture();
     assert.deepEqual(await handler.resolveCatalogMaterial(item.key), { relativePath: 'assets/audio/sample/b.mp3', kind: 'audio' });
     assert.deepEqual(calls, [['sample', 'file:///project']]);
@@ -46,7 +46,7 @@ test('取得後は試聴ファイルをプロジェクト相対パスで返し�
 });
 
 for (const state of ['locked', 'missing', 'busy', 'failed', 'ambiguous']) {
-    test(`解決不可 (${state}) は配置用結果を返さず理由を表示する`, async () => {
+    test(`Unresolvable (${state}) returns no placement result and displays the reason`, async () => {
         const { handler, calls, messages, prompts } = fixture();
         if (state === 'locked') handler.assetCatalogItems = [{ ...item, state: 'locked' }];
         if (state === 'missing') handler.assetCatalogItems = [];
@@ -61,7 +61,7 @@ for (const state of ['locked', 'missing', 'busy', 'failed', 'ambiguous']) {
     });
 }
 
-test('＋ は解決コマンドの結果を既存のプレイヘッド追加コマンドへ渡す', async () => {
+test('＋ passes resolve command results to the existing add-at-playhead command', async () => {
     const { handler } = fixture(), calls = [];
     const material = { relativePath: 'assets/audio/sample/b.mp3', kind: 'audio' };
     handler.commandService = { executeCommand: async (...args) => { calls.push(args); return material; } };
@@ -69,7 +69,7 @@ test('＋ は解決コマンドの結果を既存のプレイヘッド追加コ�
     assert.deepEqual(calls, [[RESOLVE_LIBRARY_MATERIAL_COMMAND_ID, item.key], ['akari.timeline.addMaterialAtPlayhead', material]]);
 });
 
-test('local はドラッグ不可で、コマンド直叩きも resolver を呼ばず拒否する', async () => {
+test('local cannot be dragged; direct commands reject without calling resolver', async () => {
     const { handler, calls, messages } = fixture();
     const localItem = { ...item, origin: 'local', state: undefined };
     handler.assetCatalogItems = [localItem];
@@ -77,15 +77,15 @@ test('local はドラッグ不可で、コマンド直叩きも resolver を呼�
     let prevented = false;
     handler.handleCatalogAssetDragStart({
         preventDefault: () => { prevented = true; },
-        dataTransfer: { setData: () => assert.fail('local の payload は送信しない') }
+        dataTransfer: { setData: () => assert.fail('does not send local payloads') }
     }, localItem);
     assert.equal(prevented, true);
     assert.equal(await handler.resolveCatalogMaterial(localItem.key), undefined);
     assert.deepEqual(calls, []);
-    assert.deepEqual(messages, ['この素材は直接置けません']);
+    assert.deepEqual(messages, ['This asset cannot be placed directly']);
 });
 
-test('カードのドラッグは同じ payload を MIME とミラーへ送り、未購入は locked と価格を載せる。パック棚は拒否する', () => {
+test('card drags send identical payloads to MIME and mirror; unpurchased assets include locked and price; pack shelves reject drags', () => {
     const { handler } = fixture();
     let raw, prevented = false;
     const event = { dataTransfer: { setData: (mime, value) => { assert.equal(mime, 'application/x-akari-library-item'); raw = value; } }, preventDefault: () => { prevented = true; } };
@@ -107,11 +107,11 @@ test('カードのドラッグは同じ payload を MIME とミラーへ送り�
     assert.equal(handler.canDragCatalogAsset(item), false);
 });
 
-test('フォントはかける payload でドラッグでき、未購入は促しの印を保つ', () => {
+test('fonts drag with apply payloads and preserve the unpurchased prompt flag', () => {
     const { handler } = fixture();
     let raw;
-    const event = { dataTransfer: { setData: (_mime, value) => { raw = value; } }, preventDefault: () => assert.fail('フォントはドラッグできる') };
-    handler.handleCatalogAssetDragStart(event, { ...item, key: 'font/zen', category: 'font', id: 'zen', title: 'Zen Kaku（日本語）' });
+    const event = { dataTransfer: { setData: (_mime, value) => { raw = value; } }, preventDefault: () => assert.fail('fonts can be dragged') };
+    handler.handleCatalogAssetDragStart(event, { ...item, key: 'font/zen', category: 'font', id: 'zen', title: 'Zen Kaku（Japanese）' });
     assert.deepEqual(JSON.parse(raw), { kind: 'font', id: 'zen', fontFamily: 'Zen Kaku', key: 'font/zen' });
     handler.handleCatalogAssetDragStart(event, { ...item, key: 'font/zen', category: 'font', id: 'zen', title: 'Zen Kaku', state: 'locked' });
     assert.equal(JSON.parse(raw).locked, true);
@@ -119,7 +119,7 @@ test('フォントはかける payload でドラッグでき、未購入は促�
 
 for (const sourceKind of ['own', 'site', 'lab']) {
     for (const operation of ['resolveCatalogMaterial', 'useAssetCatalogItem']) {
-        test(`${operation}: ${sourceKind} の置き場素材を対応する配置経路へ渡す`, async () => {
+        test(`${operation}: ${sourceKind} storage asset to the corresponding placement route`, async () => {
             const { handler, calls, messages } = fixture();
             const localItem = { ...item, sourceKind, libraryDir: '/library/audio/sample', state: 'cached' };
             const placements = [];
@@ -143,7 +143,7 @@ for (const sourceKind of ['own', 'site', 'lab']) {
 }
 
 for (const sourceKind of ['lab', 'own', 'site']) {
-    test(`参照の ${sourceKind} を置き場で読み、edit 用には従来の相対パスを返す`, async () => {
+    test(`Reads referenced ${sourceKind} from storage and returns the existing relative path for edit`, async () => {
         const { handler, messages } = fixture();
         const localItem = { ...item, sourceKind, libraryDir: '/library/audio/sample', state: 'cached' };
         handler.assetCatalogItems = [localItem];

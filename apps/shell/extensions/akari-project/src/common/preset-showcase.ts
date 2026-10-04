@@ -148,8 +148,8 @@ export function parsePresetShowcaseJsonl(raw: string, kind: PresetShowcaseKind):
 export function derivePresetShowcaseChips(showcase: PresetShowcase): PresetShowcaseChip[] {
     return [
         { category: 'preset:lut', label: 'LUT', count: showcase.lut.length },
-        { category: 'preset:textanim', label: 'テキストアニメ', count: showcase.textanim.length },
-        { category: 'preset:textstyle', label: 'テキストスタイル', count: showcase.textstyle.length }
+        { category: 'preset:textanim', label: 'Text animation', count: showcase.textanim.length },
+        { category: 'preset:textstyle', label: 'Text style', count: showcase.textstyle.length }
     ];
 }
 

@@ -132,10 +132,10 @@ function isAlreadyExists(error: unknown): boolean {
 }
 
 const GATE_MESSAGES: Record<string, string> = {
-    'report-generated': 'レポートを作成',
-    'report-approved': 'レポートを承認',
-    'edit-completed': '編集を完了',
-    'export-completed': '動画を書き出し'
+    'report-generated': 'Create report',
+    'report-approved': 'Approve report',
+    'edit-completed': 'Finish editing',
+    'export-completed': 'Export video'
 };
 
 interface AkariEvent {
@@ -245,7 +245,7 @@ export class AkariProjectServiceImpl implements AkariProjectService {
         await fs.mkdir(root, { recursive: true });
         const existing = (await fs.readdir(root)).filter(name => name !== '.DS_Store');
         if (existing.length) {
-            throw new Error('空のフォルダーを選んでください。既存のファイルは変更していません。');
+            throw new Error('Select an empty folder. Existing files have not been changed.');
         }
         const template = await this.findTemplate();
         if (template) {
@@ -261,7 +261,7 @@ export class AkariProjectServiceImpl implements AkariProjectService {
         try {
             await this.runGit(root, ['init']);
             await this.runGit(root, ['add', '-A', '--', '.']);
-            await this.commitIfChanged(root, 'プロジェクトを作成');
+            await this.commitIfChanged(root, 'Create project');
         } catch (error) {
             console.warn('[akari-project] initial git init failed:', error);
         }
@@ -427,22 +427,22 @@ export class AkariProjectServiceImpl implements AkariProjectService {
     /** The library resolver is the single source of the writable root. */
     protected async myStylesDirectory(): Promise<string> {
         const src = await this.findAssetResolverSrcDir();
-        if (!src) throw new Error('ライブラリの置き場を解決できません。');
+        if (!src) throw new Error('Could not resolve the library location.');
         const moduleUrl = pathToFileURL(resolve(src, '../../creator-root/src/index.mjs')).toString();
         const result = await this.runResolverScript(`import { resolveAssetLibraryRoots } from ${JSON.stringify(moduleUrl)}; process.stdout.write(resolveAssetLibraryRoots(process.env).write);`);
-        if (result.code !== 0 || !isAbsolute(result.stdout.trim())) throw new Error('ライブラリの置き場を解決できません。');
+        if (result.code !== 0 || !isAbsolute(result.stdout.trim())) throw new Error('Could not resolve the library location.');
         return join(result.stdout.trim(), 'styles');
     }
 
     protected myStyleFile(directory: string, id: string): string {
-        if (!MY_STYLE_ID.test(id)) throw new Error('スタイル ID が不正です。');
+        if (!MY_STYLE_ID.test(id)) throw new Error('Invalid style ID.');
         return join(directory, id, 'style.json');
     }
 
     protected async assertMyStyleDirectories(directory: string, id: string): Promise<void> {
         for (const target of [directory, join(directory, id)]) {
             const entry = await fs.lstat(target);
-            if (!entry.isDirectory() || entry.isSymbolicLink()) throw new Error('スタイルの置き場がフォルダではありません。');
+            if (!entry.isDirectory() || entry.isSymbolicLink()) throw new Error('The style location is not a folder.');
         }
     }
 
@@ -468,18 +468,18 @@ export class AkariProjectServiceImpl implements AkariProjectService {
         const file = this.myStyleFile(directory, style.id);
         const existing = await this.listMyStyles();
         if (existing.some(item => item.uid === style.uid && item.id !== style.id)) {
-            throw new Error('同じスタイル UID は別の ID で保存できません。');
+            throw new Error('The same style UID cannot be saved under a different ID.');
         }
         let previous: MyStyle | undefined;
         try { previous = parseMyStyle(JSON.parse(await fs.readFile(file, 'utf8'))); }
         catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-                throw new Error('既存のスタイルを確認できないため上書きできません。');
+                throw new Error('Cannot overwrite because the existing style could not be verified.');
             }
         }
         if (previous && (previous.id !== style.id || previous.uid !== style.uid
             || style.revision < previous.revision)) {
-            throw new Error('スタイル ID の衝突、または古い改訂です。');
+            throw new Error('Style ID conflict or outdated revision.');
         }
         await fs.mkdir(dirname(file), { recursive: true });
         await this.assertMyStyleDirectories(directory, style.id);
@@ -491,12 +491,12 @@ export class AkariProjectServiceImpl implements AkariProjectService {
     }
 
     async renameMyStyle(id: string, name: string): Promise<void> {
-        if (!name.trim()) throw new Error('名前を入力してください。');
+        if (!name.trim()) throw new Error('Enter a name.');
         const directory = await this.myStylesDirectory();
         const file = this.myStyleFile(directory, id);
         await this.assertMyStyleDirectories(directory, id);
         const style = parseMyStyle(JSON.parse(await fs.readFile(file, 'utf8')));
-        if (style.id !== id) throw new Error('スタイル ID が一致しません。');
+        if (style.id !== id) throw new Error('Style ID does not match.');
         await this.saveMyStyle({ ...style, name: name.trim(), revision: style.revision + 1,
             updated_at: new Date().toISOString() });
     }
@@ -705,18 +705,18 @@ export class AkariProjectServiceImpl implements AkariProjectService {
 
     protected async runLibraryImport<T>(operation: 'plan' | 'apply', input: unknown): Promise<T> {
         const src = await this.findAssetResolverSrcDir();
-        if (!src) throw new Error('アセット resolver が見つかりません');
+        if (!src) throw new Error('Asset resolver not found');
         const result = await this.runResolverScript(libraryImportScript(src, operation), JSON.stringify(input));
-        if (result.code !== 0) throw new Error(result.stderr || '取り込み処理に失敗しました');
+        if (result.code !== 0) throw new Error(result.stderr || 'Import failed');
         // applyAdd returns partial successes and failures together. Do not discard either.
         return JSON.parse(result.stdout);
     }
 
     async previewLibraryImportAudio(path: string): Promise<{ image?: string; error?: string }> {
         const src = await this.findAssetResolverSrcDir();
-        if (!src) return { error: '波形を表示できません' };
+        if (!src) return { error: 'Could not display waveform' };
         const result = await this.runResolverScript(libraryImportWaveformScript(src), JSON.stringify(path));
-        if (result.code !== 0) return { error: '波形を表示できません' };
+        if (result.code !== 0) return { error: 'Could not display waveform' };
         return JSON.parse(result.stdout);
     }
 
@@ -756,7 +756,7 @@ export class AkariProjectServiceImpl implements AkariProjectService {
                 status: 'failed',
                 entitlementsStatus: 'error',
                 entitledProducts: [],
-                error: 'アセット resolver が見つかりません（開発配置を確認してください）'
+                error: 'Asset resolver not found (check the development installation)'
             };
         }
         const stateModuleUrl = pathToFileURL(join(srcDir, 'state.mjs')).toString();
@@ -768,7 +768,7 @@ process.stdout.write(JSON.stringify({ base, items, entitlementsStatus, entitledP
         const { code, stdout, stderr } = await this.runResolverScript(script);
         if (code !== 0) {
             const message = (stderr || stdout).trim();
-            console.warn('[akari-project] resolver カタログの取得に失敗（ローカル catalog/ のみで継続）:', message);
+            console.warn('[akari-project] Failed to retrieve resolver catalog (continuing with local catalog/ only):', message);
             return { items: [], status: 'failed', entitlementsStatus: 'error', entitledProducts: [], error: message || undefined };
         }
         let parsed: {
@@ -781,7 +781,7 @@ process.stdout.write(JSON.stringify({ base, items, entitlementsStatus, entitledP
             parsed = JSON.parse(stdout);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            console.warn('[akari-project] resolver カタログの応答を解釈できませんでした:', error);
+            console.warn('[akari-project] Could not parse resolver catalog response:', error);
             return { items: [], status: 'failed', entitlementsStatus: 'error', entitledProducts: [], error: message };
         }
         const items = parsed.items.map(item => {
@@ -810,7 +810,7 @@ process.stdout.write(JSON.stringify({ base, items, entitlementsStatus, entitledP
     async resolveAsset(id: string, projectUri: string, options?: { force?: boolean }): Promise<AssetResolveOutcome> {
         const srcDir = await this.findAssetResolverSrcDir();
         if (!srcDir) {
-            return { success: false, error: 'アセット resolver が見つかりません（開発配置を確認してください）' };
+            return { success: false, error: 'Asset resolver not found (check the development installation)' };
         }
         const projectPath = this.fsPath(projectUri);
         const resolveModuleUrl = pathToFileURL(join(srcDir, 'resolve.mjs')).toString();
@@ -829,13 +829,13 @@ try {
 `;
         const { code, stdout, stderr } = await this.runResolverScript(script);
         if (code !== 0) {
-            return { success: false, error: (stderr || stdout || `resolver スクリプトが異常終了しました (exit ${code})`).trim() };
+            return { success: false, error: (stderr || stdout || `Resolver script exited abnormally (exit ${code})`).trim() };
         }
         try {
             const parsed = JSON.parse(stdout);
             return assetResolveOutcome(parsed, join(projectPath, 'assets', parsed.category ?? '', parsed.id ?? id));
         } catch {
-            return { success: false, error: `resolver の応答を解釈できませんでした: ${stdout.slice(0, 300)}` };
+            return { success: false, error: `Could not parse resolver response: ${stdout.slice(0, 300)}` };
         }
     }
 
@@ -844,7 +844,7 @@ try {
         try {
             const srcDir = await this.findAssetResolverSrcDir();
             if (!srcDir) {
-                return { success: false, error: 'アセット resolver が見つかりません（開発配置を確認してください）' };
+                return { success: false, error: 'Asset resolver not found (check the development installation)' };
             }
             const projectPath = this.fsPath(projectUri);
             const script = `
@@ -864,29 +864,29 @@ try {
         || typeof source.id !== 'string' || !source.id || source.id === '.'
         || source.id.includes('..') || source.id.includes('/') || source.id.includes(String.fromCharCode(92))
         || typeof source.libraryDir !== 'string' || !isAbsolute(source.libraryDir)) {
-        throw new Error('素材の種類・名前・置き場が不正です');
+        throw new Error('Invalid asset category, name, or location');
     }
     const actual = await realpath(source.libraryDir);
     if (basename(actual) !== source.id || basename(dirname(actual)) !== source.category
         || !(await stat(actual)).isDirectory()) {
-        throw new Error('素材の置き場と種類・名前が一致しません');
+        throw new Error('Asset location does not match category and name');
     }
     let allowed = false;
     for (const root of resolveAssetLibraryRoots(process.env).read) {
         try { if (within(await realpath(root), actual)) allowed = true; }
         catch (error) { if (error.code !== 'ENOENT') throw error; }
     }
-    if (!allowed) throw new Error('素材がライブラリの置き場の外にあります');
+    if (!allowed) throw new Error('Asset is outside the library location');
     const project = await realpath(${JSON.stringify(projectPath)});
-    if (!(await stat(project)).isDirectory()) throw new Error('プロジェクトがフォルダではありません');
+    if (!(await stat(project)).isDirectory()) throw new Error('Project is not a folder');
     const destination = join(project, 'assets', source.category, source.id);
-    // assets/ や category が外を向くリンクなら、コピー先の削除・書き込みを行わない。
+    // Do not delete or write the destination if assets/ or category links outside the project.
     let parent = dirname(destination);
     let actualDestination;
     while (true) {
         try {
             const actualParent = await realpath(parent);
-            if (!within(project, actualParent)) throw new Error('配置先がプロジェクトの外にあります');
+            if (!within(project, actualParent)) throw new Error('Destination is outside the project');
             actualDestination = join(actualParent, relative(parent, destination));
             break;
         } catch (error) {
@@ -895,11 +895,11 @@ try {
         }
     }
     if (within(actualDestination, actual) || within(actual, actualDestination)) {
-        throw new Error('素材の大元と重なる配置はできません');
+        throw new Error('Destination cannot overlap the asset source');
     }
     await recordProjectReference(project, { category: source.category, id: source.id });
     await appendLibraryUsage({ category: source.category, id: source.id, project });
-    // widget の URI.relative が使えるよう、返すパスは要求されたプロジェクト表記に揃える。
+    // Keep returned paths in the requested project form so the widget can use URI.relative.
     const projectAssetPath = join(${JSON.stringify(projectPath)}, 'assets', source.category, source.id);
     process.stdout.write(JSON.stringify({ success: true, projectAssetPath, reference: true, libraryDir: actual }));
 } catch (error) {
@@ -908,7 +908,7 @@ try {
 `;
             const { code, stdout, stderr } = await this.runResolverScript(script);
             if (code !== 0) {
-                return { success: false, error: (stderr || stdout || `素材の配置が異常終了しました (exit ${code})`).trim() };
+                return { success: false, error: (stderr || stdout || `Asset placement exited abnormally (exit ${code})`).trim() };
             }
             const outcome = JSON.parse(stdout);
             return assetResolveOutcome(outcome, join(projectPath, 'assets', source.category, source.id));
@@ -919,12 +919,12 @@ try {
 
     async recordLibraryUsage(category: string, id: string, projectUri: string): Promise<void> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const result = await this.runResolverScript(`
 import { appendLibraryUsage } from ${JSON.stringify(pathToFileURL(join(srcDir, 'library-usage.mjs')).toString())};
 await appendLibraryUsage(${JSON.stringify({ category, id, project: this.fsPath(projectUri) })});
 `);
-        if (result.code !== 0) throw new Error(result.stderr || '使用記録を書けませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not write usage records');
     }
 
     async getLibraryUsage(): Promise<Record<string, { count: number; lastUsedAt: string; projects: string[] }>> {
@@ -934,7 +934,7 @@ await appendLibraryUsage(${JSON.stringify({ category, id, project: this.fsPath(p
 import { readLibraryUsage } from ${JSON.stringify(pathToFileURL(join(srcDir, 'library-usage.mjs')).toString())};
 process.stdout.write(JSON.stringify(await readLibraryUsage()));
 `);
-        if (result.code !== 0) throw new Error(result.stderr || '使用記録を読めませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not read usage records');
         return JSON.parse(result.stdout);
     }
 
@@ -956,30 +956,30 @@ process.stdout.write(JSON.stringify(await readLibraryUsage()));
 
     async checkLibrary(projectUri?: string): Promise<{ ok: number; warnings: import('../common/akari-project-protocol').LibraryCheckFinding[]; errors: import('../common/akari-project-protocol').LibraryCheckFinding[] }> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const project = projectUri ? this.fsPath(projectUri) : undefined;
         const result = await this.runResolverScript(`
 import { checkLibrary } from ${JSON.stringify(pathToFileURL(join(srcDir, 'library-check.mjs')).toString())};
 process.stdout.write(JSON.stringify(await checkLibrary({ project: ${JSON.stringify(project)} })));
 `);
-        if (result.code !== 0) throw new Error(result.stderr || 'ライブラリを点検できませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not inspect library');
         return JSON.parse(result.stdout);
     }
 
     async projectCredits(projectUri: string): Promise<string[]> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const result = await this.runResolverScript(`
 import { projectCredits } from ${JSON.stringify(pathToFileURL(join(srcDir, 'library-check.mjs')).toString())};
 process.stdout.write(JSON.stringify(await projectCredits(${JSON.stringify(this.fsPath(projectUri))})));
 `);
-        if (result.code !== 0) throw new Error(result.stderr || 'クレジットを読めませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not read credits');
         return JSON.parse(result.stdout);
     }
 
     async listProjectAssetReferences(projectUri: string): Promise<ProjectAssetReference[]> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const script = `
 import { readFile } from 'node:fs/promises';
 import { listProjectReferenceAssets } from ${JSON.stringify(pathToFileURL(join(srcDir, 'shell-reference.mjs')).toString())};
@@ -1002,29 +1002,32 @@ for (const entry of entries) {
 process.stdout.write(JSON.stringify(entries));
 `;
         const result = await this.runResolverScript(script);
-        if (result.code !== 0) throw new Error(result.stderr || '参照台帳を読み込めませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not load reference registry');
         return JSON.parse(result.stdout);
     }
 
     async removeProjectAssetReference(projectUri: string, reference: { category: string; id: string }): Promise<void> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const result = await this.runResolverScript(`
 import { removeProjectReference } from ${JSON.stringify(pathToFileURL(join(srcDir, 'project-references.mjs')).toString())};
 await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.stringify(reference)});
 `);
-        if (result.code !== 0) throw new Error(result.stderr || '参照を外せませんでした');
+        if (result.code !== 0) throw new Error(result.stderr || 'Could not remove reference');
     }
 
     async bundleProjectAssets(projectUri: string, dryRun: boolean): Promise<AssetBundleOutcome> {
         const srcDir = await this.findAssetResolverSrcDir();
-        if (!srcDir) throw new Error('アセット resolver が見つかりません');
+        if (!srcDir) throw new Error('Asset resolver not found');
         const before = await this.listProjectAssetReferences(projectUri);
         const result = await this.runNodeScript(resolve(srcDir, '../bin/akari-assets.mjs'),
             ['bundle', '--project', this.fsPath(projectUri), ...(dryRun ? ['--dry-run'] : [])]);
         if (dryRun && result.code !== 0) throw new Error(result.stderr || result.stdout);
-        const keys = new Set(result.stdout.split(/\r?\n/).filter(line => line.startsWith('実体化予定: '))
-            .map(line => line.slice('実体化予定: '.length)));
+        const materializationPrefix = /^(?:実体化予定: |To be materialized: )/;
+        const keys = new Set(result.stdout.split(/\r?\n/).flatMap(line => {
+            const prefix = line.match(materializationPrefix);
+            return prefix ? [line.slice(prefix[0].length)] : [];
+        }));
         const planned = dryRun ? before.filter(entry => keys.has(`${entry.category}/${entry.id}`)) : before;
         const remaining = dryRun ? [] : await this.listProjectAssetReferences(projectUri);
         const remainingKeys = new Set(remaining.map(entry => `${entry.category}/${entry.id}`));
@@ -1037,7 +1040,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                 const key = `${entry.category}/${entry.id}`;
                 const line = result.stderr.split(/\r?\n/).find(value => value.trim().startsWith(`${key}:`));
                 return { key, message: line?.trim().slice(key.length + 1).trim()
-                    ?? (result.stderr || '取得できず参照台帳に残りました') };
+                    ?? (result.stderr || 'Could not retrieve; retained in the reference registry') };
             })
         };
     }
@@ -1284,11 +1287,11 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
         if (actual !== undefined) {
             const rel = relative(root, actual);
             if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
-                throw new Error('素材はプロジェクト内のパスで指定してください');
+                throw new Error('Specify assets using paths within the project');
             }
             const lexicalRelative = relative(root, requested);
             if (!lexicalRelative || lexicalRelative === '..' || lexicalRelative.startsWith(`..${sep}`) || isAbsolute(lexicalRelative)) {
-                throw new Error('素材はプロジェクト内のパスで指定してください');
+                throw new Error('Specify assets using paths within the project');
             }
             return { root, path: actual, relativePath: lexicalRelative.split(sep).join('/') };
         }
@@ -1297,14 +1300,14 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
         // 生の ENOENT を UI へ通さない（2026-09-26 オーナー報告）。
         const lexicalRelative = relative(root, requested);
         if (!lexicalRelative || lexicalRelative === '..' || lexicalRelative.startsWith(`..${sep}`) || isAbsolute(lexicalRelative)) {
-            throw new Error('素材はプロジェクト内のパスで指定してください');
+            throw new Error('Specify assets using paths within the project');
         }
         const declared = lexicalRelative.split(sep).join('/');
         await this.transcribeFile(root, declared);
         const library = await this.resolveDeclaredAssetPaths(root, [declared]);
         const actualPath = library.get(declared);
         if (!actualPath) {
-            throw new Error(`素材の実体が見つかりません（共有ライブラリにも未取得です）: ${declared}`);
+            throw new Error(`Asset file not found (not downloaded to the shared library either): ${declared}`);
         }
         // `path` は文字起こしの同一実行判定キー。library 実体にすると別プロジェクトの
         // 同じ参照素材を「実行中」と誤判定するため、宣言パス由来のプロジェクト内パスを保つ。
@@ -1316,7 +1319,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
         for (const candidate of candidates) {
             if (await fs.stat(candidate).then(stat => stat.isFile(), () => false)) return candidate;
         }
-        throw new Error(`${kind} CLI が見つかりません`);
+        throw new Error(`${kind} CLI not found`);
     }
 
     async transcriptStates(request: TranscriptStatesRequest): Promise<Record<string, TranscriptState>> {
@@ -1337,11 +1340,11 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
 
     async transcribeMaterial(request: TranscribeMaterialRequest): Promise<void> {
         const target = await this.materialTarget(request.projectRoot, request.relativePath);
-        if (this.transcriptions.has(target.path)) throw new Error('この素材は文字起こしを実行中です');
+        if (this.transcriptions.has(target.path)) throw new Error('This footage is being transcribed');
         const selected = [...new Set(request.compareSet ?? [])];
         const backends = selected.length ? selected : [request.backend ?? 'auto'];
         if (backends.some(backend => !/^(auto|speech-analyzer|whisper-cpp|cloud:[A-Za-z0-9_-]+)$/.test(backend))) {
-            throw new Error('文字起こしエンジンが不正です');
+            throw new Error('Invalid transcription engine');
         }
         this.transcriptions.add(target.path);
         const trackChild = (child: ChildProcess): void => {
@@ -1374,10 +1377,10 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                 try {
                     // media.mjs has no --approved option. Its runCloud delegates to the existing
                     // transcribe-cloud.mjs --send --approved path; gate entry here, before spawn.
-                    if (backend.startsWith('cloud:') && request.approved !== true) throw new Error('音声送信の承認がありません');
+                    if (backend.startsWith('cloud:') && request.approved !== true) throw new Error('Audio upload has not been approved');
                     const result = await this.runNodeScript(cli, ['transcribe', target.relativePath,
                         ...(backend === 'auto' ? [] : ['--backend', backend])], target.root, trackChild);
-                    if (result.code !== 0) throw new Error(result.stderr.trim() || '文字起こしに失敗しました');
+                    if (result.code !== 0) throw new Error(result.stderr.trim() || 'Transcription failed');
                     if (backends.length > 1) await publish('completed', 'completed', backend, undefined, (Date.now() - started) / 1000);
                     return { backend, stdout: result.stdout };
                 } catch (error) {
@@ -1405,7 +1408,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                 await publish('running', stage);
                 const result = await this.runNodeScript(cli, args, target.root, trackChild);
                 if (result.code !== 0) {
-                    const message = result.stderr.trim() || `${stage} に失敗しました`;
+                    const message = result.stderr.trim() || `${stage} failed`;
                     failures.push(message);
                     await publish('failed', stage, undefined, message);
                 } else await publish('completed', stage);
@@ -1425,7 +1428,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
             if (timer) clearTimeout(timer);
             this.transcribeKillTimers.delete(target.path);
         }
-        if (cancelled) throw new Error('文字起こしを中止しました');
+        if (cancelled) throw new Error('Transcription canceled');
         if (failures.length) throw new Error(failures.join(' / '));
     }
 
@@ -1463,10 +1466,10 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
             });
             if (real) {
                 const rel = relative(root, real);
-                if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error('プロジェクト外のファイルは扱えません');
+                if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error('Files outside the project are not supported');
                 break;
             }
-            if (dirname(current) === current) throw new Error('パスが不正です');
+            if (dirname(current) === current) throw new Error('Invalid path');
             current = dirname(current);
         }
         return destination;
@@ -1499,14 +1502,14 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
     async writeCutsSelection(request: WriteCutsSelectionRequest): Promise<void> {
         const target = await this.materialTarget(request.projectRoot, request.relativePath);
         await this.serializeTranscribeWrite(target.root, async () => {
-            if (!request.on || Object.values(request.on).some(value => typeof value !== 'boolean')) throw new Error('採否は真偽値で指定してください');
+            if (!request.on || Object.values(request.on).some(value => typeof value !== 'boolean')) throw new Error('Specify acceptance as a boolean');
             const file = await this.transcribeFile(target.root, `.akari/sidecars/${target.relativePath}.analysis/cuts.json`);
             const original = await fs.readFile(file, 'utf8');
             const cuts = JSON.parse(original);
             for (const candidate of cuts.candidates) {
                 if (Object.prototype.hasOwnProperty.call(request.on, candidate.id)) candidate.on = request.on[candidate.id];
             }
-            if (await fs.readFile(file, 'utf8') !== original) throw new Error('候補が更新されました。もう一度選択してください');
+            if (await fs.readFile(file, 'utf8') !== original) throw new Error('The candidates have changed. Select again');
             await this.writeJsonAtomic(file, cuts);
         });
     }
@@ -1521,7 +1524,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
             const original = await fs.readFile(file, 'utf8');
             const edit = JSON.parse(original);
             const source = edit.version === 0 ? edit.source : edit.sources?.find((item: { path: string }) => item.path === target.relativePath);
-            if (!source || source.path !== target.relativePath) throw new Error('edit.json に対象素材がありません');
+            if (!source || source.path !== target.relativePath) throw new Error('The target footage is not in edit.json');
             const ranges = candidates.map(candidate => ({ in: candidate.start, out: candidate.end, kind: 'row' as const, captionId: source.id }));
             // cuts are retained ranges, not deletion records. Add boundaries by splitting the
             // selected source only. Reapplying the same source ranges cannot cut them twice.
@@ -1543,15 +1546,15 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                 if (!existing.length && (edit.version === 0 || edit.sources.length === 1)) {
                     const cli = await this.findMediaTool('media');
                     const probe = await this.runNodeScript(cli, ['probe', target.relativePath, '--no-record'], target.root);
-                    if (probe.code !== 0) throw new Error(probe.stderr.trim() || '素材の尺を取得できません');
+                    if (probe.code !== 0) throw new Error(probe.stderr.trim() || 'Could not retrieve footage duration');
                     const duration = JSON.parse(probe.stdout.trim()).duration_s;
-                    if (!Number.isFinite(duration) || duration <= 0) throw new Error('素材の尺が不正です');
+                    if (!Number.isFinite(duration) || duration <= 0) throw new Error('Invalid footage duration');
                     existing = [{ ...(edit.version === 1 ? { src: source.id } : {}), in: 0, out: duration }];
                 }
                 for (const range of ranges) {
-                    if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) throw new Error('カット範囲が不正です');
+                    if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) throw new Error('Invalid cut range');
                 }
-                if (!existing.some((cut: any) => edit.version === 0 || cut.src === source.id)) throw new Error('対象素材のタイムライン区間がありません');
+                if (!existing.some((cut: any) => edit.version === 0 || cut.src === source.id)) throw new Error('No timeline segment exists for the target footage');
                 edit.cuts = existing.flatMap((cut: any) => {
                     if (edit.version !== 0 && cut.src !== source.id) return [cut];
                     let pieces = [{ ...cut }];
@@ -1571,7 +1574,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                     }
                     return pieces;
                 });
-                if (edit.version === 0 && !edit.cuts.length) throw new Error('素材全体を除くカットは追加できません');
+                if (edit.version === 0 && !edit.cuts.length) throw new Error('Cannot add a cut that excludes the entire footage');
                 next = JSON.stringify(edit, null, 2) + '\n';
             }
             if (JSON.stringify(JSON.parse(original)) === JSON.stringify(JSON.parse(next))) return { changed: false };
@@ -1581,7 +1584,7 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
                 const cli = await this.findMediaTool('media');
                 const validator = resolve(dirname(cli), '../../schemas/bin/validate-edit.mjs');
                 await execFileAsync(process.execPath, [validator, temporary], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
-                if (await fs.readFile(file, 'utf8') !== original) throw new Error('edit.json が変更されました。もう一度実行してください');
+                if (await fs.readFile(file, 'utf8') !== original) throw new Error('edit.json has changed. Run again');
                 await fs.rename(temporary, file);
             } finally { await fs.rm(temporary, { force: true }); }
             return { changed: true };
@@ -1595,8 +1598,8 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
         const sources: { id: string; path: string }[] = Array.isArray(edit.sources) ? edit.sources : [];
         const source = request.source === undefined && sources.length === 1 ? sources[0]
             : sources.find(item => item.id === request.source);
-        if (!source) throw new Error(`素材を選んでください: ${sources.map(item => item.id).join(', ')}`);
-        if (basename(editPath) !== 'edit.json') throw new Error('字幕生成 CLI は別タイムラインの指定に未対応です。');
+        if (!source) throw new Error(`Select footage: ${sources.map(item => item.id).join(', ')}`);
+        if (basename(editPath) !== 'edit.json') throw new Error('The caption generation CLI does not yet support specifying a different timeline.');
         await this.materialTarget(root, source.path);
         if (request.transcribeFirst) await this.transcribeMaterial({ projectRoot: root, relativePath: source.path,
             backend: request.backend, compareSet: request.compareSet, autoCuts: request.autoCuts, approved: request.approved });
@@ -1609,10 +1612,10 @@ await removeProjectReference(${JSON.stringify(this.fsPath(projectUri))}, ${JSON.
 
     protected async timelineEditFile(root: string, editUri?: string): Promise<string> {
         const name = editUri ? basename(this.fsPath(editUri)) : 'edit.json';
-        if (!isTimelineEditFileName(name)) throw new Error('編集データのファイル名が不正です。');
+        if (!isTimelineEditFileName(name)) throw new Error('Invalid edit data filename.');
         const file = await this.transcribeFile(root, name);
         if (editUri && await fs.realpath(this.fsPath(editUri)) !== await fs.realpath(file)) {
-            throw new Error('プロジェクト外の編集データは指定できません。');
+            throw new Error('Edit data outside the project cannot be specified.');
         }
         return file;
     }
@@ -2271,7 +2274,7 @@ process.stdout.write(JSON.stringify(found));
             pairs.push({
                 leftUri: pathToFileURL(left).toString(),
                 rightUri: pathToFileURL(right).toString(),
-                label: `変更を見る: ${relativePath}`
+                label: `View changes: ${relativePath}`
             });
         }
         return { capable: true, pairs };
@@ -2391,7 +2394,7 @@ process.stdout.write(JSON.stringify(found));
         try {
             await this.runGit(root, ['init']);
             await this.runGit(root, ['add', '-A', '--', '.']);
-            await this.commitIfChanged(root, 'プロジェクトを開始');
+            await this.commitIfChanged(root, 'Start project');
         } catch (error) {
             console.warn('[akari-project] deferred git init failed:', error);
         }
@@ -2429,8 +2432,8 @@ process.stdout.write(JSON.stringify(found));
             await this.runGit(root, ['add', '--', '.gitignore']);
             const untracked = await this.untrackNewlyIgnoredFiles(root);
             await this.commitIfChanged(root, untracked
-                ? '変更履歴に入れない生成物を整理（ファイルはそのまま残っています）'
-                : '変更履歴の設定を更新');
+                ? 'Organize generated files excluded from change history (files remain in place)'
+                : 'Update change history settings');
         } catch (error) {
             console.warn('[akari-project] history policy migration failed:', error);
         }
@@ -2533,7 +2536,7 @@ process.stdout.write(JSON.stringify(found));
     protected async installProjectSkills(root: string): Promise<void> {
         const source = await this.findBundledSkills();
         if (!source) {
-            throw new Error('プロジェクト用の編集スキルを見つけられませんでした。');
+            throw new Error('Could not find editing skills for the project.');
         }
         const destination = join(root, '.claude', 'skills');
         await this.copySkillsTree(source, destination);
@@ -2545,12 +2548,12 @@ process.stdout.write(JSON.stringify(found));
 
         const schemasSource = await this.findBundledSchemas();
         if (!schemasSource) {
-            throw new Error('プロジェクト用のスキーマを見つけられませんでした。');
+            throw new Error('Could not find schemas for the project.');
         }
         const schema = JSON.parse(
             await fs.readFile(join(schemasSource, 'analysis.schema.json'), 'utf8')
         ) as { $comment?: unknown };
-        const provenance = '（この analysis.schema.json は packages/schemas/analysis.schema.json からプロジェクト作成時に installProjectSkills() が機械コピーしたものです。手編集しないでください。再生成するにはプロジェクトを作り直すか、スキルの再インストールを行ってください。）';
+        const provenance = '(This analysis.schema.json was copied automatically from packages/schemas/analysis.schema.json by installProjectSkills() when the project was created. Do not edit it manually. To regenerate it, recreate the project or reinstall the skills.)';
         schema.$comment = typeof schema.$comment === 'string'
             ? `${schema.$comment} ${provenance}`
             : provenance;
@@ -2767,47 +2770,47 @@ const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 // 収まるよう、長いパスが並んでも余裕のある件数にしてある。
 const UNTRACK_BATCH_SIZE = 200;
 const FALLBACK_CLAUDE_GUIDANCE = [
-    '# AKARI Video プロジェクト',
+    '# AKARI Video project',
     '',
-    '- `assets/` は元動画と音声を置く素材の場所です。原本は書き換えたり削除したりしません。',
-    '- `planning/` は企画やレポート、`exports/` は完成した動画を置く場所です。',
-    '- `.akari/sidecars/` は分析結果、`.akari/events/` は作業の節目の記録を置く場所です。',
-    '- 節目の記録は 1 件ずつ新しく追加し、すでにある記録は変更しません。',
-    '- 編集スキルは `.claude/skills/` にあり、`/analyze-footage` などの素の名前で使えます。',
-    '- 利用者へは日本語で、内部の仕組みではなく「変更履歴」「企画メモ」「素材」などの言葉で説明します。',
+    '- `assets/` holds original video and audio footage. Do not modify or delete originals.',
+    '- `planning/` holds plans and reports; `exports/` holds finished videos.',
+    '- `.akari/sidecars/` holds analysis results; `.akari/events/` holds milestone records.',
+    '- Add milestone records one at a time. Do not modify existing records.',
+    '- Editing skills are in `.claude/skills/` and can be invoked by their plain names, such as `/analyze-footage`.',
+    '- Respond in the user language, using terms such as Change history, Planning notes, and Footage to describe their purpose rather than internal mechanisms.',
     '',
-    'このファイルはあなたのプロジェクトのものです。自由に書き換えて構いません。',
+    'This file belongs to your project. Feel free to edit it.',
     ''
 ].join('\n');
 const FALLBACK_AGENT_GUIDANCE = [
-    '# AKARI Video プロジェクトの進め方',
+    '# Working on this AKARI Video project',
     '',
-    '`assets/` の原本を保ち、成果物は `planning/` と `exports/`、分析結果と節目の記録は `.akari/` に置く。',
-    '節目の記録は `.akari/events/` に 1 件ずつ追加し、すでにある記録は変更しない。',
+    'Preserve originals in `assets/`. Put outputs in `planning/` and `exports/`, and analysis results and milestone records in `.akari/`.',
+    'Add milestone records individually to `.akari/events/`. Do not modify existing records.',
     '',
-    'スキルは `/analyze-footage`、`/edit-plan`、`/overlay-authoring`、`/setup-library`、',
-    '`/harvest-asset`、`/bake-3d` の素の名前で使う。手順を直接読む場合は',
-    '`.claude/skills/<スキル名>/SKILL.md` を開く。',
+    'Invoke skills by their plain names: `/analyze-footage`, `/edit-plan`, `/overlay-authoring`, `/setup-library`,',
+    '`/harvest-asset`, and `/bake-3d`. To read the workflow directly, open',
+    '`.claude/skills/<skill-name>/SKILL.md`.',
     '',
-    '利用者へは日本語で、内部の仕組みではなく役割が伝わる言葉を使う。',
-    'この案内はこのプロジェクトのものです。自由に書き換えて構いません。',
+    'Respond in the user language and use words that explain each feature purpose rather than internal mechanisms.',
+    'This guide belongs to your project. Feel free to edit it.',
     ''
 ].join('\n');
 const FALLBACK_SKILLS_GUIDANCE = [
-    '# このプロジェクトのスキル',
+    '# Skills for this project',
     '',
-    '6 本の編集スキルはこのフォルダーに実体で入り、素の名前で使えます。',
-    '各手順は `.claude/skills/<スキル名>/SKILL.md` から直接読めます。',
-    '`AKARI-SKILLS-VERSION` はプロジェクト作成時のスキル内容を示します。',
-    'この案内と各スキルは、運用に合わせて自由に書き換えて構いません。',
+    'This folder contains local copies of six editing skills, available by their plain names.',
+    'Read each workflow directly at `.claude/skills/<skill-name>/SKILL.md`.',
+    '`AKARI-SKILLS-VERSION` identifies the skill contents when the project was created.',
+    'Feel free to customize this guide and the skills for your workflow.',
     ''
 ].join('\n');
 const FALLBACK_WORKFLOW = {
     version: 1,
     roles: [
-        { path: 'assets', label: '素材', kind: 'assets' },
-        { path: 'planning', label: '企画', kind: 'planning' },
-        { path: 'exports', label: '書き出し', kind: 'exports' }
+        { path: 'assets', label: 'Footage', kind: 'assets' },
+        { path: 'planning', label: 'Planning', kind: 'planning' },
+        { path: 'exports', label: 'Export', kind: 'exports' }
     ],
     tree: {
         hidden: ['.claude', '.agents', '.codex', '.cursor', '.opencode', '.devin', '.akari', 'CLAUDE.md', 'AGENTS.md', '.gitignore', '.gitkeep'],

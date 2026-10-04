@@ -27,7 +27,7 @@ function schemaDeclarations(source) {
         .filter(match => match[1] || constants.has(match[2]));
 }
 
-test('スキーマ宣言を文字列定数・参照・コメントと区別する', () => {
+test('distinguishes schema declarations from string constants, references, and comments', () => {
     assert.equal(schemaDeclarations(`
         export const MODE = 'akari.developerMode';
         preferences.get('akari.developerMode', false);
@@ -45,7 +45,7 @@ test('スキーマ宣言を文字列定数・参照・コメントと区別す�
     `).length, 3);
 });
 
-test('akari.developerMode のスキーマ宣言は akari-project の 1 か所だけ', () => {
+test('akari.developerMode has exactly one schema declaration in akari-project', () => {
     const declarations = [];
     for (const extension of readdirSync(extensionsRoot, { withFileTypes: true })) {
         if (!extension.isDirectory()) { continue; }

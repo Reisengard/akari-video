@@ -47,58 +47,58 @@ export function isPlaceableLibraryCategory(item: Pick<AssetCatalogViewItem, 'ori
 
 function favoriteEntry(favorite: boolean, separator = false): LibraryMenuEntry {
     return favorite
-        ? { id: 'favorite', label: 'お気に入りから外す', icon: 'star-full', separator }
-        : { id: 'favorite', label: 'お気に入りに入れる', icon: 'star-empty', separator };
+        ? { id: 'favorite', label: 'Remove from favorites', icon: 'star-full', separator }
+        : { id: 'favorite', label: 'Add to favorites', icon: 'star-empty', separator };
 }
 
-const INFO: LibraryMenuEntry = { id: 'info', label: '情報を見る', icon: 'info' };
+const INFO: LibraryMenuEntry = { id: 'info', label: 'View information', icon: 'info' };
 
 export function libraryCardMenuEntries(target: LibraryMenuTarget, favorite: boolean): LibraryMenuEntry[] {
     if (target.kind === 'asset') return target.item.category === 'font'
-        ? [{ id: 'apply', label: '選択中に当てる', icon: 'check' }, favoriteEntry(favorite, true), INFO]
+        ? [{ id: 'apply', label: 'Apply to selection', icon: 'check' }, favoriteEntry(favorite, true), INFO]
         : assetMenuEntries(target.item, favorite);
     if (target.kind === 'mystyle') {
         return [
-            { id: 'apply', label: '選択中の文字に当てる', icon: 'check' },
-            { id: 'place-text', label: 'プレイヘッドに置く', icon: 'add' },
+            { id: 'apply', label: 'Apply to selected text', icon: 'check' },
+            { id: 'place-text', label: 'Place at playhead', icon: 'add' },
             favoriteEntry(favorite, true), INFO,
-            { id: 'rename', label: '名前を変更', icon: 'edit', separator: true },
-            { id: 'delete', label: '消す', icon: 'trash', danger: true }
+            { id: 'rename', label: 'Rename', icon: 'edit', separator: true },
+            { id: 'delete', label: 'Delete', icon: 'trash', danger: true }
         ];
     }
     if (target.kind === 'textstyle') {
-        return [{ id: 'apply', label: '選択中の文字に当てる', icon: 'check' },
-            { id: 'place-text', label: '新しい文字として置く', icon: 'add' }, favoriteEntry(favorite, true), INFO];
+        return [{ id: 'apply', label: 'Apply to selected text', icon: 'check' },
+            { id: 'place-text', label: 'Add as new text', icon: 'add' }, favoriteEntry(favorite, true), INFO];
     }
-    if (target.kind === 'textanim') return [{ id: 'apply', label: '選択中の文字に当てる', icon: 'check' }, favoriteEntry(favorite, true), INFO];
-    if (target.kind === 'lut') return [{ id: 'apply', label: '選択中の映像に当てる', icon: 'check' }, favoriteEntry(favorite, true), INFO];
+    if (target.kind === 'textanim') return [{ id: 'apply', label: 'Apply to selected text', icon: 'check' }, favoriteEntry(favorite, true), INFO];
+    if (target.kind === 'lut') return [{ id: 'apply', label: 'Apply to selected footage', icon: 'check' }, favoriteEntry(favorite, true), INFO];
     return [favoriteEntry(favorite), INFO];
 }
 
 function assetMenuEntries(item: AssetCatalogViewItem, favorite: boolean): LibraryMenuEntry[] {
     const entries: LibraryMenuEntry[] = [];
     if (isPremiumLocked(item)) {
-        entries.push({ id: 'lab', label: `Lab で見る（${formatYen(item.price)}）`, icon: 'link-external' });
-        if (isPlaceableLibraryCategory(item)) entries.push({ id: 'place', label: 'プレイヘッドに置く', icon: 'add' });
+        entries.push({ id: 'lab', label: `View in Lab (${formatYen(item.price)})`, icon: 'link-external' });
+        if (isPlaceableLibraryCategory(item)) entries.push({ id: 'place', label: 'Place at playhead', icon: 'add' });
         entries.push(favoriteEntry(favorite, true), INFO);
         return entries;
     }
     if (item.origin === 'local') {
-        if (!item.installed) entries.push({ id: 'agent-import', label: '取り込む', icon: 'cloud-download' });
-        entries.push({ id: 'ask', label: 'この素材について頼む', icon: 'comment' });
+        if (!item.installed) entries.push({ id: 'agent-import', label: 'Import', icon: 'cloud-download' });
+        entries.push({ id: 'ask', label: 'Ask about this asset', icon: 'comment' });
         entries.push(favoriteEntry(favorite, true), INFO);
         return entries;
     }
     if (canPlaceLibraryAsset(item) || canPlaceOverlay(item)) {
-        entries.push({ id: 'place', label: 'プレイヘッドに置く', icon: 'add' });
-        entries.push({ id: 'import', label: '取り込むだけ（置かない）', icon: 'cloud-download' });
+        entries.push({ id: 'place', label: 'Place at playhead', icon: 'add' });
+        entries.push({ id: 'import', label: 'Import only (do not place)', icon: 'cloud-download' });
     } else {
-        entries.push({ id: 'import', label: '取り込む', icon: 'cloud-download' });
+        entries.push({ id: 'import', label: 'Import', icon: 'cloud-download' });
     }
     entries.push(favoriteEntry(favorite, true), INFO);
     if (item.libraryDir) {
-        entries.push({ id: 'reveal', label: 'Finder で場所を見る', icon: 'folder-opened', separator: true });
-        entries.push({ id: 'remove-library', label: 'ライブラリから消す', icon: 'trash', danger: true });
+        entries.push({ id: 'reveal', label: 'Show location in Finder', icon: 'folder-opened', separator: true });
+        entries.push({ id: 'remove-library', label: 'Remove from library', icon: 'trash', danger: true });
     }
     return entries;
 }
@@ -148,16 +148,16 @@ function unique(values: readonly (string | undefined)[]): string[] {
 
 function priceRow(item: AssetCatalogViewItem): LibraryInfoCardModel['price'] {
     const kind = libraryItemPrice(item);
-    if (kind === 'premium') return { kind, label: `プレミアム · ${formatYen(item.price)}` };
-    if (kind === 'purchased') return { kind, label: '購入済み' };
-    if (kind === 'external') return { kind, label: item.distribution === 'subscription' ? 'サブスク（各自入手）' : '有料（各自入手）' };
-    return { kind, label: '無料' };
+    if (kind === 'premium') return { kind, label: `Premium · ${formatYen(item.price)}` };
+    if (kind === 'purchased') return { kind, label: 'Purchased' };
+    if (kind === 'external') return { kind, label: item.distribution === 'subscription' ? 'Subscription (obtain separately)' : 'Paid (obtain separately)' };
+    return { kind, label: 'Free' };
 }
 
 export function libraryAssetInfoCard(item: AssetCatalogViewItem, categoryLabel: string, favorite: boolean): LibraryInfoCardModel {
     const source = libraryItemSource(item);
     const creator = item.author?.trim()
-        || (source === 'lab' ? 'AKARI Video Lab' : source === 'own' ? '自分の素材' : siteName(item) ?? '素材サイト');
+        || (source === 'lab' ? 'AKARI Video Lab' : source === 'own' ? 'My assets' : siteName(item) ?? 'Asset website');
     const license = libraryLicenseSheet(isPremiumLocked(item) ? { ...item, licenseSpdx: item.licenseSpdx ?? LAB_PREMIUM_SPDX } : item);
     const actions: LibraryInfoCardAction[] = [];
     for (const entry of assetMenuEntries(item, favorite)) {
@@ -198,9 +198,9 @@ export function libraryPresetInfoCard(input: LibraryPresetInfoInput, favorite: b
     return {
         key: input.key,
         name: input.name,
-        creator: input.author?.trim() || (mine ? '自分の素材' : 'AKARI Video（標準）'),
+        creator: input.author?.trim() || (mine ? 'My assets' : 'AKARI Video (standard)'),
         creatorSource: mine ? 'own' : 'lab',
-        price: { kind: 'free', label: '無料' },
+        price: { kind: 'free', label: 'Free' },
         license: mine
             ? libraryLicenseSheet({ origin: 'resolver', licenseSpdx: 'LicenseRef-user-owned', licenseScope: 'private-owned' })
             : libraryLicenseSheet(BUILTIN_LICENSE_INPUT),
@@ -212,9 +212,9 @@ export function libraryPresetInfoCard(input: LibraryPresetInfoInput, favorite: b
 /** 促しのシートの文言（price と既存の商品ページの経路だけから作る）。 */
 export function premiumPromptText(item: Pick<AssetCatalogViewItem, 'title' | 'price'>): { title: string; body: string; action: string } {
     return {
-        title: `「${item.title}」は Lab のプレミアムです`,
-        body: `${formatYen(item.price)} で購入すると、このライブラリからそのまま置けるようになります。`
-            + 'パスに含まれているかどうかも Lab のページで確かめられます。まだ置いていません。',
-        action: 'Lab で見る'
+        title: `“${item.title}” is a premium Lab asset`,
+        body: `Purchase for ${formatYen(item.price)}, then place it directly from this library. `
+            + 'The Lab page also shows whether your pass includes it. It has not been placed yet.',
+        action: 'View in Lab'
     };
 }

@@ -41,7 +41,7 @@ import {
 export const AkariCatalogCommands = {
     OPEN_CATALOG: {
         id: 'akari.catalog.open',
-        label: 'カタログを開く'
+        label: 'Open catalog'
     } as Command,
     LIST_CATEGORIES: {
         id: 'akari.catalog.listCategories'

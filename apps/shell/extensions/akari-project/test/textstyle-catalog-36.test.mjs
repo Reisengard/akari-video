@@ -10,7 +10,7 @@ const directory = new URL('presets/textstyle/', root);
 const schema = JSON.parse(readFileSync(new URL('packages/schemas/captions.schema.json', root)));
 const validateStyle = new Ajv({ strict: false }).compile({ $defs: schema.$defs, $ref: '#/$defs/textStyle' });
 
-test('同梱 36 スタイルは index・ファイル・captions textStyle スキーマで一致する', () => {
+test('bundled 36 styles agree across index, files, and captions textStyle schema', () => {
     const rows = readFileSync(new URL('index.jsonl', directory), 'utf8').trim().split('\n').map(JSON.parse);
     assert.equal(rows.length, 36);
     assert.equal(new Set(rows.map(row => row.id)).size, 36);
@@ -26,6 +26,6 @@ test('同梱 36 スタイルは index・ファイル・captions textStyle スキ
     assert.equal(added.length, 24);
     for (const row of added) {
         assert.equal(Object.hasOwn(row.style, 'font_family'), false,
-            `${row.id}: 追加スタイルは OSR / GPU で効かない書体指定を持たない`);
+            `${row.id}: additional styles contain no font settings ineffective in OSR / GPU`);
     }
 });

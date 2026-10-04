@@ -11,7 +11,7 @@ import {
 // 委譲され、委譲先（自 MIME 以外を無視して return する）との間で落ちて無反応になっていた。
 // (b) が本 issue の核 — Files だけのドロップは委譲せず、グローバル経路が拾う。
 
-test('(a) 内部 MIME あり + dropzone 内 → true（素材カード D&D は委譲する）', () => {
+test('(a) internal MIME + inside dropzone → true (delegates Footage card D&D)', () => {
     assert.equal(isDelegatedDropInput({
         insideDropzone: true, types: [MATERIAL_DRAG_MIME]
     }), true);
@@ -20,13 +20,13 @@ test('(a) 内部 MIME あり + dropzone 内 → true（素材カード D&D は�
     }), true);
 });
 
-test('(b) Files のみ + dropzone 内 → false（OS ファイルドロップはグローバル経路が拾う）', () => {
+test('(b) Files only + inside dropzone → false (global path handles OS file drops)', () => {
     assert.equal(isDelegatedDropInput({
         insideDropzone: true, types: ['Files']
     }), false);
 });
 
-test('(c) dropzone 外 → false', () => {
+test('(c) outside dropzone → false', () => {
     assert.equal(isDelegatedDropInput({
         insideDropzone: false, types: ['Files']
     }), false);
@@ -34,13 +34,13 @@ test('(c) dropzone 外 → false', () => {
         insideDropzone: false, types: [] }), false);
 });
 
-test('(d) 内部 MIME あり + dropzone 外 → false', () => {
+test('(d) internal MIME + outside dropzone → false', () => {
     assert.equal(isDelegatedDropInput({
         insideDropzone: false, types: [MATERIAL_DRAG_MIME]
     }), false);
 });
 
-test('Files と内部 MIME が同時に載っていれば委譲する（内部ドラッグの実測形）', () => {
+test('delegates when Files and internal MIME are both present (observed internal drag format)', () => {
     assert.equal(isDelegatedDropInput({
         insideDropzone: true, types: ['Files', MATERIAL_DRAG_MIME]
     }), true);

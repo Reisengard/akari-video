@@ -19,7 +19,7 @@ async function fixture(t) {
     return { root, project, library, home, env, put, declared: 'assets/audio/sample/sound.wav' };
 }
 
-test('戻り型: 参照・既存コピー・失敗の全枝', () => {
+test('return type: all reference, existing copy, and failure branches', () => {
     assert.deepEqual(assetResolveOutcome({ success: true, referenced: true, dir: '/library/audio/x' }, '/project/assets/audio/x'),
         { success: true, reference: true, libraryDir: '/library/audio/x', projectAssetPath: '/project/assets/audio/x' });
     assert.deepEqual(assetResolveOutcome({ success: true, projectDir: '/old' }, '/unused'), { success: true, projectAssetPath: '/old' });
@@ -27,7 +27,7 @@ test('戻り型: 参照・既存コピー・失敗の全枝', () => {
     assert.deepEqual(assetResolveOutcome({ success: false, error: 'offline' }, '/unused'), { success: false, error: 'offline' });
 });
 
-test('node 解決: 実体が勝つ・台帳なしは解決しない・2 か所の置き場は新しい順', async t => {
+test('node resolution: physical files win; no registry means unresolved; two storage roots sort newest first', async t => {
     const f = await fixture(t);
     const newer = await f.put(f.library, 'audio/sample/sound.wav', 'new');
     const older = await f.put(join(f.home, 'assets'), 'audio/sample/sound.wav', 'old');
@@ -41,42 +41,42 @@ test('node 解決: 実体が勝つ・台帳なしは解決しない・2 か所�
     assert.equal((await projectReferenceMediaUris(f.project, f.env))[f.declared], pathToFileURL(local).href);
 });
 
-test('node 解決: 字句・ライブラリとプロジェクトの symlink 脱出を拒否', async t => {
+test('node resolution: rejects lexical traversal and Library/project symlink escapes', async t => {
     const f = await fixture(t);
     await recordProjectReference(f.project, { category: 'audio', id: 'sample' });
     const outside = await f.put(f.root, 'outside.wav');
     await mkdir(join(f.library, 'audio/sample'), { recursive: true });
     await symlink(outside, join(f.library, 'audio/sample/sound.wav'));
     assert.equal(await resolveProjectAssetPath(f.project, f.declared, f.env), null);
-    await assert.rejects(resolveProjectAssetPath(f.project, 'assets/audio/sample/../../../outside.wav', f.env), /外/);
+    await assert.rejects(resolveProjectAssetPath(f.project, 'assets/audio/sample/../../../outside.wav', f.env), /素材パスがプロジェクトの外を指しています/);
     await mkdir(join(f.project, 'assets/audio/sample'), { recursive: true });
     await symlink(outside, join(f.project, f.declared));
-    await assert.rejects(resolveProjectAssetPath(f.project, f.declared, f.env), /外/);
+    await assert.rejects(resolveProjectAssetPath(f.project, f.declared, f.env), /素材パスがプロジェクトの外を指しています/);
     await rm(join(f.project, 'assets'), { recursive: true });
     await symlink(f.library, join(f.project, 'assets'));
-    await assert.rejects(resolveProjectAssetPath(f.project, 'assets/audio/sample/absent.wav', f.env), /外/);
+    await assert.rejects(resolveProjectAssetPath(f.project, 'assets/audio/sample/absent.wav', f.env), /素材パスがプロジェクトの外を指しています/);
 });
 
-test('台帳は取得済みと見つからない参照の両方をカード入力へ返す', async t => {
+test('registry returns both downloaded and missing references as card inputs', async t => {
     const f = await fixture(t);
     await recordProjectReference(f.project, { category: 'audio', id: 'sample' });
     await recordProjectReference(f.project, { category: 'still', id: 'missing' });
     await f.put(f.library, 'audio/sample/sound.wav');
     const entries = await listProjectReferenceAssets(f.project, f.env);
     assert.equal(entries.length, 2);
-    assert.equal(referencePresentation(entries[0]).badge, '参照');
-    assert.equal(referencePresentation(entries[1]).badge, '見つかりません');
-    assert.equal(referencePresentation(entries[1]).recovery, '入れ直してください');
-    assert.equal(referencePresentation(entries[1], true).recovery, 'もう一度取得');
+    assert.equal(referencePresentation(entries[0]).badge, 'Reference');
+    assert.equal(referencePresentation(entries[1]).badge, 'Not found');
+    assert.equal(referencePresentation(entries[1]).recovery, 'Please add it again');
+    assert.equal(referencePresentation(entries[1], true).recovery, 'Download again');
 });
 
 // 2026-09-26 オーナー指示: 参照カードでも素材カードと同じ操作ができるようにする
 // （実体がライブラリ側にあるだけで素材であることは変わらない）。rename / delete /
 // assets へ移動だけは参照に意味が無いので出さない。
-test('参照メニューは素材と同じ操作を出し、壊す操作だけ外す', () => {
+test('reference menus expose the same Footage actions except destructive ones', () => {
     assert.deepEqual(buildMaterialContextMenuItems('material', true, { reference: true, assetGroup: true, materialKind: 'audio' }).map(item => item.label),
-        ['開く', 'タイムラインに追加', 'ライブラリで見る', '素材の情報を表示', 'Finder で表示', 'ファイルをコピー', 'パスをコピー',
-            'エージェントに頼む…', 'このプロジェクトから外す']);
+        ['Open', 'Add to timeline', 'View in library', 'Show asset information', 'Show in Finder', 'Copy file', 'Copy path',
+            'Ask agent…', 'Remove from this project']);
     // macOS 以外では「ファイルをコピー」を出さない（素材カードと同じ規則）。
     assert.ok(!buildMaterialContextMenuItems('material', false, { reference: true, materialKind: 'audio' })
         .some(item => item.id === 'copy-file'));
@@ -85,13 +85,13 @@ test('参照メニューは素材と同じ操作を出し、壊す操作だけ�
         .some(item => item.id === 'add-to-timeline'));
 });
 
-test('実体を見失った参照は取り直しを先頭に出し、ファイル系を出さない', () => {
+test('references missing physical files show Redownload first and omit file actions', () => {
     const labels = buildMaterialContextMenuItems('material', true, { reference: true, missing: true, materialKind: 'audio' });
     assert.deepEqual(labels.map(item => item.id),
         ['retry-reference', 'view-library', 'show-info', 'ask-agent', 'remove-reference']);
 });
 
-test('まとめる前の警告件数は own/site/subscription の和集合（重複なし）', () => {
+test('pre-collection warning count is the union of own/site/subscription without duplicates', () => {
     const entry = tags => ({ category: 'audio', id: 'sample', tags, files: [] });
     assert.equal(restrictedReferenceCount([
         entry([]), entry(['origin:own']), entry(['origin:site', 'license:subscription']), entry(['license:subscription']),

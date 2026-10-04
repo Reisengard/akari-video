@@ -42,7 +42,9 @@ for (const [input, lab] of [
         const instance = new Dialog();
         Object.assign(instance, { storeState: state, storeRow: element(), windows });
         instance.renderStore();
-        actions.find(item => item.label === '開く').click();
+        const dialogOpenActions = actions.filter(item => item.click.toString().includes('openNewWindow'));
+        assert.equal(dialogOpenActions.length, 1);
+        dialogOpenActions[0].click();
 
         const buttons = [];
         let hook = 0;
@@ -61,7 +63,9 @@ for (const [input, lab] of [
             '../common/store-entitlements-visibility': { storeReconnectRequired: () => false }
         });
         AkariStoreSettings({ service: {}, windows, refreshKey: 0 });
-        buttons.find(button => button.children.includes('AKARI Video Lab を開く')).props.onClick();
+        const storeOpenButtons = buttons.filter(button => button.props.onClick?.toString().includes('openNewWindow'));
+        assert.equal(storeOpenButtons.length, 1);
+        storeOpenButtons[0].props.onClick();
         assert.deepEqual(opened, [
             { url: `${lab}/`, options: { external: true } },
             { url: `${lab}/`, options: { external: true } }

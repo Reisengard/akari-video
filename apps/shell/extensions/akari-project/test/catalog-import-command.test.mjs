@@ -18,7 +18,7 @@ function createDependencies(overrides = {}) {
     };
 }
 
-test('no-project: プロジェクトが無いと resolver を呼ばない', async () => {
+test('no-project: does not call the resolver without a project', async () => {
     let resolveCalls = 0;
     const importAsset = createAssetCatalogImporter(createDependencies({
         getWorkspaceRoot: () => undefined,
@@ -31,12 +31,12 @@ test('no-project: プロジェクトが無いと resolver を呼ばない', asyn
     assert.deepEqual(await importAsset({ assetId: 'sample-asset' }), {
         ok: false,
         reason: 'no-project',
-        message: '先にプロジェクトを開いてください。'
+        message: 'Open a project first.'
     });
     assert.equal(resolveCalls, 0);
 });
 
-test('not-found: カタログに無い id を拒否する', async () => {
+test('not-found: rejects unknown catalog IDs', async () => {
     let resolveCalls = 0;
     const importAsset = createAssetCatalogImporter(createDependencies({
         getCatalogItems: async () => [],
@@ -52,7 +52,7 @@ test('not-found: カタログに無い id を拒否する', async () => {
     assert.equal(resolveCalls, 0);
 });
 
-test('alreadyPresent: meta.json があれば resolver を呼ばず直下ファイルを返す', async t => {
+test('alreadyPresent: metadata returns local files without calling the resolver', async t => {
     const root = await mkdtemp(path.join(tmpdir(), 'akari-catalog-import-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     const dir = path.join(root, 'assets', 'still', 'sample-asset');
@@ -93,7 +93,7 @@ test('alreadyPresent: meta.json があれば resolver を呼ばず直下ファ�
     assert.equal(resolveCalls, 0);
 });
 
-test('成功: resolver 後の直下ファイルを32件までプロジェクト相対で返す', async t => {
+test('success: returns at most 32 immediate files relative to the project', async t => {
     const root = await mkdtemp(path.join(tmpdir(), 'akari-catalog-import-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     const importAsset = createAssetCatalogImporter(createDependencies({
@@ -119,7 +119,7 @@ test('成功: resolver 後の直下ファイルを32件までプロジェクト�
     assert.ok(!JSON.stringify(result).includes(root));
 });
 
-test('locked: カタログ状態で拒否し resolver を呼ばない', async () => {
+test('locked: rejects catalog state without calling the resolver', async () => {
     let resolveCalls = 0;
     const importAsset = createAssetCatalogImporter(createDependencies({
         getCatalogItems: async () => [
@@ -137,7 +137,7 @@ test('locked: カタログ状態で拒否し resolver を呼ばない', async ()
     assert.equal(resolveCalls, 0);
 });
 
-test('failed: resolver の失敗を failed に正規化する', async () => {
+test('failed: normalizes resolver errors to failed', async () => {
     const importAsset = createAssetCatalogImporter(createDependencies({
         resolveAsset: async () => ({ success: false, error: 'unavailable' })
     }));
@@ -147,7 +147,7 @@ test('failed: resolver の失敗を failed に正規化する', async () => {
     assert.equal(result.reason, 'failed');
 });
 
-test('同時2回: 同じ in-flight 結果を共有して resolver は1回だけ呼ぶ', async () => {
+test('concurrent calls share one in-flight resolver result', async () => {
     let resolveCalls = 0;
     let release;
     const gate = new Promise(resolve => {

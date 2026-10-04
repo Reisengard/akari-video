@@ -22,7 +22,7 @@ renderer.outputIcon = () => 'codicon codicon-layers';
 renderer.formatOutputMeta = () => 'JSON';
 const render = (name, kind = 'data') => renderer.renderOutputCard({ name, kind, uri: { toString: () => name }, relativePath: name });
 
-test('編集データは既存の accentTint で強調し、全カードの枠と角丸は対称で同じ', () => {
+test('edit data uses existing accentTint; all card outlines and radii are symmetrical and identical', () => {
     const edit = render('edit.json');
     const normal = render('captions.json');
     const variant = render('edit.v20.json');
@@ -35,14 +35,14 @@ test('編集データは既存の accentTint で強調し、全カードの枠�
         assert.equal(card.props.style.border, tokens.AKARI_BORDER.ghost);
         assert.equal(card.props.style.borderRadius, `${tokens.AKARI_RADIUS.panel}px`);
         assert.deepEqual(Object.keys(card.props.style).filter(key => /^border/.test(key)), ['borderRadius', 'border']);
-        assert.equal(card.props.onMouseEnter, undefined, 'hover で強調面を上書きしない');
+        assert.equal(card.props.onMouseEnter, undefined, 'hover does not overwrite the accent surface');
         assert.equal(card.props.className, undefined);
     }
     assert.equal(render('edit.json', 'export').props.style.background, normal.props.style.background);
     assert.doesNotMatch(method.getText(source), /borderLeft|borderInlineStart/);
 });
 
-test('編集データの強調属性・太字・明るいアイコンを保持する', () => {
+test('preserves edit data accent attributes, bold text, and bright icon', () => {
     for (const [name, emphasis, weight, opacity] of [
         ['edit.json', 'edit', 600, 0.85], ['edit.v20.json', 'edit', 600, 0.85], ['captions.json', undefined, undefined, 0.55]
     ]) {

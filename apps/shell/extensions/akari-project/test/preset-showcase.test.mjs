@@ -14,75 +14,75 @@ test('parsePresetShowcaseJsonl: retired telop is never offered', () => {
     }), 'telop'), []);
 });
 
-test('parsePresetShowcaseJsonl: LUT は説明と使いどころを camelCase へ正規化する', () => {
+test('parsePresetShowcaseJsonl: LUT normalizes description and use cases to camelCase', () => {
     const items = parsePresetShowcaseJsonl(JSON.stringify({
         id: 'natural',
-        name: 'ナチュラル',
-        description: '穏やかな色調',
-        when_to_use: '一般的な書き出し',
+        name: 'Natural',
+        description: 'Gentle tones',
+        when_to_use: 'General export',
         tags: ['lut', 'natural'],
         params: [{ key: 'intensity' }]
     }), 'lut');
     assert.deepEqual(items, [{
         kind: 'lut',
         id: 'natural',
-        name: 'ナチュラル',
-        description: '穏やかな色調',
-        whenToUse: '一般的な書き出し',
+        name: 'Natural',
+        description: 'Gentle tones',
+        whenToUse: 'General export',
         tags: ['lut', 'natural']
     }]);
 });
 
-test('parsePresetShowcaseJsonl: 壊れた行と必須フィールド不正行だけを飛ばして残りを返す', () => {
-    const valid = JSON.stringify({ id: 'ok', name: '有効', description: 'description', when_to_use: 'use', tags: ['lut'] });
-    const missing = JSON.stringify({ id: 'missing-category', name: '不正', tags: [] });
+test('parsePresetShowcaseJsonl: skips only broken lines and invalid required fields and returns the rest', () => {
+    const valid = JSON.stringify({ id: 'ok', name: 'Valid', description: 'description', when_to_use: 'use', tags: ['lut'] });
+    const missing = JSON.stringify({ id: 'missing-category', name: 'Invalid', tags: [] });
     const items = parsePresetShowcaseJsonl([valid, '{ broken', missing, '', valid].join('\n'), 'lut');
     assert.deepEqual(items.map(item => item.id), ['ok', 'ok']);
 });
 
-test('parsePresetShowcaseJsonl: textanim は slot をタグへ正規化し sampleText を保持する', () => {
+test('parsePresetShowcaseJsonl: textanim normalizes slot to tags and preserves sampleText', () => {
     const items = parsePresetShowcaseJsonl(JSON.stringify({
         id: 'fade-up',
-        name: 'フェードアップ',
-        category: 'フェード',
-        description: '下から薄く浮かぶ',
-        sample_text: '浮かぶ字幕',
+        name: 'Fade up',
+        category: 'Fade',
+        description: 'Gently rises from below',
+        sample_text: 'Floating Captions',
         slot: 'in'
     }), 'textanim');
     assert.deepEqual(items, [{
         kind: 'textanim',
         id: 'fade-up',
-        name: 'フェードアップ',
-        category: 'フェード',
-        description: '下から薄く浮かぶ',
-        sampleText: '浮かぶ字幕',
+        name: 'Fade up',
+        category: 'Fade',
+        description: 'Gently rises from below',
+        sampleText: 'Floating Captions',
         tags: ['in']
     }]);
 });
 
-test('parsePresetShowcaseJsonl: textstyle は category をタグへ正規化し sampleText を保持する', () => {
+test('parsePresetShowcaseJsonl: textstyle normalizes category to tags and preserves sampleText', () => {
     const items = parsePresetShowcaseJsonl(JSON.stringify({
         id: 'subtitle-news',
         kind: 'textstyle',
         category: 'subtitle',
-        name: 'ニュース風',
-        sample_text: '速報ニュース',
+        name: 'News style',
+        sample_text: 'Breaking news',
         style: { size_px: 56 }
     }), 'textstyle');
     assert.deepEqual(items, [{
         kind: 'textstyle',
         id: 'subtitle-news',
-        name: 'ニュース風',
+        name: 'News style',
         category: 'subtitle',
-        sampleText: '速報ニュース',
+        sampleText: 'Breaking news',
         style: { size_px: 56 },
         tags: ['subtitle']
     }]);
 });
 
-test('parsePresetShowcaseJsonl: textanim / textstyle の壊れ行をスキップする', () => {
-    const invalidAnimation = JSON.stringify({ id: 'bad', name: '不正', category: '動き', description: '不足', slot: 'middle' });
-    const invalidStyle = JSON.stringify({ id: 'bad', kind: 'textstyle', category: 'subtitle', name: '不正', sample_text: '不足' });
+test('parsePresetShowcaseJsonl: skips broken textanim / textstyle lines', () => {
+    const invalidAnimation = JSON.stringify({ id: 'bad', name: 'Invalid', category: 'Motion', description: 'Missing', slot: 'middle' });
+    const invalidStyle = JSON.stringify({ id: 'bad', kind: 'textstyle', category: 'subtitle', name: 'Invalid', sample_text: 'Missing' });
     assert.deepEqual(parsePresetShowcaseJsonl(invalidAnimation, 'textanim'), []);
     assert.deepEqual(parsePresetShowcaseJsonl(invalidStyle, 'textstyle'), []);
 });
@@ -101,7 +101,7 @@ test('library textstyle follows built-ins, carries origin and drops conflicting 
     assert.deepEqual(items[1].style, { strokes: [] });
 });
 
-test('derivePresetShowcaseChips: 退役後の 3 種の件数を固定順で返す', () => {
+test('derivePresetShowcaseChips: returns three retired kinds in fixed count order', () => {
     const chips = derivePresetShowcaseChips({
         lut: [
             { kind: 'lut', id: 'b', name: 'B', description: 'B', whenToUse: 'B', tags: [] },
@@ -112,23 +112,23 @@ test('derivePresetShowcaseChips: 退役後の 3 種の件数を固定順で返�
     });
     assert.deepEqual(chips, [
         { category: 'preset:lut', label: 'LUT', count: 2 },
-        { category: 'preset:textanim', label: 'テキストアニメ', count: 1 },
-        { category: 'preset:textstyle', label: 'テキストスタイル', count: 1 }
+        { category: 'preset:textanim', label: 'Text animation', count: 1 },
+        { category: 'preset:textstyle', label: 'Text style', count: 1 }
     ]);
 });
 
 const SEARCH_ITEMS = [
-    { kind: 'textstyle', id: 'caption-pop', name: 'ポップ字幕', category: 'caption', tags: ['bright', 'caption'] },
-    { kind: 'textstyle', id: 'news-lower', name: 'ニュース下帯', category: 'lower-third', tags: ['news'] }
+    { kind: 'textstyle', id: 'caption-pop', name: 'Pop Captions', category: 'caption', tags: ['bright', 'caption'] },
+    { kind: 'textstyle', id: 'news-lower', name: 'News lower third', category: 'lower-third', tags: ['news'] }
 ];
 
-test('filterPresetShowcaseItems: 和名・id・タグを検索する', () => {
-    assert.deepEqual(filterPresetShowcaseItems(SEARCH_ITEMS, 'ニュース').map(item => item.id), ['news-lower']);
+test('filterPresetShowcaseItems: searches display names, IDs, and tags', () => {
+    assert.deepEqual(filterPresetShowcaseItems(SEARCH_ITEMS, 'News').map(item => item.id), ['news-lower']);
     assert.deepEqual(filterPresetShowcaseItems(SEARCH_ITEMS, 'caption-pop').map(item => item.id), ['caption-pop']);
     assert.deepEqual(filterPresetShowcaseItems(SEARCH_ITEMS, 'bright').map(item => item.id), ['caption-pop']);
 });
 
-test('filterPresetShowcaseItems: 空検索は全件、不一致は 0 件', () => {
+test('filterPresetShowcaseItems: empty search returns all; no match returns zero', () => {
     assert.equal(filterPresetShowcaseItems(SEARCH_ITEMS, ' ').length, 2);
     assert.equal(filterPresetShowcaseItems(SEARCH_ITEMS, 'no-match').length, 0);
 });

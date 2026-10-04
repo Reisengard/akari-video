@@ -11,7 +11,7 @@ const widget = source.statements.find(node => ts.isClassDeclaration(node) && nod
 const methods = ['readLibraryDetailsOpen', 'toggleLibraryDetails', 'placeLibraryText', 'renderLibraryTilePlate', 'renderLibraryPrimaryTile', 'renderLibraryHome', 'handleLibraryTransitionDragEnd', 'showLibraryHome', 'renderTextLookPage', 'handleGenerationPickKey'];
 const code = ts.transpileModule(`class Handler { ${methods.map(name => {
     const member = widget.members.find(candidate => candidate.name?.getText(source) === name);
-    assert.ok(member, `${name} が存在する`);
+    assert.ok(member, `${name} exists`);
     return member.getText(source);
 }).join('\n')} }`, { compilerOptions: { target: ts.ScriptTarget.ES2021, jsx: ts.JsxEmit.React } }).outputText;
 const storage = new Map();
@@ -74,7 +74,7 @@ function nodes(tree, predicate) {
     return [...(predicate(tree) ? [tree] : []), ...tree.children.flatMap(child => nodes(child, predicate))];
 }
 
-test('ホームは主要タイルを宣言順に描き、段は線で区切り、詳細は既定で描かない', () => {
+test('home renders main tiles in declared order, separates rows with lines, and hides details by default', () => {
     const { handler } = fixture();
     const home = handler.renderLibraryHome();
     const tiles = nodes(home, node => node.props['data-akari-library-primary-tile']);
@@ -84,7 +84,7 @@ test('ホームは主要タイルを宣言順に描き、段は線で区切り�
     const section = nodes(home, node => node.props['data-akari-library-primary-tiles'] !== undefined)[0];
     const grids = nodes(section, node => node.props.style?.gridTemplateColumns === 'repeat(3, minmax(0, 1fr))');
     const groups = LIBRARY_PRIMARY_TILES.filter(tile => tile.startsGroup).length;
-    assert.equal(grids.length, groups + 1, '段の数だけ格子がある');
+    assert.equal(grids.length, groups + 1, 'one grid per row');
     // 見出しの文字は置かず、段の切れ目は線 1 本（2026-09-27 オーナー指示）。
     const rules = nodes(section, node => node.props['data-akari-library-tile-rule'] !== undefined);
     assert.equal(rules.length, groups);
@@ -102,14 +102,14 @@ test('ホームは主要タイルを宣言順に描き、段は線で区切り�
 
 // 2 枚重ねカード（2026-09-27 オーナー検収）。表と裏で別の絵を重ね、
 // グラデ id は台座ごとに振り直して衝突させない。
-test('タイルは表と裏の 2 枚を重ね、絵の id をカードごとに振り直す', () => {
+test('tiles stack front and back faces and assign unique image IDs per card', () => {
     const { handler } = fixture();
     const tile = handler.renderLibraryPrimaryTile(LIBRARY_PRIMARY_TILES[3]);
     const plates = nodes(tile, node => typeof node.props.className === 'string'
         && node.props.className.includes('akari-library-tile-plate'));
     assert.equal(plates.length, 2);
-    assert.ok(plates[0].props.className.includes('akari-tile-back'), '裏が先（奥）');
-    assert.ok(plates[1].props.className.includes('akari-tile-front'), '表が後（手前）');
+    assert.ok(plates[0].props.className.includes('akari-tile-back'), 'back first (behind)');
+    assert.ok(plates[1].props.className.includes('akari-tile-front'), 'front last (in front)');
     // 台座色はタイル宣言から CSS 変数で渡る。
     assert.equal(plates[1].props.style['--akari-tile-c1'], LIBRARY_PRIMARY_TILES[3].plate[0]);
     assert.equal(plates[1].props.style['--akari-tile-c2'], LIBRARY_PRIMARY_TILES[3].plate[1]);
@@ -123,13 +123,13 @@ test('タイルは表と裏の 2 枚を重ね、絵の id をカードごとに�
     assert.equal(ids[0].filter(id => ids[1].includes(id)).length, 0);
     // 16 種すべてに表裏の絵がある。
     for (const spec of LIBRARY_PRIMARY_TILES) {
-        assert.ok(LIBRARY_TILE_ART[spec.art], `${spec.key} の絵がある`);
-        assert.ok(LIBRARY_TILE_ART[spec.art].front && LIBRARY_TILE_ART[spec.art].back, `${spec.key} は表裏そろう`);
+        assert.ok(LIBRARY_TILE_ART[spec.art], `${spec.key} has an image`);
+        assert.ok(LIBRARY_TILE_ART[spec.art].front && LIBRARY_TILE_ART[spec.art].back, `${spec.key} has both faces`);
     }
     assert.ok(LIBRARY_TILE_SHARED_DEFS.includes('{I}'));
 });
 
-test('テキストタイルだけが既定スタイルの payload をドラッグし、終了を通知する', () => {
+test('only text tiles drag default style payloads and notify on completion', () => {
     const { handler } = fixture();
     const tile = handler.renderLibraryPrimaryTile(LIBRARY_PRIMARY_TILES[0]);
     const data = new Map();
@@ -150,7 +150,7 @@ test('テキストタイルだけが既定スタイルの payload をドラッ�
     }
 });
 
-test('最近使った帯は 3×3 の後、詳細の開閉ボタンの前に描く', () => {
+test('recently used strip renders after the 3×3 grid and before the details toggle', () => {
     const { handler } = fixture();
     handler.renderRecentLibraryStrip = () => React.createElement('section', { 'data-recent-strip': true });
     for (const open of [false, true]) {
@@ -162,7 +162,7 @@ test('最近使った帯は 3×3 の後、詳細の開閉ボタンの前に描�
     }
 });
 
-test('テキストタイルは配置せずページへ入り、ページの配置ボタンだけが placeText を呼ぶ', async () => {
+test('text tiles navigate without placement; only page placement buttons call placeText', async () => {
     const { handler, calls, errors } = fixture();
     handler.renderLibraryPrimaryTile(LIBRARY_PRIMARY_TILES[0]).props.onClick({ stopPropagation() {} });
     await Promise.resolve();
@@ -185,7 +185,7 @@ test('テキストタイルは配置せずページへ入り、ページの配�
     page.props.onBack();
     assert.equal(handler.libraryTextLookOpen, false);
     handler.renderLibraryPrimaryTile(LIBRARY_PRIMARY_TILES[0]).props.onClick({ stopPropagation() {} });
-    assert.equal(handler.renderTextLookPage().props.tab, 'font', 'ページを出入りしても切り替えを保つ');
+    assert.equal(handler.renderTextLookPage().props.tab, 'font', 'preserves selected tab across page navigation');
     let prevented = false;
     handler.handleGenerationPickKey({ key: 'Escape', target: {}, preventDefault() { prevented = true; }, stopPropagation() {} });
     assert.equal(prevented, true);
@@ -197,12 +197,12 @@ test('テキストタイルは配置せずページへ入り、ページの配�
     const soon = handler.renderLibraryPrimaryTile(LIBRARY_PRIMARY_TILES[2]);
     assert.equal(soon.props.disabled, true);
     assert.equal(soon.props.onClick, undefined);
-    handler.commandService.executeCommand = async () => { throw new Error('失敗'); };
+    handler.commandService.executeCommand = async () => { throw new Error('Failed'); };
     await handler.placeLibraryText();
-    assert.deepEqual(errors, ['文字を置けません: 失敗']);
+    assert.deepEqual(errors, ['Cannot place text: Failed']);
 });
 
-test('詳細の開閉を localStorage に記憶し、次のインスタンスで復元する', () => {
+test('stores details toggle in localStorage and restores it in the next instance', () => {
     storage.clear();
     const { handler } = fixture();
     assert.equal(handler.readLibraryDetailsOpen(), false);
