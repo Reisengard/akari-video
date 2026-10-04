@@ -3,17 +3,17 @@
   "roles": [
     {
       "path": "assets",
-      "label": "素材",
+      "label": "Footage",
       "kind": "assets"
     },
     {
       "path": "planning",
-      "label": "企画",
+      "label": "Planning",
       "kind": "planning"
     },
     {
       "path": "exports",
-      "label": "書き出し",
+      "label": "Export",
       "kind": "exports"
     }
   ],

@@ -30,7 +30,7 @@ test('installSkillAdapters: kits の skill を全アダプタへ合成し、重�
       );
     }
     assert.equal(report.warnings.length, 5);
-    assert.ok(report.warnings.every((line) => line.includes('純正スキルを優先')));
+    assert.ok(report.warnings.every((line) => line.includes('kept the built-in skill')));
   } finally {
     await rm(root, { recursive: true, force: true });
     await rm(home, { recursive: true, force: true });

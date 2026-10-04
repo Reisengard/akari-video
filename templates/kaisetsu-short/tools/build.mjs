@@ -56,7 +56,7 @@ async function narrationComplete(projectDir, project, script) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.projectDir) {
-    console.error("使い方: node tools/build.mjs <projectDir> [--no-synthesize] [--no-qa] [--no-render]");
+    console.error("Usage: node tools/build.mjs <projectDir> [--no-synthesize] [--no-qa] [--no-render]");
     process.exit(1);
   }
   const projectDir = path.resolve(opts.projectDir);
@@ -73,7 +73,7 @@ async function main() {
     if (opts.project) args.push("--project", opts.project);
     await run("node", args);
   } else {
-    console.log("[build] narration already present for all beats — skipping synthesize (L0 の『合成スキップ可能』要件)");
+    console.log("[build] narration already present for all beats — skipping synthesize");
   }
 
   console.log("[build] generating timeline.json ...");
@@ -89,7 +89,7 @@ async function main() {
   if (opts.render) {
     await run("node", [path.join(__dirname, "render.mjs"), projectDir, "--timeline", timelinePath, "--out", outMp4]);
   } else {
-    console.log("[build] --no-render 指定によりレンダーをスキップ");
+    console.log("[build] --no-render given, skipping render");
   }
 
   if (opts.qa) {
@@ -97,7 +97,7 @@ async function main() {
     if (opts.safezone) qaArgs.push("--safezone");
     await run("node", qaArgs);
   } else {
-    console.log("[build] --no-qa 指定により QA キャプチャをスキップ");
+    console.log("[build] --no-qa given, skipping QA capture");
   }
 
   console.log("[build] done. output:", outMp4);

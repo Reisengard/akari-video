@@ -143,14 +143,14 @@ test("git が利用できなくてもプロジェクト作成を完了し、レ�
       assert.ok((await stat(join(destination, ".akari"))).isDirectory());
       assert.ok((await stat(join(destination, "CLAUDE.md"))).isFile());
       assert.equal(report.git.action, "skipped");
-      assert.match(report.git.reason, /git が利用できないためスキップ/);
+      assert.match(report.git.reason, /Skipped because git is not available/);
       assert.match(report.git.reason, /xcode-select: note: No developer tools were found/);
 
       const reportHtml = await readFile(
         join(destination, ".akari", "reports", "create-project-report.html"),
         "utf8"
       );
-      assert.match(reportHtml, /git が利用できないためスキップ/);
+      assert.match(reportHtml, /Skipped because git is not available/);
       assert.match(reportHtml, /xcode-select: note: No developer tools were found/);
     } finally {
       if (originalPath === undefined) {

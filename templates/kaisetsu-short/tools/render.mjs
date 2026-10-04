@@ -141,7 +141,7 @@ function parseArgs(argv) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.projectDir) {
-    console.error("使い方: node tools/render.mjs <projectDir> [--timeline <path>] [--out <path>] [--spotframes t1,t2,...]");
+    console.error("Usage: node tools/render.mjs <projectDir> [--timeline <path>] [--out <path>] [--spotframes t1,t2,...]");
     process.exit(1);
   }
   const projectDir = path.resolve(opts.projectDir);

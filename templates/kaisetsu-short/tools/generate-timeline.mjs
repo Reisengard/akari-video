@@ -151,7 +151,7 @@ export async function generateTimeline(projectDir, projectFile) {
   const script = await loadJson(scriptPath);
   const channel = await loadJson(channelPath);
   const profile = LAYOUT_PROFILES[aspect];
-  if (!profile) throw new Error(`未知の aspect プロファイル: ${aspect}`);
+  if (!profile) throw new Error(`Unknown aspect profile: ${aspect}`);
 
   const scriptDir = path.dirname(scriptPath);
   const channelDir = path.dirname(channelPath);
@@ -213,7 +213,7 @@ async function main() {
   const args = process.argv.slice(2);
   const projectDir = args[0];
   if (!projectDir) {
-    console.error("使い方: node tools/generate-timeline.mjs <projectDir> [--out <path>] [--project <project.jsonのファイル名>]");
+    console.error("Usage: node tools/generate-timeline.mjs <projectDir> [--out <path>] [--project <project.json file name>]");
     process.exit(1);
   }
   const outIdx = args.indexOf("--out");

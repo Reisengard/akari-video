@@ -127,7 +127,7 @@ async function main() {
     const pngPath = path.join(OUT_DIR, `fullbody-${pose}.png`);
     const out = await runCapture("magick", [pngPath, "-format", "%@", "info:"]);
     const m = out.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
-    if (!m) throw new Error(`trim bbox の解析に失敗: ${out}`);
+    if (!m) throw new Error(`Failed to parse the trim bbox: ${out}`);
     bboxes.push({ pose, w: Number(m[1]), h: Number(m[2]), x: Number(m[3]), y: Number(m[4]) });
   }
   console.log("[generate-placeholder] bbox per pose:", bboxes);
@@ -135,7 +135,7 @@ async function main() {
   const allSame = bboxes.every((b) => b.w === first.w && b.h === first.h && b.x === first.x && b.y === first.y);
   console.log(`[generate-placeholder] bbox identical across all poses: ${allSame}`);
   console.log(`[generate-placeholder] personBBox for channel.json: { "x": ${first.x}, "y": ${first.y}, "w": ${first.w}, "h": ${first.h} }`);
-  if (!allSame) throw new Error("bbox がポーズ間で一致しない（personBBox 前提が崩れる）");
+  if (!allSame) throw new Error("The bbox differs between poses (this breaks the personBBox assumption)");
 }
 
 main().catch((err) => {
