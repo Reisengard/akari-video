@@ -144,22 +144,22 @@ export function buildPreviewDiagnosticsOverlayModel(
 ): PreviewDiagnosticsOverlayModel {
     const blocked = summary.failedStage ?? summary.stalledStage;
     const title = summary.complete
-        ? 'プレビュー初期化は完了しています'
-        : 'プレビューの初期化が完了しません — 止まった段: '
-            + (blocked ? blocked.label : '不明');
+        ? 'Preview startup finished'
+        : 'Preview startup did not finish. Stopped at stage: '
+            + (blocked ? blocked.label : 'Unknown');
     const stageLines = summary.stages.map(stage =>
         (stage.status === 'ok' ? '✓ ' : stage.status === 'failed' ? '✕ ' : '… ')
         + stage.label
         + (stage.detail ? ' — ' + stage.detail : '')
     );
     const firstErrorLine = summary.firstError
-        ? '最初の例外: [' + summary.firstError.kind + '] ' + summary.firstError.message
-        : '最初の例外: 記録なし（例外なしで止まっています）';
+        ? 'First exception: [' + summary.firstError.kind + '] ' + summary.firstError.message
+        : 'First exception: none recorded (stopped without an exception)';
     const footerLines: string[] = [];
-    footerLines.push('入口: ' + context.entry + (context.webviewRole ? ' / ' + context.webviewRole : ''));
+    footerLines.push('Entry: ' + context.entry + (context.webviewRole ? ' / ' + context.webviewRole : ''));
     if (context.webviewId) footerLines.push('Webview ID: ' + context.webviewId);
-    if (logPath) footerLines.push('診断ログ: ' + logPath);
-    footerLines.push('これは失敗段の記録です（原因の断定ではありません）。');
+    if (logPath) footerLines.push('Diagnostics log: ' + logPath);
+    footerLines.push('This records the stage that failed; it does not prove the cause.');
     return {
         title,
         stageLines,
@@ -532,11 +532,11 @@ export function createDomPreviewDiagnosticsOverlay(
         title.style.whiteSpace = 'nowrap';
         const detailsButton = document.createElement('button');
         detailsButton.type = 'button';
-        detailsButton.textContent = expanded ? '詳細を隠す' : '詳細';
+        detailsButton.textContent = expanded ? 'Hide details' : 'Details';
         detailsButton.dataset.akariPreviewDiagnostics = 'toggle';
         const copyButton = document.createElement('button');
         copyButton.type = 'button';
-        copyButton.textContent = '診断をコピー';
+        copyButton.textContent = 'Copy diagnostics';
         copyButton.dataset.akariPreviewDiagnostics = 'copy';
         for (const button of [detailsButton, copyButton]) {
             button.style.border = '1px solid rgba(255,255,255,0.45)';

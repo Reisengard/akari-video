@@ -538,7 +538,7 @@ export class AkariPreviewServiceImpl implements AkariPreviewService {
             ancestor = parent;
         }
         const candidate = candidates.find(value => this.isFile(value));
-        if (!candidate) throw new Error('字幕フォント一覧が見つかりません');
+        if (!candidate) throw new Error('Caption font list was not found');
         const importModule = Function('specifier', 'return import(specifier)') as
             (specifier: string) => Promise<{ libraryCaptionFontFaces(env: NodeJS.ProcessEnv): Array<{ id: string; family: string; file: string; weight: string; path: string }> }>;
         return (await importModule(pathToFileURL(candidate).toString())).libraryCaptionFontFaces(process.env);
@@ -1081,7 +1081,7 @@ export class AkariPreviewServiceImpl implements AkariPreviewService {
             ancestor = parent;
         }
         const candidate = candidates.find(value => this.isFile(value));
-        if (!candidate) throw new Error('素材の参照 resolver が見つかりません');
+        if (!candidate) throw new Error('Footage reference resolver was not found');
         const importModule = Function('specifier', 'return import(specifier)') as
             (specifier: string) => Promise<ReferenceModule>;
         return importModule(pathToFileURL(candidate).toString());
@@ -1168,7 +1168,7 @@ export class AkariPreviewServiceImpl implements AkariPreviewService {
 
     async rasterizeTelopPreview(_request: RasterizeTelopPreviewRequest): Promise<VideoStreamReference> {
         // Keep the RPC boundary explicit for older clients; no rendering process is started.
-        throw new Error('telop.retired: テロップ（ATF）の描画は退役しました。Lab の HTML 素材版へ差し替えてください。');
+        throw new Error('telop.retired: Captions (ATF) rendering has been retired. Switch to the Lab HTML footage version.');
     }
 
     async transcodeAudioToWav(request: TranscodeAudioRequest): Promise<TranscodeAudioResult> {
@@ -1479,7 +1479,7 @@ export class AkariPreviewServiceImpl implements AkariPreviewService {
         if (rawEdit?.version !== 2) {
             const planned = planMigration(dirname(this.filePath(request.editUri)), this.filePath(request.editUri), editText);
             if ('blockers' in planned) {
-                throw new Error(`古い edit.json を読み取り専用で開けません: ${planned.blockers.join(' / ')}`);
+                throw new Error(`Cannot open the old edit.json read-only: ${planned.blockers.join(' / ')}`);
             }
             rawEdit = JSON.parse(planned.nextText);
         }

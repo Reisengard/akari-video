@@ -90,7 +90,7 @@ test('ジオメトリが未取得でも層を即表示し、応答後に仮枠�
         assert.equal(ghost.style.display, 'block');
         assert.match(ghost.children.at(-1).textContent, /0:12\.0 → 0:15\.0/);
         assert.equal(ghost.children.at(-1).dataset.akariCanvasDropHint, 'true');
-        assert.match(ghost.children.at(-1).textContent, /導入 に入ります/);
+        assert.match(ghost.children.at(-1).textContent, /Goes into 導入/);
         layer.listeners.get('dragover')({ ...over, altKey: true });
         assert.equal(ghost.children.at(-1).dataset.akariCanvasDropHint, 'false');
         window.setTimeout = (callback, delay) => setTimeout(callback, delay === 2500 ? 0 : delay);
@@ -138,7 +138,7 @@ test('ジオメトリが未取得でも層を即表示し、応答後に仮枠�
         const shapeGhost = shapeLayer.children[0];
         assert.equal(shapeGhost.children[0].textContent, '星');
         assert.ok(Math.abs(Number.parseFloat(shapeGhost.style.width) - 89.66) < 0.1);
-        assert.match(shapeGhost.children.at(-1).textContent, /0:12\.0 → 0:15\.0 · 導入 に入ります/);
+        assert.match(shapeGhost.children.at(-1).textContent, /0:12\.0 → 0:15\.0 · Goes into 導入/);
         const frame = drop.geometry.rect;
         shapeLayer.listeners.get('drop')({ clientX: 670, clientY: 190, altKey: false,
             dataTransfer: { getData: () => JSON.stringify({ kind: 'shape', preset: 'star-5', name: '星', vb: [100, 95] }) },

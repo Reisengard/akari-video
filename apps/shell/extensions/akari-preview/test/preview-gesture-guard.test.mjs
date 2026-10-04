@@ -388,7 +388,7 @@ test('v1 cut 選択時は既存通知経路でクロップ不可の理由を一�
     vm.runInContext(section('            let cutCropNoticeKey =', '            const applyCutCropAndTransformNow ='), context);
     assert.equal(vm.runInContext('cutCropEditable()', context), false);
     assert.equal(vm.runInContext('cutCropEditable()', context), false);
-    assert.deepEqual(errors, ['この編集データ（v1）ではクロップできません。v2 へ移行してください']);
+    assert.deepEqual(errors, ['This edit (v1) cannot crop. Move it to v2.']);
     assert.equal(vm.runInContext('summary.editVersion = 2; cutCropEditable()', context), true);
 });
 

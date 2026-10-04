@@ -84,15 +84,15 @@ test('group toggle and Alt drag keep the box dashed and tooltips follow state', 
     assert.ok(from >= 0 && to > from);
     vm.runInContext(preview.slice(from, to), context);
     vm.runInContext('updateCaptionSelectTools()', context);
-    assert.match(tooltips.get('group'), /^この字幕だけ動く/);
-    assert.match(tooltips.get('snap'), /^吸着 ON/);
-    assert.match(tooltips.get('clamp'), /^はみ出し防止 OFF/);
-    assert.match(tooltips.get('cushion'), /^座布団 OFF/);
+    assert.match(tooltips.get('group'), /^This caption only moves/);
+    assert.match(tooltips.get('snap'), /^Snap ON/);
+    assert.match(tooltips.get('clamp'), /^Keep inside OFF/);
+    assert.match(tooltips.get('cushion'), /^Background OFF/);
 
     vm.runInContext('captionGroupToolEnabled = true; setCaptionGroupMode(false)', context);
     assert.ok(attributes.has('data-alt-all'));
     assert.ok(button('group').classList.contains('on'));
-    assert.match(tooltips.get('group'), /^全字幕が動く/);
+    assert.match(tooltips.get('group'), /^All captions move/);
     vm.runInContext('captionGroupToolEnabled = false; setCaptionGroupMode(true)', context);
     assert.ok(attributes.has('data-alt-all'), 'Alt drag also uses a dashed box');
     vm.runInContext('setCaptionGroupMode(false)', context);
@@ -101,8 +101,8 @@ test('group toggle and Alt drag keep the box dashed and tooltips follow state', 
     state.clampOn = true;
     state.caption.textStyle.background.opacity = 0.75;
     vm.runInContext('captionSnapEnabled = false; updateCaptionSelectTools()', context);
-    assert.match(tooltips.get('snap'), /^吸着 OFF/);
-    assert.match(tooltips.get('clamp'), /^はみ出し防止 ON/);
-    assert.match(tooltips.get('cushion'), /^座布団 ON/);
+    assert.match(tooltips.get('snap'), /^Snap OFF/);
+    assert.match(tooltips.get('clamp'), /^Keep inside ON/);
+    assert.match(tooltips.get('cushion'), /^Background ON/);
     assert.match(preview, /captionTool\('group'\)\.addEventListener\('click',[\s\S]*?captionGroupToolEnabled = !captionGroupToolEnabled;\s*setCaptionGroupMode\(false\)/);
 });

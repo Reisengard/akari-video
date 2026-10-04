@@ -150,9 +150,9 @@ export class PreviewLibraryDrop {
                         : payload.kind === 'shape' ? '◇' : '▣';
                 card.appendChild(icon);
             }
-            const defaultName = payload.kind === 'text' ? 'テキスト'
-                : payload.kind === 'textstyle' || payload.kind === 'mystyle' ? 'テキストスタイル'
-                    : payload.kind === 'shape' ? '図形' : '素材';
+            const defaultName = payload.kind === 'text' ? 'Text'
+                : payload.kind === 'textstyle' || payload.kind === 'mystyle' ? 'Text style'
+                    : payload.kind === 'shape' ? 'Shape' : 'Footage';
             card.appendChild(document.createTextNode(payload.relativePath?.split('/').pop()
                 || payload.title || payload.name || defaultName));
             document.body.appendChild(card);
@@ -480,11 +480,11 @@ export class PreviewLibraryDrop {
                 const note = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 note.setAttribute('width', '18'); note.setAttribute('height', '18'); note.setAttribute('viewBox', '0 0 24 24');
                 note.innerHTML = '<path d="M9 18V5l11-2v13M9 18c0 3-6 4-6 1s6-4 6-1Zm11-2c0 3-6 4-6 1s6-4 6-1Z" fill="none" stroke="currentColor" stroke-width="2"/>';
-                ghost.append(note, document.createTextNode(' 時刻に置く'));
+                ghost.append(note, document.createTextNode(' Place at this time'));
             } else ghost.append(document.createTextNode(applying
-                ? (payload.kind === 'lut' ? '画面に当てます' : '文字に当てます')
-                : transition ? 'カットの境目に置いてください' : text ? 'テキストを置く'
-                    : shape ? shape.name ?? '図形' : payload.title ?? payload.name ?? '素材'));
+                ? (payload.kind === 'lut' ? 'Apply to the screen' : 'Apply to the text')
+                : transition ? 'Place on a cut boundary' : text ? 'Place text'
+                    : shape ? shape.name ?? 'Shape' : payload.title ?? payload.name ?? 'Footage'));
         }
         /*
          * 秒数と行き先の但し書きは、絵が出ているときは出さない（オーナー指示）。
@@ -500,12 +500,12 @@ export class PreviewLibraryDrop {
             label.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);white-space:nowrap;padding:3px 7px;border-radius:4px;background:var(--theia-editorHoverWidget-background,#242424)';
             const target = !audio && canvasAtFrame(geometry.canvases,
                 Math.round(geometry.time * geometry.fps), this.outside);
-            const hint = target ? `${canvasDropLabel(geometry.canvases, target)} に入ります` : '';
+            const hint = target ? `Goes into ${canvasDropLabel(geometry.canvases, target)}` : '';
             const end = duration && target
                 ? Math.min(geometry.time + duration, (target.at + target.duration) / geometry.fps)
                 : geometry.time + (duration || 0);
             label.dataset.akariCanvasDropHint = hint ? 'true' : 'false';
-            label.textContent = `${stamp(geometry.time)} → ${duration ? stamp(end) : '実尺'}`
+            label.textContent = `${stamp(geometry.time)} → ${duration ? stamp(end) : 'full length'}`
                 + (hint ? ` · ${hint}` : '');
             ghost.appendChild(label);
         }
@@ -533,13 +533,13 @@ export class PreviewLibraryDrop {
         if (!geometry || !point || !insideWidget) { this.clear(); return; }
         if (payload.outsideProject) {
             this.clear();
-            this.messages.warn('プロジェクトの中のファイルだけ置けます');
+            this.messages.warn('You can only drop files from inside the project');
             return;
         }
         if (payload.locked) {
             this.clear();
             try { await this.commands.executeCommand('akari.library.showPremiumPrompt', { key: payload.key }); }
-            catch { this.messages.warn('この素材を使うには購入が必要です。'); }
+            catch { this.messages.warn('This footage requires a purchase.'); }
             return;
         }
         if (APPLY_KINDS.has(payload.kind)) {
@@ -559,7 +559,7 @@ export class PreviewLibraryDrop {
         }
         this.clear();
         if (payload.kind === 'transition') {
-            this.messages.info('トランジションはタイムラインのカットの境目に落としてください。');
+            this.messages.info('Drop the transition on a cut boundary in the timeline.');
             return;
         }
         const editUri = this.editUri();
@@ -612,7 +612,7 @@ export class PreviewLibraryDrop {
                 'akari.catalog.resolveMaterial', payload.key
             ).catch(() => undefined);
             if (!material?.relativePath) {
-                this.messages.warn('この素材は取り寄せできませんでした。');
+                this.messages.warn('Could not fetch this footage.');
                 return;
             }
             await this.commands.executeCommand('akari.timeline.addMaterialAtOutputPoint', {
@@ -631,7 +631,7 @@ export class PreviewLibraryDrop {
         const overlayKind = previewOverlayKind(payload);
         if (overlayKind === 'scene3d') {
             if (!claimScene3dDrop(dragSession)) return;
-            this.messages.info('3D は近日対応します。');
+            this.messages.info('3D support is coming soon.');
             return;
         }
         if (overlayKind === 'overlay') {
@@ -671,7 +671,7 @@ export class PreviewLibraryDrop {
                 editUri, time: geometry.time, waitForReady: true
             });
         } catch {
-            this.messages.warn('再生位置を戻せませんでした。');
+            this.messages.warn('Could not restore the playhead.');
         }
     }
 
@@ -714,7 +714,7 @@ export class PreviewLibraryDrop {
             });
             const material = await this.commands.executeCommand<{ relativePath: string; kind: string } | undefined>(
                 'akari.catalog.resolveMaterial', payload.key);
-            if (!material?.relativePath) throw new Error('取り寄せできませんでした');
+            if (!material?.relativePath) throw new Error('Could not fetch this footage.');
             if (material.relativePath !== plan.relativePath) {
                 // 当てが外れた（起こらないはずだが、黙って壊れた参照を残さない）。置き直す。
                 console.warn('[akari-preview] 置き先の見込みが外れました', plan.relativePath, '→', material.relativePath);
@@ -731,7 +731,7 @@ export class PreviewLibraryDrop {
                 await this.commands.executeCommand('akari.timeline.removePlacedMaterial', { editUri, itemId: placedId })
                     .catch(() => undefined);
             }
-            this.messages.warn(`この素材は取り寄せできませんでした: ${error instanceof Error ? error.message : String(error)}`);
+            this.messages.warn(`Could not fetch this footage: ${error instanceof Error ? error.message : String(error)}`);
             return;
         } finally {
             if (waiting) {
@@ -780,8 +780,8 @@ export class PreviewLibraryDrop {
         const spinner = document.createElement('span');
         spinner.className = 'codicon codicon-loading codicon-modifier-spin';
         spinner.setAttribute('aria-hidden', 'true');
-        status.append(spinner, document.createTextNode(width >= 120 ? 'ダウンロード中' : ''));
-        status.title = `${title ?? '素材'}をダウンロード中`;
+        status.append(spinner, document.createTextNode(width >= 120 ? 'Downloading' : ''));
+        status.title = `Downloading ${title ?? 'footage'}`;
         overlay.append(veil, status);
         // 画面の外にはみ出したままにならないよう、widget の枠でだけ出す。
         if (centerX < bounds.left || centerY < bounds.top
@@ -803,7 +803,7 @@ export class PreviewLibraryDrop {
             border: '1px solid var(--theia-focusBorder)', background: 'var(--theia-editorHoverWidget-background)',
             color: 'var(--theia-foreground)', fontSize: '13px' });
         prompt.append(document.createTextNode(payload.kind === 'lut'
-            ? '写真や映像の上に落としてください。' : '文字の上に落としてください。'));
+            ? 'Drop it on a photo or video.' : 'Drop it on the text.'));
         this.closePrompt?.();
         this.prompt = prompt;
         document.body.appendChild(prompt);

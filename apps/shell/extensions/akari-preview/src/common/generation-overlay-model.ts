@@ -95,7 +95,7 @@ export function describeOverlay(
             typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : undefined;
 
         if (state === 'orphan') {
-            return { tag: `孤児 · ${beatLabel}`, band: null, shimmer: false, maskRect: null };
+            return { tag: `Orphaned · ${beatLabel}`, band: null, shimmer: false, maskRect: null };
         }
 
         if (state === 'failed') {
@@ -109,7 +109,7 @@ export function describeOverlay(
                 ? String(reasonValue) : 'unknown';
             return {
                 ...empty(),
-                tag: `失敗 · ${reason} · 再試行は右パネル`
+                tag: `Failed · ${reason} · Retry in the right panel`
             };
         }
 
@@ -125,21 +125,21 @@ export function describeOverlay(
             const etaValue = finiteNumber(etaCandidate);
             const eta = etaValue !== undefined && etaValue >= 0 ? Math.round(etaValue) : undefined;
             const text = percent !== undefined && eta !== undefined
-                ? `生成中 ${percent}% · 残り約 ${eta} 秒`
+                ? `Generating ${percent}% · about ${eta} sec left`
                 : percent !== undefined
-                    ? `生成中 ${percent}%`
+                    ? `Generating ${percent}%`
                     : eta !== undefined
-                        ? `生成中 · 残り約 ${eta} 秒`
+                        ? `Generating · about ${eta} sec left`
                         : (() => {
                             const startedAt = Date.parse(String(job.started_at ?? ''));
-                            if (!Number.isFinite(startedAt)) return '生成中';
+                            if (!Number.isFinite(startedAt)) return 'Generating';
                             const seconds = Math.max(0, Math.floor(((options.nowMs ?? Date.now()) - startedAt) / 1000));
-                            return `生成中 · ${seconds} 秒`;
+                            return `Generating · ${seconds} sec`;
                         })();
             const firstFramePath = objectAt(value.inputs, 'first_frame').path;
             return {
                 ...empty(),
-                tag: `生成中 · ${beatLabel}`,
+                tag: `Generating · ${beatLabel}`,
                 band: { text, progress: percent === undefined ? null : percent / 100 },
                 shimmer: true,
                 aurora: 'generating',
@@ -150,17 +150,17 @@ export function describeOverlay(
         if (state === 'stale') {
             return {
                 ...empty(),
-                tag: '応答なし · 再取得は右パネル',
-                band: { text: '応答なし', progress: null }
+                tag: 'No response · Fetch again from the right panel',
+                band: { text: 'No response', progress: null }
             };
         }
 
         const next = nextDraftHelper(value as unknown as GenerationMetaV1);
         if (next) {
-            const labels = { prompt: 'プロンプトだけ', first: '画像から', 'first-last': '最初→最後', references: '参照から' };
+            const labels = { prompt: 'Prompt only', first: 'From image', 'first-last': 'First → last', references: 'From references' };
             return {
                 ...empty(),
-                tag: `▶ 動画予定 · ${labels[next.variety]}`,
+                tag: `▶ Planned video · ${labels[next.variety]}`,
                 pip: typeof next.lastFrame?.path === 'string' && next.lastFrame.path.trim()
                     ? next.lastFrame.path : null
             };
@@ -199,20 +199,20 @@ export function describeOverlay(
                 }
             }
             const tag = fps === undefined
-                ? `パラパラ · ${beatLabel}`
+                ? `Flipbook · ${beatLabel}`
                 : totalFrames === undefined
-                    ? `パラパラ ${fps}fps · コマ ${frame}`
-                    : `パラパラ ${fps}fps · コマ ${frame}/${totalFrames}`;
+                    ? `Flipbook ${fps}fps · frame ${frame}`
+                    : `Flipbook ${fps}fps · frame ${frame}/${totalFrames}`;
             return { ...empty(), tag, maskRect };
         }
 
         const candidates = finiteNumber(objectAt(value, 'job').candidates);
         if ((state === 'planned' || state === 'done') && candidates !== undefined && candidates > 0) {
-            return { ...empty(), tag: `✦ 候補 ${candidates}`,
+            return { ...empty(), tag: `✦ Candidates ${candidates}`,
                 aurora: state === 'planned' ? 'planned' : null };
         }
         if (state === 'planned') {
-            return { ...empty(), tag: '✦ AI の枠', aurora: 'planned' };
+            return { ...empty(), tag: '✦ AI frame', aurora: 'planned' };
         }
         return empty();
     } catch {

@@ -41,7 +41,7 @@ test('flipped and rounded photo samples the displayed source pixel', () => {
 test('preview shows brush mode and a sized circular cursor', () => {
     const source = readHandlerSource();
     assert.match(source, /layerVideo\.readyState < HTMLMediaElement\.HAVE_METADATA\s*&& !\(frameEngineMediaIdle && layer\.isImage === true\)/u);
-    assert.match(source, /消しゴム中 — Esc で終わる/u);
+    assert.match(source, /Erasing — Esc to finish/u);
     assert.match(source, /photoBrushCursor\.style\.width = diameter/u);
     assert.match(source, /window\.akari\.reportPhotoStroke\(photoBrush\.itemId/u);
 });

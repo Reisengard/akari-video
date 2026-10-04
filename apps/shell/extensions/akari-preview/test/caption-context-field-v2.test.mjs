@@ -188,7 +188,7 @@ test('ミニポップアップ 3 種と縦書き用の固定位置', () => {
     assert.match(color, /data-caption-field="color"/u);
     assert.match(spacing, /data-caption-field="letterSpacingEm"/u);
     assert.match(spacing, /data-caption-field="lineHeight"/u);
-    assert.match(spacing, /data-caption-anchor="top"[^>]*>右/u);
+    assert.match(spacing, /data-caption-anchor="top"[^>]*>Right/u);
     assert.match(spacing, /data-caption-inspector/u);
     assert.match(opacity, /data-caption-field="opacity"/u);
     assert.match(opacity, /value="0"/u);

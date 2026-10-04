@@ -30,7 +30,7 @@ export class AkariGpuPreferenceContribution implements FrontendApplicationContri
         const state = await this.service.getGpuPreferenceState();
         if (state.supported !== true || state.current === 'high-performance') return;
         if (state.current === 'other') {
-            void this.messages.warn('Windows のアプリ別 GPU 設定に別の値が設定されているため、高性能 GPU の設定は変更しませんでした。');
+            void this.messages.warn('Left the high-performance GPU setting unchanged because Windows already has a different per-app GPU value.');
             return;
         }
         if (state.current === 'unset' || state.current === 'power-saving') {
@@ -44,19 +44,19 @@ export class AkariGpuPreferenceContribution implements FrontendApplicationContri
         if (result.ok === false) {
             this.warnReason(result.reason);
         } else if (enabled) {
-            void this.messages.info('高性能 GPU の設定を書き込みました。次回起動から反映されます。');
+            void this.messages.info('Saved the high-performance GPU setting. It applies on the next launch.');
         } else {
-            void this.messages.info('高性能 GPU の設定を元に戻しました。次回起動から反映されます。');
+            void this.messages.info('Restored the high-performance GPU setting. It applies on the next launch.');
         }
     }
 
     protected warnReason(reason: string): void {
         if (reason.startsWith('unsupported')) {
-            void this.messages.warn('この環境では GPU の割り当てを変更できません。');
+            void this.messages.warn('This environment cannot change the GPU assignment.');
         } else if (reason.startsWith('user-preference')) {
-            void this.messages.warn('Windows のアプリ別 GPU 設定に利用者の指定があるため変更しませんでした。Windows の「グラフィックスの設定」で変更してください。');
+            void this.messages.warn('Left unchanged because Windows already has a per-app GPU choice. Change it in Windows Graphics settings.');
         } else {
-            void this.messages.warn(`高性能 GPU の設定を変更できませんでした: ${reason}`);
+            void this.messages.warn(`Could not change the high-performance GPU setting: ${reason}`);
         }
     }
 

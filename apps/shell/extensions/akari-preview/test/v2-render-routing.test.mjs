@@ -22,7 +22,7 @@ test('preview z is resolved from normalized track ids, including mixed tracks', 
 test('unbaked telop is retired without rasterization; filters still draw', () => {
     assert.doesNotMatch(browserSource, /rasterizeTelopPreview/);
     assert.match(browserSource, /retiredTelop: true/);
-    assert.match(browserSource, /テロップ（ATF）は退役しました/);
+    assert.match(browserSource, /Captions \(ATF\) have been retired/);
     assert.doesNotMatch(browserSource, /await this\.previewService\.rasterizeTelopPreview/);
     assert.match(browserSource, /type: 'akari-preview-model-update'/);
     assert.doesNotMatch(backendSource, /--kind', 'telop'/);

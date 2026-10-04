@@ -162,7 +162,7 @@ test('watchdog は boot 失敗を捕捉し、見える fallback カードを作�
     assert.match(watchdog, /addEventListener\('unhandledrejection', recordRejection, true\)/u);
     assert.match(watchdog, /frame-engine-boot-error/u);
     assert.match(watchdog, /data\.frameEngineBootFailure|dataset\.frameEngineBootFailure/u);
-    assert.match(watchdog, /旧経路で開き直す/u);
+    assert.match(watchdog, /Reopen with legacy path/u);
     assert.match(watchdog, /target\.length >= 5/u);
 });
 
@@ -173,7 +173,7 @@ test('watchdog 原因は error を優先し rejection だけなら補足へ回�
     });
     assert.equal(
         both.dataset.frameEngineBootFailure,
-        '最初のエラー: bootstrap syntax (webview.html:42)'
+        'First error: bootstrap syntax (webview.html:42)'
     );
 
     const rejectionOnly = executeWatchdog({
@@ -181,8 +181,8 @@ test('watchdog 原因は error を優先し rejection だけなら補足へ回�
     });
     assert.equal(
         rejectionOnly.dataset.frameEngineBootFailure,
-        '初期化スクリプトが実行されていません (#frame-engine-preview 未生成)'
-            + '（未処理の Promise 拒否: unrelated pressure observer）'
+        'The init script did not run (#frame-engine-preview was not created)'
+            + ' (unhandled Promise rejection: unrelated pressure observer)'
     );
 
     const engineError = executeWatchdog({
@@ -191,8 +191,8 @@ test('watchdog 原因は error を優先し rejection だけなら補足へ回�
     });
     assert.equal(
         engineError.dataset.frameEngineBootFailure,
-        '初期化が 15000 ms 以内に完了しませんでした (data-frame-engine-ready=false)'
-            + ' / engine エラー: Frame engine: decoder failed'
+        'Initialization did not finish within 15000 ms (data-frame-engine-ready=false)'
+            + ' / engine error: Frame engine: decoder failed'
     );
 });
 

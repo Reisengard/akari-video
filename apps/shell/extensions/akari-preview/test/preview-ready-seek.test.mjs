@@ -24,7 +24,7 @@ test('host timeout and closed preview both remove their message subscription', a
   let removed = false;
   await assert.rejects(requestReadyPreviewSeek({ pageId: () => 'page', disposed: () => disposed,
    send() {}, onMessage() { return { dispose() { removed = true; } }; }
-  }, 0.4, 20), disposed ? /閉じられ/ : /再生準備/);
+  }, 0.4, 20), disposed ? /closed/ : /not ready to play/);
   assert.equal(removed, true);
  }
 });

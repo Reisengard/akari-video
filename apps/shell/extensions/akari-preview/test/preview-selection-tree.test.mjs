@@ -32,7 +32,7 @@ test('空のキャンバスも選択の木に残り、プレビューだけに�
   assert.match(handler, /window\.akari\.updateEmptyCanvasHint\?\.\(time\)/u);
   assert.ok((handler.match(/window\.akari\.updateEmptyCanvasHint\?\.\(outputTime\)/gu) ?? []).length >= 4);
   assert.match(handler, /label: typeof item\.declaration\.name === 'string' && item\.declaration\.name\.trim\(\)/u);
-  assert.match(handler, /: 'キャンバス', transform: world/u);
+  assert.match(handler, /: 'Canvas', transform: world/u);
 });
 test('summary preserves shared bag override geometry and copies it to selection nodes', () => {
   assert.match(treeSource, /const projectedOverlays = expandBagOverlays\(internal,/u);

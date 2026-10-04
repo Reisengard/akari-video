@@ -13,7 +13,7 @@ export function frameEngineWatchdogScript(): string {
                     ? event.message
                     : reason && reason.message
                         ? reason.message
-                        : String(reason || '不明なエラー');
+                        : String(reason || 'UnknownError');
                 const detail = {
                     message: String(message),
                     filename: String(event && event.filename || ''),
@@ -52,23 +52,23 @@ export function frameEngineWatchdogScript(): string {
                 let cause;
                 if (errors.length > 0) {
                     const first = errors[0];
-                    cause = '最初のエラー: ' + first.message + ' ('
+                    cause = 'First error: ' + first.message + ' ('
                         + (first.filename || '<inline>') + ':' + first.lineno + ')';
                 } else if (typeof window.AkariFrameEngine === 'undefined') {
-                    cause = 'frame-engine バンドルが読み込まれていません (window.AkariFrameEngine undefined)';
+                    cause = 'The frame-engine bundle was not loaded (window.AkariFrameEngine undefined)';
                 } else if (!root) {
-                    cause = '初期化スクリプトが実行されていません (#frame-engine-preview 未生成)';
+                    cause = 'The init script did not run (#frame-engine-preview was not created)';
                 } else {
-                    cause = '初期化が ' + timeout + ' ms 以内に完了しませんでした '
+                    cause = 'Initialization did not finish within ' + timeout + ' ms '
                         + '(data-frame-engine-ready=' + String(root.dataset.frameEngineReady) + ')';
                     const engineError = document.getElementById('frame-engine-error');
                     const engineErrorText = engineError && engineError.textContent
                         ? engineError.textContent.trim()
                         : '';
-                    if (engineErrorText) cause += ' / engine エラー: ' + engineErrorText;
+                    if (engineErrorText) cause += ' / engine error: ' + engineErrorText;
                 }
                 if (errors.length === 0 && rejections.length > 0) {
-                    cause += '（未処理の Promise 拒否: ' + rejections[0].message + '）';
+                    cause += ' (unhandled Promise rejection: ' + rejections[0].message + ')';
                 }
                 document.documentElement.dataset.frameEngineBootFailure = cause;
                 // 初期化段の診断（第11項）へ同じ原因説明を渡す。ここで分かるのは
@@ -101,12 +101,12 @@ export function frameEngineWatchdogScript(): string {
                 card.dataset.frameEngineBootError = 'true';
                 const text = document.createElement('p');
                 text.id = 'frame-engine-boot-error-text';
-                text.textContent = 'プレビュー（frame engine）を初期化できませんでした。' + cause;
+                text.textContent = 'Could not initialize the preview (frame engine). ' + cause;
                 const button = document.createElement('button');
                 button.id = 'frame-engine-boot-fallback';
                 button.className = 'message-card-reload';
                 button.type = 'button';
-                button.textContent = '旧経路で開き直す';
+                button.textContent = 'Reopen with legacy path';
                 button.addEventListener('click', () => {
                     if (window.akari && typeof window.akari.requestFrameEngineFallback === 'function') {
                         window.akari.requestFrameEngineFallback();

@@ -92,7 +92,7 @@ export function inspectPreviewFrame(pixels: Uint8Array, width: number, height: n
     return { ok: reasons.length === 0, reasons };
 }
 
-export const PREVIEW_FRAME_CAPTURE_FAILURE = 'コマを保存できませんでした。もう一度押してください';
+export const PREVIEW_FRAME_CAPTURE_FAILURE = 'Could not save the frame. Press again';
 
 /** attempt restores editor chrome but keeps the first freeze until this whole operation ends. */
 export async function runPreviewFrameCaptureAttempts<T>(options: {

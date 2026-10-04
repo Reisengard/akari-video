@@ -18,7 +18,7 @@ test('shell wheels-only indicator executes on DOM and is suppressed on frame-eng
   }`, { computeAdjustCssVisualFn: computeAdjustCssVisual, adjustOfItem: item => item?.adjust });
   for (const seat of ['cuts', 'layers', 'filters']) {
     const summary = { [seat]: [{ adjust: { wheels: { lift: { r: 0.1 } } } }] };
-    assert.deepEqual([...evaluate(summary, false)], ['色調整は近似表示']);
+    assert.deepEqual([...evaluate(summary, false)], ['Color adjustment is approximate']);
     assert.deepEqual([...evaluate(summary, true)], []);
     summary[seat][0].adjust.sections = { wheels: false };
     assert.deepEqual([...evaluate(summary, false)], []);
@@ -37,7 +37,7 @@ test('shell fx indicator discloses vignette on DOM and is suppressed on frame-en
   }`, { computeAdjustCssVisualFn: computeAdjustCssVisual, adjustOfItem: item => item?.adjust });
   for (const seat of ['cuts', 'layers', 'filters']) {
     const summary = { [seat]: [{ adjust: { fx: [{ id: 'vignette' }] } }] };
-    assert.deepEqual([...evaluate(summary, false)], ['色調整は近似表示']);
+    assert.deepEqual([...evaluate(summary, false)], ['Color adjustment is approximate']);
     assert.deepEqual([...evaluate(summary, true)], []);
     summary[seat][0].adjust.sections = { fx: false };
     assert.deepEqual([...evaluate(summary, false)], []);
@@ -105,6 +105,6 @@ test('shell per-clip LUT uses resolved summary cube text, prefers clip, and stay
 
 test('shell honest-preview indicator is conditional and suppressed on frame-engine', () => {
   assert.match(source, /adjustCssApproximationActive = !frameEngineMediaIdle[\s\S]+hasApproximation === true/u);
-  assert.match(source, /!frameEngineMediaIdle && adjustCssApproximationActive\s+\? \['色調整は近似表示'\]/u);
-  assert.match(source, /!frameEngineMediaIdle && summary\.videoFx\?\.look[\s\S]+clip LUT はグローバル LUT を置換/u);
+  assert.match(source, /!frameEngineMediaIdle && adjustCssApproximationActive\s+\? \['Color adjustment is approximate'\]/u);
+  assert.match(source, /!frameEngineMediaIdle && summary\.videoFx\?\.look[\s\S]+Clip LUT replaces global LUT/u);
 });

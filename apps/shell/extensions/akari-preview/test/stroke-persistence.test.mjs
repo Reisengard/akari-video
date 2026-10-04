@@ -28,7 +28,7 @@ test('completed strokes enter the static overlay before the existing fade effect
 
 test('annotation-panel toggle defaults on and webview handles off/on plus session replay', async () => {
     const source = readHandlerSource();
-    assert.match(source, /setAttribute\('aria-label', '注釈描線を表示'\)/);
+    assert.match(source, /setAttribute\('aria-label', 'Show annotation strokes'\)/);
     assert.match(source, /reviewStrokeVisibilityByEdit\.get\(editUri\) \?\? true/);
     assert.match(source, /akari-preview-set-stroke-visibility/);
     assert.match(source, /akari-preview-show-session-strokes/);

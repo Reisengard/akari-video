@@ -27,17 +27,17 @@ test('6 状態と frames の表示記述をフィクスチャから表駆動で�
         },
         {
             name: 'planned.png', meta: await readMeta('planned.png'), label: 'ビート 2',
-            state: 'planned', tag: '✦ AI の枠', band: null,
+            state: 'planned', tag: '✦ AI frame', band: null,
             progress: null, shimmer: false, maskRect: null
         },
         {
             name: 'generating.png', meta: await readMeta('generating.png'), label: 'ビート 3',
-            state: 'generating', tag: '生成中 · ビート 3', band: '生成中 62% · 残り約 41 秒',
+            state: 'generating', tag: 'Generating · ビート 3', band: 'Generating 62% · about 41 sec left',
             progress: 0.62, shimmer: true, maskRect: null
         },
         {
             name: 'stale.png', meta: await readMeta('stale.png'), label: 'ビート 4',
-            state: 'stale', tag: '応答なし · 再取得は右パネル', band: '応答なし',
+            state: 'stale', tag: 'No response · Fetch again from the right panel', band: 'No response',
             progress: null, shimmer: false, maskRect: null
         },
         {
@@ -47,12 +47,12 @@ test('6 状態と frames の表示記述をフィクスチャから表駆動で�
         },
         {
             name: 'failed.png', meta: await readMeta('failed.png'), label: 'ビート 6',
-            state: 'failed', tag: '失敗 · timeout · 再試行は右パネル', band: null,
+            state: 'failed', tag: 'Failed · timeout · Retry in the right panel', band: null,
             progress: null, shimmer: false, maskRect: null
         },
         {
             name: 'frames.png', meta: await readMeta('frames.png'), label: 'ビート 7',
-            state: 'done', tag: 'パラパラ 8fps · コマ 5/16', band: null,
+            state: 'done', tag: 'Flipbook 8fps · frame 5/16', band: null,
             progress: null, shimmer: false,
             maskRect: { x: 0.15, y: 0.6, w: 0.22, h: 0.22 }, localTimeSec: 0.5
         }
@@ -75,10 +75,10 @@ test('6 状態と frames の表示記述をフィクスチャから表駆動で�
 
 test('生成中の進捗と残り時間は有無の 4 通りを契約文言へ写す', () => {
     const rows = [
-        [{ progress: { percent: 25, eta_s: 8 } }, '生成中 25% · 残り約 8 秒', 0.25],
-        [{ progress: { percent: 25 } }, '生成中 25%', 0.25],
-        [{ progress: { eta_s: 8 } }, '生成中 · 残り約 8 秒', null],
-        [{}, '生成中', null]
+        [{ progress: { percent: 25, eta_s: 8 } }, 'Generating 25% · about 8 sec left', 0.25],
+        [{ progress: { percent: 25 } }, 'Generating 25%', 0.25],
+        [{ progress: { eta_s: 8 } }, 'Generating · about 8 sec left', null],
+        [{}, 'Generating', null]
     ];
     for (const [extra, text, progress] of rows) {
         const description = describeOverlay('generating', { status: 'generating', ...extra }, 'clip');
@@ -100,20 +100,20 @@ test('png clip は生成中 mp4 サイドカーから generating tag と shimmer
     }], nowMs);
     const state = resolveGenerationState(entry.meta, nowMs, entry.binding);
     const overlay = describeOverlay(state, entry.meta, 'ビート 1', { sourcePath });
-    assert.equal(overlay.tag, '生成中 · ビート 1');
+    assert.equal(overlay.tag, 'Generating · ビート 1');
     assert.equal(overlay.shimmer, true);
-    assert.equal(overlay.band.text, '生成中 45%');
+    assert.equal(overlay.band.text, 'Generating 45%');
 });
 
 test('frames は総コマ推定とクランプを行い、failed は frames 表示より優先する', () => {
     const frames = { kind: 'frames', output: { fps: 8 }, inputs: { extra: {} }, result: {} };
     assert.equal(describeOverlay('done', frames, 'clip', {
         localTimeSec: 99, clipDurationSec: 2
-    }).tag, 'パラパラ 8fps · コマ 16/16');
-    assert.equal(describeOverlay('done', { kind: 'frames' }, 'clip').tag, 'パラパラ · clip');
+    }).tag, 'Flipbook 8fps · frame 16/16');
+    assert.equal(describeOverlay('done', { kind: 'frames' }, 'clip').tag, 'Flipbook · clip');
     assert.equal(describeOverlay('failed', {
         ...frames, error: { message: 'broken' }
-    }, 'clip').tag, '失敗 · broken · 再試行は右パネル');
+    }, 'clip').tag, 'Failed · broken · Retry in the right panel');
 });
 
 test('壊れた meta を受けても状態解決と表示記述は例外を投げない', () => {
@@ -175,16 +175,16 @@ test('動画予定の 4 種類と最後の絵の有無を describeNextDraft か�
     const first = { path: 'assets/first.png' };
     const last = { path: 'assets/last.png' };
     const rows = [
-        [{}, 'プロンプトだけ', null],
-        [{ first_frame: first }, '画像から', null],
-        [{ first_frame: first, last_frame: last }, '最初→最後', last.path],
-        [{ frames_or_refs: 'references', reference_images: [first] }, '参照から', null]
+        [{}, 'Prompt only', null],
+        [{ first_frame: first }, 'From image', null],
+        [{ first_frame: first, last_frame: last }, 'First → last', last.path],
+        [{ frames_or_refs: 'references', reference_images: [first] }, 'From references', null]
     ];
     for (const [inputs, label, pip] of rows) {
         const description = describeOverlay('done', {
             kind: 'still', next: nextDraft(inputs), job: { candidates: 3 }
         }, 'clip');
-        assert.equal(description.tag, `▶ 動画予定 · ${label}`);
+        assert.equal(description.tag, `▶ Planned video · ${label}`);
         assert.equal(description.pip, pip);
         assert.equal(description.blurBackground, null);
     }
@@ -197,7 +197,7 @@ test('next の無い静止画は完成品、小札なし。文字カードの pl
         assert.equal(description.pip, null);
         assert.equal(description.blurBackground, null);
     }
-    assert.equal(describeOverlay('planned', { kind: 'still', status: 'planned' }, '空の枠').tag, '✦ AI の枠');
+    assert.equal(describeOverlay('planned', { kind: 'still', status: 'planned' }, '空の枠').tag, '✦ AI frame');
 });
 
 test('静止画の生成中は経過秒とシマー、空の枠は静止した淡いオーロラを示す', () => {
@@ -205,7 +205,7 @@ test('静止画の生成中は経過秒とシマー、空の枠は静止した�
     const generating = describeOverlay('generating', {
         kind: 'still', status: 'generating', job: { provider: 'codex', started_at: started, stale_after_s: 600 }
     }, '空の枠', { nowMs: Date.parse(started) + 32_000 });
-    assert.equal(generating.band.text, '生成中 · 32 秒');
+    assert.equal(generating.band.text, 'Generating · 32 sec');
     assert.equal(generating.shimmer, true);
     assert.equal(generating.aurora, 'generating');
     const planned = describeOverlay('planned', { kind: 'still', status: 'planned' }, '空の枠');
@@ -214,7 +214,7 @@ test('静止画の生成中は経過秒とシマー、空の枠は静止した�
     assert.equal(planned.band, null);
     const audio = describeOverlay('generating', { kind: 'audio', status: 'generating',
         job: { started_at: started } }, '音の空の枠', { sourcePath: 'assets/generated/frame.wav', nowMs: Date.parse(started) + 8000 });
-    assert.equal(audio.band.text, '生成中 · 8 秒');
+    assert.equal(audio.band.text, 'Generating · 8 sec');
     assert.equal(audio.blurBackground, null);
 });
 
@@ -223,38 +223,38 @@ test('候補ありは planned の淡いオーロラと札を保ち、候補 0 �
     const candidate = describeOverlay('planned', {
         kind: 'still', status: 'planned', job: { candidates: 3 }
     }, label);
-    assert.equal(candidate.tag, '✦ 候補 3');
+    assert.equal(candidate.tag, '✦ Candidates 3');
     assert.equal(candidate.aurora, 'planned');
     assert.equal(candidate.band, null);
     assert.equal(candidate.shimmer, false);
     assert.equal(describeOverlay('planned', {
         kind: 'still', status: 'planned', job: { candidates: 0 }
-    }, label).tag, '✦ AI の枠');
+    }, label).tag, '✦ AI frame');
     const doneCandidate = describeOverlay('done', {
         kind: 'still', status: 'done', job: { candidates: 3 }
     }, label);
-    assert.equal(doneCandidate.tag, '✦ 候補 3');
+    assert.equal(doneCandidate.tag, '✦ Candidates 3');
     assert.equal(doneCandidate.aurora, null);
     assert.equal(doneCandidate.band, null);
     assert.equal(doneCandidate.shimmer, false);
     const generating = describeOverlay('generating', {
         kind: 'still', status: 'generating', job: { candidates: 3 }
     }, label);
-    assert.equal(generating.tag, '生成中 · 空の枠');
+    assert.equal(generating.tag, 'Generating · 空の枠');
     assert.equal(generating.aurora, 'generating');
     assert.ok(generating.band);
     assert.equal(describeOverlay('failed', {
         status: 'failed', error: { reason: 'timeout' }, job: { candidates: 3 }
-    }, label).tag, '失敗 · timeout · 再試行は右パネル');
+    }, label).tag, 'Failed · timeout · Retry in the right panel');
     assert.equal(describeOverlay('done', {
         kind: 'frames', job: { candidates: 3 }
-    }, label).tag, 'パラパラ · 空の枠');
+    }, label).tag, 'Flipbook · 空の枠');
 });
 
 test('orphan / failed / generating / stale は next より優先し、小窓を出さない', () => {
     for (const [state, tag] of [
-        ['orphan', '孤児 · clip'], ['failed', '失敗 · timeout · 再試行は右パネル'],
-        ['generating', '生成中 · clip'], ['stale', '応答なし · 再取得は右パネル']
+        ['orphan', 'Orphaned · clip'], ['failed', 'Failed · timeout · Retry in the right panel'],
+        ['generating', 'Generating · clip'], ['stale', 'No response · Fetch again from the right panel']
     ]) {
         const description = describeOverlay(state, {
             kind: 'still', next: nextDraft({ last_frame: { path: 'last.png' } }),
@@ -275,7 +275,7 @@ test('生成中は first_frame をぼかし背景に選び、無ければクリ�
         assert.equal(description.band.progress, null);
     }
     assert.equal(describeOverlay('generating', { job: { progress: { percent: 12, eta_s: 7 } } }, 'clip').band.text,
-        '生成中 12% · 残り約 7 秒');
+        'Generating 12% · about 7 sec left');
     for (const percent of [NaN, -1, 101, '25']) {
         assert.equal(describeOverlay('generating', { progress: { percent } }, 'clip').band.progress, null);
     }
@@ -290,14 +290,14 @@ test('describeOverlay と next helper の toString 注入は外部スコープ�
         export default (state, meta, label, options) => describe(state, meta, label, options, injectedHelper);`);
     const injected = (await import(pathToFileURL(file).href)).default;
     const meta = { kind: 'still', next: nextDraft({ last_frame: { path: 'last.png' } }) };
-    assert.equal(injected('done', meta, 'clip').tag, '▶ 動画予定 · 最初→最後');
+    assert.equal(injected('done', meta, 'clip').tag, '▶ Planned video · First → last');
     assert.equal(injected('done', meta, 'clip').pip, 'last.png');
     assert.equal(injected('generating', meta, 'clip', { sourcePath: 'clip.png' }).blurBackground, 'clip.png');
     const candidate = injected('planned', { status: 'planned', job: { candidates: 3 } }, '空の枠');
-    assert.equal(candidate.tag, '✦ 候補 3');
+    assert.equal(candidate.tag, '✦ Candidates 3');
     assert.equal(candidate.aurora, 'planned');
     const doneCandidate = injected('done', { status: 'done', job: { candidates: 3 } }, '空の枠');
-    assert.equal(doneCandidate.tag, '✦ 候補 3');
+    assert.equal(doneCandidate.tag, '✦ Candidates 3');
     assert.equal(doneCandidate.aurora, null);
 });
 
@@ -331,14 +331,14 @@ test('production 相当の minify 後でも toString 注入へ helper を明示�
     assert.throws(() => injectedDescribe('planned', {}, 'clip'), ReferenceError);
     const rows = [
         [null, 'none', null],
-        [{ status: 'planned', kind: 'still' }, 'planned', '✦ AI の枠'],
-        [{ status: 'planned', kind: 'still', job: { candidates: 3 } }, 'planned', '✦ 候補 3'],
-        [{ status: 'generating', progress: { percent: 25 } }, 'generating', '生成中 · clip'],
-        [{ status: 'generating', job: { started_at: '2026-09-13T00:00:00.000Z' } }, 'stale', '応答なし · 再取得は右パネル'],
-        [{ status: 'failed', error: { reason: 'timeout' } }, 'failed', '失敗 · timeout · 再試行は右パネル'],
+        [{ status: 'planned', kind: 'still' }, 'planned', '✦ AI frame'],
+        [{ status: 'planned', kind: 'still', job: { candidates: 3 } }, 'planned', '✦ Candidates 3'],
+        [{ status: 'generating', progress: { percent: 25 } }, 'generating', 'Generating · clip'],
+        [{ status: 'generating', job: { started_at: '2026-09-13T00:00:00.000Z' } }, 'stale', 'No response · Fetch again from the right panel'],
+        [{ status: 'failed', error: { reason: 'timeout' } }, 'failed', 'Failed · timeout · Retry in the right panel'],
         [{ status: 'done', kind: 'still' }, 'done', null],
         [{ status: 'done', kind: 'video' }, 'done', null],
-        [{ status: 'done', kind: 'frames' }, 'done', 'パラパラ · clip']
+        [{ status: 'done', kind: 'frames' }, 'done', 'Flipbook · clip']
     ];
     for (const [meta, state, tag] of rows) {
         assert.equal(injectedStateHelper(meta, nowMs), state);
@@ -352,16 +352,16 @@ test('production 相当の minify 後でも toString 注入へ helper を明示�
         }
     }
     for (const [inputs, variety, label] of [
-        [{}, 'prompt', 'プロンプトだけ'],
-        [{ first_frame: { path: 'first.png' } }, 'first', '画像から'],
-        [{ first_frame: { path: 'first.png' }, last_frame: { path: 'last.png' } }, 'first-last', '最初→最後'],
-        [{ frames_or_refs: 'references' }, 'references', '参照から']
+        [{}, 'prompt', 'Prompt only'],
+        [{ first_frame: { path: 'first.png' } }, 'first', 'From image'],
+        [{ first_frame: { path: 'first.png' }, last_frame: { path: 'last.png' } }, 'first-last', 'First → last'],
+        [{ frames_or_refs: 'references' }, 'references', 'From references']
     ]) {
         const meta = { kind: 'still', status: 'done', next: nextDraft(inputs) };
         assert.equal(injectedNextHelper(meta).variety, variety);
         const state = injectedState(meta, nowMs, null, injectedStateHelper);
         const description = injectedDescribe(state, meta, 'clip', {}, injectedNextHelper);
-        assert.equal(description.tag, `▶ 動画予定 · ${label}`);
+        assert.equal(description.tag, `▶ Planned video · ${label}`);
         assert.equal(description.pip, inputs.last_frame?.path ?? null);
     }
 });

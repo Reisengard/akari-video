@@ -55,7 +55,7 @@ export function compactVisualTracks(edit: EditV2): TrackCompactionResult {
     const packedTracks = targetItems.map((items, index): VisualItemsTrackV2 => {
         const template = nonEmptySourceTracks[index];
         if (!template) {
-            throw new Error(`詰め先トラック ${index} の ID を確保できません。`);
+            throw new Error(`Could not reserve an ID for target track ${index}.`);
         }
         return {
             id: template.id,

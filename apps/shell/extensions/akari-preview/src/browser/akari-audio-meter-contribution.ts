@@ -13,7 +13,7 @@ export class AkariAudioMeterContribution implements CommandContribution {
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand({
-            id: 'akari.preview.openAudioMeter', label: '音声メーターを開く'
+            id: 'akari.preview.openAudioMeter', label: 'Open audio meter'
         }, { execute: () => this.open() });
     }
 

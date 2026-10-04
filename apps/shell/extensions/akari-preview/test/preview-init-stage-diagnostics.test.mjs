@@ -50,9 +50,9 @@ for (const [index, id] of STAGE_IDS.entries()) {
         assert.equal(summary.firstError.kind, 'stage-failure');
         assert.equal(summary.firstError.stage, id);
         const report = core.formatPreviewInitReport(summary, { entry: 'desktop-webview' });
-        assert.match(report, new RegExp(`止まった段: ${labelOf(id)}`, 'u'));
+        assert.match(report, new RegExp(`Stopped at stage: ${labelOf(id)}`, 'u'));
         assert.match(report, /\[NG\]/u);
-        assert.match(report, /原因の断定ではない/u);
+        assert.match(report, /does not prove the cause/u);
     });
 
     test(`未到達注入: ${id} が pending のまま止まると止まった段として出る`, () => {
@@ -66,7 +66,7 @@ for (const [index, id] of STAGE_IDS.entries()) {
         assert.equal(summary.stalledStage.id, id);
         assert.match(
             core.formatPreviewInitReport(summary, { entry: 'desktop-webview' }),
-            new RegExp(`止まった段: ${labelOf(id)}`, 'u')
+            new RegExp(`Stopped at stage: ${labelOf(id)}`, 'u')
         );
     });
 }
@@ -76,7 +76,7 @@ test('全段 ok なら「全段 ok」と出る（誤警報を出さない）', (
     for (const id of STAGE_IDS) core.markPreviewInitStage(trace, id, 'ok', { at: 1 });
     const summary = core.summarizePreviewInit(trace);
     assert.equal(summary.complete, true);
-    assert.match(core.formatPreviewInitReport(summary, { entry: 'desktop-webview' }), /全段 ok/u);
+    assert.match(core.formatPreviewInitReport(summary, { entry: 'desktop-webview' }), /startup ok at every stage/u);
 });
 
 test('同一メッセージの診断イベントは畳まれ、上限で止まる', () => {
@@ -99,7 +99,7 @@ test('Webview ID から用途を引ける（第12項の所有者未特定 ID 対
     assert.equal(core.describePreviewWebviewRole('akari-material-preview').role, 'material');
     const unknown = core.describePreviewWebviewRole('65f60b01-6fe6-403a-a9b2-dca8dea8620b');
     assert.equal(unknown.role, 'unknown');
-    assert.match(unknown.label, /この拡張の所有ではない/u);
+    assert.match(unknown.label, /not owned by this extension/u);
 });
 
 // ---- (2) ホスト側セッション -------------------------------------------------
@@ -154,16 +154,16 @@ test('ホスト側: 段の失敗はその場で画面モデルと診断ログに
     harness.session.markStage('webview-created', 'ok');
     harness.session.markStage('model-loaded', 'failed', 'edit.json を読めませんでした');
     assert.equal(harness.shown.length, 1);
-    assert.match(harness.shown[0].title, /止まった段: 編集モデル読込/u);
+    assert.match(harness.shown[0].title, /Stopped at stage: Load edit model/u);
     assert.match(harness.shown[0].reportText, /edit.json を読めませんでした/u);
     assert.match(harness.shown[0].footerLines.join('\n'), /akari-output-preview-18rnvma/u);
-    assert.match(harness.shown[0].footerLines.join('\n'), /原因の断定ではありません/u);
+    assert.match(harness.shown[0].footerLines.join('\n'), /does not prove the cause/u);
     const lines = await harness.lines();
     const failure = lines.find(line => line.event === 'stage' && line.status === 'failed');
     assert.equal(failure.stage, 'model-loaded');
     assert.equal(failure.entry, 'desktop-webview');
     assert.equal(failure.webviewId, 'akari-output-preview-18rnvma');
-    assert.equal(failure.webviewRole, '出力プレビュー');
+    assert.equal(failure.webviewRole, 'Output preview');
 });
 
 test('ホスト側: ページから報告が来ないまま時間切れなら「報告なし」を残す', async () => {
@@ -173,7 +173,7 @@ test('ホスト側: ページから報告が来ないまま時間切れなら「
     harness.session.markStage('page-html-set', 'ok');
     harness.fireWatchdog();
     assert.equal(harness.shown.length, 1);
-    assert.match(harness.shown[0].title, /止まった段: スクリプト読込/u);
+    assert.match(harness.shown[0].title, /Stopped at stage: Load script/u);
     assert.match(harness.shown[0].reportText, /ページ側から診断の報告が届いていません/u);
     const lines = await harness.lines();
     const watchdog = lines.find(line => line.event === 'watchdog');
@@ -226,10 +226,10 @@ test('ホスト側: ページの「止まった」報告は段と最初の例外
         }
     });
     assert.equal(harness.shown.length, 1);
-    assert.match(harness.shown[0].title, /止まった段: エンジン初期化/u);
+    assert.match(harness.shown[0].title, /Stopped at stage: Initialize engine/u);
     assert.match(harness.shown[0].firstErrorLine, /15000 ms 以内に完了しませんでした/u);
-    assert.match(harness.shown[0].stageLines.join('\n'), /✕ エンジン初期化/u);
-    assert.match(harness.shown[0].stageLines.join('\n'), /✓ スクリプト読込/u);
+    assert.match(harness.shown[0].stageLines.join('\n'), /✕ Initialize engine/u);
+    assert.match(harness.shown[0].stageLines.join('\n'), /✓ Load script/u);
 });
 
 test('ホスト側: 診断ログは JSON Lines で入口を区別し、上限で古い行を捨てる', async () => {
@@ -243,7 +243,7 @@ test('ホスト側: 診断ログは JSON Lines で入口を区別し、上限で
         assert.ok(typeof line.at === 'string');
     }
     const registered = lines.find(line => line.event === 'webview-registered');
-    assert.equal(registered.webviewRole, '出力プレビュー');
+    assert.equal(registered.webviewRole, 'Output preview');
     const note = lines.find(line => line.event === 'note' && line.entry === 'desktop-host');
     assert.match(note.message, /所有ではない/u);
     assert.ok(host.PREVIEW_DIAGNOSTICS_LOG_MAX_BYTES > 0);
@@ -277,9 +277,9 @@ for (const id of ['scripts-loaded', 'engine-initialized', 'media-supplied', 'fir
         const page = pageWithGuard({ initial: { frameEngineEnabled: true } });
         page.diag().fail(id, `${id} の注入失敗`);
         assert.ok(page.card(), '診断カードが出ていない');
-        assert.match(page.cardTitle(), new RegExp(`止まった段: ${labelOf(id)}`, 'u'));
+        assert.match(page.cardTitle(), new RegExp(`Stopped at stage: ${labelOf(id)}`, 'u'));
         assert.match(page.cardText(), new RegExp(`${id} の注入失敗`, 'u'));
-        assert.match(page.cardText(), /原因の断定ではない/u);
+        assert.match(page.cardText(), /does not prove the cause/u);
         const posted = page.posted.find(message => message.phase === 'stage' && message.status === 'failed');
         assert.equal(posted.stage, id);
     });
@@ -289,9 +289,9 @@ test('webview 側: スクリプトが読めていなければ時間切れで未�
     const page = pageWithGuard({ initial: { frameEngineEnabled: true } });
     page.fireAlarm();
     assert.ok(page.card());
-    assert.match(page.cardTitle(), /止まった段: スクリプト読込/u);
-    assert.match(page.cardText(), /frame-engine バンドル \(AkariFrameEngine\)/u);
-    assert.match(page.cardText(), /共有カーネル \(AkariEditKernel\)/u);
+    assert.match(page.cardTitle(), /Stopped at stage: Load script/u);
+    assert.match(page.cardText(), /frame-engine bundle \(AkariFrameEngine\)/u);
+    assert.match(page.cardText(), /Shared kernel \(AkariEditKernel\)/u);
     assert.ok(page.posted.some(message => message.phase === 'stuck'));
 });
 
@@ -306,8 +306,8 @@ test('webview 側: エンジン初期化まで進んで止まった場合はそ�
     });
     page.probeOnce();
     page.fireAlarm();
-    assert.match(page.cardTitle(), /止まった段: エンジン初期化/u);
-    assert.match(page.cardText(), /\[ok\] スクリプト読込/u);
+    assert.match(page.cardTitle(), /Stopped at stage: Initialize engine/u);
+    assert.match(page.cardText(), /\[ok\] Load script/u);
 });
 
 test('webview 側: 全段到達なら ready を報告し、カードを出さない', () => {
@@ -358,8 +358,8 @@ test('webview 側: 末尾スクリプトは未読込バンドルを段の失敗�
         globals: { akari: { updateLayerLayout: () => {} }, AkariEditKernel: {} }
     });
     page.run(tailScript);
-    assert.match(page.cardTitle(), /止まった段: スクリプト読込/u);
-    assert.match(page.cardText(), /frame-engine バンドル \(AkariFrameEngine\)/u);
+    assert.match(page.cardTitle(), /Stopped at stage: Load script/u);
+    assert.match(page.cardText(), /frame-engine bundle \(AkariFrameEngine\)/u);
 });
 
 test('webview 側: 例外と未処理拒否は最初の例外として残り、ホストへ渡る', () => {
@@ -380,7 +380,7 @@ test('webview 側: 自分の Webview ID と用途をページが名乗れる', (
             editPath: 'file:///p/edit.json',
             diagnostics: {
                 webviewId: 'akari-output-preview-18rnvma',
-                webviewRole: '出力プレビュー',
+                webviewRole: 'Output preview',
                 assetOrigin: 'http://127.0.0.1:53211',
                 kind: 'output'
             }
@@ -388,8 +388,8 @@ test('webview 側: 自分の Webview ID と用途をページが名乗れる', (
     });
     page.fireAlarm();
     assert.match(page.cardText(), /akari-output-preview-18rnvma/u);
-    assert.match(page.cardText(), /出力プレビュー/u);
-    assert.match(page.cardText(), /入口: desktop-webview/u);
+    assert.match(page.cardText(), /Output preview/u);
+    assert.match(page.cardText(), /Entry: desktop-webview/u);
     assert.match(page.cardText(), /http:\/\/127\.0\.0\.1:53211/u);
     assert.match(page.cardText(), /file:\/\/\/p\/edit\.json/u);
 });

@@ -89,7 +89,7 @@ test('左端の単発ボタンは音声メーターを開き、再生エラー�
     const button = html.match(/<button id="audio-meter-open"[^>]*>/)?.[0];
     assert.ok(button);
     assert.match(button, /class="icon-button"/);
-    assert.match(button, /aria-label="音声メーター" title="音声メーター"/);
+    assert.match(button, /aria-label="Audio meter" title="Audio meter"/);
     assert.doesNotMatch(button, /aria-pressed|disabled/);
     assert.match(html, /<div class="transport-left">\s*<button id="audio-meter-open"[\s\S]*?<\/button>\s*<span id="time-label">/);
     assert.match(source, /const audioMeterOpen = document\.getElementById\('audio-meter-open'\);/);

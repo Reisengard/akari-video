@@ -19,8 +19,8 @@ export class AkariAudioMeterWidget extends BaseWidget {
     @postConstruct()
     protected init(): void {
         this.id = AkariAudioMeterWidget.FACTORY_ID;
-        this.title.label = '音声メーター';
-        this.title.caption = '出力プレビューのマスター音量（L / R のピークと RMS・クリップ）';
+        this.title.label = 'Audio meter';
+        this.title.caption = 'Output preview master volume (L/R peak, RMS, and clip)';
         this.title.iconClass = 'akari-rail-icon akari-rail-icon-audio-meter';
         this.title.closable = true;
         this.node.classList.add('akari-audio-meter-widget');
@@ -48,17 +48,17 @@ export class AkariAudioMeterWidget extends BaseWidget {
         `;
         this.clipButton.type = 'button';
         this.clipButton.textContent = 'CLIP';
-        this.clipButton.title = 'クリックでクリップ表示を解除';
-        this.clipButton.setAttribute('aria-label', 'クリップ表示を解除');
+        this.clipButton.title = 'Click to clear the clip view';
+        this.clipButton.setAttribute('aria-label', 'Clear clip view');
         this.clipButton.setAttribute('aria-pressed', 'false');
         this.clipButton.onclick = () => {
             this.clipped = false;
             this.clipButton.setAttribute('aria-pressed', 'false');
         };
         this.canvas.setAttribute('role', 'img');
-        this.canvas.setAttribute('aria-label', 'マスター音量 L / R（dBFS）');
+        this.canvas.setAttribute('aria-label', 'Master volume L / R (dBFS)');
         this.notice.className = 'audio-meter-notice';
-        this.notice.textContent = 'プレビューを再生すると表示します';
+        this.notice.textContent = 'Shown when the preview plays';
         this.node.append(style, this.clipButton, this.canvas, this.notice);
         const onFrame = (event: Event): void => {
             const detail = (event as CustomEvent).detail;
@@ -81,7 +81,7 @@ export class AkariAudioMeterWidget extends BaseWidget {
             }
             this.clipButton.setAttribute('aria-pressed', String(this.clipped));
             this.notice.textContent = detail.engine === 'legacy'
-                ? 'legacy プレビューでは土台の音声は含まれません' : '';
+                ? 'The legacy preview does not include the base audio' : '';
         };
         window.addEventListener('akari.preview.audioMeter', onFrame);
         const observer = new ResizeObserver(() => this.draw());

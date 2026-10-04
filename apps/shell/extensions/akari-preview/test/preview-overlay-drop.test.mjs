@@ -39,7 +39,7 @@ test('同じ 3D ドロップを複数の出力層が受けても一言は 1 回'
         PreviewLibraryDrop.prototype.drop.call(first, event),
         PreviewLibraryDrop.prototype.drop.call(second, event)
     ]);
-    assert.deepEqual(notices, ['3D は近日対応します。']);
+    assert.deepEqual(notices, ['3D support is coming soon.']);
 });
 
 test('オーバーレイは落下点とキャンバス内外の指定を配置コマンドへ渡す', async () => {

@@ -55,28 +55,28 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
                 'akari.preview.frameEngine': {
                     type: 'boolean',
                     default: true,
-                    description: 'frame-engine の製品プレビューを使います（false で従来の video プレビュー）。'
+                    description: 'Use the frame-engine product preview (false keeps the previous video preview).'
                 },
                 'akari.preview.scrubAudio': {
                     type: 'boolean',
                     default: true,
-                    description: 'タイムラインをドラッグ（スクラブ）したとき、その位置の音を短く鳴らします（出力プレビュー）。'
+                    description: 'When you drag the timeline (scrub), play a short burst of audio at that position (output preview).'
                 },
                 'akari.preview.exportLook': {
                     type: 'boolean',
                     default: false,
-                    description: '書き出しの見え方でプレビューを表示します（生成クリップの小札・帯・シマー・編集領域の点線を隠す）。書き出しの結果は変わりません。'
+                    description: 'Show the preview the way export looks (hides generated-clip tags, bands, shimmer, and the edit-region outline). The export result does not change.'
                 },
                 'akari.preview.renderScale': {
                     type: 'string',
                     enum: ['auto', '1', '0.5', '0.25'],
                     default: 'auto',
-                    description: '合成面の辺あたり描画倍率。auto は表示サイズに合わせ、停止後は等倍で描き直します。プレビュー専用。書き出しと画像の位置・大きさには影響しません。'
+                    description: 'Pixels drawn per edge of the composite. auto follows the display size, then redraws at 1x after playback stops. Preview only. It does not change export or image position and size.'
                 },
                 'akari.preview.highPerformanceGpu': {
                     type: 'boolean',
                     default: false,
-                    description: 'プレビュー（デコード / 描画）を高性能 GPU で動かします。Windows のアプリ別 GPU 設定に書き込み、次回起動から有効。アプリ全体が高性能 GPU で動きます。'
+                    description: 'Run preview decode and drawing on the high-performance GPU. Writes the Windows per-app GPU setting and applies on the next launch. The whole app then uses the high-performance GPU.'
                 }
             }
         }

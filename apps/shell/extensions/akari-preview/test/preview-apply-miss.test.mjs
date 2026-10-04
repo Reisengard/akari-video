@@ -73,12 +73,12 @@ test('ドラッグ中は当てる表示とキャンバスに置く表示を切�
         h.drop.show();
         h.drop.drawGhost(300, 180);
         const ghost = h.drop.ghost;
-        assert.match(ghost.children.at(-1).textContent, /キャンバス 1 に入ります/);
+        assert.match(ghost.children.at(-1).textContent, /Goes into キャンバス 1/);
         assert.equal(ghost.children.at(-1).dataset.akariCanvasDropHint, 'true');
         h.drop.hoverHit = { kind: 'caption', id: 'c1' };
         h.drop.drawGhost(300, 180);
         assert.equal(ghost.children.length, 1);
-        assert.equal(ghost.children[0].textContent, '文字に当てます');
+        assert.equal(ghost.children[0].textContent, 'Apply to the text');
         h.drop.hoverHit = undefined;
         h.drop.outside = true;
         h.drop.drawGhost(300, 180);
@@ -96,7 +96,7 @@ test('置く用途がない素材を空所へ落とすと対象を案内する',
         assert.equal(h.calls.length, 0);
         const prompt = h.body.children.at(-1);
         assert.equal(prompt.dataset.akariPreviewApplyMiss, 'lut');
-        assert.equal(prompt.children[0].textContent, '写真や映像の上に落としてください。');
+        assert.equal(prompt.children[0].textContent, 'Drop it on a photo or video.');
         h.listeners.get('pointerdown')({ target: h.body });
         assert.equal(prompt.removed, true);
     } finally { h.restore(); }

@@ -17,10 +17,10 @@ test('host fallback gate is source-pinned and simulated because its browser modu
     // production method text guarantees that the simulation below remains a copy of its gate order.
     const methodSource = methodBody('handleHevcFallbackRequest') + '\n';
     assert.match(methodSource, /widget\.akariPreviewFallbackSourceUris\?\.has\(request\.videoUri\)/u);
-    assert.match(methodSource, /respond\(false, '動画ソースがプレビューの宣言と一致しません'\)/u);
+    assert.match(methodSource, /respond\(false, 'The video source does not match the preview declaration'\)/u);
     assert.match(methodSource, /const key = videoUri\.toString\(\);/u);
     assert.match(methodSource, /this\.hevcFallbackAttempted\.has\(key\)/u);
-    assert.match(methodSource, /respond\(false, 'このソースは既にフォールバックを試行済みです'\)/u);
+    assert.match(methodSource, /respond\(false, 'This source has already been tried with a fallback'\)/u);
     assert.match(methodSource, /this\.hevcFallbackAttempted\.add\(key\);/u);
     assert.match(methodSource, /this\.previewService\.resolveHevcProxy\(\{[\s\S]*?videoUri: key,/u);
     assert.match(methodSource, /this\.hevcFallbackProxyUris\.set\(key, result\.proxyUri\);/u);
@@ -36,12 +36,12 @@ test('host fallback gate is source-pinned and simulated because its browser modu
     let refreshCount = 0;
     const simulateHostFallback = requestVideoUri => {
         if (!declaredSourceUris.has(requestVideoUri)) {
-            return { ok: false, error: '動画ソースがプレビューの宣言と一致しません' };
+            return { ok: false, error: 'The video source does not match the preview declaration' };
         }
         const videoUri = { toString: () => requestVideoUri };
         const key = videoUri.toString();
         if (attempted.has(key)) {
-            return { ok: false, error: 'このソースは既にフォールバックを試行済みです' };
+            return { ok: false, error: 'This source has already been tried with a fallback' };
         }
         attempted.add(key);
         resolveCalls.push(key);
@@ -55,11 +55,11 @@ test('host fallback gate is source-pinned and simulated because its browser modu
     assert.deepEqual(simulateHostFallback(takeB), { ok: true });
     assert.deepEqual(simulateHostFallback(takeA), {
         ok: false,
-        error: 'このソースは既にフォールバックを試行済みです'
+        error: 'This source has already been tried with a fallback'
     });
     assert.deepEqual(simulateHostFallback(undeclared), {
         ok: false,
-        error: '動画ソースがプレビューの宣言と一致しません'
+        error: 'The video source does not match the preview declaration'
     });
     assert.deepEqual(resolveCalls, [takeA, takeB]);
     assert.deepEqual([...proxyUris.keys()], [takeA, takeB]);
@@ -75,9 +75,9 @@ test('webview pins the loaded source and serializes fallback requests in FIFO or
     assert.match(processBody, /const request = hevcFallbackQueue\.shift\(\);/u);
     assert.match(processBody, /hevcFallbackInFlight = true;/u);
     assert.match(processBody, /resolveHevcFallback\(request\.errorCode, request\.requestKey\)/u);
-    assert.match(processBody, /if \(playbackErrored\) \{[\s\S]*?互換用に変換しています…[\s\S]*?previewMessageReload\.hidden = true;[\s\S]*?\}/u);
+    assert.match(processBody, /if \(playbackErrored\) \{[\s\S]*?Converting it for compatibility\.\.\.[\s\S]*?previewMessageReload\.hidden = true;[\s\S]*?\}/u);
     assert.match(processBody, /\.then\(\(\) => \{[\s\S]*?hevcFallbackInFlight = false;[\s\S]*?processNextHevcFallback\(\);[\s\S]*?\}, \(\) => \{/u);
-    assert.match(processBody, /\}, \(\) => \{[\s\S]*?if \(playbackErrored\) \{[\s\S]*?再読み込みを試してください。[\s\S]*?previewMessageReload\.hidden = false;[\s\S]*?\}[\s\S]*?hevcFallbackInFlight = false;[\s\S]*?processNextHevcFallback\(\);/u);
+    assert.match(processBody, /\}, \(\) => \{[\s\S]*?if \(playbackErrored\) \{[\s\S]*?Try reloading\.[\s\S]*?previewMessageReload\.hidden = false;[\s\S]*?\}[\s\S]*?hevcFallbackInFlight = false;[\s\S]*?processNextHevcFallback\(\);/u);
 
     const attemptBody = extractBetween(
         '            const attemptHevcFallback = (errorCode, videoUri) => {',

@@ -27,8 +27,8 @@ const IMAGE_MIME_TYPES = new Map<string, string>([
 // （実測は report.md 参照）。上限自体は「壊れたパスへ streaming server を延々張り続けない」
 // ための保険として残す。
 const MAX_INLINE_BYTES = 200 * 1024 * 1024;
-const TOO_LARGE_MESSAGE = 'この画像はサイズが大きすぎるためプレビューできません。';
-const READ_ERROR_MESSAGE = '画像を読み込めませんでした。';
+const TOO_LARGE_MESSAGE = 'This image is too large to preview.';
+const READ_ERROR_MESSAGE = 'Could not load the image.';
 
 @injectable()
 export class AkariImageOpenHandler implements OpenHandler {
@@ -80,7 +80,7 @@ export class AkariImageOpenHandler implements OpenHandler {
     protected async render(widget: WebviewWidget, uri: URI): Promise<void> {
         const marker = widget as ImageWidgetMarker;
         widget.viewType = 'akari.image';
-        widget.title.label = '素材プレビュー';
+        widget.title.label = 'Footage preview';
         widget.title.caption = uri.toString();
         widget.title.iconClass = 'codicon codicon-file-media';
         widget.setContentOptions({ allowScripts: false, allowForms: false });

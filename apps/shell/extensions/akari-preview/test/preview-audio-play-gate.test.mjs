@@ -32,7 +32,7 @@ test('clock.tick の停止判定は提示時刻ではなく要求時刻で行う
 
 test('webview の音声表示は gate と再生中の欠落が各 300ms 続いたときだけ出す', () => {
     const status = section(source, '                const updateAudioStatus = () => {', '                const updateAudio = message => {');
-    for (const message of ['一部の音声を再生できません', '音声を待っています', '音声を準備中']) {
+    for (const message of ['Could not play some audio', 'Waiting for audio', 'Preparing audio']) {
         assert.match(status, new RegExp(message, 'u'));
     }
     const degraded = status.indexOf("if (supply?.phase === 'degraded')");
@@ -40,7 +40,7 @@ test('webview の音声表示は gate と再生中の欠落が各 300ms 続い�
     const preparing = status.indexOf('else if (statusPlaying && missingAudioSinceMs !== null');
     assert.ok(degraded >= 0 && degraded < gate && gate < preparing);
     assert.match(status, /performance\.now\(\) - missingAudioSinceMs >= 300/u);
-    assert.match(status, /message = '音声を待っています（' \+ \(supply\.gate\.heldMs \/ 1000\)\.toFixed\(1\) \+ ' 秒）';/u);
+    assert.match(status, /message = 'Waiting for audio \(' \+ \(supply\.gate\.heldMs \/ 1000\)\.toFixed\(1\) \+ ' sec\)';/u);
     assert.doesNotMatch(status, /\$\{/u);
 });
 
@@ -63,7 +63,7 @@ test('cached resume and seek show no status; a missing active source shows prepa
     supply.gate = { holding: true, heldMs: 250 };
     assert.equal(update(), '', 'short gate stays hidden');
     supply.gate.heldMs = 350;
-    assert.match(update(), /音声を待っています/u);
+    assert.match(update(), /Waiting for audio/u);
     supply.gate = { holding: false, heldMs: 0 };
     context.playing = true;
     now = 1000;
@@ -71,7 +71,7 @@ test('cached resume and seek show no status; a missing active source shows prepa
     now = 1299;
     assert.equal(update(), '');
     now = 1300;
-    assert.equal(update(), '音声を準備中 0/1');
+    assert.equal(update(), 'Preparing audio 0/1');
     supply.ready = ['bgm:bed'];
     supply.phase = 'ready';
     assert.equal(update(), '');

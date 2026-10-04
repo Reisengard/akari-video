@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ReviewSessionRecorder } from '../lib/browser/review-session-recorder.js';
 
-const MICROPHONE_DENIED_MESSAGE = 'マイクの使用が許可されませんでした。設定で権限を確認してください。';
+const MICROPHONE_DENIED_MESSAGE = 'Microphone permission was denied. Check the permission in settings.';
 
 function replaceGlobal(name, value) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, name);
@@ -63,7 +63,7 @@ test('rejects denied microphone access before creating any session files', async
     assert.equal(backendStarts, 0);
     assert.equal(states.at(-1).status, 'error');
     assert.equal(states.at(-1).active, false);
-    assert.match(states.at(-1).error, /マイク/);
+    assert.match(states.at(-1).error, /Microphone/);
 });
 
 test('captures non-silent oscillator samples through the recorder audio path', async () => {

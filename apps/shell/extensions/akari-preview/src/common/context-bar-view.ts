@@ -118,45 +118,45 @@ export function barItems(state: ContextBarState): BarItem[] {
     if (state.kind === 'caption') return captionBarItems(state);
     const p = params(state);
     const common = (withStyle = false): BarItem[] => [
-        { key: 'opacity', label: '不透明度', kind: 'window' },
+        { key: 'opacity', label: 'Opacity', kind: 'window' },
         SEP,
-        { key: 'anim', label: 'アニメーション', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'motion' } },
-        { key: 'arrange', label: '配置', kind: 'window', text: true },
-        ...(withStyle ? [SEP, { key: 'style', label: 'スタイルをコピー', kind: 'action' as const, title: 'スタイルをコピー（⌥⌘C）' }] : [])
+        { key: 'anim', label: 'Animation', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'motion' } },
+        { key: 'arrange', label: 'Align', kind: 'window', text: true },
+        ...(withStyle ? [SEP, { key: 'style', label: 'Copy style', kind: 'action' as const, title: 'Copy style (⌥⌘C)' }] : [])
     ];
     if (state.kind === 'shape') {
         const closedFill = state.item?.source?.shape !== 'line';
         const strokeWidth = Number(p.strokeWidth) || 0;
         return [
-            ...(closedFill ? [{ key: 'fill', label: '塗りの色', kind: 'color' as const, paint: paintCss(p.fill), path: 'source.params.fill', allowTransparent: true }] : []),
-            { key: 'stroke', label: '枠の色', kind: 'color', paint: strokeWidth > 0 ? paintCss(p.stroke) : 'none', path: 'source.params.stroke' },
-            { key: 'weight', label: '枠線の太さ', kind: 'window' },
-            ...(state.hasCorners ? [{ key: 'radius', label: '角の丸み', kind: 'window' as const }] : []),
+            ...(closedFill ? [{ key: 'fill', label: 'Fill color', kind: 'color' as const, paint: paintCss(p.fill), path: 'source.params.fill', allowTransparent: true }] : []),
+            { key: 'stroke', label: 'Stroke color', kind: 'color', paint: strokeWidth > 0 ? paintCss(p.stroke) : 'none', path: 'source.params.stroke' },
+            { key: 'weight', label: 'Stroke width', kind: 'window' },
+            ...(state.hasCorners ? [{ key: 'radius', label: 'Corner radius', kind: 'window' as const }] : []),
             ...common()
         ];
     }
     if (state.kind === 'line') {
         return [
-            { key: 'stroke', label: '線の色', kind: 'color', paint: paintCss(p.stroke ?? '#000000'), path: 'source.params.stroke' },
-            { key: 'weight', label: '太さ', kind: 'window' },
-            { key: 'dash', label: '線の種類', kind: 'window' },
-            { key: 'ends', label: '始点と終点', kind: 'window' },
+            { key: 'stroke', label: 'Line color', kind: 'color', paint: paintCss(p.stroke ?? '#000000'), path: 'source.params.stroke' },
+            { key: 'weight', label: 'Thickness', kind: 'window' },
+            { key: 'dash', label: 'Line style', kind: 'window' },
+            { key: 'ends', label: 'Start and end', kind: 'window' },
             ...common()
         ];
     }
     if (state.kind === 'photo') {
         if (state.photoToolsAvailable === false) return common(true);
         return [
-            { key: 'edit', label: '編集', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'home' } },
+            { key: 'edit', label: 'Edit', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'home' } },
             SEP,
-            { key: 'replace', label: '置き換え', kind: 'action', text: true },
-            { key: 'cutout', label: '背景透過', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'photo-cutout', fieldName: 'photo-cutout-panel' } },
-            { key: 'eraser', label: '消しゴム', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'photo-eraser', fieldName: 'photo-brush-start' } },
-            { key: 'photoColor', label: '写真の色', kind: 'inspector', text: true, inspector: { tabId: 'adjust' } },
-            { key: 'border', label: '枠線', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-frame-width' } },
-            { key: 'photoRadius', label: '角の丸み', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-frame-radius' } },
-            { key: 'crop', label: '切り抜き', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-crop-open' } },
-            { key: 'flip', label: '反転', kind: 'window', text: true },
+            { key: 'replace', label: 'Replace', kind: 'action', text: true },
+            { key: 'cutout', label: 'Remove background', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'photo-cutout', fieldName: 'photo-cutout-panel' } },
+            { key: 'eraser', label: 'Eraser', kind: 'inspector', text: true, inspector: { tabId: 'edit', sectionId: 'photo-eraser', fieldName: 'photo-brush-start' } },
+            { key: 'photoColor', label: 'Photo color', kind: 'inspector', text: true, inspector: { tabId: 'adjust' } },
+            { key: 'border', label: 'Border', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-frame-width' } },
+            { key: 'photoRadius', label: 'Corner radius', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-frame-radius' } },
+            { key: 'crop', label: 'Crop', kind: 'inspector', text: true, inspector: { tabId: 'video', sectionId: 'appearance', fieldName: 'photo-crop-open' } },
+            { key: 'flip', label: 'Flip', kind: 'window', text: true },
             ...common(true)
         ];
     }
@@ -164,19 +164,19 @@ export function barItems(state: ContextBarState): BarItem[] {
 }
 
 export const DASH_OPTIONS = [
-    { value: 'solid', label: '実線' },
-    { value: 'dash', label: '破線' },
-    { value: 'dot', label: '点線' }
+    { value: 'solid', label: 'Solid' },
+    { value: 'dash', label: 'Dashed' },
+    { value: 'dot', label: 'Dotted' }
 ] as const;
 
 export const CAP_OPTIONS = [
-    { value: 'none', label: 'なし' },
-    { value: 'triangle', label: '三角' },
-    { value: 'chevron', label: '矢印' },
-    { value: 'bar', label: '縦線' },
-    { value: 'square', label: '四角' },
-    { value: 'circle', label: '丸' },
-    { value: 'diamond', label: 'ひし形' }
+    { value: 'none', label: 'None' },
+    { value: 'triangle', label: 'Triangle' },
+    { value: 'chevron', label: 'Arrow' },
+    { value: 'bar', label: 'Bar' },
+    { value: 'square', label: 'Square' },
+    { value: 'circle', label: 'Circle' },
+    { value: 'diamond', label: 'Diamond' }
 ] as const;
 
 /** 窓に出す今の値（0〜100 の目盛り）。 */

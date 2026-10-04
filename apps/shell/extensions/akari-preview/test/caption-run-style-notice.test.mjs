@@ -4,8 +4,8 @@ import { captionRunOmittedNotice } from '../lib/common/caption-run-style-notice.
 
 test('範囲に写せない見た目は利用者向けの語で一行にする', () => {
     assert.equal(captionRunOmittedNotice(['background', 'shadow', 'animation', 'shadow']),
-        '文字範囲に使えない見た目を省きました: 座布団・影・動き');
+        'Left out appearance settings that cannot apply to a text range: Background, Shadow, Motion');
     assert.equal(captionRunOmittedNotice(['future_filter']),
-        '文字範囲に使えない見た目を省きました: その他の見た目');
+        'Left out appearance settings that cannot apply to a text range: Other appearance');
     assert.equal(captionRunOmittedNotice([]), undefined);
 });
