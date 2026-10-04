@@ -47,13 +47,13 @@ function args(changes = {}) {
   };
 }
 
-test('session 不一致を拒む', async () => {
+test('Reject session mismatch', async () => {
   const { deps, writes } = fixture({ currentProjectSessionId: () => 'other' });
   assert.equal((await applyCompanionEdit(args(), deps)).error, 'stale-session');
   assert.equal(writes.length, 0);
 });
 
-test('8MB 超を拒む', async () => {
+test('Reject payloads over 8 MB', async () => {
   const { deps } = fixture();
   const nextText = JSON.stringify({ value: 'x'.repeat(8 * 1024 * 1024) });
   assert.equal((await applyCompanionEdit(args({ edit: {
@@ -61,7 +61,7 @@ test('8MB 超を拒む', async () => {
   } }), deps)).error, 'too-large');
 });
 
-test('中身なしと壊れた JSON を invalid-args にする', async () => {
+test('Empty content and malformed JSON produce invalid-args', async () => {
   const { deps } = fixture();
   assert.equal((await applyCompanionEdit({ projectSessionId: 'session-1', label: 'empty' }, deps)).error, 'invalid-args');
   assert.equal((await applyCompanionEdit(args({ edit: {
@@ -69,7 +69,7 @@ test('中身なしと壊れた JSON を invalid-args にする', async () => {
   } }), deps)).error, 'invalid-args');
 });
 
-test('現在のハッシュと違うと両方を書かない', async () => {
+test('Write neither document on current hash mismatch', async () => {
   const { deps, writes } = fixture();
   const result = await applyCompanionEdit(args({
     edit: { baseSha256: 'stale', nextText: '{"version":1}' },
@@ -81,14 +81,14 @@ test('現在のハッシュと違うと両方を書かない', async () => {
   assert.equal(writes.length, 0);
 });
 
-test('書き込み例外を rejected にする', async () => {
+test('Write exceptions produce rejected', async () => {
   const { deps } = fixture({ writeEditSnapshot: async () => { throw new Error('lint failed'); } });
   assert.deepEqual(await applyCompanionEdit(args(), deps), {
     ok: false, error: 'rejected', value: { reasons: ['lint failed'] }
   });
 });
 
-test('両文書を 1 回で書き履歴を 1 件積む', async () => {
+test('Write both documents once and add one history entry', async () => {
   const { deps, history, writes, files } = fixture();
   const nextEdit = '{"version":1}';
   const nextCaptions = '[{"id":1}]';
@@ -107,23 +107,23 @@ test('両文書を 1 回で書き履歴を 1 件積む', async () => {
   assert.equal(files.get(captionsUri.toString()), nextCaptions);
 });
 
-test('undo 時に別変更があれば書き戻さず通知して失敗する', async () => {
+test('Undo with intervening changes notifies and fails without writing', async () => {
   const { deps, history, writes, files, notices } = fixture();
   await applyCompanionEdit(args(), deps);
   files.set(editUri.toString(), '{"other":true}');
-  await assert.rejects(history[0].undo, /変更されています/u);
+  await assert.rejects(history[0].undo, /has changed/u);
   assert.equal(writes.length, 1);
   assert.equal(files.get(editUri.toString()), '{"other":true}');
   assert.equal(notices.length, 1);
 });
 
-test('redo 時も別変更があれば書き戻さず通知して失敗する', async () => {
+test('Redo with intervening changes notifies and fails without writing', async () => {
   const { deps, history, writes, files, notices } = fixture();
   await applyCompanionEdit(args(), deps);
   await history[0].undo();
   assert.equal(files.get(editUri.toString()), '{}');
   files.set(editUri.toString(), '{"other":true}');
-  await assert.rejects(history[0].redo, /変更されています/u);
+  await assert.rejects(history[0].redo, /has changed/u);
   assert.equal(writes.length, 2);
   assert.equal(notices.length, 1);
 });

@@ -46,11 +46,11 @@ export function buildPreviewOpenUrl(baseUrl: string, variant: PreviewOpenVariant
  */
 export function describePreviewServerFailure(exitCode: number | null, stderr: string, port: number): string {
     if (stderr.includes('EADDRINUSE')) {
-        return `ポート ${port} は別のプロセスが使用中です`;
+        return `Port ${port} is in use by another process`;
     }
     const summary = summarizeStderrTail(stderr);
     if (summary) {
         return summary;
     }
-    return `exit code ${exitCode ?? '不明'} で終了しました（エラー出力はありません）`;
+    return `exit code ${exitCode ?? 'Unknown'} (no error output)`;
 }

@@ -1,0 +1,15 @@
+Captured npm start output (2026-10-03, Windows):
+
+> @akari-video/shell@1.0.1 prestart
+> npm run preflight
+> node scripts/ensure-no-nested-extension-deps.mjs && node scripts/ensure-electron-dist.mjs
+[ensure-electron-dist] OK — node_modules\electron\dist に electron 39.8.7 を展開し、path.txt を書きました
+> @akari-video/shell@1.0.1 start
+> theia start --plugins=local-dir:plugins
+
+(node:29416) UnhandledPromiseRejectionWarning: Error: Cannot find module './lib/backend/electron-main.js'
+Require stack:
+- Z:\AI\Projects\akari-video\apps\shell\electron-entry.js
+
+[29416:1003/195132.406:ERROR:content\browser\gpu\gpu_process_host.cc:999] GPU process exited unexpectedly: exit_code=-1073741515
+[29416:1003/195132.657:FATAL:content\browser\gpu\gpu_data_manager_impl_private.cc:415] GPU process isn't usable. Goodbye.

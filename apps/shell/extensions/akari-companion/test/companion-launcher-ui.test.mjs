@@ -57,7 +57,7 @@ test('toolbar stays visible while disconnected and hides only when disabled', ()
     assert.equal(button.attributes['aria-busy'], String(starting));
     assert.equal(button.dataset.open, String(open));
     assert.equal(rendered.props['aria-pressed'], open);
-    assert.equal(rendered.props.title, 'AKARI バイブ');
+    assert.equal(rendered.props.title, 'AKARI Vibe');
     assert.equal(rendered.props['aria-label'], toolbarModule.COMPANION_TOGGLE_LABEL);
   }
 });
@@ -120,7 +120,7 @@ test('starting label appears after five seconds and resets after failure or succ
     assert.equal(button.attributes.title, toolbarModule.COMPANION_TOGGLE_LABEL);
     assert.equal(button.attributes['aria-label'], toolbarModule.COMPANION_TOGGLE_LABEL);
   }
-  assert.deepEqual(u.warnings, ['AKARI バイブを起動できませんでした']);
+  assert.deepEqual(u.warnings, ['Could not start AKARI Vibe']);
 });
 
 test('missing executable or RPC failure shows startup notice and allows retry', async t => {
@@ -130,7 +130,7 @@ test('missing executable or RPC failure shows startup notice and allows retry', 
   assert.equal(u.starts(), 2);
   u.app.service.start = async () => { throw new Error('transport unavailable'); };
   await assert.doesNotReject(u.app.togglePanel());
-  assert.deepEqual(u.warnings, Array(3).fill('AKARI バイブを起動できませんでした'));
+  assert.deepEqual(u.warnings, Array(3).fill('Could not start AKARI Vibe'));
   assert.equal(u.app.starting, false);
   u.app.enabled = false;
   await u.app.togglePanel();
@@ -150,9 +150,9 @@ test('settings command accepts only connections and returns invalid-args otherwi
   assert.equal(executed.length, 1);
 });
 
-test('public label is AKARI バイブ and obsolete word prohibition test is removed', async () => {
-  assert.equal(toolbarModule.COMPANION_TOGGLE_LABEL, 'AKARI バイブ');
+test('public label is AKARI Vibe and obsolete word prohibition test is removed', async () => {
+  assert.equal(toolbarModule.COMPANION_TOGGLE_LABEL, 'AKARI Vibe');
   const frame = await readFile(new URL('../src/browser/companion-panel-frame.ts', import.meta.url), 'utf8');
-  assert.match(frame, /AKARI バイブをしまう/);
+  assert.match(frame, /Hide AKARI Vibe/);
   await assert.rejects(access(new URL('./companion-forbidden-words.test.mjs', import.meta.url)), { code: 'ENOENT' });
 });

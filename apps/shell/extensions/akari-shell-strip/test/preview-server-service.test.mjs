@@ -86,7 +86,7 @@ class FakeService extends AkariPreviewServerServiceImpl {
     }
 }
 
-test('(a) start: 偽 stdout に URL 行が流れると running + url + port', async () => {
+test('(a) start becomes running with URL and port after a ready URL in fake stdout', async () => {
     const service = new FakeService();
     const status = await service.start({ projectRootUri: 'file:///project' });
     assert.equal(status.phase, 'running');
@@ -98,7 +98,7 @@ test('(a) start: 偽 stdout に URL 行が流れると running + url + port', as
     assert.deepEqual(await service.getStatus(), status);
 });
 
-test('(b) start: 準備完了前の exit 1 + stderr EADDRINUSE は failed で「使用中」', async () => {
+test('(b) start fails with port in use on exit 1 and EADDRINUSE before readiness', async () => {
     const service = new FakeService();
     service.autoReady = false;
     const started = service.start({ projectRootUri: 'file:///project' });
@@ -108,11 +108,11 @@ test('(b) start: 準備完了前の exit 1 + stderr EADDRINUSE は failed で「
     child.close(1);
     const status = await started;
     assert.equal(status.phase, 'failed');
-    assert.match(status.failureSummary, /使用中/);
+    assert.match(status.failureSummary, /in use/);
     assert.match(status.failureSummary, /4567/);
 });
 
-test('(c) running 中の予期しない close は failed（stderr 末尾つき）', async () => {
+test('(c) Unexpected close while running fails with the stderr tail', async () => {
     const service = new FakeService();
     await service.start({ projectRootUri: 'file:///project' });
     const child = service.children[0];
@@ -121,11 +121,11 @@ test('(c) running 中の予期しない close は failed（stderr 末尾つき�
     await waitForImmediate();
     const status = await service.getStatus();
     assert.equal(status.phase, 'failed');
-    assert.match(status.failureSummary, /予期せず終了/);
+    assert.match(status.failureSummary, /exited unexpectedly/);
     assert.match(status.failureSummary, /boom/);
 });
 
-test('(d) stop: idle になり kill は 1 回', async () => {
+test('(d) stop becomes idle and kills once', async () => {
     const service = new FakeService();
     await service.start({ projectRootUri: 'file:///project' });
     const status = await service.stop();
@@ -134,7 +134,7 @@ test('(d) stop: idle になり kill は 1 回', async () => {
     assert.equal((await service.getStatus()).phase, 'idle');
 });
 
-test('(e) 別 projectRootUri での start は旧 child の kill 後に新規 spawn（順序を記録）', async () => {
+test('(e) Starting another project kills the old child before spawning a new one', async () => {
     const service = new FakeService();
     await service.start({ projectRootUri: 'file:///project-a' });
     const status = await service.start({ projectRootUri: 'file:///project-b' });
@@ -143,7 +143,7 @@ test('(e) 別 projectRootUri での start は旧 child の kill 後に新規 spa
     assert.deepEqual(service.events, ['spawn:1000:4567', 'kill:1000', 'spawn:1001:4567']);
 });
 
-test('(f) 同じ projectRootUri の再 start は spawn 回数を増やさない', async () => {
+test('(f) Restarting the same project does not spawn again', async () => {
     const service = new FakeService();
     const first = await service.start({ projectRootUri: 'file:///project' });
     const second = await service.start({ projectRootUri: 'file:///project' });
@@ -152,7 +152,7 @@ test('(f) 同じ projectRootUri の再 start は spawn 回数を増やさない'
     assert.equal(service.children.length, 1);
 });
 
-test('(f2) starting 中の再入は同じ起動を待つ（二重 spawn しない）', async () => {
+test('(f2) Reentry while starting waits for the same startup without double spawning', async () => {
     const service = new FakeService();
     service.autoReady = false;
     const first = service.start({ projectRootUri: 'file:///project' });
@@ -165,20 +165,20 @@ test('(f2) starting 中の再入は同じ起動を待つ（二重 spawn しな�
     assert.equal(service.children.length, 1);
 });
 
-test('(g) 入口不在は failed + logTail に試した候補一覧', async () => {
+test('(g) Missing entry fails and lists attempted candidates in logTail', async () => {
     class MissingEntryService extends AkariPreviewServerServiceImpl {
         fsImpl = { stat: async () => { throw new Error('ENOENT'); } };
     }
     const service = new MissingEntryService();
     const status = await service.start({ projectRootUri: 'file:///project' });
     assert.equal(status.phase, 'failed');
-    assert.match(status.failureSummary, /preview-server が見つかりません/);
-    assert.match(status.logTail, /解決に失敗/);
+    assert.match(status.failureSummary, /preview-server not found/);
+    assert.match(status.logTail, /resolution failed/);
     assert.match(status.logTail, /src[\\/]server\.mjs/);
     assert.match(status.logTail, /  - /);
 });
 
-test('(h) 空きポート探索: 4567 が塞がっていれば 4568 を選ぶ', async () => {
+test('(h) Port search selects 4568 when 4567 is occupied', async () => {
     const service = new FakeService();
     service.busyPorts.add(4567);
     const status = await service.start({ projectRootUri: 'file:///project' });
@@ -188,23 +188,23 @@ test('(h) 空きポート探索: 4567 が塞がっていれば 4568 を選ぶ', 
     assert.deepEqual(service.spawnedArgs[0], ['/project', '--port', '4568', '--host', '127.0.0.1']);
 });
 
-test('(h2) ポート 4567〜4576 が全滅なら spawn せず failed', async () => {
+test('(h2) All ports 4567–4576 occupied fails without spawning', async () => {
     const service = new FakeService();
     for (let port = 4567; port <= 4576; port++) {
         service.busyPorts.add(port);
     }
     const status = await service.start({ projectRootUri: 'file:///project' });
     assert.equal(status.phase, 'failed');
-    assert.match(status.failureSummary, /4567〜4576 がすべて使用中/);
+    assert.match(status.failureSummary, /4567–4576 are all in use/);
     assert.equal(service.children.length, 0);
 });
 
-test('(i) 準備完了がタイムアウトすると failed になり子は kill される', async () => {
+test('(i) Readiness timeout fails and kills the child', async () => {
     const service = new FakeService();
     service.autoReady = false;
     service.readyTimeoutMs = 50;
     const status = await service.start({ projectRootUri: 'file:///project' });
     assert.equal(status.phase, 'failed');
-    assert.match(status.failureSummary, /秒以内に起動しませんでした/);
+    assert.match(status.failureSummary, /s elapsed without starting/);
     assert.equal(service.children[0].kills.length, 1);
 });

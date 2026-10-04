@@ -26,18 +26,18 @@ export type QuickExportCodec = 'h264' | 'hevc' | 'prores422' | 'png';
 export function buildQuickExportEncoderChoices(
     platform: 'darwin' | 'win32' | 'linux'
 ): Array<{ label: string; value: QuickExportEncoder }> {
-    const automatic = { label: '自動（既定・ハードウェアが使えれば優先）', value: 'auto' as const };
-    const software = { label: 'ソフトウェア（x264）', value: 'x264' as const };
+    const automatic = { label: 'Auto (default; prefer available hardware)', value: 'auto' as const };
+    const software = { label: 'Software (x264)', value: 'x264' as const };
     if (platform === 'darwin') {
-        return [automatic, { label: 'ハードウェア（VideoToolbox）', value: 'videotoolbox' }, software];
+        return [automatic, { label: 'Hardware (VideoToolbox)', value: 'videotoolbox' }, software];
     }
     if (platform === 'win32') {
         return [
             automatic,
-            { label: 'ハードウェア（NVENC）', value: 'nvenc' },
-            { label: 'ハードウェア（QSV）', value: 'qsv' },
-            { label: 'ハードウェア（AMF）', value: 'amf' },
-            { label: 'ハードウェア（Media Foundation）', value: 'mf' },
+            { label: 'Hardware (NVENC)', value: 'nvenc' },
+            { label: 'Hardware (QSV)', value: 'qsv' },
+            { label: 'Hardware (AMF)', value: 'amf' },
+            { label: 'Hardware (Media Foundation)', value: 'mf' },
             software
         ];
     }
@@ -198,7 +198,7 @@ export function determineRenderOutcome(
 export function summarizeStderrTail(stderr: string, maxLines = 5): string {
     const lines = stderr.split(/\r?\n/).map(line => line.trim()).filter(line => line !== '');
     const tail = lines.slice(-maxLines);
-    const cause = [...lines].reverse().find(line => /(?:error|failed|not found|cannot|unable|見つかりません|失敗|不在)/iu.test(line));
+    const cause = [...lines].reverse().find(line => /(?:error|failed|not found|cannot|unable|not found|失敗|不在)/iu.test(line));
     if (cause && !tail.includes(cause) && maxLines > 0) {
         return [cause, ...tail.slice(-(maxLines - 1))].join('\n');
     }
@@ -221,10 +221,10 @@ export function describeRenderFailure(
         return stderrSummary;
     }
     if (exitCode === 0 && (!output || output.size <= 0)) {
-        return `render-cut は正常終了を返しましたが、成果物 ${outputPath} が作成されませんでした`;
+        return `render-cut exited successfully, but output ${outputPath} was not created`;
     }
-    const exitLabel = exitCode === null ? '終了コードを返さず' : `exit code ${exitCode} で`;
-    return `render-cut が ${exitLabel}終了しました（エラー出力はありません）`;
+    const exitLabel = exitCode === null ? 'without an exit code' : `with exit code ${exitCode}`;
+    return `render-cut exited ${exitLabel} (no error output)`;
 }
 
 /** JSON-RPC / バックエンド境界の unknown を空でない1行へ正規化する。 */

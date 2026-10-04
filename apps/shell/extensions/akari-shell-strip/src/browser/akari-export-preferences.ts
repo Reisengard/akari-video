@@ -20,29 +20,29 @@ const AKARI_EXPORT_PREFERENCE_SCHEMA: PreferenceSchema = {
             type: 'string',
             enum: ['standard', 'high', 'light', 'master'],
             default: 'standard',
-            description: '書き出し画質。標準、高画質、軽量から選びます。'
+            description: 'Export quality. Choose Standard, High quality, or Lightweight.'
         },
         [AKARI_EXPORT_ENCODER]: {
             type: 'string',
             enum: encoderValues,
             default: 'auto',
-            description: '書き出しエンコーダ。自動では利用可能なハードウェアを優先します。'
+            description: 'Export encoder. Auto prefers available hardware.'
         },
         [AKARI_EXPORT_CODEC]: {
             type: 'string',
             enum: ['h264', 'hevc', 'prores422', 'png'],
             default: 'h264',
-            description: '書き出し形式。H.264、H.265（HEVC）、ProRes 422 HQ、連番 PNG から選びます。'
+            description: 'Export format. Choose H.264, H.265 (HEVC), ProRes 422 HQ, or PNG sequence.'
         },
         [AKARI_EXPORT_FPS]: {
             type: 'number',
             enum: [24, 30, 60],
-            description: '書き出しフレームレート。未設定では edit.json の出力設定に従います。'
+            description: 'Export frame rate. Leave unset to use the output settings in edit.json.'
         },
         [AKARI_EXPORT_OUTPUT_DIRECTORY]: {
             type: 'string',
             default: '',
-            description: '書き出し先フォルダの URI。空欄ではプロジェクトの exports/ を使います。'
+            description: 'Export folder URI. Leave blank to use the project\'s exports/ folder.'
         }
     }
 };

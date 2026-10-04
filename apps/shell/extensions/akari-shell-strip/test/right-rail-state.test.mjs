@@ -155,7 +155,7 @@ test('drop on main / bottom: becomes a tab there and leaves the rail; back to th
     assert.deepEqual(state.displaced, { [METER]: 'bottom' });
 });
 
-test('drop on the rail above / below the line swaps membership (the prototype "注釈を線の上へ")', () => {
+test('Drop above or below the rail divider swaps membership', () => {
     const state = fresh();
     const result = S.dropOnRightRail(state, NOTE, 'railtop', { railIds: RAIL, current: CLAUDE });
     assert.deepEqual(result, {});
@@ -165,7 +165,7 @@ test('drop on the rail above / below the line swaps membership (the prototype "�
     assert.deepEqual(state.groups, {});
 });
 
-test('drop on the right lower half splits only then (prototype: インスペクターを右の下半分へ)', () => {
+test('Drop on the lower right half splits the panel', () => {
     const state = fresh();
     const result = S.dropOnRightRail(state, INSP, 'rbottom', { railIds: RAIL, current: CLAUDE });
     assert.deepEqual(result, { current: INSP });
@@ -176,7 +176,7 @@ test('drop on the right lower half splits only then (prototype: インスペク�
     assert.deepEqual(state.groups, {});
 });
 
-test('split drop keeps the "区切り線どおり" invariant: the partner pane is flipped to the other side when needed', () => {
+test('Split drops preserve divider membership by moving Partner to the opposite side', () => {
     const state = fresh();
     // 1 面で台本（線の下）が出ているところへインスペクターを下の段に → 台本は上の段・所属も上へ。
     S.dropOnRightRail(state, INSP, 'rbottom', { railIds: RAIL, current: DAIHON });

@@ -1,0 +1,191 @@
+
+> akari-companion@0.0.1 test
+> tsc -b && node --test test/*.test.mjs
+
+✔ Accept valid arguments for all allowed commands (4.492ms)
+✔ Reject side-effect commands outside the allowlist (0.4ms)
+✔ Check string, array, and numeric bounds (0.5129ms)
+✔ Reject type mismatches, unknown keys, and incomplete unions (0.3295ms)
+✔ Strictly validate Footage import arguments (0.234ms)
+✔ Validate standalone Inspector options (0.2166ms)
+✔ The bridge supplies editUri; the companion need not supply it for required commands (0.2771ms)
+✔ Create annotations using current review/root and external flag (3.7851ms)
+✔ Do not create on session mismatch (0.3069ms)
+✔ Reject empty text and 2001 characters (0.2833ms)
+✔ Allow sourceT null only for document and image targets (0.6975ms)
+✔ Check range, string bounds, and exceptions (1.2567ms)
+✔ Pass commands other than applyEdit without validation (2.4808ms)
+✔ Missing location and session mismatch produce stale-session (0.4847ms)
+✔ Return validation failure reasons unchanged (4.1465ms)
+✔ Allow validated and empty applyEdit payloads (0.8252ms)
+✔ Use only basename for candidate names (0.4486ms)
+✔ Reject session mismatch (2.7906ms)
+✔ Reject payloads over 8 MB (38.5928ms)
+✔ Empty content and malformed JSON produce invalid-args (0.7012ms)
+✔ Write neither document on current hash mismatch (0.8136ms)
+✔ Write exceptions produce rejected (1.6455ms)
+✔ Write both documents once and add one history entry (2.9385ms)
+✔ Undo with intervening changes notifies and fails without writing (3.6977ms)
+✔ Redo with intervening changes notifies and fails without writing (8.1137ms)
+✔ Fix attribute mappings for six target types (2.0486ms)
+✔ Build exact attribute-value selectors (0.5654ms)
+✔ Resolve only when exactly one match is visible (1.5281ms)
+✔ Resolve configuration paths from AKARI_HOME and default home (1.3209ms)
+✖ Read only valid configuration with mode 600 (21.9827ms)
+✔ Reject malformed JSON and port/token type mismatches (41.2664ms)
+✔ toolbar stays visible while disconnected and hides only when disabled (5.2809ms)
+✔ enabled defaults to true and only user preferences disable it (2.4319ms)
+✔ disconnected click starts once, opens on connection and then toggles the panel (1.4058ms)
+✔ starting label appears after five seconds and resets after failure or success (1.8965ms)
+✔ missing executable or RPC failure shows startup notice and allows retry (2.2258ms)
+✔ settings command accepts only connections and returns invalid-args otherwise (3.4415ms)
+✔ public label is AKARI Vibe and obsolete word prohibition test is removed (9.9409ms)
+✔ Report manifest panelPath and panel with port (60.6999ms)
+✔ Omit invalid panelPath and continue connecting (26.1562ms)
+✔ Connect with manifests without panel information (34.7956ms)
+✔ Invalid manifest proof blocks execution and state sending (79.9628ms)
+✔ Execute SSE in order without duplicates and POST light/docs once each (48.0526ms)
+✔ Return busy after 64 instructions including running commands (40.8276ms)
+✔ dropQueued returns stale-session for pending commands (60.2412ms)
+✔ Reconnect sends Last-Event-ID with 2/5/10-second backoff (139.137ms)
+✔ (a) Three deltas after start move the frame by 90,30 (5.6659ms)
+✔ (b) Parent mousemove never moves or ends content dragging after button release (1.3701ms)
+✔ (d) End after two seconds and clean timers on delta, blur, and unmount (0.6355ms)
+✔ (e) Use transparent resize edges at left and bottom-left without a triangle (8.2453ms)
+✔ (f) Dragging left keeps right edge fixed, saves and reports width, and caps at 720 (3.3163ms)
+✔ (g) Next delta moves by 20 even after a three-second drag pause (0.4328ms)
+✔ (h) Deltas before start and after end still move the frame (0.6111ms)
+✔ Pill uses content width and radius and hides resize edges on pills and small frames (13.0868ms)
+✔ Remembered width does not expand an empty strip beside collapsed circular content (2.5699ms)
+✔ Resize surface covers iframe only while pressed (0.6925ms)
+✔ Clamp content height to 720 and screen height (0.3257ms)
+✔ Close button has no square background (2.6398ms)
+✔ Clamp panel dimensions to bounds (10.7641ms)
+✔ Default horizontal position to center and clamp to screen (0.6371ms)
+✔ Accept only tab and pill shapes (0.3386ms)
+✔ Accept only same-origin relative paths (0.2571ms)
+✔ Extract only valid manifest panel information (0.3897ms)
+✔ Default placement is directly below and right-aligned with the trigger (0.3067ms)
+✔ Clamp vertical position to the screen (0.1837ms)
+✔ Wire instruction dispatch and visibility commands (21.9171ms)
+✔ Trigger precedes View changes and anchors default placement (6.6061ms)
+✔ Frame has a safe iframe and local interaction surfaces (8.7272ms)
+✔ Pulse supports reduced motion and preview containers (1.428ms)
+✔ stdin secret is absent from child argv/env and EOF stops the child (200.4342ms)
+✔ first-line port connects with authenticated manifest HMAC (239.4152ms)
+✔ startup and connection have separate default deadlines (0.3088ms)
+✔ first line after eight seconds still starts (8205.6551ms)
+✔ first line scheduled after 25 seconds times out and stops the child (111.2463ms)
+✔ A to B ownership stops A before B and drops A state and instructions (347.6951ms)
+✔ owner disconnect and backend shutdown close stdin and stop owned children (255.5736ms)
+✔ no explicit config means temporary HOME companion file is never read (107.5889ms)
+AKARI Vibe: explicit connection configuration is invalid
+✖ explicit config connects without spawning and retains single owner (132.7141ms)
+✔ startup invalid returns false with one log line and cleans up (125.9459ms)
+✔ startup wrong-port returns false with one log line and cleans up (135.2124ms)
+✔ startup wrong-protocol returns false with one log line and cleans up (125.2199ms)
+✔ startup wrong-type returns false with one log line and cleans up (112.2704ms)
+✔ startup oversized returns false with one log line and cleans up (113.206ms)
+✔ startup exit returns false with one log line and cleans up (109.3982ms)
+✔ startup silent returns false with one log line and cleans up (5031.9411ms)
+✔ bad manifest HMAC fails startup and stops the child (5136.3502ms)
+✖ shutdown escalates ignore-end after stdin EOF (428.7388ms)
+✖ shutdown escalates ignore-term after stdin EOF (417.4753ms)
+✔ missing bundled executable fails without throwing and can retry (5.1698ms)
+✔ bin resolution prefers override then resources then ancestor package (8.7271ms)
+✔ ownership change during startup cancels the earlier child without overlap (226.8394ms)
+✔ connection containers isolate services and share one backend process manager (13.7473ms)
+✔ owner connection close cancels startup and stops its child through stdin EOF (196.5819ms)
+✔ disabling owner or stopping backend cancels startup and reaps its child (276.2915ms)
+✔ ownership revoked during edit validation cannot dispatch to the old client (0.932ms)
+✔ Reflect selection, playhead, and panels in light state (21.8399ms)
+✔ Send docs only when hashes change and omit large bodies (82.0753ms)
+✔ Include project-relative paths in docs and snapshots (21.2692ms)
+✔ Omit location for documents outside the project (16.1602ms)
+✔ Relativize Windows paths across case and separator differences (13.3719ms)
+✔ Resend docs with new locations on project switch (27.8307ms)
+✔ Resend docs after reconnect even when hashes are unchanged (15.6124ms)
+✔ Registered in shell, build:ext, and unit lane (26.4869ms)
+ℹ tests 103
+ℹ suites 0
+ℹ pass 99
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22223.8218
+
+✖ failing tests:
+
+test at test\companion-home.test.mjs:16:1
+✖ Read only valid configuration with mode 600 (21.9827ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   port: 4567,
+  -   token: 'secret'
+  - }
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-companion/test/companion-home.test.mjs:22:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { port: 4567, token: 'secret' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:192:1
+✖ explicit config connects without spawning and retains single owner (132.7141ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:203:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:238:3
+✖ shutdown escalates ignore-end after stdin EOF (428.7388ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(rows.some(row => row.type === 'sigterm'))
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:248:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:238:3
+✖ shutdown escalates ignore-term after stdin EOF (417.4753ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(rows.some(row => row.type === 'sigterm'))
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:248:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

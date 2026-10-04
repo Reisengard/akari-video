@@ -70,18 +70,18 @@ export function resourceSummary(sample: ResourceSample, options: StatusbarOption
     const parts: string[] = [];
     if (options.cpu && sample.cpuPercent !== null) parts.push(`CPU ${Math.round(sample.cpuPercent)}%`);
     if (options.gpu && sample.gpuPercent !== null) parts.push(`GPU ${Math.round(sample.gpuPercent)}%`);
-    if (options.memory) parts.push(`メモリ ${formatGb(sample.memoryUsedBytes)}`);
-    if (options.disk && sample.diskFreeBytes !== null) parts.push(`ディスク 残 ${Math.round(sample.diskFreeBytes / 1_000_000_000)} GB`);
-    if (options.running) parts.push(`実行中 ${runningCount}`);
+    if (options.memory) parts.push(`Memory ${formatGb(sample.memoryUsedBytes)}`);
+    if (options.disk && sample.diskFreeBytes !== null) parts.push(`Disk free ${Math.round(sample.diskFreeBytes / 1_000_000_000)} GB`);
+    if (options.running) parts.push(`Running ${runningCount}`);
     return parts.join(' · ');
 }
 
 export function resourceRows(sample: ResourceSample, options: StatusbarOptions): Array<{ key: string; label: string; value: string; percent: number }> {
     const rows: Array<{ key: string; label: string; value: string; percent: number }> = [];
     const clamp = (n: number): number => Math.max(0, Math.min(100, n));
-    if (options.cpu && sample.cpuPercent !== null) rows.push({ key: 'cpu', label: 'CPU（機械全体）', value: `${Math.round(sample.cpuPercent)}%`, percent: clamp(sample.cpuPercent) });
+    if (options.cpu && sample.cpuPercent !== null) rows.push({ key: 'cpu', label: 'CPU (system-wide)', value: `${Math.round(sample.cpuPercent)}%`, percent: clamp(sample.cpuPercent) });
     if (options.gpu && sample.gpuPercent !== null) rows.push({ key: 'gpu', label: 'GPU', value: `${Math.round(sample.gpuPercent)}%`, percent: clamp(sample.gpuPercent) });
-    if (options.memory) rows.push({ key: 'memory', label: 'メモリ（機械全体）', value: formatGb(sample.memoryUsedBytes), percent: clamp(sample.memoryUsedBytes / sample.memoryTotalBytes * 100) });
-    if (options.disk && sample.diskFreeBytes !== null && sample.diskTotalBytes) rows.push({ key: 'disk', label: 'ディスク', value: `残 ${Math.round(sample.diskFreeBytes / 1_000_000_000)} GB`, percent: clamp((sample.diskTotalBytes - sample.diskFreeBytes) / sample.diskTotalBytes * 100) });
+    if (options.memory) rows.push({ key: 'memory', label: 'Memory (system-wide)', value: formatGb(sample.memoryUsedBytes), percent: clamp(sample.memoryUsedBytes / sample.memoryTotalBytes * 100) });
+    if (options.disk && sample.diskFreeBytes !== null && sample.diskTotalBytes) rows.push({ key: 'disk', label: 'Disk', value: `Free ${Math.round(sample.diskFreeBytes / 1_000_000_000)} GB`, percent: clamp((sample.diskTotalBytes - sample.diskFreeBytes) / sample.diskTotalBytes * 100) });
     return rows;
 }

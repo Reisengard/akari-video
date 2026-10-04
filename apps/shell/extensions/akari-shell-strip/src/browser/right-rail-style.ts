@@ -9,8 +9,16 @@ export const RIGHT_RAIL_CLOSE_ICON_SVG = '<svg viewBox="0 0 24 24" width="13" he
 const LINE = 'var(--akari-rail-separator, #444)';
 const ACCENT = 'var(--akari-accent, #f97316)';
 
-export const RIGHT_RAIL_CSS = `
+/* 境目を端まで寄せられるよう、段の中身の最小高さを外す（寄せ切ると 1 面に戻る）。 */
+/* ── ドラッグ中 ── */
+/* 2 段のとき: 出ている 2 つは明るく、フォーカスの側だけに既存のアクセント棒（lm-mod-current）。 */
+/* ── 遅れなしの名前ツールチップ ── */
+/* ── 2 段のときの段の見出し（名前 + ×）。1 面のときは Theia の見出し帯を使う ── */
+/* 線の下の最初のアイコンを線の直下へ下げる（上の区画の数に関わらず線は真ん中）。 */
+/* 上の区画が真ん中を越えるほど多いときは、線を上の区画の直下へ。 */
 /* ── レールの区切り線: 縦バーの縦の真ん中（--akari-rail-middle はハンドラーが実測して入れる） ── */
+export const RIGHT_RAIL_CSS = `
+
 #theia-app-shell .akari-right-rail .lm-TabBar.theia-app-right::after {
     content: "";
     position: absolute;
@@ -25,11 +33,11 @@ export const RIGHT_RAIL_CSS = `
 #theia-app-shell .akari-right-rail .lm-TabBar.theia-app-right.akari-rail-crowded::after {
     display: none;
 }
-/* 線の下の最初のアイコンを線の直下へ下げる（上の区画の数に関わらず線は真ん中）。 */
+
 #theia-app-shell .akari-right-rail .lm-TabBar.theia-app-right .lm-TabBar-tab.akari-rail-lower-start {
     margin-top: var(--akari-rail-lower-offset, 12px) !important;
 }
-/* 上の区画が真ん中を越えるほど多いときは、線を上の区画の直下へ。 */
+
 #theia-app-shell .akari-right-rail .lm-TabBar.theia-app-right.akari-rail-crowded .lm-TabBar-tab.akari-rail-lower-start::after {
     content: "";
     position: absolute;
@@ -40,7 +48,7 @@ export const RIGHT_RAIL_CSS = `
     background: ${LINE};
     pointer-events: none;
 }
-/* 2 段のとき: 出ている 2 つは明るく、フォーカスの側だけに既存のアクセント棒（lm-mod-current）。 */
+
 #theia-app-shell .akari-right-rail .lm-TabBar.theia-app-right .lm-TabBar-tab.akari-rail-shown:not(.lm-mod-current) {
     background-color: var(--theia-activityBar-activeBackground, var(--akari-elevated, #1a1a1a));
     color: var(--theia-activityBar-foreground, var(--akari-ink, #e5e5e5));
@@ -49,7 +57,7 @@ export const RIGHT_RAIL_CSS = `
     background-color: var(--theia-activityBar-foreground, var(--akari-ink, #e5e5e5));
 }
 
-/* ── 遅れなしの名前ツールチップ ── */
+
 .akari-rail-tip {
     position: fixed;
     display: none;
@@ -66,7 +74,7 @@ export const RIGHT_RAIL_CSS = `
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
-/* ── 2 段のときの段の見出し（名前 + ×）。1 面のときは Theia の見出し帯を使う ── */
+
 .akari-right-rail-dock > .lm-TabBar.akari-rail-pane-header {
     min-height: 28px;
     max-height: 28px;
@@ -107,7 +115,7 @@ export const RIGHT_RAIL_CSS = `
     color: var(--akari-ink, #e5e5e5);
     background: var(--akari-elevated, #1a1a1a);
 }
-/* 境目を端まで寄せられるよう、段の中身の最小高さを外す（寄せ切ると 1 面に戻る）。 */
+
 .akari-right-rail-dock.akari-right-split > .lm-DockPanel-widget {
     min-height: 0 !important;
 }
@@ -115,7 +123,7 @@ export const RIGHT_RAIL_CSS = `
     cursor: grab;
 }
 
-/* ── ドラッグ中 ── */
+
 .akari-rail-drag-image {
     display: flex;
     align-items: center;

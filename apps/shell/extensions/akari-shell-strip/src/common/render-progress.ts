@@ -23,7 +23,7 @@ export type RenderProgressState =
     | { readonly kind: 'failed'; readonly label: string; readonly engine?: RenderProgressEngine }
     | { readonly kind: 'unknown'; readonly label: string; readonly engine?: RenderProgressEngine };
 
-export const RENDER_PROGRESS_UNKNOWN_LABEL = '進捗不明（書き出し中）';
+export const RENDER_PROGRESS_UNKNOWN_LABEL = 'Progress unavailable (exporting)';
 
 // phase 文字列の実測値は "verified"（PASS 完了時）の1つしか確認できていない
 // （SKILL.md は状態遷移の途中値を明文化していない）。途中値は推測にとどまる
@@ -113,34 +113,34 @@ function engineName(value: unknown): RenderProgressEngine['name'] | undefined {
 
 function doneLabel(engine: RenderProgressEngine | undefined): string {
     if (!engine) {
-        return '書き出し完了';
+        return 'Export complete';
     }
     if (engine.name === 'gpu') {
-        return '書き出し完了（GPU）';
+        return 'Export complete (GPU)';
     }
     if (engine.name === 'osr' && engine.ineligible?.length) {
         const first = formatIneligible(engine.ineligible[0]);
         const remainder = engine.ineligible.length - 1;
-        return `書き出し完了（OSR — GPU 不適格: ${first}${remainder > 0 ? `、他 ${remainder} 件` : ''}）`;
+        return `Export complete (OSR — GPU ineligible: ${first}${remainder > 0 ? `, plus ${remainder} items` : ''})`;
     }
     if (engine.name === 'osr' && engine.fallbackReason) {
-        return `書き出し完了（OSR — GPU 実行体なし: ${engine.fallbackReason}）`;
+        return `Export complete (OSR — GPU launcher unavailable: ${engine.fallbackReason})`;
     }
     if (engine.name === 'osr') {
-        return '書き出し完了（OSR）';
+        return 'Export complete (OSR)';
     }
-    return `書き出し完了（${engine.name}）`;
+    return `Export complete (${engine.name})`;
 }
 
 function inProgressLabel(phase: string | undefined, engine: RenderProgressEngine | undefined): string {
-    const base = phase ? `書き出し中（${phase}）` : '書き出し中';
+    const base = phase ? `Exporting (${phase})` : 'Exporting';
     if (engine?.name === 'gpu') {
-        return `${base}（GPU で書き出し中）`;
+        return `${base} (exporting with GPU)`;
     }
     if (engine?.name === 'osr') {
-        return `${base}（OSR で書き出し中）`;
+        return `${base} (exporting with OSR)`;
     }
-    return engine ? `${base}（${engine.name} で書き出し中）` : base;
+    return engine ? `${base}(${engine.name} export)` : base;
 }
 
 function formatIneligible(entry: string): string {
@@ -180,8 +180,8 @@ function describeFailure(verify: Record<string, unknown> | undefined): string {
         ?.filter(isRecord)
         .find(finding => finding.severity === 'error' && typeof finding.message === 'string')?.message;
     return typeof errorMessage === 'string' && errorMessage.trim()
-        ? `書き出しに失敗しました: ${errorMessage}`
-        : '書き出しに失敗しました';
+        ? `Export failed: ${errorMessage}`
+        : 'Export failed';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

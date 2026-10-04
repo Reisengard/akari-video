@@ -1,0 +1,22 @@
+
+> akari-tabs@0.0.1 test
+> tsc -b && node --test test/*.mjs
+
+✔ RENDER_STATE_RELATIVE_PATH points to render-cut state (2.5642ms)
+✔ parseRenderStateFacts extracts only phase and plan.output (1.0636ms)
+✔ parseRenderStateFacts returns undefined for unreadable input, failing open (0.2343ms)
+✔ normalizeArtifactPath normalizes separators and leading ./ (0.3966ms)
+✔ shouldHoldArtifactOpen waits while the same artifact is rendering (0.2288ms)
+✔ shouldHoldArtifactOpen opens after completion or failure (0.16ms)
+✔ shouldHoldArtifactOpen fails open when state cannot be determined (0.1206ms)
+✔ shouldHoldArtifactOpen does not wait for a different artifact (0.1226ms)
+✔ shouldHoldArtifactOpen recognizes equivalent path spellings (0.1613ms)
+✔ shouldHoldArtifactOpen opens after timeout in case a run crashed after rename (0.2324ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 153.602

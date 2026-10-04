@@ -12,8 +12,8 @@ function stepDetail(stage: QuickExportStage, snapshot: ExportSessionSnapshot): s
     const status = snapshot.status;
     if (stage === 'render') {
         const frames = status.progressFrame !== undefined && status.progressTotalFrames !== undefined
-            ? `${status.progressFrame} / ${status.progressTotalFrames} コマ`
-            : 'コマ数を計算中…';
+            ? `${status.progressFrame} / ${status.progressTotalFrames} frames`
+            : 'Calculating frame count…';
         return `${frames} · ${snapshot.video.fps ?? '—'} fps · ${(status.progressEngine ?? snapshot.settings.engine).toUpperCase()}`;
     }
     if (stage === 'audio-cut' && status.progressPercent !== undefined) {
@@ -41,19 +41,19 @@ export function ExportRunningView(props: {
         <>
             <div className='pb'>
                 <div className='left'>
-                    <div className='sec'><span>今描いている絵</span><span className='r'>書き出し中の画角</span></div>
+                    <div className='sec'><span>Current render frame</span><span className='r'>Export aspect ratio</span></div>
                     <ExportFrame video={snapshot.video} previewSlot />
                     <ExportLiveFramePainter />
                     <ExportThumbnailStrip percent={percent} />
                     <VideoFacts video={snapshot.video} />
                     <p className='fine'>{liveFrame
-                        ? '合成後の絵です（1 秒に 1 枚）。'
-                        : '素材の帯です。テロップ・効果は乗りません。'}</p>
+                        ? 'Composited frames (one per second).'
+                        : 'Footage strip without Captions or effects.'}</p>
                 </div>
                 <div className='rwrap'>
                     <div className='right'>
-                        {status.phase === 'linting' && <p className='fine' style={{ margin: '0 0 8px' }}>lint 確認中…</p>}
-                        <div className='sec'><span>いま何をしているか</span><span className='r'>{status.progressEngine ? `${status.progressEngine.toUpperCase()} · ` : ''}{percent}%</span></div>
+                        {status.phase === 'linting' && <p className='fine' style={{ margin: '0 0 8px' }}>Checking lint…</p>}
+                        <div className='sec'><span>Current stage</span><span className='r'>{status.progressEngine ? `${status.progressEngine.toUpperCase()} · ` : ''}{percent}%</span></div>
                         <div className='steps'>
                             {STAGES.map((stage, index) => {
                                 const state = index < activeIndex ? 'done' : index === activeIndex ? 'active' : 'pending';
@@ -68,16 +68,16 @@ export function ExportRunningView(props: {
                             })}
                         </div>
                         <div className='overall' data-akari-onboarding-target='export-progress'>
-                            <div className='lbl'><b>{percent}%</b><span>経過 {formatClock(status.progressElapsedMs)} · {status.progressRemainingMs !== undefined ? `残り約 ${formatClock(status.progressRemainingMs)}` : '残り時間を計算中…'}</span></div>
+                            <div className='lbl'><b>{percent}%</b><span>Elapsed {formatClock(status.progressElapsedMs)} · {status.progressRemainingMs !== undefined ? `About ${formatClock(status.progressRemainingMs)}` : 'Estimating time remaining…'}</span></div>
                             <div className='bar'><b style={{ width: `${percent}%` }} /></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div className='pf'>
-                <span className='fn'>閉じても書き出しは続きます。</span><span className='sp' />
-                <button type='button' className='btn' onClick={props.close}>閉じて作業を続ける</button>
-                <button type='button' className='btn danger' onClick={() => void session.cancel()}>中止</button>
+                <span className='fn'>Export continues after closing.</span><span className='sp' />
+                <button type='button' className='btn' onClick={props.close}>Close and continue working</button>
+                <button type='button' className='btn danger' onClick={() => void session.cancel()}>Cancel</button>
             </div>
         </>
     );

@@ -33,7 +33,7 @@ export function computeExportChipState(
         return {
             kind: 'running',
             stageLabel: quickExportStageLabel(status.progressStage, status.progressVerifyCheck)
-                ?? (status.phase === 'linting' ? 'lint 確認中' : '準備'),
+                ?? (status.phase === 'linting' ? 'Checking lint' : 'Preparing'),
             percent: Math.min(100, Math.max(0, Math.round(status.progressPercent ?? 0))),
             remainingMs: status.progressRemainingMs,
             outputName: snapshot.outputName
@@ -48,7 +48,7 @@ export function computeExportChipState(
             return {
                 kind: 'finished',
                 outcome: 'done',
-                line: `書き出し完了 · ${snapshot.outputName}`,
+                line: `Export complete · ${snapshot.outputName}`,
                 outputName: snapshot.outputName
             };
         }
@@ -56,14 +56,14 @@ export function computeExportChipState(
             return {
                 kind: 'finished',
                 outcome: 'failed',
-                line: '書き出しに失敗しました',
+                line: 'Export failed',
                 outputName: snapshot.outputName
             };
         }
         return {
             kind: 'finished',
             outcome: 'lint-failed',
-            line: 'lint NG で止まりました',
+            line: 'Stopped by lint errors',
             outputName: snapshot.outputName
         };
     }

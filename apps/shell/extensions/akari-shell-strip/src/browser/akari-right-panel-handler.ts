@@ -232,7 +232,7 @@ export class AkariRightPanelHandler extends SidePanelHandler {
         });
         const close = document.createElement('div');
         close.className = 'akari-rail-pane-close';
-        close.title = 'この段を閉じて 1 面に戻す';
+        close.title = 'Close this pane and return to one panel';
         close.setAttribute('role', 'button');
         close.innerHTML = RIGHT_RAIL_CLOSE_ICON_SVG;
         close.addEventListener('pointerdown', event => event.stopPropagation());

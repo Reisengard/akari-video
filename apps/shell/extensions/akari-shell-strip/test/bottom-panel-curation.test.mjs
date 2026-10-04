@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const { shouldCloseAtStartup, BOTTOM_PANEL_MENU_ITEMS, PARTNER_TERMINAL_KIND, TIMELINE_WIDGET_ID } =
     require('../lib/common/bottom-panel-curation.js');
 
-test('復元済み bottom の Theia 既定タブだけを閉じる', () => {
+test('Close only restored default Theia bottom tabs', () => {
     for (const id of ['problems', 'outputView', 'debug-console']) {
         assert.equal(shouldCloseAtStartup({ id, area: 'bottom', isTerminal: false }), true, id);
         for (const area of ['main', 'left', 'right', undefined]) {
@@ -15,14 +15,14 @@ test('復元済み bottom の Theia 既定タブだけを閉じる', () => {
     }
 });
 
-test('タイムラインと未知のタブを保持する', () => {
+test('Keep Timeline and unknown tabs', () => {
     for (const id of [TIMELINE_WIDGET_ID, 'custom-output', 'terminal', 'zsh', 'akari-partner-onboarding']) {
         assert.equal(shouldCloseAtStartup({ id, area: 'bottom', isTerminal: false }), false, id);
     }
 });
 
-test('端末はタイトルや ID でなく型と kind で判定する', () => {
-    for (const label of ['zsh', 'Claude', 'Codex', 'タイムライン', '']) {
+test('Identify terminals by type and kind rather than title or ID', () => {
+    for (const label of ['zsh', 'Claude', 'Codex', 'Timeline', '']) {
         const terminal = { id: 'terminal-123', area: 'bottom', isTerminal: true, label };
         assert.equal(shouldCloseAtStartup({ ...terminal, kind: 'user' }), true, label);
         assert.equal(shouldCloseAtStartup({ ...terminal, kind: PARTNER_TERMINAL_KIND }), false, label);
@@ -32,17 +32,17 @@ test('端末はタイトルや ID でなく型と kind で判定する', () => {
     }
 });
 
-test('パートナー端末が誤って bottom にあっても保護する', () => {
+test('Protect Partner terminals even when misplaced in the bottom panel', () => {
     assert.equal(PARTNER_TERMINAL_KIND, 'akari-partner');
     for (const id of ['terminal-123', 'problems', 'outputView', 'debug-console']) {
         assert.equal(shouldCloseAtStartup({ id, area: 'bottom', isTerminal: true, kind: 'akari-partner' }), false);
     }
 });
 
-test('プルダウンはタイムラインとターミナルだけ', () => {
+test('Dropdown contains only Timeline and Terminal', () => {
     assert.deepEqual(BOTTOM_PANEL_MENU_ITEMS, [
-        { id: 'timeline', label: 'タイムライン' },
-        { id: 'terminal', label: 'ターミナル' }
+        { id: 'timeline', label: 'Timeline' },
+        { id: 'terminal', label: 'Terminal' }
     ]);
 });
 
@@ -104,7 +104,7 @@ function harness(widgets, enabled = false) {
     return { service, shell, closed, activated, commands, added, changed, layout };
 }
 
-test('起動時だけ掃除し、後から追加した端末や問題タブは F6 切替でも閉じない', async () => {
+test('Clean only at startup; F6 preserves terminals and Problems tabs added later', async () => {
     const partner = Object.assign(new TerminalWidget(), { id: 'partner', kind: 'akari-partner', area: 'bottom' });
     const terminal = Object.assign(new TerminalWidget(), { id: 'shell', kind: 'user', area: 'bottom' });
     const widgets = [partner, terminal, { id: 'problems', area: 'bottom' }, { id: TIMELINE_WIDGET_ID, area: 'bottom' }];
@@ -124,7 +124,7 @@ test('起動時だけ掃除し、後から追加した端末や問題タブは F
     h.service.onStop();
 });
 
-test('開発者モードで起動した場合は掃除せず、OFF にしても復元タブを維持する', async () => {
+test('Developer-mode startup skips cleanup; switching off preserves restored tabs', async () => {
     const widgets = [{ id: 'problems', area: 'bottom' }];
     const h = harness(widgets, true);
     await h.service.onDidInitializeLayout({ shell: h.shell });
@@ -134,7 +134,7 @@ test('開発者モードで起動した場合は掃除せず、OFF にしても�
     h.service.onStop();
 });
 
-test('タイムライン項目は既存タブの有無にかかわらず常に akari.annotations.open を呼び、activateWidget は呼ばない', async () => {
+test('Timeline always calls akari.annotations.open rather than activateWidget', async () => {
     const widgets = [{ id: TIMELINE_WIDGET_ID, area: 'bottom' }];
     const h = harness(widgets);
     await h.service.onDidInitializeLayout({ shell: h.shell });
@@ -148,7 +148,7 @@ test('タイムライン項目は既存タブの有無にかかわらず常に a
     h.service.onStop();
 });
 
-test('terminal:new の新規端末を bottom に置き、既存・パートナー端末は動かさない', async () => {
+test('terminal:new places new terminals at the bottom without moving existing or Partner terminals', async () => {
     const h = harness([]);
     await h.service.onDidInitializeLayout({ shell: h.shell });
     const existing = { id: 'existing', kind: 'user', area: 'main' };

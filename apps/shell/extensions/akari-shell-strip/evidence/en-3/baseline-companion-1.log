@@ -1,0 +1,191 @@
+
+> akari-companion@0.0.1 test
+> tsc -b && node --test test/*.test.mjs
+
+✔ 許可された全コマンドの正常な引数を受ける (3.5163ms)
+✔ 固定一覧に無い副作用コマンドを拒む (0.4694ms)
+✔ 文字列・配列・数値の境界を検査する (0.386ms)
+✔ 型違い・未知のキー・不完全な union を拒む (0.3355ms)
+✔ 素材取り込みの引数を厳密に検査する (0.2568ms)
+✔ インスペクターの単独表示指定を検査する (0.2102ms)
+✔ editUri は橋が入れる — 必須のコマンドでも係は渡さなくてよい (0.22ms)
+✔ 現在の review/root と external 印で注釈を作る (3.3185ms)
+✔ session 不一致では作らない (0.3317ms)
+✔ 空文字と 2001 字を拒む (0.28ms)
+✔ sourceT null は文書・画像ターゲットだけに許す (0.4852ms)
+✔ 範囲・文字列境界・例外を検査する (0.517ms)
+✔ applyEdit 以外は検査せず通す (3.0107ms)
+✔ 場所なしと session 不一致を stale-session にする (1.1245ms)
+✔ 検査の失敗理由をそのまま返す (3.2923ms)
+✔ 検査通過と中身の無い applyEdit は通す (0.8224ms)
+✔ 候補名には basename だけを使う (1.4198ms)
+✔ session 不一致を拒む (2.9643ms)
+✔ 8MB 超を拒む (34.016ms)
+✔ 中身なしと壊れた JSON を invalid-args にする (0.4442ms)
+✔ 現在のハッシュと違うと両方を書かない (0.7805ms)
+✔ 書き込み例外を rejected にする (1.6659ms)
+✔ 両文書を 1 回で書き履歴を 1 件積む (0.7719ms)
+✔ undo 時に別変更があれば書き戻さず通知して失敗する (1.1847ms)
+✔ redo 時も別変更があれば書き戻さず通知して失敗する (0.6703ms)
+✔ 6 種類の対象と属性対応を固定する (4.0848ms)
+✔ 属性値の完全一致セレクタを組み立てる (1.854ms)
+✔ ちょうど 1 件が可視の場合だけ確定する (0.8856ms)
+✔ AKARI_HOME と既定ホームから設定パスを解決する (6.2005ms)
+✖ 権限 600 の正しい設定だけを読む (13.3829ms)
+✔ 壊れた JSON と port/token の型違いを拒む (16.0143ms)
+✔ toolbar stays visible while disconnected and hides only when disabled (2.7229ms)
+✔ enabled defaults to true and only user preferences disable it (2.9283ms)
+✔ disconnected click starts once, opens on connection and then toggles the panel (1.8782ms)
+✔ starting label appears after five seconds and resets after failure or success (2.0523ms)
+✔ missing executable or RPC failure shows startup notice and allows retry (0.9295ms)
+✔ settings command accepts only connections and returns invalid-args otherwise (12.4416ms)
+✔ public label is AKARI バイブ and obsolete word prohibition test is removed (19.3811ms)
+✔ manifest の panelPath と panel を port と一緒に通知する (57.1873ms)
+✔ 不正な panelPath は省いて接続を続ける (28.6802ms)
+✔ 枠情報が無い manifest も接続を続ける (16.6362ms)
+✔ manifest の proof が不正なら実行も状態送信もしない (58.5527ms)
+✔ SSE を順に実行し重複を再実行せず light/docs を各 1 POST で送る (63.2085ms)
+✔ 実行中を含む 64 件を超えた指示へ busy を返す (42.289ms)
+✔ dropQueued は未実行分を stale-session で返す (46.2724ms)
+✔ 再接続で Last-Event-ID を送り backoff を 2/5/10 秒にする (108.5979ms)
+✔ (a) start 後の差分 3 回で枠が合計 90,30 動く (3.8189ms)
+✔ (b) 親の mousemove はボタンが離れていても中身の移動を終えず動かさない (0.3945ms)
+✔ (d) start から 2 秒で終了し、差分・blur・unmount でタイマーを片付ける (0.5274ms)
+✔ (e) 三角を置かず、左端と左下角に透明なリサイズ帯を置く (6.007ms)
+✔ (f) 左端の帯を左へ動かすと右端固定で幅を保存・通知し、720 で止まる (2.2701ms)
+✔ (g) つかんだまま 3 秒止めても次の差分で合計 20 動く (0.433ms)
+✔ (h) start 前と end 後の差分でも枠が動く (0.4342ms)
+✔ pill は中身の幅と角丸を使い、リサイズ帯は pill と小さい枠で隠す (2.2495ms)
+✔ 横幅を覚えていても、畳まれた中身（tab のまま丸だけ）には空の帯を広げない (0.4974ms)
+✔ リサイズの操作面は押下中だけ iframe の上を覆う (0.3602ms)
+✔ 中身からの高さは 720 と画面の高さに収める (0.2074ms)
+✔ 閉じるボタンは背景の四角を持たない (1.5617ms)
+✔ パネルの大きさを境界内へ丸める (4.3252ms)
+✔ 横位置は中央を既定にし画面内へ丸める (0.3935ms)
+✔ 形は tab と pill だけを受ける (0.4926ms)
+✔ 同じ origin の相対パスだけを受ける (0.5114ms)
+✔ manifest の有効な枠情報だけを取り出す (0.4643ms)
+✔ 既定の置き場所は呼び出しボタンの真下・右端そろえ (0.4223ms)
+✔ 縦位置は画面の中に丸める (0.2053ms)
+✔ 指示の分岐と表示切替コマンドを配線する (10.72ms)
+✔ 呼び出しボタンは「変更を見る」より左に出て、枠の既定位置になる (7.0596ms)
+✔ 枠は安全な iframe と局所的な操作面だけを持つ (3.254ms)
+✔ 光の点は動きを減らす設定とプレビューの箱に対応する (2.5126ms)
+✔ stdin secret is absent from child argv/env and EOF stops the child (143.4765ms)
+✔ first-line port connects with authenticated manifest HMAC (160.5773ms)
+✔ startup and connection have separate default deadlines (0.2782ms)
+✔ first line after eight seconds still starts (8135.0065ms)
+✔ first line scheduled after 25 seconds times out and stops the child (93.5608ms)
+✔ A to B ownership stops A before B and drops A state and instructions (262.8886ms)
+✔ owner disconnect and backend shutdown close stdin and stop owned children (219.485ms)
+✔ no explicit config means temporary HOME companion file is never read (92.6456ms)
+AKARI バイブ: explicit connection configuration is invalid
+✖ explicit config connects without spawning and retains single owner (112.8918ms)
+✔ startup invalid returns false with one log line and cleans up (93.0655ms)
+✔ startup wrong-port returns false with one log line and cleans up (89.5339ms)
+✔ startup wrong-protocol returns false with one log line and cleans up (96.0587ms)
+✔ startup wrong-type returns false with one log line and cleans up (92.3202ms)
+✔ startup oversized returns false with one log line and cleans up (92.5262ms)
+✔ startup exit returns false with one log line and cleans up (89.1433ms)
+✔ startup silent returns false with one log line and cleans up (5024.7431ms)
+✔ bad manifest HMAC fails startup and stops the child (5109.8718ms)
+✖ shutdown escalates ignore-end after stdin EOF (420.9798ms)
+✖ shutdown escalates ignore-term after stdin EOF (400.6305ms)
+✔ missing bundled executable fails without throwing and can retry (5.8322ms)
+✔ bin resolution prefers override then resources then ancestor package (7.9979ms)
+✔ ownership change during startup cancels the earlier child without overlap (182.2708ms)
+✔ connection containers isolate services and share one backend process manager (11.4946ms)
+✔ owner connection close cancels startup and stops its child through stdin EOF (121.9977ms)
+✔ disabling owner or stopping backend cancels startup and reaps its child (197.1485ms)
+✔ ownership revoked during edit validation cannot dispatch to the old client (0.7333ms)
+✔ 選択・再生位置・パネルを light 状態へ反映する (10.047ms)
+✔ 文書ハッシュが変わったときだけ docs を送り大きい本文を省く (80.2557ms)
+✔ docs と snapshot にプロジェクト内の相対パスを載せる (25.7709ms)
+✔ プロジェクト外の文書パスでは location を省く (18.2671ms)
+✔ Windows パスを大文字小文字と区切りの違いを含めて相対化する (12.7433ms)
+✔ プロジェクト切り替えで新しい location の docs を送り直す (30.9988ms)
+✔ つなぎ直したら、ハッシュが変わっていなくても docs を送り直す (15.4246ms)
+✔ shell・build:ext・unit lane に登録されている (5.9097ms)
+ℹ tests 103
+ℹ suites 0
+ℹ pass 99
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21410.1233
+
+✖ failing tests:
+
+test at test\companion-home.test.mjs:16:1
+✖ 権限 600 の正しい設定だけを読む (13.3829ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   port: 4567,
+  -   token: 'secret'
+  - }
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-shell-strip/evidence/en-3/baseline/apps/shell/extensions/akari-companion/test/companion-home.test.mjs:22:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { port: 4567, token: 'secret' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:192:1
+✖ explicit config connects without spawning and retains single owner (112.8918ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-shell-strip/evidence/en-3/baseline/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:203:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:238:3
+✖ shutdown escalates ignore-end after stdin EOF (420.9798ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(rows.some(row => row.type === 'sigterm'))
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-shell-strip/evidence/en-3/baseline/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:248:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test\companion-process.test.mjs:238:3
+✖ shutdown escalates ignore-term after stdin EOF (400.6305ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(rows.some(row => row.type === 'sigterm'))
+  
+      at TestContext.<anonymous> (file:///Z:/AI/Projects/akari-video/apps/shell/extensions/akari-shell-strip/evidence/en-3/baseline/apps/shell/extensions/akari-companion/test/companion-process.test.mjs:248:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

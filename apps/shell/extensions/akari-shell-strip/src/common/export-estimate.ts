@@ -127,16 +127,16 @@ export function formatEstimate(seconds: number, bytes: number): FormattedExportE
     const roundedSeconds = Math.max(10, Math.round(Math.max(0, seconds) / 10) * 10);
     let time: string;
     if (roundedSeconds < 60) {
-        time = `約 ${roundedSeconds} 秒`;
+        time = `About ${roundedSeconds} s`;
     } else {
         const minutes = Math.floor(roundedSeconds / 60);
         const rest = roundedSeconds % 60;
-        time = rest === 0 ? `約 ${minutes} 分` : `約 ${minutes} 分 ${rest} 秒`;
+        time = rest === 0 ? `About ${minutes} min` : `About ${minutes} min ${rest} s`;
     }
 
     const megabytes = Math.max(0, bytes) / 1_000_000;
     const size = megabytes >= 1000
-        ? `約 ${(megabytes / 1000).toFixed(1)} GB`
-        : `約 ${Math.max(1, Math.round(megabytes))} MB`;
+        ? `About ${(megabytes / 1000).toFixed(1)} GB`
+        : `About ${Math.max(1, Math.round(megabytes))} MB`;
     return { time, size };
 }

@@ -11,11 +11,11 @@ import {
 const hold = (renderState, artifactRelativePath = 'exports/final-4.mp4', waitedMs = 0) =>
     shouldHoldArtifactOpen({ renderState, artifactRelativePath, waitedMs });
 
-test('RENDER_STATE_RELATIVE_PATH: render-cut が書く状態ファイルを指す', () => {
+test('RENDER_STATE_RELATIVE_PATH points to render-cut state', () => {
     assert.equal(RENDER_STATE_RELATIVE_PATH, '.akari/render.json');
 });
 
-test('parseRenderStateFacts: phase と plan.output だけを取り出す', () => {
+test('parseRenderStateFacts extracts only phase and plan.output', () => {
     const facts = parseRenderStateFacts(JSON.stringify({
         version: 1,
         phase: 'planned',
@@ -24,11 +24,11 @@ test('parseRenderStateFacts: phase と plan.output だけを取り出す', () =>
     assert.deepEqual(facts, { phase: 'planned', output: 'exports/final-4.mp4' });
 });
 
-test('parseRenderStateFacts: 読めない入力は undefined（門を開ける側に倒す）', () => {
+test('parseRenderStateFacts returns undefined for unreadable input, failing open', () => {
     assert.equal(parseRenderStateFacts(undefined), undefined);
     assert.equal(parseRenderStateFacts(''), undefined);
     assert.equal(parseRenderStateFacts('   '), undefined);
-    assert.equal(parseRenderStateFacts('{ 途中で切れた'), undefined);
+    assert.equal(parseRenderStateFacts('{ truncated'), undefined);
     assert.equal(parseRenderStateFacts('[]'), undefined);
     assert.equal(parseRenderStateFacts('null'), undefined);
     // 形は JSON でも中身が欠けていれば各項目は undefined（= 完了扱い）。
@@ -36,7 +36,7 @@ test('parseRenderStateFacts: 読めない入力は undefined（門を開ける�
     assert.deepEqual(parseRenderStateFacts('{"phase":1,"plan":{"output":2}}'), { phase: undefined, output: undefined });
 });
 
-test('normalizeArtifactPath: 区切りと先頭 ./ の揺れを吸収する', () => {
+test('normalizeArtifactPath normalizes separators and leading ./', () => {
     assert.equal(normalizeArtifactPath('exports/final-4.mp4'), 'exports/final-4.mp4');
     assert.equal(normalizeArtifactPath('./exports/final-4.mp4'), 'exports/final-4.mp4');
     assert.equal(normalizeArtifactPath('exports\\final-4.mp4'), 'exports/final-4.mp4');
@@ -45,19 +45,19 @@ test('normalizeArtifactPath: 区切りと先頭 ./ の揺れを吸収する', ()
     assert.equal(normalizeArtifactPath(''), undefined);
 });
 
-test('shouldHoldArtifactOpen: 同じ成果物を作っているレンダーが走行中なら待たせる', () => {
+test('shouldHoldArtifactOpen waits while the same artifact is rendering', () => {
     // render-cut は実行開始時に phase:"planned" + plan.output を書き、rename はその後に来る。
     assert.equal(hold({ phase: 'planned', output: 'exports/final-4.mp4' }), true);
     assert.equal(hold({ phase: 'rendered', output: 'exports/final-4.mp4' }), true);
     assert.equal(hold({ phase: 'filter_report', output: 'exports/final-4.mp4' }), true);
 });
 
-test('shouldHoldArtifactOpen: 完走・失敗で門が開く', () => {
+test('shouldHoldArtifactOpen opens after completion or failure', () => {
     assert.equal(hold({ phase: 'verified', output: 'exports/final-4.mp4' }), false);
     assert.equal(hold({ phase: 'error', output: 'exports/final-4.mp4' }), false);
 });
 
-test('shouldHoldArtifactOpen: 判定できないときは待たせない（fail-open）', () => {
+test('shouldHoldArtifactOpen fails open when state cannot be determined', () => {
     // render.json が無い / 壊れている
     assert.equal(hold(undefined), false);
     // 未知の phase・phase 欠落
@@ -67,18 +67,18 @@ test('shouldHoldArtifactOpen: 判定できないときは待たせない（fail-
     assert.equal(hold({ phase: 'planned' }), false);
 });
 
-test('shouldHoldArtifactOpen: 別の成果物を作っているレンダーでは待たせない', () => {
+test('shouldHoldArtifactOpen does not wait for a different artifact', () => {
     // 直前の書き出しの render.json が残っているだけ、という状況で手で置いた mp4 を止めない。
     assert.equal(hold({ phase: 'planned', output: 'exports/final-3.mp4' }), false);
     assert.equal(hold({ phase: 'planned', output: 'exports/final-4.mp4' }, 'exports/hand-drop.mp4'), false);
 });
 
-test('shouldHoldArtifactOpen: パス表記が揺れても同じ成果物と見なす', () => {
+test('shouldHoldArtifactOpen recognizes equivalent path spellings', () => {
     assert.equal(hold({ phase: 'planned', output: './exports/final-4.mp4' }), true);
     assert.equal(hold({ phase: 'planned', output: 'exports\\final-4.mp4' }), true);
 });
 
-test('shouldHoldArtifactOpen: 上限を過ぎたら開く（rename 後に落ちた実行の保険）', () => {
+test('shouldHoldArtifactOpen opens after timeout in case a run crashed after rename', () => {
     const running = { phase: 'planned', output: 'exports/final-4.mp4' };
     assert.equal(hold(running, 'exports/final-4.mp4', ARTIFACT_OPEN_GATE_TIMEOUT_MS - 1), true);
     assert.equal(hold(running, 'exports/final-4.mp4', ARTIFACT_OPEN_GATE_TIMEOUT_MS), false);

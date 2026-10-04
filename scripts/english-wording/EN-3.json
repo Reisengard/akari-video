@@ -1,5 +1,5 @@
 {
   "id": "EN-3",
   "glob": "apps/shell/extensions/{akari-shell-strip,akari-theme,akari-tabs,akari-companion,akari-world-view}/**",
-  "max": 13576
+  "max": 0
 }

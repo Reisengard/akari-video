@@ -75,7 +75,7 @@ export function ExportFrame(props: {
 
 export function VideoFacts(props: { video: ThisVideoDescription }): React.ReactNode {
     const video = props.video;
-    const orientation = video.orientation === 'portrait' ? '縦' : video.orientation === 'square' ? '正方形' : '横';
+    const orientation = video.orientation === 'portrait' ? 'Portrait' : video.orientation === 'square' ? 'Square' : 'Landscape';
     return (
         <div className='kv'>
             <span><b>{ratioLabel(video)}</b> {orientation}</span>
@@ -84,9 +84,9 @@ export function VideoFacts(props: { video: ThisVideoDescription }): React.ReactN
             <span><b>{formatDuration(video.durationSeconds)}</b></span>
             {(video.cutCount !== undefined || video.captionCount !== undefined) && (
                 <span>
-                    {video.cutCount !== undefined && <>カット <b>{video.cutCount}</b></>}
+                    {video.cutCount !== undefined && <>Cuts <b>{video.cutCount}</b></>}
                     {video.cutCount !== undefined && video.captionCount !== undefined && ' · '}
-                    {video.captionCount !== undefined && <>テロップ <b>{video.captionCount}</b></>}
+                    {video.captionCount !== undefined && <>Captions <b>{video.captionCount}</b></>}
                 </span>
             )}
         </div>

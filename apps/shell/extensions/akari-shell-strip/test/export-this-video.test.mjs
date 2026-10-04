@@ -4,7 +4,7 @@ import { describeThisVideo } from '../lib/common/export-this-video.js';
 
 const cuts = [{ src: 'a.mp4', in: 0, out: 3 }, { src: 'b.mp4', in: 1, out: 5 }];
 
-test('describeThisVideo: 横長の寸法・尺・構成を読む', () => {
+test('describeThisVideo reads landscape dimensions, duration, and composition', () => {
     assert.deepEqual(describeThisVideo(
         { output: { width: 1920, height: 1080, fps: 30 }, cuts },
         { captions: [{ id: 'c1' }] }
@@ -14,12 +14,12 @@ test('describeThisVideo: 横長の寸法・尺・構成を読む', () => {
     });
 });
 
-test('describeThisVideo: 縦長と正方形を判別する', () => {
+test('describeThisVideo distinguishes portrait from square', () => {
     assert.equal(describeThisVideo({ output: { width: 1080, height: 1920 } }).orientation, 'portrait');
     assert.equal(describeThisVideo({ output: { width: 1080, height: 1080 } }).orientation, 'square');
 });
 
-test('describeThisVideo: v2 tracks/items から尺と media カット数を読む', () => {
+test('describeThisVideo reads duration and media cut count from v2 tracks/items', () => {
     const edit = {
         version: 2,
         output: { width: 1920, height: 1080, fps: 30 },
@@ -38,7 +38,7 @@ test('describeThisVideo: v2 tracks/items から尺と media カット数を読�
             {
                 id: 'caption-track', lane: 'visual', items: [
                     {
-                        id: 'captions', name: '字幕', at: 0, duration: 1200,
+                        id: 'captions', name: 'Captions', at: 0, duration: 1200,
                         source: { kind: 'captions', path: 'captions.json' }, items: []
                     }
                 ]
@@ -51,7 +51,7 @@ test('describeThisVideo: v2 tracks/items から尺と media カット数を読�
     });
 });
 
-test('describeThisVideo: 欠損した JSON を例外にせず undefined で返す', () => {
+test('describeThisVideo returns undefined for missing JSON without throwing', () => {
     assert.deepEqual(describeThisVideo(undefined), {
         orientation: 'landscape', width: undefined, height: undefined, fps: undefined
     });

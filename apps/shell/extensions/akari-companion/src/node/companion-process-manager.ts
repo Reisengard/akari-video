@@ -92,7 +92,7 @@ export class CompanionProcessManager {
             } catch (error) {
                 if (revision === this.revision) {
                     const detail = String((error as Error).message).replace(/[\r\n]+/g, ' ');
-                    (this.options.log ?? console.warn)(`AKARI バイブ: ${detail}`);
+                    (this.options.log ?? console.warn)(`AKARI Vibe: ${detail}`);
                 }
                 return false;
             } finally {

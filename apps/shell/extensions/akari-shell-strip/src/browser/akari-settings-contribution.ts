@@ -13,8 +13,8 @@ export class AkariSettingsOpener extends BaseWidget {
     @postConstruct()
     protected init(): void {
         this.id = AkariSettingsOpener.ID;
-        this.title.label = '設定';
-        this.title.caption = 'AKARI Video の設定';
+        this.title.label = 'Settings';
+        this.title.caption = 'AKARI Video settings';
         this.title.iconClass = 'codicon codicon-settings-gear';
         this.title.closable = false;
     }

@@ -65,7 +65,7 @@ async function observeConnection(manifestFields) {
   return { fixture, link, states };
 }
 
-serverTest('manifest の panelPath と panel を port と一緒に通知する', async () => {
+serverTest('Report manifest panelPath and panel with port', async () => {
   const observed = await observeConnection({ panelPath: '/panel', panel: { width: 480, height: 220 } });
   try {
     assert.deepEqual(observed.states[0], {
@@ -81,7 +81,7 @@ serverTest('manifest の panelPath と panel を port と一緒に通知する',
   }
 });
 
-serverTest('不正な panelPath は省いて接続を続ける', async () => {
+serverTest('Omit invalid panelPath and continue connecting', async () => {
   const observed = await observeConnection({ panelPath: '//evil/x' });
   try {
     assert.deepEqual(observed.states[0], {
@@ -93,7 +93,7 @@ serverTest('不正な panelPath は省いて接続を続ける', async () => {
   }
 });
 
-serverTest('枠情報が無い manifest も接続を続ける', async () => {
+serverTest('Connect with manifests without panel information', async () => {
   const observed = await observeConnection({});
   try {
     assert.deepEqual(observed.states[0], {

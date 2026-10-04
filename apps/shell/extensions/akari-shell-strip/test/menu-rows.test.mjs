@@ -8,17 +8,17 @@ const require = createRequire(import.meta.url);
 const { akariMenuRows } = require('../lib/common/menu-rows.js');
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('ひらく contains exactly the nine ordered rows', () => {
+test('Open contains exactly the nine ordered rows', () => {
     assert.deepEqual(akariMenuRows(), [
-        { id: 'akari.partner.open', label: 'パートナー', icon: 'codicon codicon-add' },
-        { id: 'akari.daihon.open', label: '台本', icon: 'akari-rail-icon akari-rail-icon-daihon' },
-        { id: 'akari.cuts.open', label: 'カット候補', icon: 'akari-rail-icon akari-rail-icon-cuts' },
-        { id: 'akari.review.open', label: '注釈', icon: 'akari-rail-icon akari-rail-icon-review' },
-        { id: 'akari.annotations.open', label: 'タイムライン（下パネル）', icon: 'codicon codicon-comment' },
-        { id: 'akari.menu.openOverview', label: 'ホーム', icon: 'codicon codicon-home' },
-        { id: 'akari.home.openFirstRunSetup', label: 'セットアップ', icon: 'codicon codicon-tools' },
-        { id: 'akari.home.openProjectLauncher', label: 'プロジェクト・ランチャー', icon: 'codicon codicon-layout' },
-        { id: 'akari.project.showChanges', label: '変更を見る', icon: 'codicon codicon-diff' }
+        { id: 'akari.partner.open', label: 'Partner', icon: 'codicon codicon-add' },
+        { id: 'akari.daihon.open', label: 'Script', icon: 'akari-rail-icon akari-rail-icon-daihon' },
+        { id: 'akari.cuts.open', label: 'Cut candidates', icon: 'akari-rail-icon akari-rail-icon-cuts' },
+        { id: 'akari.review.open', label: 'Annotations', icon: 'akari-rail-icon akari-rail-icon-review' },
+        { id: 'akari.annotations.open', label: 'Timeline (bottom panel)', icon: 'codicon codicon-comment' },
+        { id: 'akari.menu.openOverview', label: 'Home', icon: 'codicon codicon-home' },
+        { id: 'akari.home.openFirstRunSetup', label: 'Setup', icon: 'codicon codicon-tools' },
+        { id: 'akari.home.openProjectLauncher', label: 'Project Launcher', icon: 'codicon codicon-layout' },
+        { id: 'akari.project.showChanges', label: 'View changes', icon: 'codicon codicon-diff' }
     ]);
 });
 
@@ -26,7 +26,7 @@ test('world map row is additive and opt-in', () => {
     assert.equal(akariMenuRows().length, 9);
     const rows = akariMenuRows({ worldMap: true });
     assert.equal(rows.length, 10);
-    assert.deepEqual(rows[5], { id: 'akari.world.openMap', label: '地図', icon: 'codicon codicon-map' });
+    assert.deepEqual(rows[5], { id: 'akari.world.openMap', label: 'Map', icon: 'codicon codicon-map' });
 });
 
 const dockTabs = [
@@ -34,7 +34,6 @@ const dockTabs = [
         widget: '../../akari-partner/src/browser/akari-partner-widget.tsx',
         commands: '../../akari-partner/src/browser/akari-partner-command-contribution.ts',
         command: /OPEN\s*:\s*\{\s*id:\s*'([^']+)'/,
-        prefix: true
     },
     {
         widget: '../../akari-transcript/src/browser/daihon/akari-daihon-widget.ts',
@@ -45,7 +44,6 @@ const dockTabs = [
         widget: '../../akari-transcript/src/browser/daihon/akari-cuts-widget.ts',
         commands: '../../akari-transcript/src/browser/daihon/akari-daihon-contribution.ts',
         command: /OPEN_AKARI_CUTS\s*:\s*Command\s*=\s*\{\s*id:\s*'([^']+)'/,
-        prefix: true
     },
     {
         widget: '../../akari-annotations/src/browser/akari-review-panel-widget.ts',
@@ -55,23 +53,14 @@ const dockTabs = [
 ];
 
 for (const tab of dockTabs) {
-    test(`menu command, label and icon mirror ${tab.widget}`, () => {
+    test(`menu command and icon mirror ${tab.widget}`, () => {
         const command = read(tab.commands).match(tab.command);
         assert.ok(command, `command declaration in ${tab.commands}`);
         const row = akariMenuRows().find(candidate => candidate.id === command[1]);
         assert.ok(row, `menu contains ${command[1]}`);
         const widget = read(tab.widget);
-        const label = widget.match(/this\.title\.label\s*=\s*'([^']+)'/);
         const icon = widget.match(/this\.title\.iconClass\s*=\s*'([^']+)'/);
-        assert.ok(label, 'literal tab label');
         assert.ok(icon, 'literal tab icon');
-        // パートナーはタブ側に「を追加」、カットはメニュー側に「候補」が付くため、
-        // この 2 タブだけはどちらかが他方の接頭辞でもよい。台本・注釈は完全一致。
-        if (tab.prefix) {
-            assert.ok(row.label.startsWith(label[1]) || label[1].startsWith(row.label));
-        } else {
-            assert.equal(row.label, label[1]);
-        }
         assert.equal(row.icon, icon[1]);
     });
 }

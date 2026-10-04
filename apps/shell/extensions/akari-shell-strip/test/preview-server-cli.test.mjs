@@ -19,7 +19,7 @@ const READY_LOG = [
     '  project: /projects/demo'
 ].join('\n');
 
-test('定数: akari.sh --preview の既定（4567 起点・10 個・127.0.0.1・10 秒）に揃う', () => {
+test('Constants match akari.sh --preview defaults: port 4567, 10 ports, 127.0.0.1, 10 seconds', () => {
     assert.equal(PREVIEW_SERVER_DEFAULT_PORT, 4567);
     assert.equal(PREVIEW_SERVER_PORT_ATTEMPTS, 10);
     assert.equal(PREVIEW_SERVER_HOST, '127.0.0.1');
@@ -33,44 +33,44 @@ test('buildPreviewServerArgs: [projectRoot, --port, <n>, --host, 127.0.0.1]', ()
     );
 });
 
-test('parsePreviewServerReadyUrl: 実ログ 4 行から最初の URL を拾う（末尾スラッシュ無し）', () => {
+test('parsePreviewServerReadyUrl reads the first URL from four real log lines without trailing slash', () => {
     assert.equal(parsePreviewServerReadyUrl(READY_LOG), 'http://127.0.0.1:4567');
 });
 
-test('parsePreviewServerReadyUrl: URL 行が無ければ undefined', () => {
+test('parsePreviewServerReadyUrl returns undefined without a URL line', () => {
     assert.equal(parsePreviewServerReadyUrl('[watch] watching /projects/demo\n'), undefined);
     assert.equal(parsePreviewServerReadyUrl(''), undefined);
 });
 
-test('buildPreviewOpenUrl: latest はルート', () => {
+test('buildPreviewOpenUrl latest uses the root', () => {
     assert.equal(buildPreviewOpenUrl('http://127.0.0.1:4567', 'latest'), 'http://127.0.0.1:4567/');
 });
 
-test('buildPreviewOpenUrl: legacy は ?frameEngine=0（従来 DOM プレビュー）', () => {
+test('buildPreviewOpenUrl legacy uses ?frameEngine=0 for the legacy DOM preview', () => {
     assert.equal(buildPreviewOpenUrl('http://127.0.0.1:4567', 'legacy'), 'http://127.0.0.1:4567/?frameEngine=0');
 });
 
-test('describePreviewServerFailure: stderr に EADDRINUSE → ポート使用中の日本語', () => {
+test('describePreviewServerFailure explains EADDRINUSE in English', () => {
     const summary = describePreviewServerFailure(
         1,
         'Error: listen EADDRINUSE: address already in use 127.0.0.1:4567',
         4567
     );
-    assert.equal(summary, 'ポート 4567 は別のプロセスが使用中です');
+    assert.equal(summary, 'Port 4567 is in use by another process');
 });
 
-test('describePreviewServerFailure: stderr ありは末尾要約', () => {
+test('describePreviewServerFailure summarizes the stderr tail', () => {
     const summary = describePreviewServerFailure(1, 'first line\nError: something broke\n', 4567);
     assert.match(summary, /Error: something broke/);
 });
 
-test('describePreviewServerFailure: stderr 空は exit code を明記', () => {
+test('describePreviewServerFailure includes exit code when stderr is empty', () => {
     assert.equal(
         describePreviewServerFailure(3, '', 4567),
-        'exit code 3 で終了しました（エラー出力はありません）'
+        'exit code 3 (no error output)'
     );
     assert.equal(
         describePreviewServerFailure(null, '   \n', 4567),
-        'exit code 不明 で終了しました（エラー出力はありません）'
+        'exit code Unknown (no error output)'
     );
 });

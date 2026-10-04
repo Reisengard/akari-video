@@ -9,7 +9,7 @@ function deferred() {
     return { promise, resolve };
 }
 
-test('live frame store: A の応答後に B を読み、最新 1 枚だけを保持する', async () => {
+test('Live frame store reads B after A responds and keeps only the latest frame', async () => {
     const store = new AkariExportLiveFrameStore();
     const read = async path => `data:image/jpeg;base64,${path.at(-5)}`;
     store.update({
@@ -33,7 +33,7 @@ test('live frame store: A の応答後に B を読み、最新 1 枚だけを保
     });
 });
 
-test('live frame store: 遅い古い応答を捨て、終了時に最新フレームを消す', async () => {
+test('Live frame store discards stale responses and clears the last frame on completion', async () => {
     const store = new AkariExportLiveFrameStore();
     const responses = new Map([
         ['/preview/a.jpg', deferred()],

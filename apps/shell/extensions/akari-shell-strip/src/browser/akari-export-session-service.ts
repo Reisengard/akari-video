@@ -48,10 +48,6 @@ import {
     AKARI_EXPORT_OUTPUT_DIRECTORY,
     AKARI_EXPORT_QUALITY
 } from './akari-export-preferences';
-import {
-    formatLintFailureForUi,
-    UiLintFinding
-} from 'akari-annotations/lib/common/lint-message-ja';
 import { formatBytes } from './export-dialog/export-view-shared';
 import { currentTimelineCaptionsUri, currentTimelineEditUri } from 'akari-annotations/lib/browser/active-timeline';
 import { timelineSlugFromEditFileName } from 'akari-annotations/lib/common/timeline-files';
@@ -257,7 +253,7 @@ export class AkariExportSessionService implements Disposable {
         } catch (error) {
             if (!options.auto) {
                 void this.messages.error(
-                    describeUnexpectedQuickExportFailure(error, 'lint をもう一度検査できませんでした')
+                    describeUnexpectedQuickExportFailure(error, 'Could not rerun lint')
                 );
             }
         } finally {
@@ -274,12 +270,12 @@ export class AkariExportSessionService implements Disposable {
         if (result.outcome === 'pass' && wasLintFailed) {
             this.setupRequested = true;
             this.failureNotified = false;
-            void this.messages.info('lint の問題は解消しました。そのまま書き出せます');
+            void this.messages.info('Lint issues are resolved. You can export now');
             this.fireChanged();
             return;
         }
         if (result.outcome === 'unavailable' && !options.auto) {
-            void this.messages.warn(result.reason ?? 'lint をもう一度検査できませんでした');
+            void this.messages.warn(result.reason ?? 'Could not rerun lint');
         }
     }
 
@@ -321,7 +317,7 @@ export class AkariExportSessionService implements Disposable {
 
     async chooseOutputDirectory(): Promise<void> {
         const destination = await this.fileDialogs.showOpenDialog({
-            title: '書き出し先フォルダを選ぶ',
+            title: 'Choose export folder',
             canSelectFiles: false,
             canSelectFolders: true
         });
@@ -332,7 +328,7 @@ export class AkariExportSessionService implements Disposable {
         try {
             this.outputName = await this.chooseAvailableOutputName(this.defaultOutputName(this.settings.codec));
         } catch (error) {
-            this.fail(describeUnexpectedQuickExportFailure(error, '書き出し先を確認できませんでした'));
+            this.fail(describeUnexpectedQuickExportFailure(error, 'Could not check the export destination'));
             return;
         }
         this.fireChanged();
@@ -344,11 +340,11 @@ export class AkariExportSessionService implements Disposable {
         }
         await this.refreshProject();
         if (this.selectedEditUri && this.selectedEditUri.path.base !== 'edit.json') {
-            void this.messages.error('この書き出しエンジンは別タイムラインをまだ指定できません。');
+            void this.messages.error('This export engine does not yet support selecting another timeline.');
             return false;
         }
         if (!this.projectRoot) {
-            void this.messages.error('プロジェクトルートを取得できないため、書き出しを開始できませんでした');
+            void this.messages.error('Could not start export because the project root is unavailable');
             return false;
         }
         const settings = { ...this.settings, ...overrides };
@@ -359,7 +355,7 @@ export class AkariExportSessionService implements Disposable {
         try {
             this.outputName = await this.chooseAvailableOutputName(this.defaultOutputName(settings.codec));
         } catch (error) {
-            this.fail(describeUnexpectedQuickExportFailure(error, '書き出し先を確認できませんでした'));
+            this.fail(describeUnexpectedQuickExportFailure(error, 'Could not check the export destination'));
             return false;
         }
         let outcome: QuickExportStartOutcome;
@@ -379,11 +375,11 @@ export class AkariExportSessionService implements Disposable {
                 outputDirectoryUri: settings.outputDirectoryUri
             });
         } catch (error) {
-            this.fail(describeUnexpectedQuickExportFailure(error, '書き出しサービスに接続できませんでした'));
+            this.fail(describeUnexpectedQuickExportFailure(error, 'Could not connect to the export service'));
             return false;
         }
         if (!outcome.accepted) {
-            this.fail('別の書き出しが実行中のため、開始できませんでした');
+            this.fail('Could not start because another export is running');
             return false;
         }
         this.setupRequested = false;
@@ -417,12 +413,12 @@ export class AkariExportSessionService implements Disposable {
     protected async notifyCancelled(): Promise<void> {
         const leftover = this.status.cancelledLeftover;
         if (!leftover || leftover.entries.length === 0) {
-            void this.messages.info('書き出しを中止しました');
+            void this.messages.info('Export cancelled');
             return;
         }
-        const discard = '削除する';
+        const discard = 'Delete';
         const chosen = await this.messages.info(
-            `書き出しを中止しました（一時ファイル ${formatBytes(leftover.bytes)} が残っています）`,
+            `Export cancelled (temporary files: ${formatBytes(leftover.bytes)} remaining)`,
             discard
         );
         if (chosen === discard) {
@@ -444,12 +440,12 @@ export class AkariExportSessionService implements Disposable {
             const result = await this.quickExportService.discardCancelledLeftover();
             this.status = await this.quickExportService.getStatus();
             if (result.discarded) {
-                void this.messages.info(`一時ファイル ${formatBytes(result.bytes)} を削除しました`);
+                void this.messages.info(`Temporary files: ${formatBytes(result.bytes)} deleted`);
             } else {
-                void this.messages.warn(result.reason ?? '一時ファイルを削除できませんでした');
+                void this.messages.warn(result.reason ?? 'Could not delete temporary files');
             }
         } catch (error) {
-            void this.messages.error(describeUnexpectedQuickExportFailure(error, '一時ファイルを削除できませんでした'));
+            void this.messages.error(describeUnexpectedQuickExportFailure(error, 'Could not delete temporary files'));
         } finally {
             this.discardingLeftover = false;
             this.fireChanged();
@@ -459,14 +455,14 @@ export class AkariExportSessionService implements Disposable {
     async revealArtifact(): Promise<void> {
         const result = await this.quickExportService.revealArtifact();
         if (!result.revealed) {
-            void this.messages.error('Finder で成果物を表示できませんでした');
+            void this.messages.error('Could not reveal the output in Finder');
         }
     }
 
     async copyArtifact(): Promise<boolean> {
         const result = await this.quickExportService.copyArtifact();
         if (!result.copied) {
-            void this.messages.error(result.reason ?? 'コピーできませんでした');
+            void this.messages.error(result.reason ?? 'Could not copy');
         }
         return result.copied;
     }
@@ -476,7 +472,7 @@ export class AkariExportSessionService implements Disposable {
             await this.clipboard.writeText(text);
             return true;
         } catch {
-            void this.messages.warn('クレジットをコピーできませんでした');
+            void this.messages.warn('Could not copy credits');
             return false;
         }
     }
@@ -506,7 +502,7 @@ export class AkariExportSessionService implements Disposable {
         const outputName = await this.chooseAvailableOutputName(this.defaultOutputName(this.settings.codec));
         const editName = this.selectedEditUri?.path.base ?? 'edit.json';
         const packet = composeExportRequestPacket({
-            resolutionLabel: `${editName} のまま`,
+            resolutionLabel: `${editName} unchanged`,
             outputName,
             rerunLint: this.settings.rerunLint
         }).replaceAll('edit.json', editName);
@@ -542,14 +538,10 @@ export class AkariExportSessionService implements Disposable {
         const formatted = findings.length > 0
             ? findings.map(finding => {
                 const detail = `${finding.check ? `[${finding.check}] ` : ''}${finding.message ?? 'edit-lint finding'}`;
-                return formatLintFailureForUi(
-                    finding.severity === 'warning' ? 'lint 警告' : 'lint エラー',
-                    [detail],
-                    [finding] as readonly UiLintFinding[]
-                );
+                return `${finding.severity === 'warning' ? 'Lint warning' : 'Lint error'}: ${detail}`;
             }).join('\n')
-            : '書き出し前の lint を直してください。詳しい内容は lint レポートにあります。';
-        const report = this.status.reportPath ? `\nlint レポート: ${this.status.reportPath}` : '';
+            : 'Fix lint issues before exporting. See the lint report for details.';
+        const report = this.status.reportPath ? `\nLint report: ${this.status.reportPath}` : '';
         await this.commands.executeCommand(PARTNER_INJECT_PROMPT_COMMAND_ID, `${formatted}${report}`);
     }
 
@@ -726,7 +718,7 @@ export class AkariExportSessionService implements Disposable {
         try {
             this.applyStatus(await this.quickExportService.getStatus());
         } catch (error) {
-            this.fail(describeUnexpectedQuickExportFailure(error, '書き出しの進捗を取得できませんでした'));
+            this.fail(describeUnexpectedQuickExportFailure(error, 'Could not get export progress'));
         }
     }
 
@@ -775,7 +767,7 @@ export class AkariExportSessionService implements Disposable {
         try {
             this.lintWatch.push(await this.files.watch(root));
         } catch (error) {
-            console.info('[akari-shell-strip] lint 再検査の watch を張れませんでした:', error);
+            console.info('[akari-shell-strip] Could not watch for lint rechecks:', error);
         }
         this.lintWatch.push(this.files.onDidFilesChange(event => {
             const relevant = event.changes.some(change =>

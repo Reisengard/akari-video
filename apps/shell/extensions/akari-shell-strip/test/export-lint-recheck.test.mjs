@@ -8,7 +8,7 @@ import {
     shouldWatchForLintRecheck
 } from '../lib/common/export-lint-recheck.js';
 
-test('shouldRecheckLintForPath: 編集ドキュメントの変更だけを引き金にする', () => {
+test('shouldRecheckLintForPath triggers only on edit document changes', () => {
     assert.equal(shouldRecheckLintForPath('/project/edit.json'), true);
     assert.equal(shouldRecheckLintForPath('/project/captions.json'), true);
     assert.equal(shouldRecheckLintForPath('C:\\project\\edit.json'), true);
@@ -24,7 +24,7 @@ test('shouldRecheckLintForPath: 編集ドキュメントの変更だけを引き
     assert.deepEqual([...LINT_RECHECK_WATCHED_FILES], ['edit.json', 'captions.json']);
 });
 
-test('shouldWatchForLintRecheck: lint 停止画面を開いている間だけ張る', () => {
+test('shouldWatchForLintRecheck watches only while the lint failure screen is open', () => {
     assert.equal(shouldWatchForLintRecheck('lint-failed', true), true);
     assert.equal(shouldWatchForLintRecheck('lint-failed', false), false);
     assert.equal(shouldWatchForLintRecheck('rendering', true), false);
@@ -32,23 +32,23 @@ test('shouldWatchForLintRecheck: lint 停止画面を開いている間だけ張
     assert.equal(shouldWatchForLintRecheck(undefined, true), false);
 });
 
-test('formatLintCheckedAt: 未検査と未来時刻は「未検査」に落とす', () => {
+test('formatLintCheckedAt treats unchecked and future timestamps as Not checked', () => {
     const now = new Date('2026-09-03T12:34:56');
-    assert.equal(formatLintCheckedAt(undefined, now), '未検査');
-    assert.equal(formatLintCheckedAt(Number.NaN, now), '未検査');
-    assert.equal(formatLintCheckedAt(now.getTime() + 600_000, now), '未検査');
+    assert.equal(formatLintCheckedAt(undefined, now), 'Not checked');
+    assert.equal(formatLintCheckedAt(Number.NaN, now), 'Not checked');
+    assert.equal(formatLintCheckedAt(now.getTime() + 600_000, now), 'Not checked');
     assert.equal(formatLintCheckedAt(new Date('2026-09-03T09:05:07').getTime(), now), '09:05:07');
 });
 
-test('lintRecheckHint: 検査中・未検査・検査済みで文言を切り替える', () => {
+test('lintRecheckHint switches text for checking, unchecked, and checked states', () => {
     const now = new Date('2026-09-03T12:34:56');
-    assert.equal(lintRecheckHint({ rechecking: true }, now), 'いま検査し直しています…');
+    assert.equal(lintRecheckHint({ rechecking: true }, now), 'Running checks again…');
     assert.equal(
         lintRecheckHint({ rechecking: false }, now),
-        '編集を保存すると自動でもう一度検査します。'
+        'Checks rerun automatically when you save the edit.'
     );
     assert.equal(
         lintRecheckHint({ rechecking: false, checkedAt: new Date('2026-09-03T12:30:00').getTime() }, now),
-        '編集を保存すると自動でもう一度検査します（直近の検査 12:30:00）。'
+        'Checks rerun automatically when you save the edit (last checked 12:30:00).'
     );
 });

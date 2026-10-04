@@ -101,17 +101,17 @@ export class CompanionPanelFrame {
         corner.type = 'button';
         corner.className = 'akari-companion-panel-corner';
         corner.tabIndex = -1;
-        corner.setAttribute('title', 'AKARI バイブをしまう');
-        corner.setAttribute('aria-label', 'AKARI バイブをしまう');
+        corner.setAttribute('title', 'Hide AKARI Vibe');
+        corner.setAttribute('aria-label', 'Hide AKARI Vibe');
         corner.textContent = '×';
         corner.addEventListener('mousedown', this.handleCornerMouseDown);
         const resizeEdge = this.resizeEdgeEl = this.doc.createElement('div');
         resizeEdge.className = 'akari-companion-panel-edge-left';
-        resizeEdge.setAttribute('title', 'AKARI バイブの横幅を変える');
+        resizeEdge.setAttribute('title', 'Resize AKARI Vibe');
         resizeEdge.addEventListener('mousedown', event => this.handleResizeMouseDown(event, 'ew-resize'));
         const resizeCorner = this.resizeCornerEl = this.doc.createElement('div');
         resizeCorner.className = 'akari-companion-panel-edge-corner';
-        resizeCorner.setAttribute('title', 'AKARI バイブの横幅を変える');
+        resizeCorner.setAttribute('title', 'Resize AKARI Vibe');
         resizeCorner.addEventListener('mousedown', event => this.handleResizeMouseDown(event, 'nesw-resize'));
 
         panel.append(iframe, corner, resizeEdge, resizeCorner);

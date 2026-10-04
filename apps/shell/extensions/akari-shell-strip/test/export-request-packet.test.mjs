@@ -4,34 +4,34 @@ import { composeExportRequestPacket } from '../lib/common/export-request-packet.
 
 // 固定テンプレートに一字一句一致することを確認する（設定値 + 明示承認済み文言）。
 
-test('composeExportRequestPacket: lint 再実行する — テンプレート全文一致', () => {
+test('composeExportRequestPacket reruns lint and matches the entire template', () => {
     const packet = composeExportRequestPacket({
-        resolutionLabel: '1080p 横',
+        resolutionLabel: '1080p Landscape',
         outputName: 'final.mp4',
         rerunLint: true
     });
     assert.equal(
         packet,
-        '【書き出し依頼】edit.json を render-cut スキルで書き出してください。'
-        + '設定: 解像度 1080p 横・出力名 final.mp4・lint 再実行 する。'
-        + 'ユーザーは書き出しダイアログで設定を確定済み（明示承認済み・チャット再確認不要）。'
-        + '進捗を .akari/render.json に随時書き込みながら進めてください'
+        '[Export request] Export edit.json using the render-cut skill. '
+        + 'Settings: Resolution 1080p Landscape; output name final.mp4; rerun lint Yes. '
+        + 'The user confirmed these settings in the export dialog (explicitly approved; no additional chat confirmation needed). '
+        + 'Keep .akari/render.json updated with progress as you proceed'
     );
 });
 
-test('composeExportRequestPacket: lint 再実行しない・別解像度/出力名', () => {
+test('composeExportRequestPacket skips lint with alternate resolution and output name', () => {
     const packet = composeExportRequestPacket({
-        resolutionLabel: '正方形',
+        resolutionLabel: 'Square',
         outputName: 'v2-square.mp4',
         rerunLint: false
     });
     assert.equal(
         packet,
-        '【書き出し依頼】edit.json を render-cut スキルで書き出してください。'
-        + '設定: 解像度 正方形・出力名 v2-square.mp4・lint 再実行 しない。'
-        + 'ユーザーは書き出しダイアログで設定を確定済み（明示承認済み・チャット再確認不要）。'
-        + '進捗を .akari/render.json に随時書き込みながら進めてください'
+        '[Export request] Export edit.json using the render-cut skill. '
+        + 'Settings: Resolution Square; output name v2-square.mp4; rerun lint No. '
+        + 'The user confirmed these settings in the export dialog (explicitly approved; no additional chat confirmation needed). '
+        + 'Keep .akari/render.json updated with progress as you proceed'
     );
-    assert.equal(packet.includes('書き出しエンジン'), false);
-    assert.equal(/[\r\n]/.test(packet), false, 'パケットは 1 行でなければならない');
+    assert.equal(packet.includes('ExportEngine'), false);
+    assert.equal(/[\r\n]/.test(packet), false, 'Packet must be one line');
 });

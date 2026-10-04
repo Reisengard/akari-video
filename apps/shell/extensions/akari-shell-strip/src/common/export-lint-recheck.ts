@@ -33,11 +33,11 @@ export function shouldWatchForLintRecheck(phase: string | undefined, dialogVisib
 /** 「直近の検査」表示。時刻は実行環境のローカル時刻（HH:MM:SS）。 */
 export function formatLintCheckedAt(checkedAt: number | undefined, now: Date = new Date()): string {
     if (checkedAt === undefined || !Number.isFinite(checkedAt)) {
-        return '未検査';
+        return 'Not checked';
     }
     const checked = new Date(checkedAt);
     if (Number.isNaN(checked.getTime()) || checked.getTime() > now.getTime() + 60_000) {
-        return '未検査';
+        return 'Not checked';
     }
     const pad = (value: number): string => String(value).padStart(2, '0');
     return `${pad(checked.getHours())}:${pad(checked.getMinutes())}:${pad(checked.getSeconds())}`;
@@ -49,10 +49,10 @@ export function lintRecheckHint(state: {
     readonly checkedAt?: number;
 }, now: Date = new Date()): string {
     if (state.rechecking) {
-        return 'いま検査し直しています…';
+        return 'Running checks again…';
     }
     if (state.checkedAt === undefined) {
-        return '編集を保存すると自動でもう一度検査します。';
+        return 'Checks rerun automatically when you save the edit.';
     }
-    return `編集を保存すると自動でもう一度検査します（直近の検査 ${formatLintCheckedAt(state.checkedAt, now)}）。`;
+    return `Checks rerun automatically when you save the edit (last checked ${formatLintCheckedAt(state.checkedAt, now)}).`;
 }

@@ -12,9 +12,9 @@ export interface ExportResolutionPreset {
 }
 
 export const EXPORT_RESOLUTION_PRESETS: readonly ExportResolutionPreset[] = [
-    { id: 'landscape-1080p', label: '1080p 横' },
-    { id: 'portrait-1080p', label: '1080p 縦' },
-    { id: 'square-1080p', label: '正方形' }
+    { id: 'landscape-1080p', label: '1080p Landscape' },
+    { id: 'portrait-1080p', label: '1080p Portrait' },
+    { id: 'square-1080p', label: 'Square' }
 ];
 
 export const DEFAULT_EXPORT_OUTPUT_NAME = 'final.mp4';
@@ -32,10 +32,10 @@ export interface ExportRequestSettings {
 }
 
 export function composeExportRequestPacket(settings: ExportRequestSettings): string {
-    const lintLabel = settings.rerunLint ? 'する' : 'しない';
-    return `【書き出し依頼】edit.json を render-cut スキルで書き出してください。`
-        + `設定: 解像度 ${settings.resolutionLabel}・出力名 ${settings.outputName}・lint 再実行 ${lintLabel}`
-        + `。`
-        + `ユーザーは書き出しダイアログで設定を確定済み（明示承認済み・チャット再確認不要）。`
-        + `進捗を .akari/render.json に随時書き込みながら進めてください`;
+    const lintLabel = settings.rerunLint ? 'Yes' : 'No';
+    return `[Export request] Export edit.json using the render-cut skill. `
+        + `Settings: Resolution ${settings.resolutionLabel}; output name ${settings.outputName}; rerun lint ${lintLabel}`
+        + `. `
+        + `The user confirmed these settings in the export dialog (explicitly approved; no additional chat confirmation needed). `
+        + `Keep .akari/render.json updated with progress as you proceed`;
 }

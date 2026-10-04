@@ -120,8 +120,8 @@ export async function applyCompanionEdit(
         const matches = (!args.edit || current.editSha256 === expected.editSha256)
             && (!args.captions || current.captionsSha256 === expected.captionsSha256);
         if (!matches) {
-            deps.notify('ほかの変更が入ったため、この変更は元に戻せません');
-            throw new Error('現在の内容が変更されています');
+            deps.notify('Cannot undo this change because other changes have been made');
+            throw new Error('The current content has changed');
         }
         await deps.writeEditSnapshot(request(editText, captionsText));
     };

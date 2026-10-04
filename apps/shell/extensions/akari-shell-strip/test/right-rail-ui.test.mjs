@@ -70,7 +70,7 @@ test('the right side panel handler and the drop zones are wired in the frontend 
     const app = read('../src/browser/akari-frontend-application.ts');
     assert.equal((app.match(/this\.resetRightRail\(\);/g) ?? []).length, 3, 'timeout / false / throw all reset the rail');
     const dnd = read('../src/browser/akari-right-rail-dnd.ts');
-    for (const label of ['メインへ置く', '下へ置く（タイムラインの隣）', '右の上の段に分ける', '右の下の段に分ける', '線の上へ', '線の下へ']) {
+    for (const label of ['Move to main area', 'Move to bottom (beside Timeline)', 'Split into upper right pane', 'Split into lower right pane', 'Move above divider', 'Move below divider']) {
         assert.ok(dnd.includes(`'${label}'`), label);
     }
     assert.ok(style.RIGHT_RAIL_CSS.includes('--akari-rail-middle'), 'separator is placed at the measured middle');

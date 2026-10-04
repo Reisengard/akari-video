@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const source = async relativePath => readFile(new URL(`../src/${relativePath}`, import.meta.url), 'utf8');
 
-test('指示の分岐と表示切替コマンドを配線する', async () => {
+test('Wire instruction dispatch and visibility commands', async () => {
   const contribution = await source('browser/akari-companion-contribution.ts');
   assert.match(contribution, /instruction\.kind === 'flyTo'/);
   assert.match(contribution, /instruction\.kind === 'panel'/);
@@ -15,7 +15,7 @@ test('指示の分岐と表示切替コマンドを配線する', async () => {
   assert.match(toolbar, /COMPANION_TOGGLE_COMMAND_ID = 'akari\.companion\.togglePanel'/);
 });
 
-test('呼び出しボタンは「変更を見る」より左に出て、枠の既定位置になる', async () => {
+test('Trigger precedes View changes and anchors default placement', async () => {
   const toolbar = await source('browser/companion-toolbar-contribution.ts');
   const frame = await source('browser/companion-panel-frame.ts');
   const contribution = await source('browser/akari-companion-contribution.ts');
@@ -39,7 +39,7 @@ test('呼び出しボタンは「変更を見る」より左に出て、枠の�
   assert.doesNotMatch(frame, /akari-companion-drag-surface|handleDragMove/);
 });
 
-test('枠は安全な iframe と局所的な操作面だけを持つ', async () => {
+test('Frame has a safe iframe and local interaction surfaces', async () => {
   const frame = await source('browser/companion-panel-frame.ts');
   const style = await source('browser/companion-panel-pulse-style.ts');
   assert.match(frame, /setAttribute\('sandbox', 'allow-scripts allow-same-origin'\)/);
@@ -59,7 +59,7 @@ test('枠は安全な iframe と局所的な操作面だけを持つ', async () 
   assert.match(style, /\.akari-companion-panel/);
 });
 
-test('光の点は動きを減らす設定とプレビューの箱に対応する', async () => {
+test('Pulse supports reduced motion and preview containers', async () => {
   const fly = await source('browser/companion-fly-to.ts');
   assert.match(fly, /akariPreviewConfigured/);
   assert.match(fly, /shell-tab-plugin-webview:akari-output-preview/);

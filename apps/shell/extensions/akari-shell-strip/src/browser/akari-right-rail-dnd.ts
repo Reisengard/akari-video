@@ -21,12 +21,12 @@ interface ZoneBox {
 
 /** 置き場所の文言（試作の .drop と同じ）。 */
 export const RIGHT_RAIL_ZONE_LABELS: Record<RightRailZone, string> = {
-    main: 'メインへ置く',
-    bottom: '下へ置く（タイムラインの隣）',
-    rtop: '右の上の段に分ける',
-    rbottom: '右の下の段に分ける',
-    railtop: '線の上へ',
-    railbottom: '線の下へ'
+    main: 'Move to main area',
+    bottom: 'Move to bottom (beside Timeline)',
+    rtop: 'Split into upper right pane',
+    rbottom: 'Split into lower right pane',
+    railtop: 'Move above divider',
+    railbottom: 'Move below divider'
 };
 
 /**

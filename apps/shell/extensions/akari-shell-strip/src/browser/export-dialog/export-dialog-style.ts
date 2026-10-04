@@ -107,7 +107,7 @@ export const EXPORT_DIALOG_CSS = `
 .akari-export-dialog-host .seg button:disabled { cursor:default; }
 .akari-export-dialog-host .seg button.na { color:#4a4a4a; }
 .akari-export-dialog-host .seg button.soon { color:var(--aed-faint); background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.025) 5px 6px); }
-.akari-export-dialog-host .seg button.soon::after { content:"近日"; font-size:8.5px; margin-left:5px; color:var(--aed-faint); border:1px dashed #3a3a3a; padding:0 4px; border-radius:999px; vertical-align:1px; }
+.akari-export-dialog-host .seg button.soon::after { content:"Soon"; font-size:8.5px; margin-left:5px; color:var(--aed-faint); border:1px dashed #3a3a3a; padding:0 4px; border-radius:999px; vertical-align:1px; }
 .akari-export-dialog-host .seg u { text-decoration:none; color:var(--aed-faint); font:500 10px var(--aed-mono); margin-left:3px; }
 .akari-export-dialog-host .seg button.on u { color:var(--aed-accent-light); opacity:.75; }
 .akari-export-dialog-host .kvgrid { display:grid; grid-template-columns:92px minmax(0,1fr); gap:8px 10px; align-items:center; font-size:11.5px; color:var(--aed-muted); }

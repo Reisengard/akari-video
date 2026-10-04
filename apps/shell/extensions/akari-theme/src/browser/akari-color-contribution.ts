@@ -42,19 +42,19 @@ export class AkariColorContribution implements ColorContribution {
         });
 
         return [
-            { id: 'akariTheme.placedTextBlue', defaults: t('placedTextBlue'), description: '置いた文字: 青' },
-            { id: 'akariTheme.placedTextViolet', defaults: t('placedTextViolet'), description: '置いた文字: 紫' },
-            { id: 'akariTheme.placedTextGreen', defaults: t('placedTextGreen'), description: '置いた文字: 緑' },
-            { id: 'akariTheme.placedTextPink', defaults: t('placedTextPink'), description: '置いた文字: 桃' },
-            { id: 'akariTheme.placedTextOrange', defaults: t('placedTextOrange'), description: '置いた文字: 橙' },
-            { id: 'akariTheme.placedTextCyan', defaults: t('placedTextCyan'), description: '置いた文字: 水色' },
-            { id: 'akariTheme.placedTextYellow', defaults: t('placedTextYellow'), description: '置いた文字: 黄' },
-            { id: 'akariTheme.placedTextRed', defaults: t('placedTextRed'), description: '置いた文字: 赤' },
+            { id: 'akariTheme.placedTextBlue', defaults: t('placedTextBlue'), description: 'Placed text: Blue' },
+            { id: 'akariTheme.placedTextViolet', defaults: t('placedTextViolet'), description: 'Placed text: Purple' },
+            { id: 'akariTheme.placedTextGreen', defaults: t('placedTextGreen'), description: 'Placed text: Green' },
+            { id: 'akariTheme.placedTextPink', defaults: t('placedTextPink'), description: 'Placed text: Pink' },
+            { id: 'akariTheme.placedTextOrange', defaults: t('placedTextOrange'), description: 'Placed text: Orange' },
+            { id: 'akariTheme.placedTextCyan', defaults: t('placedTextCyan'), description: 'Placed text: Cyan' },
+            { id: 'akariTheme.placedTextYellow', defaults: t('placedTextYellow'), description: 'Placed text: Yellow' },
+            { id: 'akariTheme.placedTextRed', defaults: t('placedTextRed'), description: 'Placed text: Red' },
             // --- AKARI 独自トークン（既存 VS Code 標準色に該当が無い LP 概念。
             //     webview 内では --vscode-akariTheme-* として同じ値がミラーされる） ---
             { id: 'akariTheme.accent', defaults: t('accent'), description: 'AKARI LP accent' },
             { id: 'akariTheme.accentLight', defaults: t('accentLight'), description: 'AKARI LP accent-light' },
-            { id: 'akariTheme.accentTint', defaults: t('accentTint'), description: 'AKARI LP accent-tint（選択・アクティブ背景）' },
+            { id: 'akariTheme.accentTint', defaults: t('accentTint'), description: 'AKARI LP accent tint (selection and active background)' },
             { id: 'akariTheme.accentTintDeep', defaults: t('accentTintDeep'), description: 'AKARI LP accent-tint-deep' },
 
             // --- ステータスバー（既定 #007acc 系 青を全廃） ---
@@ -98,15 +98,15 @@ export class AkariColorContribution implements ColorContribution {
             { id: 'list.focusBackground', defaults: t('accentTint'), description: 'override' },
             { id: 'list.focusForeground', defaults: t('accentLighter'), description: 'override' },
             { id: 'list.focusOutline', defaults: t('accentLight'), description: 'override' },
-            { id: 'list.highlightForeground', defaults: t('accentLight'), description: 'override（検索/クイックオープンの一致文字強調。既定は青）' },
+            { id: 'list.highlightForeground', defaults: t('accentLight'), description: 'override (search/quick-open match highlight; default is blue)' },
             { id: 'list.dropBackground', defaults: t('accentTintDeep'), description: 'override' },
             { id: 'list.inactiveFocusBackground', defaults: t('accentTintDeep'), description: 'override' },
 
             { id: 'editor.background', defaults: t('bg'), description: 'override' },
             { id: 'editor.foreground', defaults: t('ink'), description: 'override' },
-            { id: 'editor.selectionBackground', defaults: solid('#f9731640'), description: 'override（accent 25% alpha）' },
-            { id: 'editor.inactiveSelectionBackground', defaults: solid('#f9731626'), description: 'override（accent 15% alpha）' },
-            { id: 'editor.selectionHighlightBackground', defaults: solid('#f9731633'), description: 'override（accent 20% alpha）' },
+            { id: 'editor.selectionBackground', defaults: solid('#f9731640'), description: 'override(accent 25% alpha)' },
+            { id: 'editor.inactiveSelectionBackground', defaults: solid('#f9731626'), description: 'override(accent 15% alpha)' },
+            { id: 'editor.selectionHighlightBackground', defaults: solid('#f9731633'), description: 'override(accent 20% alpha)' },
             { id: 'editor.lineHighlightBackground', defaults: t('card'), description: 'override' },
             { id: 'editor.lineHighlightBorder', defaults: t('lineInner'), description: 'override' },
             { id: 'editorCursor.foreground', defaults: t('accent'), description: 'override' },
@@ -177,9 +177,9 @@ export class AkariColorContribution implements ColorContribution {
             // 見た目の骨格（ピル・角丸・余白）は akari-shell-inner-chrome.ts が持つ。
             { id: 'editorGroupHeader.tabsBackground', defaults: t('bg'), description: 'override' },
             { id: 'editorGroupHeader.tabsBorder', defaults: t('lineInner'), description: 'override' },
-            { id: 'tab.activeBackground', defaults: t('card'), description: 'override（raised で浮かせる）' },
+            { id: 'tab.activeBackground', defaults: t('card'), description: 'override (raised surface)' },
             { id: 'tab.activeForeground', defaults: t('ink'), description: 'override' },
-            { id: 'tab.inactiveBackground', defaults: t('bg'), description: 'override（地をカードの中に出さない）' },
+            { id: 'tab.inactiveBackground', defaults: t('bg'), description: 'override (hide base background inside cards)' },
             { id: 'tab.inactiveForeground', defaults: t('muted'), description: 'override' },
             { id: 'tab.unfocusedActiveForeground', defaults: t('muted'), description: 'override' },
             { id: 'tab.unfocusedInactiveForeground', defaults: t('faint'), description: 'override' },
@@ -187,7 +187,7 @@ export class AkariColorContribution implements ColorContribution {
             { id: 'tab.activeBorderTop', defaults: t('accent'), description: 'override' },
             { id: 'tab.unfocusedActiveBorderTop', defaults: t('accentDark'), description: 'override' },
             { id: 'tab.hoverBackground', defaults: t('elevated'), description: 'override' },
-            { id: 'editorGroup.border', defaults: t('lineInner'), description: 'override（分割エディタの仕切り）' },
+            { id: 'editorGroup.border', defaults: t('lineInner'), description: 'override (split-editor divider)' },
 
             // --- 隙間のリサイズつかみ代（sash）。既定の青を全廃し、掴めることだけ示す ---
             { id: 'sash.hoverBorder', defaults: t('accentDark'), description: 'override' },
@@ -197,7 +197,7 @@ export class AkariColorContribution implements ColorContribution {
             { id: 'scrollbarSlider.background', defaults: ta('ink', '1f'), description: 'override' },
             { id: 'scrollbarSlider.hoverBackground', defaults: ta('ink', '33'), description: 'override' },
             { id: 'scrollbarSlider.activeBackground', defaults: ta('ink', '4d'), description: 'override' },
-            { id: 'scrollbar.shadow', defaults: solid('#00000000'), description: 'override（カードの中に影を落とさない）' },
+            { id: 'scrollbar.shadow', defaults: solid('#00000000'), description: 'override (no shadows inside cards)' },
 
             // --- 入力欄・クイックオープン ---
             { id: 'input.background', defaults: t('card'), description: 'override' },

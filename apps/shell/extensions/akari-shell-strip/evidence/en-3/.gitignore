@@ -1,0 +1,15 @@
+/baseline/
+/baseline.tar
+/wording-fixture/
+/inventory.mjs
+/translate.mjs
+/prepare-tests.mjs
+/repair.mjs
+/restore-css-notes.mjs
+/strings.json
+/transfer.mjs
+/missing.json
+/translations.tsv
+/test-translations.tsv
+/exact-translations.json
+!/*.log

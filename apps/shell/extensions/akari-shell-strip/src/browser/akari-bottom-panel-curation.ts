@@ -81,7 +81,7 @@ export class AkariBottomPanelCuration implements FrontendApplicationContribution
             bar.node.querySelector('.theia-tabBar-tab-row')?.appendChild(button);
             bar.addButtonEnabled = true;
             button.textContent = '+';
-            button.title = '下パネルに追加';
+            button.title = 'Add to bottom panel';
             button.setAttribute('aria-label', button.title);
             button.setAttribute('role', 'button');
             button.tabIndex = 0;
