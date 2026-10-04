@@ -71,19 +71,19 @@ function generationSidecars(directory: string): string[] {
 }
 
 function resolveInsideProject(projectRoot: string, candidate: string): string {
-    if (!candidate) throw new Error('sourcePath は空でないパスである必要があります。');
+    if (!candidate) throw new Error('sourcePath must be a non-empty path.');
     const root = path.resolve(projectRoot);
     const absolute = path.isAbsolute(candidate) ? path.resolve(candidate) : path.resolve(root, candidate);
     const relative = path.relative(root, absolute);
     if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-        throw new Error(`projectRoot 外のパスは扱えません: ${candidate}`);
+        throw new Error(`A path outside projectRoot is not allowed: ${candidate}`);
     }
     if (fs.existsSync(absolute)) {
         const realRoot = fs.realpathSync(root);
         const realPath = fs.realpathSync(absolute);
         const realRelative = path.relative(realRoot, realPath);
         if (realRelative === '..' || realRelative.startsWith(`..${path.sep}`) || path.isAbsolute(realRelative)) {
-            throw new Error(`projectRoot 外を指すパスは扱えません: ${candidate}`);
+            throw new Error(`A path that points outside projectRoot is not allowed: ${candidate}`);
         }
     }
     return absolute;
@@ -95,10 +95,10 @@ function parseMeta(sidecarPath: string): GenerationMetaV1 {
         value = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`生成サイドカーを読めません: ${sidecarPath}: ${message}`);
+        throw new Error(`Cannot read the generation sidecar: ${sidecarPath}: ${message}`);
     }
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        throw new Error(`生成サイドカーのルートは object である必要があります: ${sidecarPath}`);
+        throw new Error(`The generation sidecar root must be an object: ${sidecarPath}`);
     }
     return value as GenerationMetaV1;
 }

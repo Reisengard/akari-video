@@ -40,5 +40,5 @@ test("world scene declaration matches world-map ids and times", async t => {
   const shape = await lintCase(t, descriptor => ({ ...descriptor, schemaVersion: 2 }));
   assert.equal(shape.length, 1); assert.equal(shape[0].severity, "error");
   const mismatch = await lintCase(t, descriptor => ({ ...descriptor, edges: descriptor.edges.map((edge, index) => index ? edge : { ...edge, t0: edge.t0 + 0.1 }) }));
-  assert.equal(mismatch.length, 1); assert.match(mismatch[0].message, /edges の時刻/u);
+  assert.equal(mismatch.length, 1); assert.match(mismatch[0].message, /the edge times/u);
 });

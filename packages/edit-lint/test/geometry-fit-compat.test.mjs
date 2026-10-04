@@ -57,7 +57,7 @@ test("未移行の v2 は geometry.fit-compat の warning を 1 件だけ出す"
   assert.equal(findings.length, 1);
   assert.equal(findings[0].severity, "warning");
   assert.equal(findings[0].path, "edit.json#output.geometry");
-  assert.match(findings[0].message, /fit 互換モード/u);
+  assert.match(findings[0].message, /fit-compat mode/u);
   assert.match(findings[0].message, /normalize-geometry/u);
 });
 

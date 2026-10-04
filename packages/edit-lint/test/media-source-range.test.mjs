@@ -113,10 +113,10 @@ test("media.source-range は音声なし映像と audio レーン item の out �
     assert.equal(ranges.length, 2, JSON.stringify(result.findings, null, 2));
     assert.ok(ranges.every((finding) => finding.severity === "error"));
     const visual = ranges.find((finding) => finding.message.startsWith("v-cutA:"));
-    assert.match(visual.message, /out=500\.000s が素材の実尺 10\.000s を 490\.000s 超えています/u);
+    assert.match(visual.message, /out=500\.000s exceeds the footage duration 10\.000s by 490\.000s/u);
     assert.equal(visual.path, "edit.json#tracks[0].items[0].source.out[src=mute]");
     const bgm = ranges.find((finding) => finding.message.startsWith("bgm-1:"));
-    assert.match(bgm.message, /out=999\.000s が素材の実尺 79\.120s を 919\.880s 超えています/u);
+    assert.match(bgm.message, /out=999\.000s exceeds the footage duration 79\.120s by 919\.880s/u);
     assert.equal(bgm.path, "edit.json#tracks[1].items[0].source.out[src=bgm]");
   } finally {
     await rm(project, { recursive: true, force: true });
@@ -133,7 +133,7 @@ test("media.source-range は in が実尺以上の item を error にする", as
     const ranges = result.findings.filter((finding) => finding.check === "media.source-range");
     assert.equal(ranges.length, 1, JSON.stringify(result.findings, null, 2));
     assert.equal(ranges[0].severity, "error");
-    assert.match(ranges[0].message, /nr-1: in=90\.000s は素材の実尺 79\.120s 以上です/u);
+    assert.match(ranges[0].message, /nr-1: in=90\.000s is at or past the footage duration 79\.120s/u);
     assert.equal(ranges[0].path, "edit.json#tracks[2].items[0].source.in[src=bgm]");
     // in が実尺を超えているぶんは error 側が受け持つので、警告の二重報告はしない。
     assert.equal(result.findings.filter((finding) => finding.check === "audio.narration.trim").length, 0);

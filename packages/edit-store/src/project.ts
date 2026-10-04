@@ -95,7 +95,7 @@ export async function openProject(dir: string, opts: OpenProjectOptions = {}): P
     let editText = await fs.readFile(editPath, 'utf8');
     const parsedEdit = JSON.parse(editText) as unknown;
     if (!isRecord(parsedEdit) || parsedEdit.version !== EDIT_FILE_VERSION || !Array.isArray(parsedEdit.tracks)) {
-        throw new Error('openProject は version: 2 の edit.json を必要とします。');
+        throw new Error('openProject requires edit.json version 2.');
     }
     const edit = parsedEdit as unknown as EditableEditV2;
     attachEditHelpers(edit);
@@ -122,7 +122,7 @@ export async function openProject(dir: string, opts: OpenProjectOptions = {}): P
             ? { version: 0 as const, group: groupId, items: {} }
             : JSON.parse(text) as MotionFileV0;
         if (!isRecord(doc) || doc.version !== MOTION_FILE_VERSION || !isRecord(doc.items)) {
-            throw new Error(`motion 袋の形式を確認できません: ${safePath}`);
+            throw new Error(`The motion container is not in a recognized format: ${safePath}`);
         }
         const state = {
             path: safePath,
@@ -167,7 +167,7 @@ export async function openProject(dir: string, opts: OpenProjectOptions = {}): P
             if (options.lint !== false) {
                 const lint = await lintProjectCandidatesOnDisk(dir, candidates);
                 if (!lint.pass) {
-                    const error = new Error(lint.errors[0] ?? 'edit-lint が変更を拒否しました') as Error & {
+                    const error = new Error(lint.errors[0] ?? 'edit-lint rejected the change.') as Error & {
                         findings?: EditLintFinding[];
                     };
                     error.findings = lint.findings;
@@ -284,12 +284,12 @@ function stableJson(value: unknown): string {
 }
 
 function requireMotionPath(value: string): string {
-    if (!/^motion\/[^/\\]+\.json$/u.test(value)) throw new Error(`motion 袋のパスが不正です: ${value}`);
+    if (!/^motion\/[^/\\]+\.json$/u.test(value)) throw new Error(`The motion container path is invalid: ${value}`);
     return value;
 }
 
 function requireGroupId(value: string): void {
-    if (value.length === 0 || value.includes('/') || value.includes('\\')) throw new Error(`group id が不正です: ${value}`);
+    if (value.length === 0 || value.includes('/') || value.includes('\\')) throw new Error(`The group id is invalid: ${value}`);
 }
 
 async function readOptional(path: string): Promise<string | undefined> {

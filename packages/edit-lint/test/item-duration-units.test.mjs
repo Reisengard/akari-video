@@ -35,10 +35,10 @@ const check = (findings, id) => findings.filter(finding => finding.check === id)
 test("four frames warn about both units and source duration", async () => {
   const findings = await findingsFor(media(4));
   assert.equal(check(findings, "v2.item-duration-short").length, 1);
-  assert.match(check(findings, "v2.item-duration-short")[0].message, /4 フレーム（0\.13 秒）/u);
-  assert.match(check(findings, "v2.item-duration-short")[0].message, /120 フレーム/u);
+  assert.match(check(findings, "v2.item-duration-short")[0].message, /4 frames \(0\.13 seconds\)/u);
+  assert.match(check(findings, "v2.item-duration-short")[0].message, /120 frames/u);
   assert.equal(check(findings, "v2.item-duration-source-mismatch").length, 1);
-  assert.match(check(findings, "v2.item-duration-source-mismatch")[0].message, /30\.0 倍/u);
+  assert.match(check(findings, "v2.item-duration-source-mismatch")[0].message, /30\.0 times/u);
 });
 
 test("half-second boundary and non-media items", async () => {

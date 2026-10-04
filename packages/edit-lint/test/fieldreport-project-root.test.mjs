@@ -59,16 +59,16 @@ test('present narration provenance without provider retains execution error with
     };
     await writeFile(join(root, 'edit.json'), JSON.stringify(edit));
     await assert.rejects(lintProject(root), error => {
-      assert.match(error.message, /provenance\.provider は必須です/);
+      assert.match(error.message, /provenance\.provider is required/);
       assert.match(error.message, /\{"provider":"voicevox","credit":"VOICEVOX:ずんだもん"\}/);
       return true;
     });
     const errors = [];
     assert.equal(await runCli([root, '--json'], { log() {}, error: line => errors.push(line) }), 2);
-    assert.match(errors.join('\n'), /provenance\.provider は必須です/);
+    assert.match(errors.join('\n'), /provenance\.provider is required/);
     edit.tracks[0].items[0].provenance.provider = '';
     await writeFile(join(root, 'edit.json'), JSON.stringify(edit));
-    await assert.rejects(lintProject(root), /provenance\.provider は必須です/);
+    await assert.rejects(lintProject(root), /provenance\.provider is required/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -95,7 +95,7 @@ test('multiple BGM warns only for overlap without either fade', async () => {
     assert.equal(overlapping.verdict, 'pass');
     assert.equal(bgmFindings(overlapping).length, 1);
     assert.equal(bgmFindings(overlapping)[0].severity, 'warning');
-    assert.match(bgmFindings(overlapping)[0].message, /重なり: music-1 \/ music-2 \[20, 30\)/);
+    assert.match(bgmFindings(overlapping)[0].message, /Overlap: music-1 \/ music-2 \[20, 30\)/);
     assert.match(bgmFindings(overlapping)[0].message, /fade_out/);
     assert.match(bgmFindings(overlapping)[0].message, /fade_in/);
     assert.match(bgmFindings(overlapping)[0].message, /"fade_out": 0\.33/u);
@@ -122,8 +122,8 @@ test('multiple BGM warns only for overlap without either fade', async () => {
     const three = await lintProject(root);
     assert.equal(three.verdict, 'pass');
     assert.equal(bgmFindings(three).length, 1);
-    assert.match(bgmFindings(three)[0].message, /重なり: music-2 \/ music-3 \[40, 50\)/);
-    assert.doesNotMatch(bgmFindings(three)[0].message, /重なり: music-1 \/ music-2/);
+    assert.match(bgmFindings(three)[0].message, /Overlap: music-2 \/ music-3 \[40, 50\)/);
+    assert.doesNotMatch(bgmFindings(three)[0].message, /Overlap: music-1 \/ music-2/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

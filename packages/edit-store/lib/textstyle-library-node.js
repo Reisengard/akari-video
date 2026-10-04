@@ -70,7 +70,7 @@ function readLibraryTextstylePresets({ roots }) {
                 if (raw?.format !== 'akari-textstyle' || typeof raw.id !== 'string'
                     || !ID.test(raw.id) || raw.id !== entry.name
                     || !raw.style || typeof raw.style !== 'object' || Array.isArray(raw.style)) {
-                    throw new Error('format / id / style が不正です');
+                    throw new Error('format / id / style is invalid.');
                 }
                 if (seen.has(raw.id))
                     continue;

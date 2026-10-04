@@ -177,7 +177,7 @@ test("writeWordBookFile は検証失敗時に既存ファイルと temp を残�
   const file = path.join(root, "word-book.json");
   await writeWordBookFile(file, { version: 0, entries: [] });
   const before = readFileSync(file, "utf8");
-  await assert.rejects(writeWordBookFile(file, { version: 0, entries: [{ surface: "bad" }] }), /検証に失敗/);
+  await assert.rejects(writeWordBookFile(file, { version: 0, entries: [{ surface: "bad" }] }), /validation failed/);
   assert.equal(readFileSync(file, "utf8"), before);
   assert.deepEqual((await readdir(root)).filter((name) => name.endsWith(".tmp")), []);
   await rm(root, { recursive: true, force: true });

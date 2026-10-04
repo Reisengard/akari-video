@@ -111,7 +111,7 @@ export function loadTextstylePresetIds(repoRoot) {
 
 export class ExecutionError extends Error {}
 
-const PROVIDER_GUIDANCE = 'provenance.provider は必須です（例: {"provider":"voicevox","credit":"VOICEVOX:ずんだもん"} / "fal" / "human"）';
+const PROVIDER_GUIDANCE = 'provenance.provider is required. Example: {"provider":"voicevox","credit":"VOICEVOX:ずんだもん"} / "fal" / "human"';
 
 function providerGuidedMessage(error) {
   const message = messageOf(error);
@@ -188,7 +188,7 @@ export async function lintProject(input, options = {}) {
   if (engineCapabilities !== null) {
     inputs.engine_capabilities_sha256 = sha256(engineCapabilities.text);
     if (!isRecord(edit) || edit.version !== 2) {
-      addSkipped(skipped, "engine.capabilities", "v2 のみ対応");
+      addSkipped(skipped, "engine.capabilities", "v2 only");
     }
   }
 
@@ -196,7 +196,7 @@ export async function lintProject(input, options = {}) {
     addFinding(findings, {
       severity: "error",
       check: "edit.version",
-      message: `edit.json version ${edit.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      message: `edit.json version ${edit.version} is too new to check. This file uses a newer format. Update the skill or the app.`,
       path: "edit.json#version",
     });
     addSkipped(
@@ -352,7 +352,7 @@ export async function lintProject(input, options = {}) {
     addFinding(findings, {
       severity: "info",
       check: "timeline.duration-derived",
-      message: `尺を overlays / 字幕 / 音声の終端 ${formatNumber(timeline)} 秒から導出した`,
+      message: `Duration was derived from the overlay, caption, and audio end at ${formatNumber(timeline)} seconds.`,
       path: "edit.json#tracks",
     });
   }
@@ -443,7 +443,7 @@ function validateGeometryFitCompat(rawEdit, internalEdit, findings) {
   addFinding(findings, {
     severity: "warning",
     check: "geometry.fit-compat",
-    message: "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+    message: "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
     path: "edit.json#output.geometry",
   });
 }
@@ -480,7 +480,7 @@ function validateTransitionAdjacency(cuts, segments, sources, fps, findings) {
         addFinding(findings, {
           severity: "warning",
           check: "cuts.transition-out.zero-overlap",
-          message: "トランジションを宣言していますが、のりしろにできる素材の余りがないため効きません。素材のトリムを調整するか、トランジションを削除してください。",
+          message: "A transition is declared, but there is no spare footage for the overlap, so it has no effect. Adjust the footage trim, or remove the transition.",
           path: `edit.json#cuts[${earlier.index}].transition_out`,
           range: { start: earlier.end, end: later.start },
         });
@@ -496,7 +496,7 @@ function validateTransitionAdjacency(cuts, segments, sources, fps, findings) {
     addFinding(findings, {
       severity: "error",
       check: "cuts.transition-out.non-adjacent",
-      message: "transition_out の次のクリップとの間にすき間があります。すき間を詰めるか、トランジションを削除してください。",
+      message: "There is a gap before the clip after transition_out. Close the gap, or remove the transition.",
       path: `edit.json#cuts[${earlier.index}].transition_out`,
       range: { start: earlier.end, end: later.start },
     });
@@ -527,12 +527,12 @@ function validateTransitionLayerEvacuations(rawEdit, internalEdit, findings) {
       const location = rawLocations.get(item.id);
       const cause = crossTrackCauses.get(item.id);
       const reason = cause
-        ? `このクリップは他トラックのアイテム（${cause.causeItemId}）と重なっているため PiP 経路へ退避され、宣言したトランジションは書き出されません。`
-        : "このクリップは合成機能または同一トラック内の重なりにより PiP 経路へ退避され、宣言したトランジションは書き出されません。";
+        ? `This clip overlaps an item on another track (${cause.causeItemId}), so it was sent down the PiP path and the declared transition is not exported. `
+        : "This clip was sent down the PiP path because of compositing or an overlap on the same track, so the declared transition is not exported. ";
       addFinding(findings, {
         severity: "warning",
         check: "cuts.transition-out.layer-evacuated",
-        message: `${reason}重なりを解消するか、トランジションを削除してください。`,
+        message: `${reason}Resolve the overlap, or remove the transition.`,
         path: location
           ? `edit.json#tracks[${location.trackIndex}].items[${location.itemIndex}].source.transition_out`
           : `edit.json#tracks[${track.z}].items`,
@@ -557,7 +557,7 @@ export function validateCaptionTrackDeclaration(rawEdit, captionsRoot, findings)
   addFinding(findings, {
     severity: "warning",
     check: "v2.captions-track-undeclared",
-    message: 'captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { "id": "captions", "name": "字幕", "at": 0, "duration": <出力尺>, "source": { "kind": "captions", "path": "captions.json" }, "items": [] } を追加してください。',
+    message: 'captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { "id": "captions", "name": "Captions", "at": 0, "duration": <output duration>, "source": { "kind": "captions", "path": "captions.json" }, "items": [] }.',
     path: "edit.json#tracks",
   });
 }
@@ -789,8 +789,8 @@ function readEngineCapabilities(options) {
     }
   } catch (error) {
     const location = options.engineCapabilitiesPath
-      ? `指定された対応表 ${options.engineCapabilitiesPath}`
-      : "同梱漏れ: packages/edit-lint/src/engine-capabilities.json または packages/schemas/engine-capabilities.json";
+      ? `The named capability table ${options.engineCapabilitiesPath}`
+      : "Missing bundled file: packages/edit-lint/src/engine-capabilities.json or packages/schemas/engine-capabilities.json";
     throw new ExecutionError(`engine capability table cannot be read (${location}): ${messageOf(error)}`);
   }
   let value;
@@ -922,7 +922,7 @@ function checkEngineField({
       severity: "warning",
       engines,
       auto: engine === "auto",
-      body: `${canonicalPath} は対応表 packages/schemas/engine-capabilities.json に無いフィールドです（表の更新漏れ）`,
+      body: `${canonicalPath} is not a field in packages/schemas/engine-capabilities.json. The table was not updated.`,
       actualPath,
     });
     return;
@@ -935,7 +935,7 @@ function checkEngineField({
         engine: engineName,
         check: "engine.unsupported-field",
         severity: "error",
-        body: `${canonicalPath} を消費しません（${actualPath}・描画には反映されません）${row.hint ? `。hint: ${row.hint}` : ""}`,
+        body: `${canonicalPath} is not consumed (${actualPath}; it does not affect drawing)${row.hint ? `. hint: ${row.hint}` : ""}`,
       }];
     }
     if (status === "partial") {
@@ -943,7 +943,7 @@ function checkEngineField({
         engine: engineName,
         check: "engine.partial-field",
         severity: "warning",
-        body: `${canonicalPath} は近似です（${row.note ?? "一部の宣言だけが反映されます"}）`,
+        body: `${canonicalPath} is an approximation (${row.note ?? "only part of the declaration is applied"})`,
       }];
     }
     return [];
@@ -965,7 +965,7 @@ function checkEngineField({
     addFinding(findings, {
       check: entry.check,
       severity: entry.severity,
-      message: engine === "auto" ? `${entry.engine}: ${entry.body}` : `${entry.engine} 経路は ${entry.body}`,
+      message: engine === "auto" ? `${entry.engine}: ${entry.body}` : `${entry.engine} path: ${entry.body}`,
       path: `edit.json#${actualPath}`,
     });
   }
@@ -980,7 +980,7 @@ function addEngineFinding(findings, { check, severity, engines, auto, body, actu
     addFinding(findings, {
       check,
       severity,
-      message: auto ? `${engine}: ${body}` : `${engine} 経路では ${body}`,
+      message: auto ? `${engine}: ${body}` : `${engine} path: ${body}`,
       path: `edit.json#${actualPath}`,
     });
   }
@@ -1186,7 +1186,7 @@ function validateEditV2(edit, findings) {
             && duration < Math.round(0.5 * fps)) {
             addFinding(findings, {
               severity: "warning", check: "v2.item-duration-short",
-              message: `item ${String(item.id)} の duration は ${duration} フレーム（${seconds} 秒）です。at / duration の単位はフレームです。${duration} 秒のつもりなら ${formatNumber(duration * fps)} フレームにしてください（×fps = ${formatNumber(fps)}）。`,
+              message: `Item ${String(item.id)} duration is ${duration} frames (${seconds} seconds). at and duration are in frames. If you meant ${duration} seconds, use ${formatNumber(duration * fps)} frames (x fps = ${formatNumber(fps)}).`,
               path: `${itemPath}.duration`,
             });
           }
@@ -1201,7 +1201,7 @@ function validateEditV2(edit, findings) {
             if (sourceSeconds > 0 && ratio >= 5) {
               addFinding(findings, {
                 severity: "warning", check: "v2.item-duration-source-mismatch",
-                message: `item ${String(item.id)} の duration ${duration} フレーム（${seconds} 秒）と source の区間 in ${formatNumber(sourceIn)} 秒 〜 out ${formatNumber(source.out)} 秒（${sourceSeconds.toFixed(2)} 秒${isPositiveNumber(source.speed) && source.speed !== 1 ? `・speed ${formatNumber(source.speed)}` : ""}）が ${ratio.toFixed(1)} 倍食い違っています。at / duration はフレーム、source.in / out は秒です。取り違えていないか確かめてください（duration を秒で書いたなら ×fps = ${formatNumber(fps)}）。`,
+                message: `Item ${String(item.id)} duration is ${duration} frames (${seconds} seconds), but the source span in ${formatNumber(sourceIn)}s to out ${formatNumber(source.out)}s (${sourceSeconds.toFixed(2)} seconds${isPositiveNumber(source.speed) && source.speed !== 1 ? `, speed ${formatNumber(source.speed)}` : ""}) differs by ${ratio.toFixed(1)} times. at and duration are frames. source.in and source.out are seconds. Check that they were not swapped. If duration was written in seconds, multiply by fps = ${formatNumber(fps)}.`,
                 path: `${itemPath}.duration`,
               });
             }
@@ -1321,7 +1321,7 @@ function validateEditV2(edit, findings) {
       ? formatNumber(Number((overlaps[0].frames / fps).toFixed(2))) : null;
     if (overlaps.length) addFinding(findings, {
       severity: "warning", check: "v2.audio-bgm-multiple",
-      message: `BGM ${bgmItems.map(describe).join('、')}。重なり: ${overlaps.map(overlap => overlap.label).join('、')}。重なった区間は両方の BGM が鳴ります。クロスフェードにするなら、前の item に fade_out（秒）、後の item に fade_in（秒）を付けてください${exampleSeconds !== null ? `（例: 重なり ${formatNumber(overlaps[0].frames)} フレーム = ${exampleSeconds} 秒なら "fade_out": ${exampleSeconds} / "fade_in": ${exampleSeconds}）` : ""}。意図しない重なりなら時間が重ならないように配置してください。（同じトラックの中では重ねられません。別の audio トラックに置いてください）`,
+      message: `BGM ${bgmItems.map(describe).join(', ')}. Overlap: ${overlaps.map(overlap => overlap.label).join(', ')}. Both BGM items play during the overlap. For a crossfade, set fade_out in seconds on the earlier item and fade_in in seconds on the later item${exampleSeconds !== null ? ` (example: for an overlap of ${formatNumber(overlaps[0].frames)} frames = ${exampleSeconds} seconds, "fade_out": ${exampleSeconds} / "fade_in": ${exampleSeconds})` : ""}. If the overlap was not intended, place them so the times do not overlap. Items on the same track cannot overlap. Use another audio track.`,
       path: "edit.json#tracks",
     });
   }
@@ -1363,7 +1363,7 @@ function validateEditV2(edit, findings) {
       addFinding(findings, {
         severity: "warning",
         check: "v2.captions-content-deprecated",
-        message: "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+        message: "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
         path: `${trackPath}.content`,
       });
     }
@@ -1421,8 +1421,8 @@ function validateEditV2(edit, findings) {
             severity: "error",
             check: "v2.mask-video",
             message: `${kind === "media" && isStillImageSourcePath(sourcePaths.get(item.source.src))
-              ? "静止画のマスクは PNG または動画を指定してください"
-              : "動画のマスクは動画ソースを指定してください"}: ${String(sourcePaths.get(item.mask))}`,
+              ? "A still-image mask must be a PNG or a video"
+              : "A video mask must be a video source"}: ${String(sourcePaths.get(item.mask))}`,
             path: maskPath,
           });
         }
@@ -1662,7 +1662,7 @@ async function validateV2ObjectTreeFiles(edit, findings, paths) {
       addFinding(findings, {
         severity: "error",
         check: "telop.retired",
-        message: "テロップ（ATF）の描画は退役しました。HTML 素材版のテロップに差し替えてください（Lab で配布）。すでに焼いた baked を持つ項目はそのまま再生できます。",
+        message: "Telop (ATF) drawing is retired. Replace it with the HTML telop from Lab. Items that already have a baked result still play.",
         path: `${itemPath}.source`,
       });
     }
@@ -2258,8 +2258,8 @@ function validateSfxTracks(sfx, findings) {
           severity: samePath ? "warning" : "info",
           check: "audio.sfx.track-overlap",
           message: samePath
-            ? `効果音 audio.sfx[${current.index}] が同じ track ${current.track}・同じ時刻 ${formatNumber(current.t)} 秒に同じ素材 ${current.path} で置かれています（二重置きの可能性）。意図した重ねなら track を分けてください（書き出しのミックスは track を見ずに全部鳴らしますが、NLE 書き出しは track を NLE のトラック単位にするため同じトラックに重なります）。`
-            : `効果音 audio.sfx[${current.index}] が同じ track ${current.track}・同じ時刻 ${formatNumber(current.t)} 秒に別素材と重なっています。書き出しのミックスは track を見ずに両方鳴らします。重ねるつもりなら track を分けてください（NLE 書き出しは track を NLE のトラック単位にするため、同じトラックに重なります）。`,
+            ? `Sound effect audio.sfx[${current.index}] places the same footage ${current.path} twice on track ${current.track} at ${formatNumber(current.t)} seconds. If the stack is intended, use separate tracks. Export plays every copy and ignores track. An NLE export maps a track to an NLE track, so they overlap there.`
+            : `Sound effect audio.sfx[${current.index}] overlaps different footage on track ${current.track} at ${formatNumber(current.t)} seconds. Export plays both and ignores track. Put them on separate tracks if the overlap is intended. An NLE export maps a track to an NLE track, so they overlap there too.`,
           path: `edit.json#audio.sfx[${current.index}]`,
           range: { start: current.t, end: current.t },
         });
@@ -2449,8 +2449,8 @@ export function validateTrackTransitionOutCompatibility(edit, findings) {
       severity: "error",
       check: "cuts.track-transition-unsupported",
       message:
-        `映像トラック ${trackRef} の transition_out は、PiP または複数トラックを合成する方式では書き出せません。`
-        + `トランジションを削除するか、映像を単一の cuts トラックへ戻してください。`,
+        `transition_out on picture track ${trackRef} cannot be exported when the path composites PiP or several tracks. `
+        + `Remove the transition, or move the picture back to a single cuts track.`,
       path: `edit.json#cuts[${cutIndex}]`,
     });
   }
@@ -2782,11 +2782,11 @@ function validateOverlayFragmentAssets(html, overlay, paths, findings) {
   };
   const finding = (reference, check, detail) => addFinding(findings, {
     severity: "error", check: `overlay-fragment-asset-${check}`,
-    message: `overlay:${overlay.id} fragment ${overlay.html} の参照 "${reference.raw}"${check === "missing" ? " " : ": "}${detail}`,
+    message: `overlay:${overlay.id} fragment ${overlay.html} reference "${reference.raw}"${check === "missing" ? " " : ": "}${detail}`,
     path: relativePath(paths.projectRoot, resolve(paths.projectRoot, overlay.html)),
   });
   for (const reference of extractAbsoluteFragmentAssetReferences(html, overlay.html)) {
-    finding(reference, "absolute-path", "断片からの相対パスで書く");
+    finding(reference, "absolute-path", "write a path relative to the fragment");
   }
   for (const reference of extractFragmentAssetReferences(html, overlay.html, overlay.id)) {
     const target = resolve(root, reference.path);
@@ -2802,9 +2802,10 @@ function validateOverlayFragmentAssets(html, overlay, paths, findings) {
       references: paths.assetReferences, libraryRoots: paths.libraryRoots,
     });
     if (fallback.path !== null) continue;
-    finding(reference, "missing", "が見つからない。" + describeFragmentAssetHint({
+    const hint = describeFragmentAssetHint({
       projectRoot: paths.projectRoot, htmlPath: overlay.html, ...reference,
-    }));
+    });
+    finding(reference, "missing", hint ? `was not found. ${hint}` : "was not found.");
   }
 }
 
@@ -3826,7 +3827,7 @@ function validateCaptions(captions, edit, analysis, findings, paths, cutsEndSeco
     addFinding(findings, {
       severity: "warning",
       check: "word-book.invalid",
-      message: `単語帳を読み込めません（${layer.error.code}）: ${layer.error.message}`,
+      message: `Cannot read the word book (${layer.error.code}): ${layer.error.message}`,
       path: relativePath(paths.projectRoot, layer.path),
     });
   }
@@ -3834,7 +3835,7 @@ function validateCaptions(captions, edit, analysis, findings, paths, cutsEndSeco
     addFinding(findings, {
       severity: "info",
       check: "word-book.variant-shadowed",
-      message: `variant ${conflict.variant_key} は ${conflict.winner.surface} (${conflict.winner.scope}) が優先され、${conflict.shadowed.map(item => `${item.surface} (${item.scope})`).join(", ")} を隠します`,
+      message: `For variant ${conflict.variant_key}, ${conflict.winner.surface} (${conflict.winner.scope}) wins and hides ${conflict.shadowed.map(item => `${item.surface} (${item.scope})`).join(", ")}`,
       path: captionPath,
     });
   }
@@ -4123,7 +4124,7 @@ function validateCaptions(captions, edit, analysis, findings, paths, cutsEndSeco
         addFinding(findings, {
           severity: "warning",
           check: "captions.output-domain-exceeds-duration",
-          message: `captions[${index}] は time_domain: output の宣言区間が動画総尺 ${cutsEndSeconds.toFixed(1)}s を超えています。書き出しでは ${cutsEndSeconds.toFixed(1)}s までにクランプして表示されます。`,
+          message: `captions[${index}] declares a time_domain: output span past the ${cutsEndSeconds.toFixed(1)}s duration. Export clamps it to ${cutsEndSeconds.toFixed(1)}s.`,
           path: itemPath,
           range: { start: caption.start, end: caption.end },
         });
@@ -4180,14 +4181,14 @@ function validateCaptions(captions, edit, analysis, findings, paths, cutsEndSeco
         addFinding(findings, {
           severity: caption.edited === true ? "info" : "warning",
           check: "captions.word-book-term",
-          message: `${position} に単語帳の表記ゆれ ${JSON.stringify(match.matched)} が残っています（正表記: ${match.surface}）`,
+          message: `${position} still has the word-book variant spelling ${JSON.stringify(match.matched)} (canonical: ${match.surface})`,
           path: itemPath,
         });
       } else if (match.kind === "notation") {
         addFinding(findings, {
           severity: "warning",
           check: "captions.word-book-notation",
-          message: `${position} に非推奨表記 ${JSON.stringify(match.matched)} があります（推奨: ${match.surface}）`,
+          message: `${position} uses deprecated wording ${JSON.stringify(match.matched)} (preferred: ${match.surface})`,
           path: itemPath,
         });
       }
@@ -4204,7 +4205,7 @@ function validateCaptions(captions, edit, analysis, findings, paths, cutsEndSeco
         addFinding(findings, {
           severity: "warning",
           check: "captions.word-book-break-fallback",
-          message: `単語帳の行分割保護を外しました: ${fallback.dropped_terms.join(", ")}`,
+          message: `Removed the word-book line-break guard: ${fallback.dropped_terms.join(", ")}`,
           path: index >= 0 ? `captions.json#[${index}]` : captionPath,
         });
       }
@@ -4870,7 +4871,7 @@ async function validateReview(review, edit, findings, paths, skipped) {
     reviewFinding(
       findings,
       "review.version",
-      `review.json version ${review.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `review.json version ${review.version} is too new to check. This file uses a newer format. Update the skill or the app.`,
       `${reviewRelative}#version`,
     );
     addSkipped(
@@ -5341,8 +5342,8 @@ async function lintDecisionLogPredict({ projectRoot, intake, edit, findings }) {
   addFinding(findings, {
     severity: "warning",
     check: "decision-log.predict-missing",
-    message: "decision-log.md に機械の予測行（決定者 machine:director）がありません。提案つき / そのままモードでは、入れた物 1 件ごとに予測 1 行を追記してください（判子は一回 契約 §10）"
-      + (decisionLog === undefined ? "（decision-log.md が見つかりません）" : ""),
+    message: "decision-log.md has no machine prediction row (decider machine:director). In With suggestions or As is mode, append one prediction row for each inserted item (one stamp, contract section 10)."
+      + (decisionLog === undefined ? " (decision-log.md was not found)" : ""),
     path: "decision-log.md",
   });
 }
@@ -5357,7 +5358,7 @@ function validateIntake(intake, findings, paths) {
     intakeFinding(
       findings,
       "intake.version",
-      `intake.json version ${intake.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `intake.json version ${intake.version} is too new to check. This file uses a newer format. Update the skill or the app.`,
       `${intakeRelative}#version`,
     );
     return;
@@ -5714,9 +5715,9 @@ function addSourceVfrFinding(source, sourceIndex, findings, paths) {
     ? timing.cumulative_drift_ms
     : 0;
   const nominalFrameMs = Number.isFinite(timing.nominal_frame_ms) ? timing.nominal_frame_ms : 0;
-  let message = `この素材は可変フレームレートです（ぶれ ${formatNumber(irregularDeltas)} 回・最大 ${formatNumber(maxDeviationMs)} ms）。最近傍で写像しています`;
+  let message = `This footage is variable frame rate (${formatNumber(irregularDeltas)} jitter events, max ${formatNumber(maxDeviationMs)} ms). Mapping uses the nearest frame`;
   if (nominalFrameMs > 0 && Math.abs(cumulativeDriftMs) > nominalFrameMs / 2) {
-    message += "。固定フレームレートに変換すると音ズレを防げます（任意）";
+    message += ". Converting to a constant frame rate avoids audio drift (optional)";
   }
   addFinding(findings, {
     severity: "warning",
@@ -5860,7 +5861,7 @@ function addSourceRangeFindings(
     addFinding(findings, {
       severity: "error",
       check: "media.source-range",
-      message: `${label}: in=${inSeconds.toFixed(3)}s は素材の実尺 ${duration.toFixed(3)}s 以上です（その先に素材がありません）`,
+      message: `${label}: in=${inSeconds.toFixed(3)}s is at or past the footage duration ${duration.toFixed(3)}s. There is no footage past that point.`,
       path: `${pathPrefix}.in${pathSuffix}`,
     });
     return;
@@ -5869,7 +5870,7 @@ function addSourceRangeFindings(
     addFinding(findings, {
       severity: "error",
       check: "media.source-range",
-      message: `${label}: out=${outSeconds.toFixed(3)}s が素材の実尺 ${duration.toFixed(3)}s を ${(outSeconds - duration).toFixed(3)}s 超えています（存在しない区間の要求）`,
+      message: `${label}: out=${outSeconds.toFixed(3)}s exceeds the footage duration ${duration.toFixed(3)}s by ${(outSeconds - duration).toFixed(3)}s. That span does not exist.`,
       path: `${pathPrefix}.out${pathSuffix}`,
     });
   }
@@ -6158,11 +6159,11 @@ export function findCropScaleProxyRatioFindings(items, ratioOf) {
     return {
       severity: "warning",
       check: "media.crop-scale-proxy-ratio",
-      message: `素材 ${entry.sourceId} の crop を持つ item ${count} 件の transform.scale ${formatNumber(scale)} が、`
-        + `原本 ÷ プロキシの寸法比（${original.width}x${original.height} ÷ ${proxy.width}x${proxy.height}`
-        + ` = ${formatNumber(ratio)}）と一致します。プレビューがプロキシを復号していた時期の回避策の値`
-        + `である可能性が高く、原本を復号する現在は構図が約 ${formatNumber(ratio)} 倍に拡大します。`
-        + `意図したズームでなければ transform.scale を原本基準（通常 1）へ戻してください。`,
+      message: `transform.scale ${formatNumber(scale)} on ${count} cropped item(s) of footage ${entry.sourceId} equals the `
+        + `original ÷ proxy size ratio (${original.width}x${original.height} ÷ ${proxy.width}x${proxy.height}`
+        + ` = ${formatNumber(ratio)}). This is probably a workaround value from when preview decoded the proxy. `
+        + `Preview now decodes the original, so the framing is enlarged about ${formatNumber(ratio)} times. `
+        + `If this zoom was not intended, set transform.scale back to the original basis (usually 1).`,
       path: `${entry.itemPath}.transform.scale`,
     };
   });
@@ -6312,7 +6313,7 @@ async function validateProxyGops(rawEdit, findings, paths, options) {
       addFinding(findings, {
         severity: "warning",
         check: "source.proxy-long-gop",
-        message: `プロキシの最大キーフレーム間隔が ${maxKeyframeIntervalSeconds.toFixed(3)} 秒のため、プレビューのカット切り替えが遅くなります。GOP 1 秒以下で焼き直してください: ffmpeg -i <input> … -g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0 <output>`,
+        message: `The proxy keyframe interval is ${maxKeyframeIntervalSeconds.toFixed(3)} seconds, so preview cut switches will be slow. Re-encode with a GOP of 1 second or less: ffmpeg -i <input> … -g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0 <output>`,
         path: declaration.path,
       });
     }
@@ -6564,7 +6565,7 @@ function resolveReferenceBinding(editPath, reference, paths = null) {
 }
 
 function unfetchedLibraryNote(binding) {
-  return binding.libraryReference ? "（共有ライブラリ参照（未取得））" : "";
+  return binding.libraryReference ? " (shared library reference, not fetched)" : "";
 }
 
 function isRegularFileSync(filePath) {
@@ -6697,12 +6698,12 @@ function validateAdjustV1Sections(value, findings, path) {
   if (!isRecord(value)) return;
   const report = (section, check, at, message) => addFinding(findings, { severity: "error", check: "adjust." + section + "." + check, path: at, message });
   const object = (v, keys, section, at) => {
-    if (!isRecord(v)) { report(section, 'structure', at, 'は object である必要があります'); return false; }
-    for (const key of Object.keys(v)) if (!keys.includes(key)) report(section, 'unknown-key', at + '.' + key, 'は未知のキーです');
+    if (!isRecord(v)) { report(section, 'structure', at, 'Must be an object.'); return false; }
+    for (const key of Object.keys(v)) if (!keys.includes(key)) report(section, 'unknown-key', at + '.' + key, 'Unknown key.');
     return true;
   };
   const number = (v, min, max, section, at) => {
-    if (!isFiniteNumber(v) || v < min || v > max) report(section, 'range', at, 'は ' + min + ' から ' + max + ' の範囲の有限数である必要があります');
+    if (!isFiniteNumber(v) || v < min || v > max) report(section, 'range', at, 'Must be a finite number from ' + min + ' to ' + max + '.');
   };
   if (Object.hasOwn(value, 'fx')) {
     const at = path + '.fx';
@@ -6752,7 +6753,7 @@ function validateAdjustV1Sections(value, findings, path) {
       if (!Object.hasOwn(channels, channel)) continue;
       const points = channels[channel], channelPath = at + '.' + channel;
       if (!Array.isArray(points) || points.length < minimum || points.length > 16) {
-        report(section, 'points', channelPath, 'は ' + minimum + ' から 16 点の配列である必要があります'); continue;
+        report(section, 'points', channelPath, 'Must be an array of ' + minimum + ' to 16 points.'); continue;
       }
       let previous = -Infinity;
       for (const [index, point] of points.entries()) {
@@ -6761,7 +6762,7 @@ function validateAdjustV1Sections(value, findings, path) {
         number(point[axis], 0, 1, section, pointPath + '.' + axis);
         number(point[output], 0, 1, section, pointPath + '.' + output);
         if (isFiniteNumber(point[axis])) {
-          if (point[axis] <= previous) report(section, 'order', pointPath + '.' + axis, 'は狭義単調増加である必要があります');
+          if (point[axis] <= previous) report(section, 'order', pointPath + '.' + axis, 'Must be strictly increasing.');
           previous = point[axis];
         }
       }

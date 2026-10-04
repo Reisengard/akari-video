@@ -101,14 +101,14 @@ test('still image accepts a PNG mask while video keeps rejecting PNG', async () 
   await writeFile(editPath, `${JSON.stringify(edit, null, 2)}\n`);
   result = await lintProject(root, { writeReports: false });
   assert.ok(result.findings.some(finding => finding.check === 'v2.mask-video'
-    && finding.message.includes('静止画のマスク')));
+    && finding.message.includes('A still-image mask')));
 
   item.source.src = 'pip';
   item.mask = 'png-mask';
   await writeFile(editPath, `${JSON.stringify(edit, null, 2)}\n`);
   result = await lintProject(root, { writeReports: false });
   assert.ok(result.findings.some(finding => finding.check === 'v2.mask-video'
-    && finding.message.includes('動画のマスク')));
+    && finding.message.includes('A video mask')));
 });
 
 test('legacy edit.json is rejected by the v2-only reader', async () => {

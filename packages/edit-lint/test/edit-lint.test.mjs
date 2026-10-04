@@ -375,8 +375,8 @@ test("output-domain caption beyond the cuts duration warns about render clamping
       (finding) => finding.check === "captions.output-domain-exceeds-duration",
     );
     assert.equal(warning.severity, "warning");
-    assert.match(warning.message, /動画総尺 10\.0s/u);
-    assert.match(warning.message, /10\.0s までにクランプして表示/u);
+    assert.match(warning.message, /past the 10\.0s duration/u);
+    assert.match(warning.message, /Export clamps it to 10\.0s/u);
   });
 });
 
@@ -449,7 +449,7 @@ test("version 3 stops with an honest too-new message", async () => {
     const result = parseResult(executed);
     assert.equal(result.findings.length, 1);
     assert.equal(result.findings[0].check, "edit.version");
-    assert.match(result.findings[0].message, /新しすぎる/);
+    assert.match(result.findings[0].message, /too new/);
     assert.ok(result.skipped.some((item) => item.check === "edit.validation"));
   });
 });
@@ -464,7 +464,7 @@ test("valid v2 fixture passes the Phase 0 track checks", async () => {
       id: "F002",
       severity: "warning",
       check: "v2.captions-content-deprecated",
-      message: "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+      message: "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
       path: "edit.json#tracks[2].content",
     }]);
     assert.ok(!result.skipped.some((item) => item.check === "edit.v2.extended-validation"));
@@ -602,8 +602,8 @@ test("v2 captions track warning covers undeclared, declared, empty cues, and v1 
     );
     assert.equal(undeclared.length, 1);
     assert.equal(undeclared[0].severity, "warning");
-    assert.match(undeclared[0].message, /暗黙補完で表示自体はされています/u);
-    assert.match(undeclared[0].message, /\{ "id": "captions", "name": "字幕", "at": 0, "duration": <出力尺>, "source": \{ "kind": "captions", "path": "captions\.json" \}, "items": \[\] \}/u);
+    assert.match(undeclared[0].message, /Playback still fills one in/u);
+    assert.match(undeclared[0].message, /\{ "id": "captions", "name": "Captions", "at": 0, "duration": <output duration>, "source": \{ "kind": "captions", "path": "captions\.json" \}, "items": \[\] \}/u);
 
     await writeFile(editPath, `${JSON.stringify(declaredEdit, null, 2)}\n`, "utf8");
     assert.equal(parseResult(run(project)).findings.filter(
@@ -1986,7 +1986,7 @@ test("different sfx on the same track at the same t report info", async () => {
     const overlap = result.findings.filter(finding => finding.check === "audio.sfx.track-overlap");
     assert.equal(overlap.length, 1);
     assert.equal(overlap[0].severity, "info");
-    assert.match(overlap[0].message, /track を分けて/u);
+    assert.match(overlap[0].message, /separate tracks/u);
     assert.equal(overlap.filter(finding => finding.severity === "warning").length, 0);
   });
 });
@@ -2008,8 +2008,8 @@ test("identical sfx on the same track at the same t warn without failing", async
     const overlap = result.findings.filter(finding => finding.check === "audio.sfx.track-overlap");
     assert.equal(overlap.length, 1);
     assert.equal(overlap[0].severity, "warning");
-    assert.match(overlap[0].message, /track を分けて/u);
-    assert.match(overlap[0].message, /同じ素材 sfx-a\.wav/u);
+    assert.match(overlap[0].message, /separate tracks/u);
+    assert.match(overlap[0].message, /the same footage sfx-a\.wav/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -2151,8 +2151,8 @@ test("transition_out 宣言つき item 自身が layers へ退避されたら相
     );
     assert.ok(finding, JSON.stringify(result.findings, null, 2));
     assert.equal(finding.severity, "warning");
-    assert.match(finding.message, /他トラックのアイテム（bg-1）.*PiP 経路へ退避/u);
-    assert.match(finding.message, /重なりを解消するか、トランジションを削除/u);
+    assert.match(finding.message, /an item on another track \(bg-1\).*PiP path/u);
+    assert.match(finding.message, /Resolve the overlap, or remove the transition/u);
     assert.match(finding.path, /tracks\[1\]\.items\[0\]/u);
   });
 });
@@ -2166,7 +2166,7 @@ test("重なり 0 の transition_out だけを warning にし、重なり済み�
     const zero = result.findings.filter(finding => finding.check === "cuts.transition-out.zero-overlap");
     assert.equal(zero.length, 1, JSON.stringify(result.findings, null, 2));
     assert.equal(zero[0].severity, "warning");
-    assert.match(zero[0].message, /のりしろにできる素材の余りがないため効きません/u);
+    assert.match(zero[0].message, /no spare footage for the overlap, so it has no effect/u);
 
     const editPath = join(project, "edit.json");
     const raw = JSON.parse(await readFile(editPath, "utf8"));
@@ -2206,7 +2206,7 @@ test("v2 の gap をまたぐ transition_out は日本語で事前に fail す�
       candidate.check === "cuts.transition-out.non-adjacent"
     );
     assert.ok(finding, JSON.stringify(result.findings, null, 2));
-    assert.match(finding.message, /次のクリップとの間にすき間.*すき間を詰める/);
+    assert.match(finding.message, /gap before the clip after transition_out.*Close the gap/);
   });
 });
 

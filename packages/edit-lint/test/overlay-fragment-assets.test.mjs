@@ -22,8 +22,8 @@ test("missing fragment asset is an error with a correction hint", async t => {
   assert.equal(findings.length, 1);
   assert.equal(findings[0].check, "overlay-fragment-asset-missing");
   assert.equal(findings[0].severity, "error");
-  assert.ok(findings[0].message.includes('の参照 "../assets/logo.svg" が見つからない。断片ファイル基準では'));
-  for (const value of ["overlay:logo", "overlays/lower-third/fragment.html", '"../assets/logo.svg"', "`overlays/assets/logo.svg`", "`../../assets/logo.svg` に直してください"]) assert.ok(findings[0].message.includes(value), findings[0].message);
+  assert.match(findings[0].message, /(?:の参照|reference) "\.\.\/assets\/logo\.svg" (?:が見つからない。|was not found\. )Relative to the fragment file, this points at/u);
+  for (const value of ["overlay:logo", "overlays/lower-third/fragment.html", '"../assets/logo.svg"', "`overlays/assets/logo.svg`", "change it to `../../assets/logo.svg`"]) assert.ok(findings[0].message.includes(value), findings[0].message);
 });
 
 test("references escaping the project are errors", async t => {
@@ -31,7 +31,7 @@ test("references escaping the project are errors", async t => {
   assert.equal(findings.length, 1);
   assert.equal(findings[0].check, "overlay-fragment-asset-escapes-project");
   assert.equal(findings[0].severity, "error");
-  assert.match(findings[0].message, /の参照 "\.\.\/\.\.\/\.\.\/outside.png": escapes the project root$/u);
+  assert.match(findings[0].message, /reference "\.\.\/\.\.\/\.\.\/outside.png": escapes the project root$/u);
 });
 
 test("absolute local paths are distinct errors across HTML and CSS", async t => {
@@ -40,7 +40,7 @@ test("absolute local paths are distinct errors across HTML and CSS", async t => 
   for (const finding of findings) {
     assert.equal(finding.check, "overlay-fragment-asset-absolute-path");
     assert.equal(finding.severity, "error");
-    assert.match(finding.message, /断片からの相対パスで書く/u);
+    assert.match(finding.message, /write a path relative to the fragment/u);
   }
 });
 
@@ -52,7 +52,7 @@ test("correct assets, remote URLs, media URLs, comments, and JSON do not produce
 test("directories are missing assets and inline HTML is excluded", async t => {
   const findings = await lintCase(t, '<div><img src="../../assets"></div>');
   assert.equal(findings[0].check, "overlay-fragment-asset-missing");
-  assert.equal(findings[0].message, 'overlay:logo fragment overlays/lower-third/fragment.html の参照 "../../assets" が見つからない。');
+  assert.equal(findings[0].message, 'overlay:logo fragment overlays/lower-third/fragment.html reference "../../assets" was not found.');
   assert.deepEqual(await lintCase(t, undefined, async project => {
     const file = join(project, "edit.json");
     const edit = JSON.parse(await readFile(file, "utf8"));

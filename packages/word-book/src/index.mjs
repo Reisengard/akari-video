@@ -144,7 +144,7 @@ export function buildMatcher(entries) {
 }
 
 export function applyWordBook(records, matcher, { mode = "transcript", locale } = {}) {
-  if (mode !== "transcript" && mode !== "captions") throw new Error(`未対応の単語帳 mode です: ${mode}`);
+  if (mode !== "transcript" && mode !== "captions") throw new Error(`Unsupported word book mode: ${mode}`);
   const stats = {
     replaced: 0,
     skipped_text_mismatch: 0,
@@ -216,7 +216,7 @@ export async function addEntry(filePath, entry) {
   const resolved = path.resolve(filePath);
   return enqueueWrite(resolved, async () => {
     const loaded = await loadWordBookFile(resolved);
-    if (!loaded.ok) throw new Error(`単語帳を更新できません: ${loaded.error.message}`);
+    if (!loaded.ok) throw new Error(`Cannot update the word book: ${loaded.error.message}`);
     const book = loaded.book ?? { version: 0, entries: [] };
     const nextEntry = { ...entry, added_at: entry.added_at ?? new Date().toISOString() };
     const key = normalizeKey(nextEntry.surface);
@@ -497,7 +497,7 @@ function cloneRecord(record) {
 
 async function writeWordBookFileUnlocked(filePath, book) {
   const validation = validateWordBook(book);
-  if (!validation.valid) throw new Error(`単語帳の検証に失敗しました: ${validation.errors.join("; ")}`);
+  if (!validation.valid) throw new Error(`Word book validation failed: ${validation.errors.join("; ")}`);
   const directory = path.dirname(filePath);
   await mkdir(directory, { recursive: true });
   const temporaryPath = path.join(directory, `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`);

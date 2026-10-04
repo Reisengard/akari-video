@@ -64,7 +64,7 @@ for (const engine of ["gpu", "osr"]) {
       assert.equal(findings.length, 1);
       assert.equal(findings[0].check, "engine.unsupported-field");
       assert.equal(findings[0].severity, "error");
-      assert.match(findings[0].message, new RegExp(`^${engine} 経路は tracks\\[\\]\\.items\\[\\]\\.perspective`, "u"));
+      assert.match(findings[0].message, new RegExp(`^${engine} path: tracks\\[\\]\\.items\\[\\]\\.perspective`, "u"));
       assert.equal(findings[0].path, "edit.json#tracks[0].items[0].perspective");
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -123,7 +123,7 @@ test("valid overlay adjust is one unsupported-field error for gpu and osr", asyn
       assert.equal(findings.length, 1);
       assert.equal(findings[0].check, "engine.unsupported-field");
       assert.equal(findings[0].severity, "error");
-      assert.match(findings[0].message, new RegExp(`^${engine} 経路は tracks\\[\\]\\.items\\[\\]\\.adjust`, "u"));
+      assert.match(findings[0].message, new RegExp(`^${engine} path: tracks\\[\\]\\.items\\[\\]\\.adjust`, "u"));
       assert.equal(findings[0].path, "edit.json#tracks[0].items[0].adjust");
     }
   } finally {
@@ -178,7 +178,7 @@ test("a canonical field missing from an injected table emits capability-unknown"
     const finding = engineFindings(result).find((entry) => entry.path.endsWith(".perspective"));
     assert.equal(finding?.check, "engine.capability-unknown");
     assert.equal(finding?.severity, "warning");
-    assert.match(finding.message, /表の更新漏れ/u);
+    assert.match(finding.message, /The table was not updated/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -267,7 +267,7 @@ test("version 3 keeps the too-new finding and adds engine.capabilities to skippe
     assert.deepEqual(withoutEngine.findings.map((finding) => finding.check), ["edit.version"]);
     assert.equal(withoutEngine.skipped.some((entry) => entry.check === "engine.capabilities"), false);
     assert.ok(withEngine.skipped.some((entry) =>
-      entry.check === "engine.capabilities" && entry.reason === "v2 のみ対応"));
+      entry.check === "engine.capabilities" && entry.reason === "v2 only"));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
