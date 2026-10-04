@@ -80,7 +80,7 @@ test('ボタンの合計・料金未確認と費用承認のモデル別内訳',
     count: 2, total: 0.36, unknown: 1, invalid: false, label: 'Generate 2 options · estimate $0.36 + 1 unconfirmed'
   });
   const message = videoApprovalMessage(estimate, selected, models);
-  assert.match(message, /H3: \$0\.36\(as_of 2026-09-12\)/u);
+  assert.match(message, /H3: \$0\.36 \(as of 2026-09-12\)/u);
   assert.match(message, /Kling: Price unconfirmed/u);
   assert.match(message, /Total estimate \$0\.36 \+ 1 with unconfirmed prices/u);
   appendAiVideoCandidatesPanel(document.body, { selected, preferred, estimate, thumbnails: new Map(), running: false }, models,

@@ -52,7 +52,7 @@ test('参照 0・1・2 枚と 3 手段の可否はカタログの上限に従う
     }
   }
   assert.equal(stillRouteAvailability('antigravity', 1).reason, 'This route cannot take images');
-  assert.equal(stillRouteAvailability('grok', 2).reason, 'Grok: up to 1 images');
+  assert.equal(stillRouteAvailability('grok', 2).reason, 'Grok: up to 1 image');
   assert.equal(stillRouteAvailability('grok', 1).note, 'References are downscaled before sending');
 });
 
