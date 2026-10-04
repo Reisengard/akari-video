@@ -27,9 +27,9 @@ function mulberry32(seed) {
 
 /** 入力由来 seed だけを使う、seek 非依存の決定論的なまばたき列。 */
 export function buildBlinkStates({ frameCount, fps, seed, period, jitter, duration }) {
-  if (!Number.isInteger(frameCount) || frameCount < 0) throw new Error("frameCount は 0 以上の整数です");
+  if (!Number.isInteger(frameCount) || frameCount < 0) throw new Error("frameCount must be an integer >= 0");
   if (!(fps > 0 && period > 0 && jitter >= 0 && jitter < period && duration > 0)) {
-    throw new Error("まばたきパラメータが不正です");
+    throw new Error("Invalid blink parameters");
   }
   const random = mulberry32(seed);
   const states = Array.from({ length: frameCount }, () => "open");

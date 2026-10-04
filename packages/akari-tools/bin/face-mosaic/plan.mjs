@@ -64,13 +64,13 @@ export function buildMosaicPlan({
   outPathFor,
   layerIdPrefix = "face-mosaic",
 }) {
-  if (track?.kind !== "face-landmarks") return { ok: false, reason: "track.kind が face-landmarks ではありません" };
+  if (track?.kind !== "face-landmarks") return { ok: false, reason: "track.kind is not face-landmarks" };
   const visible = extractVisibleSegments(track, { faceIndex });
   if (visible.length === 0) {
-    return { ok: false, reason: "face_contour を持つ対象顔の検出がありません。vision-tracks を再実行してください" };
+    return { ok: false, reason: "No detection of the target face with face_contour. Re-run vision-tracks" };
   }
   const runs = sourceCutRuns(cuts, sourceId);
-  if (runs.length === 0) return { ok: false, reason: "対象 source を表示する cut 区間がありません" };
+  if (runs.length === 0) return { ok: false, reason: "No cut range shows the target source" };
 
   const warnings = [];
   const jobs = [];
@@ -78,7 +78,7 @@ export function buildMosaicPlan({
   let ordinal = 0;
   for (const run of runs) {
     if (!defaultCutGeometry(run.cut)) {
-      warnings.push("framing/cut transform を持つ区間は座標一致を保証できないためスキップしました");
+      warnings.push("Skipped a range with a framing/cut transform because coordinate alignment cannot be guaranteed");
       continue;
     }
     for (const rawSegment of visible) {
@@ -151,6 +151,6 @@ export function buildMosaicPlan({
       ordinal += 1;
     }
   }
-  if (jobs.length === 0) return { ok: false, reason: "検出区間と表示 cut が重なる対応可能な区間がありません", warnings };
+  if (jobs.length === 0) return { ok: false, reason: "No usable range where a detected range overlaps a visible cut", warnings };
   return { ok: true, jobs, layers, warnings };
 }

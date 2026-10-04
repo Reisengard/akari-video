@@ -86,9 +86,9 @@ test('new motion presets validate only in their declared seats', () => {
 });
 
 for (const [name, expected] of [
-  ["edit-v2-adjust-range-invalid", /adjust\.basic\.exposure は -3 から 3/u],
-  ["edit-v2-adjust-unknown-key-invalid", /adjust\.basic に未知のキーがあります: gamma/u],
-  ["edit-v2-adjust-lut-empty-invalid", /adjust\.lut\.lut は空でない文字列/u],
+  ["edit-v2-adjust-range-invalid", /adjust\.basic\.exposure must be a finite number from -3 to 3/u],
+  ["edit-v2-adjust-unknown-key-invalid", /adjust\.basic has an unknown key: gamma/u],
+  ["edit-v2-adjust-lut-empty-invalid", /adjust\.lut\.lut must be a non-empty string/u],
 ]) {
   test(`${name} fails clip adjust validation`, () => {
     const executed = run(name);
@@ -136,7 +136,7 @@ test("narration id must match n-#### pattern", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /audio\.narration\[0\]\.id は n- に続く 4 桁の数字である必要があります/,
+    /audio\.narration\[0\]\.id must be n- followed by 4 digits/,
   );
 });
 
@@ -145,7 +145,7 @@ test("narration gain_db must stay within [-60, 12]", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /audio\.narration\[0\]\.gain_db は -60 から 12 の範囲の有限数である必要があります/,
+    /audio\.narration\[0\]\.gain_db must be a finite number from -60 to 12/,
   );
 });
 
@@ -154,7 +154,7 @@ test("narration provenance is required", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /audio\.narration\[0\]\.provenance は object である必要があります/,
+    /audio\.narration\[0\]\.provenance must be an object/,
   );
 });
 
@@ -163,7 +163,7 @@ test("voicevox provider requires credit", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /audio\.narration\[0\]\.provenance\.credit は provider が voicevox のとき必須です/,
+    /audio\.narration\[0\]\.provenance\.credit is required when provider is voicevox/,
   );
 });
 
@@ -176,7 +176,7 @@ test("bgm + sfx (2 items) + narration coexist and pass", () => {
 test("bgm.path is required", () => {
   const executed = run("edit-bgm-missing-path");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.bgm\.path は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /audio\.bgm\.path must be a non-empty string/);
 });
 
 test("bgm/sfx gain_db must stay within [-60, 12]", () => {
@@ -184,18 +184,18 @@ test("bgm/sfx gain_db must stay within [-60, 12]", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /audio\.bgm\.gain_db は -60 から 12 の範囲の有限数である必要があります/,
+    /audio\.bgm\.gain_db must be a finite number from -60 to 12/,
   );
   assert.match(
     executed.stderr,
-    /audio\.sfx\[0\]\.gain_db は -60 から 12 の範囲の有限数である必要があります/,
+    /audio\.sfx\[0\]\.gain_db must be a finite number from -60 to 12/,
   );
 });
 
 test("bgm.ducking must be a boolean", () => {
   const executed = run("edit-bgm-ducking-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.bgm\.ducking は boolean である必要があります/);
+  assert.match(executed.stderr, /audio\.bgm\.ducking must be a boolean/);
 });
 
 test("audio keyframes and duck_keys example passes", () => {
@@ -206,7 +206,7 @@ test("audio keyframes and duck_keys example passes", () => {
 test("audio keyframe times must be strictly ascending", () => {
   const executed = run("edit-audio-keyframes-t-order-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /keyframes\[\]\.t は単調増加かつ重複禁止/u);
+  assert.match(executed.stderr, /keyframes\[\]\.t must be strictly increasing with no duplicates/u);
 });
 
 test("SFX ducking controls example passes", () => {
@@ -217,7 +217,7 @@ test("SFX ducking controls example passes", () => {
 test("duck_db rejects values outside [-40, 0]", () => {
   const executed = run("edit-duck-db-out-of-range");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /duck_db は -40 から 0/u);
+  assert.match(executed.stderr, /duck_db must be a finite number from -40 to 0/u);
 });
 
 test("bgm.fadeIn/fadeOut (reserved seat opened) pass validation", () => {
@@ -229,13 +229,13 @@ test("bgm.fadeIn/fadeOut (reserved seat opened) pass validation", () => {
 test("bgm.fadeIn must be a non-negative finite number", () => {
   const executed = run("edit-bgm-fade-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.bgm\.fadeIn は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.bgm\.fadeIn must be a finite number >= 0/);
 });
 
 test("sfx[].t must be a non-negative finite number", () => {
   const executed = run("edit-sfx-t-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.t は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.t must be a finite number >= 0/);
 });
 
 test("sfx[].in/out (R6a trim) both present and well-formed pass", () => {
@@ -258,25 +258,25 @@ test("sfx[].fade_in/fade_out (audio-clip-fades) pass validation", () => {
 test("sfx[].fade_in must be a non-negative finite number", () => {
   const executed = run("edit-sfx-fade-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.fade_in は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.fade_in must be a finite number >= 0/);
 });
 
 test("sfx[].in must be a non-negative finite number", () => {
   const executed = run("edit-sfx-in-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.in は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.in must be a finite number >= 0/);
 });
 
 test("sfx[].out must be a positive finite number (exclusiveMinimum 0)", () => {
   const executed = run("edit-sfx-out-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.out は 0 より大きい有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.out must be a finite number > 0/);
 });
 
 test("sfx[].out rejects non-numeric values", () => {
   const executed = run("edit-sfx-out-type-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.out は 0 より大きい有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.out must be a finite number > 0/);
 });
 
 test("bgm.in (R6a trim offset) well-formed passes", () => {
@@ -288,7 +288,7 @@ test("bgm.in (R6a trim offset) well-formed passes", () => {
 test("bgm.in must be a non-negative finite number", () => {
   const executed = run("edit-bgm-in-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.bgm\.in は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /audio\.bgm\.in must be a finite number >= 0/);
 });
 
 test("v1 (sources form) with bgm/sfx passes ($defs/audio is shared by v0 and v1)", () => {
@@ -306,7 +306,7 @@ test("cuts[].speed / cuts[].transition_out / output.look / source.chroma_key / a
 test("cuts[].speed must be greater than zero", () => {
   const executed = run("edit-speed-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.speed は 0 より大きい有限数である必要があります/);
+  assert.match(executed.stderr, /cuts\[0\]\.speed must be a finite number > 0/);
 });
 
 test("output.look.intensity must stay within [0, 1]", () => {
@@ -314,14 +314,14 @@ test("output.look.intensity must stay within [0, 1]", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /output\.look\.intensity は 0 から 1 の範囲の有限数である必要があります/,
+    /output\.look\.intensity must be a finite number from 0 to 1/,
   );
 });
 
 test("source.chroma_key.color is required", () => {
   const executed = run("edit-chroma-key-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /source\.chroma_key\.color は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /source\.chroma_key\.color must be a non-empty string/);
 });
 
 test("cuts[].transition_out.type must be one of the canonical transition vocabulary", () => {
@@ -329,7 +329,7 @@ test("cuts[].transition_out.type must be one of the canonical transition vocabul
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /cuts\[0\]\.transition_out\.type は .*pixelize のいずれかである必要があります/,
+    /cuts\[0\]\.transition_out\.type must be one of dissolve\/fade\/fade-black\/fade-white\/fade-grays\/wipe-left\/wipe-right\/wipe-up\/wipe-down\/radial\/slide-left\/slide-right\/slide-up\/slide-down\/cover-left\/cover-right\/cover-up\/cover-down\/reveal-left\/reveal-right\/reveal-down\/reveal-up\/circle-open\/circle-close\/zoom-in\/squeeze-h\/squeeze-v\/blur\/pixelize/,
   );
 });
 
@@ -342,10 +342,10 @@ test("audio.bgm: null is tolerated as equivalent to omitted (contract-2026-07-14
 test("audio.master.denoise/loudnorm are validated", () => {
   const executed = run("edit-master-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.master\.denoise は off\/std\/strong のいずれかである必要があります/);
+  assert.match(executed.stderr, /audio\.master\.denoise must be one of off\/std\/strong/);
   assert.match(
     executed.stderr,
-    /audio\.master\.loudnorm は -70 から 0 の範囲の有限数である必要があります/,
+    /audio\.master\.loudnorm must be a finite number from -70 to 0/,
   );
 });
 
@@ -386,7 +386,7 @@ test("layers with a baked fx and a chroma-keyed video PinP passes", () => {
 test("layers[].id must be unique", () => {
   const executed = run("edit-layers-invalid-duplicate-id");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[\]\.id が重複しています: dup/);
+  assert.match(executed.stderr, /layers\[\]\.id is duplicated: dup/);
 });
 
 test("chroma_key is rejected on a baked layer (video-only field)", () => {
@@ -394,20 +394,20 @@ test("chroma_key is rejected on a baked layer (video-only field)", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.chroma_key は kind が video のときのみ使用できます/,
+    /layers\[0\]\.chroma_key can be used only when kind is video/,
   );
 });
 
 test("layers[].blend must be a known ffmpeg blend mode", () => {
   const executed = run("edit-layers-invalid-bad-blend");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.blend は .*のいずれかである必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.blend must be one of normal\/screen\/multiply\/add\/difference\/darken\/lighten\/overlay\/hardlight\/softlight/);
 });
 
 test("layers[].crop with x+w>1 (out of the source frame) is rejected", () => {
   const executed = run("edit-layers-invalid-crop-out-of-bounds");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.crop\.x \+ layers\[0\]\.crop\.w は 1 以下である必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.crop\.x \+ layers\[0\]\.crop\.w must be <= 1/);
 });
 
 test("layers[].crop.w must be > 0 and <= 1", () => {
@@ -424,7 +424,7 @@ test("layers[].crop.w must be > 0 and <= 1", () => {
     ];
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.crop\.w は 0 より大きく 1 以下の有限数である必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.crop\.w must be a finite number > 0 and <= 1/);
 });
 
 test("layers[].perspective.corners must have exactly 4 [x,y] pairs", () => {
@@ -432,7 +432,7 @@ test("layers[].perspective.corners must have exactly 4 [x,y] pairs", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.perspective\.corners は \[TL,TR,BL,BR\] の 4 要素配列である必要があります/,
+    /layers\[0\]\.perspective\.corners must be a 4-element \[TL, TR, BL, BR\] array/,
   );
 });
 
@@ -441,7 +441,7 @@ test("layers[].perspective.corners components must be within 0..1", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.perspective\.corners\[1\] \(TR\)\.x は 0 から 1 の範囲の有限数である必要があります/,
+    /layers\[0\]\.perspective\.corners\[1\] \(TR\)\.x must be a finite number from 0 to 1/,
   );
 });
 
@@ -450,7 +450,7 @@ test("layers[].perspective.corners rejects a degenerate (zero-area) quad", () =>
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.perspective\.corners は退化した四角形（面積がほぼ 0）であってはなりません/,
+    /layers\[0\]\.perspective\.corners must not be a degenerate quadrilateral \(area near 0\)/,
   );
 });
 
@@ -480,7 +480,7 @@ test("layers[].keyframes must have at least 2 points", () => {
     ];
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.keyframes は 2 件以上の配列である必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.keyframes must be an array of at least 2 items/);
 });
 
 test("layers[].keyframes[].t must be ascending with no duplicates", () => {
@@ -500,7 +500,7 @@ test("layers[].keyframes[].t must be ascending with no duplicates", () => {
     ];
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.keyframes\[\]\.t は昇順かつ重複禁止です/);
+  assert.match(executed.stderr, /layers\[0\]\.keyframes\[\]\.t must be strictly increasing with no duplicates \(layers\[0\]\.keyframes\[1\] violates that\)/);
 });
 
 test("layers[].keyframes[] rejects unknown keys", () => {
@@ -520,7 +520,7 @@ test("layers[].keyframes[] rejects unknown keys", () => {
     ];
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.keyframes\[1\] に未知のキーがあります: panSpeed/);
+  assert.match(executed.stderr, /layers\[0\]\.keyframes\[1\] has an unknown key: panSpeed/);
 });
 
 test("layers[].keyframes[].easing must be linear or ease-in-out", () => {
@@ -540,7 +540,7 @@ test("layers[].keyframes[].easing must be linear or ease-in-out", () => {
     ];
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.keyframes\[1\]\.easing は linear\/ease-in-out のいずれかである必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.keyframes\[1\]\.easing must be one of linear\/ease-in-out/);
 });
 
 test("layers[].keyframes[].crop is validated with the same rules as the static layers[].crop", () => {
@@ -562,7 +562,7 @@ test("layers[].keyframes[].crop is validated with the same rules as the static l
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.keyframes\[1\]\.crop\.x \+ layers\[0\]\.keyframes\[1\]\.crop\.w は 1 以下である必要があります/,
+    /layers\[0\]\.keyframes\[1\]\.crop\.x \+ layers\[0\]\.keyframes\[1\]\.crop\.w must be <= 1/,
   );
 });
 
@@ -585,7 +585,7 @@ test("layers[].keyframes[].perspective rejects a degenerate quad, same as the st
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /layers\[0\]\.keyframes\[1\]\.perspective\.corners は退化した四角形（面積がほぼ 0）であってはなりません/,
+    /layers\[0\]\.keyframes\[1\]\.perspective\.corners must not be a degenerate quadrilateral \(area near 0\)/,
   );
 });
 
@@ -604,13 +604,13 @@ test("beats v1: src present / omitted (single-source compatibility) both pass", 
 test("beats[].id must match b-#### pattern", () => {
   const executed = run("edit-beats-invalid-id");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /beats\[0\]\.id は b- に続く 4 桁の数字である必要があります/);
+  assert.match(executed.stderr, /beats\[0\]\.id must be b- followed by 4 digits/);
 });
 
 test("beats[].id must be unique within the file", () => {
   const executed = run("edit-beats-duplicate-id");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /beats\[\]\.id が重複しています: b-0001/);
+  assert.match(executed.stderr, /beats\[\]\.id is duplicated: b-0001/);
 });
 
 test("beats[].strength must stay within [0, 1]", () => {
@@ -618,30 +618,30 @@ test("beats[].strength must stay within [0, 1]", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /beats\[0\]\.strength は 0 から 1 の範囲の有限数である必要があります/,
+    /beats\[0\]\.strength must be a finite number from 0 to 1/,
   );
   assert.match(
     executed.stderr,
-    /beats\[1\]\.strength は 0 から 1 の範囲の有限数である必要があります/,
+    /beats\[1\]\.strength must be a finite number from 0 to 1/,
   );
 });
 
 test("beats[].kind is required", () => {
   const executed = run("edit-beats-missing-kind");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /beats\[0\]\.kind は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /beats\[0\]\.kind must be a non-empty string/);
 });
 
 test("beats[].src must reference sources[].id in v1", () => {
   const executed = run("edit-beats-v1-src-missing-reference");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /beats\[0\]\.src が sources\[\]\.id を参照していません: s9/);
+  assert.match(executed.stderr, /beats\[0\]\.src does not reference a sources\[\]\.id: s9/);
 });
 
 test("beats[].src is rejected in v0 (no sources[] to reference)", () => {
   const executed = run("edit-beats-v0-src-present");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /beats\[0\]\.src は version 0 では使用できません/);
+  assert.match(executed.stderr, /beats\[0\]\.src cannot be used in version 0/);
 });
 
 test("emphasis_words (語レベル演出) v0: 3 words with mixed emotions and optional style_hint pass", () => {
@@ -661,21 +661,21 @@ test("emphasis_words[].id must match e-#### pattern", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /emphasis_words\[0\]\.id は e- に続く 4 桁の数字である必要があります/,
+    /emphasis_words\[0\]\.id must be e- followed by 4 digits/,
   );
 });
 
 test("emphasis_words[].t_end must be greater than t_start", () => {
   const executed = run("edit-emphasis-words-range-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /emphasis_words\[0\]\.t_end は t_start より大きい必要があります/);
-  assert.match(executed.stderr, /emphasis_words\[1\]\.t_end は t_start より大きい必要があります/);
+  assert.match(executed.stderr, /emphasis_words\[0\]\.t_end must be greater than t_start/);
+  assert.match(executed.stderr, /emphasis_words\[1\]\.t_end must be greater than t_start/);
 });
 
 test("emphasis_words[].word must be a non-empty string", () => {
   const executed = run("edit-emphasis-words-empty-word");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /emphasis_words\[0\]\.word は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /emphasis_words\[0\]\.word must be a non-empty string/);
 });
 
 test("emphasis_words[].emotion is required", () => {
@@ -683,14 +683,14 @@ test("emphasis_words[].emotion is required", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /emphasis_words\[0\]\.emotion は空でない文字列である必要があります/,
+    /emphasis_words\[0\]\.emotion must be a non-empty string/,
   );
 });
 
 test("emphasis_words[].src is rejected in v0 (no sources[] to reference)", () => {
   const executed = run("edit-emphasis-words-v0-src-present");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /emphasis_words\[0\]\.src は version 0 では使用できません/);
+  assert.match(executed.stderr, /emphasis_words\[0\]\.src cannot be used in version 0/);
 });
 
 test("direction (演出宣言): preset + intensity 70 + empty overrides passes", () => {
@@ -708,7 +708,7 @@ test("direction: preset only (intensity / overrides omitted) passes", () => {
 test("direction.preset is required", () => {
   const executed = run("edit-direction-missing-preset");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /direction\.preset は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /direction\.preset must be a non-empty string/);
 });
 
 test("direction.intensity must stay within [0, 100]", () => {
@@ -716,14 +716,14 @@ test("direction.intensity must stay within [0, 100]", () => {
   assert.equal(tooHigh.status, 1, tooHigh.stdout);
   assert.match(
     tooHigh.stderr,
-    /direction\.intensity は 0 から 100 の範囲の整数である必要があります/,
+    /direction\.intensity must be an integer from 0 to 100/,
   );
 
   const negative = run("edit-direction-intensity-negative");
   assert.equal(negative.status, 1, negative.stdout);
   assert.match(
     negative.stderr,
-    /direction\.intensity は 0 から 100 の範囲の整数である必要があります/,
+    /direction\.intensity must be an integer from 0 to 100/,
   );
 });
 
@@ -732,14 +732,14 @@ test("direction.intensity must be an integer (not a fractional number)", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /direction\.intensity は 0 から 100 の範囲の整数である必要があります/,
+    /direction\.intensity must be an integer from 0 to 100/,
   );
 });
 
 test("direction.overrides must be an object (array is rejected)", () => {
   const executed = run("edit-direction-overrides-array");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /direction\.overrides は object である必要があります/);
+  assert.match(executed.stderr, /direction\.overrides must be an object/);
 });
 
 test("cuts at/track and layers/sfx track and tracks section all valid together", () => {
@@ -751,13 +751,13 @@ test("cuts at/track and layers/sfx track and tracks section all valid together",
 test("cuts[].at must be non-negative", () => {
   const executed = run("edit-cuts-at-negative-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.at は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /cuts\[0\]\.at must be a finite number >= 0/);
 });
 
 test("cuts[].track must be a non-negative integer", () => {
   const executed = run("edit-cuts-track-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.track は 0 以上の整数である必要があります/);
+  assert.match(executed.stderr, /cuts\[0\]\.track must be an integer >= 0/);
 });
 
 // docs/contract-2026-08-12-still-image-cut-source-v0.md: mp4 と png ソースが cuts[] に混在する
@@ -784,7 +784,7 @@ for (const [fixture, expectedError] of [
   ["edit-cuts-transform-scale-invalid", /transform\.scale/],
   ["edit-cuts-opacity-out-of-range-invalid", /opacity/],
   ["edit-cuts-transform-rotate-invalid", /transform\.rotate/],
-  ["edit-cuts-transform-unknown-key-invalid", /未知のキー/],
+  ["edit-cuts-transform-unknown-key-invalid", /unknown key/],
 ]) {
   test(`${fixture} fails with the expected validation error`, () => {
     const executed = run(fixture);
@@ -813,26 +813,26 @@ test("cuts[].fx[].intensity must stay within [0, 1]", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /cuts\[0\]\.fx\[0\]\.intensity は 0 から 1 の範囲の有限数である必要があります/,
+    /cuts\[0\]\.fx\[0\]\.intensity must be a finite number from 0 to 1/,
   );
 });
 
 test("cuts[].fx[] rejects unknown keys", () => {
   const executed = run("edit-cuts-fx-unknown-key-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.fx\[0\] に未知のキーがあります: seed/);
+  assert.match(executed.stderr, /cuts\[0\]\.fx\[0\] has an unknown key: seed/);
 });
 
 test("layers[].track must be a non-negative integer", () => {
   const executed = run("edit-layers-track-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /layers\[0\]\.track は 0 以上の整数である必要があります/);
+  assert.match(executed.stderr, /layers\[0\]\.track must be an integer >= 0/);
 });
 
 test("audio.sfx[].track must be a non-negative integer", () => {
   const executed = run("edit-sfx-track-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /audio\.sfx\[0\]\.track は 0 以上の整数である必要があります/);
+  assert.match(executed.stderr, /audio\.sfx\[0\]\.track must be an integer >= 0/);
 });
 
 test("tracks section with muted/hidden state passes", () => {
@@ -844,7 +844,7 @@ test("tracks section with muted/hidden state passes", () => {
 test("tracks section rejects non-boolean muted/hidden", () => {
   const executed = run("edit-tracks-section-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /tracks\.cuts\[0\]\.muted は boolean である必要があります/);
+  assert.match(executed.stderr, /tracks\.cuts\[0\]\.muted must be a boolean/);
 });
 
 test("timeline omission preserves edit.json compatibility", () => {
@@ -868,14 +868,14 @@ test("cuts and layers may be interleaved in timeline order", () => {
 test("timeline track ids must be unique", () => {
   const executed = run("edit-timeline-duplicate-id-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /timeline\.tracks\[\]\.id が重複しています: duplicate/);
+  assert.match(executed.stderr, /timeline\.tracks\[\]\.id is duplicated: duplicate/);
 });
 
 test("timeline track refs must be non-negative integers", () => {
   const executed = run("edit-timeline-ref-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /timeline\.tracks\[0\]\.ref は 0 以上の整数である必要があります/);
-  assert.match(executed.stderr, /timeline\.tracks\[1\]\.ref は 0 以上の整数である必要があります/);
+  assert.match(executed.stderr, /timeline\.tracks\[0\]\.ref must be an integer >= 0/);
+  assert.match(executed.stderr, /timeline\.tracks\[1\]\.ref must be an integer >= 0/);
 });
 
 // docs/contract-2026-07-22-render-basics.md #6 (cuts[].framing: static crop / scale keyframes).
@@ -914,8 +914,8 @@ test("cuts[].framing.crop must fit inside the canvas (x + w <= 1, y + h <= 1)", 
     edit.cuts[0].framing = { crop: { x: 0.6, y: 0.7, w: 0.5, h: 0.5 } };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.crop は x \+ w <= 1/);
-  assert.match(executed.stderr, /framing\.crop は y \+ h <= 1/);
+  assert.match(executed.stderr, /framing\.crop must satisfy x \+ w <= 1 \(the crop window stays inside the frame\)/);
+  assert.match(executed.stderr, /framing\.crop must satisfy x \+ w <= 1 \(the crop window stays inside the frame\)/);
 });
 
 test("cuts[].framing.crop rejects an unknown key", () => {
@@ -923,7 +923,7 @@ test("cuts[].framing.crop rejects an unknown key", () => {
     edit.cuts[0].framing = { crop: { x: 0, y: 0, w: 1, h: 1, zoom: 2 } };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.crop に未知のキーがあります: zoom/);
+  assert.match(executed.stderr, /framing\.crop has an unknown key: zoom/);
 });
 
 test("cuts[].framing.keyframes requires at least 2 points", () => {
@@ -931,7 +931,7 @@ test("cuts[].framing.keyframes requires at least 2 points", () => {
     edit.cuts[0].framing = { keyframes: [{ t: 0, scale: 1.5 }] };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.keyframes は 2 件以上の配列である必要があります/);
+  assert.match(executed.stderr, /framing\.keyframes must be an array of at least 2 items \(2 points zoom, 3 or more step down\)/);
 });
 
 test("cuts[].framing.keyframes[].t must be strictly ascending (no duplicates, no reordering)", () => {
@@ -939,7 +939,7 @@ test("cuts[].framing.keyframes[].t must be strictly ascending (no duplicates, no
     edit.cuts[0].framing = { keyframes: [{ t: 2, scale: 1 }, { t: 2, scale: 2 }] };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.keyframes\[\]\.t は昇順かつ重複禁止です/);
+  assert.match(executed.stderr, /framing\.keyframes\[\]\.t must be strictly increasing with no duplicates \(cuts\[0\]\.framing\.keyframes\[1\] violates that\)/);
 });
 
 test("cuts[].framing.keyframes[].scale must be a positive number", () => {
@@ -947,7 +947,7 @@ test("cuts[].framing.keyframes[].scale must be a positive number", () => {
     edit.cuts[0].framing = { keyframes: [{ t: 0, scale: 0 }, { t: 5, scale: 1 }] };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.keyframes\[0\]\.scale は 0 より大きい有限数である必要があります/);
+  assert.match(executed.stderr, /framing\.keyframes\[0\]\.scale must be a finite number > 0/);
 });
 
 test("cuts[].framing.keyframes[].cx/cy must stay within [0, 1]", () => {
@@ -955,8 +955,8 @@ test("cuts[].framing.keyframes[].cx/cy must stay within [0, 1]", () => {
     edit.cuts[0].framing = { keyframes: [{ t: 0, scale: 1, cx: 1.5 }, { t: 5, scale: 2, cy: -0.1 }] };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /framing\.keyframes\[0\]\.cx は 0 から 1 の範囲の有限数である必要があります/);
-  assert.match(executed.stderr, /framing\.keyframes\[1\]\.cy は 0 から 1 の範囲の有限数である必要があります/);
+  assert.match(executed.stderr, /framing\.keyframes\[0\]\.cx must be a finite number from 0 to 1/);
+  assert.match(executed.stderr, /framing\.keyframes\[1\]\.cy must be a finite number from 0 to 1/);
 });
 
 // docs/contract-2026-07-22-render-basics.md #7 (cuts[].freeze). Same base cut (5s at speed 1x).
@@ -980,7 +980,7 @@ test("cuts[].freeze.at_sec must be non-negative", () => {
     edit.cuts[0].freeze = { at_sec: -1, duration_sec: 1 };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.freeze\.at_sec は 0 以上の有限数である必要があります/);
+  assert.match(executed.stderr, /cuts\[0\]\.freeze\.at_sec must be a finite number >= 0/);
 });
 
 test("cuts[].freeze.duration_sec must be greater than zero", () => {
@@ -988,7 +988,7 @@ test("cuts[].freeze.duration_sec must be greater than zero", () => {
     edit.cuts[0].freeze = { at_sec: 1, duration_sec: 0 };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.freeze\.duration_sec は 0 より大きい有限数である必要があります/);
+  assert.match(executed.stderr, /cuts\[0\]\.freeze\.duration_sec must be a finite number > 0/);
 });
 
 test("cuts[].freeze.at_sec cannot exceed the cut's own playable duration (speed-adjusted)", () => {
@@ -998,7 +998,7 @@ test("cuts[].freeze.at_sec cannot exceed the cut's own playable duration (speed-
     edit.cuts[0].freeze = { at_sec: 3, duration_sec: 1 };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.freeze\.at_sec はカットの再生尺（2\.5秒）を超えられません/);
+  assert.match(executed.stderr, /cuts\[0\]\.freeze\.at_sec cannot exceed the cut duration \(2\.5s\)/);
 });
 
 test("cuts[].freeze rejects an unknown key", () => {
@@ -1006,5 +1006,5 @@ test("cuts[].freeze rejects an unknown key", () => {
     edit.cuts[0].freeze = { at_sec: 1, duration_sec: 1, hold_audio: true };
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /cuts\[0\]\.freeze に未知のキーがあります: hold_audio/);
+  assert.match(executed.stderr, /cuts\[0\]\.freeze has an unknown key: hold_audio/);
 });

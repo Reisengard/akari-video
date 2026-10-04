@@ -57,7 +57,7 @@ test('未知種別は schema と validate-edit CLI の双方で拒否される',
       encoding: 'utf8'
     });
     assert.equal(executed.status, 1);
-    assert.match(executed.stderr, /future-transition|いずれか/u);
+    assert.match(executed.stderr, /future-transition|must be one of/u);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

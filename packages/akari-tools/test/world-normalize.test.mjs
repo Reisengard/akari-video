@@ -74,9 +74,9 @@ test("v4 方言の cover ラベルと pattern を表に従って v3 へ正規化
   assert.equal(map.edges[1].via, source.edges[1].via);
   assert.equal(map.edges[3].via, source.edges[3].via);
   assert.equal(map.worlds[0].flat.pattern, "none");
-  assert.ok(notes.includes('edge shelf-pond の cover のラベル "Chat handoff" は v3 に写せない（暫定値 0.18 を入れた。measure で実測する）'));
-  assert.ok(notes.includes('edge arch-ladder の cover のラベル "Cut handoff" は v3 に写せない（暫定値 0.24 を入れた。measure で実測する）'));
-  assert.ok(notes.includes('world atelier の pattern "rings" は v3 に無いので none にした'));
+  assert.ok(notes.includes('The cover label "Chat handoff" of edge shelf-pond cannot be mapped to v3 (set a provisional 0.18; measure it with measure)'));
+  assert.ok(notes.includes('The cover label "Cut handoff" of edge arch-ladder cannot be mapped to v3 (set a provisional 0.24; measure it with measure)'));
+  assert.ok(notes.includes('The pattern "rings" of world atelier does not exist in v3, so set it to none'));
 });
 
 test("v2 の非有限 cover は type 別の有限暫定値へ落とす", () => {
@@ -93,7 +93,7 @@ test("v2 の非有限 cover は type 別の有限暫定値へ落とす", () => {
     const edge = map.edges[entry.index];
     assert.equal(edge.type, entry.type);
     assert.equal(edge.transition.cover, entry.expected);
-    assert.ok(notes.includes(`edge ${edge.id} の cover は未測定（暫定値 ${entry.expected} を入れた。measure で実測する）`));
+    assert.ok(notes.includes(`The cover of edge ${edge.id} is not measured (set a provisional ${entry.expected}; measure it with measure)`));
   }
   assert.ok(map.edges.every((edge) => Number.isFinite(edge.transition.cover)));
 });
@@ -105,8 +105,8 @@ test("transition が無い非 move 辺にも type 別の有限暫定値を入れ
   const { map, notes } = normalizeWorldMap(source);
   assert.deepEqual(map.edges[1].transition, { kind: "dive", cover: 0.18 });
   assert.deepEqual(map.edges[3].transition, { kind: "mist", cover: 0.24 });
-  assert.ok(notes.includes("edge shelf-pond の cover は未測定（暫定値 0.18 を入れた。measure で実測する）"));
-  assert.ok(notes.includes("edge arch-ladder の cover は未測定（暫定値 0.24 を入れた。measure で実測する）"));
+  assert.ok(notes.includes("The cover of edge shelf-pond is not measured (set a provisional 0.18; measure it with measure)"));
+  assert.ok(notes.includes("The cover of edge arch-ladder is not measured (set a provisional 0.24; measure it with measure)"));
 });
 
 for (const cover of [0, 0.9]) {

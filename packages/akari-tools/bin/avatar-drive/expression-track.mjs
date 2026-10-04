@@ -15,23 +15,23 @@ const RAD_TO_DEG = 180 / Math.PI;
 
 function finite(value, label) {
   const number = Number(value);
-  if (!Number.isFinite(number)) throw new Error(`${label} は有限数である必要があります`);
+  if (!Number.isFinite(number)) throw new Error(`${label} must be a finite number`);
   return number;
 }
 
 function validateTrack(document, trackPath) {
   if (document?.kind !== "face-expression" || !Array.isArray(document.samples)) {
-    throw new Error("expression track は kind:\"face-expression\" と samples[] が必要です");
+    throw new Error("expression track requires kind:\"face-expression\" and samples[]");
   }
   let previous = -Infinity;
   const samples = document.samples.map((sample, index) => {
     const t = finite(sample?.t, `samples[${index}].t`);
-    if (t < 0 || t < previous) throw new Error("expression track の samples[].t は 0 以上の昇順である必要があります");
+    if (t < 0 || t < previous) throw new Error("expression track samples[].t must be >= 0 and ascending");
     previous = t;
-    if (!Array.isArray(sample?.detections)) throw new Error(`samples[${index}].detections は配列である必要があります`);
+    if (!Array.isArray(sample?.detections)) throw new Error(`samples[${index}].detections must be an array`);
     const detection = sample.detections[0] ?? null;
     if (detection && (typeof detection !== "object" || Array.isArray(detection))) {
-      throw new Error(`samples[${index}].detections[0] が不正です`);
+      throw new Error(`samples[${index}].detections[0] is invalid`);
     }
     const head = detection?.head == null ? null : Object.fromEntries(
       ["yaw", "pitch", "roll"].map((key) => [key, finite(detection.head[key] ?? 0, `samples[${index}].head.${key}`)]),
@@ -41,7 +41,7 @@ function validateTrack(document, trackPath) {
     );
     return { t, head, blendshapes };
   });
-  if (samples.length === 0) throw new Error("expression track の samples[] が空です");
+  if (samples.length === 0) throw new Error("expression track samples[] is empty");
   const sourcePath = typeof document.source?.path === "string"
     ? resolve(dirname(trackPath), document.source.path)
     : null;
@@ -55,7 +55,7 @@ export function loadExpressionTrack(inputPath) {
   const pointer = document?.tracks?.face_expression;
   const pointerPath = typeof pointer === "string" ? pointer : pointer?.path;
   if (typeof pointerPath !== "string" || pointerPath.length === 0) {
-    throw new Error("analysis.json に tracks.face_expression.path がありません");
+    throw new Error("analysis.json has no tracks.face_expression.path");
   }
   const trackPath = resolve(dirname(absolute), pointerPath);
   return validateTrack(JSON.parse(readFileSync(trackPath, "utf8")), trackPath);
@@ -156,7 +156,7 @@ function smoothHead(states, windowFrames) {
 
 export function buildExpressionDrive({ track, timeline, frameCount, headSmoothing = DEFAULT_HEAD_SMOOTHING }) {
   if (!Number.isInteger(headSmoothing) || headSmoothing < 0) {
-    throw new Error("--head-smoothing は 0 以上の整数である必要があります");
+    throw new Error("--head-smoothing must be an integer >= 0");
   }
   const blink = buildTrackedBlinkStates(track.samples, BLINK_GATE, Number(track.sample_fps));
   const sampleEmotions = buildEmotionStates(track.samples);

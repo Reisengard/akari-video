@@ -45,7 +45,7 @@ test("add は作業場なしの workspace scope を exit 2 で拒否する", asy
   const value = await fixture("reject", { workspace: false });
   const output = io();
   assert.equal(await runWordBookCli(["add", "--surface", "語", "--scope", "workspace", "--project", value.project], { ...output, env: value.env }), 2);
-  assert.match(output.errors.join("\n"), /作業場がありません（お試しモード）/);
+  assert.match(output.errors.join("\n"), /There is no workspace \(trial mode\)/);
   await rm(value.temporary, { recursive: true, force: true });
 });
 

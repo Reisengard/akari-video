@@ -11,7 +11,7 @@ import { buildSpatialGlb, renderSpatialWorldHtml } from "./spatial-glb.mjs";
 export async function readCheckedWorldMap(projectRoot, options = {}) {
   const file = path.join(projectRoot, "planning", "world-map.json");
   const source = JSON.parse(await readFile(file, "utf8"));
-  if (typeof source?.schemaVersion === "number" && source.schemaVersion > 3) throw new Error(`schemaVersion ${source.schemaVersion} は新しすぎます`);
+  if (typeof source?.schemaVersion === "number" && source.schemaVersion > 3) throw new Error(`schemaVersion ${source.schemaVersion} is too new`);
   const map = source?.schemaVersion === 3 ? source : normalizeWorldMap(source).map;
   const checked = checkWorldMap(map, { strict: false });
   const ignored = new Set(options.ignoreCodes ?? []);
@@ -25,7 +25,7 @@ export async function buildWorld(projectRoot, options = {}) {
   const { map } = await readCheckedWorldMap(projectRoot);
   const items = await readWorldItems(projectRoot);
   const edit = await readEdit(projectRoot);
-  if (edit.version !== 2) throw new Error("world build は edit.json version 2 が必要です。先に akari migrate <project-root> を実行してください");
+  if (edit.version !== 2) throw new Error("world build requires edit.json version 2. Run akari migrate <project-root> first");
   const frame = { width: edit.output?.width ?? 1920, height: edit.output?.height ?? 1080 };
   const resolveAsset = options.resolveAsset ?? resolveAssetDefault;
   if (map.kind === "spatial") {
@@ -42,12 +42,12 @@ export async function buildWorld(projectRoot, options = {}) {
   const fragments = new Map();
   const zoneIds = new Set(map.zones.map((zone) => zone.id));
   for (const item of items.items) {
-    if (!zoneIds.has(item.zone)) throw new Error(`world item ${item.id} が未定義の zone を参照しています: ${item.zone}`);
+    if (!zoneIds.has(item.zone)) throw new Error(`world item ${item.id} references an undefined zone: ${item.zone}`);
     const assetId = item.asset.slice("overlay/".length);
     const resolved = await resolveAsset(assetId, { project: projectRoot });
-    if (resolved?.category && resolved.category !== "overlay") throw new Error(`素材 ${item.asset} は overlay ではありません`);
+    if (resolved?.category && resolved.category !== "overlay") throw new Error(`Asset ${item.asset} is not an overlay`);
     const directory = resolved?.projectDir ?? resolved?.dir;
-    if (!directory) throw new Error(`素材 ${item.asset} の配置先を解決できません`);
+    if (!directory) throw new Error(`Cannot resolve the destination for asset ${item.asset}`);
     fragments.set(item.id, await readFile(path.join(directory, "fragment.html"), "utf8"));
   }
   const html = renderWorldHtml(map, items.items, fragments, frame);
@@ -63,11 +63,11 @@ async function resolveSpatialItems(projectRoot, map, items, resolveAsset) {
   const result = [];
   for (const item of items) {
     const zone = zoneById.get(item.zone);
-    if (!zone) throw new Error(`world item ${item.id} が未定義の zone を参照しています: ${item.zone}`);
+    if (!zone) throw new Error(`world item ${item.id} references an undefined zone: ${item.zone}`);
     const assetId = item.asset.includes("/") ? item.asset.slice(item.asset.indexOf("/") + 1) : item.asset;
     const resolved = await resolveAsset(assetId, { project: projectRoot });
     const directory = resolved?.projectDir ?? resolved?.dir;
-    if (!directory) throw new Error(`素材 ${item.asset} の配置先を解決できません`);
+    if (!directory) throw new Error(`Cannot resolve the destination for asset ${item.asset}`);
     const model = await findGlb(directory);
     if (!model) continue;
     result.push({ ...item, zone, buffer: await readFile(model) });
@@ -115,7 +115,7 @@ export function renderWorldHtml(map, items, fragments, frame) {
   const itemsByZone = new Map(map.zones.map((zone) => [zone.id, []]));
   const stopsById = new Map(map.cameraStops.map((stop) => [stop.id, stop]));
   for (const item of items) {
-    if (!itemsByZone.has(item.zone)) throw new Error(`world item ${item.id} が未定義の zone を参照しています: ${item.zone}`);
+    if (!itemsByZone.has(item.zone)) throw new Error(`world item ${item.id} references an undefined zone: ${item.zone}`);
     itemsByZone.get(item.zone).push(item);
   }
   const sheets = map.worlds.map((world) => {

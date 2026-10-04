@@ -4,5 +4,5 @@
   "exclude": [
     "packages/schemas/intake.schema.json"
   ],
-  "max": 67156
+  "max": 45625
 }

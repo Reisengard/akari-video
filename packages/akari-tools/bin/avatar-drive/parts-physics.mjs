@@ -105,13 +105,13 @@ export function buildPartFrames({
   partsSet, mouthStates, eyeStates, emotionStates = null, fps, seed, motionFrames = null,
   mouthTransitionFrames = 0,
 }) {
-  if (partsSet?.kind !== "parts-v2") throw new Error("buildPartFrames には parts.json v2 が必要です");
+  if (partsSet?.kind !== "parts-v2") throw new Error("buildPartFrames requires parts.json v2");
   if (!Array.isArray(mouthStates) || mouthStates.length === 0 || mouthStates.length !== eyeStates?.length) {
-    throw new Error("口と目の状態列の長さが一致しません");
+    throw new Error("Mouth and eye state sequences differ in length");
   }
-  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps は正数である必要があります");
-  if (emotionStates !== null && emotionStates.length !== mouthStates.length) throw new Error("emotion 状態列の長さが一致しません");
-  if (motionFrames !== null && motionFrames.length !== mouthStates.length) throw new Error("ルートモーション列の長さが一致しません");
+  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps must be a positive number");
+  if (emotionStates !== null && emotionStates.length !== mouthStates.length) throw new Error("Emotion state sequence differs in length");
+  if (motionFrames !== null && motionFrames.length !== mouthStates.length) throw new Error("Root motion sequence differs in length");
 
   const state = new Map(partsSet.parts.map((part) => [part.id, {
     followed: null,

@@ -4,10 +4,10 @@ import { isMainModule } from "../src/common/main-module.mjs";
 import { settleDecisionLog } from "../src/decision-log/settle.mjs";
 
 const usage = [
-  "使い方: akari decision-log <subcommand> <project-dir> [options]", "",
-  "  settle              予測行に結果行を追記",
-  "  --actor <name>      決定者（既定 machine:render-cut）",
-  "  --dry-run           書き込まず結果 JSON を表示",
+  "Usage: akari decision-log <subcommand> <project-dir> [options]", "",
+  "  settle              append result rows for prediction rows",
+  "  --actor <name>      decision maker (default machine:render-cut)",
+  "  --dry-run           print the result JSON without writing",
   "  --json", "  --help",
 ].join("\n");
 
@@ -20,8 +20,8 @@ export async function runDecisionLogCli(argv, options = {}) {
   }
   try {
     const [command, directory, ...rest] = argv;
-    if (command !== "settle") throw new Error(`不明な subcommand です: ${command}`);
-    if (!directory || directory.startsWith("-")) throw new Error("project-dir が必要です");
+    if (command !== "settle") throw new Error(`Unknown subcommand: ${command}`);
+    if (!directory || directory.startsWith("-")) throw new Error("project-dir is required");
     const parsed = {};
     for (let index = 0; index < rest.length; index += 1) {
       const arg = rest[index];
@@ -29,9 +29,9 @@ export async function runDecisionLogCli(argv, options = {}) {
       else if (arg === "--json") continue;
       else if (arg === "--actor") {
         const value = rest[++index];
-        if (!value?.trim() || value.startsWith("--")) throw new Error("--actor の値が必要です");
+        if (!value?.trim() || value.startsWith("--")) throw new Error("--actor requires a value");
         parsed.actor = value;
-      } else throw new Error(`不明なオプションです: ${arg}`);
+      } else throw new Error(`Unknown option: ${arg}`);
     }
     const projectRoot = path.resolve(options.cwd ?? process.cwd(), directory);
     const result = await settleDecisionLog({ projectRoot, ...parsed });

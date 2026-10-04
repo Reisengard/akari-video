@@ -19,7 +19,7 @@ export function detectOpenIntervals(handSamples, {
   maxGap = DEFAULT_MAX_GAP,
 } = {}) {
   if (!(openThreshold > closeThreshold)) {
-    throw new Error("detectOpenIntervals: openThreshold は closeThreshold より大きい必要があります（ヒステリシス）");
+    throw new Error("detectOpenIntervals: openThreshold must be greater than closeThreshold (hysteresis)");
   }
   const samples = handSamples ?? [];
   const intervals = [];

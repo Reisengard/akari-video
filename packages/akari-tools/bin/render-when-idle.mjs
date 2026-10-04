@@ -35,7 +35,7 @@ export async function runRenderWhenIdle(args = process.argv.slice(2), options = 
     if (arg === '--max-load' || arg === '--wait-minutes' || arg === '--timeout-ms') {
       const value = args[index + 1];
       if (value === undefined || value.startsWith('--')) {
-        (options.stderr ?? console.error)(`使い方: render-when-idle <project> [${arg} 値] [-- <render-cut への追加引数>]`);
+        (options.stderr ?? console.error)(`Usage: render-when-idle <project> [${arg} <value>] [-- <extra render-cut args>]`);
         return 2;
       }
       if (arg === '--max-load') maxLoad = value;
@@ -66,7 +66,7 @@ export async function runRenderWhenIdle(args = process.argv.slice(2), options = 
 
   let currentLoad;
   if ((options.platform ?? process.platform) === 'win32') {
-    const message = 'この OS では負荷を測れないため待機しません';
+    const message = 'Not waiting because load cannot be measured on this OS';
     (options.stderr ?? console.error)(message);
     log(message);
     currentLoad = 0;

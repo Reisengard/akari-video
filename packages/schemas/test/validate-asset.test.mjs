@@ -33,7 +33,7 @@ test("unknown matched_by value fails with the allowed enum", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /matched_by は title-normalized のいずれかである必要があります/,
+    /matched_by must be one of title-normalized/,
   );
 });
 

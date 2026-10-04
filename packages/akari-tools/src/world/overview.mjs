@@ -32,7 +32,7 @@ export async function buildWorldOverview(projectRoot) {
     return `<div class="world-band" data-world-band data-world="${escapeHtml(world.id)}" title="${escapeHtml(`${world.label}${range}`)}" style="flex:1;background:${escapeHtml(world.palette?.accent ?? "#8190aa")}">${escapeHtml(world.label)}${marker}</div>`;
   }).join("");
   const edges = map.edges.map(edge => `<button class="edge-chip" data-edge-jump="${escapeHtml(edge.id)}">${escapeHtml(edge.type)} · ${escapeHtml(edge.transition?.kind ?? "none")} · ${Number(edge.transition?.cover ?? 0)}s</button>`).join("");
-  const videoHtml = video ? `<video muted preload="auto" src="data:video/mp4;base64,${video}"></video>` : "書き出しはまだありません";
+  const videoHtml = video ? `<video muted preload="auto" src="data:video/mp4;base64,${video}"></video>` : "No export yet";
   const html = template
     .replace("__FALLBACK_ATTRIBUTE__", atlas ? "" : 'data-fallback="true"')
     .replace("__WORLD_BANDS__", bands).replace("__EDGE_CHIPS__", edges)

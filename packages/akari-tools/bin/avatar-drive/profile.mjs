@@ -12,7 +12,7 @@ export const DEFAULT_PROFILE = Object.freeze({
 
 function finite(value, name) {
   const number = Number(value);
-  if (!Number.isFinite(number)) throw new Error(`${name} は有限数である必要があります`);
+  if (!Number.isFinite(number)) throw new Error(`${name} must be a finite number`);
   return number;
 }
 
@@ -29,20 +29,20 @@ export function normalizeProfile(value = {}) {
     blinkDuration: finite(value.blinkDuration ?? DEFAULT_PROFILE.blinkDuration, "blinkDuration"),
   };
   if (!Number.isInteger(profile.sampleRate) || profile.sampleRate < 1000) {
-    throw new Error("sampleRate は 1000 以上の整数である必要があります");
+    throw new Error("sampleRate must be an integer >= 1000");
   }
   if (!(profile.midThreshold >= 0 && profile.openThreshold > profile.midThreshold)) {
-    throw new Error("閾値は 0 <= midThreshold < openThreshold である必要があります");
+    throw new Error("Thresholds must satisfy 0 <= midThreshold < openThreshold");
   }
   if (!(profile.hysteresis >= 0 && profile.hysteresis < profile.openThreshold - profile.midThreshold)) {
-    throw new Error("hysteresis は 0 以上かつ 2 閾値の間隔未満である必要があります");
+    throw new Error("hysteresis must be >= 0 and less than the gap between the two thresholds");
   }
   if (!(profile.attackMs > 0 && profile.releaseMs > 0)) {
-    throw new Error("attackMs / releaseMs は正数である必要があります");
+    throw new Error("attackMs / releaseMs must be a positive number");
   }
   if (!(profile.blinkPeriod > 0 && profile.blinkJitter >= 0
       && profile.blinkJitter < profile.blinkPeriod && profile.blinkDuration > 0)) {
-    throw new Error("まばたきは period > jitter >= 0、duration > 0 である必要があります");
+    throw new Error("Blink requires period > jitter >= 0 and duration > 0");
   }
   return profile;
 }
@@ -54,7 +54,7 @@ function smoothingFactor(dt, milliseconds) {
 /** RMS 列を、アタック/リリース平滑 + 2 閾値ヒステリシスで口 3 状態へ変換する。 */
 export function envelopeToMouthStates(rmsValues, fps, profileValue = {}) {
   const profile = normalizeProfile(profileValue);
-  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps は正数である必要があります");
+  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps must be a positive number");
   const dt = 1 / fps;
   const attack = smoothingFactor(dt, profile.attackMs);
   const release = smoothingFactor(dt, profile.releaseMs);

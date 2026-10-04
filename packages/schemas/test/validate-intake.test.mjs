@@ -40,7 +40,7 @@ test("title: string (agent-authored display name) passes", () => {
 test("title with a non-string, non-null value is rejected", () => {
   const executed = run("invalid-title-wrong-type");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /title は null または文字列である必要があります/);
+  assert.match(executed.stderr, /title must be null or a string/);
 });
 
 test("unknown task id is rejected (skill catalog enum enforcement)", () => {
@@ -48,7 +48,7 @@ test("unknown task id is rejected (skill catalog enum enforcement)", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /tasks\[1\] は transcribe-captions \/ silence-cut \/ bgm-sfx \/ narration \/ 3d-inserts のいずれかである必要があります/,
+    /tasks\[1\] must be one of transcribe-captions \/ silence-cut \/ bgm-sfx \/ narration \/ 3d-inserts/,
   );
 });
 
@@ -57,20 +57,20 @@ test("status submitted without submitted_at is rejected", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /status が submitted のとき submitted_at は ISO 8601 日時である必要があります/,
+    /submitted_at must be an ISO 8601 datetime when status is submitted/,
   );
 });
 
 test("duration_s and keep_length: true are mutually exclusive", () => {
   const executed = run("invalid-target-exclusive");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /排他/);
+  assert.match(executed.stderr, /mutually exclusive/);
 });
 
 test("duplicate task ids are rejected", () => {
   const executed = run("invalid-duplicate-task");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /tasks に重複があります: silence-cut/);
+  assert.match(executed.stderr, /tasks is duplicated: silence-cut/);
 });
 
 test("missing input file fails with a clear message", () => {
@@ -80,7 +80,7 @@ test("missing input file fails with a clear message", () => {
     { encoding: "utf8" },
   );
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /intake\.json が見つかりません/);
+  assert.match(executed.stderr, /intake\.json was not found/);
 });
 
 test("autonomy labels cover the three stable IDs separately from task labels", () => {

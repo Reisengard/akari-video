@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runtimes } from "../../overlay-runtime/runtimes.mjs";
 
-const usage = "使い方: node packages/schemas/bin/validate-kit-manifest.mjs <kit-dir> [--public-skills <dir>] [--json]";
+const usage = "Usage: node packages/schemas/bin/validate-kit-manifest.mjs <kit-dir> [--public-skills <dir>] [--json]";
 const ownPath = fileURLToPath(import.meta.url);
 const ownDir = path.dirname(ownPath);
 const parsed = parseArguments(process.argv.slice(2));
@@ -28,12 +28,12 @@ const warnings = [];
 const manifestPath = path.join(kitDir, "manifest.json");
 
 if (!isDirectory(kitDir)) {
-  fail(`キットディレクトリが見つかりません: ${kitDir}`);
+  fail(`Kit directory was not found: ${kitDir}`);
   finish();
 }
 const kitRealDir = fs.realpathSync(kitDir);
 if (!isRegularFile(manifestPath)) {
-  fail(`manifest.json が見つかりません: ${manifestPath}`);
+  fail(`manifest.json was not found: ${manifestPath}`);
   finish();
 }
 
@@ -41,7 +41,7 @@ let manifest;
 try {
   manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 } catch (error) {
-  fail(`manifest.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`manifest.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -84,7 +84,7 @@ function parseArguments(args) {
 
 function validateManifest(value) {
   if (!isPlainObject(value)) {
-    fail("manifest.json のルートは object である必要があります");
+    fail("manifest.json root must be an object");
     return;
   }
 
@@ -93,16 +93,16 @@ function validateManifest(value) {
   requireFields(value, required, "manifest");
   rejectUnknownFields(value, [...required, ...optional], "manifest");
 
-  if (value.schemaVersion !== 1) fail("schemaVersion は 1 である必要があります");
+  if (value.schemaVersion !== 1) fail("schemaVersion must be 1");
   if (typeof value.id !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(value.id)) {
-    fail("id は英小文字・数字・ハイフンで構成する必要があります");
+    fail("id must consist of lowercase letters, digits, and hyphens");
   }
-  if (value.kind !== "kit") fail('kind は "kit" である必要があります');
+  if (value.kind !== "kit") fail('kind must be \"kit\"');
   validateNonEmptyString(value.name, "name");
-  if (!Number.isInteger(value.version) || value.version < 1) fail("version は 1 以上の整数である必要があります");
+  if (!Number.isInteger(value.version) || value.version < 1) fail("version must be an integer >= 1");
   validateRequires(value.requires);
   if (!["LicenseRef-AKARI-Assets-v0", "CC0-1.0"].includes(value.license)) {
-    fail("license は LicenseRef-AKARI-Assets-v0 / CC0-1.0 のいずれかである必要があります");
+    fail("license must be one of LicenseRef-AKARI-Assets-v0 / CC0-1.0");
   }
   validateObjectArray(value.skills, "skills", ["dir", "name"], (entry, label) => {
     validateNonEmptyString(entry.dir, `${label}.dir`);
@@ -110,12 +110,12 @@ function validateManifest(value) {
   });
   validateObjectArray(value.templates, "templates", ["path", "for", "label"], (entry, label) => {
     validateNonEmptyString(entry.path, `${label}.path`);
-    if (entry.for !== "world-map") fail(`${label}.for は world-map である必要があります`);
+    if (entry.for !== "world-map") fail(`${label}.for must be world-map`);
     validateNonEmptyString(entry.label, `${label}.label`);
   });
   validateObjectArray(value.assets, "assets", ["category", "id"], (entry, label) => {
     if (!["overlay", "still", "scene3d", "audio", "broll", "font"].includes(entry.category)) {
-      fail(`${label}.category は overlay / still / scene3d / audio / broll / font のいずれかである必要があります`);
+      fail(`${label}.category must be one of overlay / still / scene3d / audio / broll / font`);
     }
     validateNonEmptyString(entry.id, `${label}.id`);
   });
@@ -125,7 +125,7 @@ function validateManifest(value) {
   });
   if (value.provenance !== undefined) {
     if (!isPlainObject(value.provenance)) {
-      fail("provenance は object である必要があります");
+      fail("provenance must be an object");
     } else {
       requireFields(value.provenance, ["author", "source"], "provenance");
       rejectUnknownFields(value.provenance, ["author", "source"], "provenance");
@@ -137,13 +137,13 @@ function validateManifest(value) {
 
 function validateRequires(value) {
   if (!isPlainObject(value)) {
-    fail("requires は object である必要があります");
+    fail("requires must be an object");
     return;
   }
   requireFields(value, ["cli"], "requires");
   rejectUnknownFields(value, ["cli", "runtimes", "products"], "requires");
   if (typeof value.cli !== "string" || !/^(?:\^|~|>=)?\d+\.\d+\.\d+$/.test(value.cli)) {
-    fail("requires.cli は ^x.y.z / ~x.y.z / >=x.y.z / x.y.z のいずれかである必要があります");
+    fail("requires.cli must be one of ^x.y.z / ~x.y.z / >=x.y.z / x.y.z");
   }
   validateStringArray(value.runtimes, "requires.runtimes");
   validateStringArray(value.products, "requires.products");
@@ -152,13 +152,13 @@ function validateRequires(value) {
 function validateObjectArray(value, label, fields, validateEntry) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail(`${label} は配列である必要があります`);
+    fail(`${label} must be an array`);
     return;
   }
   value.forEach((entry, index) => {
     const itemLabel = `${label}[${index}]`;
     if (!isPlainObject(entry)) {
-      fail(`${itemLabel} は object である必要があります`);
+      fail(`${itemLabel} must be an object`);
       return;
     }
     requireFields(entry, fields, itemLabel);
@@ -172,7 +172,7 @@ function validateRuntimes(value) {
   const registered = new Set(runtimes.map((entry) => entry.id));
   for (const runtime of value.requires.runtimes) {
     if (typeof runtime === "string" && !registered.has(runtime)) {
-      fail(`requires.runtimes に未登録の runtime id があります: ${runtime}`);
+      fail(`requires.runtimes has an unregistered runtime id: ${runtime}`);
     }
   }
 }
@@ -184,35 +184,35 @@ function validateSkills(value) {
     if (!isPlainObject(skill) || typeof skill.dir !== "string") continue;
     const label = `skills[${index}]`;
     if (path.isAbsolute(skill.dir) || skill.dir.split(/[\\/]+/u).includes("..")) {
-      fail(`${label}.dir は kit-dir 内の相対パスであり、.. を含めてはいけません: ${skill.dir}`);
+      fail(`${label}.dir must be a relative path inside kit-dir and must not contain ..: ${skill.dir}`);
       continue;
     }
     const skillDir = path.resolve(kitDir, skill.dir);
     if (!isInsideKit(skillDir)) {
-      fail(`${label}.dir は kit-dir の外を指せません: ${skill.dir}`);
+      fail(`${label}.dir cannot point outside kit-dir: ${skill.dir}`);
       continue;
     }
     const skillPath = path.join(skillDir, "SKILL.md");
     if (!isDirectory(skillDir)) {
-      fail(`${label}.dir が見つかりません: ${skill.dir}`);
+      fail(`${label}.dir was not found: ${skill.dir}`);
       continue;
     }
     if (!isInside(kitRealDir, fs.realpathSync(skillDir))) {
-      fail(`${label}.dir は symlink 経由でも kit-dir の外を指せません: ${skill.dir}`);
+      fail(`${label}.dir cannot point outside kit-dir, even via a symlink: ${skill.dir}`);
       continue;
     }
     if (!isRegularFile(skillPath)) {
-      fail(`${label}.dir に SKILL.md が見つかりません: ${skill.dir}`);
+      fail(`SKILL.md was not found in ${label}.dir: ${skill.dir}`);
       continue;
     }
     const frontmatterName = readFrontmatterName(skillPath);
     if (frontmatterName === undefined) {
-      fail(`${label}.dir の SKILL.md frontmatter に name がありません: ${skill.dir}`);
+      fail(`SKILL.md frontmatter in ${label}.dir has no name: ${skill.dir}`);
     } else if (typeof skill.name === "string" && frontmatterName !== skill.name) {
-      fail(`${label}.name と SKILL.md frontmatter の name が一致しません: ${skill.name} != ${frontmatterName}`);
+      fail(`${label}.name does not match the name in SKILL.md frontmatter: ${skill.name} != ${frontmatterName}`);
     }
     if (typeof skill.name === "string" && publicNames?.has(skill.name)) {
-      fail(`${label}.name が公開スキル名と重複しています: ${skill.name}`);
+      fail(`${label}.name duplicates a public skill name: ${skill.name}`);
     }
   }
 }
@@ -220,13 +220,13 @@ function validateSkills(value) {
 function readPublicSkillNames() {
   const publicSkillsDir = parsed.publicSkills === undefined ? findPublicSkillsDirectory() : path.resolve(parsed.publicSkills);
   if (!publicSkillsDir || !isDirectory(publicSkillsDir)) {
-    warnings.push(`公開 skills ディレクトリが見つからないため、名前の重複照合をスキップしました${publicSkillsDir ? `: ${publicSkillsDir}` : ""}`);
+    warnings.push(`Skipped the duplicate-name check because the public skills directory was not found${publicSkillsDir ? `: ${publicSkillsDir}` : ""}`);
     return undefined;
   }
   try {
     return new Set(fs.readdirSync(publicSkillsDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name));
   } catch (error) {
-    warnings.push(`公開 skills ディレクトリを読めないため、名前の重複照合をスキップしました: ${messageOf(error)}`);
+    warnings.push(`Skipped the duplicate-name check because the public skills directory could not be read: ${messageOf(error)}`);
     return undefined;
   }
 }
@@ -247,7 +247,7 @@ function readFrontmatterName(skillPath) {
   try {
     source = fs.readFileSync(skillPath, "utf8");
   } catch (error) {
-    fail(`SKILL.md を読めません: ${skillPath}: ${messageOf(error)}`);
+    fail(`SKILL.md could not be read: ${skillPath}: ${messageOf(error)}`);
     return undefined;
   }
   const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u)?.[1];
@@ -265,7 +265,7 @@ function validateTemplates(value) {
   for (const [index, template] of value.templates.entries()) {
     if (!isPlainObject(template) || typeof template.path !== "string") continue;
     if (!pathExists(path.resolve(kitDir, template.path))) {
-      fail(`templates[${index}].path が見つかりません: ${template.path}`);
+      fail(`templates[${index}].path was not found: ${template.path}`);
     }
   }
 }
@@ -278,13 +278,13 @@ function validateAssets(value) {
     const assetLabel = `${asset.category}/${asset.id}`;
     const assetDir = path.join(kitDir, "assets", asset.category, asset.id);
     if (!isDirectory(assetDir)) {
-      fail(`assets[${index}] の素材ディレクトリが見つかりません: ${assetLabel}`);
+      fail(`Asset directory for assets[${index}] was not found: ${assetLabel}`);
       continue;
     }
     const executed = spawnSync(process.execPath, [validatorPath, assetDir], { encoding: "utf8" });
     if (executed.status !== 0) {
-      const detail = (executed.stderr || executed.stdout || executed.error?.message || "検証に失敗しました").trim();
-      fail(`assets[${index}] が validate-asset に失敗しました: ${assetLabel}${detail ? `: ${detail}` : ""}`);
+      const detail = (executed.stderr || executed.stdout || executed.error?.message || "Validation failed").trim();
+      fail(`assets[${index}] failed validate-asset: ${assetLabel}${detail ? `: ${detail}` : ""}`);
     }
   }
 }
@@ -294,32 +294,32 @@ function validateDocs(value) {
   for (const [index, document] of value.docs.entries()) {
     if (!isPlainObject(document) || typeof document.path !== "string") continue;
     if (!pathExists(path.resolve(kitDir, document.path))) {
-      fail(`docs[${index}].path が見つかりません: ${document.path}`);
+      fail(`docs[${index}].path was not found: ${document.path}`);
     }
   }
 }
 
 function validateRequiredFiles() {
   for (const name of ["README.md", "LICENSE.md"]) {
-    if (!isRegularFile(path.join(kitDir, name))) fail(`${name} が見つかりません: ${path.join(kitDir, name)}`);
+    if (!isRegularFile(path.join(kitDir, name))) fail(`${name} was not found: ${path.join(kitDir, name)}`);
   }
 }
 
 function requireFields(value, fields, label) {
-  for (const field of fields) if (!hasOwn(value, field)) fail(`${label} に必須フィールドがありません: ${field}`);
+  for (const field of fields) if (!hasOwn(value, field)) fail(`${label} is missing a required field: ${field}`);
 }
 
 function rejectUnknownFields(value, fields, label) {
-  for (const field of Object.keys(value)) if (!fields.includes(field)) fail(`${label} に未定義のフィールドがあります: ${field}`);
+  for (const field of Object.keys(value)) if (!fields.includes(field)) fail(`${label} has an unknown field: ${field}`);
 }
 
 function validateStringArray(value, label) {
   if (value === undefined) return;
-  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) fail(`${label} は文字列の配列である必要があります`);
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) fail(`${label} must be an array of strings`);
 }
 
 function validateNonEmptyString(value, label) {
-  if (typeof value !== "string" || value.length === 0) fail(`${label} は空でない文字列である必要があります`);
+  if (typeof value !== "string" || value.length === 0) fail(`${label} must be a non-empty string`);
 }
 
 function isInsideKit(candidate) {
@@ -365,10 +365,10 @@ function finish() {
     console.log(JSON.stringify(result));
   } else if (result.ok) {
     console.log(`OK: ${kitDir}`);
-    for (const warning of warnings) console.warn(`警告: ${warning}`);
+    for (const warning of warnings) console.warn(`Warning: ${warning}`);
   } else {
-    for (const error of errors) console.error(`エラー: ${error}`);
-    for (const warning of warnings) console.warn(`警告: ${warning}`);
+    for (const error of errors) console.error(`Error: ${error}`);
+    for (const warning of warnings) console.warn(`Warning: ${warning}`);
   }
   process.exit(result.ok ? 0 : 1);
 }

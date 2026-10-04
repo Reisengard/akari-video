@@ -134,7 +134,7 @@ test("2 回目の実行は対象 0 件で exit 0", async (t) => {
   const stdout = [];
   const code = await runMediaCli(["audio-level", directory], { stdout: (line) => stdout.push(line), stderr: () => {}, measureRunner });
   assert.equal(code, 0);
-  assert.deepEqual(stdout, ["対象 0 件"]);
+  assert.deepEqual(stdout, ["No targets"]);
 });
 
 test("lint error は edit.json 全文を巻き戻す", async (t) => {
@@ -144,7 +144,7 @@ test("lint error は edit.json 全文を巻き戻す", async (t) => {
   const lintFail = async () => ({ verdict: "fail", findings: [{ severity: "error", message: "injected failure" }] });
   await assert.rejects(
     audioLevelProject(directory, { write: true, measureRunner, lintRunner: lintFail }),
-    /edit\.json を元に戻しました/u,
+    /Restored edit\.json/u,
   );
   assert.equal(fs.readFileSync(editPath, "utf8"), before);
 });
@@ -159,7 +159,7 @@ test("素材不在は stderr warning だけで他の対象を続行する", asyn
   });
   assert.equal(code, 0);
   assert.equal(stderr.length, 1);
-  assert.match(stderr[0], /素材が見つからない/u);
+  assert.match(stderr[0], /footage not found/u);
   assert.equal(stdout.length, 4);
 });
 

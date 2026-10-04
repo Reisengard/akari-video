@@ -39,11 +39,11 @@ export function resolveBlockPixels(spec, faceWidthPx) {
   const raw = String(spec ?? "0.08").trim().toLowerCase();
   if (raw.endsWith("px")) {
     const px = Number(raw.slice(0, -2));
-    if (!(px >= 2)) throw new Error("--block-size の px 指定は 2px 以上です");
+    if (!(px >= 2)) throw new Error("--block-size in px must be 2px or more");
     return Math.round(px);
   }
   const ratio = Number(raw);
-  if (!(ratio > 0 && ratio <= 1)) throw new Error("--block-size の顔幅比は 0 より大きく 1 以下です（または 12px の形式）");
+  if (!(ratio > 0 && ratio <= 1)) throw new Error("--block-size face-width ratio must be greater than 0 and at most 1 (or use a form like 12px)");
   return Math.max(2, Math.round(faceWidthPx * ratio));
 }
 

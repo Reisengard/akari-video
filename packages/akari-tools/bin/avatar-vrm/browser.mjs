@@ -4,7 +4,7 @@ import { findChrome } from "./find-chrome.mjs";
 
 export async function launchAvatarVrmBrowser() {
   const executablePath = process.env.AKARI_CHROME_BIN?.trim() || process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || findChrome();
-  if (!executablePath) throw new Error("この機能には Chrome が必要です（`AKARI_CHROME_BIN` で指定）");
+  if (!executablePath) throw new Error("Chrome is required (set `AKARI_CHROME_BIN` to its path)");
   const isHeadlessShell = /(?:^|[/\\])chrome-headless-shell(?:\.exe)?$/.test(executablePath);
   return puppeteer.launch({
     executablePath,

@@ -141,11 +141,11 @@ test("missing or empty transcripts do not write captions", async (t) => {
   await rm(f.analysisPath);
   const missing = await f.run();
   assert.equal(missing.code, 1);
-  assert.match(missing.stderr[0], /文字起こしがありません/);
+  assert.match(missing.stderr[0], /No transcript found/);
   await writeFile(f.analysisPath, JSON.stringify({ transcript: [] }));
   const empty = await f.run();
   assert.equal(empty.code, 1);
-  assert.match(empty.stderr[0], /発話がありません/);
+  assert.match(empty.stderr[0], /No speech found/);
   assert.equal(existsSync(f.captionsPath), false);
 });
 
@@ -164,7 +164,7 @@ test("help and no arguments print usage", async () => {
   for (const args of [[], ["--help"]]) {
     const lines = [];
     assert.equal(await runCaptionsCli(args, { stdout: (line) => lines.push(line) }), 0);
-    assert.equal(lines[0].split("\n")[0], "使い方: akari captions <project-dir> [options]");
+    assert.equal(lines[0].split("\n")[0], "Usage: akari captions <project-dir> [options]");
   }
 });
 

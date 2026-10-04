@@ -376,6 +376,6 @@ test("共有 runSilenceDetect の ffmpeg 引数を使い、素材異常は exit 
     assert.equal(await runMediaCli(["transcribe-cuts", f.target, flag, "invalid"], {
       ...common, stderr: (line) => errors.push(line),
     }), 1);
-    assert.match(errors[0], /on \/ off/);
+    assert.match(errors[0], /must be on or off/);
   }
 });

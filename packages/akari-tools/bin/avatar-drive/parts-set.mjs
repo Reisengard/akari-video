@@ -23,11 +23,11 @@ function probePng(path, ffprobeCommand) {
     "-of", "json", path,
   ], { encoding: "utf8" });
   if (result.error || result.status !== 0) {
-    throw new Error(`PNG の寸法を取得できません: ${path}: ${String(result.stderr || result.error?.message).trim()}`);
+    throw new Error(`Could not read PNG dimensions: ${path}: ${String(result.stderr || result.error?.message).trim()}`);
   }
   const stream = JSON.parse(result.stdout)?.streams?.[0];
   if (!(Number.isInteger(stream?.width) && Number.isInteger(stream?.height))) {
-    throw new Error(`PNG の寸法が不正です: ${path}`);
+    throw new Error(`Invalid PNG dimensions: ${path}`);
   }
   return { width: stream.width, height: stream.height };
 }
@@ -35,16 +35,16 @@ function probePng(path, ffprobeCommand) {
 function validateStates(states, label, errors) {
   if (states === "always") return;
   if (!record(states)) {
-    errors.push(`${label}.states は "always" または object である必要があります`);
+    errors.push(`${label}.states must be "always" or an object`);
     return;
   }
   const known = new Set(["mouth", "eyes", "emotion"]);
-  if (Object.keys(states).length === 0) errors.push(`${label}.states は空にできません`);
+  if (Object.keys(states).length === 0) errors.push(`${label}.states must not be empty`);
   for (const [drive, values] of Object.entries(states)) {
-    if (!known.has(drive)) errors.push(`${label}.states.${drive} は未対応の駆動列です`);
+    if (!known.has(drive)) errors.push(`${label}.states.${drive} is not a supported drive sequence`);
     if (!Array.isArray(values) || values.length === 0
         || values.some((value) => typeof value !== "string" || value.trim() === "")) {
-      errors.push(`${label}.states.${drive} は空でない文字列配列である必要があります`);
+      errors.push(`${label}.states.${drive} must be an array of non-empty strings`);
     }
   }
 }
@@ -52,23 +52,23 @@ function validateStates(states, label, errors) {
 function validatePhysics(physics, label, errors) {
   if (physics === undefined) return;
   if (!record(physics)) {
-    errors.push(`${label}.physics は object である必要があります`);
+    errors.push(`${label}.physics must be an object`);
     return;
   }
   if (physics.wobble !== undefined) {
-    if (!record(physics.wobble)) errors.push(`${label}.physics.wobble は object である必要があります`);
+    if (!record(physics.wobble)) errors.push(`${label}.physics.wobble must be an object`);
     else for (const axis of ["x", "y"]) {
       const wave = physics.wobble[axis];
       if (wave === undefined) continue;
       if (!record(wave) || !Number.isFinite(wave.amplitude) || !Number.isFinite(wave.frequency)
           || wave.frequency < 0 || (wave.phase !== undefined && !Number.isFinite(wave.phase))) {
-        errors.push(`${label}.physics.wobble.${axis} は amplitude/frequency/phase の有限数を持つ必要があります`);
+        errors.push(`${label}.physics.wobble.${axis} must have finite amplitude/frequency/phase`);
       }
     }
   }
   if (physics.follow !== undefined
       && (!record(physics.follow) || !Number.isFinite(physics.follow.drag) || physics.follow.drag < 1)) {
-    errors.push(`${label}.physics.follow.drag は 1 以上の有限数である必要があります`);
+    errors.push(`${label}.physics.follow.drag must be a finite number >= 1`);
   }
   if (physics.rotationalDrag !== undefined) {
     const value = physics.rotationalDrag;
@@ -76,66 +76,66 @@ function validatePhysics(physics, label, errors) {
         || (value.minDeg !== undefined && !Number.isFinite(value.minDeg))
         || (value.maxDeg !== undefined && !Number.isFinite(value.maxDeg))
         || (value.lerp !== undefined && (!Number.isFinite(value.lerp) || value.lerp <= 0 || value.lerp > 1))) {
-      errors.push(`${label}.physics.rotationalDrag の strength/minDeg/maxDeg/lerp が不正です`);
+      errors.push(`${label}.physics.rotationalDrag has invalid strength/minDeg/maxDeg/lerp`);
     } else if ((value.minDeg ?? -180) > (value.maxDeg ?? 180)) {
-      errors.push(`${label}.physics.rotationalDrag は minDeg <= maxDeg である必要があります`);
+      errors.push(`${label}.physics.rotationalDrag must be satisfying minDeg <= maxDeg`);
     }
   }
   if (physics.talkBounce !== undefined) {
     const value = physics.talkBounce;
     if (!record(value) || !Number.isFinite(value.velocity) || value.velocity < 0
         || !Number.isFinite(value.gravity) || value.gravity < 0) {
-      errors.push(`${label}.physics.talkBounce の velocity/gravity は 0 以上の有限数である必要があります`);
+      errors.push(`${label}.physics.talkBounce velocity/gravity must be finite numbers >= 0`);
     }
   }
 }
 
 export function validatePartsManifest(manifest) {
   const errors = [];
-  if (!record(manifest)) return { ok: false, errors: ["parts.json のルートは object である必要があります"] };
-  if (manifest.version !== 2) errors.push("version は整数 2 である必要があります");
+  if (!record(manifest)) return { ok: false, errors: ["parts.json root must be an object"] };
+  if (manifest.version !== 2) errors.push("version must be the integer 2");
   if (!record(manifest.size) || !Number.isInteger(manifest.size.width) || manifest.size.width < 2
       || !Number.isInteger(manifest.size.height) || manifest.size.height < 2) {
-    errors.push("size.width / size.height は 2 以上の整数である必要があります");
+    errors.push("size.width / size.height must be an integer >= 2");
   }
   if (!record(manifest.anchor) || !Number.isFinite(manifest.anchor.x) || !Number.isFinite(manifest.anchor.y)
       || manifest.anchor.x < 0 || manifest.anchor.x > 1 || manifest.anchor.y < 0 || manifest.anchor.y > 1) {
-    errors.push("anchor.x / anchor.y は 0..1 の有限数である必要があります");
+    errors.push("anchor.x / anchor.y must be a finite number from 0 to 1");
   }
   if (!Array.isArray(manifest.parts) || manifest.parts.length === 0) {
-    errors.push("parts は空でない配列である必要があります");
+    errors.push("parts must be a non-empty array");
     return { ok: false, errors };
   }
 
   const ids = new Set();
   for (const [index, part] of manifest.parts.entries()) {
     const label = `parts[${index}]`;
-    if (!record(part)) { errors.push(`${label} は object である必要があります`); continue; }
-    if (typeof part.id !== "string" || !/^[A-Za-z0-9_.-]+$/.test(part.id)) errors.push(`${label}.id が不正です`);
-    else if (ids.has(part.id)) errors.push(`${label}.id ${part.id} が重複しています`);
+    if (!record(part)) { errors.push(`${label} must be an object`); continue; }
+    if (typeof part.id !== "string" || !/^[A-Za-z0-9_.-]+$/.test(part.id)) errors.push(`${label}.id is invalid`);
+    else if (ids.has(part.id)) errors.push(`${label}.id ${part.id} is duplicated`);
     else ids.add(part.id);
-    if (typeof part.image !== "string" || part.image.trim() === "") errors.push(`${label}.image は空でない文字列です`);
-    if (!(part.parent === null || typeof part.parent === "string")) errors.push(`${label}.parent は null または id 文字列です`);
-    if (!finitePoint(part.offset)) errors.push(`${label}.offset.x/y は有限数である必要があります`);
-    if (!finitePoint(part.origin)) errors.push(`${label}.origin.x/y は有限数である必要があります`);
-    if (!Number.isFinite(part.z)) errors.push(`${label}.z は有限数である必要があります`);
+    if (typeof part.image !== "string" || part.image.trim() === "") errors.push(`${label}.image must be a non-empty string`);
+    if (!(part.parent === null || typeof part.parent === "string")) errors.push(`${label}.parent must be null or an id string`);
+    if (!finitePoint(part.offset)) errors.push(`${label}.offset.x/y must be a finite number`);
+    if (!finitePoint(part.origin)) errors.push(`${label}.origin.x/y must be a finite number`);
+    if (!Number.isFinite(part.z)) errors.push(`${label}.z must be a finite number`);
     validateStates(part.states, label, errors);
     validatePhysics(part.physics, label, errors);
   }
 
   const byId = new Map(manifest.parts.filter(record).map((part) => [part.id, part]));
   for (const part of manifest.parts.filter(record)) {
-    if (typeof part.parent === "string" && !byId.has(part.parent)) errors.push(`part ${part.id} の parent ${part.parent} が存在しません`);
-    if (part.parent === part.id) errors.push(`part ${part.id} は自分自身を parent にできません`);
+    if (typeof part.parent === "string" && !byId.has(part.parent)) errors.push(`parent ${part.parent} of part ${part.id} does not exist`);
+    if (part.parent === part.id) errors.push(`part ${part.id} cannot be its own parent`);
     const seen = new Set([part.id]);
     let cursor = part;
     while (typeof cursor?.parent === "string") {
-      if (seen.has(cursor.parent)) { errors.push(`part ${part.id} の parent 連鎖が循環しています`); break; }
+      if (seen.has(cursor.parent)) { errors.push(`parent chain of part ${part.id} is circular`); break; }
       seen.add(cursor.parent);
       cursor = byId.get(cursor.parent);
     }
   }
-  if (!manifest.parts.some((part) => record(part) && part.parent === null)) errors.push("parent:null のルート part が必要です");
+  if (!manifest.parts.some((part) => record(part) && part.parent === null)) errors.push("parent:null root part is required");
   return errors.length === 0 ? { ok: true } : { ok: false, errors };
 }
 
@@ -151,7 +151,7 @@ function topologicalParts(parts) {
         advanced = true;
       }
     }
-    if (!advanced) throw new Error("parts.json の parent 連鎖を解決できません");
+    if (!advanced) throw new Error("Cannot resolve the parent chain in parts.json");
   }
   return ordered;
 }
@@ -159,7 +159,7 @@ function topologicalParts(parts) {
 export function loadPartsSet(partsDir, { ffprobeCommand } = {}) {
   const root = realpathSync(resolve(partsDir));
   const manifestPath = join(root, "parts.json");
-  if (!existsSync(manifestPath)) throw new Error(`parts.json が見つかりません: ${manifestPath}`);
+  if (!existsSync(manifestPath)) throw new Error(`parts.json was not found: ${manifestPath}`);
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   const structural = validatePartsManifest(manifest);
   if (!structural.ok) throw new Error(structural.errors.join("; "));
@@ -167,12 +167,12 @@ export function loadPartsSet(partsDir, { ffprobeCommand } = {}) {
   const assets = {};
   for (const part of manifest.parts) {
     const ref = part.image;
-    if (isAbsolute(ref)) throw new Error(`part ${part.id}.image はディレクトリ相対パスである必要があります`);
+    if (isAbsolute(ref)) throw new Error(`part ${part.id}.image must be a directory-relative path`);
     const candidate = resolve(root, ref);
-    if (!existsSync(candidate)) throw new Error(`part ${part.id} の PNG が見つかりません: ${ref}`);
+    if (!existsSync(candidate)) throw new Error(`PNG for part ${part.id} was not found: ${ref}`);
     const resolved = realpathSync(candidate);
-    if (!inside(root, resolved)) throw new Error(`part ${part.id} がパーツディレクトリ外を参照しています: ${ref}`);
-    if (extname(resolved).toLowerCase() !== ".png") throw new Error(`part ${part.id} は PNG を参照する必要があります: ${ref}`);
+    if (!inside(root, resolved)) throw new Error(`part ${part.id} refers to a path outside the parts directory: ${ref}`);
+    if (extname(resolved).toLowerCase() !== ".png") throw new Error(`part ${part.id} must refer to a PNG: ${ref}`);
     assets[part.id] = { path: resolved, ...probePng(resolved, command) };
   }
   return { root, manifest, assets, parts: topologicalParts(manifest.parts), kind: "parts-v2" };
@@ -184,6 +184,6 @@ export function requirePartsVowelAssets(partsSet) {
     if (part.states !== "always") for (const value of part.states.mouth ?? []) values.add(value);
   }
   const missing = ["closed", "a", "i", "u", "e", "o"].filter((value) => !values.has(value));
-  if (missing.length > 0) throw new Error(`vowel モードには parts.json の states.mouth に closed/a/i/u/e/o が必要です（不足: ${missing.join(", ")}）`);
+  if (missing.length > 0) throw new Error(`vowel mode requires states.mouth in parts.json to have closed/a/i/u/e/o (missing: ${missing.join(", ")})`);
   return partsSet;
 }

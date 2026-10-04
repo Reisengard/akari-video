@@ -41,7 +41,7 @@ test("unknown auth value is still rejected (non-regression)", () => {
   assert.equal(executed.status, 1, executed.stdout);
   assert.match(
     executed.stderr,
-    /providers\[0\]\.auth は login \/ env-key \/ oauth-mcp \/ none のいずれかである必要があります/,
+    /providers\[0\]\.auth must be one of login \/ env-key \/ oauth-mcp \/ none/,
   );
 });
 

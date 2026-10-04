@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-connections.mjs <connections.json>";
+const usage = "Usage: node packages/schemas/bin/validate-connections.mjs <connections.json>";
 const connectionsArgument = process.argv[2];
 
 if (!connectionsArgument || process.argv.length !== 3) {
@@ -24,7 +24,7 @@ const schemaPath = fileURLToPath(new URL("../connections.schema.json", import.me
 const errors = [];
 
 if (!isRegularFile(connectionsPath)) {
-  fail(`connections.json が見つかりません: ${connectionsPath}`);
+  fail(`connections.json was not found: ${connectionsPath}`);
   finish();
 }
 
@@ -32,11 +32,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`connections.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`connections.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:connections:v0") {
-  fail("connections.schema.json の $id が v0 契約と一致しません");
+  fail("connections.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -44,7 +44,7 @@ let connections;
 try {
   connections = JSON.parse(fs.readFileSync(connectionsPath, "utf8"));
 } catch (error) {
-  fail(`connections.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`connections.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -53,10 +53,10 @@ finish();
 
 function validateConnections(value) {
   if (!isPlainObject(value)) {
-    fail("connections.json のルートは object である必要があります");
+    fail("connections.json root must be an object");
     return;
   }
-  validateFields(value, ["providers", "policy"], ["providers", "defaults", "policy", "memory"], "ルート");
+  validateFields(value, ["providers", "policy"], ["providers", "defaults", "policy", "memory"], "root");
   validateProviders(value.providers);
   if (hasOwn(value, "defaults")) validateDefaults(value.defaults);
   validatePolicy(value.policy);
@@ -65,13 +65,13 @@ function validateConnections(value) {
 
 function validateDefaults(value) {
   if (!isPlainObject(value)) {
-    fail("defaults は object である必要があります");
+    fail("defaults must be an object");
     return;
   }
   validateFields(value, [], ["generate"], "defaults");
   if (!hasOwn(value, "generate")) return;
   if (!isPlainObject(value.generate)) {
-    fail("defaults.generate は object である必要があります");
+    fail("defaults.generate must be an object");
     return;
   }
   validateFields(value.generate, [], ["still", "video"], "defaults.generate");
@@ -84,14 +84,14 @@ function validateDefaults(value) {
 
 function validateProviders(value) {
   if (!Array.isArray(value)) {
-    fail("providers は配列である必要があります");
+    fail("providers must be an array");
     return;
   }
   const ids = new Set();
   for (const [index, provider] of value.entries()) {
     const label = `providers[${index}]`;
     if (!isPlainObject(provider)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const fields = ["id", "kind", "auth", "env", "models", "notes", "doctor"];
@@ -99,9 +99,9 @@ function validateProviders(value) {
     validateNonEmptyString(provider.id, `${label}.id`);
     if (typeof provider.id === "string") {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(provider.id)) {
-        fail(`${label}.id は英小文字・数字の kebab-case である必要があります`);
+        fail(`${label}.id must be kebab-case of lowercase letters and digits`);
       }
-      if (ids.has(provider.id)) fail(`provider id が重複しています: ${provider.id}`);
+      if (ids.has(provider.id)) fail(`provider id is duplicated: ${provider.id}`);
       ids.add(provider.id);
     }
 
@@ -109,10 +109,10 @@ function validateProviders(value) {
     validateEnum(provider.auth, ["login", "env-key", "oauth-mcp", "none"], `${label}.auth`);
     if (provider.auth === "env-key") {
       if (typeof provider.env !== "string" || !/^\$\{[A-Za-z_][A-Za-z0-9_]*\}$/.test(provider.env)) {
-        fail(`${label}.env は env-key 認証では \${KEY_NAME} 形式である必要があります`);
+        fail(`${label}.env must be in \${KEY_NAME} form for env-key auth`);
       }
     } else if (provider.env !== null) {
-      fail(`${label}.env は login / oauth-mcp 認証では null である必要があります`);
+      fail(`${label}.env must be null for login / oauth-mcp auth`);
     }
     validateModels(provider.models, `${label}.models`);
     validateNotes(provider.notes, `${label}.notes`, provider.auth);
@@ -122,20 +122,20 @@ function validateProviders(value) {
 
 function validateModels(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   validateFields(value, ["default", "allowed"], ["default", "allowed"], label);
   if (value.default !== null) validateNonEmptyString(value.default, `${label}.default`);
   validateStringArray(value.allowed, `${label}.allowed`);
   if (typeof value.default === "string" && Array.isArray(value.allowed) && !value.allowed.includes(value.default)) {
-    fail(`${label}.default は allowed に含まれている必要があります`);
+    fail(`${label}.default must be included in allowed`);
   }
 }
 
 function validateNotes(value, label, auth) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const fields = ["description", "workflows", "billing", "quota", "scopes", "setup_url"];
@@ -147,13 +147,13 @@ function validateNotes(value, label, auth) {
   validateStringArray(value.scopes, `${label}.scopes`);
   if (value.setup_url !== null) validateHttpsUrl(value.setup_url, `${label}.setup_url`);
   if (auth === "env-key" && value.setup_url === null) {
-    fail(`${label}.setup_url は env-key の取得先案内に必要です`);
+    fail(`${label}.setup_url is required to tell users where to get the env-key`);
   }
 }
 
 function validateDoctor(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   validateFields(value, ["status"], ["last_checked", "status", "detail"], label);
@@ -164,7 +164,7 @@ function validateDoctor(value, label) {
   );
   if (hasOwn(value, "last_checked") && value.last_checked !== null) {
     if (typeof value.last_checked !== "string" || !isIsoDateTime(value.last_checked)) {
-      fail(`${label}.last_checked は null または ISO 8601 日時である必要があります`);
+      fail(`${label}.last_checked must be null or an ISO 8601 date-time`);
     }
   }
   if (hasOwn(value, "detail")) validateNonEmptyString(value.detail, `${label}.detail`);
@@ -172,14 +172,14 @@ function validateDoctor(value, label) {
 
 function validateMemory(value) {
   if (!Array.isArray(value)) {
-    fail("memory は配列である必要があります");
+    fail("memory must be an array");
     return;
   }
   const names = new Set();
   for (const [index, connection] of value.entries()) {
     const label = `memory[${index}]`;
     if (!isPlainObject(connection)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const required = ["name", "root"];
@@ -188,9 +188,9 @@ function validateMemory(value) {
     validateNonEmptyString(connection.name, `${label}.name`);
     if (typeof connection.name === "string") {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(connection.name)) {
-        fail(`${label}.name は英小文字・数字の kebab-case である必要があります`);
+        fail(`${label}.name must be kebab-case of lowercase letters and digits`);
       }
-      if (names.has(connection.name)) fail(`memory name が重複しています: ${connection.name}`);
+      if (names.has(connection.name)) fail(`memory name is duplicated: ${connection.name}`);
       names.add(connection.name);
     }
     validateNonEmptyString(connection.root, `${label}.root`);
@@ -198,7 +198,7 @@ function validateMemory(value) {
     if (hasOwn(connection, "include")) validateStringArray(connection.include, `${label}.include`);
     if (hasOwn(connection, "exclude")) validateStringArray(connection.exclude, `${label}.exclude`);
     if (hasOwn(connection, "read_policy") && connection.read_policy !== "read-only") {
-      fail(`${label}.read_policy は read-only である必要があります`);
+      fail(`${label}.read_policy must be read-only`);
     }
   }
 }
@@ -206,41 +206,41 @@ function validateMemory(value) {
 function validatePolicy(value) {
   const label = "policy";
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const fields = ["currency", "monthly_budget", "approval_threshold"];
   validateFields(value, fields, fields, label);
   if (typeof value.currency !== "string" || !/^[A-Z]{3}$/.test(value.currency)) {
-    fail("policy.currency は 3 文字の大文字通貨コードである必要があります");
+    fail("policy.currency must be a 3-letter uppercase currency code");
   }
   for (const field of ["monthly_budget", "approval_threshold"]) {
     const item = value[field];
     if (item !== null && (!isFiniteNumber(item) || item < 0)) {
-      fail(`policy.${field} は null または 0 以上の有限数である必要があります`);
+      fail(`policy.${field} must be null or a finite number >= 0`);
     }
   }
 }
 
 function validateFields(value, required, allowed, label) {
   for (const field of required) {
-    if (!hasOwn(value, field)) fail(`${label}.${field} は必須です`);
+    if (!hasOwn(value, field)) fail(`${label}.${field} is required`);
   }
   for (const field of Object.keys(value)) {
-    if (!allowed.includes(field)) fail(`${label}.${field} は未定義のフィールドです`);
+    if (!allowed.includes(field)) fail(`${label}.${field} is an unknown field`);
   }
 }
 
 function validateStringArray(value, label) {
   if (!Array.isArray(value)) {
-    fail(`${label} は配列である必要があります`);
+    fail(`${label} must be an array`);
     return;
   }
   const seen = new Set();
   for (const [index, item] of value.entries()) {
     validateNonEmptyString(item, `${label}[${index}]`);
     if (typeof item === "string") {
-      if (seen.has(item)) fail(`${label} に重複があります: ${item}`);
+      if (seen.has(item)) fail(`${label} is duplicated: ${item}`);
       seen.add(item);
     }
   }
@@ -248,26 +248,26 @@ function validateStringArray(value, label) {
 
 function validateNonEmptyString(value, label) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    fail(`${label} は空でない文字列である必要があります`);
+    fail(`${label} must be a non-empty string`);
   }
 }
 
 function validateEnum(value, allowed, label) {
   if (typeof value !== "string" || !allowed.includes(value)) {
-    fail(`${label} は ${allowed.join(" / ")} のいずれかである必要があります`);
+    fail(`${label} must be one of ${allowed.join(" / ")}`);
   }
 }
 
 function validateHttpsUrl(value, label) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    fail(`${label} は空でない文字列である必要があります`);
+    fail(`${label} must be a non-empty string`);
     return;
   }
   try {
     const parsed = new URL(value);
-    if (parsed.protocol !== "https:") fail(`${label} は https URL である必要があります`);
+    if (parsed.protocol !== "https:") fail(`${label} must be an https URL`);
   } catch {
-    fail(`${label} は有効な URL である必要があります`);
+    fail(`${label} must be a valid URL`);
   }
 }
 

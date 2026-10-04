@@ -24,21 +24,21 @@ test("valid avatar directory passes", () => {
 test("missing avatar directory fails", () => {
   const executed = run("does-not-exist");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /avatar ディレクトリが見つかりません/);
+  assert.match(executed.stderr, /Avatar directory was not found/);
 });
 
 // ルール (a): rights 欄必須
 test("missing rights fails (rule a)", () => {
   const executed = run("invalid-missing-rights");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /rights は必須です（rights 欄必須・欠落は fail/);
+  assert.match(executed.stderr, /rights is required \(a missing rights field fails/);
 });
 
 // ルール (b): person × sellable
 test("person subject with sellable distribution fails (rule b)", () => {
   const executed = run("invalid-person-sellable");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /rights\.subject が person のアバターは rights\.distribution を sellable にできません/);
+  assert.match(executed.stderr, /An avatar with rights\.subject person cannot set rights\.distribution to sellable/);
 });
 
 // ルール (c): person アバターが公開 catalog/avatars/ 配下
@@ -47,7 +47,7 @@ test("person avatar under catalog/avatars fails (rule c)", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /rights\.subject が person のアバターは公開リポ catalog\/avatars\/ 配下に置けません/,
+    /An avatar with rights\.subject person cannot be placed under the public repo catalog\/avatars\//,
   );
 });
 
@@ -55,15 +55,15 @@ test("person avatar under catalog/avatars fails (rule c)", () => {
 test("AVATAR.md over 135 lines fails (rule d)", () => {
   const executed = run("invalid-avatar-md-136-lines");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /AVATAR\.md が上限 135 行を超えています/);
-  assert.match(executed.stderr, /実測 159 行/);
+  assert.match(executed.stderr, /AVATAR\.md exceeds the 135-line limit/);
+  assert.match(executed.stderr, /measured 159 lines/);
 });
 
 // ルール (e): アセット参照の実ファイル解決（欠落は全数列挙）
 test("missing rendition asset file fails and is enumerated (rule e)", () => {
   const executed = run("invalid-missing-asset");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /アセット参照が実ファイルに解決できません/);
+  assert.match(executed.stderr, /Asset reference does not resolve to a real file/);
   assert.match(executed.stderr, /assets\.expressions\.happy = "happy\.png"/);
 });
 
@@ -76,13 +76,13 @@ test("unknown top-level fields still pass (tolerant reader)", () => {
 test("newer avatar.json version stops honestly", () => {
   const executed = run("unsupported-version");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(executed.stderr, /uses a newer format\. Update the skill \/ app/);
 });
 
 test("missing avatar.json fails", () => {
   const executed = run("invalid-no-avatar-json");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /avatar\.json が見つかりません/);
+  assert.match(executed.stderr, /avatar\.json was not found/);
 });
 
 test("invalid default_role fails", () => {
@@ -90,14 +90,14 @@ test("invalid default_role fails", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /persona\.default_role は explainer \/ listener \/ tsukkomi \/ narrator \/ guest のいずれかである必要があります/,
+    /persona\.default_role must be one of explainer \/ listener \/ tsukkomi \/ narrator \/ guest/,
   );
 });
 
 test("energy out of range fails", () => {
   const executed = run("invalid-energy-out-of-range");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /persona\.energy は 0-100 の整数である必要があります/);
+  assert.match(executed.stderr, /persona\.energy must be an integer from 0 to 100/);
 });
 
 // schema v0 改訂（S2・2026-07-26）: renditions minItems 1→0 緩和（voice-only アバター）

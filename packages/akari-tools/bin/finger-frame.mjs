@@ -69,7 +69,7 @@ const projectRoot = resolve(projectArg);
 
 const editPath = resolve(flag('edit') ?? join(projectRoot, 'edit.json'));
 if (!existsSync(editPath)) {
-  console.error(`edit.json が見つかりません: ${editPath}`);
+  console.error(`edit.json was not found: ${editPath}`);
   process.exit(1);
 }
 const edit = JSON.parse(readFileSync(editPath, 'utf8'));
@@ -79,25 +79,25 @@ const analysisCandidate = flag('analysis') ?? [
   join(projectRoot, '.akari', 'sidecars', 'analysis.json'),
 ].find(existsSync);
 if (!analysisCandidate || !existsSync(analysisCandidate)) {
-  console.error('analysis.json が見つかりません。--analysis で指定するか、vision-tracks.mjs --kinds hand で hand_pose トラックを先に生成してください。');
+  console.error('analysis.json was not found. Pass --analysis, or generate the hand_pose track first with vision-tracks.mjs --kinds hand.');
   process.exit(1);
 }
 const analysisPath = resolve(analysisCandidate);
 const analysis = JSON.parse(readFileSync(analysisPath, 'utf8'));
 const handPosePointer = analysis?.tracks?.hand_pose;
 if (!handPosePointer?.path) {
-  console.error(`analysis.json に tracks.hand_pose がありません（${analysisPath}）。vision-tracks.mjs --kinds hand で生成してください。`);
+  console.error(`analysis.json has no tracks.hand_pose (${analysisPath}). Generate it with vision-tracks.mjs --kinds hand.`);
   process.exit(1);
 }
 const analysisDir = dirname(analysisPath);
 const trackPath = resolve(analysisDir, handPosePointer.path);
 if (!existsSync(trackPath)) {
-  console.error(`hand_pose トラックファイルが見つかりません: ${trackPath}`);
+  console.error(`hand_pose track file was not found: ${trackPath}`);
   process.exit(1);
 }
 const track = JSON.parse(readFileSync(trackPath, 'utf8'));
 if (track.kind !== 'hand-pose') {
-  console.error(`トラックの kind が hand-pose ではありません（${track.kind}）: ${trackPath}`);
+  console.error(`Track kind is not hand-pose (${track.kind}): ${trackPath}`);
   process.exit(1);
 }
 
@@ -119,24 +119,24 @@ function parseFilterSpec(value) {
       return { type: 'saturation', value: saturation };
     }
   }
-  console.error('--filter は invert / lut:<id> / saturation:<0..3> のいずれかで指定してください。');
+  console.error('--filter must be one of invert, lut:<id> or saturation:<0..3>.');
   process.exit(1);
 }
 
 if (requestedKind === 'filter' && (mediaArg || layerIdArg)) {
-  console.error('--kind filter では --media と --layer-id を指定できません。');
+  console.error('--media and --layer-id cannot be used with --kind filter.');
   process.exit(1);
 }
 if (requestedKind === 'filter' && !filterArg) {
-  console.error('--kind filter では --filter invert|lut:<id>|saturation:<value> が必須です。');
+  console.error('--kind filter requires --filter invert|lut:<id>|saturation:<value>.');
   process.exit(1);
 }
 if (requestedKind !== 'filter' && filterArg) {
-  console.error('--filter は --kind filter のときのみ指定できます。');
+  console.error('--filter can only be used with --kind filter.');
   process.exit(1);
 }
 if (requestedKind !== 'filter' && !mediaArg && !layerIdArg) {
-  console.error('--media <path> または --layer-id <id> のいずれかが必要です（貼る対象の指定）。');
+  console.error('Either --media <path> or --layer-id <id> is required (the content to paste).');
   process.exit(1);
 }
 const layerFilter = requestedKind === 'filter' ? parseFilterSpec(filterArg) : null;
@@ -147,7 +147,7 @@ if (requestedKind === 'filter') {
 } else if (layerIdArg) {
   const existingLayer = (edit.layers ?? []).find((l) => l.id === layerIdArg);
   if (!existingLayer) {
-    console.error(`--layer-id ${layerIdArg} は edit.layers に見つかりません。`);
+    console.error(`--layer-id ${layerIdArg} was not found in edit.layers.`);
     process.exit(1);
   }
   pastedSrc = existingLayer.src;
@@ -157,12 +157,12 @@ if (requestedKind === 'filter') {
   pastedKind = requestedKind;
 }
 if (!['video', 'baked', 'filter'].includes(pastedKind)) {
-  console.error(`--kind は video / baked / filter のみ対応します（受け取り: ${pastedKind}）。`);
+  console.error(`--kind must be video, baked or filter (got: ${pastedKind}).`);
   process.exit(1);
 }
 const pastedAbsPath = pastedKind === 'filter' ? null : resolve(projectRoot, pastedSrc);
 if (pastedAbsPath && !existsSync(pastedAbsPath)) {
-  console.error(`貼る対象の素材が見つかりません: ${pastedAbsPath}`);
+  console.error(`Content to paste was not found: ${pastedAbsPath}`);
   process.exit(1);
 }
 
@@ -187,21 +187,21 @@ function ffprobeDimensions(path) {
   const width = Number(stream?.width);
   const height = Number(stream?.height);
   if (!(width > 0) || !(height > 0)) {
-    throw new Error(`ffprobe が寸法を返しませんでした: ${path}`);
+    throw new Error(`ffprobe did not return dimensions: ${path}`);
   }
   return { width, height };
 }
 
 const trackSourcePath = resolve(dirname(trackPath), track.source?.path ?? '');
 if (!existsSync(trackSourcePath)) {
-  console.error(`hand_pose トラックの元動画が見つかりません: ${trackSourcePath}`);
+  console.error(`Source video of the hand_pose track was not found: ${trackSourcePath}`);
   process.exit(1);
 }
 const sourceDims = ffprobeDimensions(trackSourcePath);
 const canvasWidth = Number(edit.output?.width);
 const canvasHeight = Number(edit.output?.height);
 if (!(canvasWidth > 0) || !(canvasHeight > 0)) {
-  console.error(`edit.json の output.width/height が不正です（${editPath}）。`);
+  console.error(`edit.json output.width/height is invalid (${editPath}).`);
   process.exit(1);
 }
 const pastedDims = pastedKind === 'video' ? ffprobeDimensions(pastedAbsPath) : null;
@@ -223,13 +223,13 @@ cuts.forEach((cut, index) => {
   const cutSourcePath = resolveCutSourcePath(cut);
   if (!cutSourcePath || cutSourcePath !== trackSourcePath) return;
   if (!cutHasDefaultFraming(cut)) {
-    warnings.push(`cuts[${index}] は framing/transform を宣言しているため座標写像の前提（既定 letterbox 合わせ）が崩れます。このカットはスキップしました（v0 の既知の境界 — docs/contract-2026-08-11-analysis-vision-tracks-v0.md §4 参照）。`);
+    warnings.push(`cuts[${index}] declares framing/transform, so the coordinate mapping assumption (default letterbox fit) does not hold. This cut was skipped (known v0 limitation; see docs/contract-2026-08-11-analysis-vision-tracks-v0.md section 4).`);
     return;
   }
   matchingCuts.push({ cut, index, start: startEnds[index].start, end: startEnds[index].end });
 });
 if (matchingCuts.length === 0) {
-  console.error(`edit.cuts の中に hand_pose の元動画（${trackSourcePath}）を参照し、かつ既定 framing のカットが見つかりません。`);
+  console.error(`No cut in edit.cuts uses the default framing and refers to the hand_pose source video (${trackSourcePath}).`);
   process.exit(1);
 }
 
@@ -287,7 +287,7 @@ for (const { cut, index, start: cutStart } of matchingCuts) {
       maxPointsPerSec,
     });
     if (points.length < 2) {
-      warnings.push(`cuts[${index}] のジェスチャ区間 [${clippedStart.toFixed(3)}s, ${clippedEnd.toFixed(3)}s]（元動画秒）は有効な四角形を作れず（両手検出不足・退化四角形）スキップしました。`);
+      warnings.push(`Skipped the gesture range [${clippedStart.toFixed(3)}s, ${clippedEnd.toFixed(3)}s] (source seconds) in cuts[${index}]: it cannot form a valid quad (too few detections for both hands, or a degenerate quad).`);
       continue;
     }
     const layerT = points[0].t;
@@ -329,7 +329,7 @@ for (const { cut, index, start: cutStart } of matchingCuts) {
 const applied = hasFlag('apply');
 if (applied) {
   if (newLayers.length === 0) {
-    warnings.push('layers が 0 件のため edit.json への書き込みはスキップしました。');
+    warnings.push('No layers were produced, so writing to edit.json was skipped.');
   } else {
     edit.layers = [...(edit.layers ?? []), ...newLayers];
     writeFileSync(editPath, `${JSON.stringify(edit, null, 2)}\n`);

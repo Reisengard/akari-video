@@ -15,7 +15,7 @@ export function computeMouthTransitions(mouthStates, transitionFrames) {
 }
 
 export function blendFrameBuffers(bufferA, bufferB, t) {
-  if (bufferA.length !== bufferB.length) throw new Error("ブレンド対象の Buffer 長が一致しません");
+  if (bufferA.length !== bufferB.length) throw new Error("Buffers to blend differ in length");
   const output = Buffer.alloc(bufferA.length);
   for (let index = 0; index < bufferA.length; index += 1) {
     output[index] = Math.round(bufferA[index] + (bufferB[index] - bufferA[index]) * t);

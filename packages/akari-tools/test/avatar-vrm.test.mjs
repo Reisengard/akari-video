@@ -188,7 +188,7 @@ test("avatar-vrm vendor bridge: 実 three-vrm が VRM1/MToon/expression を head
 test("avatar-vrm: drive は語彙・同長・fps を検証する", () => {
   const valid = { drive: { fps: 30, mouth: ["closed", "a", "i", "u", "e", "o"], eyes: ["open", "open", "open", "open", "closed", "open"] } };
   assert.deepEqual(validateDriveDocument(valid), valid.drive);
-  assert.throws(() => validateDriveDocument({ drive: { ...valid.drive, eyes: ["open"] } }), /長さ/);
+  assert.throws(() => validateDriveDocument({ drive: { ...valid.drive, eyes: ["open"] } }), /length/);
   assert.throws(() => validateDriveDocument({ drive: { ...valid.drive, mouth: ["x"], eyes: ["open"] } }), /mouth\[0\]/);
   assert.throws(() => validateDriveDocument({ drive: { ...valid.drive, fps: 0 } }), /fps/);
 });
@@ -201,7 +201,7 @@ test("avatar-vrm: drive.emotion は任意・同長で固定語彙だけを受理
     emotion: ["neutral", "happy", "sad", "angry", "surprised"],
   };
   assert.deepEqual(validateDriveDocument({ drive }), drive);
-  assert.throws(() => validateDriveDocument({ drive: { ...drive, emotion: ["neutral"] } }), /長さ/);
+  assert.throws(() => validateDriveDocument({ drive: { ...drive, emotion: ["neutral"] } }), /length/);
   assert.throws(() => validateDriveDocument({ drive: { ...drive, emotion: ["calm", "happy", "sad", "angry", "surprised"] } }), /emotion\[0\]/);
 });
 
@@ -215,9 +215,9 @@ test("avatar-vrm: drive.head は同長の度単位 yaw/pitch/roll を additive �
     },
   };
   assert.deepEqual(validateDriveDocument(document), document.drive);
-  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ yaw: 1 }] } }), /長さ/);
-  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ yaw: "1" }, null] } }), /有限数/);
-  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ x: 1 }, null] } }), /未対応/);
+  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ yaw: 1 }] } }), /length/);
+  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ yaw: "1" }, null] } }), /finite/);
+  assert.throws(() => validateDriveDocument({ drive: { ...document.drive, head: [{ x: 1 }, null] } }), /not supported/);
 
   const base = computeIdleOffsets({ frame: 10, fps: 30, intensity: 0.35, seed: "fixture" });
   const driven = addHeadDrive(base, { yaw: 4, pitch: -2, roll: 1.5 });
@@ -284,8 +284,8 @@ test("avatar-vrm: 引数の既定値と不正値を外部処理前に確定す�
   assert.equal(motion.springbone, "off");
   assert.throws(() => parseArguments(["--framing", "face"]), /framing/);
   assert.throws(() => parseArguments(["--position", "somewhere"]), /position/);
-  assert.throws(() => parseArguments(["--scale", "0"]), /正数/);
-  assert.throws(() => parseArguments(["--idle-intensity", "1.1"]), /1 以下/);
+  assert.throws(() => parseArguments(["--scale", "0"]), /positive/);
+  assert.throws(() => parseArguments(["--idle-intensity", "1.1"]), /from 0 to 1/);
   assert.throws(() => parseArguments(["--springbone", "maybe"]), /springbone/);
   assert.throws(() => parseArguments(["--head-source", "maybe"]), /head-source/);
   assert.throws(() => parseArguments(["--apply"]), /project/);
@@ -381,5 +381,5 @@ test("avatar-vrm CLI: 状態列の長さ不一致はブラウザ起動前に exi
   const script = new URL("../bin/avatar-vrm.mjs", import.meta.url).pathname;
   const result = spawnSync(process.execPath, [script, "--model", model, "--drive", drive, "--out", join(root, "out.mov")], { encoding: "utf8" });
   assert.equal(result.status, 1);
-  assert.match(JSON.parse(result.stdout).reason, /長さ/);
+  assert.match(JSON.parse(result.stdout).reason, /length/);
 });

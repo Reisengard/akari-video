@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/refresh-gen-models-openapi.mjs";
+const usage = "Usage: node packages/schemas/bin/refresh-gen-models-openapi.mjs";
 const args = process.argv.slice(2);
 
 if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
@@ -26,7 +26,7 @@ let catalog;
 try {
   catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
 } catch (error) {
-  console.error(`ERROR: gen-models.json を読めません: ${messageOf(error)}`);
+  console.error(`ERROR: gen-models.json could not be read: ${messageOf(error)}`);
   process.exit(1);
 }
 
@@ -43,14 +43,14 @@ try {
     const temporaryPath = `${outputPath}.tmp`;
     fs.writeFileSync(temporaryPath, `${JSON.stringify(document, null, 2)}\n`, "utf8");
     fs.renameSync(temporaryPath, outputPath);
-    console.log(`更新: ${model.id} -> ${outputPath}`);
+    console.log(`Updated: ${model.id} -> ${outputPath}`);
   }
 } catch (error) {
-  console.error(`ERROR: OpenAPI の更新に失敗しました: ${messageOf(error)}`);
+  console.error(`ERROR: Failed to refresh OpenAPI: ${messageOf(error)}`);
   process.exit(1);
 }
 
-console.log(`OK: fal ${models.length} 行の OpenAPI を更新しました`);
+console.log(`OK: Refreshed OpenAPI for ${models.length} fal models`);
 
 function sanitizeDocument(document) {
   // fal のメタデータに含まれる表示用サムネイルは、スナップショットへ保存しない。

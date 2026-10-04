@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-plan.mjs <plan.json>";
+const usage = "Usage: node packages/schemas/bin/validate-plan.mjs <plan.json>";
 const planArgument = process.argv[2];
 
 if (!planArgument || process.argv.length !== 3) {
@@ -33,7 +33,7 @@ const FILL_METHODS = new Set(["generate", "record", "import"]);
 const CONSTRAINT_KINDS = new Set(["duration_max", "duration_exact", "note"]);
 
 if (!isRegularFile(planPath)) {
-  fail(`plan.json が見つかりません: ${planPath}`);
+  fail(`plan.json was not found: ${planPath}`);
   finish();
 }
 
@@ -41,11 +41,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`plan.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`plan.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:plan:v0") {
-  fail("plan.schema.json の $id が v0 契約と一致しません");
+  fail("plan.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -53,7 +53,7 @@ let plan;
 try {
   plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
 } catch (error) {
-  fail(`plan.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`plan.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -62,17 +62,17 @@ finish();
 
 function validatePlan(value) {
   if (!isPlainObject(value)) {
-    fail("plan.json のルートは object である必要があります");
+    fail("plan.json root must be an object");
     return;
   }
   if (Number.isInteger(value.version) && value.version > 0) {
     fail(
-      `version ${value.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `version ${value.version} is newer than this validator supports. This file uses a newer format. Update the skills or the app.`,
     );
     return;
   }
   if (value.version !== 0) {
-    fail("version は 0 である必要があります");
+    fail("version must be 0");
     return;
   }
   const slots = validateSlots(value.slots);
@@ -83,13 +83,13 @@ function validateSlots(value) {
   const slots = new Map();
   if (value === undefined) return slots;
   if (!Array.isArray(value)) {
-    fail("slots は配列である必要があります");
+    fail("slots must be an array");
     return slots;
   }
   for (const [index, slot] of value.entries()) {
     const label = `slots[${index}]`;
     if (!isPlainObject(slot)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     for (const field of [
@@ -103,35 +103,35 @@ function validateSlots(value) {
       "provenance",
     ]) {
       if (!hasOwn(slot, field)) {
-        fail(`${label}.${field} は必須です（値は null 許容でもキーは省略しない）`);
+        fail(`${label}.${field} is required (the value may be null, but the key must not be omitted)`);
       }
     }
     if (!isNonEmptyString(slot.id)) {
-      fail(`${label}.id は空でない文字列である必要があります`);
+      fail(`${label}.id must be a non-empty string`);
     } else if (slots.has(slot.id)) {
-      fail(`slots[].id が重複しています: ${slot.id}`);
+      fail(`slots[].id is duplicated: ${slot.id}`);
     } else {
       slots.set(slot.id, slot);
     }
     if (hasOwn(slot, "label") && !isNonEmptyString(slot.label)) {
-      fail(`${label}.label は空でない文字列である必要があります`);
+      fail(`${label}.label must be a non-empty string`);
     }
     validateNullableNonEmptyString(slot.script, `${label}.script`);
     if (
       hasOwn(slot, "target_duration_seconds") &&
       (!isFiniteNumber(slot.target_duration_seconds) || slot.target_duration_seconds <= 0)
     ) {
-      fail(`${label}.target_duration_seconds は 0 より大きい有限数（秒）である必要があります`);
+      fail(`${label}.target_duration_seconds must be a finite number > 0 (seconds)`);
     }
     if (hasOwn(slot, "confidence") && !CONFIDENCES.has(slot.confidence)) {
-      fail(`${label}.confidence は proposed / locked / filled のいずれかである必要があります`);
+      fail(`${label}.confidence must be one of proposed / locked / filled`);
     }
     validateFill(slot.fill, label);
     const media = validateMedia(slot.media, label);
     validateProvenance(slot.provenance, label);
 
     if (slot.confidence === "filled" && media !== null && mediaAllNull(media) ) {
-      warn(`${label} は confidence filled ですが media がすべて null です`);
+      warn(`${label} has confidence filled but all media fields are null`);
     }
     if (
       CONFIDENCES.has(slot.confidence) &&
@@ -139,7 +139,7 @@ function validateSlots(value) {
       isPlainObject(slot.fill) &&
       slot.fill.method === null
     ) {
-      warn(`${label} は confidence ${slot.confidence} ですが fill.method が未決（null）です`);
+      warn(`${label} has confidence ${slot.confidence} but fill.method is undecided (null)`);
     }
   }
   return slots;
@@ -148,11 +148,11 @@ function validateSlots(value) {
 function validateFill(value, label) {
   if (!hasOwn({ fill: value }, "fill") || value === undefined) return;
   if (!isPlainObject(value) || !hasOwn(value, "method")) {
-    fail(`${label}.fill は { method } を持つ object である必要があります`);
+    fail(`${label}.fill must be an object with { method }`);
     return;
   }
   if (value.method !== null && !FILL_METHODS.has(value.method)) {
-    fail(`${label}.fill.method は generate / record / import または null である必要があります`);
+    fail(`${label}.fill.method must be one of generate / record / import, or null`);
     return;
   }
   validateNullableNonEmptyString(value.prompt, `${label}.fill.prompt`);
@@ -161,25 +161,25 @@ function validateFill(value, label) {
     requireRegularFile(value.asset_path, `${label}.fill.asset_path`);
   }
   if (value.method === "import" && !isNonEmptyString(value.asset_path)) {
-    warn(`${label}.fill は method import ですが asset_path がありません`);
+    warn(`${label}.fill has method import but no asset_path`);
   }
 }
 
 function validateMedia(value, label) {
   if (value === undefined) return null;
   if (!isPlainObject(value)) {
-    fail(`${label}.media は object である必要があります`);
+    fail(`${label}.media must be an object`);
     return null;
   }
   for (const field of ["image_path", "audio_path", "text_card"]) {
     if (!hasOwn(value, field)) {
-      fail(`${label}.media.${field} は必須です（値は null 許容でもキーは省略しない）`);
+      fail(`${label}.media.${field} is required (the value may be null, but the key must not be omitted)`);
     }
   }
   validateNullableNonEmptyString(value.image_path, `${label}.media.image_path`);
   validateNullableNonEmptyString(value.audio_path, `${label}.media.audio_path`);
   if (value.text_card !== undefined && value.text_card !== null && typeof value.text_card !== "string") {
-    fail(`${label}.media.text_card は null または文字列である必要があります`);
+    fail(`${label}.media.text_card must be null or a string`);
   }
   for (const field of ["image_path", "audio_path"]) {
     if (isNonEmptyString(value[field])) {
@@ -192,27 +192,27 @@ function validateMedia(value, label) {
 function validateProvenance(value, label) {
   if (value === undefined) return;
   if (!isPlainObject(value)) {
-    fail(`${label}.provenance は object である必要があります`);
+    fail(`${label}.provenance must be an object`);
     return;
   }
   for (const field of ["tool", "created_at", "note"]) {
     if (!hasOwn(value, field)) {
-      fail(`${label}.provenance.${field} は必須です（値は null 許容でもキーは省略しない）`);
+      fail(`${label}.provenance.${field} is required (the value may be null, but the key must not be omitted)`);
     }
   }
   validateNullableNonEmptyString(value.tool, `${label}.provenance.tool`);
   if (value.created_at !== undefined && value.created_at !== null && typeof value.created_at !== "string") {
-    fail(`${label}.provenance.created_at は null または ISO-8601 文字列である必要があります`);
+    fail(`${label}.provenance.created_at must be null or an ISO-8601 string`);
   }
   if (value.note !== undefined && value.note !== null && typeof value.note !== "string") {
-    fail(`${label}.provenance.note は null または文字列である必要があります`);
+    fail(`${label}.provenance.note must be null or a string`);
   }
 }
 
 function validateConstraints(value, slots) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("constraints は配列である必要があります");
+    fail("constraints must be an array");
     return;
   }
   const ids = new Set();
@@ -226,44 +226,44 @@ function validateConstraints(value, slots) {
   for (const [index, constraint] of value.entries()) {
     const label = `constraints[${index}]`;
     if (!isPlainObject(constraint)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     for (const field of ["id", "kind", "applies_to", "value", "note"]) {
       if (!hasOwn(constraint, field)) {
-        fail(`${label}.${field} は必須です（値は null 許容でもキーは省略しない）`);
+        fail(`${label}.${field} is required (the value may be null, but the key must not be omitted)`);
       }
     }
     if (!isNonEmptyString(constraint.id)) {
-      fail(`${label}.id は空でない文字列である必要があります`);
+      fail(`${label}.id must be a non-empty string`);
     } else if (ids.has(constraint.id)) {
-      fail(`constraints[].id が重複しています: ${constraint.id}`);
+      fail(`constraints[].id is duplicated: ${constraint.id}`);
     } else {
       ids.add(constraint.id);
     }
     if (!CONSTRAINT_KINDS.has(constraint.kind)) {
-      fail(`${label}.kind は duration_max / duration_exact / note のいずれかである必要があります`);
+      fail(`${label}.kind must be one of duration_max / duration_exact / note`);
       continue;
     }
     if (constraint.applies_to !== null && constraint.applies_to !== undefined) {
       if (!isNonEmptyString(constraint.applies_to)) {
-        fail(`${label}.applies_to は null または slot id である必要があります`);
+        fail(`${label}.applies_to must be null or a slot id`);
       } else if (!slots.has(constraint.applies_to)) {
-        fail(`${label}.applies_to が slots[].id を参照していません: ${constraint.applies_to}`);
+        fail(`${label}.applies_to does not reference a slots[].id: ${constraint.applies_to}`);
         continue;
       }
     }
     if (constraint.kind === "note") {
       if (constraint.value !== null && constraint.value !== undefined) {
-        fail(`${label} は kind note のため value は null である必要があります`);
+        fail(`${label} must be null because kind is note`);
       }
       if (!isNonEmptyString(constraint.note)) {
-        fail(`${label} は kind note のため note に空でない文字列が必要です`);
+        fail(`${label} has kind note, so note must be a non-empty string`);
       }
       continue;
     }
     if (!isFiniteNumber(constraint.value) || constraint.value <= 0) {
-      fail(`${label}.value は 0 より大きい有限数（秒）である必要があります`);
+      fail(`${label}.value must be a finite number > 0 (seconds)`);
       continue;
     }
     const scopedDuration = isNonEmptyString(constraint.applies_to)
@@ -272,10 +272,10 @@ function validateConstraints(value, slots) {
     if (!isFiniteNumber(scopedDuration)) continue;
     const scopeLabel = isNonEmptyString(constraint.applies_to)
       ? `slot ${constraint.applies_to}`
-      : "slots 合計";
+      : "the slot total";
     if (constraint.kind === "duration_max" && scopedDuration > constraint.value + EPSILON) {
       fail(
-        `${label}: ${scopeLabel}の尺 ${formatNumber(scopedDuration)}s が duration_max ${formatNumber(constraint.value)}s を超えています`,
+        `${label}: duration of ${scopeLabel} (${formatNumber(scopedDuration)}s) exceeds duration_max ${formatNumber(constraint.value)}s`,
       );
     }
     if (
@@ -283,7 +283,7 @@ function validateConstraints(value, slots) {
       Math.abs(scopedDuration - constraint.value) > EPSILON
     ) {
       warn(
-        `${label}: ${scopeLabel}の尺 ${formatNumber(scopedDuration)}s が duration_exact ${formatNumber(constraint.value)}s と一致していません（目標尺への収束は仮枠 QA の対象）`,
+        `${label}: duration of ${scopeLabel} (${formatNumber(scopedDuration)}s) does not match duration_exact ${formatNumber(constraint.value)}s (convergence to the target duration is covered by placeholder-slot QA)`,
       );
     }
   }
@@ -294,14 +294,14 @@ function requireRegularFile(reference, label) {
     ? reference
     : path.resolve(planDirectory, reference);
   if (!isRegularFile(filePath)) {
-    fail(`${label} が実ファイルに解決できません: ${reference}`);
+    fail(`${label} does not resolve to a real file: ${reference}`);
   }
 }
 
 function validateNullableNonEmptyString(value, label) {
   if (value === undefined || value === null) return;
   if (!isNonEmptyString(value)) {
-    fail(`${label} は null または空でない文字列である必要があります`);
+    fail(`${label} must be null or a non-empty string`);
   }
 }
 

@@ -77,5 +77,5 @@ test('v2 media item の未知の由来を schema / 手書き validator が拒否
         value.tracks[3].items[0].reason = 'bogus';
     });
     assert.notEqual(cli.status, 0);
-    assert.match(cli.stderr, /reason は silence\/word/u);
+    assert.match(cli.stderr, /reason must be one of silence\/word/u);
 });

@@ -54,7 +54,7 @@ test("backend 名を正規化し、同時刻の再実行でも退避版を失わ
   const contents = await Promise.all(files.map((file) => json(path.join(f.directory, "transcripts", file))));
   assert.deepEqual(contents.map((value) => value.segments[0].text).sort(), ["1", "2", "3"]);
   assert.ok(contents.every((value) => value.backend === "cloud-scribe" && value.cost_usd === 0.03));
-  await assert.rejects(recordEngineTranscript(target, { ...value, backend: "../escape" }), /backend 名が不正/);
+  await assert.rejects(recordEngineTranscript(target, { ...value, backend: "../escape" }), /Invalid backend name/);
   assert.equal(await recordEngineTranscript({ projectRoot: null }, value), null);
 });
 

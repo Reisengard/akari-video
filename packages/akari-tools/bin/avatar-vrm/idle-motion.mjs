@@ -28,10 +28,10 @@ export function modelBytesSeed(bytes) {
 }
 
 export function computeIdleOffsets({ frame, fps, intensity, seed }) {
-  if (!Number.isInteger(frame) || frame < 0) throw new Error("frame は 0 以上の整数である必要があります");
-  if (!Number.isFinite(fps) || fps <= 0) throw new Error("fps は正数である必要があります");
+  if (!Number.isInteger(frame) || frame < 0) throw new Error("frame must be an integer >= 0");
+  if (!Number.isFinite(fps) || fps <= 0) throw new Error("fps must be a positive number");
   if (!Number.isFinite(intensity) || intensity < 0 || intensity > 1) {
-    throw new Error("idle intensity は 0 以上 1 以下である必要があります");
+    throw new Error("idle intensity must be from 0 to 1 inclusive");
   }
   if (intensity === 0) return zeroOffsets();
 
@@ -77,7 +77,7 @@ export function addHeadDrive(offsets, head) {
 }
 
 export function frameMotionOffsets({ frame, fps, intensity, seed, idleEnabled, headSource, head }) {
-  if (!new Set(["track", "idle", "both"]).has(headSource)) throw new Error(`head source が不正です: ${headSource}`);
+  if (!new Set(["track", "idle", "both"]).has(headSource)) throw new Error(`head source is invalid: ${headSource}`);
   const useIdle = idleEnabled && headSource !== "track";
   const trackedHead = headSource === "idle" ? null : head;
   if (!useIdle && trackedHead == null) return null;

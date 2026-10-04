@@ -7,7 +7,7 @@ import { runtimes, validateRuntimeDeclarations } from "../../overlay-runtime/run
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-asset.mjs assets/<overlay|still|scene3d|audio|broll|font|textstyle>/<id>";
+const usage = "Usage: node packages/schemas/bin/validate-asset.mjs assets/<overlay|still|scene3d|audio|broll|font|textstyle>/<id>";
 const assetArgument = process.argv[2];
 
 if (!assetArgument || process.argv.length !== 3) {
@@ -26,12 +26,12 @@ const previewPath = path.join(assetDir, "preview.png");
 const errors = [];
 
 if (!isDirectory(assetDir)) {
-  fail(`素材ディレクトリが見つかりません: ${assetDir}`);
+  fail(`Asset directory was not found: ${assetDir}`);
   finish();
 }
 
 if (!isRegularFile(metaPath)) {
-  fail(`meta.json が見つかりません: ${metaPath}`);
+  fail(`meta.json was not found: ${metaPath}`);
   finish();
 }
 
@@ -39,7 +39,7 @@ let meta;
 try {
   meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
 } catch (error) {
-  fail(`meta.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`meta.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -50,7 +50,7 @@ finish();
 
 function validateMeta(value) {
   if (!isPlainObject(value)) {
-    fail("meta.json のルートは object である必要があります");
+    fail("meta.json root must be an object");
     return;
   }
 
@@ -84,21 +84,21 @@ function validateMeta(value) {
   ];
   const allowedFields = [...requiredFields, ...optionalFields];
   for (const field of requiredFields) {
-    if (!hasOwn(value, field)) fail(`必須フィールドがありません: ${field}`);
+    if (!hasOwn(value, field)) fail(`Required field is missing: ${field}`);
   }
 
   const unknownFields = Object.keys(value).filter((field) => !allowedFields.includes(field));
-  for (const field of unknownFields) fail(`未定義のトップレベルフィールドです: ${field}`);
+  for (const field of unknownFields) fail(`Unknown top-level field: ${field}`);
 
   validateNonEmptyString(value.id, "id");
   if (typeof value.id === "string" && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.id)) {
-    fail("id は英小文字・数字の kebab-case である必要があります");
+    fail("id must be kebab-case of lowercase letters and digits");
   }
 
   // 2026-07-29: 主題（3d/motion/telop/thumbnail）から配布物の形へ切り替え。主題は tags に逃がす。
   const categories = new Set(["overlay", "still", "scene3d", "audio", "broll", "font", "textstyle"]);
   if (typeof value.category !== "string" || !categories.has(value.category)) {
-    fail("category は overlay / still / scene3d / audio / broll / font / textstyle のいずれかである必要があります");
+    fail("category must be one of overlay / still / scene3d / audio / broll / font / textstyle");
   }
 
   for (const field of ["title", "description", "when_to_use", "ai_usage", "author"]) {
@@ -112,40 +112,40 @@ function validateMeta(value) {
   validateLicense(value.license);
 
   if (value.price !== null && (!isFiniteNumber(value.price) || value.price < 0)) {
-    fail("price は null または 0 以上の有限数である必要があります");
+    fail("price must be null or a finite number >= 0");
   }
 
   if (hasOwn(value, "version")) {
     if (!Number.isInteger(value.version) || value.version < 1) {
-      fail("version は 1 以上の整数である必要があります");
+      fail("version must be an integer >= 1");
     }
   }
 
   if (hasOwn(value, "min_app_version") && !/^\d+\.\d+\.\d+$/.test(String(value.min_app_version))) {
-    fail("min_app_version は x.y.z 形式である必要があります");
+    fail("min_app_version must be x.y.z form");
   }
 
   if (
     hasOwn(value, "min_overlay_runtime_version") &&
     !/^\d+\.\d+\.\d+$/.test(String(value.min_overlay_runtime_version))
   ) {
-    fail("min_overlay_runtime_version は x.y.z 形式である必要があります");
+    fail("min_overlay_runtime_version must be x.y.z form");
   }
 
   const matchedByValues = new Set(["title-normalized"]);
   if (hasOwn(value, "matched_by") && !matchedByValues.has(value.matched_by)) {
-    fail(`matched_by は ${[...matchedByValues].join(" / ")} のいずれかである必要があります`);
+    fail(`matched_by must be one of ${[...matchedByValues].join(" / ")}`);
   }
 
   const isRemote = value.remote === true;
   if (hasOwn(value, "remote") && typeof value.remote !== "boolean") {
-    fail("remote は boolean である必要があります");
+    fail("remote must be a boolean");
   }
   if (hasOwn(value, "source")) {
     validateSource(value.source);
   }
   if (isRemote && !hasOwn(value, "source")) {
-    fail("remote: true のエントリには source ブロックが必須です");
+    fail("An entry with remote: true requires a source block");
   }
 
   if (hasOwn(value, "motion_presets")) {
@@ -155,21 +155,21 @@ function validateMeta(value) {
 
 function validateMotionPresets(motionPresets) {
   if (!Array.isArray(motionPresets) || motionPresets.length === 0) {
-    fail("motion_presets は 1 件以上の配列である必要があります");
+    fail("motion_presets must be an array of at least 1 item");
     return;
   }
 
   const presetFields = ["clip", "label", "note"];
   motionPresets.forEach((preset, index) => {
     if (!isPlainObject(preset)) {
-      fail(`motion_presets[${index}] は object である必要があります`);
+      fail(`motion_presets[${index}] must be an object`);
       return;
     }
     for (const field of presetFields) {
-      if (!hasOwn(preset, field)) fail(`motion_presets[${index}].${field} は必須です`);
+      if (!hasOwn(preset, field)) fail(`motion_presets[${index}].${field} is required`);
     }
     for (const field of Object.keys(preset)) {
-      if (!presetFields.includes(field)) fail(`motion_presets[${index}].${field} は未定義のフィールドです`);
+      if (!presetFields.includes(field)) fail(`motion_presets[${index}].${field} is an unknown field`);
     }
     validateNonEmptyString(preset.clip, `motion_presets[${index}].clip`);
     validateNonEmptyString(preset.label, `motion_presets[${index}].label`);
@@ -179,30 +179,30 @@ function validateMotionPresets(motionPresets) {
 
 function validateSource(source) {
   if (!isPlainObject(source)) {
-    fail("source は object である必要があります");
+    fail("source must be an object");
     return;
   }
 
   const sourceFields = ["url", "acquisition", "license_at_source", "attribution_required", "preview_url"];
   const requiredSourceFields = ["url", "acquisition", "license_at_source", "attribution_required"];
   for (const field of requiredSourceFields) {
-    if (!hasOwn(source, field)) fail(`source.${field} は必須です`);
+    if (!hasOwn(source, field)) fail(`source.${field} is required`);
   }
   for (const field of Object.keys(source)) {
-    if (!sourceFields.includes(field)) fail(`source.${field} は未定義のフィールドです`);
+    if (!sourceFields.includes(field)) fail(`source.${field} is an unknown field`);
   }
 
   validateHttpUrl(source.url, "source.url");
 
   const acquisitionTypes = new Set(["direct", "login", "purchase"]);
   if (typeof source.acquisition !== "string" || !acquisitionTypes.has(source.acquisition)) {
-    fail("source.acquisition は direct / login / purchase のいずれかである必要があります");
+    fail("source.acquisition must be one of direct / login / purchase");
   }
 
   validateNonEmptyString(source.license_at_source, "source.license_at_source");
 
   if (typeof source.attribution_required !== "boolean") {
-    fail("source.attribution_required は boolean である必要があります");
+    fail("source.attribution_required must be a boolean");
   }
 
   if (hasOwn(source, "preview_url")) {
@@ -212,7 +212,7 @@ function validateSource(source) {
 
 function validateHttpUrl(value, label) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    fail(`${label} は空でない文字列である必要があります`);
+    fail(`${label} must be a non-empty string`);
     return;
   }
 
@@ -220,18 +220,18 @@ function validateHttpUrl(value, label) {
   try {
     parsed = new URL(value);
   } catch {
-    fail(`${label} は有効な URL である必要があります: ${value}`);
+    fail(`${label} must be a valid URL: ${value}`);
     return;
   }
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    fail(`${label} は http(s) URL である必要があります: ${value}`);
+    fail(`${label} must be an http(s) URL: ${value}`);
   }
 }
 
 function validateKnobs(knobs) {
   if (!Array.isArray(knobs)) {
-    fail("knobs は配列である必要があります");
+    fail("knobs must be an array");
     return;
   }
 
@@ -241,28 +241,28 @@ function validateKnobs(knobs) {
   for (const [index, knob] of knobs.entries()) {
     const label = `knobs[${index}]`;
     if (!isPlainObject(knob)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
 
     for (const field of ["type", "group"]) {
-      if (!hasOwn(knob, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(knob, field)) fail(`${label}.${field} is required`);
     }
 
     // バインド先は cssVar（オーバーレイ素材）か param（3D ベイクレシピ）のどちらか一方（2026-07-14 追記）
     const hasCssVar = hasOwn(knob, "cssVar");
     const hasParam = hasOwn(knob, "param");
     if (hasCssVar === hasParam) {
-      fail(`${label} は cssVar か param のどちらか一方を必須とします`);
+      fail(`${label} requires exactly one of cssVar or param`);
     }
 
     if (hasCssVar) {
       validateNonEmptyString(knob.cssVar, `${label}.cssVar`);
       if (typeof knob.cssVar === "string") {
         if (!/^--[A-Za-z_][A-Za-z0-9_-]*$/.test(knob.cssVar)) {
-          fail(`${label}.cssVar は CSS カスタムプロパティ名である必要があります`);
+          fail(`${label}.cssVar must be a CSS custom property name`);
         }
-        if (cssVars.has(knob.cssVar)) fail(`${label}.cssVar が重複しています: ${knob.cssVar}`);
+        if (cssVars.has(knob.cssVar)) fail(`${label}.cssVar is duplicated: ${knob.cssVar}`);
         cssVars.add(knob.cssVar);
       }
     }
@@ -271,51 +271,51 @@ function validateKnobs(knobs) {
       validateNonEmptyString(knob.param, `${label}.param`);
       if (typeof knob.param === "string") {
         if (!/^[a-z_][a-z0-9_]*$/.test(knob.param)) {
-          fail(`${label}.param は snake_case（英小文字・数字・アンダースコア）である必要があります`);
+          fail(`${label}.param must be snake_case (lowercase letters, digits, and underscores)`);
         }
-        if (params.has(knob.param)) fail(`${label}.param が重複しています: ${knob.param}`);
+        if (params.has(knob.param)) fail(`${label}.param is duplicated: ${knob.param}`);
         params.add(knob.param);
       }
     }
 
     if (typeof knob.type !== "string" || !knobTypes.has(knob.type)) {
-      fail(`${label}.type は ${[...knobTypes].join(" / ")} のいずれかである必要があります`);
+      fail(`${label}.type must be one of ${[...knobTypes].join(" / ")}`);
     }
     validateNonEmptyString(knob.group, `${label}.group`);
     if (hasOwn(knob, "label")) validateNonEmptyString(knob.label, `${label}.label`);
     if (hasOwn(knob, "min") && !isFiniteNumber(knob.min)) {
-      fail(`${label}.min は有限数である必要があります`);
+      fail(`${label}.min must be a finite number`);
     }
     if (hasOwn(knob, "max") && !isFiniteNumber(knob.max)) {
-      fail(`${label}.max は有限数である必要があります`);
+      fail(`${label}.max must be a finite number`);
     }
     if (isFiniteNumber(knob.min) && isFiniteNumber(knob.max) && knob.min > knob.max) {
-      fail(`${label}.min は max 以下である必要があります`);
+      fail(`${label}.min must be <= max`);
     }
     if (hasOwn(knob, "unit") && typeof knob.unit !== "string") {
-      fail(`${label}.unit は文字列である必要があります`);
+      fail(`${label}.unit must be a string`);
     }
     if (hasOwn(knob, "default")) {
       const valid = knob.type === "slider"
         ? isFiniteNumber(knob.default)
         : typeof knob.default === "string";
-      if (!valid) fail(`${label}.default は ${knob.type === "slider" ? "有限数" : "文字列"}である必要があります`);
+      if (!valid) fail(`${label}.default must be ${knob.type === "slider" ? "a finite number" : "a string"}`);
     }
   }
 }
 
 function validateProvenance(provenance) {
   if (!isPlainObject(provenance)) {
-    fail("provenance は object である必要があります");
+    fail("provenance must be an object");
     return;
   }
 
   for (const field of ["origin", "generator"]) {
-    if (!hasOwn(provenance, field)) fail(`provenance.${field} は必須です`);
+    if (!hasOwn(provenance, field)) fail(`provenance.${field} is required`);
   }
   for (const field of Object.keys(provenance)) {
     if (!["origin", "generator"].includes(field)) {
-      fail(`provenance.${field} は未定義のフィールドです`);
+      fail(`provenance.${field} is an unknown field`);
     }
   }
   validateNonEmptyString(provenance.origin, "provenance.origin");
@@ -326,7 +326,7 @@ function validateProvenance(provenance) {
 
 function validateLicense(license) {
   if (!isPlainObject(license)) {
-    fail("license は object である必要があります");
+    fail("license must be an object");
     return;
   }
 
@@ -337,19 +337,19 @@ function validateLicense(license) {
     "ai_training_allowed",
   ];
   for (const field of licenseFields) {
-    if (!hasOwn(license, field)) fail(`license.${field} は必須です`);
+    if (!hasOwn(license, field)) fail(`license.${field} is required`);
   }
   for (const field of Object.keys(license)) {
-    if (!licenseFields.includes(field)) fail(`license.${field} は未定義のフィールドです`);
+    if (!licenseFields.includes(field)) fail(`license.${field} is an unknown field`);
   }
 
   validateNonEmptyString(license.spdx, "license.spdx");
   validateNonEmptyString(license.scope, "license.scope");
   if (typeof license.attribution_required !== "boolean") {
-    fail("license.attribution_required は boolean である必要があります");
+    fail("license.attribution_required must be a boolean");
   }
   if (typeof license.ai_training_allowed !== "boolean") {
-    fail("license.ai_training_allowed は boolean である必要があります");
+    fail("license.ai_training_allowed must be a boolean");
   }
 }
 
@@ -359,10 +359,10 @@ function validateDirectoryContract(value) {
   const assetId = path.basename(assetDir);
   const categoryDir = path.basename(path.dirname(assetDir));
   if (typeof value.id === "string" && value.id !== assetId) {
-    fail(`id と素材ディレクトリ名が一致しません: ${value.id} != ${assetId}`);
+    fail(`id does not match the asset directory name: ${value.id} != ${assetId}`);
   }
   if (typeof value.category === "string" && value.category !== categoryDir) {
-    fail(`category と親ディレクトリ名が一致しません: ${value.category} != ${categoryDir}`);
+    fail(`category does not match the parent directory name: ${value.category} != ${categoryDir}`);
   }
 }
 
@@ -374,7 +374,7 @@ function validateFiles() {
   }
 
   if (!isRegularFile(previewPath)) {
-    fail(`preview.png が見つかりません: ${previewPath}`);
+    fail(`preview.png was not found: ${previewPath}`);
   } else {
     validatePng(previewPath);
   }
@@ -385,36 +385,36 @@ function validateFiles() {
       (filePath) => filePath !== metaPath && filePath !== previewPath,
     );
   } catch (error) {
-    fail(`素材ディレクトリを列挙できません: ${messageOf(error)}`);
+    fail(`Cannot list the asset directory: ${messageOf(error)}`);
     return;
   }
   const category = path.basename(path.dirname(assetDir));
   if (category === "textstyle") {
     const presetPath = path.join(assetDir, "preset.json");
     if (!isRegularFile(presetPath)) {
-      fail(`textstyle 素材には preset.json が必要です: ${presetPath}`);
+      fail(`A textstyle asset requires preset.json: ${presetPath}`);
     } else {
       try {
         const preset = JSON.parse(fs.readFileSync(presetPath, "utf8"));
         if (!isPlainObject(preset) || preset.format !== "akari-textstyle") {
-          fail("preset.json の format は akari-textstyle である必要があります");
+          fail("preset.json format must be akari-textstyle");
         }
         if (!isPlainObject(preset) || preset.id !== meta.id) {
-          fail("preset.json の id は meta.json の id と一致する必要があります");
+          fail("preset.json id must match the id in meta.json");
         }
       } catch (error) {
-        fail(`preset.json を JSON として読めません: ${messageOf(error)}`);
+        fail(`preset.json is not valid JSON: ${messageOf(error)}`);
       }
     }
   }
   if (payloadFiles.length === 0) {
-    fail("実体ファイルがありません（meta.json / preview.png 以外に 1 ファイル以上必要です）");
+    fail("No content files found (at least one file other than meta.json / preview.png is required)");
     return;
   }
   if (["overlay", "still"].includes(category)) {
     const fragmentPath = path.join(assetDir, "fragment.html");
     if (!isRegularFile(fragmentPath)) {
-      fail(`${category} 素材には fragment.html が必要です`);
+      fail(`A ${category} asset requires fragment.html`);
     }
   }
 
@@ -424,7 +424,7 @@ function validateFiles() {
     const hasFragment = isRegularFile(path.join(assetDir, "fragment.html"));
     const hasScene = isRegularFile(path.join(assetDir, "scene.py"));
     if (hasFragment === hasScene) {
-      fail("scene3d 素材は fragment.html（オーバーレイ）か scene.py（ベイクレシピ）のどちらか一方を実体に持つ必要があります");
+      fail("A scene3d asset must contain exactly one of fragment.html (overlay) or scene.py (bake recipe) as its content");
     }
   }
 
@@ -433,7 +433,7 @@ function validateFiles() {
     if (name !== "fragment.html" && !/^variants\/[^/]+\.html$/i.test(name)) continue;
     let html;
     try { html = fs.readFileSync(filePath, "utf8"); }
-    catch (error) { fail(`fragment.html を読めません: ${messageOf(error)}`); continue; }
+    catch (error) { fail(`fragment.html could not be read: ${messageOf(error)}`); continue; }
     for (const error of validateRuntimeDeclarations(html, {
       meta, category, name, payloadFiles,
       validateReference: reference => validateReference(filePath, reference),
@@ -453,10 +453,10 @@ function validatePng(filePath) {
       header.length < 24 ||
       header.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a"
     ) {
-      fail("preview.png は有効な PNG シグネチャを持つ必要があります");
+      fail("preview.png must have a valid PNG signature");
     }
   } catch (error) {
-    fail(`preview.png を読めません: ${messageOf(error)}`);
+    fail(`preview.png could not be read: ${messageOf(error)}`);
   }
 }
 
@@ -465,7 +465,7 @@ function validateLocalReferences(filePath) {
   try {
     source = fs.readFileSync(filePath, "utf8");
   } catch (error) {
-    fail(`参照元ファイルを読めません: ${relativeToAsset(filePath)}: ${messageOf(error)}`);
+    fail(`Cannot read the referencing file: ${relativeToAsset(filePath)}: ${messageOf(error)}`);
     return;
   }
 
@@ -511,12 +511,12 @@ function validateGltfReferences(filePath) {
   try {
     gltf = JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch (error) {
-    fail(`${relativeToAsset(filePath)} を glTF JSON として読めません: ${messageOf(error)}`);
+    fail(`Cannot read ${relativeToAsset(filePath)} as glTF JSON: ${messageOf(error)}`);
     return;
   }
 
   if (!isPlainObject(gltf)) {
-    fail(`${relativeToAsset(filePath)} のルートは object である必要があります`);
+    fail(`${relativeToAsset(filePath)} root must be an object`);
     return;
   }
 
@@ -524,18 +524,18 @@ function validateGltfReferences(filePath) {
     const collection = gltf[collectionName];
     if (collection === undefined) continue;
     if (!Array.isArray(collection)) {
-      fail(`${relativeToAsset(filePath)}.${collectionName} は配列である必要があります`);
+      fail(`${relativeToAsset(filePath)}.${collectionName} must be an array`);
       continue;
     }
 
     for (const [index, entry] of collection.entries()) {
       if (!isPlainObject(entry)) {
-        fail(`${relativeToAsset(filePath)}.${collectionName}[${index}] は object である必要があります`);
+        fail(`${relativeToAsset(filePath)}.${collectionName}[${index}] must be an object`);
         continue;
       }
       if (!hasOwn(entry, "uri")) continue;
       if (typeof entry.uri !== "string" || entry.uri.trim().length === 0) {
-        fail(`${relativeToAsset(filePath)}.${collectionName}[${index}].uri は空でない文字列である必要があります`);
+        fail(`${relativeToAsset(filePath)}.${collectionName}[${index}].uri must be a non-empty string`);
         continue;
       }
       validateReference(filePath, entry.uri.trim());
@@ -551,7 +551,7 @@ function validateReference(sourcePath, reference) {
     try {
       filePathReference = fileURLToPath(reference);
     } catch {
-      fail(`${relativeToAsset(sourcePath)} の file: 参照が不正です: ${reference}`);
+      fail(`${relativeToAsset(sourcePath)} has an invalid file: reference: ${reference}`);
       return;
     }
     validateReferenceTarget(sourcePath, reference, filePathReference);
@@ -565,7 +565,7 @@ function validateReference(sourcePath, reference) {
   try {
     decoded = decodeURIComponent(withoutSuffix);
   } catch {
-    fail(`${relativeToAsset(sourcePath)} の参照を URL デコードできません: ${reference}`);
+    fail(`Cannot URL-decode a reference in ${relativeToAsset(sourcePath)}: ${reference}`);
     return;
   }
 
@@ -575,11 +575,11 @@ function validateReference(sourcePath, reference) {
 function validateReferenceTarget(sourcePath, reference, targetPath) {
   const relativeTarget = path.relative(assetDir, targetPath);
   if (relativeTarget.startsWith("..") || path.isAbsolute(relativeTarget)) {
-    fail(`${relativeToAsset(sourcePath)} が素材ディレクトリ外を参照しています: ${reference}`);
+    fail(`${relativeToAsset(sourcePath)} references a path outside the asset directory: ${reference}`);
     return;
   }
   if (!isRegularFile(targetPath)) {
-    fail(`${relativeToAsset(sourcePath)} の参照ファイルが見つかりません: ${reference}`);
+    fail(`Referenced file of ${relativeToAsset(sourcePath)} was not found: ${reference}`);
     return;
   }
 
@@ -588,10 +588,10 @@ function validateReferenceTarget(sourcePath, reference, targetPath) {
     const realTargetPath = fs.realpathSync(targetPath);
     const realRelativeTarget = path.relative(realAssetDir, realTargetPath);
     if (realRelativeTarget.startsWith("..") || path.isAbsolute(realRelativeTarget)) {
-      fail(`${relativeToAsset(sourcePath)} が symlink 経由で素材ディレクトリ外を参照しています: ${reference}`);
+      fail(`${relativeToAsset(sourcePath)} references a path outside the asset directory via a symlink: ${reference}`);
     }
   } catch (error) {
-    fail(`${relativeToAsset(sourcePath)} の参照先を解決できません: ${reference}: ${messageOf(error)}`);
+    fail(`Cannot resolve a reference target of ${relativeToAsset(sourcePath)}: ${reference}: ${messageOf(error)}`);
   }
 }
 
@@ -611,7 +611,7 @@ function isPathLikeReference(reference) {
 
 function validateStringArray(value, label) {
   if (!Array.isArray(value)) {
-    fail(`${label} は配列である必要があります`);
+    fail(`${label} must be an array`);
     return;
   }
 
@@ -619,7 +619,7 @@ function validateStringArray(value, label) {
   for (const [index, item] of value.entries()) {
     validateNonEmptyString(item, `${label}[${index}]`);
     if (typeof item === "string") {
-      if (seen.has(item)) fail(`${label} に重複があります: ${item}`);
+      if (seen.has(item)) fail(`${label} is duplicated: ${item}`);
       seen.add(item);
     }
   }
@@ -627,7 +627,7 @@ function validateStringArray(value, label) {
 
 function validateNonEmptyString(value, label) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    fail(`${label} は空でない文字列である必要があります`);
+    fail(`${label} must be a non-empty string`);
   }
 }
 

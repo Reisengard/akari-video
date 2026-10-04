@@ -6,7 +6,7 @@ import { isMainModule } from "../src/common/main-module.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const VALIDATOR = path.resolve(HERE, "../../schemas/bin/validate-world-map.mjs");
-const usage = "使い方: akari world <check|build|preview|overview|move-stop> [project-root] [--strict] [--migrate] [--json] [--measure] [--stop <id>] [--c x,y[,scale]]";
+const usage = "Usage: akari world <check|build|preview|overview|move-stop> [project-root] [--strict] [--migrate] [--json] [--measure] [--stop <id>] [--c x,y[,scale]]";
 
 export async function runWorldCommand(args, options = {}) {
   const log = options.log ?? console.log;
@@ -23,7 +23,7 @@ export async function runWorldCommand(args, options = {}) {
     try { result = await run(project, { stopId: parsed.stopId, c: parsed.c }); }
     catch (error) { result = { ok: false, code: "IO", reason: error instanceof Error ? error.message : String(error), file: path.join(project, "planning", "world-map.json") }; }
     if (parsed.json) log(JSON.stringify(result));
-    else if (result.ok) log(`停留所 ${result.stopId}: ${result.before.join(",")} → ${result.after.join(",")}`);
+    else if (result.ok) log(`Stop ${result.stopId}: ${result.before.join(",")} -> ${result.after.join(",")}`);
     else logError(result.reason);
     return { exitCode: result.ok ? 0 : 1 };
   }
@@ -53,7 +53,7 @@ export async function runWorldCommand(args, options = {}) {
       const result = await run(project);
       if (rest.includes("--json")) log(JSON.stringify({ output: result.output, fallback: result.fallback, atlas: result.atlas }));
     }
-    else { logError(`不明な world サブコマンドです: ${subcommand}`); log(usage); return { exitCode: 1 }; }
+    else { logError(`Unknown world subcommand: ${subcommand}`); log(usage); return { exitCode: 1 }; }
     return { exitCode: 0 };
   } catch (error) {
     logError(error instanceof Error ? error.message : String(error));

@@ -100,7 +100,7 @@ function parseArguments(argv) {
       continue;
     }
     const value = argv[i + 1];
-    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} の値がありません`);
+    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} requires a value`);
     i += 1;
     switch (arg) {
       case "--analysis": result.analysis = resolve(value); break;
@@ -127,7 +127,7 @@ function parseArguments(argv) {
       case "--outlier-max-angle-jump": result.outlierMaxAngleJump = Number(value); break;
       case "--out-dir": result.outDir = resolve(value); break;
       case "--layer-id-prefix": result.layerIdPrefix = value; break;
-      default: throw new Error(`不明な引数です: ${arg}`);
+      default: throw new Error(`Unknown option: ${arg}`);
     }
   }
   return result;
@@ -138,13 +138,13 @@ function readAnalysisTrack(options) {
     return { trackPath: options.track, analysisPath: null };
   }
   if (!options.analysis) {
-    throw new Error("--analysis または --track のいずれかが必要です");
+    throw new Error("Either --analysis or --track is required");
   }
-  if (!existsSync(options.analysis)) throw new Error(`analysis.json が見つかりません: ${options.analysis}`);
+  if (!existsSync(options.analysis)) throw new Error(`analysis.json was not found: ${options.analysis}`);
   const analysis = JSON.parse(readFileSync(options.analysis, "utf8"));
   const pointer = analysis?.tracks?.face_landmarks;
   if (!pointer?.path) {
-    throw new Error("analysis.json の tracks.face_landmarks が未生成です（vision-tracks.mjs --kinds face を先に実行してください）");
+    throw new Error("tracks.face_landmarks in analysis.json has not been generated (run vision-tracks.mjs --kinds face first)");
   }
   const trackPath = isAbsolute(pointer.path) ? pointer.path : resolve(dirname(options.analysis), pointer.path);
   return { trackPath, analysisPath: options.analysis };
@@ -155,12 +155,12 @@ async function main() {
   try {
     options = parseArguments(process.argv.slice(2));
   } catch (error) {
-    printJson({ ok: false, reason: summarize(error?.message, "引数が不正です") });
+    printJson({ ok: false, reason: summarize(error?.message, "Invalid arguments") });
     process.exitCode = 2;
     return;
   }
 
-  const availability = checkMediaAvailability({ fallback: "解決できません", max: 500, optionalError: true });
+  const availability = checkMediaAvailability({ fallback: "could not resolve", max: 500, optionalError: true });
   if (options.check) {
     printJson(availability);
     return;
@@ -171,19 +171,19 @@ async function main() {
     return;
   }
   if (!options.edit) {
-    printJson({ ok: false, reason: "--edit が必要です" });
+    printJson({ ok: false, reason: "--edit is required" });
     process.exitCode = 2;
     return;
   }
   if (!existsSync(options.edit)) {
-    printJson({ ok: false, reason: `edit.json が見つかりません: ${options.edit}` });
+    printJson({ ok: false, reason: `edit.json was not found: ${options.edit}` });
     process.exitCode = 1;
     return;
   }
 
   try {
     const { trackPath } = readAnalysisTrack(options);
-    if (!existsSync(trackPath)) throw new Error(`face-landmarks トラックが見つかりません: ${trackPath}`);
+    if (!existsSync(trackPath)) throw new Error(`face-landmarks track was not found: ${trackPath}`);
     const track = JSON.parse(readFileSync(trackPath, "utf8"));
     const edit = loadEditJson(options.edit);
 
@@ -199,7 +199,7 @@ async function main() {
     const trackSourceAbs = resolve(dirname(trackPath), track?.source?.path ?? "");
     const sizeProbe = probeSourceDisplaySize(trackSourceAbs);
     if (!sizeProbe.ok) {
-      printJson({ ok: false, reason: `ソース動画の寸法を取得できません（${trackSourceAbs}）: ${sizeProbe.reason}` });
+      printJson({ ok: false, reason: `Could not read the source video dimensions (${trackSourceAbs}): ${sizeProbe.reason}` });
       process.exitCode = 1;
       return;
     }
@@ -208,7 +208,7 @@ async function main() {
     const canvasHeight = Number(edit?.output?.height);
     const fps = Number(edit?.output?.fps) || 30;
     if (!(canvasWidth > 0) || !(canvasHeight > 0)) {
-      printJson({ ok: false, reason: "edit.json の output.width/height が不正です" });
+      printJson({ ok: false, reason: "edit.json output.width/height is invalid" });
       process.exitCode = 1;
       return;
     }
@@ -257,7 +257,7 @@ async function main() {
       fps,
     });
     if (!assetResult.ok) {
-      printJson({ ok: false, reason: `帯素材の生成に失敗しました: ${assetResult.reason}`, args: assetResult.args });
+      printJson({ ok: false, reason: `Failed to generate the bar asset: ${assetResult.reason}`, args: assetResult.args });
       process.exitCode = 1;
       return;
     }
@@ -308,7 +308,7 @@ async function main() {
 
     printJson(output);
   } catch (error) {
-    printJson({ ok: false, reason: summarize(error?.message, "eye-bar 生成に失敗しました") });
+    printJson({ ok: false, reason: summarize(error?.message, "eye-bar Generation failed") });
     process.exitCode = 1;
   }
 }

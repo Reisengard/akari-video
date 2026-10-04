@@ -31,7 +31,7 @@ const AUDIO_KEYFRAME_EASINGS = new Set([
 ]);
 const CUBIC_BEZIER = /^cubic-bezier\(\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*\)$/;
 
-const usage = "使い方: node packages/schemas/bin/validate-edit.mjs <edit.json>";
+const usage = "Usage: node packages/schemas/bin/validate-edit.mjs <edit.json>";
 const editArgument = process.argv[2];
 
 if (!editArgument || process.argv.length !== 3) {
@@ -49,7 +49,7 @@ const schemaPath = fileURLToPath(new URL("../edit.schema.json", import.meta.url)
 const errors = [];
 
 if (!isRegularFile(editPath)) {
-  fail(`edit.json が見つかりません: ${editPath}`);
+  fail(`edit.json was not found: ${editPath}`);
   finish();
 }
 
@@ -57,11 +57,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`edit.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`edit.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:edit:v1") {
-  fail("edit.schema.json の $id が v1 契約と一致しません");
+  fail("edit.schema.json $id does not match the v1 contract");
   finish();
 }
 
@@ -69,7 +69,7 @@ let edit;
 try {
   edit = JSON.parse(fs.readFileSync(editPath, "utf8"));
 } catch (error) {
-  fail(`edit.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`edit.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -78,7 +78,7 @@ finish();
 
 function validateEdit(value) {
   if (!isPlainObject(value)) {
-    fail("edit.json のルートは object である必要があります");
+    fail("edit.json root must be an object");
     return;
   }
   if (value.version === 2) {
@@ -86,22 +86,22 @@ function validateEdit(value) {
     return;
   }
   if (value.version !== 0 && value.version !== 1) {
-    fail("version は 0 / 1 / 2 のいずれかである必要があります");
+    fail("version must be one of 0 / 1 / 2");
     return;
   }
   validateOutput(value.output);
 
   const hasSource = hasOwn(value, "source");
   const hasSources = hasOwn(value, "sources");
-  if (hasSource && hasSources) fail("source と sources は排他です");
+  if (hasSource && hasSources) fail("source and sources are mutually exclusive");
 
   if (value.version === 0) {
-    if (!hasSource) fail("version 0 では source が必須です");
-    if (hasSources) fail("version 0 では sources を使用できません");
+    if (!hasSource) fail("version 0 requires source");
+    if (hasSources) fail("version 0 cannot use sources");
     validateSourceV0(value.source);
   } else {
-    if (!hasSources) fail("version 1 では sources が必須です");
-    if (hasSource) fail("version 1 では source を使用できません");
+    if (!hasSources) fail("version 1 requires sources");
+    if (hasSource) fail("version 1 cannot use source");
     validateSourcesV1(value.sources);
   }
   validateCuts(value.cuts, value.version, value.sources);
@@ -116,7 +116,7 @@ function validateEdit(value) {
 
 function validateV2Tracks(value) {
   if (!Array.isArray(value)) {
-    fail("tracks は配列である必要があります");
+    fail("tracks must be an array");
     return;
   }
   for (const [trackIndex, track] of value.entries()) {
@@ -130,10 +130,10 @@ function validateV2Tracks(value) {
 function validateV2Item(item, label) {
   if (!isPlainObject(item)) return;
   if (hasOwn(item, "reason") && item.reason !== "silence" && item.reason !== "word") {
-    fail(`${label}.reason は silence/word のいずれかである必要があります`);
+    fail(`${label}.reason must be one of silence/word`);
   }
   if (hasOwn(item, "label") && typeof item.label !== "string") {
-    fail(`${label}.label は文字列である必要があります`);
+    fail(`${label}.label must be a string`);
   }
   if (hasOwn(item, "adjust")) validateAdjust(item.adjust, `${label}.adjust`);
   if (hasOwn(item, "crop")) validateLayerCrop(item.crop, `${label}.crop`);
@@ -148,31 +148,31 @@ function validateV2Item(item, label) {
 function validateAdjust(value, label) {
   validateAdjustV1Sections(value, label);
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set(["basic", "lut", "sections", "curves", "wheels", "hue", "fx"]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   if (hasOwn(value, "basic")) {
     const basic = value.basic;
     if (!isPlainObject(basic)) {
-      fail(`${label}.basic は object である必要があります`);
+      fail(`${label}.basic must be an object`);
     } else {
       const basicKeys = new Set([
         "exposure", "contrast", "highlights", "shadows", "blacks", "whites",
         "temperature", "tint", "vibrance", "saturation",
       ]);
       for (const key of Object.keys(basic)) {
-        if (!basicKeys.has(key)) fail(`${label}.basic に未知のキーがあります: ${key}`);
+        if (!basicKeys.has(key)) fail(`${label}.basic has an unknown key: ${key}`);
       }
       for (const key of basicKeys) {
         if (!hasOwn(basic, key)) continue;
         const minimum = key === "exposure" ? -3 : -1;
         const maximum = key === "exposure" ? 3 : 1;
         if (!isFiniteNumber(basic[key]) || basic[key] < minimum || basic[key] > maximum) {
-          fail(`${label}.basic.${key} は ${minimum} から ${maximum} の範囲の有限数である必要があります`);
+          fail(`${label}.basic.${key} must be a finite number from ${minimum} to ${maximum}`);
         }
       }
     }
@@ -180,31 +180,31 @@ function validateAdjust(value, label) {
   if (hasOwn(value, "lut") && value.lut !== null) {
     const lut = value.lut;
     if (!isPlainObject(lut)) {
-      fail(`${label}.lut は null または object である必要があります`);
+      fail(`${label}.lut must be null or an object`);
     } else {
       const lutKeys = new Set(["lut", "intensity"]);
       for (const key of Object.keys(lut)) {
-        if (!lutKeys.has(key)) fail(`${label}.lut に未知のキーがあります: ${key}`);
+        if (!lutKeys.has(key)) fail(`${label}.lut has an unknown key: ${key}`);
       }
       validateNonEmptyString(lut.lut, `${label}.lut.lut`);
       if (hasOwn(lut, "intensity")
           && (!isFiniteNumber(lut.intensity) || lut.intensity < 0 || lut.intensity > 1)) {
-        fail(`${label}.lut.intensity は 0 から 1 の範囲の有限数である必要があります`);
+        fail(`${label}.lut.intensity must be a finite number from 0 to 1`);
       }
     }
   }
   if (hasOwn(value, "sections")) {
     const sections = value.sections;
     if (!isPlainObject(sections)) {
-      fail(`${label}.sections は object である必要があります`);
+      fail(`${label}.sections must be an object`);
     } else {
       const sectionKeys = new Set(["basic", "lut", "curves", "wheels", "hue", "fx"]);
       for (const key of Object.keys(sections)) {
-        if (!sectionKeys.has(key)) fail(`${label}.sections に未知のキーがあります: ${key}`);
+        if (!sectionKeys.has(key)) fail(`${label}.sections has an unknown key: ${key}`);
       }
       for (const key of sectionKeys) {
         if (hasOwn(sections, key) && typeof sections[key] !== "boolean") {
-          fail(`${label}.sections.${key} は boolean である必要があります`);
+          fail(`${label}.sections.${key} must be a boolean`);
         }
       }
     }
@@ -216,12 +216,12 @@ function validateAdjustV1Sections(value, path) {
   if (!isPlainObject(value)) return;
   const report = (section, check, at, message) => fail(at + ' ' + (section === 'fx' ? 'adjust.fx.' + check + ': ' : '') + message);
   const object = (v, keys, section, at) => {
-    if (!isPlainObject(v)) { report(section, 'structure', at, 'は object である必要があります'); return false; }
-    for (const key of Object.keys(v)) if (!keys.includes(key)) report(section, 'unknown-key', at + '.' + key, 'は未知のキーです');
+    if (!isPlainObject(v)) { report(section, 'structure', at, ' must be an object'); return false; }
+    for (const key of Object.keys(v)) if (!keys.includes(key)) report(section, 'unknown-key', at + '.' + key, ' is an unknown key');
     return true;
   };
   const number = (v, min, max, section, at) => {
-    if (!isFiniteNumber(v) || v < min || v > max) report(section, 'range', at, 'は ' + min + ' から ' + max + ' の範囲の有限数である必要があります');
+    if (!isFiniteNumber(v) || v < min || v > max) report(section, 'range', at, 'must be a finite number from ' + min + ' to ' + max);
   };
   if (Object.hasOwn(value, 'fx')) {
     const at = path + '.fx';
@@ -271,7 +271,7 @@ function validateAdjustV1Sections(value, path) {
       if (!Object.hasOwn(channels, channel)) continue;
       const points = channels[channel], channelPath = at + '.' + channel;
       if (!Array.isArray(points) || points.length < minimum || points.length > 16) {
-        report(section, 'points', channelPath, 'は ' + minimum + ' から 16 点の配列である必要があります'); continue;
+        report(section, 'points', channelPath, 'must be an array of ' + minimum + ' to 16 points'); continue;
       }
       let previous = -Infinity;
       for (const [index, point] of points.entries()) {
@@ -280,7 +280,7 @@ function validateAdjustV1Sections(value, path) {
         number(point[axis], 0, 1, section, pointPath + '.' + axis);
         number(point[output], 0, 1, section, pointPath + '.' + output);
         if (isFiniteNumber(point[axis])) {
-          if (point[axis] <= previous) report(section, 'order', pointPath + '.' + axis, 'は狭義単調増加である必要があります');
+          if (point[axis] <= previous) report(section, 'order', pointPath + '.' + axis, ' must be strictly increasing');
           previous = point[axis];
         }
       }
@@ -301,22 +301,22 @@ function validateAdjustV1Sections(value, path) {
 function validateV2Keyframes(value, label) {
   if (isPlainObject(value)) {
     if (!isNonEmptyString(value.path) || !/^motion\/.+\.json$/u.test(value.path)) {
-      fail(`${label}.path は motion/ 配下の JSON である必要があります`);
+      fail(`${label}.path must be a JSON file under motion/`);
     }
     return;
   }
   if (!Array.isArray(value) || value.length < 2) {
-    fail(`${label} は 2 点以上の配列または参照 object である必要があります`);
+    fail(`${label} must be an array of at least 2 points or a reference object`);
     return;
   }
   let previous = -1;
   for (const [index, point] of value.entries()) {
     const pointLabel = `${label}[${index}]`;
     if (!isPlainObject(point) || !Number.isInteger(point.t) || point.t < 0) {
-      fail(`${pointLabel}.t は 0 以上の整数フレームである必要があります`);
+      fail(`${pointLabel}.t must be an integer frame >= 0`);
       continue;
     }
-    if (point.t <= previous) fail(`${label}[].t は昇順かつ重複禁止です（${pointLabel} で違反）`);
+    if (point.t <= previous) fail(`${label}[].t must be strictly increasing with no duplicates (${pointLabel} violates that)`);
     previous = point.t;
   }
 }
@@ -324,7 +324,7 @@ function validateV2Keyframes(value, label) {
 function validateTracks(value) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail("tracks は object である必要があります");
+    fail("tracks must be an object");
     return;
   }
   for (const key of ["cuts", "overlays", "layers", "audio"]) {
@@ -336,11 +336,11 @@ function validateTracks(value) {
 function validateTimeline(value) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail("timeline は object である必要があります");
+    fail("timeline must be an object");
     return;
   }
   if (!Array.isArray(value.tracks)) {
-    fail("timeline.tracks は配列である必要があります");
+    fail("timeline.tracks must be an array");
     return;
   }
   const ids = new Set();
@@ -348,28 +348,28 @@ function validateTimeline(value) {
   value.tracks.forEach((item, index) => {
     const label = `timeline.tracks[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       return;
     }
     if (!isNonEmptyString(item.id)) {
-      fail(`${label}.id は空でない文字列である必要があります`);
+      fail(`${label}.id must be a non-empty string`);
     } else if (ids.has(item.id)) {
-      fail(`timeline.tracks[].id が重複しています: ${item.id}`);
+      fail(`timeline.tracks[].id is duplicated: ${item.id}`);
     } else {
       ids.add(item.id);
     }
     if (!kinds.has(item.kind)) {
-      fail(`${label}.kind は cuts/layers/overlays/captions/audio のいずれかである必要があります`);
+      fail(`${label}.kind must be one of cuts/layers/overlays/captions/audio`);
     }
     if (hasOwn(item, "ref") && (!Number.isInteger(item.ref) || item.ref < 0)) {
-      fail(`${label}.ref は 0 以上の整数である必要があります`);
+      fail(`${label}.ref must be an integer >= 0`);
     }
     if (hasOwn(item, "label") && typeof item.label !== "string") {
-      fail(`${label}.label は文字列である必要があります`);
+      fail(`${label}.label must be a string`);
     }
     for (const field of ["muted", "hidden", "locked"]) {
       if (hasOwn(item, field) && typeof item[field] !== "boolean") {
-        fail(`${label}.${field} は boolean である必要があります`);
+        fail(`${label}.${field} must be a boolean`);
       }
     }
   });
@@ -377,20 +377,20 @@ function validateTimeline(value) {
 
 function validateTrackStateList(value, label) {
   if (!Array.isArray(value)) {
-    fail(`${label} は配列である必要があります`);
+    fail(`${label} must be an array`);
     return;
   }
   value.forEach((item, index) => {
     const itemLabel = `${label}[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${itemLabel} は object である必要があります`);
+      fail(`${itemLabel} must be an object`);
       return;
     }
     if (hasOwn(item, "muted") && typeof item.muted !== "boolean") {
-      fail(`${itemLabel}.muted は boolean である必要があります`);
+      fail(`${itemLabel}.muted must be a boolean`);
     }
     if (hasOwn(item, "hidden") && typeof item.hidden !== "boolean") {
-      fail(`${itemLabel}.hidden は boolean である必要があります`);
+      fail(`${itemLabel}.hidden must be a boolean`);
     }
   });
 }
@@ -401,19 +401,19 @@ function validateTrackStateList(value, label) {
 function validateDirection(value) {
   if (value === undefined) return;
   if (!isPlainObject(value)) {
-    fail("direction は object である必要があります");
+    fail("direction must be an object");
     return;
   }
   if (!isNonEmptyString(value.preset)) {
-    fail("direction.preset は空でない文字列である必要があります");
+    fail("direction.preset must be a non-empty string");
   }
   if (hasOwn(value, "intensity")) {
     if (!Number.isInteger(value.intensity) || value.intensity < 0 || value.intensity > 100) {
-      fail("direction.intensity は 0 から 100 の範囲の整数である必要があります");
+      fail("direction.intensity must be an integer from 0 to 100");
     }
   }
   if (hasOwn(value, "overrides") && !isPlainObject(value.overrides)) {
-    fail("direction.overrides は object である必要があります");
+    fail("direction.overrides must be an object");
   }
 }
 
@@ -423,7 +423,7 @@ function validateDirection(value) {
 function validateBeats(value, version, sources) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("beats は配列である必要があります");
+    fail("beats must be an array");
     return;
   }
   const sourceIds = new Set(
@@ -435,35 +435,35 @@ function validateBeats(value, version, sources) {
   for (const [index, item] of value.entries()) {
     const label = `beats[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (typeof item.id !== "string" || !/^b-\d{4}$/.test(item.id)) {
-      fail(`${label}.id は b- に続く 4 桁の数字である必要があります`);
+      fail(`${label}.id must be b- followed by 4 digits`);
     } else if (ids.has(item.id)) {
-      fail(`beats[].id が重複しています: ${item.id}`);
+      fail(`beats[].id is duplicated: ${item.id}`);
     } else {
       ids.add(item.id);
     }
     if (!isFiniteNumber(item.t) || item.t < 0) {
-      fail(`${label}.t は 0 以上の有限数である必要があります`);
+      fail(`${label}.t must be a finite number >= 0`);
     }
     if (!isNonEmptyString(item.kind)) {
-      fail(`${label}.kind は空でない文字列である必要があります`);
+      fail(`${label}.kind must be a non-empty string`);
     }
     if (!isFiniteNumber(item.strength) || item.strength < 0 || item.strength > 1) {
-      fail(`${label}.strength は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.strength must be a finite number from 0 to 1`);
     }
     if (hasOwn(item, "basis") && typeof item.basis !== "string") {
-      fail(`${label}.basis は文字列である必要があります`);
+      fail(`${label}.basis must be a string`);
     }
     if (hasOwn(item, "src")) {
       if (version === 0) {
-        fail(`${label}.src は version 0 では使用できません`);
+        fail(`${label}.src cannot be used in version 0`);
       } else {
         validateNonEmptyString(item.src, `${label}.src`);
         if (isNonEmptyString(item.src) && !sourceIds.has(item.src)) {
-          fail(`${label}.src が sources[].id を参照していません: ${item.src}`);
+          fail(`${label}.src does not reference a sources[].id: ${item.src}`);
         }
       }
     }
@@ -477,7 +477,7 @@ function validateBeats(value, version, sources) {
 function validateEmphasisWords(value, version, sources) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("emphasis_words は配列である必要があります");
+    fail("emphasis_words must be an array");
     return;
   }
   const sourceIds = new Set(
@@ -489,43 +489,43 @@ function validateEmphasisWords(value, version, sources) {
   for (const [index, item] of value.entries()) {
     const label = `emphasis_words[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (typeof item.id !== "string" || !/^e-\d{4}$/.test(item.id)) {
-      fail(`${label}.id は e- に続く 4 桁の数字である必要があります`);
+      fail(`${label}.id must be e- followed by 4 digits`);
     } else if (ids.has(item.id)) {
-      fail(`emphasis_words[].id が重複しています: ${item.id}`);
+      fail(`emphasis_words[].id is duplicated: ${item.id}`);
     } else {
       ids.add(item.id);
     }
     const hasStart = isFiniteNumber(item.t_start) && item.t_start >= 0;
     const hasEnd = isFiniteNumber(item.t_end) && item.t_end >= 0;
     if (!hasStart) {
-      fail(`${label}.t_start は 0 以上の有限数である必要があります`);
+      fail(`${label}.t_start must be a finite number >= 0`);
     }
     if (!hasEnd) {
-      fail(`${label}.t_end は 0 以上の有限数である必要があります`);
+      fail(`${label}.t_end must be a finite number >= 0`);
     }
     if (hasStart && hasEnd && item.t_end <= item.t_start) {
-      fail(`${label}.t_end は t_start より大きい必要があります`);
+      fail(`${label}.t_end must be greater than t_start`);
     }
     if (!isNonEmptyString(item.word)) {
-      fail(`${label}.word は空でない文字列である必要があります`);
+      fail(`${label}.word must be a non-empty string`);
     }
     if (!isNonEmptyString(item.emotion)) {
-      fail(`${label}.emotion は空でない文字列である必要があります`);
+      fail(`${label}.emotion must be a non-empty string`);
     }
     if (hasOwn(item, "style_hint") && typeof item.style_hint !== "string") {
-      fail(`${label}.style_hint は文字列である必要があります`);
+      fail(`${label}.style_hint must be a string`);
     }
     if (hasOwn(item, "src")) {
       if (version === 0) {
-        fail(`${label}.src は version 0 では使用できません`);
+        fail(`${label}.src cannot be used in version 0`);
       } else {
         validateNonEmptyString(item.src, `${label}.src`);
         if (isNonEmptyString(item.src) && !sourceIds.has(item.src)) {
-          fail(`${label}.src が sources[].id を参照していません: ${item.src}`);
+          fail(`${label}.src does not reference a sources[].id: ${item.src}`);
         }
       }
     }
@@ -535,35 +535,35 @@ function validateEmphasisWords(value, version, sources) {
 function validateLayers(value) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("layers は配列である必要があります");
+    fail("layers must be an array");
     return;
   }
   const ids = new Set();
   for (const [index, layer] of value.entries()) {
     const label = `layers[${index}]`;
     if (!isPlainObject(layer)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (!isNonEmptyString(layer.id)) {
-      fail(`${label}.id は空でない文字列である必要があります`);
+      fail(`${label}.id must be a non-empty string`);
     } else if (ids.has(layer.id)) {
-      fail(`layers[].id が重複しています: ${layer.id}`);
+      fail(`layers[].id is duplicated: ${layer.id}`);
     } else {
       ids.add(layer.id);
     }
     if (!isFiniteNumber(layer.t) || layer.t < 0) {
-      fail(`${label}.t は 0 以上の有限数である必要があります`);
+      fail(`${label}.t must be a finite number >= 0`);
     }
     if (!isFiniteNumber(layer.duration) || layer.duration <= 0) {
-      fail(`${label}.duration は 0 より大きい有限数である必要があります`);
+      fail(`${label}.duration must be a finite number > 0`);
     }
     if (!LAYER_KINDS.has(layer.kind)) {
-      fail(`${label}.kind は baked/video/filter のいずれかである必要があります`);
+      fail(`${label}.kind must be one of baked/video/filter`);
     }
     if (layer.kind === "filter") {
       for (const field of ["src", "chroma_key", "blend", "crop", "transform"]) {
-        if (hasOwn(layer, field)) fail(`${label}.${field} は kind が filter のとき使用できません`);
+        if (hasOwn(layer, field)) fail(`${label}.${field} cannot be used when kind is filter`);
       }
       validateLayerFilter(layer.filter, `${label}.filter`);
     } else {
@@ -571,18 +571,18 @@ function validateLayers(value) {
     }
     if (hasOwn(layer, "opacity")) {
       if (!isFiniteNumber(layer.opacity) || layer.opacity < 0 || layer.opacity > 1) {
-        fail(`${label}.opacity は 0 から 1 の範囲の有限数である必要があります`);
+        fail(`${label}.opacity must be a finite number from 0 to 1`);
       }
     }
     if (hasOwn(layer, "blend") && !LAYER_BLEND_MODES.has(layer.blend)) {
-      fail(`${label}.blend は ${[...LAYER_BLEND_MODES].join("/")} のいずれかである必要があります`);
+      fail(`${label}.blend must be one of ${[...LAYER_BLEND_MODES].join("/")}`);
     }
     if (hasOwn(layer, "transform")) {
       validateLayerTransform(layer.transform, `${label}.transform`);
     }
     if (hasOwn(layer, "chroma_key")) {
       if (layer.kind !== "video") {
-        fail(`${label}.chroma_key は kind が video のときのみ使用できます`);
+        fail(`${label}.chroma_key can be used only when kind is video`);
       }
       validateLayerChromaKey(layer.chroma_key, `${label}.chroma_key`);
     }
@@ -597,7 +597,7 @@ function validateLayers(value) {
     }
     if (hasOwn(layer, "track")) {
       if (!Number.isInteger(layer.track) || layer.track < 0) {
-        fail(`${label}.track は 0 以上の整数である必要があります`);
+        fail(`${label}.track must be an integer >= 0`);
       }
     }
   }
@@ -605,7 +605,7 @@ function validateLayers(value) {
 
 function validateLayerFilter(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeysByType = new Map([
@@ -615,93 +615,93 @@ function validateLayerFilter(value, label) {
   ]);
   const allowedKeys = allowedKeysByType.get(value.type);
   if (allowedKeys === undefined) {
-    fail(`${label}.type は invert/lut/saturation のいずれかである必要があります`);
+    fail(`${label}.type must be one of invert/lut/saturation`);
     return;
   }
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   if (value.type === "lut") {
     validateNonEmptyString(value.id, `${label}.id`);
     if (hasOwn(value, "intensity")
         && (!isFiniteNumber(value.intensity) || value.intensity < 0 || value.intensity > 1)) {
-      fail(`${label}.intensity は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.intensity must be a finite number from 0 to 1`);
     }
   }
   if (value.type === "saturation"
       && (!isFiniteNumber(value.value) || value.value < 0 || value.value > 3)) {
-    fail(`${label}.value は 0 から 3 の範囲の有限数である必要があります`);
+    fail(`${label}.value must be a finite number from 0 to 3`);
   }
 }
 
 function validateLayerTransform(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   for (const field of ["x", "y", "rotate"]) {
     if (hasOwn(value, field) && !isFiniteNumber(value[field])) {
-      fail(`${label}.${field} は有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number`);
     }
   }
   for (const key of ["scale", "scaleX", "scaleY"]) {
     if (hasOwn(value, key) && (!isFiniteNumber(value[key]) || value[key] <= 0)) {
-      fail(`${label}.${key} は 0 より大きい有限数である必要があります`);
+      fail(`${label}.${key} must be a finite number > 0`);
     }
   }
 }
 
 function validateLayerCrop(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   for (const field of ["x", "y"]) {
     if (!isFiniteNumber(value[field]) || value[field] < 0 || value[field] > 1) {
-      fail(`${label}.${field} は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number from 0 to 1`);
     }
   }
   for (const field of ["w", "h"]) {
     if (!isFiniteNumber(value[field]) || value[field] <= 0 || value[field] > 1) {
-      fail(`${label}.${field} は 0 より大きく 1 以下の有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number > 0 and <= 1`);
     }
   }
   if (isFiniteNumber(value.x) && isFiniteNumber(value.w) && value.x + value.w > 1 + 1e-9) {
-    fail(`${label}.x + ${label}.w は 1 以下である必要があります`);
+    fail(`${label}.x + ${label}.w must be <= 1`);
   }
   if (isFiniteNumber(value.y) && isFiniteNumber(value.h) && value.y + value.h > 1 + 1e-9) {
-    fail(`${label}.y + ${label}.h は 1 以下である必要があります`);
+    fail(`${label}.y + ${label}.h must be <= 1`);
   }
   if (hasOwn(value, "rotate") && (!isFiniteNumber(value.rotate) || value.rotate < -45 || value.rotate > 45)) {
-    fail(`${label}.rotate は -45 から 45 度の範囲である必要があります`);
+    fail(`${label}.rotate must be from -45 to 45 degrees`);
   }
 }
 
 function validatePhotoFrame(value, source, label) {
   if (source?.kind !== "media" || !isPlainObject(value)) {
-    fail(`${label} は写真の media item の object である必要があります`);
+    fail(`${label} must be a photo media item object`);
     return;
   }
-  for (const key of Object.keys(value)) if (key !== "stroke" && key !== "cornerRadius") fail(`${label}.${key} は未知のキーです`);
+  for (const key of Object.keys(value)) if (key !== "stroke" && key !== "cornerRadius") fail(`${label}.${key} is an unknown key`);
   if (hasOwn(value, "cornerRadius") && (!isFiniteNumber(value.cornerRadius) || value.cornerRadius < 0 || value.cornerRadius > 100)) {
-    fail(`${label}.cornerRadius は 0 から 100 の範囲である必要があります`);
+    fail(`${label}.cornerRadius must be from 0 to 100`);
   }
   if (hasOwn(value, "stroke")) {
-    if (!isPlainObject(value.stroke)) { fail(`${label}.stroke は object である必要があります`); return; }
-    for (const key of Object.keys(value.stroke)) if (key !== "color" && key !== "width") fail(`${label}.stroke.${key} は未知のキーです`);
-    if (typeof value.stroke.color !== "string" || !/^#[0-9a-fA-F]{6}$/u.test(value.stroke.color)) fail(`${label}.stroke.color は #RRGGBB である必要があります`);
-    if (!isFiniteNumber(value.stroke.width) || value.stroke.width < 0 || value.stroke.width > 100) fail(`${label}.stroke.width は 0 から 100 の範囲である必要があります`);
+    if (!isPlainObject(value.stroke)) { fail(`${label}.stroke must be an object`); return; }
+    for (const key of Object.keys(value.stroke)) if (key !== "color" && key !== "width") fail(`${label}.stroke.${key} is an unknown key`);
+    if (typeof value.stroke.color !== "string" || !/^#[0-9a-fA-F]{6}$/u.test(value.stroke.color)) fail(`${label}.stroke.color must be #RRGGBB`);
+    if (!isFiniteNumber(value.stroke.width) || value.stroke.width < 0 || value.stroke.width > 100) fail(`${label}.stroke.width must be from 0 to 100`);
   }
 }
 
 function validateLayerPerspective(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const corners = value.corners;
   if (!Array.isArray(corners) || corners.length !== 4) {
-    fail(`${label}.corners は [TL,TR,BL,BR] の 4 要素配列である必要があります`);
+    fail(`${label}.corners must be a 4-element [TL, TR, BL, BR] array`);
     return;
   }
   const names = ["TL", "TR", "BL", "BR"];
@@ -709,17 +709,17 @@ function validateLayerPerspective(value, label) {
   const points = corners.map((corner, index) => {
     const cornerLabel = `${label}.corners[${index}] (${names[index]})`;
     if (!Array.isArray(corner) || corner.length !== 2) {
-      fail(`${cornerLabel} は [x, y] の 2 要素配列である必要があります`);
+      fail(`${cornerLabel} must be a 2-element [x, y] array`);
       allFinite = false;
       return null;
     }
     const [x, y] = corner;
     if (!isFiniteNumber(x) || x < 0 || x > 1) {
-      fail(`${cornerLabel}.x は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${cornerLabel}.x must be a finite number from 0 to 1`);
       allFinite = false;
     }
     if (!isFiniteNumber(y) || y < 0 || y > 1) {
-      fail(`${cornerLabel}.y は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${cornerLabel}.y must be a finite number from 0 to 1`);
       allFinite = false;
     }
     return [x, y];
@@ -737,7 +737,7 @@ function validateLayerPerspective(value, label) {
     area2 += x1 * y2 - x2 * y1;
   }
   if (Math.abs(area2) < 1e-4) {
-    fail(`${label}.corners は退化した四角形（面積がほぼ 0）であってはなりません`);
+    fail(`${label}.corners must not be a degenerate quadrilateral (area near 0)`);
   }
 }
 
@@ -748,7 +748,7 @@ function validateLayerPerspective(value, label) {
 // documented on #layerKeyframe).
 function validateLayerKeyframes(value, label) {
   if (!Array.isArray(value) || value.length < 2) {
-    fail(`${label} は 2 件以上の配列である必要があります`);
+    fail(`${label} must be an array of at least 2 items`);
     return;
   }
   const allowedKeys = new Set(["t", "transform", "crop", "perspective", "easing"]);
@@ -756,17 +756,17 @@ function validateLayerKeyframes(value, label) {
   value.forEach((point, index) => {
     const pointLabel = `${label}[${index}]`;
     if (!isPlainObject(point)) {
-      fail(`${pointLabel} は object である必要があります`);
+      fail(`${pointLabel} must be an object`);
       return;
     }
     for (const key of Object.keys(point)) {
-      if (!allowedKeys.has(key)) fail(`${pointLabel} に未知のキーがあります: ${key}`);
+      if (!allowedKeys.has(key)) fail(`${pointLabel} has an unknown key: ${key}`);
     }
     const hasT = isFiniteNumber(point.t) && point.t >= 0;
     if (!hasT) {
-      fail(`${pointLabel}.t は 0 以上の有限数である必要があります`);
+      fail(`${pointLabel}.t must be a finite number >= 0`);
     } else if (previousT !== null && point.t <= previousT) {
-      fail(`${label}[].t は昇順かつ重複禁止です（${pointLabel} で違反）`);
+      fail(`${label}[].t must be strictly increasing with no duplicates (${pointLabel} violates that)`);
     }
     if (hasT) previousT = point.t;
     if (hasOwn(point, "transform")) {
@@ -779,25 +779,25 @@ function validateLayerKeyframes(value, label) {
       validateLayerPerspective(point.perspective, `${pointLabel}.perspective`);
     }
     if (hasOwn(point, "easing") && !LAYER_KEYFRAME_EASINGS.has(point.easing)) {
-      fail(`${pointLabel}.easing は ${[...LAYER_KEYFRAME_EASINGS].join("/")} のいずれかである必要があります`);
+      fail(`${pointLabel}.easing must be one of ${[...LAYER_KEYFRAME_EASINGS].join("/")}`);
     }
   });
 }
 
 function validateLayerChromaKey(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   validateNonEmptyString(value.color, `${label}.color`);
   if (hasOwn(value, "similarity")) {
     if (!isFiniteNumber(value.similarity) || value.similarity < 0 || value.similarity > 1) {
-      fail(`${label}.similarity は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.similarity must be a finite number from 0 to 1`);
     }
   }
   if (hasOwn(value, "blend")) {
     if (!isFiniteNumber(value.blend) || value.blend < 0 || value.blend > 1) {
-      fail(`${label}.blend は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.blend must be a finite number from 0 to 1`);
     }
   }
 }
@@ -805,7 +805,7 @@ function validateLayerChromaKey(value, label) {
 function validateAudio(value) {
   if (value === undefined) return;
   if (!isPlainObject(value)) {
-    fail("audio は object である必要があります");
+    fail("audio must be an object");
     return;
   }
   validateNarration(value.narration);
@@ -816,7 +816,7 @@ function validateAudio(value) {
     if (!Array.isArray(value.duck_keys)
         || value.duck_keys.some(key => key !== "narration" && key !== "speech")
         || new Set(value.duck_keys).size !== value.duck_keys.length) {
-      fail("audio.duck_keys は narration / speech の重複しない配列である必要があります");
+      fail("audio.duck_keys must be a non-overlapping narration / speech array");
     }
   }
 }
@@ -824,20 +824,20 @@ function validateAudio(value) {
 function validateMaster(value) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail("audio.master は object である必要があります");
+    fail("audio.master must be an object");
     return;
   }
   if (hasOwn(value, "denoise") && !["off", "std", "strong"].includes(value.denoise)) {
-    fail("audio.master.denoise は off/std/strong のいずれかである必要があります");
+    fail("audio.master.denoise must be one of off/std/strong");
   }
   if (hasOwn(value, "loudnorm")) {
     if (!isFiniteNumber(value.loudnorm) || value.loudnorm < -70 || value.loudnorm > 0) {
-      fail("audio.master.loudnorm は -70 から 0 の範囲の有限数である必要があります");
+      fail("audio.master.loudnorm must be a finite number from -70 to 0");
     }
   }
   if (hasOwn(value, "true_peak_dbtp")) {
     if (!isFiniteNumber(value.true_peak_dbtp) || value.true_peak_dbtp < -9 || value.true_peak_dbtp > 0) {
-      fail("audio.master.true_peak_dbtp は -9 から 0 の範囲の有限数である必要があります");
+      fail("audio.master.true_peak_dbtp must be a finite number from -9 to 0");
     }
   }
 }
@@ -849,22 +849,22 @@ function validateBgm(value) {
   // both spellings identically.
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail("audio.bgm は object である必要があります");
+    fail("audio.bgm must be an object");
     return;
   }
   validateNonEmptyString(value.path, "audio.bgm.path");
   if (hasOwn(value, "gain_db")) {
     if (!isFiniteNumber(value.gain_db) || value.gain_db < -60 || value.gain_db > 12) {
-      fail("audio.bgm.gain_db は -60 から 12 の範囲の有限数である必要があります");
+      fail("audio.bgm.gain_db must be a finite number from -60 to 12");
     }
   }
   if (hasOwn(value, "ducking") && typeof value.ducking !== "boolean") {
-    fail("audio.bgm.ducking は boolean である必要があります");
+    fail("audio.bgm.ducking must be a boolean");
   }
   for (const field of ["in", "fadeIn", "fadeOut"]) {
     if (hasOwn(value, field)) {
       if (!isFiniteNumber(value[field]) || value[field] < 0) {
-        fail(`audio.bgm.${field} は 0 以上の有限数である必要があります`);
+        fail(`audio.bgm.${field} must be a finite number >= 0`);
       }
     }
   }
@@ -875,43 +875,43 @@ function validateBgm(value) {
 function validateSfx(value) {
   if (value === undefined || value === null) return;
   if (!Array.isArray(value)) {
-    fail("audio.sfx は配列である必要があります");
+    fail("audio.sfx must be an array");
     return;
   }
   for (const [index, item] of value.entries()) {
     const label = `audio.sfx[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     validateNonEmptyString(item.path, `${label}.path`);
     if (!isFiniteNumber(item.t) || item.t < 0) {
-      fail(`${label}.t は 0 以上の有限数である必要があります`);
+      fail(`${label}.t must be a finite number >= 0`);
     }
     if (hasOwn(item, "in")) {
       if (!isFiniteNumber(item.in) || item.in < 0) {
-        fail(`${label}.in は 0 以上の有限数である必要があります`);
+        fail(`${label}.in must be a finite number >= 0`);
       }
     }
     if (hasOwn(item, "out")) {
       if (!isFiniteNumber(item.out) || item.out <= 0) {
-        fail(`${label}.out は 0 より大きい有限数である必要があります`);
+        fail(`${label}.out must be a finite number > 0`);
       }
     }
     if (hasOwn(item, "gain_db")) {
       if (!isFiniteNumber(item.gain_db) || item.gain_db < -60 || item.gain_db > 12) {
-        fail(`${label}.gain_db は -60 から 12 の範囲の有限数である必要があります`);
+        fail(`${label}.gain_db must be a finite number from -60 to 12`);
       }
     }
     if (hasOwn(item, "track")) {
       if (!Number.isInteger(item.track) || item.track < 0) {
-        fail(`${label}.track は 0 以上の整数である必要があります`);
+        fail(`${label}.track must be an integer >= 0`);
       }
     }
     for (const field of ["fade_in", "fade_out"]) {
       if (hasOwn(item, field)) {
         if (!isFiniteNumber(item[field]) || item[field] < 0) {
-          fail(`${label}.${field} は 0 以上の有限数である必要があります`);
+          fail(`${label}.${field} must be a finite number >= 0`);
         }
       }
     }
@@ -923,31 +923,31 @@ function validateSfx(value) {
 function validateNarration(value) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("audio.narration は配列である必要があります");
+    fail("audio.narration must be an array");
     return;
   }
   const ids = new Set();
   for (const [index, item] of value.entries()) {
     const label = `audio.narration[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (typeof item.id !== "string" || !/^n-\d{4}$/.test(item.id)) {
-      fail(`${label}.id は n- に続く 4 桁の数字である必要があります`);
+      fail(`${label}.id must be n- followed by 4 digits`);
     } else if (ids.has(item.id)) {
-      fail(`audio.narration[].id が重複しています: ${item.id}`);
+      fail(`audio.narration[].id is duplicated: ${item.id}`);
     } else {
       ids.add(item.id);
     }
     validateNonEmptyString(item.path, `${label}.path`);
-    if (hasOwn(item, "caption_ref") && (typeof item.caption_ref !== "string" || !/^c-\d{4}$/.test(item.caption_ref))) fail(`${label}.caption_ref は c- に続く 4 桁の数字である必要があります`);
+    if (hasOwn(item, "caption_ref") && (typeof item.caption_ref !== "string" || !/^c-\d{4}$/.test(item.caption_ref))) fail(`${label}.caption_ref must be c- followed by 4 digits`);
     if (!isFiniteNumber(item.t) || item.t < 0) {
-      fail(`${label}.t は 0 以上の有限数である必要があります`);
+      fail(`${label}.t must be a finite number >= 0`);
     }
     if (hasOwn(item, "gain_db")) {
       if (!isFiniteNumber(item.gain_db) || item.gain_db < -60 || item.gain_db > 12) {
-        fail(`${label}.gain_db は -60 から 12 の範囲の有限数である必要があります`);
+        fail(`${label}.gain_db must be a finite number from -60 to 12`);
       }
     }
     validateAudioEnvelope(item, label);
@@ -958,92 +958,92 @@ function validateNarration(value) {
 
 function validateAudioClipFx(value, label) {
   if (hasOwn(value, "speed") && (!isFiniteNumber(value.speed) || value.speed <= 0.25 || value.speed > 4)) {
-    fail(`${label}.speed は 0.25 より大きく 4 以下の有限数である必要があります`);
+    fail(`${label}.speed must be a finite number > 0.25 and <= 4`);
   }
   if (hasOwn(value, "pitch_semitones") && (!isFiniteNumber(value.pitch_semitones)
       || value.pitch_semitones < -24 || value.pitch_semitones > 24)) {
-    fail(`${label}.pitch_semitones は -24 から 24 の範囲の有限数である必要があります`);
+    fail(`${label}.pitch_semitones must be a finite number from -24 to 24`);
   }
   if (hasOwn(value, "formant") && value.formant !== "preserve" && value.formant !== "shift") {
-    fail(`${label}.formant は preserve/shift のいずれかである必要があります`);
+    fail(`${label}.formant must be one of preserve/shift`);
   }
   if (hasOwn(value, "lowcut_hz") && (!isFiniteNumber(value.lowcut_hz)
       || value.lowcut_hz < 0 || value.lowcut_hz > 400)) {
-    fail(`${label}.lowcut_hz は 0 から 400 の範囲の有限数である必要があります`);
+    fail(`${label}.lowcut_hz must be a finite number from 0 to 400`);
   }
   if (!hasOwn(value, "denoise")) return;
   if (!isPlainObject(value.denoise)) {
-    fail(`${label}.denoise は object である必要があります`);
+    fail(`${label}.denoise must be an object`);
     return;
   }
   if (value.denoise.method !== "fft" && value.denoise.method !== "nlm") {
-    fail(`${label}.denoise.method は fft/nlm のいずれかである必要があります`);
+    fail(`${label}.denoise.method must be one of fft/nlm`);
   }
   if (!isFiniteNumber(value.denoise.strength)
       || value.denoise.strength < 0 || value.denoise.strength > 1) {
-    fail(`${label}.denoise.strength は 0 から 1 の範囲の有限数である必要があります`);
+    fail(`${label}.denoise.strength must be a finite number from 0 to 1`);
   }
 }
 
 function validateAudioEnvelope(value, label) {
   if (hasOwn(value, "ducking") && typeof value.ducking !== "boolean") {
-    fail(`${label}.ducking は boolean である必要があります`);
+    fail(`${label}.ducking must be a boolean`);
   }
   for (const [field, minimum, maximum] of [
     ["duck_db", -40, 0], ["duck_attack", 0, 2], ["duck_release", 0, 5],
   ]) {
     if (hasOwn(value, field) && (!isFiniteNumber(value[field])
         || value[field] < minimum || value[field] > maximum)) {
-      fail(`${label}.${field} は ${minimum} から ${maximum} の範囲の有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number from ${minimum} to ${maximum}`);
     }
   }
   if (!hasOwn(value, "keyframes")) return;
   if (!Array.isArray(value.keyframes) || value.keyframes.length < 2) {
-    fail(`${label}.keyframes は 2 件以上の配列である必要があります`);
+    fail(`${label}.keyframes must be an array of at least 2 items`);
     return;
   }
   let previous = null;
   value.keyframes.forEach((point, index) => {
     const pointLabel = `${label}.keyframes[${index}]`;
     if (!isPlainObject(point)) {
-      fail(`${pointLabel} は object である必要があります`);
+      fail(`${pointLabel} must be an object`);
       return;
     }
-    if (!isFiniteNumber(point.t) || point.t < 0) fail(`${pointLabel}.t は 0 以上の有限数である必要があります`);
-    else if (previous !== null && point.t <= previous) fail(`${label}.keyframes[].t は単調増加かつ重複禁止です`);
+    if (!isFiniteNumber(point.t) || point.t < 0) fail(`${pointLabel}.t must be a finite number >= 0`);
+    else if (previous !== null && point.t <= previous) fail(`${label}.keyframes[].t must be strictly increasing with no duplicates`);
     if (isFiniteNumber(point.t)) previous = point.t;
     if (!isFiniteNumber(point.gain_db) || point.gain_db < -60 || point.gain_db > 12) {
-      fail(`${pointLabel}.gain_db は -60 から 12 の範囲の有限数である必要があります`);
+      fail(`${pointLabel}.gain_db must be a finite number from -60 to 12`);
     }
     if (hasOwn(point, "easing") && (typeof point.easing !== "string"
         || (!AUDIO_KEYFRAME_EASINGS.has(point.easing) && !CUBIC_BEZIER.test(point.easing)))) {
-      fail(`${pointLabel}.easing は対応する easing 語彙である必要があります`);
+      fail(`${pointLabel}.easing must be the matching easing vocabulary`);
     }
   });
 }
 
 function validateNarrationProvenance(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   if (!isNonEmptyString(value.provider)) {
-    fail(`${label}.provider は空でない文字列である必要があります`);
+    fail(`${label}.provider must be a non-empty string`);
     return;
   }
   if (value.provider === "voicevox" && !isNonEmptyString(value.credit)) {
-    fail(`${label}.credit は provider が voicevox のとき必須です`);
+    fail(`${label}.credit is required when provider is voicevox`);
   }
 }
 
 function validateOutput(value) {
   if (!isPlainObject(value)) {
-    fail("output は object である必要があります");
+    fail("output must be an object");
     return;
   }
   for (const field of ["width", "height", "fps"]) {
     if (!isFiniteNumber(value[field]) || value[field] <= 0) {
-      fail(`output.${field} は 0 より大きい有限数である必要があります`);
+      fail(`output.${field} must be a finite number > 0`);
     }
   }
   validateLook(value.look);
@@ -1053,35 +1053,35 @@ function validateOutput(value) {
 function validateEncoding(value) {
   if (value === undefined) return;
   if (!isPlainObject(value)) {
-    fail("output.encoding は object である必要があります");
+    fail("output.encoding must be an object");
     return;
   }
-  for (const key of Object.keys(value)) if (key !== "quality" && key !== "encoder") fail(`output.encoding に未知のキーがあります: ${key}`);
+  for (const key of Object.keys(value)) if (key !== "quality" && key !== "encoder") fail(`output.encoding has an unknown key: ${key}`);
   if (hasOwn(value, "quality") && !["master", "high", "standard", "light"].includes(value.quality)) {
-    fail("output.encoding.quality は master/high/standard/light のいずれかである必要があります");
+    fail("output.encoding.quality must be one of master/high/standard/light");
   }
   if (hasOwn(value, "encoder") && !["auto", "videotoolbox", "nvenc", "qsv", "amf", "mf", "x264"].includes(value.encoder)) {
-    fail("output.encoding.encoder は auto/videotoolbox/nvenc/qsv/amf/mf/x264 のいずれかである必要があります");
+    fail("output.encoding.encoder must be one of auto/videotoolbox/nvenc/qsv/amf/mf/x264");
   }
 }
 
 function validateLook(value) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail("output.look は object である必要があります");
+    fail("output.look must be an object");
     return;
   }
   validateNonEmptyString(value.lut, "output.look.lut");
   if (hasOwn(value, "intensity")) {
     if (!isFiniteNumber(value.intensity) || value.intensity < 0 || value.intensity > 1) {
-      fail("output.look.intensity は 0 から 1 の範囲の有限数である必要があります");
+      fail("output.look.intensity must be a finite number from 0 to 1");
     }
   }
 }
 
 function validateSourceV0(value) {
   if (!isPlainObject(value)) {
-    fail("source は object である必要があります");
+    fail("source must be an object");
     return;
   }
   validateNonEmptyString(value.path, "source.path");
@@ -1092,14 +1092,14 @@ function validateSourceV0(value) {
 function validateChromaKey(value, label) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   validateNonEmptyString(value.color, `${label}.color`);
   for (const field of ["similarity", "blend"]) {
     if (hasOwn(value, field)) {
       if (!isFiniteNumber(value[field]) || value[field] < 0 || value[field] > 1) {
-        fail(`${label}.${field} は 0 から 1 の範囲の有限数である必要があります`);
+        fail(`${label}.${field} must be a finite number from 0 to 1`);
       }
     }
   }
@@ -1110,19 +1110,19 @@ function validateChromaKey(value, label) {
 
 function validateSourcesV1(value) {
   if (!Array.isArray(value) || value.length === 0) {
-    fail("sources は 1 件以上の配列である必要があります");
+    fail("sources must be an array of at least 1 item");
     return;
   }
   const ids = new Set();
   for (const [index, source] of value.entries()) {
     const label = `sources[${index}]`;
     if (!isPlainObject(source)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     validateNonEmptyString(source.id, `${label}.id`);
     if (typeof source.id === "string") {
-      if (ids.has(source.id)) fail(`sources[].id が重複しています: ${source.id}`);
+      if (ids.has(source.id)) fail(`sources[].id is duplicated: ${source.id}`);
       ids.add(source.id);
     }
     validateNonEmptyString(source.path, `${label}.path`);
@@ -1134,7 +1134,7 @@ function validateSourcesV1(value) {
 function validateCuts(value, version, sources) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
-    fail("cuts は配列である必要があります");
+    fail("cuts must be an array");
     return;
   }
   const sourceIds = new Set(
@@ -1145,47 +1145,47 @@ function validateCuts(value, version, sources) {
   for (const [index, cut] of value.entries()) {
     const label = `cuts[${index}]`;
     if (!isPlainObject(cut)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (!isFiniteNumber(cut.in) || !isFiniteNumber(cut.out)) {
-      fail(`${label}.in/out は有限数である必要があります`);
+      fail(`${label}.in/out must be a finite number`);
     } else if (cut.in < 0 || cut.out <= cut.in) {
-      fail(`${label} は 0 <= in < out を満たす必要があります`);
+      fail(`${label} must satisfy 0 <= in < out`);
     }
     if (version === 0 && hasOwn(cut, "src")) {
-      fail(`${label}.src は version 0 では使用できません`);
+      fail(`${label}.src cannot be used in version 0`);
     }
     if (version === 1) {
       validateNonEmptyString(cut.src, `${label}.src`);
       if (isNonEmptyString(cut.src) && !sourceIds.has(cut.src)) {
-        fail(`${label}.src が sources[].id を参照していません: ${cut.src}`);
+        fail(`${label}.src does not reference a sources[].id: ${cut.src}`);
       }
     }
     if (hasOwn(cut, "speed")) {
       if (!isFiniteNumber(cut.speed) || cut.speed <= 0) {
-        fail(`${label}.speed は 0 より大きい有限数である必要があります`);
+        fail(`${label}.speed must be a finite number > 0`);
       }
     }
     if (hasOwn(cut, "reason") && cut.reason !== "silence" && cut.reason !== "word") {
-      fail(`${label}.reason は silence/word のいずれかである必要があります`);
+      fail(`${label}.reason must be one of silence/word`);
     }
     if (hasOwn(cut, "label") && typeof cut.label !== "string") {
-      fail(`${label}.label は文字列である必要があります`);
+      fail(`${label}.label must be a string`);
     }
     if (hasOwn(cut, "at")) {
       if (!isFiniteNumber(cut.at) || cut.at < 0) {
-        fail(`${label}.at は 0 以上の有限数である必要があります`);
+        fail(`${label}.at must be a finite number >= 0`);
       }
     }
     if (hasOwn(cut, "track")) {
       if (!Number.isInteger(cut.track) || cut.track < 0) {
-        fail(`${label}.track は 0 以上の整数である必要があります`);
+        fail(`${label}.track must be an integer >= 0`);
       }
     }
     if (hasOwn(cut, "opacity")) {
       if (!isFiniteNumber(cut.opacity) || cut.opacity < 0 || cut.opacity > 1) {
-        fail(`${label}.opacity は 0 から 1 の範囲の有限数である必要があります`);
+        fail(`${label}.opacity must be a finite number from 0 to 1`);
       }
     }
     if (hasOwn(cut, "transform")) {
@@ -1208,7 +1208,7 @@ function validateCuts(value, version, sources) {
 // 既定 1 を使うため、ここでは範囲だけを検証する。
 function validateCutFxList(value, label) {
   if (!Array.isArray(value)) {
-    fail(`${label} は配列である必要があります`);
+    fail(`${label} must be an array`);
     return;
   }
   value.forEach((item, index) => validateCutFx(item, `${label}[${index}]`));
@@ -1216,31 +1216,31 @@ function validateCutFxList(value, label) {
 
 function validateCutFx(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set(["id", "intensity", "params"]);
   for (const key of Object.keys(value)) {
     if (!allowedKeys.has(key)) {
-      fail(`${label} に未知のキーがあります: ${key}`);
+      fail(`${label} has an unknown key: ${key}`);
     }
   }
   if (!isNonEmptyString(value.id)) {
-    fail(`${label}.id は空でない文字列である必要があります`);
+    fail(`${label}.id must be a non-empty string`);
   }
   if (hasOwn(value, "intensity") && (!isFiniteNumber(value.intensity) || value.intensity < 0 || value.intensity > 1)) {
-    fail(`${label}.intensity は 0 から 1 の範囲の有限数である必要があります`);
+    fail(`${label}.intensity must be a finite number from 0 to 1`);
   }
   if (hasOwn(value, "params")) {
     if (!isPlainObject(value.params)) {
-      fail(`${label}.params は object である必要があります`);
+      fail(`${label}.params must be an object`);
     } else {
       if (hasOwn(value.params, "color") && !isNonEmptyString(value.params.color)) {
-        fail(`${label}.params.color は空でない文字列である必要があります`);
+        fail(`${label}.params.color must be a non-empty string`);
       }
       for (const key of Object.keys(value.params)) {
         if (key !== "color") {
-          fail(`${label}.params に未知のキーがあります: ${key}`);
+          fail(`${label}.params has an unknown key: ${key}`);
         }
       }
     }
@@ -1254,12 +1254,12 @@ function validateCutFx(value, label) {
 // constraint the schema documents must also be reproduced here by hand).
 function validateCutFraming(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set(["crop", "keyframes"]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   if (hasOwn(value, "crop")) {
     validateCutCrop(value.crop, `${label}.crop`);
@@ -1271,34 +1271,34 @@ function validateCutFraming(value, label) {
 
 function validateCutCrop(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set(["x", "y", "w", "h"]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   for (const field of ["x", "y"]) {
     if (!isFiniteNumber(value[field]) || value[field] < 0 || value[field] > 1) {
-      fail(`${label}.${field} は 0 から 1 の範囲の有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number from 0 to 1`);
     }
   }
   for (const field of ["w", "h"]) {
     if (!isFiniteNumber(value[field]) || value[field] <= 0 || value[field] > 1) {
-      fail(`${label}.${field} は 0 より大きく 1 以下の有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number > 0 and <= 1`);
     }
   }
   if (isFiniteNumber(value.x) && isFiniteNumber(value.w) && value.x + value.w > 1 + 1e-9) {
-    fail(`${label} は x + w <= 1（クロップ窓がキャンバス内に収まる）を満たす必要があります`);
+    fail(`${label} must satisfy x + w <= 1 (the crop window stays inside the frame)`);
   }
   if (isFiniteNumber(value.y) && isFiniteNumber(value.h) && value.y + value.h > 1 + 1e-9) {
-    fail(`${label} は y + h <= 1（クロップ窓がキャンバス内に収まる）を満たす必要があります`);
+    fail(`${label} must satisfy y + h <= 1 (the crop window stays inside the frame)`);
   }
 }
 
 function validateCutFramingKeyframes(value, label) {
   if (!Array.isArray(value) || value.length < 2) {
-    fail(`${label} は 2 件以上の配列である必要があります（2 点でズーム・3 点以上で段階縮小）`);
+    fail(`${label} must be an array of at least 2 items (2 points zoom, 3 or more step down)`);
     return;
   }
   const allowedKeys = new Set(["t", "scale", "cx", "cy"]);
@@ -1306,25 +1306,25 @@ function validateCutFramingKeyframes(value, label) {
   value.forEach((point, index) => {
     const pointLabel = `${label}[${index}]`;
     if (!isPlainObject(point)) {
-      fail(`${pointLabel} は object である必要があります`);
+      fail(`${pointLabel} must be an object`);
       return;
     }
     for (const key of Object.keys(point)) {
-      if (!allowedKeys.has(key)) fail(`${pointLabel} に未知のキーがあります: ${key}`);
+      if (!allowedKeys.has(key)) fail(`${pointLabel} has an unknown key: ${key}`);
     }
     const hasT = isFiniteNumber(point.t) && point.t >= 0;
     if (!hasT) {
-      fail(`${pointLabel}.t は 0 以上の有限数である必要があります`);
+      fail(`${pointLabel}.t must be a finite number >= 0`);
     } else if (previousT !== null && point.t <= previousT) {
-      fail(`${label}[].t は昇順かつ重複禁止です（${pointLabel} で違反）`);
+      fail(`${label}[].t must be strictly increasing with no duplicates (${pointLabel} violates that)`);
     }
     if (hasT) previousT = point.t;
     if (!isFiniteNumber(point.scale) || point.scale <= 0) {
-      fail(`${pointLabel}.scale は 0 より大きい有限数である必要があります`);
+      fail(`${pointLabel}.scale must be a finite number > 0`);
     }
     for (const field of ["cx", "cy"]) {
       if (hasOwn(point, field) && (!isFiniteNumber(point[field]) || point[field] < 0 || point[field] > 1)) {
-        fail(`${pointLabel}.${field} は 0 から 1 の範囲の有限数である必要があります`);
+        fail(`${pointLabel}.${field} must be a finite number from 0 to 1`);
       }
     }
   });
@@ -1338,48 +1338,48 @@ function validateCutFreeze(cut, label) {
   const value = cut.freeze;
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail(`${label}.freeze は object である必要があります`);
+    fail(`${label}.freeze must be an object`);
     return;
   }
   const allowedKeys = new Set(["at_sec", "duration_sec"]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label}.freeze に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label}.freeze has an unknown key: ${key}`);
   }
   const hasAt = isFiniteNumber(value.at_sec) && value.at_sec >= 0;
   if (!hasAt) {
-    fail(`${label}.freeze.at_sec は 0 以上の有限数である必要があります`);
+    fail(`${label}.freeze.at_sec must be a finite number >= 0`);
   }
   if (!isFiniteNumber(value.duration_sec) || value.duration_sec <= 0) {
-    fail(`${label}.freeze.duration_sec は 0 より大きい有限数である必要があります`);
+    fail(`${label}.freeze.duration_sec must be a finite number > 0`);
   }
   if (hasAt && isFiniteNumber(cut.in) && isFiniteNumber(cut.out) && cut.out > cut.in) {
     const speed = isFiniteNumber(cut.speed) && cut.speed > 0 ? cut.speed : 1;
     const base = (cut.out - cut.in) / speed;
     if (value.at_sec > base + 1e-9) {
-      fail(`${label}.freeze.at_sec はカットの再生尺（${base}秒）を超えられません`);
+      fail(`${label}.freeze.at_sec cannot exceed the cut duration (${base}s)`);
     }
   }
 }
 
 function validateCutTransform(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set(["x", "y", "scale", "scaleX", "scaleY", "rotate"]);
   for (const key of Object.keys(value)) {
     if (!allowedKeys.has(key)) {
-      fail(`${label} に未知のキーがあります: ${key}`);
+      fail(`${label} has an unknown key: ${key}`);
     }
   }
   for (const field of ["x", "y", "rotate"]) {
     if (hasOwn(value, field) && !isFiniteNumber(value[field])) {
-      fail(`${label}.${field} は有限数である必要があります`);
+      fail(`${label}.${field} must be a finite number`);
     }
   }
   for (const key of ["scale", "scaleX", "scaleY"]) {
     if (hasOwn(value, key) && (!isFiniteNumber(value[key]) || value[key] <= 0)) {
-      fail(`${label}.${key} は 0 より大きい有限数である必要があります`);
+      fail(`${label}.${key} must be a finite number > 0`);
     }
   }
 }
@@ -1387,26 +1387,26 @@ function validateCutTransform(value, label) {
 function validateTransitionOut(value, label) {
   if (value === undefined || value === null) return;
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   if (!TRANSITION_TYPE_IDS.includes(value.type)) {
-    fail(`${label}.type は ${TRANSITION_TYPE_IDS.join("/")} のいずれかである必要があります`);
+    fail(`${label}.type must be one of ${TRANSITION_TYPE_IDS.join("/")}`);
   }
   if (!isFiniteNumber(value.duration) || value.duration <= 0) {
-    fail(`${label}.duration は 0 より大きい有限数である必要があります`);
+    fail(`${label}.duration must be a finite number > 0`);
   }
 }
 
 function validateProxy(value, label, required) {
   if (value === undefined && !required) return;
   if (value !== null && !isNonEmptyString(value)) {
-    fail(`${label} は null または空でない文字列である必要があります`);
+    fail(`${label} must be null or a non-empty string`);
   }
 }
 
 function validateNonEmptyString(value, label) {
-  if (!isNonEmptyString(value)) fail(`${label} は空でない文字列である必要があります`);
+  if (!isNonEmptyString(value)) fail(`${label} must be a non-empty string`);
 }
 
 function isRegularFile(filePath) {

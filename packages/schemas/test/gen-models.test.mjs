@@ -56,11 +56,11 @@ test("CLI は正本を受理し、引数違反を exit 2 にする", () => {
 
   const usage = spawnSync(process.execPath, [cliPath], { encoding: "utf8" });
   assert.equal(usage.status, 2);
-  assert.match(usage.stderr, /^使い方: /);
+  assert.match(usage.stderr, /^Usage: /);
 
   const help = spawnSync(process.execPath, [cliPath, "--help"], { encoding: "utf8" });
   assert.equal(help.status, 0, help.stderr);
-  assert.match(help.stdout, /^使い方: /);
+  assert.match(help.stdout, /^Usage: /);
 });
 
 test("CLI は id 重複と価格解像度の不整合を拒否する", () => {
@@ -71,7 +71,7 @@ test("CLI は id 重複と価格解像度の不整合を拒否する", () => {
   writeFileSync(target, `${JSON.stringify(invalid, null, 2)}\n`, "utf8");
   const executed = spawnSync(process.execPath, [cliPath, target], { encoding: "utf8" });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /id が重複しています/);
+  assert.match(executed.stderr, /id is duplicated/);
   assert.match(executed.stderr, /price\.by_resolution\.unknown/);
 });
 

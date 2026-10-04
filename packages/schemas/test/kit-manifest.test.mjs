@@ -45,12 +45,12 @@ test("validate-kit-manifest accepts the valid fixture", () => {
 });
 
 const invalidCases = [
-  ["kit-manifest-v1-invalid-missing-required", /必須フィールドがありません: license/],
-  ["kit-manifest-v1-invalid-kind", /kind は "kit" である必要があります/],
-  ["kit-manifest-v1-invalid-skill-dir", /skills\[0\]\.dir が見つかりません/],
-  ["kit-manifest-v1-invalid-skill-name", /SKILL\.md frontmatter の name が一致しません/],
-  ["kit-manifest-v1-invalid-runtime", /未登録の runtime id があります: no-such-runtime/],
-  ["kit-manifest-v1-name-collision", /公開スキル名と重複しています: edit-lint/],
+  ["kit-manifest-v1-invalid-missing-required", /is missing a required field: license/],
+  ["kit-manifest-v1-invalid-kind", /kind must be "kit"/],
+  ["kit-manifest-v1-invalid-skill-dir", /skills\[0\]\.dir was not found/],
+  ["kit-manifest-v1-invalid-skill-name", /does not match the name in SKILL\.md frontmatter/],
+  ["kit-manifest-v1-invalid-runtime", /unregistered runtime id: no-such-runtime/],
+  ["kit-manifest-v1-name-collision", /duplicates a public skill name: edit-lint/],
 ];
 
 for (const [fixture, message] of invalidCases) {

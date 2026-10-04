@@ -16,9 +16,9 @@ import { audioLevelProject, formatAudioLevelTable } from "../src/audio-level.mjs
 
 const commands = ["probe", "grab", "filmstrip", "waveform", "transcribe", "transcribe-diff", "transcribe-cuts", "audio-level"];
 const usage = [
-  "使い方: akari media <subcommand> <target> [options]",
+  "Usage: akari media <subcommand> <target> [options]",
   "",
-  "サブコマンド:",
+  "Subcommands:",
   ...commands.map((command) => command === "transcribe" ? "  transcribe <target> [--no-snap]" : `  ${command}`),
   "  transcribe-diff <target> [--engines a,b,c]",
   "  transcribe-cuts <target> [--basis b] [--filler on] [--redo on] [--silence-min 1.5] [--silence-break 3.0] [--silence-keep 0.5]",
@@ -33,12 +33,12 @@ export async function runMediaCli(argv, options = {}) {
   }
   const [subcommand, target, ...rest] = argv;
   if (!commands.includes(subcommand)) {
-    stderr(`不明な media サブコマンドです: ${subcommand}`);
+    stderr(`Unknown media subcommand: ${subcommand}`);
     stderr(usage);
     return 1;
   }
   if (!target || target.startsWith("-")) {
-    stderr(`${subcommand}: target が必要です`);
+    stderr(`${subcommand}: target is required`);
     return 1;
   }
   try {
@@ -111,7 +111,7 @@ function parseOptions(subcommand, argv) {
         index += 1;
         consumed += 1;
       }
-      if (consumed === 0) throw new Error("-t の値が必要です");
+      if (consumed === 0) throw new Error("-t needs a value");
       continue;
     }
     if (subcommand === "grab" && argument === "--separate") {
@@ -127,13 +127,13 @@ function parseOptions(subcommand, argv) {
     const valueOptions = allowedValueOptions(subcommand);
     if (Object.hasOwn(valueOptions, argument)) {
       const value = argv[index + 1];
-      if (value === undefined || value.startsWith("--")) throw new Error(`${argument} の値が必要です`);
+      if (value === undefined || value.startsWith("--")) throw new Error(`${argument} requires a value`);
       const [key, parser] = valueOptions[argument];
       options[key] = parser(value, argument);
       index += 1;
       continue;
     }
-    throw new Error(`${subcommand}: 不明なオプションです: ${argument}`);
+    throw new Error(`${subcommand}: Unknown option: ${argument}`);
   }
   validateOptionCombinations(subcommand, options);
   return options;
@@ -183,32 +183,32 @@ function jsonObjectValue(value, label) {
   try {
     parsed = JSON.parse(value);
   } catch {
-    throw new Error(`${label} は JSON object で指定してください`);
+    throw new Error(`${label} must be a JSON object`);
   }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error(`${label} は JSON object で指定してください`);
+    throw new Error(`${label} must be a JSON object`);
   }
   return parsed;
 }
 
 function integerValue(value, label) {
   const parsed = Number(value);
-  if (!Number.isInteger(parsed)) throw new Error(`${label} は整数で指定してください`);
+  if (!Number.isInteger(parsed)) throw new Error(`${label} must be an integer`);
   return parsed;
 }
 
 function numberValue(value, label) {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) throw new Error(`${label} は数値で指定してください`);
+  if (!Number.isFinite(parsed)) throw new Error(`${label} must be a number`);
   return parsed;
 }
 
 function validateOptionCombinations(subcommand, options) {
   if (subcommand === "filmstrip" && options.every !== undefined && (options.count !== undefined || options.scenes !== undefined)) {
-    throw new Error("--every は --count / --scenes と併用できません");
+    throw new Error("--every cannot be combined with --count / --scenes");
   }
   if (options.perSheet !== undefined && (options.perSheet < 1 || options.perSheet > 12)) {
-    throw new Error("--per-sheet は 1〜12 で指定してください");
+    throw new Error("--per-sheet must be between 1 and 12");
   }
 }
 

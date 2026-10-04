@@ -179,11 +179,11 @@ export function buildEyeBarGroups(options) {
   const warnings = [];
 
   if (!track || track.kind !== "face-landmarks") {
-    return { ok: false, reason: "track.kind が face-landmarks ではありません" };
+    return { ok: false, reason: "track.kind is not face-landmarks" };
   }
   const samples = Array.isArray(track.samples) ? track.samples.slice().sort((a, b) => a.t - b.t) : [];
   if (samples.length === 0) {
-    return { ok: false, reason: "face_landmarks トラックに samples がありません" };
+    return { ok: false, reason: "The face_landmarks track has no samples" };
   }
 
   const times = samples.map((s) => Number(s.t));
@@ -193,7 +193,7 @@ export function buildEyeBarGroups(options) {
 
   let detectedValid = detections.map((d) => hasPupils(d));
   if (!detectedValid.some(Boolean)) {
-    return { ok: false, reason: `face index ${faceIndex} の検出（瞳ランドマーク）が 1 フレームもありません` };
+    return { ok: false, reason: `face index ${faceIndex} has no detection (pupil landmarks) in any frame` };
   }
   // 検出できたフレームだけ、いったん幾何（center/angle/length）を計算しておく（後段の外れ値
   // 検出・ホールド埋めの両方がこのキャッシュを共有する — 同じ landmarks から二重に計算しない）。
@@ -212,9 +212,9 @@ export function buildEyeBarGroups(options) {
   const rejectedOutlierCount = detectedValid.filter(Boolean).length - validFlags.filter(Boolean).length;
   if (rejectedOutlierCount > 0) {
     warnings.push(
-      `${rejectedOutlierCount} フレームを角度の外れ値として棄却しホールドで埋めました`
-        + `（直前採用値から ${outlierMaxAngleJumpDeg}° を超える瞬時ジャンプ — 瞳の取り違え等の`
-        + "誤検出とみなす。--outlier-max-angle-jump 0 で無効化できます）。",
+      `${rejectedOutlierCount} frames were rejected as angle outliers and filled by holding the last value `
+        + `(an instant jump of more than ${outlierMaxAngleJumpDeg}° from the last accepted value is treated as a `
+        + "false detection such as swapped pupils; use --outlier-max-angle-jump 0 to disable).",
     );
   }
 
@@ -248,21 +248,21 @@ export function buildEyeBarGroups(options) {
 
   const allRuns = runsInTimelineOrder(sourceCutRuns(cuts, sourceId));
   if (allRuns.length === 0) {
-    return { ok: false, reason: "cuts[] の中に対象 source を参照するカットがありません" };
+    return { ok: false, reason: "No cut in cuts[] references the target source" };
   }
   const supportedRuns = [];
   for (const run of allRuns) {
     if (cutHasUnsupportedFraming(run.cut)) {
       warnings.push(
-        `cut (in=${run.cut.in}, out=${run.cut.out}) は framing キーフレームを宣言しており、`
-          + "v0 の目線黒帯は空間写像を保証できないためこの区間をスキップしました（別レイヤーの境界として扱う）。",
+        `cut (in=${run.cut.in}, out=${run.cut.out}) declares framing keyframes, `
+          + "and the v0 eye bar cannot guarantee the spatial mapping, so this span was skipped (treated as a boundary between layers).",
       );
       continue;
     }
     supportedRuns.push(run);
   }
   if (supportedRuns.length === 0) {
-    return { ok: false, reason: "対象カットはすべて framing 付きで、v0 の目線黒帯は対応できません" };
+    return { ok: false, reason: "All target cuts have framing, which the v0 eye bar does not support" };
   }
 
   // 出力タイムライン上で隣接（またはほぼ隣接）する run をひとまとめにする — 同一区間の連続表示は

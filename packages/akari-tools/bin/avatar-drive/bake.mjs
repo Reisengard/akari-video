@@ -18,11 +18,11 @@ function composeVariant(spriteSet, mouth, eyes, ffmpegCommand) {
     "-map", "[out]", "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1",
   ], { encoding: null, maxBuffer: width * height * 4 + 1024 * 1024 });
   if (result.error || result.status !== 0) {
-    throw new Error(`スプライト合成に失敗しました (${mouth}/${eyes}): `
+    throw new Error(`Sprite compositing failed (${mouth}/${eyes}): `
       + String(result.stderr || result.error?.message).trim());
   }
   const expected = width * height * 4;
-  if (result.stdout.length !== expected) throw new Error(`合成フレームの byte 数が不正です: ${result.stdout.length} != ${expected}`);
+  if (result.stdout.length !== expected) throw new Error(`Composited frame has an unexpected byte count: ${result.stdout.length} != ${expected}`);
   return result.stdout;
 }
 
@@ -84,17 +84,17 @@ export async function bakeAvatarClip({
   spriteSet, mouthStates, eyeStates, fps, outPath, motionFrames = null, partFrames = null,
   partTransitions = null, mouthTransitionFrames = 0,
 }, { ffmpegCommand } = {}) {
-  if (mouthStates.length !== eyeStates.length || mouthStates.length === 0) throw new Error("口と目の状態列の長さが一致しません");
+  if (mouthStates.length !== eyeStates.length || mouthStates.length === 0) throw new Error("Mouth and eye state sequences differ in length");
   if (motionFrames !== null && motionFrames.length !== mouthStates.length) {
-    throw new Error("モーション列と口状態列の長さが一致しません");
+    throw new Error("Motion sequence and mouth state sequence differ in length");
   }
   const command = ffmpegCommand ?? resolveFfmpeg();
   if (spriteSet.kind === "parts-v2") {
     if (!Array.isArray(partFrames) || partFrames.length !== mouthStates.length) {
-      throw new Error("parts.json v2 のパーツ変換列と口状態列の長さが一致しません");
+      throw new Error("parts.json v2 part transform sequence and mouth state sequence differ in length");
     }
     if (partTransitions !== null && (!Array.isArray(partTransitions) || partTransitions.length !== mouthStates.length)) {
-      throw new Error("parts.json v2 の口遷移列と口状態列の長さが一致しません");
+      throw new Error("parts.json v2 mouth transition sequence and mouth state sequence differ in length");
     }
     const decoded = decodePartImages(spriteSet, command);
     const margin = partTransitions === null
@@ -128,7 +128,7 @@ export async function bakeAvatarClip({
     }
     child.stdin.end();
     const [status] = await once(child, "close");
-    if (status !== 0) throw new Error(`parts.json v2 アルファ付きクリップのベイクに失敗しました: ${stderr.trim()}`);
+    if (status !== 0) throw new Error(`Baking the parts.json v2 clip with alpha failed: ${stderr.trim()}`);
     return { outPath, frameCount: mouthStates.length, width, height, margin, variants: variants.size };
   }
   const transitions = mouthTransitionFrames > 0
@@ -175,6 +175,6 @@ export async function bakeAvatarClip({
   }
   child.stdin.end();
   const [status] = await once(child, "close");
-  if (status !== 0) throw new Error(`アルファ付きクリップのベイクに失敗しました: ${stderr.trim()}`);
+  if (status !== 0) throw new Error(`Baking the clip with alpha failed: ${stderr.trim()}`);
   return { outPath, frameCount: mouthStates.length, width, height, margin, variants: variants.size };
 }

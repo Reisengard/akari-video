@@ -29,7 +29,7 @@ function presetCenter(position, outputWidth, outputHeight, scaledWidth, scaledHe
     },
     center: { x: outputWidth / 2, y: outputHeight / 2 },
   };
-  if (!centers[position]) throw new Error(`--position が不正です: ${position}`);
+  if (!centers[position]) throw new Error(`--position is invalid: ${position}`);
   return centers[position];
 }
 
@@ -37,7 +37,7 @@ export function buildAvatarLayer({
   projectRoot, outPath, outputWidth, outputHeight, sprite, duration,
   position = "right-bottom", scale = 1, margin = 48, id = "avatar-drive-0", profile,
 }) {
-  if (!(scale > 0)) throw new Error("--scale は正数である必要があります");
+  if (!(scale > 0)) throw new Error("--scale must be a positive number");
   const scaledWidth = sprite.size.width * scale;
   const scaledHeight = sprite.size.height * scale;
   const explicit = explicitAnchorTarget(position);

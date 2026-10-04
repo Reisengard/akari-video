@@ -39,9 +39,9 @@ test("capture discovers the project ancestor and unions -t/--auto on the frame g
       [0, 2.9],
     );
     assert.deepEqual(warnings, [
-      "capture: t=4.5 はタイムライン長 3.0s を超えるため 2.9s に丸めました",
-      "capture: t=11 はタイムライン長 3.0s を超えるため 2.9s に丸めました",
-      "capture: t=11 は t=4.5 と同じ 2.9s のフレームになるため重複を除きました",
+      "capture: t=4.5 is beyond the timeline length 3.0s, so it was rounded to 2.9s",
+      "capture: t=11 is beyond the timeline length 3.0s, so it was rounded to 2.9s",
+      "capture: t=11 gives the same frame as t=4.5 (2.9s), so the duplicate was dropped",
     ]);
   } finally {
     await rm(root, { recursive: true, force: true });

@@ -37,14 +37,14 @@ export function resolveTargetSourceId(trackFilePath, track, editPath, edit, expl
     if (matches.length === 0) {
       return {
         ok: false,
-        reason: `edit.json の sources[] にトラックの参照元動画（${trackSourceAbs}）と一致するものが`
-          + "見つかりません。--source-id で明示してください。",
+        reason: `No entry in edit.json sources[] matches the track's source video (${trackSourceAbs}). `
+          + "Specify one with --source-id.",
       };
     }
     return {
       ok: false,
-      reason: `edit.json の sources[] に同一パスの source が複数あり一意に決まりません`
-        + "（--source-id で明示してください）。",
+      reason: `Multiple sources in edit.json sources[] have the same path, so the choice is ambiguous `
+        + "(specify one with --source-id).",
     };
   }
 
@@ -59,8 +59,8 @@ export function resolveTargetSourceId(trackFilePath, track, editPath, edit, expl
         ok: true,
         sourceId: null,
         warning:
-          `edit.json.source.path（${singleSourcePath}）とトラックの参照元（${trackSourceAbs}）が`
-          + "一致しません。v0 は単一 source 前提のため続行しますが、意図した動画か確認してください。",
+          `edit.json.source.path (${singleSourcePath}) does not match the track's source (${trackSourceAbs}). `
+          + "Continuing because v0 assumes a single source, but check that this is the intended video.",
       };
     }
   }

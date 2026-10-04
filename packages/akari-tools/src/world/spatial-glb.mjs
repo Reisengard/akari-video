@@ -157,11 +157,11 @@ export function renderSpatialWorldHtml(map, model = "assets/world/world.glb") {
 function importGlb(gltf, chunks, getByteLength, setByteLength, item) {
   const parsed = parseGlb(item.buffer);
   const source = parsed.json;
-  if ((source.buffers?.length ?? 0) > 1) throw new Error(`world item ${item.id} の GLB は複数 buffer に未対応です`);
+  if ((source.buffers?.length ?? 0) > 1) throw new Error(`The GLB of world item ${item.id} has multiple buffers, which is not supported`);
   const supportedExtensions = new Set(["KHR_materials_unlit", "KHR_materials_emissive_strength"]);
   const unsupported = (source.extensionsRequired ?? []).filter((name) => !supportedExtensions.has(name));
-  if (unsupported.length) throw new Error(`world item ${item.id} の GLB は必須 extension に未対応です: ${unsupported.join(", ")}`);
-  if ((source.images ?? []).some((image) => image.uri !== undefined)) throw new Error(`world item ${item.id} の GLB は画像を BIN chunk に埋め込む必要があります`);
+  if (unsupported.length) throw new Error(`The GLB of world item ${item.id} requires an unsupported extension: ${unsupported.join(", ")}`);
+  if ((source.images ?? []).some((image) => image.uri !== undefined)) throw new Error(`The GLB of world item ${item.id} must embed images in the BIN chunk`);
   let byteLength = getByteLength();
   while (byteLength % 4) { chunks.push(Buffer.alloc(1)); byteLength += 1; }
   const baseOffset = byteLength;
@@ -193,13 +193,13 @@ function importGlb(gltf, chunks, getByteLength, setByteLength, item) {
 }
 
 function parseGlb(buffer) {
-  if (buffer.readUInt32LE(0) !== 0x46546c67 || buffer.readUInt32LE(4) !== 2) throw new Error("world item は glTF 2.0 GLB である必要があります");
+  if (buffer.readUInt32LE(0) !== 0x46546c67 || buffer.readUInt32LE(4) !== 2) throw new Error("world item must be a glTF 2.0 GLB");
   const jsonLength = buffer.readUInt32LE(12);
-  if (buffer.readUInt32LE(16) !== 0x4e4f534a) throw new Error("GLB の JSON chunk がありません");
+  if (buffer.readUInt32LE(16) !== 0x4e4f534a) throw new Error("The GLB has no JSON chunk");
   const json = JSON.parse(buffer.subarray(20, 20 + jsonLength).toString("utf8").trim());
   const binaryHeader = 20 + jsonLength;
   const binaryLength = buffer.readUInt32LE(binaryHeader);
-  if (buffer.readUInt32LE(binaryHeader + 4) !== 0x004e4942) throw new Error("GLB の BIN chunk がありません");
+  if (buffer.readUInt32LE(binaryHeader + 4) !== 0x004e4942) throw new Error("The GLB has no BIN chunk");
   return { json, binary: buffer.subarray(binaryHeader + 8, binaryHeader + 8 + binaryLength) };
 }
 
