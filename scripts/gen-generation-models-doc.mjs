@@ -1,41 +1,79 @@
 #!/usr/bin/env node
-// packages/schemas/gen-models.json から日英の生成モデル一覧を再生成する。
-// マーカーコメント間だけを書き換え、--check では差分の有無だけを検査する。
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export const BEGIN = '<!-- BEGIN GENERATED generation-models — scripts/gen-generation-models-doc.mjs が生成。手で編集しない -->';
+const BLOCK_START = '<!-- BEGIN GENERATED generation-models';
+export const BEGIN = '<!-- BEGIN GENERATED generation-models -->';
 export const END = '<!-- END GENERATED generation-models -->';
 
 const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const markerPattern = new RegExp(`${escapeRegExp(BEGIN)}[\\s\\S]*?${escapeRegExp(END)}`);
+const markerPattern = new RegExp(`${escapeRegExp(BLOCK_START)}[\\s\\S]*?${escapeRegExp(END)}`);
 const cell = (value) => String(value).replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
 const list = (values, empty) => values === null ? empty : values.join(', ');
 const number = (value) => String(value);
+// A Windows checkout rewrites the working copy as CRLF. That is not drift.
+const lf = (text) => text.replace(/\r\n/g, '\n');
 
-const words = {
-  ja: {
-    videoHeading: '動画モデル', imageHeading: '画像モデル',
-    videoHeaders: ['id', 'family', 'provider', '最初のフレーム', '最後のフレーム', '参照画像 max', '参照動画 max', '参照音声 max', '尺', '解像度', '音声出力', 'seed', '価格', 'as_of', 'verified', '較正'],
-    imageHeaders: ['id', 'family', 'provider', '参照画像 max', '解像度', '価格', 'as_of', 'verified'],
-    format: '書式', default: '既定', noDefault: '既定なし', integer: '整数', string: '文字列', stringSuffix: '文字列（8s 形式）', stringAuto: '文字列（auto 可）',
-    resolutions: '解像度', aspects: '縦横比', notSpecified: '指定なし',
-    audioTrue: '切替可', audioAlways: '常に付く', audioFalse: 'なし', yes: 'あり', no: 'なし',
-    units: { usd_per_second: '$/秒', usd_per_image: '$/画像', usd_per_clip: '$/クリップ' },
-    audioMultiplier: '音声', calibrationCount: (count) => `${count} 件`, calibrationSeparator: '、'
-  },
-  en: {
-    videoHeading: 'Video models', imageHeading: 'Image models',
-    videoHeaders: ['id', 'family', 'provider', 'First frame', 'Last frame', 'Reference images max', 'Reference videos max', 'Reference audio max', 'Duration', 'Resolution', 'Audio output', 'seed', 'Price', 'as_of', 'verified', 'Calibration'],
-    imageHeaders: ['id', 'family', 'provider', 'Reference images max', 'Resolution', 'Price', 'as_of', 'verified'],
-    format: 'format', default: 'default', noDefault: 'no default', integer: 'integer', string: 'string', stringSuffix: 'string (8s format)', stringAuto: 'string (auto allowed)',
-    resolutions: 'resolutions', aspects: 'aspects', notSpecified: 'not specified',
-    audioTrue: 'switchable', audioAlways: 'always included', audioFalse: 'none', yes: 'yes', no: 'no',
-    units: { usd_per_second: '$/second', usd_per_image: '$/image', usd_per_clip: '$/clip' },
-    audioMultiplier: 'audio', calibrationCount: (count) => `${count} ${count === 1 ? 'entry' : 'entries'}`, calibrationSeparator: ', '
+const JA_STRING_KEYS = [
+  'videoHeading', 'imageHeading', 'format', 'default', 'noDefault', 'integer', 'string',
+  'stringSuffix', 'stringAuto', 'resolutions', 'aspects', 'notSpecified', 'audioTrue',
+  'audioAlways', 'audioFalse', 'yes', 'no', 'audioMultiplier', 'calibrationUnit',
+  'calibrationSeparator', 'rangeDash', 'rangeOpen', 'rangeClose'
+];
+
+const englishWords = {
+  videoHeading: 'Video models', imageHeading: 'Image models',
+  videoHeaders: ['id', 'family', 'provider', 'First frame', 'Last frame', 'Reference images max', 'Reference videos max', 'Reference audio max', 'Duration', 'Resolution', 'Audio output', 'seed', 'Price', 'as_of', 'verified', 'Calibration'],
+  imageHeaders: ['id', 'family', 'provider', 'Reference images max', 'Resolution', 'Price', 'as_of', 'verified'],
+  format: 'format', default: 'default', noDefault: 'no default', integer: 'integer', string: 'string', stringSuffix: 'string (8s format)', stringAuto: 'string (auto allowed)',
+  resolutions: 'resolutions', aspects: 'aspects', notSpecified: 'not specified',
+  audioTrue: 'switchable', audioAlways: 'always included', audioFalse: 'none', yes: 'yes', no: 'no',
+  units: { usd_per_second: '$/second', usd_per_image: '$/image', usd_per_clip: '$/clip' },
+  audioMultiplier: 'audio', calibrationUnits: ['entry', 'entries'], calibrationSeparator: ', ',
+  rangeDash: '-', rangeOpen: ' (step ', rangeClose: ')'
+};
+
+const needString = (words, key) => {
+  if (typeof words[key] !== 'string' || words[key].length === 0) {
+    throw new Error(`Japanese generation-model words missing ${key}`);
   }
+};
+
+const loadJaWords = () => {
+  const raw = readFileSync(join(root, 'docs/guides/generation-model-words.ja.json'), 'utf8');
+  let words;
+  try {
+    words = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`Japanese generation-model words are not JSON: ${error.message}`);
+  }
+  if (!words || typeof words !== 'object' || Array.isArray(words)) {
+    throw new Error('Japanese generation-model words must be an object');
+  }
+  for (const key of JA_STRING_KEYS) needString(words, key);
+  for (const key of ['videoHeaders', 'imageHeaders']) {
+    if (!Array.isArray(words[key]) || words[key].some((item) => typeof item !== 'string' || item.length === 0)) {
+      throw new Error(`Japanese generation-model words missing ${key}`);
+    }
+  }
+  const units = words.units;
+  if (!units || typeof units !== 'object' || Array.isArray(units)) {
+    throw new Error('Japanese generation-model words missing units');
+  }
+  for (const key of ['usd_per_second', 'usd_per_image', 'usd_per_clip']) {
+    if (typeof units[key] !== 'string' || units[key].length === 0) {
+      throw new Error(`Japanese generation-model words missing units.${key}`);
+    }
+  }
+  return words;
+};
+
+const wordsFor = (locale) => {
+  if (locale === 'en') return englishWords;
+  if (locale === 'ja') return loadJaWords();
+  throw new Error(`unsupported locale: ${locale}`);
 };
 
 const frame = (value) => ({ required: '○', optional: '△', none: '−' })[value];
@@ -51,7 +89,7 @@ const durationFormat = (format, w) => {
 const duration = (value, w) => {
   const range = value.kind === 'enum'
     ? value.values.map(number).join('/')
-    : `${number(value.min)}〜${number(value.max)}（step ${number(value.step)}）`;
+    : `${number(value.min)}${w.rangeDash}${number(value.max)}${w.rangeOpen}${number(value.step)}${w.rangeClose}`;
   const defaultValue = value.default === null ? w.noDefault : `${w.default}: ${number(value.default)}`;
   return `${range}; ${w.format}: ${durationFormat(value.format, w)}; ${defaultValue}`;
 };
@@ -72,9 +110,11 @@ const price = (value, w) => {
   return amounts.join('; ');
 };
 
-const calibration = (values, w) => values.length === 0
-  ? w.calibrationCount(0)
-  : `${w.calibrationCount(values.length)}: ${values.join(w.calibrationSeparator)}`;
+const calibration = (values, w) => {
+  const unit = w.calibrationUnits ? w.calibrationUnits[values.length === 1 ? 0 : 1] : w.calibrationUnit;
+  const label = `${values.length} ${unit}`;
+  return values.length === 0 ? label : `${label}: ${values.join(w.calibrationSeparator)}`;
+};
 
 const markdownTable = (headers, rows) => [
   `| ${headers.map(cell).join(' | ')} |`,
@@ -82,9 +122,7 @@ const markdownTable = (headers, rows) => [
   ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`)
 ].join('\n');
 
-export const buildGeneratedBlock = (models, locale) => {
-  const w = words[locale];
-  if (!w) throw new Error(`unsupported locale: ${locale}`);
+export const buildGeneratedBlock = (models, w) => {
   const videos = models.filter((model) => model.kind === 'video').map((model) => [
     model.id,
     model.family,
@@ -129,8 +167,8 @@ export const buildGeneratedBlock = (models, locale) => {
 };
 
 export const renderDocument = (current, models, locale) => {
-  if (!markerPattern.test(current)) throw new Error('マーカーが見つからない');
-  return `${current.replace(markerPattern, buildGeneratedBlock(models, locale)).replace(/\n*$/, '')}\n`;
+  if (!markerPattern.test(current)) throw new Error('generation-models markers not found');
+  return `${current.replace(markerPattern, buildGeneratedBlock(models, wordsFor(locale))).replace(/\n*$/, '')}\n`;
 };
 
 const fail = (msg) => { console.error(`gen-generation-models-doc: ${msg}`); process.exit(1); };
@@ -143,18 +181,20 @@ const main = () => {
       { path: join(root, 'docs/guides/generation-models.md'), locale: 'en' }
     ];
     const results = targets.map((target) => {
-      const current = readFileSync(target.path, 'utf8');
+      const current = lf(readFileSync(target.path, 'utf8'));
       return { ...target, current, next: renderDocument(current, catalog.models, target.locale) };
     });
     if (process.argv.includes('--check')) {
       if (results.some(({ current, next }) => current !== next)) {
-        fail('生成モデル一覧がドリフトしています。`npm run gen:generation-models` で再生成してコミットしてください');
+        fail('generation model list drifted. Run `npm run gen:generation-models` and commit the result');
       }
-      console.log(`gen-generation-models-doc: drift なし（${catalog.models.length} 件）`);
+      console.log(`gen-generation-models-doc: no drift (${catalog.models.length} models)`);
       return;
     }
-    for (const { path, next } of results) writeFileSync(path, next);
-    console.log(`gen-generation-models-doc: ${catalog.models.length} 件で再生成`);
+    for (const { path, current, next } of results) {
+      if (current !== next) writeFileSync(path, next);
+    }
+    console.log(`gen-generation-models-doc: regenerated ${catalog.models.length} models`);
   } catch (error) {
     fail(error.message);
   }

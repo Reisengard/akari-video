@@ -1,4 +1,4 @@
-**English** | [日本語](./edit-json-access.ja.md)
+**English** | [Japanese](./edit-json-access.ja.md)
 
 # How the agent reads edit.json
 
@@ -27,7 +27,7 @@ use `grep -n '"id": "c-0042"' captions.json`.
 - For a point change, Edit the matching line, then run `edit-lint <project>` as the save-time lint
   equivalent.
 - For a bulk change, write an `@akari-video/edit-store` script that follows
-  `openProject → modify → save()`. See the [README examples (Japanese)](../../packages/edit-store/README.md#例),
+  `openProject → modify → save()`. See the [README examples (Japanese)](../../packages/edit-store/README.md#%E4%BE%8B),
   [shift-captions-after.mjs](../../packages/edit-store/examples/shift-captions-after.mjs),
   [speed-up-group.mjs](../../packages/edit-store/examples/speed-up-group.mjs), and the read-only
   [tree-summary.mjs](../../packages/edit-store/examples/tree-summary.mjs).
@@ -44,10 +44,10 @@ container exceeds 1 MB, reconsider splitting it.
 
 ## Canonical wording (contract §5.2)
 
-The Japanese contract is the canonical source; its wording is reproduced verbatim below.
+The rules below are the English wording of contract §5.2. The Japanese page keeps the contract text.
 
-1. **edit.json / captions.json / motion/*.json を全文 Read しない**。`grep -n '"id": "<id>"'` → 該当行だけ Read → Edit。木の構造を見たいときは `grep -n '"kind": "group"\|"items": \['` のように外枠だけ読む
-2. 書き込みは (a) edit-store のスクリプト API（§6）経由、または (b) 該当行の直接 Edit + 保存時 lint（write-gate 相当を CLI で通す）。**どちらでも lint ゲートは必ず通る**
-3. 一括操作（「1:00 以降の字幕を 0.5 秒ずらす」等）は**AI がスクリプトを書く**（§6 の API を import）。前もって一括コマンドを用意しない
-4. 動きを書くときは L0 プリセット / L2 アニメーターを既定にする（数個の値で済む）。L1 の手打ちキーフレームは主に人間がフォーカスモードで作る
-5. **観察・手術のための CLI コマンド（`akari edit tree` / `move` / `group` …）は作らない**（オーナー裁定 2026-08-30。ファイルが API）
+1. **Do not Read edit.json, captions.json, or motion/*.json in full.** Run `grep -n '"id": "<id>"'`, then Read only the matching line, then Edit. To see the tree, read only the outer frame, for example `grep -n '"kind": "group"\|"items": \['`.
+2. Write through the edit-store script API in §6. Or Edit the matching line, then run save-time lint in the CLI. That lint is the write-gate equivalent. **Either path runs the lint gate.**
+3. For a bulk change, such as a 0.5 second shift of captions after 1:00, **the AI writes a script** that imports the §6 API. Do not add bulk commands in advance.
+4. When you write motion, use an L0 preset or the L2 animator. A few values are enough. A person in focus mode writes L1 keyframes by hand.
+5. **Do not add CLI commands that inspect or edit the tree.** That includes `akari edit tree`, `move`, and `group`. The owner decided this on 2026-08-30. The file is the API.

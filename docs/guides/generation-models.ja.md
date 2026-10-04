@@ -9,7 +9,7 @@
 `as_of` から 90 日を過ぎた行は WARN 扱いとし、人が `source_url` を見直します。
 価格はドリフト検査の対象外なので、人が `price_url` を確認します。
 
-<!-- BEGIN GENERATED generation-models — scripts/gen-generation-models-doc.mjs が生成。手で編集しない -->
+<!-- BEGIN GENERATED generation-models -->
 
 ## 動画モデル
 
