@@ -23,20 +23,20 @@ export const INTAKE_TASK_IDS: readonly IntakeTaskId[] = [
 ];
 
 export const INTAKE_TASK_LABELS: Readonly<Record<IntakeTaskId, string>> = {
-    'transcribe-captions': '文字起こし・テロップ',
-    'silence-cut': 'いらない間・NG のカット',
-    'bgm-sfx': 'BGM・効果音',
-    narration: 'ナレーション（自分の声 / 既製の声）',
-    '3d-inserts': '3D・画面はめ込みの演出'
+    'transcribe-captions': 'Transcribe and captions',
+    'silence-cut': 'Cut silences and NG takes',
+    'bgm-sfx': 'BGM and sound effects',
+    narration: 'Narration',
+    '3d-inserts': '3D inserts'
 };
 
 /** モックの説明文（`<small>`）。schema には無い UI コピーなのでここが正。 */
 export const INTAKE_TASK_DESCRIPTIONS: Readonly<Record<IntakeTaskId, string>> = {
-    'transcribe-captions': '話した内容を自動で字幕に。日本語の座布団・改行も整える',
-    'silence-cut': '無音・言い直しを検出して詰める。カット位置は後から直せる',
-    'bgm-sfx': 'ライブラリから雰囲気に合う曲を。ナレーション中は自動で音量ダウン',
-    narration: '原稿から音声を生成。自分の声のクローンも使える',
-    '3d-inserts': 'スマホや PC の画面に映像をはめ込むショットなど'
+    'transcribe-captions': 'Turn speech into captions, with backgrounds and line breaks for Japanese text',
+    'silence-cut': 'Detect and trim silences and retakes. Adjust cuts afterward',
+    'bgm-sfx': 'Choose music from the library to match the mood. Lower its volume during narration',
+    narration: 'Generate speech from a script, including with a clone of your own voice',
+    '3d-inserts': 'Insert footage into phone and computer screens'
 };
 
 /** 既定でチェック済みにする 2 件（モックの初期状態）。 */
@@ -45,11 +45,11 @@ export const INTAKE_TASK_DEFAULTS: readonly IntakeTaskId[] = ['transcribe-captio
 export type IntakeDurationChoice = '15' | '30' | '60' | '180' | 'keep';
 
 export const INTAKE_DURATION_LABELS: Readonly<Record<IntakeDurationChoice, string>> = {
-    '15': '15 秒',
-    '30': '30 秒',
-    '60': '60 秒',
-    '180': '3 分まで',
-    keep: '切らずにそのまま'
+    '15': '15 seconds',
+    '30': '30 seconds',
+    '60': '60 seconds',
+    '180': 'Up to 3 minutes',
+    keep: 'Keep original length'
 };
 
 export const INTAKE_DURATION_ORDER: readonly IntakeDurationChoice[] = ['15', '30', '60', '180', 'keep'];
@@ -66,15 +66,15 @@ export function durationChoiceToTarget(choice: IntakeDurationChoice): { duration
 export type IntakeAutonomy = 'full-auto' | 'checkpoint' | 'collaborative';
 
 export const INTAKE_AUTONOMY_LABELS: Readonly<Record<IntakeAutonomy, string>> = {
-    'full-auto': 'そのまま',
-    checkpoint: '提案つき',
-    collaborative: '一緒に作る'
+    'full-auto': 'As is',
+    checkpoint: 'With suggestions',
+    collaborative: 'Make it together'
 };
 
 export const INTAKE_AUTONOMY_DESCRIPTIONS: Readonly<Record<IntakeAutonomy, string>> = {
-    'full-auto': '言った通りに入れて、見ずに書き出す',
-    checkpoint: '良さそうな物も入れて見せる。要らなければ消す。確認は書き出しの 1 回',
-    collaborative: '方針・素材・実行の要所で確認する'
+    'full-auto': 'Follow your instructions and export without review',
+    checkpoint: 'Add suitable suggestions and show them. Remove anything unwanted. Review once before export',
+    collaborative: 'Review key decisions about direction, footage, and execution'
 };
 
 export const INTAKE_AUTONOMY_ORDER: readonly IntakeAutonomy[] = ['full-auto', 'checkpoint', 'collaborative'];

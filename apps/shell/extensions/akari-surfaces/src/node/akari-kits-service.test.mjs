@@ -14,7 +14,7 @@ async function writeJson(filePath, value) {
     await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-test('台帳あり: kit 行を正規化する', async () => {
+test('Existing ledgers normalize kit rows', async () => {
     const homeDir = await temporaryHome();
     const akariHome = path.join(homeDir, 'custom-akari');
     await writeJson(path.join(akariHome, 'kits', 'installed.json'), {
@@ -28,13 +28,13 @@ test('台帳あり: kit 行を正規化する', async () => {
     assert.deepEqual(result.kits, [{ id: 'world-kit', version: 2, skills: ['design-world'], assetCount: 2 }]);
 });
 
-test('台帳なし: kits は空配列', async () => {
+test('Missing ledgers produce empty kits', async () => {
     const homeDir = await temporaryHome();
     const result = await readInstalledKits({ env: {}, homeDir });
     assert.deepEqual(result.kits, []);
 });
 
-test('壊れた台帳 JSON: kits は空配列', async () => {
+test('Malformed ledger JSON produces empty kits', async () => {
     const homeDir = await temporaryHome();
     const ledgerPath = path.join(homeDir, '.akari', 'kits', 'installed.json');
     await mkdir(path.dirname(ledgerPath), { recursive: true });
@@ -43,13 +43,13 @@ test('壊れた台帳 JSON: kits は空配列', async () => {
     assert.deepEqual(result.kits, []);
 });
 
-test('settings.json なし: pluginEnabled は null', async () => {
+test('Missing settings.json produces unknown plugin enablement', async () => {
     const homeDir = await temporaryHome();
     const result = await readInstalledKits({ env: {}, homeDir });
     assert.equal(result.pluginEnabled, null);
 });
 
-test('settings.json に plugin 鍵あり: pluginEnabled は true', async () => {
+test('Plugin keys in settings.json mark plugins enabled', async () => {
     const homeDir = await temporaryHome();
     const claudeConfigDir = path.join(homeDir, 'custom-claude');
     await writeJson(path.join(claudeConfigDir, 'settings.json'), {
@@ -59,7 +59,7 @@ test('settings.json に plugin 鍵あり: pluginEnabled は true', async () => {
     assert.equal(result.pluginEnabled, true);
 });
 
-test('読める settings.json に plugin 鍵なし: pluginEnabled は false', async () => {
+test('Readable settings without plugin keys mark plugins disabled', async () => {
     const homeDir = await temporaryHome();
     await writeJson(path.join(homeDir, '.claude', 'settings.json'), { enabledPlugins: {} });
     const result = await readInstalledKits({ env: {}, homeDir });

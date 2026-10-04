@@ -278,7 +278,7 @@ async function attachWhisperModelState(
         ...whisper,
         available: whisper.available && modelAvailable,
         model: { available: modelAvailable, path: modelPath },
-        needs: [...(!whisper.available ? ['本体が無い'] : []), ...(!modelAvailable ? ['モデルが無い'] : [])]
+        needs: [...(!whisper.available ? ['Executable missing'] : []), ...(!modelAvailable ? ['Model missing'] : [])]
     };
 }
 
@@ -344,12 +344,12 @@ async function detectSpeechAnalyzer(platform: NodeJS.Platform, repoRoot: string,
             if (!result.ok) { break; }
             const value = JSON.parse(result.stdout);
             if (value.available === true) { return { ...base, available: true }; }
-            const reason = String(value.reason ?? 'SpeechAnalyzer の利用条件を確認してください');
+            const reason = String(value.reason ?? 'Check SpeechAnalyzer requirements');
             if (/macOS.*26 未満/.test(reason)) { return { ...base, unsupported: true, needs: [reason] }; }
-            return { ...base, needs: [/swiftc/.test(reason) ? 'Command Line Tools が無い' : reason] };
+            return { ...base, needs: [/swiftc/.test(reason) ? 'Command Line Tools missing' : reason] };
         } catch { break; }
     }
-    return { ...base, needs: ['SpeechAnalyzer の利用可否を確認できませんでした'] };
+    return { ...base, needs: ['Could not check SpeechAnalyzer availability'] };
 }
 
 async function defaultPathExists(path: string): Promise<boolean> {

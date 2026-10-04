@@ -233,7 +233,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
                     button = document.createElement('button');
                     button.id = 'akari-show-changes';
                     button.type = 'button';
-                    button.textContent = '変更を見る';
+                    button.textContent = 'View changes';
                     button.addEventListener('click', () => post({ type: 'akari-show-changes' }));
                     document.body.appendChild(button);
                 }
@@ -249,7 +249,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
                 if (!active || active.element !== element || active.saving) return;
                 element.innerHTML = active.originalHtml;
                 finishEditing(element);
-                notify('編集を取り消しました');
+                notify('Edit cancelled');
             };
             const saveEditing = element => {
                 if (!active || active.element !== element || active.saving) return;
@@ -300,12 +300,12 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
                     pending.delete(message.requestId);
                     if (message.ok) {
                         finishEditing(request.element);
-                        notify('変更を保存しました');
+                        notify('Changes saved');
                         showChangesButton();
                     } else {
                         request.element.classList.remove('akari-block-saving');
                         if (active?.element === request.element) active.saving = false;
-                        notify(message.error || '変更を保存できませんでした', 'error');
+                        notify(message.error || 'Could not save changes', 'error');
                         request.element.focus();
                     }
                 } else if (message && message.type === 'akari-decision-state-changed') {
@@ -333,7 +333,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
                 document.querySelectorAll('[data-block-id]').forEach(element => {
                     element.classList.add('akari-editable-block');
                     element.tabIndex = 0;
-                    element.title = 'ダブルクリックで編集';
+                    element.title = 'Double-click to edit';
                 });
             });
             document.addEventListener('dblclick', event => {
@@ -404,7 +404,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
     protected async handleBlockEditRequest(widget: WebviewWidget, surfaceUri: URI, request: BlockEditRequest): Promise<void> {
         try {
             if (!request.blockId || request.blockId.length > 200 || request.text.length > 200_000) {
-                throw new Error('編集内容が大きすぎるか、ブロック ID が不正です。');
+                throw new Error('Edit is too large or the block ID is invalid.');
             }
             const targetUri = await this.editTargetUri(surfaceUri, request.blockId);
             const source = await this.readText(targetUri);
@@ -425,12 +425,12 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
             widget.sendMessage({ type: 'akari-block-edit-response', requestId: request.requestId, ok: true });
         } catch (error) {
             const detail = this.errorMessage(error);
-            this.messages.error(`変更を保存できませんでした: ${detail}`);
+            this.messages.error(`Could not save changes: ${detail}`);
             widget.sendMessage({
                 type: 'akari-block-edit-response',
                 requestId: request.requestId,
                 ok: false,
-                error: `変更を保存できませんでした: ${detail}`
+                error: `Could not save changes: ${detail}`
             });
         }
     }
@@ -440,14 +440,14 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
             const roots = await this.workspaceService.roots;
             const root = roots[0]?.resource;
             if (!root) {
-                throw new Error('先にプロジェクトを開いてください。');
+                throw new Error('Open a project first.');
             }
             return root.resolve('project/captions.json');
         }
         const path = surfaceUri.path.toString();
         const extension = surfaceUri.path.ext.toLowerCase();
         if (!path.includes('/planning/') || !['.md', '.html'].includes(extension)) {
-            throw new Error('このファイルはサーフェスから編集できません。');
+            throw new Error('This file cannot be edited from the surface.');
         }
         return surfaceUri;
     }
@@ -466,7 +466,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
                 const diffUri = DiffUris.encode(snapshotUri, new URI(targetUri));
                 await open(this.openerService, diffUri, { mode: 'activate' });
             } catch (error) {
-                this.messages.error(`変更を表示できませんでした: ${this.errorMessage(error)}`);
+                this.messages.error(`Could not display changes: ${this.errorMessage(error)}`);
             }
         }
     }
@@ -479,7 +479,7 @@ export class AkariSurfaceOpenHandler implements OpenHandler, FrontendApplication
         const root = roots.find(candidate => candidate.resource.isEqualOrParent(targetUri))?.resource;
         const relative = root?.relative(targetUri);
         if (!root || !relative) {
-            throw new Error('編集対象がプロジェクト内にありません。');
+            throw new Error('The edit target is outside the project.');
         }
         const relativePath = relative.toString();
         const snapshotFolder = root.resolve(`.akari/diffs/${Date.now()}`);

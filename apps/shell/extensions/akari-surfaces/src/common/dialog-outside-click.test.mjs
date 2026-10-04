@@ -7,12 +7,12 @@ const overlay = {};
 const block = {};
 
 for (const [name, down, click, button, expected] of [
-    ['外側の主ボタンクリックで閉じる', overlay, overlay, 0, true],
-    ['本体から外側へのドラッグ終端では閉じない', block, overlay, 0, false],
-    ['外側から本体へのクリックでは閉じない', overlay, block, 0, false],
-    ['本体内のクリックでは閉じない', block, block, 0, false],
-    ['右ボタンでは武装しない', overlay, overlay, 2, false],
-    ['中ボタンでは武装しない', overlay, overlay, 1, false]
+    ['Primary-button clicks outside close the dialog', overlay, overlay, 0, true],
+    ['Dragging from the dialog to outside does not close it', block, overlay, 0, false],
+    ['Clicks from outside to inside do not close it', overlay, block, 0, false],
+    ['Clicks inside do not close it', block, block, 0, false],
+    ['Secondary-button presses do not arm dismissal', overlay, overlay, 2, false],
+    ['Middle-button presses do not arm dismissal', overlay, overlay, 1, false]
 ]) {
     test(name, () => {
         const pressed = dialogOutsideClick(false, 'mousedown', down, overlay, button);
@@ -23,17 +23,17 @@ for (const [name, down, click, button, expected] of [
     });
 }
 
-test('mousedown のない単独 click では閉じない', () => {
+test('An isolated click without mousedown does not close', () => {
     assert.deepEqual(dialogOutsideClick(false, 'click', overlay, overlay, 0), { armed: false, close: false });
 });
 
-test('後続の mousedown で武装を更新し、主ボタン以外の click でも解除する', () => {
+test('A subsequent mousedown rearms; any click clears the armed state', () => {
     assert.deepEqual(dialogOutsideClick(true, 'mousedown', block, overlay, 0), { armed: false, close: false });
     assert.deepEqual(dialogOutsideClick(true, 'mousedown', overlay, overlay, 2), { armed: false, close: false });
     assert.deepEqual(dialogOutsideClick(true, 'click', overlay, overlay, 2), { armed: false, close: false });
 });
 
-test('ブラーと薄暗背景は設定オーバーレイだけに適用し、ページ切替も同じ範囲に閉じる', () => {
+test('Blur and dimming apply only within the settings overlay', () => {
     const css = AKARI_SETTINGS_DIALOG_CSS;
     assert.match(css, /backdrop-filter:\s*blur\(6px\)/);
     assert.match(css, /-webkit-backdrop-filter:\s*blur\(6px\)/);

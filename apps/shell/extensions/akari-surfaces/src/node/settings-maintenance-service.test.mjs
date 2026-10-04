@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { AkariSettingsMaintenanceServiceImpl, diagnosticEntries, diagnosticFileNameAt, zipEntries, sanitizeDiagnosticText, sanitizeDiagnosticJson } from '../../lib/node/settings-maintenance-service.js';
 
-test('診断 zip の固定エントリには API キーと個人パスを含めない', () => {
+test('Diagnostics ZIP entries exclude API keys and personal paths', () => {
     const entries = diagnosticEntries({ version: '1.2.3', os: 'Darwin' });
     const zip = zipEntries(entries);
     assert.deepEqual(Object.keys(entries), ['diagnostic.json']);
@@ -14,7 +14,7 @@ test('診断 zip の固定エントリには API キーと個人パスを含め�
     assert.equal(zip.includes(Buffer.from('/Users/')), false);
 });
 
-test('掃除は .akari/cache だけを消す', async t => {
+test('Cleanup removes only .akari/cache', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-settings-v3-'));
     const previous = process.env.AKARI_HOME; process.env.AKARI_HOME = join(root, 'akari-home');
     t.after(async () => { if (previous === undefined) { delete process.env.AKARI_HOME; } else { process.env.AKARI_HOME = previous; }
@@ -36,12 +36,12 @@ test('掃除は .akari/cache だけを消す', async t => {
     assert.equal((await service.measure(root)).entries.find(entry => entry.id === 'cache')?.bytes, 7);
 });
 
-test('診断 ZIP の既定名は書き出し時刻の分に従う', () => {
-    assert.equal(diagnosticFileNameAt(new Date(2026, 8, 23, 14, 32)), 'AKARI-診断-2026-09-23-1432.zip');
-    assert.equal(diagnosticFileNameAt(new Date(2026, 8, 23, 14, 36)), 'AKARI-診断-2026-09-23-1436.zip');
+test('Diagnostics ZIP names use the export timestamp minute', () => {
+    assert.equal(diagnosticFileNameAt(new Date(2026, 8, 23, 14, 32)), 'AKARI-diagnostics-2026-09-23-1432.zip');
+    assert.equal(diagnosticFileNameAt(new Date(2026, 8, 23, 14, 36)), 'AKARI-diagnostics-2026-09-23-1436.zip');
 });
 
-test('診断 zip は直近ログの時刻と重要度だけを残し、鍵と個人パスを捨てる', async t => {
+test('Diagnostics retain recent log time and severity while removing keys and personal paths', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-settings-diagnostics-'));
     const previous = process.env.AKARI_HOME;
     process.env.AKARI_HOME = root;
@@ -64,7 +64,7 @@ test('診断 zip は直近ログの時刻と重要度だけを残し、鍵と個
     assert.ok(zip.includes(Buffer.from('recent-logs.txt')));
 });
 
-test('診断 zip は旧い鍵ファイル由来の値も伏せる', async t => {
+test('Diagnostics also redact values from legacy credential files', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-settings-legacy-redaction-'));
     const original = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, AKARI_HOME: process.env.AKARI_HOME };
     Object.assign(process.env, { HOME: root, USERPROFILE: root, AKARI_HOME: join(root, 'akari-home') });
@@ -87,7 +87,7 @@ test('診断 zip は旧い鍵ファイル由来の値も伏せる', async t => {
     assert.ok(zip.includes(Buffer.from('[REDACTED]')));
 });
 
-test('匿名化はホーム・利用者名・sk/key/Bearer・JSON の鍵を伏せる', () => {
+test('Anonymization redacts home, username, sk/key/Bearer, and JSON credentials', () => {
     const options = { homeDir: '/Users/person', username: 'person', secretValues: ['from-credentials-env'] };
     const input = '/Users/person/video.mp4 sk-abcd1234 key=plain Bearer opaque from-credentials-env person';
     const value = sanitizeDiagnosticText(input, options);
@@ -100,7 +100,7 @@ test('匿名化はホーム・利用者名・sk/key/Bearer・JSON の鍵を伏�
     assert.equal(json.includes('/Users/person'), false);
 });
 
-test('掃除ターゲットは専用ディレクトリだけ。モデルと古い履歴の外へ出ない', async t => {
+test('Cleanup targets stay within dedicated model and old-history directories', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-settings-clean-target-'));
     const previous = process.env.AKARI_HOME; process.env.AKARI_HOME = join(root, 'akari-home');
     t.after(async () => { if (previous === undefined) { delete process.env.AKARI_HOME; } else { process.env.AKARI_HOME = previous; }

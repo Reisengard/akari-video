@@ -2,7 +2,7 @@ export interface ChatLine { kind: 'text' | 'code'; text: string }
 export interface ChatMessage { role: 'user' | 'assistant'; lines: ChatLine[] }
 
 export function groupChatLines(lines: string[]): { note?: string; messages: ChatMessage[] } {
-    const note = lines[0]?.startsWith('完成例です。') ? lines[0] : undefined;
+    const note = lines[0]?.startsWith('This is a finished example.') ? lines[0] : undefined;
     const messages: ChatMessage[] = [];
     for (const line of note ? lines.slice(1) : lines) {
         const role = line.startsWith('> ') ? 'user' : 'assistant';

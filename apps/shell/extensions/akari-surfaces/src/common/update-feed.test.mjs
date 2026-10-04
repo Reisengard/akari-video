@@ -41,30 +41,30 @@ const FEED_WITH_SHELL_ASSETS = {
     }
 };
 
-test('compareVersions: major.minor.patch を数値比較する', () => {
+test('compareVersions compares major, minor, and patch numerically', () => {
     assert.equal(compareVersions('0.2.0', '0.1.0'), 1);
     assert.equal(compareVersions('0.1.0', '0.1.0'), 0);
     assert.equal(compareVersions('0.1.0', '0.2.0'), -1);
-    assert.equal(compareVersions('0.10.0', '0.9.0'), 1, '桁数の異なる文字列比較にならないこと');
+    assert.equal(compareVersions('0.10.0', '0.9.0'), 1, '桁数の異なるCharacters列比較にならないこと');
 });
 
-test('isValidFeedShape: schema/product が揃っていれば true', () => {
+test('Feed shape requires matching schema and product', () => {
     assert.equal(isValidFeedShape(VALID_FEED), true);
     assert.equal(isValidFeedShape({ schema: 1 }), false, 'product が無ければ false');
     assert.equal(isValidFeedShape(null), false);
     assert.equal(isValidFeedShape('not an object'), false);
 });
 
-test('parseUpdateCache: 壊れた JSON は例外を投げず null', () => {
+test('parseUpdateCache returns null for malformed JSON without throwing', () => {
     assert.equal(parseUpdateCache('{ not json'), null);
 });
 
-test('parseUpdateCache: 正常な JSON はそのまま返す', () => {
+test('parseUpdateCache preserves valid JSON', () => {
     const cache = parseUpdateCache(JSON.stringify({ schema: 1, feed: VALID_FEED, dismissed: {} }));
     assert.equal(cache.feed.product, '0.2.0');
 });
 
-test('evaluateUpdateStatus: 新版があり dismissed されていなければ available: true', () => {
+test('New undismissed versions are available', () => {
     const cache = { schema: 1, fetched_at: '2026-07-26T00:00:00.000Z', feed: VALID_FEED, dismissed: {} };
     const status = evaluateUpdateStatus('0.1.0', cache);
     assert.equal(status.available, true);
@@ -73,12 +73,12 @@ test('evaluateUpdateStatus: 新版があり dismissed されていなければ a
     assert.equal(status.notesUrl, VALID_FEED.notes_url);
 });
 
-test('evaluateUpdateStatus: 現在と同じか新しくなければ available: false', () => {
+test('Same or older versions are unavailable', () => {
     const sameCache = { schema: 1, feed: { ...VALID_FEED, product: '0.1.0' }, dismissed: {} };
     assert.equal(evaluateUpdateStatus('0.1.0', sameCache).available, false);
 });
 
-test('evaluateUpdateStatus: dismissed 済みの版では available: false', () => {
+test('Dismissed versions are unavailable', () => {
     const cache = { schema: 1, feed: VALID_FEED, dismissed: { '0.2.0': '2026-07-26T01:00:00.000Z' } };
     const status = evaluateUpdateStatus('0.1.0', cache);
     assert.equal(status.available, false);
@@ -98,69 +98,69 @@ test('optional summary, size and notes are available to the toast, including dis
     assert.equal(resolveUpdateSizeLabel({ ...VALID_FEED, size: '180 MB' }, 'mac'), '180 MB');
 });
 
-test('evaluateUpdateStatus: キャッシュ無し(null)は available: false（例外にならない）', () => {
+test('Missing update caches are unavailable without throwing', () => {
     assert.equal(evaluateUpdateStatus('0.1.0', null).available, false);
 });
 
-test('evaluateUpdateStatus: 壊れたフィード（product が無い）は available: false', () => {
+test('Malformed feeds without product are unavailable', () => {
     const cache = { schema: 1, feed: { schema: 1 }, dismissed: {} };
     assert.equal(evaluateUpdateStatus('0.1.0', cache).available, false);
 });
 
-test('evaluateUpdateStatus: platform を渡すと downloadUrl に自プラットフォームの配布物 URL が入る（F7-v1）', () => {
+test('Platform-aware updates use the platform distribution URL', () => {
     const cache = { schema: 1, feed: FEED_WITH_SHELL_ASSETS, dismissed: {} };
     assert.equal(evaluateUpdateStatus('0.1.0', cache, 'mac').downloadUrl, FEED_WITH_SHELL_ASSETS.components.shell.mac.url);
     assert.equal(evaluateUpdateStatus('0.1.0', cache, 'win').downloadUrl, FEED_WITH_SHELL_ASSETS.components.shell.win.url);
 });
 
-test('evaluateUpdateStatus: platform 省略時 / 配布物 URL が無い版は downloadUrl が notes_url にフォールバックする', () => {
+test('Missing platform or distribution URLs fall back to release notes', () => {
     const cache = { schema: 1, feed: FEED_WITH_SHELL_ASSETS, dismissed: {} };
     assert.equal(evaluateUpdateStatus('0.1.0', cache).downloadUrl, FEED_WITH_SHELL_ASSETS.notes_url);
     const noAssetsCache = { schema: 1, feed: VALID_FEED, dismissed: {} };
     assert.equal(evaluateUpdateStatus('0.1.0', noAssetsCache, 'mac').downloadUrl, VALID_FEED.notes_url);
 });
 
-test('resolveUpdateDownloadUrl: 自プラットフォームの配布物 URL を優先する', () => {
+test('Download URL resolution prefers the platform distribution', () => {
     assert.equal(resolveUpdateDownloadUrl(FEED_WITH_SHELL_ASSETS, 'mac'), FEED_WITH_SHELL_ASSETS.components.shell.mac.url);
 });
 
-test('resolveUpdateDownloadUrl: 配布物 URL が無ければ notes_url へフォールバックする', () => {
+test('Download URL resolution falls back to release notes', () => {
     assert.equal(resolveUpdateDownloadUrl(VALID_FEED, 'mac'), VALID_FEED.notes_url);
     assert.equal(resolveUpdateDownloadUrl(FEED_WITH_SHELL_ASSETS, undefined), FEED_WITH_SHELL_ASSETS.notes_url);
 });
 
-test('resolveUpdateDownloadUrl: feed が無ければ undefined', () => {
+test('Download URL resolution returns undefined without a feed', () => {
     assert.equal(resolveUpdateDownloadUrl(null, 'mac'), undefined);
     assert.equal(resolveUpdateDownloadUrl(undefined, undefined), undefined);
 });
 
-test('formatHomeBannerText: プレリリースの版名が付く（task.md 指示どおりの文言）', () => {
+test('Home prerelease banners include prerelease wording', () => {
     const text = formatHomeBannerText({ available: true, latestVersion: '0.2.0', channel: 'prerelease' });
-    assert.equal(text, 'AKARI Video v0.2.0（プレリリース）が利用できます');
+    assert.equal(text, 'AKARI Video v0.2.0(Prerelease) is available');
 });
 
-test('formatHomeBannerText: stable は版名の注記なし', () => {
+test('Stable home banners omit version channel notes', () => {
     const text = formatHomeBannerText({ available: true, latestVersion: '0.2.0', channel: 'stable' });
-    assert.equal(text, 'AKARI Video v0.2.0が利用できます');
+    assert.equal(text, 'AKARI Video v0.2.0 is available');
 });
 
-test('formatHomeBannerText: available: false なら空文字（バナー非表示の合図）', () => {
+test('Unavailable home banners are empty', () => {
     assert.equal(formatHomeBannerText({ available: false }), '');
 });
 
-test('withDismissedVersion: dismissed を追加しつつ他フィールド（feed 等）は維持する', () => {
+test('Dismissal preserves other cache fields including the feed', () => {
     const cache = { schema: 1, fetched_at: 't', feed: VALID_FEED, dismissed: { '0.1.0': 'x' } };
     const next = withDismissedVersion(cache, '0.2.0', '2026-07-26T02:00:00.000Z');
     assert.deepEqual(next.dismissed, { '0.1.0': 'x', '0.2.0': '2026-07-26T02:00:00.000Z' });
     assert.equal(next.feed.product, '0.2.0');
 });
 
-test('withDismissedVersion: キャッシュが無い状態(null)からでも組み立てられる', () => {
+test('Dismissal can create a cache from null', () => {
     const next = withDismissedVersion(null, '0.2.0', '2026-07-26T02:30:00.000Z');
     assert.deepEqual(next.dismissed, { '0.2.0': '2026-07-26T02:30:00.000Z' });
 });
 
-test('withFetchedFeed: 取得したフィードで置き換えつつ dismissed は温存する', () => {
+test('Fetched feeds replace the feed while preserving dismissal', () => {
     const existing = { schema: 1, fetched_at: 'old', feed: null, dismissed: { '0.1.0': 'x' } };
     const next = withFetchedFeed(existing, VALID_FEED, '2026-07-26T03:00:00.000Z');
     assert.equal(next.feed.product, '0.2.0');

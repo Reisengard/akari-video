@@ -8,10 +8,10 @@ import {
     shortenHomePath
 } from '../../lib/common/tool-install-ui.js';
 
-test('unsupported は初回にも previous に残っていても選択しない', () => {
+test('Unsupported tools are never selected initially or from previous state', () => {
     const tools = [
         { id: 'speech-analyzer', available: false, unsupported: true },
-        { id: 'whisper', available: false, needs: ['モデルが無い'] }
+        { id: 'whisper', available: false, needs: ['Model missing'] }
     ];
     assert.deepEqual([...deriveToolSelection(tools)], ['whisper']);
     const previous = {
@@ -21,7 +21,7 @@ test('unsupported は初回にも previous に残っていても選択しない'
     assert.deepEqual([...deriveToolSelection(tools, previous)], ['whisper']);
 });
 
-test('手動で選ばれた unsupported・導入済み・現在の票にない id も導入件数と対象から除外する', () => {
+test('Unsupported, installed, and unknown IDs are excluded from installation counts', () => {
     const selected = new Set(['speech-analyzer', 'ffmpeg', 'whisper', 'blender']);
     const tools = [
         { id: 'speech-analyzer', available: false, unsupported: true },
@@ -35,15 +35,15 @@ test('手動で選ばれた unsupported・導入済み・現在の票にない i
     assert.equal(selected.size, 4, '元の選択は変更しない');
 });
 
-test('skipped は手動導入の 1 行、message があればその案内を表示する', () => {
+test('Skipped tools use manual-install wording or the supplied message', () => {
     const result = { id: 'speech-analyzer', outcome: 'skipped' };
     const label = describeToolInstallOutcome(result, 'SpeechAnalyzer');
-    assert.match(label, /手動で入れる/);
+    assert.match(label, /installed manually/);
     assert.doesNotMatch(label, /\n|失敗/);
     assert.equal(describeToolInstallOutcome({ ...result, message: '手動の案内' }, 'SpeechAnalyzer'), '手動の案内');
 });
 
-test('初回チェック（previous 無し）は未導入の道具を全部 既定 ON にする', () => {
+test('Initial checks select all missing tools by default', () => {
     const tools = [
         { id: 'ffmpeg', available: false },
         { id: 'blender', available: true },
@@ -53,7 +53,7 @@ test('初回チェック（previous 無し）は未導入の道具を全部 既�
     assert.deepEqual([...selection].sort(), ['ffmpeg', 'yt-dlp']);
 });
 
-test('再チェックでもユーザーが外したチェックは尊重される（同じ道具が引き続き未導入のとき）', () => {
+test('Rechecks respect user deselection while a tool remains missing', () => {
     const tools = [{ id: 'ffmpeg', available: false }, { id: 'yt-dlp', available: false }];
     const previous = {
         selectedIds: new Set(['yt-dlp']), // ffmpeg のチェックをユーザーが外していた
@@ -63,7 +63,7 @@ test('再チェックでもユーザーが外したチェックは尊重され�
     assert.deepEqual([...selection].sort(), ['yt-dlp']);
 });
 
-test('新たに未導入と判明した道具は既定 ONに戻る（前回は無かった/導入済みだった）', () => {
+test('Newly missing tools default to selected', () => {
     const tools = [
         { id: 'ffmpeg', available: false }, // 前回は available だった
         { id: 'blender', available: false } // 前回は結果に無かった
@@ -73,36 +73,36 @@ test('新たに未導入と判明した道具は既定 ONに戻る（前回は�
     assert.deepEqual([...selection].sort(), ['blender', 'ffmpeg']);
 });
 
-test('導入済みになった道具は選択集合から外れる', () => {
+test('Installed tools are removed from the selection', () => {
     const tools = [{ id: 'ffmpeg', available: true }];
     const previous = { selectedIds: new Set(['ffmpeg']), unavailableIds: new Set(['ffmpeg']) };
     const selection = deriveToolSelection(tools, previous);
     assert.equal(selection.size, 0);
 });
 
-test('進捗表示文字列は「インストール中: 名前 (i/total)…」形式', () => {
-    assert.equal(formatInstallProgressLabel('FFmpeg', 1, 3), 'インストール中: FFmpeg (1/3)…');
+test('Install progress displays tool name and current index over total', () => {
+    assert.equal(formatInstallProgressLabel('FFmpeg', 1, 3), 'Installing: FFmpeg (1/3)…');
 });
 
-test('結果 3 値のマッピング: message があればそのまま使う', () => {
+test('Install outcomes preserve a supplied message', () => {
     assert.equal(
         describeToolInstallOutcome({ id: 'ffmpeg', outcome: 'failed', message: 'ネットワークエラーです。' }, 'FFmpeg'),
         'ネットワークエラーです。'
     );
 });
 
-test('結果 3 値のマッピング: message 無しは outcome からフォールバック文言を組み立てる', () => {
-    assert.match(describeToolInstallOutcome({ id: 'ffmpeg', outcome: 'installed' }, 'FFmpeg'), /導入しました/);
-    assert.match(describeToolInstallOutcome({ id: 'blender', outcome: 'external-installer-opened' }, 'Blender'), /開きました/);
-    assert.match(describeToolInstallOutcome({ id: 'blender', outcome: 'failed' }, 'Blender'), /失敗/);
+test('Install outcomes without messages build fallback wording', () => {
+    assert.match(describeToolInstallOutcome({ id: 'ffmpeg', outcome: 'installed' }, 'FFmpeg'), /installed/);
+    assert.match(describeToolInstallOutcome({ id: 'blender', outcome: 'external-installer-opened' }, 'Blender'), /opened/);
+    assert.match(describeToolInstallOutcome({ id: 'blender', outcome: 'failed' }, 'Blender'), /failed/);
 });
 
-test('作成先パスはホーム配下のとき ~/ に短縮される', () => {
+test('Destination paths within home are shortened to tilde', () => {
     assert.equal(shortenHomePath('/Users/fixture/Akari', '/Users/fixture'), '~/Akari');
     assert.equal(shortenHomePath('/Users/fixture', '/Users/fixture'), '~');
     assert.equal(shortenHomePath('/opt/data/Akari', '/Users/fixture'), '/opt/data/Akari');
 });
 
-test('作成先パスは homeDir 不明のときそのまま返す', () => {
+test('Destination paths are unchanged when home is unknown', () => {
     assert.equal(shortenHomePath('/Users/fixture/Akari', undefined), '/Users/fixture/Akari');
 });

@@ -48,12 +48,12 @@ export function buildHomeStats(edit: unknown, assetCount?: number, assetBytes?: 
         clips: clips ? clips.length ? String(clips.length) : '—' : undefined,
         assets: assetCount === undefined ? Array.isArray(value.sources) ? value.sources.length ? String(value.sources.length) : '—' : undefined : assetCount ? String(assetCount) : '—',
         bytes: assetBytes === 0 ? '—' : formatBytes(assetBytes),
-        lastExport: lastExport === undefined ? undefined : new Date(lastExport).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        lastExport: lastExport === undefined ? undefined : new Date(lastExport).toLocaleString('en-US', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     };
 }
 
 export function homeWindowTitle(project: string, channel?: string): string {
-    return `${project} — ${channel || '単体'}`;
+    return `${project} — ${channel || 'Standalone'}`;
 }
 
 export type UpdateStage = 'found' | 'downloading' | 'ready';
@@ -69,13 +69,13 @@ export function shouldAutoShowNotice(next: { stage: UpdateStage; version: string
 
 export function validateChannelName(input: string, existing: readonly string[]): { name?: string; error?: string } {
     const name = input.trim();
-    if (!name) { return { error: 'チャンネル名を入力してください。' }; }
+    if (!name) { return { error: 'Enter a channel name.' }; }
     if (name === '.' || name.includes('..') || /[/\\<>:"|?*]/.test(name) || [...name].some(char => char.charCodeAt(0) < 32)) {
-        return { error: '「/」「\\」「..」やファイル名に使えない文字は入れられません。' };
+        return { error: 'Do not use /, \\, .., or characters invalid in file names.' };
     }
-    if (name.length > 64) { return { error: 'チャンネル名は 64 文字以内にしてください。' }; }
+    if (name.length > 64) { return { error: 'Channel names must be 64 characters or fewer.' }; }
     if (existing.some(channel => channel.toLocaleLowerCase() === name.toLocaleLowerCase())) {
-        return { error: '同じ名前のチャンネルがあります。' };
+        return { error: 'A channel with that name already exists.' };
     }
     return { name };
 }

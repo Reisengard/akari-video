@@ -11,13 +11,13 @@ export class LibraryMigrationNoticeContribution implements FrontendApplicationCo
     @inject(CommandService) protected readonly commands!: CommandService;
 
     onDidInitializeLayout(): void {
-        void this.showNotice().catch(error => console.warn('[akari-surfaces] 素材の移動通知を表示できませんでした:', error));
+        void this.showNotice().catch(error => console.warn('[akari-surfaces] Could not show footage migration notice:', error));
     }
 
     protected async showNotice(): Promise<void> {
         const notice = await this.service.takeLibraryMigrationNotice();
         if (!notice) return;
-        const action = await this.messages.info(notice, '場所を変える…');
-        if (action === '場所を変える…') await this.commands.executeCommand('akari.library.changeLocation');
+        const action = await this.messages.info(notice, 'Change location…');
+        if (action === 'Change location…') await this.commands.executeCommand('akari.library.changeLocation');
     }
 }

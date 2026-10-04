@@ -5,7 +5,7 @@ import {
     storeReconnectRequired
 } from '../../lib/common/store-entitlements-visibility.js';
 
-test('storeReconnectRequired: 保存済み資格情報 + unauthorized のときだけ再接続が必要', () => {
+test('Reconnection requires saved credentials and unauthorized status', () => {
     assert.equal(storeReconnectRequired(true, 'unauthorized'), true);
     assert.equal(storeReconnectRequired(true, 'ok'), false);
     assert.equal(storeReconnectRequired(true, 'error'), false);
@@ -13,9 +13,9 @@ test('storeReconnectRequired: 保存済み資格情報 + unauthorized のとき�
     assert.equal(storeReconnectRequired(false, 'no_credentials'), false);
 });
 
-test('STORE_RECONNECT_REQUIRED_MESSAGE: 別端末による解除の可能性を案内する', () => {
+test('Reconnection message explains possible disconnection by another device', () => {
     assert.equal(
         STORE_RECONNECT_REQUIRED_MESSAGE,
-        '再接続が必要（別の端末で接続されたため解除された可能性）'
+        'Reconnect required (may have disconnected after connecting on another device)'
     );
 });

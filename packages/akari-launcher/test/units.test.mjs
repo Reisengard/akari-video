@@ -155,8 +155,8 @@ test('loadTaskLabels: 実 packages/schemas/intake.schema.json の x-akari-labels
   const assets = resolveRepoAssets(repoRoot);
   assert.ok(assets.schemasSourceDir, 'このテストはモノレポ checkout 内で実行する前提');
   const labels = loadTaskLabels(assets.schemasSourceDir);
-  assert.equal(labels['transcribe-captions'], '文字起こし・テロップ');
-  assert.equal(labels['3d-inserts'], '3D・画面はめ込みの演出');
+  assert.equal(labels['transcribe-captions'], 'Transcribe and captions');
+  assert.equal(labels['3d-inserts'], '3D inserts');
 });
 
 test('loadTaskLabels: schemasSourceDir が無ければ組み込みフォールバックを返す', () => {

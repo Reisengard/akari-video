@@ -57,10 +57,10 @@ export interface FirstRunSetupAutoOpenContext {
 }
 
 const STEPS: ReadonlyArray<{ id: FirstRunSetupStep; label: string }> = [
-    { id: 'tools', label: '1. 道具' },
-    { id: 'workspace', label: '2. 作業場' },
-    { id: 'library', label: '3. 素材' },
-    { id: 'connection', label: '4. パートナー' }
+    { id: 'tools', label: '1. Tools' },
+    { id: 'workspace', label: '2. Workspace' },
+    { id: 'library', label: '3. Footage' },
+    { id: 'connection', label: '4. Partner' }
 ];
 
 /**
@@ -187,13 +187,13 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         logo.textContent = '🏮 AKARI Video';
         Object.assign(logo.style, { fontSize: '21px', fontWeight: '800', color: '#fb923c' });
         const heading = document.createElement('h1');
-        heading.textContent = 'はじめる準備';
+        heading.textContent = 'Getting ready';
         Object.assign(heading.style, { margin: '8px 0 5px', fontSize: '23px' });
         const lead = document.createElement('p');
-        lead.textContent = '道具を確認し、作業場と AI パートナーを順番に準備します。';
+        lead.textContent = 'Check tools, then set up your workspace and AI partner.';
         applyLeadStyle(lead);
 
-        this.stepsRow.setAttribute('aria-label', 'セットアップの進行状況');
+        this.stepsRow.setAttribute('aria-label', 'Setup progress');
         Object.assign(this.stepsRow.style, {
             display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '16px'
         });
@@ -265,11 +265,11 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         });
         const copy = document.createElement('div');
         copy.append(
-            createTitle('道具チェック'),
-            createLead('必要な道具にチェックが入っています。「インストール」を押すだけで導入できます。'),
-            createLead('あとから AI パートナーとの会話で「道具をそろえて」と頼んでも、同じ道具を導入できます。')
+            createTitle('Check tools'),
+            createLead('Required tools are selected. Click Install to set them up.'),
+            createLead('You can also ask your AI partner to set up these tools later.')
         );
-        const recheck = createButton(this.checkingTools ? '確認中…' : '再チェック', 'secondary');
+        const recheck = createButton(this.checkingTools ? 'Checking…' : 'Check again', 'secondary');
         recheck.setAttribute('data-akari-tool-recheck', 'true');
         recheck.disabled = this.checkingTools || this.installingTools;
         recheck.addEventListener('click', () => void this.recheckTools());
@@ -278,9 +278,9 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
 
         const tools = this.toolCheck?.tools ?? [];
         const groups = [
-            { title: '基本の道具', items: tools.filter(tool => tool.tier === 'required') },
-            { title: 'アドバンス', items: tools.filter(tool => tool.tier === 'advanced') },
-            { title: '推奨', items: tools.filter(tool => tool.tier === 'recommended') }
+            { title: 'Basic tools', items: tools.filter(tool => tool.tier === 'required') },
+            { title: 'Advanced', items: tools.filter(tool => tool.tier === 'advanced') },
+            { title: 'Recommended', items: tools.filter(tool => tool.tier === 'recommended') }
         ].filter(group => group.items.length > 0);
         const listWrap = document.createElement('div');
         for (const group of groups) {
@@ -302,7 +302,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         if (!this.toolCheck && this.checkingTools) {
             const status = document.createElement('p');
             status.setAttribute('role', 'status');
-            status.textContent = '道具を確認しています…';
+            status.textContent = 'Checking tools…';
             applyLeadStyle(status);
             this.panel.appendChild(status);
         }
@@ -311,7 +311,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         }
 
         const actions = createActions(true);
-        const next = createButton('作業場の準備へ', 'secondary');
+        const next = createButton('Set up workspace', 'secondary');
         next.setAttribute('data-akari-setup-next-workspace', 'true');
         next.addEventListener('click', () => {
             this.step = nextFirstRunSetupStep(this.step, 'next');
@@ -321,7 +321,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         const hasUninstalled = tools.some(tool => !tool.available);
         const installableCount = filterInstallableSelection(tools, this.selectedToolIds).size;
         const install = createButton(
-            this.installingTools ? 'インストール中…' : `選んだ道具をインストール（${installableCount}）`,
+            this.installingTools ? 'Installing…' : `Install selected tools (${installableCount}）`,
             'main'
         );
         install.setAttribute('data-akari-tool-install-selected', 'true');
@@ -364,7 +364,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.setAttribute('data-akari-tool-checkbox', tool.id);
-            checkbox.setAttribute('aria-label', `${info.name} をインストール対象にする`);
+            checkbox.setAttribute('aria-label', `${info.name} selected for installation`);
             checkbox.checked = this.selectedToolIds.has(tool.id);
             checkbox.disabled = this.installingTools;
             Object.assign(checkbox.style, { width: '18px', height: '18px', cursor: this.installingTools ? 'default' : 'pointer' });
@@ -433,7 +433,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         if (tool.id === 'whisper' && tool.model) {
             const modelRow = document.createElement('p');
             modelRow.setAttribute('data-akari-tool-model-state', String(tool.model.available));
-            modelRow.textContent = `認識モデル · ${WHISPER_MODEL_SIZE_LABEL} · ${tool.model.available ? '取得済み' : '未取得'}`;
+            modelRow.textContent = `Recognition model · ${WHISPER_MODEL_SIZE_LABEL} · ${tool.model.available ? 'Downloaded' : 'Not downloaded'}`;
             Object.assign(modelRow.style, {
                 margin: '7px 0 0', color: 'var(--theia-descriptionForeground)', fontSize: '11px', fontFamily: 'monospace'
             });
@@ -454,7 +454,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             body.appendChild(createProgressBarElement(
                 this.currentToolProgress?.toolId === tool.id
                     ? this.currentToolProgress
-                    : { toolId: tool.id, kind: 'command', phase: '準備しています…' }
+                    : { toolId: tool.id, kind: 'command', phase: 'Preparing…' }
             ));
         }
         row.append(leading, body);
@@ -512,7 +512,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             }
         } catch (error) {
             console.error('[akari-surfaces] tool check failed:', error);
-            this.setupError = '道具を確認できませんでした。再チェックしてください。';
+            this.setupError = 'Could not check tools. Please check again.';
         } finally {
             this.checkingTools = false;
             this.renderState();
@@ -547,7 +547,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
                 console.error('[akari-surfaces] installTool failed:', error);
                 this.toolInstallResults.set(id, {
                     id, outcome: 'failed',
-                    message: 'インストール処理でエラーが発生しました。もう一度お試しください。'
+                    message: 'Installation failed. Please try again.'
                 });
             }
             this.currentToolProgress = undefined;
@@ -592,8 +592,8 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         this.panel.setAttribute('data-akari-setup-workspace', 'true');
         this.panel.removeAttribute('data-akari-setup-connection');
         this.panel.append(
-            createTitle('作業場を作成'),
-            createLead('チャンネルと動画プロジェクトをまとめる場所を、ここに作成します。')
+            createTitle('Create workspace'),
+            createLead('Create a place for your channels and video projects here.')
         );
         const pathRow = document.createElement('div');
         pathRow.setAttribute('data-akari-setup-workspace-path', 'true');
@@ -608,7 +608,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         const pathText = document.createElement('code');
         pathText.textContent = this.creatorRootPathError
             ?? this.creatorRootPathDisplay
-            ?? '作成先を確認しています…';
+            ?? 'Checking destination…';
         Object.assign(pathText.style, {
             color: this.creatorRootPathError ? 'var(--theia-errorForeground)' : BODY_TEXT_COLOR,
             fontFamily: 'monospace', fontSize: '12.5px', overflowWrap: 'anywhere'
@@ -617,12 +617,12 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         this.panel.appendChild(pathRow);
 
         const actions = createActions();
-        const back = createButton('戻る', 'secondary');
+        const back = createButton('Back', 'secondary');
         back.addEventListener('click', () => {
             this.step = nextFirstRunSetupStep(this.step, 'back');
             this.renderState();
         });
-        const create = createButton(this.creatingWorkspace ? '作成しています…' : '作業場を作成', 'main');
+        const create = createButton(this.creatingWorkspace ? 'Creating…' : 'Create workspace', 'main');
         create.setAttribute('data-akari-setup-create-workspace', 'true');
         create.disabled = this.creatingWorkspace;
         create.addEventListener('click', () => void this.createWorkspace());
@@ -641,7 +641,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             this.creatorRootPathError = undefined;
         } catch (error) {
             console.error('[akari-surfaces] failed to resolve default creator root path:', error);
-            this.creatorRootPathError = '作成先を確認できませんでした。「作業場を作成」を押すと既定の場所に作成します。';
+            this.creatorRootPathError = 'Could not check the destination. Click Create workspace to use the default location.';
         } finally {
             if (this.step === 'workspace') {
                 this.renderState();
@@ -656,7 +656,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             this.libraryStatus = await this.newProjectService.libraryStatus();
             this.setupError = undefined;
         } catch (error) {
-            this.setupError = error instanceof Error ? error.message : '素材の置き場を確認できませんでした。';
+            this.setupError = error instanceof Error ? error.message : 'Could not check the footage location.';
         }
         if (this.step === 'library') this.renderState();
     }
@@ -667,16 +667,16 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         this.panel.removeAttribute('data-akari-setup-connection');
         this.panel.setAttribute('data-akari-setup-library', 'true');
         const status = this.libraryStatus;
-        this.panel.append(createTitle('素材の置き場'), createLead('素材はここに入ります。通常は作業場の中の「library」フォルダです。あとから場所を変えることもできます。'));
+        this.panel.append(createTitle('Footage location'), createLead('Footage is stored here, usually in the library folder of your workspace. You can change this later.'));
         const path = document.createElement('p');
         path.setAttribute('data-akari-library-path', 'true');
-        path.textContent = status?.root ?? '置き場を確認しています…';
+        path.textContent = status?.root ?? 'Checking location…';
         Object.assign(path.style, { color: BODY_TEXT_COLOR, overflowWrap: 'anywhere', fontWeight: '600' });
         this.panel.appendChild(path);
-        const open = createButton('Finder で開く', 'secondary');
+        const open = createButton('Open in Finder', 'secondary');
         open.disabled = !status;
         open.addEventListener('click', () => { if (status) void this._commands.executeCommand('akari.project.revealInFileManager', URI.fromFilePath(status.root)); });
-        const change = createButton('場所を変える…', 'secondary');
+        const change = createButton('Change location…', 'secondary');
         change.disabled = this.movingLibrary;
         change.addEventListener('click', () => void this.changeLibraryLocation());
         this.panel.append(open, change);
@@ -687,7 +687,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             if (moveCopy.sync) this.panel.appendChild(createLead(moveCopy.sync));
             const choices = createActions();
             for (const choice of librarySyncChoices(status.state)) {
-                const button = createButton(choice, choice === 'このまま使う' ? 'main' : 'secondary');
+                const button = createButton(choice, choice === 'Use this location' ? 'main' : 'secondary');
                 button.disabled = this.movingLibrary;
                 button.addEventListener('click', () => void this.chooseSyncLocation(choice));
                 choices.appendChild(button);
@@ -696,29 +696,29 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         }
         if (this.movingLibrary) {
             const progress = createLead(this.libraryMoveProgress?.totalBytes
-                ? `素材を移動しています… ${formatLibraryBytes(this.libraryMoveProgress.bytes)} / ${formatLibraryBytes(this.libraryMoveProgress.totalBytes)}`
-                : '素材を移動しています… 終わるまで取り込みと取得をお待ちください。');
+                ? `Moving footage… ${formatLibraryBytes(this.libraryMoveProgress.bytes)} / ${formatLibraryBytes(this.libraryMoveProgress.totalBytes)}`
+                : 'Moving footage… Wait for this to finish before importing or downloading.');
             progress.setAttribute('role', 'status');
             this.panel.appendChild(progress);
         }
-        const importButton = createButton('手持ちの素材フォルダがあれば入れる', 'secondary');
+        const importButton = createButton('Import an existing footage folder', 'secondary');
         importButton.disabled = this.movingLibrary;
         importButton.addEventListener('click', () => void this.openLibraryImport());
         this.panel.appendChild(importButton);
-        this.panel.appendChild(createLead('AKARI Video Lab の素材を使うには、アカウントをつなぎます。'));
-        const connectLab = createButton('AKARI Video Lab とつなぐ', 'secondary');
+        this.panel.appendChild(createLead('Connect your account to use footage from AKARI Video Lab.'));
+        const connectLab = createButton('Connect to AKARI Video Lab', 'secondary');
         connectLab.addEventListener('click', () => {
             this.close();
             void this._commands.executeCommand('akari.settings.open', { section: 'account' });
         });
         this.panel.appendChild(connectLab);
         const actions = createActions();
-        const back = createButton('戻る', 'secondary');
+        const back = createButton('Back', 'secondary');
         back.addEventListener('click', () => { this.step = nextFirstRunSetupStep(this.step, 'back'); this.renderState(); });
-        const skip = createButton('今はスキップ', 'secondary');
+        const skip = createButton('Skip for now', 'secondary');
         skip.disabled = this.movingLibrary;
         skip.addEventListener('click', () => void this.skipLibraryStep());
-        const next = createButton('次へ', 'main');
+        const next = createButton('Next', 'main');
         next.disabled = this.movingLibrary || status?.state === 'pending';
         next.addEventListener('click', () => void this.finishLibraryStep());
         actions.append(back, skip, next);
@@ -730,7 +730,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         if (this.libraryStatus && this.libraryStatus.state !== 'done' && this.libraryStatus.state !== 'declined') {
             this.movingLibrary = true; this.renderState();
             try { await this.moveLibraryWithProgress(); await this.loadLibraryStatus(); }
-            catch (error) { this.setupError = error instanceof Error ? error.message : '素材を移動できませんでした。'; return; }
+            catch (error) { this.setupError = error instanceof Error ? error.message : 'Could not move footage.'; return; }
             finally { this.movingLibrary = false; this.renderState(); }
         }
         this.step = nextFirstRunSetupStep(this.step, 'next');
@@ -742,19 +742,19 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             await this.newProjectService.declineLibraryMove();
         } else if (this.libraryStatus?.state !== 'done' && this.libraryStatus?.state !== 'declined') {
             try { await this.newProjectService.moveLibrary(); }
-            catch (error) { this.setupError = error instanceof Error ? error.message : '素材の置き場を準備できませんでした。'; this.renderState(); return; }
+            catch (error) { this.setupError = error instanceof Error ? error.message : 'Could not prepare the footage location.'; this.renderState(); return; }
         }
         this.step = nextFirstRunSetupStep(this.step, 'skip');
         this.renderState();
     }
 
     protected async chooseSyncLocation(choice: string): Promise<void> {
-        if (choice === '別の場所を選ぶ') { await this.changeLibraryLocation(); return; }
-        if (choice === '今は移さない') await this.newProjectService.declineLibraryMove();
+        if (choice === 'Choose another location') { await this.changeLibraryLocation(); return; }
+        if (choice === 'Do not move now') await this.newProjectService.declineLibraryMove();
         else {
             this.movingLibrary = true; this.renderState();
             try { await this.moveLibraryWithProgress(); }
-            catch (error) { this.setupError = error instanceof Error ? error.message : '素材を移動できませんでした。'; return; }
+            catch (error) { this.setupError = error instanceof Error ? error.message : 'Could not move footage.'; return; }
             finally { this.movingLibrary = false; this.renderState(); }
         }
         await this.loadLibraryStatus();
@@ -762,7 +762,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
 
     protected async changeLibraryLocation(): Promise<void> {
         try { await this._commands.executeCommand('akari.library.changeLocation'); await this.loadLibraryStatus(); }
-        catch (error) { this.setupError = error instanceof Error ? error.message : '置き場を変えられませんでした。'; this.renderState(); }
+        catch (error) { this.setupError = error instanceof Error ? error.message : 'Could not change the location.'; this.renderState(); }
     }
 
     protected async moveLibraryWithProgress(): Promise<void> {
@@ -786,22 +786,22 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
         this.panel.removeAttribute('data-akari-setup-workspace');
         this.panel.setAttribute('data-akari-setup-connection', 'true');
         this.panel.append(
-            createTitle('AI パートナーと会話を始める'),
-            createLead('接続すると、ホームから「こんな動画を作りたい」とそのまま相談できます。接続は後からでも構いません。道具の導入も、この会話に頼めます。')
+            createTitle('Start a conversation with your AI partner'),
+            createLead('Connect to discuss video ideas from home. You can connect later and ask your partner to install tools too.')
         );
         this.panel.appendChild(createPartnerLayoutDiagram());
         const guide = document.createElement('p');
-        guide.textContent = '画面の右側の「パートナーを追加」から、好きな AI パートナーを選んでつなげます。';
+        guide.textContent = 'Choose your AI partner from Add partner on the right side of the screen.';
         Object.assign(guide.style, { margin: '14px 0 0', color: BODY_TEXT_COLOR, fontSize: '12.5px', lineHeight: '1.7', fontWeight: '600' });
         this.panel.appendChild(guide);
 
         const actions = createActions();
-        const back = createButton('戻る', 'secondary');
+        const back = createButton('Back', 'secondary');
         back.addEventListener('click', () => {
             this.step = nextFirstRunSetupStep(this.step, 'back');
             this.renderState();
         });
-        const finish = createButton('はじめる', 'main');
+        const finish = createButton('Get started', 'main');
         finish.setAttribute('data-akari-setup-finish', 'true');
         finish.addEventListener('click', () => this.finish());
         actions.append(back, finish);
@@ -822,7 +822,7 @@ export class AkariFirstRunSetupDialog extends AbstractDialog<void> {
             await this.loadLibraryStatus();
         } catch (error) {
             console.error('[akari-surfaces] failed to create setup workspace:', error);
-            this.setupError = error instanceof Error ? error.message : '作業場を作成できませんでした。';
+            this.setupError = error instanceof Error ? error.message : 'Could not create the workspace.';
         } finally {
             this.creatingWorkspace = false;
             this.renderState();
@@ -1002,7 +1002,7 @@ function createPartnerLayoutDiagram(): SVGSVGElement {
     const svg = svgEl('svg');
     svg.setAttribute('viewBox', '0 0 400 210');
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', 'アプリ画面の構成図。中央がプレビュー・編集、右側がパートナーを追加するパネル。');
+    svg.setAttribute('aria-label', 'App layout: preview and editing in the center, and the Add partner panel on the right.');
     svg.setAttribute('data-akari-setup-partner-diagram', 'true');
     Object.assign(svg.style, { width: '100%', height: 'auto', marginTop: '18px' });
 
@@ -1029,7 +1029,7 @@ function createPartnerLayoutDiagram(): SVGSVGElement {
     const centerLabel = svgEl('text');
     centerLabel.setAttribute('x', '136'); centerLabel.setAttribute('y', '121');
     centerLabel.setAttribute('text-anchor', 'middle');
-    centerLabel.textContent = 'プレビュー / 編集';
+    centerLabel.textContent = 'Preview / Edit';
     Object.assign(centerLabel.style, { fill: 'var(--theia-descriptionForeground)', fontSize: '13px' });
 
     const partnerHighlight = svgEl('rect');
@@ -1054,13 +1054,13 @@ function createPartnerLayoutDiagram(): SVGSVGElement {
     const partnerLabel = svgEl('text');
     partnerLabel.setAttribute('x', '324'); partnerLabel.setAttribute('y', '60');
     partnerLabel.setAttribute('text-anchor', 'middle');
-    partnerLabel.textContent = 'パートナーを追加';
+    partnerLabel.textContent = 'Add partner';
     Object.assign(partnerLabel.style, { fill: 'var(--theia-editor-background)', fontSize: '10.5px', fontWeight: '700' });
 
     const partnerHint = svgEl('text');
     partnerHint.setAttribute('x', '324'); partnerHint.setAttribute('y', '120');
     partnerHint.setAttribute('text-anchor', 'middle');
-    partnerHint.textContent = 'ここから接続';
+    partnerHint.textContent = 'Connect here';
     Object.assign(partnerHint.style, { fill: 'var(--theia-descriptionForeground)', fontSize: '11px' });
 
     svg.append(frame, header, center, centerLabel, partnerHighlight, partner, partnerLabelBg, partnerLabel, partnerHint);

@@ -16,22 +16,22 @@ export class AkariOpenProjectChoiceDialog extends AbstractDialog<OpenProjectChoi
     protected choice: OpenProjectChoice;
 
     constructor(projectName: string) {
-        super({ title: 'プロジェクトを開く' } as DialogProps);
+        super({ title: 'Open project' } as DialogProps);
 
         const body = this.node.ownerDocument.createElement('div');
         Object.assign(body.style, { display: 'grid', gap: '8px', maxWidth: '420px' });
         const lead = this.node.ownerDocument.createElement('div');
-        lead.textContent = `「${projectName}」をどう開きますか？`;
+        lead.textContent = `「${projectName} — How would you like to open it?`;
         const hint = this.node.ownerDocument.createElement('small');
-        hint.textContent = 'AI の処理や書き出しを続けたまま並行で作業するなら「新しいウィンドウで開く」がおすすめです。';
+        hint.textContent = 'Choose Open in a new window to work while AI processing or exports continue.';
         hint.style.opacity = '0.7';
         body.appendChild(lead);
         body.appendChild(hint);
         this.contentNode.appendChild(body);
 
-        this.appendCloseButton('キャンセル');
+        this.appendCloseButton('Cancel');
 
-        const switchButton = this.createButton('このウィンドウで切り替える');
+        const switchButton = this.createButton('Switch in this window');
         switchButton.classList.add('secondary');
         this.controlPanel.appendChild(switchButton);
         switchButton.addEventListener('click', () => {
@@ -42,7 +42,7 @@ export class AkariOpenProjectChoiceDialog extends AbstractDialog<OpenProjectChoi
         // クリックは AbstractDialog が acceptButton に配線する（onAfterAttach）。ここで
         // 自前の click リスナーも足すと 1 クリックで accept() が二重に走るので足さない —
         // choice の既定化は下の accept() オーバーライドが担う。Enter も同じ経路。
-        const newWindowButton = this.createButton('新しいウィンドウで開く');
+        const newWindowButton = this.createButton('Open in a new window');
         newWindowButton.classList.add('main');
         this.controlPanel.appendChild(newWindowButton);
         this.acceptButton = newWindowButton;

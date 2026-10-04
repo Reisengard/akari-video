@@ -161,7 +161,7 @@ export async function installTool(id: AkariToolId, options: ToolInstallOptions =
     if (id === 'voicevox') {
         return openOfficialDownloadPage(ctx, OFFICIAL_SOURCES.voicevoxDownloadPage, 'VOICEVOX');
     }
-    return { id, outcome: 'failed', message: `${toolName(id)} はこの環境では自動導入に対応していません。` };
+    return { id, outcome: 'failed', message: `${toolName(id)} cannot be installed automatically in this environment.` };
 }
 
 async function installOnMac(ctx: InstallContext): Promise<AkariToolInstallResult> {
@@ -181,7 +181,7 @@ async function installXcodeClt(ctx: InstallContext): Promise<AkariToolInstallRes
     // しないため、常に次の一手（再チェック）が分かる 1 行を返す。
     return {
         id: 'xcode-clt', outcome: 'external-installer-opened',
-        message: 'Apple のインストーラーが開きました。完了したら再チェックしてください。'
+        message: 'Apple installer opened. Check again when finished.'
     };
 }
 
@@ -202,7 +202,7 @@ async function installWithBrew(ctx: InstallContext, brewPath: string): Promise<A
     const formula = BREW_FORMULA[ctx.id];
     const cask = BREW_CASK[ctx.id];
     if (!formula && !cask) {
-        return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} はこの環境では自動導入に対応していません。` };
+        return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} cannot be installed automatically in this environment.` };
     }
     if (ctx.id === 'voicevox') {
         const info = await ctx.runCommand(brewPath, ['info', '--cask', 'voicevox'], { env: ctx.env });
@@ -213,11 +213,11 @@ async function installWithBrew(ctx: InstallContext, brewPath: string): Promise<A
         env: ctx.env, timeoutMs: BREW_TIMEOUT_MS, onOutput: chunk => reportCommandProgress(ctx, chunk)
     });
     if (result.ok) {
-        return { id: ctx.id, outcome: 'installed', message: `${toolName(ctx.id)} を導入しました。` };
+        return { id: ctx.id, outcome: 'installed', message: `${toolName(ctx.id)} installed.` };
     }
     return {
         id: ctx.id, outcome: 'failed',
-        message: `${toolName(ctx.id)} の導入に失敗しました。時間をおいて、もう一度お試しください。`
+        message: `${toolName(ctx.id)} installation failed. Wait a while and try again.`
     };
 }
 
@@ -236,14 +236,14 @@ async function installWithoutBrew(ctx: InstallContext): Promise<AkariToolInstall
             // ここに来るのは同梱も brew も無い開発機の端ケースのみ。
             return bundledOnlyFallback(ctx);
         default:
-            return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} はこの環境では自動導入に対応していません。` };
+            return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} cannot be installed automatically in this environment.` };
     }
 }
 
 function bundledOnlyFallback(ctx: InstallContext): AkariToolInstallResult {
     return {
         id: ctx.id, outcome: 'failed',
-        message: `${toolName(ctx.id)} はアプリに同梱されています。アプリを最新版に更新すると自動で使えるようになります。`
+        message: `${toolName(ctx.id)} is bundled with the app. Update the app to use it automatically.`
     };
 }
 
@@ -253,11 +253,11 @@ async function installYtDlpBinary(ctx: InstallContext): Promise<AkariToolInstall
         await ctx.ensureDir(akariToolsBinDir(ctx.homeDir));
         await downloadTo(ctx, OFFICIAL_SOURCES.ytDlpMacBinary, destination, reportDownloadProgress(ctx));
         await ctx.makeExecutable(destination);
-        return { id: 'yt-dlp', outcome: 'installed', message: 'yt-dlp を導入しました。' };
+        return { id: 'yt-dlp', outcome: 'installed', message: 'yt-dlp installed.' };
     } catch (error) {
         return {
             id: 'yt-dlp', outcome: 'failed',
-            message: `yt-dlp のダウンロードに失敗しました（${describeError(error)}）。もう一度お試しください。`
+            message: `yt-dlp download failed (${describeError(error)}). Please try again.`
         };
     }
 }
@@ -272,12 +272,12 @@ async function openOfficialDownloadPage(ctx: InstallContext, url: string, label:
         await ctx.openPath(url);
         return {
             id: ctx.id, outcome: 'external-installer-opened',
-            message: `${label} の公式サイトを開きました。ダウンロードしたインストーラーを実行し、完了したら再チェックしてください。`
+            message: `${label} official website opened. Run the downloaded installer and check again when finished.`
         };
     } catch (error) {
         return {
             id: ctx.id, outcome: 'failed',
-            message: `${label} の公式サイトを開けませんでした（${describeError(error)}）。もう一度お試しください。`
+            message: `${label} official website could not be opened (${describeError(error)}). Please try again.`
         };
     }
 }
@@ -298,7 +298,7 @@ async function installYtDlpWindowsBinary(ctx: InstallContext): Promise<AkariTool
     try {
         await ctx.ensureDir(akariToolsBinDir(ctx.homeDir));
         await downloadTo(ctx, OFFICIAL_SOURCES.ytDlpWindowsBinary, destination, reportDownloadProgress(ctx));
-        return { id: 'yt-dlp', outcome: 'installed', message: 'yt-dlp を導入しました。' };
+        return { id: 'yt-dlp', outcome: 'installed', message: 'yt-dlp installed.' };
     } catch {
         // 公式 GitHub releases への到達性が無い環境向けのフォールバック。
         return installWithWinget(ctx);
@@ -308,7 +308,7 @@ async function installYtDlpWindowsBinary(ctx: InstallContext): Promise<AkariTool
 async function installWithWinget(ctx: InstallContext): Promise<AkariToolInstallResult> {
     const wingetId = WINGET_ID[ctx.id];
     if (!wingetId) {
-        return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} はこの環境では自動導入に対応していません。` };
+        return { id: ctx.id, outcome: 'failed', message: `${toolName(ctx.id)} cannot be installed automatically in this environment.` };
     }
     const result = await ctx.runCommand(
         'winget',
@@ -316,11 +316,11 @@ async function installWithWinget(ctx: InstallContext): Promise<AkariToolInstallR
         { env: ctx.env, timeoutMs: BREW_TIMEOUT_MS, onOutput: chunk => reportCommandProgress(ctx, chunk) }
     );
     if (result.ok) {
-        return { id: ctx.id, outcome: 'installed', message: `${toolName(ctx.id)} を導入しました。` };
+        return { id: ctx.id, outcome: 'installed', message: `${toolName(ctx.id)} installed.` };
     }
     return {
         id: ctx.id, outcome: 'failed',
-        message: `${toolName(ctx.id)} の導入に失敗しました。時間をおいて、もう一度お試しください。`
+        message: `${toolName(ctx.id)} installation failed. Wait a while and try again.`
     };
 }
 
@@ -336,7 +336,7 @@ export async function resolveWhisperModelPath(options: ToolInstallOptions = {}):
     const env = options.env ?? process.env;
     const override = resolveWhisperModelOverride(env);
     if (!env.WHISPER_CPP_MODEL && env.AKARI_WHISPER_MODEL) {
-        console.warn('[akari-surfaces] AKARI_WHISPER_MODEL は後方互換用です。WHISPER_CPP_MODEL を使ってください。');
+        console.warn('[akari-surfaces] AKARI_WHISPER_MODEL is for backward compatibility. Use WHISPER_CPP_MODEL.');
     }
     const pathExists = options.pathExists ?? defaultPathExists;
     const listDir = options.listDir ?? defaultListDir;
@@ -389,16 +389,16 @@ async function installWhisperModel(ctx: InstallContext): Promise<AkariToolInstal
         if (digest !== ctx.whisperModelSha256) {
             return {
                 id: 'whisper', outcome: 'failed',
-                message: '認識モデルの検証に失敗しました（データが壊れている可能性があります）。もう一度お試しください。'
+                message: 'Recognition model verification failed (data may be corrupted). Please try again.'
             };
         }
         await ctx.ensureDir(akariToolsModelsDir(ctx.homeDir));
         await ctx.writeFile(destination, buffer);
-        return { id: 'whisper', outcome: 'installed', message: '認識モデルを取得しました。' };
+        return { id: 'whisper', outcome: 'installed', message: 'Recognition model downloaded.' };
     } catch (error) {
         return {
             id: 'whisper', outcome: 'failed',
-            message: `認識モデルの取得に失敗しました（${describeError(error)}）。もう一度お試しください。`
+            message: `Recognition model download failed (${describeError(error)}). Please try again.`
         };
     }
 }
@@ -407,7 +407,7 @@ async function installWhisperModel(ctx: InstallContext): Promise<AkariToolInstal
 
 function reportDownloadProgress(ctx: InstallContext): (downloadedBytes: number, totalBytes?: number) => void {
     return (downloadedBytes, totalBytes) => {
-        ctx.onProgress?.({ toolId: ctx.id, kind: 'download', phase: 'ダウンロードしています…', downloadedBytes, totalBytes });
+        ctx.onProgress?.({ toolId: ctx.id, kind: 'download', phase: 'Downloading…', downloadedBytes, totalBytes });
     };
 }
 
@@ -540,6 +540,6 @@ async function defaultPathExists(path: string): Promise<boolean> {
 async function defaultOpenPath(path: string): Promise<void> {
     const result = await defaultRunCommand('open', [path]);
     if (!result.ok) {
-        throw new Error(result.stderr.trim() || 'open コマンドに失敗しました。');
+        throw new Error(result.stderr.trim() || 'open command failed.');
     }
 }

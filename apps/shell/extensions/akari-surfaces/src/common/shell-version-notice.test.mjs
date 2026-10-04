@@ -13,34 +13,34 @@ import {
     withRecordedVersion
 } from '../../lib/common/shell-version-notice.js';
 
-test('parseShellLastVersion: 壊れた JSON は例外を投げず null', () => {
+test('parseShellLastVersion returns null for malformed JSON without throwing', () => {
     assert.equal(parseShellLastVersion('{ not json'), null);
 });
 
-test('parseShellLastVersion: 正常な JSON はそのまま返す', () => {
+test('parseShellLastVersion preserves valid JSON', () => {
     const record = parseShellLastVersion(JSON.stringify({ lastVersion: '0.1.2', updatedAt: '2026-08-01T00:00:00.000Z' }));
     assert.equal(record.lastVersion, '0.1.2');
 });
 
-test('evaluateVersionNotice: 記録が無い（初回起動）ときは shouldNotify: false', () => {
+test('First launch without a version record does not notify', () => {
     assert.deepEqual(evaluateVersionNotice('0.1.3', null), { shouldNotify: false });
 });
 
-test('evaluateVersionNotice: 記録はあるが lastVersion が無い（壊れた記録）ときも shouldNotify: false', () => {
+test('A malformed record without lastVersion does not notify', () => {
     assert.deepEqual(evaluateVersionNotice('0.1.3', { updatedAt: 'x' }), { shouldNotify: false });
 });
 
-test('evaluateVersionNotice: 前回と同じ版なら shouldNotify: false', () => {
+test('The same version does not notify', () => {
     assert.deepEqual(evaluateVersionNotice('0.1.3', { lastVersion: '0.1.3' }), { shouldNotify: false });
 });
 
-test('evaluateVersionNotice: 前回と違う版なら shouldNotify: true + previousVersion', () => {
+test('A different version notifies with previousVersion', () => {
     const status = evaluateVersionNotice('0.1.3', { lastVersion: '0.1.2' });
     assert.equal(status.shouldNotify, true);
     assert.equal(status.previousVersion, '0.1.2');
 });
 
-test('evaluateVersionNotice: ダウングレード（前回の方が新しい）でも版が違えば shouldNotify: true', () => {
+test('Downgrades also notify when versions differ', () => {
     // task.md は「前回起動時と違う版」とだけ指定しており、上下方向は問わない
     // （壊れた配布 / ロールバックでの実機確認を優先する）。
     const status = evaluateVersionNotice('0.1.2', { lastVersion: '0.1.3' });
@@ -48,17 +48,17 @@ test('evaluateVersionNotice: ダウングレード（前回の方が新しい）
     assert.equal(status.previousVersion, '0.1.3');
 });
 
-test('formatVersionNoticeText: task.md 指示どおりの文言', () => {
-    assert.equal(formatVersionNoticeText('0.2.0'), 'AKARI Video を v0.2.0 に更新しました');
+test('Version notice wording matches the task contract', () => {
+    assert.equal(formatVersionNoticeText('0.2.0'), 'AKARI Video  v0.2.0 updated');
 });
 
-test('withRecordedVersion: version と updatedAt をそのまま組み立てる', () => {
+test('withRecordedVersion preserves version and updatedAt', () => {
     assert.deepEqual(
         withRecordedVersion('0.2.0', '2026-08-03T00:00:00.000Z'),
         { lastVersion: '0.2.0', updatedAt: '2026-08-03T00:00:00.000Z' }
     );
 });
 
-test('buildReleaseNotesUrl: GitHub リリースタグの規約どおり', () => {
+test('Release note URLs follow GitHub tag conventions', () => {
     assert.equal(buildReleaseNotesUrl('0.2.0'), 'https://github.com/AkariLabs/akari-video/releases/tag/v0.2.0');
 });

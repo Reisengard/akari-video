@@ -14,7 +14,7 @@ test('only available project statistics are shown and values are formatted', () 
 
 test('window title uses project and channel, with standalone fallback', () => {
     assert.equal(homeWindowTitle('春の新作レビュー', 'ガジェット実況'), '春の新作レビュー — ガジェット実況');
-    assert.equal(homeWindowTitle('春の新作レビュー'), '春の新作レビュー — 単体');
+    assert.equal(homeWindowTitle('春の新作レビュー'), '春の新作レビュー — Standalone');
 });
 
 test('update notice follows ready, downloading, found priority and stores later by version', () => {
@@ -25,7 +25,7 @@ test('update notice follows ready, downloading, found priority and stores later 
     assert.notEqual(noticeStorageKey('1.0.0'), noticeStorageKey('1.0.1'));
     assert.equal(shouldAutoShowNotice({ stage: 'found', version: '1.0.0' }, undefined, false), true);
     assert.equal(shouldAutoShowNotice({ stage: 'ready', version: '1.0.0' }, { stage: 'found', version: '1.0.0' }, true), false);
-    assert.equal(shouldAutoShowNotice({ stage: 'found', version: '1.0.0' }, undefined, false, true), false, '× 後も履歴を残して自動表示だけ止める');
+    assert.equal(shouldAutoShowNotice({ stage: 'found', version: '1.0.0' }, undefined, false, true), false, '× 後も履歴を残してAutomaticViewだけStop');
     assert.equal(shouldAutoShowNotice({ stage: 'found', version: '1.0.0' }, { stage: 'found', version: '1.0.0' }, false), false);
 });
 

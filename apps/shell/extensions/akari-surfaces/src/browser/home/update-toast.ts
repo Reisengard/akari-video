@@ -131,7 +131,7 @@ export class AkariUpdateToast {
             list.prepend(entry);
         }
         const label = entry.querySelector('span');
-        const text = `AKARI Video v${this.state.version} — 更新のお知らせを開く`;
+        const text = `AKARI Video v${this.state.version} — Open update notification`;
         if (label && label.textContent !== text) { label.textContent = text; }
     }
 
@@ -149,29 +149,29 @@ export class AkariUpdateToast {
             icon.src = AKARI_APP_ICON;
             icon.onerror = () => { const logo = this.element('strong', '', 'AKARI'); icon.replaceWith(logo); };
             icon.alt = 'AKARI Video';
-            head.append(icon, this.element('strong', 'akari-update-title', state.stage === 'ready' ? `v${state.version} の準備ができました` : state.stage === 'downloading' ? `v${state.version} をダウンロード中` : `新しい版${state.channel === 'prerelease' ? '（プレリリース）' : ''}があります — v${state.version}`));
+            head.append(icon, this.element('strong', 'akari-update-title', state.stage === 'ready' ? `v${state.version} is ready` : state.stage === 'downloading' ? `v${state.version} downloading` : `New version${state.channel === 'prerelease' ? '(Prerelease)' : ''} available — v${state.version}`));
             const close = this.button('×', () => { this.visible = false; this.onDismiss(); this.render(); });
             close.className = 'akari-update-close';
-            close.setAttribute('aria-label', 'この版は出さない');
+            close.setAttribute('aria-label', 'Hide this version');
             head.appendChild(close);
             toast.appendChild(head);
             const copy = this.element('p', 'akari-update-copy');
             if (state.stage === 'found') {
-                const details = [state.summary, state.sizeLabel ? `約 ${state.sizeLabel}` : undefined].filter(Boolean);
-                copy.textContent = state.checking ? '更新を確認しています…' : state.fallbackReason
-                    ? `更新を確認できませんでした。${state.downloadUrl ? 'ブラウザから取得できます。' : '時間をおいてもう一度お試しください。'}`
-                    : details.length ? details.join(' · ') : '新しい版をダウンロードできます。';
+                const details = [state.summary, state.sizeLabel ? `About ${state.sizeLabel}` : undefined].filter(Boolean);
+                copy.textContent = state.checking ? 'Checking for updates…' : state.fallbackReason
+                    ? `Could not check for updates.${state.downloadUrl ? 'Available in your browser.' : 'Wait a while and try again.'}`
+                    : details.length ? details.join(' · ') : 'A new version is available to download.';
                 if (state.notesUrl && /^https?:\/\//i.test(state.notesUrl)) {
-                    const link = this.element('a', '', '変更点');
+                    const link = this.element('a', '', 'Changes');
                     link.href = state.notesUrl;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
                     copy.append(' ', link);
                 }
             } else if (state.stage === 'downloading') {
-                copy.textContent = state.progress === undefined ? 'ダウンロードしています。裏で続きます。' : `ダウンロードしています — ${Math.round(state.progress)}%`;
+                copy.textContent = state.progress === undefined ? 'Downloading in the background.' : `Downloading — ${Math.round(state.progress)}%`;
                 if (state.notesUrl && /^https?:\/\//i.test(state.notesUrl)) {
-                    const link = this.element('a', '', '変更点');
+                    const link = this.element('a', '', 'Changes');
                     link.href = state.notesUrl;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
@@ -184,24 +184,24 @@ export class AkariUpdateToast {
                 progress.appendChild(bar);
                 toast.appendChild(progress);
             } else {
-                copy.textContent = '再起動すると新しい版になります。開いているプロジェクトは保存されています。';
+                copy.textContent = 'Restart to apply the new version. Open projects are saved.';
             }
             toast.appendChild(copy);
             const actions = this.element('div', 'akari-update-actions');
             if (state.stage === 'found') {
-                actions.append(this.button('後で', () => this.later()));
+                actions.append(this.button('Later', () => this.later()));
                 if (state.checking) {
-                    const checking = this.button('確認中…', () => undefined, true);
+                    const checking = this.button('Checking…', () => undefined, true);
                     checking.disabled = true;
                     actions.append(checking);
                 } else if (state.fallbackReason && state.downloadUrl) {
-                    actions.append(this.button('ブラウザでダウンロード', () => this.onOpenBrowser(), true));
+                    actions.append(this.button('Download in browser', () => this.onOpenBrowser(), true));
                 } else {
-                    actions.append(this.button(state.fallbackReason ? '再試行' : 'ダウンロード', () => this.onDownload(), true));
+                    actions.append(this.button(state.fallbackReason ? 'Retry' : 'Download', () => this.onDownload(), true));
                 }
             }
-            if (state.stage === 'downloading') { actions.append(this.button('やめる', () => { void this.cancelDownload().catch(error => console.error('[akari-surfaces] 更新の取消要求に失敗しました:', error)); })); }
-            if (state.stage === 'ready') { actions.append(this.button('次に起動したとき', () => this.later()), this.button('更新して再起動', () => this.onRestart(), true)); }
+            if (state.stage === 'downloading') { actions.append(this.button('Cancel', () => { void this.cancelDownload().catch(error => console.error('[akari-surfaces] Failed to cancel update:', error)); })); }
+            if (state.stage === 'ready') { actions.append(this.button('On next launch', () => this.later()), this.button('Update and restart', () => this.onRestart(), true)); }
             toast.appendChild(actions);
             host.appendChild(toast);
             this.toast = toast;
@@ -212,7 +212,7 @@ export class AkariUpdateToast {
             nativeBell.dataset.akariUpdateBell = 'true';
             this.bell = nativeBell;
         } else if (!this.visible) {
-            const bell = this.button('通知', () => { this.visible = true; this.render(); });
+            const bell = this.button('Notifications', () => { this.visible = true; this.render(); });
             bell.className = 'akari-update-bell';
             bell.dataset.akariUpdateBell = 'true';
             host.appendChild(bell);

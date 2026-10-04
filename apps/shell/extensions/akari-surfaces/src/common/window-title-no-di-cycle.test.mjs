@@ -7,13 +7,13 @@ import test from 'node:test';
 
 const source = readFileSync(new URL('../browser/akari-welcome-window-title-contribution.ts', import.meta.url), 'utf8');
 
-test('WindowTitleContribution のクラス本体は依存注入を持たない', () => {
+test('WindowTitleContribution has no injected dependencies', () => {
     const classes = [...source.matchAll(/class\s+\w+\s+implements\s+WindowTitleContribution\s*\{([\s\S]*?)^\}/gm)];
     assert.equal(classes.length, 1, 'title contribution must be found');
     assert.doesNotMatch(classes[0][1], /@inject\s*\(/);
 });
 
-test('enhanceTitle はサービスや遅延プロバイダを解決しない', () => {
+test('enhanceTitle resolves neither services nor lazy providers', () => {
     const contribution = source.match(/class\s+\w+\s+implements\s+WindowTitleContribution\s*\{([\s\S]*?)^\}/m);
     assert.ok(contribution, 'title contribution must be found');
     const enhanceTitle = contribution[1].match(/\benhanceTitle\([^\n]*\)\s*:\s*string\s*\{([\s\S]*?)^    \}/m);
@@ -23,7 +23,7 @@ test('enhanceTitle はサービスや遅延プロバイダを解決しない', (
     assert.doesNotMatch(body, /workspaceService|fileService|windowTitleService|Provider/);
 });
 
-test('WindowTitleService の注入は frontend updater が持つ', () => {
+test('Frontend updater owns WindowTitleService injection', () => {
     const updater = source.match(/class\s+AkariWelcomeWindowTitleUpdater\s+implements\s+FrontendApplicationContribution\s*\{([\s\S]*?)^\}/m);
     assert.ok(updater, 'frontend updater must be found');
     assert.match(updater[1], /@inject\s*\(\s*WindowTitleService\s*\)/);

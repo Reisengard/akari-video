@@ -19,42 +19,42 @@ export function resolveSettingsUpdateView(input: {
     downloadUrl?: string;
 }): SettingsUpdateView {
     const { state, lastEventKind, currentVersion, lastChecked, downloadUrl } = input;
-    const checked = `最後に確かめた: ${lastChecked}`;
+    const checked = `Last checked: ${lastChecked}`;
     if (state.downloaded && state.downloadedVersion) {
         return {
-            label: `v${state.downloadedVersion} の準備ができました`,
-            detail: `${formatDownloadedBannerText(state)} 現在 v${currentVersion} · ${checked}`,
-            button: { kind: 'restart', label: '再起動して更新', disabled: false, primary: true },
+            label: `v${state.downloadedVersion} is ready`,
+            detail: `${formatDownloadedBannerText(state)} Current v${currentVersion} · ${checked}`,
+            button: { kind: 'restart', label: 'Restart to update', disabled: false, primary: true },
             browserFallback: false
         };
     }
     if (state.downloading && state.downloadingVersion) {
         return {
-            label: `v${state.downloadingVersion} をダウンロードしています`,
-            detail: `${formatDownloadingBannerText(state)} 現在 v${currentVersion} · ${checked}`,
-            button: { kind: 'check', label: 'ダウンロード中', disabled: true, primary: false },
+            label: `v${state.downloadingVersion} is downloading`,
+            detail: `${formatDownloadingBannerText(state)} Current v${currentVersion} · ${checked}`,
+            button: { kind: 'check', label: 'Downloading', disabled: true, primary: false },
             browserFallback: false
         };
     }
     if (state.failed) {
         return {
-            label: state.failureReason ?? '更新を確認できませんでした。時間をおいてもう一度お試しください',
+            label: state.failureReason ?? 'Could not check for updates. Wait a while and try again',
             detail: state.fallbackReason ? `${formatUpdaterFallbackText(state)} · ${checked}` : checked,
-            button: { kind: 'check', label: 'もう一度確かめる', disabled: false, primary: false },
+            button: { kind: 'check', label: 'Check again', disabled: false, primary: false },
             browserFallback: !!downloadUrl
         };
     }
     if (state.checkRequestedByUser || lastEventKind === 'checking-for-update') {
         return {
-            label: '確認しています…', detail: checked,
-            button: { kind: 'check', label: 'アップデートを確認', disabled: true, primary: false },
+            label: 'Checking…', detail: checked,
+            button: { kind: 'check', label: 'Check for updates', disabled: true, primary: false },
             browserFallback: false
         };
     }
     return {
-        label: lastEventKind === 'update-not-available' ? `最新です（v${currentVersion}）` : 'アップデートを確認できます',
+        label: lastEventKind === 'update-not-available' ? `Up to date (v${currentVersion}）` : 'Updates can be checked',
         detail: checked,
-        button: { kind: 'check', label: 'アップデートを確認', disabled: false, primary: false },
+        button: { kind: 'check', label: 'Check for updates', disabled: false, primary: false },
         browserFallback: false
     };
 }

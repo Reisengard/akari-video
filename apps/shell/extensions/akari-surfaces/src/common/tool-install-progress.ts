@@ -39,16 +39,16 @@ export function computeDownloadPercent(downloadedBytes: number, totalBytes?: num
 export function summarizeCommandInstallPhase(outputTail: string): string {
     const text = outputTail.trim();
     if (!text) {
-        return '準備しています…';
+        return 'Preparing…';
     }
     if (/summary|already installed|up.?to.?date|successfully|success/i.test(text)) {
-        return '仕上げています…';
+        return 'Finishing…';
     }
     if (/fetch|download|取得|ダウンロード/i.test(text)) {
-        return 'パッケージを取得しています…';
+        return 'Downloading package…';
     }
     if (/pour|install|extract|展開|インストール/i.test(text)) {
-        return '展開しています…';
+        return 'Extracting…';
     }
-    return '処理しています…';
+    return 'Processing…';
 }

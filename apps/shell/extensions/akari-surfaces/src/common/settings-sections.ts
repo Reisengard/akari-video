@@ -3,53 +3,53 @@ import { buildExportEncoderChoices, ExportEncoder, ExportPlatform } from 'akari-
 // ナビの順（2026-09-22 設定ダイアログ刷新）。Akari アカウントを先頭に置き、テーマは開発者モードから外観へ移した。
 // icon は browser/settings/settings-icons.ts の線画 SVG の名前（絵文字・記号文字は使わない）。
 export const SETTINGS_SECTIONS = [
-    { id: 'account', label: 'AKARI アカウント', group: 'main', icon: 'user' },
-    { id: 'start', label: 'はじめかた', group: 'main', icon: 'play' },
-    { id: 'export', label: '書き出し', group: 'main', icon: 'download' },
-    { id: 'appearance', label: '外観', group: 'main', icon: 'contrast', badge: '言語・大きさ' },
-    { id: 'connections', label: '接続と API キー', group: 'main', icon: 'key' },
-    { id: 'ai-models', label: 'AI モデル', group: 'main', icon: 'spark' },
-    { id: 'partner', label: 'パートナー', group: 'main', icon: 'bot', badge: '新' },
-    { id: 'transcribe', label: '文字起こし', group: 'main', icon: 'mic' },
-    { id: 'narration', label: '読み上げ', group: 'main', icon: 'mic' },
-    { id: 'quality', label: 'プレビュー品質', group: 'main', icon: 'gauge' },
-    { id: 'notifications', label: '通知', group: 'main', icon: 'bell' },
-    { id: 'tools', label: '道具', group: 'main', icon: 'wrench' },
-    { id: 'shortcuts', label: 'ショートカット', group: 'main', icon: 'keyboard', badge: '新' },
-    { id: 'storage', label: 'ストレージ', group: 'data', icon: 'disk', badge: '新' },
-    { id: 'privacy', label: 'プライバシーとアクセス許可', group: 'data', icon: 'shield', badge: '新' },
-    { id: 'statistics', label: '統計と利用状況', group: 'data', icon: 'chart', badge: '準備中' },
-    { id: 'help', label: '困ったとき', group: 'support', icon: 'help', badge: '新' },
-    { id: 'about', label: 'このアプリについて', group: 'support', icon: 'info', badge: '新' },
-    { id: 'developer', label: '開発者モード', group: 'developer', icon: 'code' }
+    { id: 'account', label: 'AKARI account', group: 'main', icon: 'user' },
+    { id: 'start', label: 'Getting started', group: 'main', icon: 'play' },
+    { id: 'export', label: 'Export', group: 'main', icon: 'download' },
+    { id: 'appearance', label: 'Appearance', group: 'main', icon: 'contrast', badge: 'Language and size' },
+    { id: 'connections', label: 'Connections and API keys', group: 'main', icon: 'key' },
+    { id: 'ai-models', label: 'AI models', group: 'main', icon: 'spark' },
+    { id: 'partner', label: 'Partner', group: 'main', icon: 'bot', badge: 'New' },
+    { id: 'transcribe', label: 'Transcription', group: 'main', icon: 'mic' },
+    { id: 'narration', label: 'Narration', group: 'main', icon: 'mic' },
+    { id: 'quality', label: 'Preview quality', group: 'main', icon: 'gauge' },
+    { id: 'notifications', label: 'Notifications', group: 'main', icon: 'bell' },
+    { id: 'tools', label: 'Tools', group: 'main', icon: 'wrench' },
+    { id: 'shortcuts', label: 'Shortcuts', group: 'main', icon: 'keyboard', badge: 'New' },
+    { id: 'storage', label: 'Storage', group: 'data', icon: 'disk', badge: 'New' },
+    { id: 'privacy', label: 'Privacy and permissions', group: 'data', icon: 'shield', badge: 'New' },
+    { id: 'statistics', label: 'Statistics and usage', group: 'data', icon: 'chart', badge: 'Coming soon' },
+    { id: 'help', label: 'Help', group: 'support', icon: 'help', badge: 'New' },
+    { id: 'about', label: 'About', group: 'support', icon: 'info', badge: 'New' },
+    { id: 'developer', label: 'Developer mode', group: 'developer', icon: 'code' }
 ] as const;
 
 export type SettingsSectionId = typeof SETTINGS_SECTIONS[number]['id'];
 
 export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> = {
-    account: 'AKARI アカウントの接続と、AKARI Video Lab で購入した素材の受け取りをここで管理します。',
-    start: 'はじめてのガイドと、道具・作業場の準備をここから開けます。',
-    export: '書き出しの画質・形式・フレームレートと保存先の既定値を選びます。',
-    appearance: '色・言語・大きさと、下のバーに出すもの。',
-    partner: '一緒に作業する AI（CLI・公式拡張）。左の縦バーの「パートナー / 拡張」はここへ移りました。',
-    storage: 'AKARI が使っているディスクの量。行を開くと、場所と中身、消して大丈夫かが分かります。',
-    privacy: 'macOS の許可と、外へ送るもの。ターミナルから起動したパートナーも、この許可を引き継ぎます。',
-    statistics: 'つないだサービスで、どれだけ使ったか。',
-    help: 'うまく動かないときの道具。不具合を報告するときは診断情報を添えると早く直せます。',
-    about: 'バージョンとアップデート。',
-    connections: '外部サービスの接続と API キーを管理します。生成の既定モデル（静止画・動画）もここで選びます。',
-    'ai-models': 'モデルを探して、お気に入りといつものモデルを選び、できることを比べます。',
-    transcribe: '文字起こしのモードとエンジンを選びます。',
-    narration: '読み上げ（音声を作る）のエンジンの導入・起動と、既定のエンジン・声を設定します。',
-    quality: 'プレビューの描き方を選びます。',
-    notifications: 'AI パートナーの処理が終わったときの通知を設定します。',
-    tools: '動画づくりに必要な道具の状態を確認し、セットアップします。',
-    shortcuts: 'キーを押すと変えられます。右端のメニューから無効にする・既定に戻す。',
-    developer: '開発者向けの表示を設定します。'
+    account: 'Manage your AKARI account connection and download footage purchased from AKARI Video Lab.',
+    start: 'Open the first video guide and set up tools and your workspace.',
+    export: 'Choose default export quality, format, frame rate, and destination.',
+    appearance: 'Colors, language, size, and status bar items.',
+    partner: 'Choose the AI you work with (CLI or official extension). Partner and extension settings have moved here from the left rail.',
+    storage: 'Disk space used by AKARI. Open a row to see its location, contents, and whether it is safe to delete.',
+    privacy: 'macOS permissions and data sent externally. Partners started from the terminal inherit these permissions.',
+    statistics: 'Usage across connected services.',
+    help: 'Troubleshooting tools. Include diagnostics when reporting a bug to help resolve it faster.',
+    about: 'Version and updates.',
+    connections: 'Manage external services and API keys, and choose default image and video generation models.',
+    'ai-models': 'Find models, choose favorites and defaults, and compare capabilities.',
+    transcribe: 'Choose the transcription mode and engine.',
+    narration: 'Install and start speech engines, and choose the default engine and voice.',
+    quality: 'Choose how previews are rendered.',
+    notifications: 'Configure notifications when your AI partner finishes working.',
+    tools: 'Check and set up the tools needed to create videos.',
+    shortcuts: 'Press a key to change a shortcut. Use the menu on the right to disable it or restore the default.',
+    developer: 'Configure developer views.'
 };
 
 /** プレビュー品質の節に小さく出す注記（値を読む機能がまだ無いことを隠さない）。 */
-export const QUALITY_TIER_RESERVED_NOTE = '今はこの値を読む機能がありません（AI 生成の品質段階として予約）';
+export const QUALITY_TIER_RESERVED_NOTE = 'No feature currently uses this value (reserved for AI generation quality tiers)';
 
 export const SETTINGS_LAST_SECTION_KEY = 'akari.settings.lastSection';
 
@@ -149,10 +149,10 @@ export function settingsSectionElementId(id: SettingsSectionId): string {
 
 // 選択肢の並びは画面の並び（カード・セグメントの左から）。description は選択カード・ドロップダウンの一言。
 export const QUALITY_TIER_CHOICES = [
-    { value: 'draft', label: 'Draft', description: '速い確認用', icon: 'bolt' },
-    { value: 'final', label: 'Final', description: '最終品質', icon: 'gem' }
+    { value: 'draft', label: 'Draft', description: 'Quick checks', icon: 'bolt' },
+    { value: 'final', label: 'Final', description: 'Final quality', icon: 'gem' }
 ] as const;
-export const THEME_CHOICES = [{ value: 'dark', label: 'ダーク' }, { value: 'light', label: 'ライト' }, { value: 'system', label: 'システムに合わせる' }] as const;
+export const THEME_CHOICES = [{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }, { value: 'system', label: 'Follow system' }] as const;
 export function clampZoom(value: number): number { return Math.min(200, Math.max(60, Math.round(value / 10) * 10)); }
 export function matchesSettingsSearch(query: string, label: string, description: string, rows: readonly string[]): boolean {
     const needle = query.trim().toLocaleLowerCase();
@@ -167,24 +167,24 @@ export function formatShortReleaseDate(value: unknown): string {
     return month >= 1 && month <= 12 && day >= 1 && day <= 31 ? `${month}/${day}` : '';
 }
 export const EXPORT_QUALITY_CHOICES = [
-    { value: 'light', label: '軽量', description: '共有・確認向け' },
-    { value: 'standard', label: '標準', description: 'ふだんの投稿' },
-    { value: 'high', label: '高画質', description: '大きい画面向け' },
-    { value: 'master', label: 'マスター', description: '再編集・保管用' }
+    { value: 'light', label: 'Lightweight', description: 'Sharing and review' },
+    { value: 'standard', label: 'Standard', description: 'Everyday posts' },
+    { value: 'high', label: 'High quality', description: 'Large screens' },
+    { value: 'master', label: 'Master', description: 'Re-editing and archiving' }
 ] as const;
 export const EXPORT_CODEC_CHOICES = [
-    { value: 'h264', label: 'MP4 · H.264', description: 'どこでも再生できる' },
-    { value: 'hevc', label: 'MP4 · H.265（HEVC）', description: '同じ画質で軽い' },
-    { value: 'prores422', label: 'MOV · ProRes 422 HQ', description: '編集ソフトへ渡す' },
-    { value: 'png', label: '連番 PNG', description: '1 コマずつ画像で' }
+    { value: 'h264', label: 'MP4 · H.264', description: 'Widely compatible' },
+    { value: 'hevc', label: 'MP4 · H.265（HEVC）', description: 'Smaller at the same quality' },
+    { value: 'prores422', label: 'MOV · ProRes 422 HQ', description: 'Transfer to an editor' },
+    { value: 'png', label: 'PNG sequence', description: 'One image per frame' }
 ] as const;
 export const EXPORT_FPS_CHOICES = [
-    { value: '', label: '編集データ' },
+    { value: '', label: 'Edit data' },
     { value: '24', label: '24' }, { value: '30', label: '30' }, { value: '60', label: '60' }
 ] as const;
 export const TRANSCRIBE_MODE_CHOICES = [
-    { value: 'simple', label: '簡単', description: 'おまかせで 1 回。ふだんはこれ', icon: 'spark' },
-    { value: 'advanced', label: 'アドバンス', description: 'エンジンの比較・カット候補の自動作成', icon: 'sliders' }
+    { value: 'simple', label: 'Simple', description: 'One automatic pass. Recommended for everyday use', icon: 'spark' },
+    { value: 'advanced', label: 'Advanced', description: 'Compare engines and automatically create cut candidates', icon: 'sliders' }
 ] as const;
 
 export function normalizeExportCodec(value: unknown): typeof EXPORT_CODEC_CHOICES[number]['value'] {

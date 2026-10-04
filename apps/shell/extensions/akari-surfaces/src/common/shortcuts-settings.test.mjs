@@ -17,16 +17,16 @@ test('registered AKARI command IDs map to the seven navigation groups', () => {
 });
 
 test('search accepts symbol and word spellings, case and whitespace', () => {
-    const split = { id: 'akari.timeline.razorTool', label: '分割ツール', group: 'editing',
+    const split = { id: 'akari.timeline.razorTool', label: 'Split tool', group: 'editing',
         bindings: [{ keybinding: 'ctrlcmd+b', when: 'akariTimelineVisible' }], modified: false, conflict: false };
     assert.deepEqual(shortcutKeyText('ctrlcmd+shift+b'), [['⌘', '⇧', 'B']]);
-    for (const query of ['⌘B', '⌘ B', 'cmd+b', 'CTRLCMD + B', '分割', 'razorTool']) {
+    for (const query of ['⌘B', '⌘ B', 'cmd+b', 'CTRLCMD + B', 'Split', 'razorTool']) {
         assert.equal(matchesShortcut(split, query), true, query);
     }
     assert.equal(matchesShortcut({ ...split, bindings: [{ keybinding: 'b' }, { keybinding: 'c' }] }, '⌘B'), true);
-    assert.equal(matchesShortcut(split, '文字'), false);
-    const text = { ...split, id: 'akari.caption.placeText', label: '文字を置く', bindings: [{ keybinding: 't' }] };
-    assert.equal(matchesShortcut(text, '文字'), true);
+    assert.equal(matchesShortcut(split, 'text'), false);
+    const text = { ...split, id: 'akari.caption.placeText', label: 'Place text', bindings: [{ keybinding: 't' }] };
+    assert.equal(matchesShortcut(text, 'text'), true);
     assert.equal(normalizeShortcutSearch(' CtrlCmd + B '), normalizeShortcutSearch('⌘B'));
 });
 
@@ -45,8 +45,8 @@ test('AKARI registration order wins over label order, then other AKARI and Theia
     assert.equal(AKARI_SHORTCUT_ORDER[0], 'akari.timeline.undo');
     assert.deepEqual([
         row('workbench.a', 'A'), row('akari.home.newProject', 'あ'), row('akari.timeline.moveTrackDown', '1 つ下のトラックへ'),
-        row('akari.timeline.razorTool', '分割ツール'), row('akari.timeline.undo', '元に戻す'), row('workbench.z', 'Z'),
-        row('akari.inspector.clearSolo', 'インスペクターのソロを外す'), row('akari.home.newWindow', '新しいウィンドウ')
+        row('akari.timeline.razorTool', 'Split tool'), row('akari.timeline.undo', 'Reset'), row('workbench.z', 'Z'),
+        row('akari.inspector.clearSolo', 'インスペクターのソロを外す'), row('akari.home.newWindow', 'New window')
     ].sort(compareShortcutRows).map(item => item.id), [
         'akari.timeline.undo', 'akari.timeline.razorTool', 'akari.timeline.moveTrackDown',
         'akari.home.newWindow', 'akari.inspector.clearSolo', 'akari.home.newProject', 'workbench.a', 'workbench.z'
@@ -133,8 +133,8 @@ test('AKARI negative-only when is blank without changing other labels', () => {
     const cases = [
         ['!akariHistoryEditableFocus', ''], ['!akariModalOpen && !akariImeComposing', ''],
         ['!akariModalOpen && inputFocus', '!akariModalOpen && inputFocus'],
-        ['akariTimelineVisible && !akariModalOpen', 'タイムライン'],
-        ['inputFocus', 'inputFocus'], [undefined, 'いつでも']
+        ['akariTimelineVisible && !akariModalOpen', 'Timeline'],
+        ['inputFocus', 'inputFocus'], [undefined, 'Any time']
     ];
     for (const [when, expected] of cases) { assert.equal(shortcutWhen(when), expected); }
 });
@@ -148,7 +148,7 @@ test('physical KeyCode stringification keeps Theia modifier order and ignores pr
     assert.equal(keybindingFromKeyCode(code('up'), true), 'up');
     assert.equal(keybindingFromKeyCode(code('b', { ctrl: true }), false), 'ctrlcmd+b');
     assert.equal(keybindingFromKeyCode(code(undefined, { shift: true }), true), undefined);
-    assert.equal(shortcutWhen('akariTimelineVisible && akariKeyframeSelected'), 'キーフレームを選んでいるとき');
-    assert.equal(shortcutWhen('akariTimelineVisible && !akariModalOpen && !akariFocusOutsideTimeline && !akariInspectorFocus'), 'タイムライン');
-    assert.equal(shortcutWhen('akariInspectorFocus && akariInspectorSolo && !akariEditableFocus && !akariImeComposing'), '編集パネル');
+    assert.equal(shortcutWhen('akariTimelineVisible && akariKeyframeSelected'), 'When a keyframe is selected');
+    assert.equal(shortcutWhen('akariTimelineVisible && !akariModalOpen && !akariFocusOutsideTimeline && !akariInspectorFocus'), 'Timeline');
+    assert.equal(shortcutWhen('akariInspectorFocus && akariInspectorSolo && !akariEditableFocus && !akariImeComposing'), 'Edit panel');
 });

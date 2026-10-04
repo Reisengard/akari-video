@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-test('Command Code は PATH 外の正式名で検出し、専用 Node の bin で版を取得する', async t => {
+test('Command Code is detected by its official name outside PATH using its dedicated Node bin', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-partner-settings-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     const localBin = join(root, '.local', 'bin');
@@ -38,7 +38,7 @@ test('Command Code は PATH 外の正式名で検出し、専用 Node の bin �
     assert.deepEqual(details.commandcode, { installed: true, version: 'command-code-1.45.0', detail: 'command-code-1.45.0' });
 });
 
-test('PATH 外の CLI が --version に失敗してもインストール済みとし、エラーを版にしない', async t => {
+test('CLI version failures outside PATH still count as installed without displaying errors as versions', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-partner-settings-version-fail-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     const localBin = join(root, '.local', 'bin');

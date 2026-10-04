@@ -14,6 +14,6 @@ test('popup stays within a narrow or short viewport', () => {
 });
 
 test('checkpoint copy asks for confirmation', () => {
-    assert.match(INTAKE_AUTONOMY_DESCRIPTIONS.checkpoint, /確認は書き出しの 1 回/);
+    assert.match(INTAKE_AUTONOMY_DESCRIPTIONS.checkpoint, /Review once before export/);
     assert.doesNotMatch(INTAKE_AUTONOMY_DESCRIPTIONS.checkpoint, /判子/);
 });

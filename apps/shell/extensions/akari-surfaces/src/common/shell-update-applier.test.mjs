@@ -34,14 +34,14 @@ import {
     shouldOpenUpdaterBrowserFallback
 } from '../../lib/common/shell-update-applier.js';
 
-test('更新 UI はパッケージ版と明示フィード付き開発版で有効になる', () => {
+test('Update UI is enabled in packaged builds and development builds with an explicit feed', () => {
     assert.equal(resolveUpdateUiEnabled({ isPackaged: true, feedUrlOverridden: false, testFeedUrlSet: false }), true);
     assert.equal(resolveUpdateUiEnabled({ isPackaged: false, feedUrlOverridden: false, testFeedUrlSet: false }), false);
     assert.equal(resolveUpdateUiEnabled({ isPackaged: false, feedUrlOverridden: true, testFeedUrlSet: false }), true);
     assert.equal(resolveUpdateUiEnabled({ isPackaged: false, feedUrlOverridden: false, testFeedUrlSet: true }), true);
 });
 
-test('パッケージ版はフィード指定の有無によらず従来の更新 UI とブラウザ縮退を維持する', () => {
+test('Packaged builds retain update UI and browser fallback regardless of feed configuration', () => {
     for (const feedUrlOverridden of [false, true]) {
         for (const testFeedUrlSet of [false, true]) {
             assert.equal(resolveUpdateUiEnabled({ isPackaged: true, feedUrlOverridden, testFeedUrlSet }), true);
@@ -54,16 +54,16 @@ test('パッケージ版はフィード指定の有無によらず従来の更�
     assert.equal(shouldOpenUpdaterBrowserFallback(checking, error, updateUiEnabled), shouldOpenUpdaterBrowserFallback(checking, error));
 });
 
-test('フィード未指定の開発版では明示クリック後の error イベントでもブラウザを開かない', () => {
+test('Development without a feed never opens a browser after an update error', () => {
     const updateUiEnabled = resolveUpdateUiEnabled({ isPackaged: false, feedUrlOverridden: false, testFeedUrlSet: false });
     const checking = beginUserInitiatedUpdaterCheck(INITIAL_SHELL_UPDATER_UI_STATE);
-    const error = { kind: 'error', reason: 'このビルドではアプリ内更新を利用できません' };
+    const error = { kind: 'error', reason: 'In-app updates are unavailable in this build' };
     let browserOpens = 0;
     if (shouldOpenUpdaterBrowserFallback(checking, error, updateUiEnabled)) { browserOpens += 1; }
     assert.equal(browserOpens, 0);
 });
 
-test('feed URL フォールバックはパッケージ版かつ app-update.yml 欠如時だけ適用する', () => {
+test('Feed URL fallback applies only to packaged builds missing app-update.yml', () => {
     assert.equal(shouldApplyFeedUrlFallback(true, true), false);
     assert.equal(shouldApplyFeedUrlFallback(true, false), true);
     assert.equal(shouldApplyFeedUrlFallback(false, true), false);
@@ -74,38 +74,38 @@ test('feed URL フォールバックはパッケージ版かつ app-update.yml �
     });
 });
 
-test('フォールバック用 app-update.yml は gen-app-update-yml.mjs の出力とバイト等価（updaterCacheDirName の drift ガード）', async () => {
+test('Fallback app-update.yml matches generator bytes including updaterCacheDirName', async () => {
     const repoRoot = fileURLToPath(new URL('../../../../../../', import.meta.url));
     assert.equal(buildFallbackAppUpdateYml(), await generateAppUpdateYml({ repoRoot }));
     assert.equal(FALLBACK_UPDATER_CACHE_DIR_NAME, '@akari-videoshell-updater');
     assert.equal(FALLBACK_APP_UPDATE_YML_FILENAME, 'app-update.yml');
 });
 
-test('applyShellUpdaterEvent: update-downloaded で downloaded: true + version が入る（通知→DL済み・再起動ボタンの遷移）', () => {
+test('update-downloaded records downloaded state and version for the restart button', () => {
     const next = applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-downloaded', version: '0.2.0' });
     assert.deepEqual(next, { downloaded: true, downloadedVersion: '0.2.0' });
 });
 
-test('applyShellUpdaterEvent: version の無い update-downloaded は無視する（壊れたペイロード対策）', () => {
+test('update-downloaded ignores malformed payloads without a version', () => {
     const next = applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-downloaded' });
     assert.deepEqual(next, INITIAL_SHELL_UPDATER_UI_STATE);
 });
 
-test('applyShellUpdaterEvent: update-available で「ダウンロード中」状態になる（autoDownload の進行を可視化）', () => {
+test('update-available displays downloading state for autoDownload', () => {
     const next = applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-available', version: '0.2.0' });
     assert.deepEqual(next, { downloaded: false, downloading: true, downloadingVersion: '0.2.0' });
 });
 
-test('applyShellUpdaterEvent: version の無い update-available は無視する（壊れたペイロード対策）', () => {
+test('update-available ignores malformed payloads without a version', () => {
     assert.deepEqual(applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-available' }), INITIAL_SHELL_UPDATER_UI_STATE);
 });
 
-test('applyShellUpdaterEvent: ダウンロード中 → update-downloaded で DL 済み状態へ進む', () => {
+test('update-downloaded advances downloading to downloaded', () => {
     const downloading = { downloaded: false, downloading: true, downloadingVersion: '0.2.0' };
     assert.deepEqual(applyShellUpdaterEvent(downloading, { kind: 'update-downloaded', version: '0.2.0' }), { downloaded: true, downloadedVersion: '0.2.0' });
 });
 
-test('applyShellUpdaterEvent: DL 済み版より新しい update-available が staged を追い越し、新版の DL 済みへ進む', () => {
+test('A newer available update supersedes the staged version and advances to downloaded', () => {
     const downloaded = { downloaded: true, downloadedVersion: '0.1.19' };
     const downloading = applyShellUpdaterEvent(downloaded, { kind: 'update-available', version: '0.1.20' });
     assert.deepEqual(downloading, { downloaded: false, downloading: true, downloadingVersion: '0.1.20' });
@@ -115,36 +115,36 @@ test('applyShellUpdaterEvent: DL 済み版より新しい update-available が s
     });
 });
 
-test('applyShellUpdaterEvent: DL 済み版と同じ・古い update-available では staged を維持する', () => {
+test('Same or older available updates preserve the staged version', () => {
     const downloaded = { downloaded: true, downloadedVersion: '0.1.19' };
     assert.equal(applyShellUpdaterEvent(downloaded, { kind: 'update-available', version: '0.1.19' }), downloaded);
     assert.equal(applyShellUpdaterEvent(downloaded, { kind: 'update-available', version: '0.1.18' }), downloaded);
 });
 
-test('applyShellUpdaterEvent: staged より古い update-downloaded では状態を巻き戻さない', () => {
+test('Older downloaded updates do not roll state backward', () => {
     const downloaded = { downloaded: true, downloadedVersion: '0.1.20' };
     assert.equal(applyShellUpdaterEvent(downloaded, { kind: 'update-downloaded', version: '0.1.19' }), downloaded);
 });
 
-test('applyShellUpdaterEvent: error は reason を保持し、DL 済みなら既存状態を維持する', () => {
+test('Update errors retain reason and preserve existing downloaded state', () => {
     const downloaded = { downloaded: true, downloadedVersion: '0.2.0' };
     assert.deepEqual(applyShellUpdaterEvent(downloaded, { kind: 'error', reason: 'network down' }), downloaded);
     assert.deepEqual(applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'error', reason: 'oops' }), {
         downloaded: false,
         failed: true,
-        failureReason: '更新を確認できませんでした。時間をおいてもう一度お試しください',
+        failureReason: 'Could not check for updates. Wait a while and try again',
         fallbackReason: undefined
     });
     const downloading = { downloaded: false, downloading: true, downloadingVersion: '0.2.0' };
     assert.deepEqual(applyShellUpdaterEvent(downloading, { kind: 'error', message: 'legacy message' }), {
         downloaded: false,
         failed: true,
-        failureReason: '更新を確認できませんでした。時間をおいてもう一度お試しください',
+        failureReason: 'Could not check for updates. Wait a while and try again',
         fallbackReason: undefined
     });
 });
 
-test('applyShellUpdaterEvent: checking-for-update / update-not-available は failed を解除して再試行から回復できる', () => {
+test('Checking and no-update events clear failed state for retry recovery', () => {
     const downloading = { downloaded: false, downloading: true, downloadingVersion: '0.2.0' };
     assert.deepEqual(applyShellUpdaterEvent(downloading, { kind: 'update-not-available' }), { downloaded: false });
     assert.deepEqual(applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-not-available' }), INITIAL_SHELL_UPDATER_UI_STATE);
@@ -170,7 +170,7 @@ test('applyShellUpdaterEvent: checking-for-update / update-not-available は fai
     });
 });
 
-test('failed 中の更新ボタンも API があればまず再試行し、明示クリックの失敗だけブラウザ縮退理由を出す', () => {
+test('Failed-state buttons retry through the API before showing explicit browser fallback', () => {
     const failed = { downloaded: false, failed: true, failureReason: 'offline' };
     assert.equal(resolveUpdateButtonAction(failed, true), 'check');
     const checking = beginUserInitiatedUpdaterCheck(failed);
@@ -178,43 +178,43 @@ test('failed 中の更新ボタンも API があればまず再試行し、明�
     const error = { kind: 'error', reason: 'still offline' };
     assert.equal(shouldOpenUpdaterBrowserFallback(checking, error), true);
     const fallback = applyShellUpdaterEvent(checking, error);
-    assert.equal(formatUpdaterFallbackText(fallback), 'ダウンロードページを開きます');
+    assert.equal(formatUpdaterFallbackText(fallback), 'Open the download page');
 });
 
-test('設定画面のアップデート確認ボタンは利用者の明示操作として保存済み channel で確認する', () => {
+test('Settings update checks are explicit user actions using the saved channel', () => {
     const source = readFileSync(new URL('../browser/akari-settings-dialog.ts', import.meta.url), 'utf8');
     assert.match(source, /api\.checkForUpdatesNow\(\{ userInitiated: true \}\)/);
 });
 
-test('手動確認は DL 中・DL 済みを版つきで再通知し、それ以外は再チェックへ進む', () => {
+test('Manual checks reannounce downloading or downloaded versions before rechecking', () => {
     assert.deepEqual(resolveManualUpdaterCheckEvent(true, '0.1.87', '0.1.86'), { kind: 'update-available', version: '0.1.87' });
     assert.deepEqual(resolveManualUpdaterCheckEvent(true, undefined, '0.1.86'), { kind: 'update-downloaded', version: '0.1.86' });
     assert.equal(resolveManualUpdaterCheckEvent(true, undefined, undefined), undefined);
     assert.equal(resolveManualUpdaterCheckEvent(false, '0.1.87', '0.1.86'), undefined);
 });
 
-test('安定版設定でも、通知でプレリリースを明示ダウンロードしたときはその channel を確認する', () => {
+test('Explicit prerelease downloads check their channel even with stable preferences', () => {
     assert.equal(resolveUpdaterCheckChannel('stable', false, 'prerelease'), 'stable');
     assert.equal(resolveUpdaterCheckChannel('stable', true, 'prerelease'), 'prerelease');
     assert.equal(resolveUpdaterCheckChannel('prerelease', true, 'stable'), 'stable');
     assert.equal(resolveUpdaterCheckChannel('stable', true, 'invalid'), 'stable');
 });
 
-test('generic feed は prerelease を latest、stable を専用 manifest に振り分ける', () => {
+test('Generic feeds route prereleases to latest and stable to a separate manifest', () => {
     assert.equal(resolveUpdaterFeedChannel('prerelease'), 'latest');
     assert.equal(resolveUpdaterFeedChannel('stable'), 'stable');
 });
 
-test('通知の新版を手動確認して更新なしなら無反応にせず、配布物への縮退を発火する', () => {
+test('A notified version missing from a manual check triggers distribution fallback', () => {
     const checking = beginUserInitiatedUpdaterCheck(INITIAL_SHELL_UPDATER_UI_STATE);
     const event = reconcileVisibleUpdateEvent(checking, { kind: 'update-not-available' }, '0.1.82');
     assert.equal(event.kind, 'error');
     assert.equal(shouldOpenUpdaterBrowserFallback(checking, event), true);
-    assert.equal(formatUpdaterFallbackText(applyShellUpdaterEvent(checking, event)), 'ダウンロードページを開きます');
+    assert.equal(formatUpdaterFallbackText(applyShellUpdaterEvent(checking, event)), 'Open the download page');
     assert.deepEqual(reconcileVisibleUpdateEvent(INITIAL_SHELL_UPDATER_UI_STATE, { kind: 'update-not-available' }, '0.1.82'), { kind: 'update-not-available' });
 });
 
-test('ホーム表示時の updater 再チェックは DL 済み状態による分岐を持たず、API を 1 回だけ発火する', async () => {
+test('Home update rechecks call the API once without branching on downloaded state', async () => {
     let checks = 0;
     checkForShellUpdatesOnHomeShow({
         checkForUpdatesNow: async () => {
@@ -226,37 +226,37 @@ test('ホーム表示時の updater 再チェックは DL 済み状態による�
     await Promise.resolve();
 });
 
-test('バックグラウンドチェックの失敗では縮退表示もブラウザ遷移も発生しない', () => {
+test('Background failures neither display fallback nor navigate the browser', () => {
     const error = { kind: 'error', reason: 'background failure' };
     assert.equal(shouldOpenUpdaterBrowserFallback(INITIAL_SHELL_UPDATER_UI_STATE, error), false);
     const failed = applyShellUpdaterEvent(INITIAL_SHELL_UPDATER_UI_STATE, error);
     assert.equal(formatUpdaterFallbackText(failed), '');
 });
 
-test('API 不在時は明示クリックから即ブラウザ縮退し、理由を一行表示する', () => {
+test('Explicit clicks without an API immediately use browser fallback and a one-line reason', () => {
     assert.equal(resolveUpdateButtonAction(INITIAL_SHELL_UPDATER_UI_STATE, false), 'browser-fallback');
-    const fallback = applyImmediateUpdaterFallback(INITIAL_SHELL_UPDATER_UI_STATE, 'アプリ内更新機能を利用できませんでした');
-    assert.equal(formatUpdaterFallbackText(fallback), 'ダウンロードページを開きます');
+    const fallback = applyImmediateUpdaterFallback(INITIAL_SHELL_UPDATER_UI_STATE, 'In-app updates are unavailable');
+    assert.equal(formatUpdaterFallbackText(fallback), 'Open the download page');
 });
 
-test('App Translocation の実行パスだけを検知し、具体的な移動案内を優先する', () => {
+test('App Translocation detection uses execution paths and prioritizes relocation guidance', () => {
     const translated = '/private/var/folders/xx/AppTranslocation/ABC/d/AKARI Video.app/Contents/MacOS/AKARI Video';
     assert.equal(isAppTranslocationPath(translated), true);
     assert.equal(isAppTranslocationPath('/Applications/AKARI Video.app/Contents/MacOS/AKARI Video'), false);
     assert.equal(isAppTranslocationPath('/tmp/AppTranslocation-backup/AKARI Video'), false);
-    assert.equal(resolveShellUpdaterErrorReason('network down', translated), 'アプリを Applications フォルダへ移動してから再起動してください');
+    assert.equal(resolveShellUpdaterErrorReason('network down', translated), 'Move the app to Applications, then restart');
 });
 
-test('ネットワーク系エラーは日本語へ整形し、それ以外も生 message を画面へ渡さない', () => {
+test('Network errors are normalized and raw messages never reach the UI', () => {
     assert.equal(
         resolveShellUpdaterErrorReason('net::ERR_INTERNET_DISCONNECTED', '/Applications/AKARI Video.app/Contents/MacOS/AKARI Video'),
-        'オフラインのため更新を確認できませんでした'
+        'Could not check for updates while offline'
     );
-    assert.equal(resolveShellUpdaterErrorReason('signature validation failed', '/Applications/AKARI Video.app'), '更新を確認できませんでした。時間をおいてもう一度お試しください');
+    assert.equal(resolveShellUpdaterErrorReason('signature validation failed', '/Applications/AKARI Video.app'), 'Could not check for updates. Wait a while and try again');
 });
 
-test('Chromium の配信先への接続失敗はオフラインと区別した理由にする', () => {
-    const reason = '配信先に接続できませんでした。時間をおいてお試しください';
+test('Chromium server connection failures are distinguished from offline status', () => {
+    const reason = 'Could not connect to the update server. Try again later';
     for (const code of [
         'ERR_CONNECTION_REFUSED', 'ERR_CONNECTION_RESET', 'ERR_CONNECTION_CLOSED',
         'ERR_CONNECTION_FAILED', 'ERR_ADDRESS_UNREACHABLE', 'ERR_TIMED_OUT'
@@ -265,31 +265,31 @@ test('Chromium の配信先への接続失敗はオフラインと区別した�
     }
     assert.equal(
         resolveShellUpdaterErrorReason('net::ERR_INTERNET_DISCONNECTED', '/Applications/AKARI Video.app'),
-        'オフラインのため更新を確認できませんでした'
+        'Could not check for updates while offline'
     );
     assert.equal(
         resolveShellUpdaterErrorReason('ECONNREFUSED', '/Applications/AKARI Video.app'),
-        'オフラインのため更新を確認できませんでした'
+        'Could not check for updates while offline'
     );
 });
 
-test('applyShellUpdaterEvent: DL 済み状態から再度 update-available / error が来ても downloaded は維持される（DL 済みバナーが消えない）', () => {
+test('Repeated available updates or errors preserve the downloaded banner', () => {
     const downloaded = { downloaded: true, downloadedVersion: '0.2.0' };
     assert.deepEqual(applyShellUpdaterEvent(downloaded, { kind: 'update-available', version: '0.2.0' }), downloaded);
 });
 
-test('resolveAllowPrerelease: stable 以外（prerelease・undefined・null・壊れた値）はすべて true', () => {
+test('resolveAllowPrerelease enables everything except explicit stable', () => {
     assert.equal(resolveAllowPrerelease('prerelease'), true);
     assert.equal(resolveAllowPrerelease(undefined), true);
     assert.equal(resolveAllowPrerelease(null), true);
     assert.equal(resolveAllowPrerelease(''), true);
 });
 
-test('resolveAllowPrerelease: stable のときだけ false', () => {
+test('resolveAllowPrerelease returns false only for stable', () => {
     assert.equal(resolveAllowPrerelease('stable'), false);
 });
 
-test('resolveUpdateChannel: 明示的な stable だけ安定版・未設定や壊れた値はプレリリース（既定）', () => {
+test('resolveUpdateChannel uses explicit stable and defaults malformed values to prerelease', () => {
     assert.equal(resolveUpdateChannel('stable'), 'stable');
     assert.equal(resolveUpdateChannel('prerelease'), 'prerelease');
     assert.equal(resolveUpdateChannel(undefined), 'prerelease');
@@ -297,26 +297,26 @@ test('resolveUpdateChannel: 明示的な stable だけ安定版・未設定や�
     assert.equal(resolveUpdateChannel('beta'), 'prerelease');
 });
 
-test('formatDownloadedBannerText: downloaded: true + version ありなら文言が入る', () => {
+test('Downloaded banner requires downloaded state and version', () => {
     assert.equal(
         formatDownloadedBannerText({ downloaded: true, downloadedVersion: '0.2.0' }),
-        'AKARI Video v0.2.0 をダウンロード済みです。再起動すると適用されます。'
+        'AKARI Video v0.2.0 downloaded. Restart to apply.'
     );
 });
 
-test('formatDownloadedBannerText: downloaded: false / version 無しは空文字（バナー非表示の合図）', () => {
+test('Downloaded banner is empty without downloaded state or version', () => {
     assert.equal(formatDownloadedBannerText(INITIAL_SHELL_UPDATER_UI_STATE), '');
     assert.equal(formatDownloadedBannerText({ downloaded: true }), '');
 });
 
-test('formatDownloadingBannerText: ダウンロード中 + version ありなら文言が入る', () => {
+test('Downloading banner requires active download and version', () => {
     assert.equal(
         formatDownloadingBannerText({ downloaded: false, downloading: true, downloadingVersion: '0.2.0' }),
-        'AKARI Video v0.2.0 をダウンロードしています。完了すると再起動ボタンが表示されます。'
+        'AKARI Video v0.2.0 downloading. A restart button appears when finished.'
     );
 });
 
-test('formatDownloadingBannerText: DL 中でない / version 無し / DL 済みは空文字（バナー非表示の合図）', () => {
+test('Downloading banner is empty when inactive, versionless, or downloaded', () => {
     assert.equal(formatDownloadingBannerText(INITIAL_SHELL_UPDATER_UI_STATE), '');
     assert.equal(formatDownloadingBannerText({ downloaded: false, downloading: true }), '');
     assert.equal(formatDownloadingBannerText({ downloaded: true, downloadedVersion: '0.2.0', downloading: true, downloadingVersion: '0.2.0' }), '');

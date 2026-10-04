@@ -35,31 +35,31 @@ import { AkariHomeWidget } from './akari-home-widget';
 export const AkariHomeCommands = {
     OPEN_INTAKE_FORM: {
         id: 'akari.home.openIntakeForm',
-        label: '進め方フォームを開く'
+        label: 'Open intake form'
     } as Command,
     NEW_PROJECT: {
         id: 'akari.home.newProject',
-        label: '新規プロジェクト作成'
+        label: 'Create project'
     } as Command,
     OPEN_FIRST_RUN_SETUP: {
         id: 'akari.home.openFirstRunSetup',
-        label: '初回セットアップを開く'
+        label: 'Open first-run setup'
     } as Command,
     OPEN_FIRST_VIDEO_GUIDE: {
         id: 'akari.home.openFirstVideoGuide',
-        label: 'はじめてのガイドをもう一度'
+        label: 'Replay the first video guide'
     } as Command,
     // task 2026-08-25-shell-window-and-notify ②: 別プロジェクトを並行で開くための入口。
     // ワークスペース未指定の既定ウィンドウ（ホーム + ランチャー）が開く。Theia 標準の
     // File > New Window（workbench.action.newWindow・英語ラベル）と重複するため、
     // あちらのメニュー項目は AkariMenuCuration（akari-shell-strip）が外している
     // （コマンド自体は残す）。
-    TEST_UPDATE_FOUND: { id: 'akari.update.testFound', label: '更新通知を検証: 見つかった' } as Command,
-    TEST_UPDATE_DOWNLOADING: { id: 'akari.update.testDownloading', label: '更新通知を検証: ダウンロード中' } as Command,
-    TEST_UPDATE_READY: { id: 'akari.update.testReady', label: '更新通知を検証: 準備できた' } as Command,
+    TEST_UPDATE_FOUND: { id: 'akari.update.testFound', label: 'Test update notification: Found' } as Command,
+    TEST_UPDATE_DOWNLOADING: { id: 'akari.update.testDownloading', label: 'Test update notification: Downloading' } as Command,
+    TEST_UPDATE_READY: { id: 'akari.update.testReady', label: 'Test update notification: Ready' } as Command,
     NEW_WINDOW: {
         id: 'akari.home.newWindow',
-        label: '新しいウィンドウ'
+        label: 'New window'
     } as Command
 };
 

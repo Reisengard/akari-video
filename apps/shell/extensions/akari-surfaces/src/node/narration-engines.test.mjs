@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { NarrationCli } from '../../lib/node/narration-engines.js';
 
-test('narration RPC は Electron node モードで CLI を呼び、鍵を返さず状態と操作を渡す', async () => {
+test('Narration RPC uses Electron node mode and never returns credentials', async () => {
     const calls = [];
     const spawnImpl = (command, args, options) => {
         calls.push([command, args, options]);
@@ -33,7 +33,7 @@ test('narration RPC は Electron node モードで CLI を呼び、鍵を返さ�
     assert.ok(calls.filter(([, args]) => args[1] === 'narration').every(([, , options]) => options.env.ELECTRON_RUN_AS_NODE === '1'));
 });
 
-test('設定の Gemini 同意照合は 0.8 未満を拒否し、合格した一時録音を片付ける', async t => {
+test('Gemini consent verification rejects scores below 0.8 and cleans verified temporary recordings', async t => {
     const root = await mkdtemp(join(tmpdir(), 'akari-gemini-consent-test-'));
     t.after(() => rm(root, { recursive: true, force: true }));
     let score = 0.79;
@@ -53,7 +53,7 @@ test('設定の Gemini 同意照合は 0.8 未満を拒否し、合格した一�
     await assert.rejects(() => import('node:fs/promises').then(fs => fs.access(accepted.path)), /ENOENT/);
 });
 
-test('VOICEVOX 試聴は一時プロジェクトの wav を data URL にして片付ける', async () => {
+test('VOICEVOX previews convert temporary WAV files to data URLs and clean up', async () => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-narration-rpc-test-'));
     try {
         const cli = new NarrationCli({ tempRoot: scratch, env: { AKARI_GENERATE_CLI: '/fake/akari.mjs' },
@@ -75,7 +75,7 @@ test('VOICEVOX 試聴は一時プロジェクトの wav を data URL にして�
     } finally { await rm(scratch, { recursive: true, force: true }); }
 });
 
-test('brew が存在して cask が無いときは追加探索せず公式サイト導線になる', async () => {
+test('Missing brew casks open official sites without extra discovery', async () => {
     const calls = [];
     const cli = new NarrationCli({ env: { AKARI_GENERATE_CLI: '/fake/akari.mjs' },
         spawnImpl: (command, args) => {
@@ -97,7 +97,7 @@ test('brew が存在して cask が無いときは追加探索せず公式サイ
     }
 });
 
-test('voice RPC は CLI の引数を渡し、fal は承認前に spawn しない', async () => {
+test('Voice RPC forwards CLI arguments and never spawns fal before approval', async () => {
     const calls = [];
     const cli = new NarrationCli({ env: { AKARI_GENERATE_CLI: '/fake/akari.mjs' }, resolveHome: () => '/fake/akari-home', spawnImpl: (_command, args) => {
         calls.push(args.slice(1));
@@ -105,7 +105,7 @@ test('voice RPC は CLI の引数を渡し、fal は承認前に spawn しない
         queueMicrotask(() => { child.stdout.emit('data', Buffer.from(JSON.stringify(args.includes('profiles') ? { profiles: [{ id: 'owner-ja', avatar: null, legacy: true }] } : { status: 'ok' }))); child.emit('close', 0); });
         return child;
     } });
-    await assert.rejects(cli.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /費用承認/u);
+    await assert.rejects(cli.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /Cost approval/u);
     assert.equal(calls.length, 0);
     await cli.voiceProfiles(); await cli.voiceRename('p', '新名');
     await cli.voiceCopy({ profile: 'p', engine: 'fal-qwen3', approved: true });
@@ -116,7 +116,7 @@ test('voice RPC は CLI の引数を渡し、fal は承認前に spawn しない
     assert.ok(calls[2].includes('--yes'));
 });
 
-test('CLI の空 stdout・非ゼロ終了は stderr で reject し、成功時の不正 JSON も reject', async () => {
+test('CLI rejects empty output, nonzero exits, and malformed successful JSON', async () => {
     const fake = (code, stdout, stderr) => new NarrationCli({ env: { AKARI_GENERATE_CLI: '/fake/akari.mjs' },
         spawnImpl: () => {
             const child = new EventEmitter(); child.stdout = new EventEmitter(); child.stderr = new EventEmitter();
@@ -128,10 +128,10 @@ test('CLI の空 stdout・非ゼロ終了は stderr で reject し、成功時�
             return child;
         } });
     await assert.rejects(fake(2, '', 'エンジンを起動できません').startNarrationEngine('voicevox'), /エンジンを起動できません/u);
-    await assert.rejects(fake(0, 'not-json', '').stopNarrationEngine('voicevox'), /応答を読み取れません/u);
+    await assert.rejects(fake(0, 'not-json', '').stopNarrationEngine('voicevox'), /Could not read the narration CLI response/u);
 });
 
-test('移行 RPC は creator-root 由来の HOME にある唯一のアバターを選ぶ', async () => {
+test('Migration RPC selects the sole avatar under creator-root-derived HOME', async () => {
     const scratch = await mkdtemp(join(tmpdir(), 'akari-voice-migrate-test-'));
     const calls = [];
     try {

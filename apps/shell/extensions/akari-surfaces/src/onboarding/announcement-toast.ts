@@ -4,11 +4,11 @@ export class GuideAnnouncementToast {
     protected timer?: number;
 
     show(onOpen: () => void): void {
-        this.mount('<button class="close" type="button" aria-label="閉じる">×</button><b>新しく「はじめてのガイド」ができました</b><p>設定からいつでも見られます</p><button class="open" type="button">今すぐ見る</button>', 20_000, onOpen);
+        this.mount('<button class="close" type="button" aria-label="Close">×</button><b>The first video guide is now available</b><p>Available any time in Settings</p><button class="open" type="button">View now</button>', 20_000, onOpen);
     }
 
     showClosed(): void {
-        this.mount('<button class="close" type="button" aria-label="閉じる">×</button><b>ガイドを閉じました</b><p>設定からいつでも見られます</p>', 7_000);
+        this.mount('<button class="close" type="button" aria-label="Close">×</button><b>Guide closed</b><p>Available any time in Settings</p>', 7_000);
     }
 
     protected mount(content: string, durationMs: number, onOpen?: () => void): void {

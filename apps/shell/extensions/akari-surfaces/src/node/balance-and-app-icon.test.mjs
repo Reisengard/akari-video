@@ -11,26 +11,26 @@ const { BALANCE_REQUESTS, OPENROUTER_KEY_URL, balanceRequestUrl, describeBalance
     require('../../lib/node/akari-connections-service.js');
 const { AkariConnectionsServiceImpl } = require('../../lib/node/akari-connections-service.js');
 
-test('OpenRouter の Management key は口座残高とキー上限を区別する', () => {
+test('OpenRouter management keys distinguish account balance and key limits', () => {
     assert.equal(BALANCE_REQUESTS.openrouter.url, 'https://openrouter.ai/api/v1/credits');
     assert.equal(OPENROUTER_KEY_URL, 'https://openrouter.ai/api/v1/key');
     assert.deepEqual(describeBalanceResponse('openrouter', 200, { data: { total_credits: 10, total_usage: 3.25 } },
         { status: 200, body: { data: { limit_remaining: 2.5 } } }),
-    { ok: true, display: '口座の残高 残り $6.75 · キーの上限 残り $2.50' });
+    { ok: true, display: 'Remaining account balance: $6.75 · Remaining key limit: $2.50' });
     assert.deepEqual(describeBalanceResponse('openrouter', 200, { data: { total_credits: 10, total_usage: 3.25 } },
-        { status: 403, body: {} }), { ok: true, display: '口座の残高 残り $6.75' });
+        { status: 403, body: {} }), { ok: true, display: 'Remaining account balance: $6.75' });
 });
 
-test('OpenRouter の通常キーは /credits 403 から /key へ切り替え、管理画面を案内する', () => {
+test('OpenRouter regular keys fall back from credits 403 to key limits and link to dashboard', () => {
     assert.deepEqual(describeBalanceResponse('openrouter', 403, {},
         { status: 200, body: { data: { limit_remaining: 4.7234, usage: 1 } } }),
-    { ok: true, display: 'キーの上限 残り $4.72', account_url: 'https://openrouter.ai/settings/credits' });
+    { ok: true, display: 'Remaining key limit: $4.72', account_url: 'https://openrouter.ai/settings/credits' });
     assert.deepEqual(describeBalanceResponse('openrouter', 403, {},
         { status: 200, body: { data: { limit_remaining: null, usage: 12.5 } } }),
-    { ok: true, display: 'キーの上限なし · 使用 $12.50', account_url: 'https://openrouter.ai/settings/credits' });
+    { ok: true, display: 'No key limit · Used: $12.50', account_url: 'https://openrouter.ai/settings/credits' });
 });
 
-test('どちらも失敗または応答が壊れたときは金額を出さない', () => {
+test('Failures and malformed responses do not display amounts', () => {
     for (const result of [
         describeBalanceResponse('openrouter', 403, {}, { status: 403, body: {} }),
         describeBalanceResponse('openrouter', 403, {}, { status: 200, body: { data: { limit_remaining: '7' } } }),
@@ -43,20 +43,20 @@ test('どちらも失敗または応答が壊れたときは金額を出さな�
     }
 });
 
-test('fal は口座、ElevenLabs は今月の残りを明記する', () => {
+test('fal identifies account balance and ElevenLabs identifies monthly allowance', () => {
     assert.deepEqual(describeBalanceResponse('fal', 200, { credits: { current_balance: 18.4, currency: 'USD' } }),
-        { ok: true, display: '口座のクレジット 残り $18.40' });
+        { ok: true, display: 'Remaining account credits: $18.40' });
     assert.deepEqual(describeBalanceResponse('elevenlabs', 200, { character_limit: 100000, character_count: 12345 }),
-        { ok: true, display: '今月の残り 87,655 クレジット' });
+        { ok: true, display: 'Remaining this month: 87,655 credits' });
 });
 
-test('模擬サーバーへの向け替えは両方の OpenRouter エンドポイントで効く', () => {
+test('Mock server overrides affect both OpenRouter endpoints', () => {
     const env = { AKARI_BALANCE_API_ORIGIN: 'http://127.0.0.1:9458' };
     assert.equal(balanceRequestUrl(BALANCE_REQUESTS.openrouter.url, env), 'http://127.0.0.1:9458/api/v1/credits');
     assert.equal(balanceRequestUrl(OPENROUTER_KEY_URL, env), 'http://127.0.0.1:9458/api/v1/key');
 });
 
-test('模擬サーバーで /credits → /key の実際の GET 順序と結果を確かめる', async () => {
+test('Mock server verifies actual credits-to-key GET order and results', async () => {
     const temporary = mkdtempSync(join(tmpdir(), 'akari-balance-test-'));
     const previous = { origin: process.env.AKARI_BALANCE_API_ORIGIN, credentials: process.env.AKARI_CREDENTIALS_FILE };
     const credentials = join(temporary, 'credentials.env');
@@ -79,13 +79,13 @@ test('模擬サーバーで /credits → /key の実際の GET 順序と結果�
         const service = new AkariConnectionsServiceImpl();
         service.registry = async () => ({ providers: [{ id: 'openrouter', auth: 'env-key', env: '${OPENROUTER_API_KEY}' }] });
         const account = await service.readBalance('openrouter');
-        assert.equal(account.display, '口座の残高 残り $6.75 · キーの上限 残り $2.50');
+        assert.equal(account.display, 'Remaining account balance: $6.75 · Remaining key limit: $2.50');
         assert.deepEqual(calls.splice(0), ['/api/v1/credits', '/api/v1/key']);
 
         creditsStatus = 403;
         keyLimit = null;
         const key = await service.readBalance('openrouter');
-        assert.equal(key.display, 'キーの上限なし · 使用 $7.50');
+        assert.equal(key.display, 'No key limit · Used: $7.50');
         assert.equal(key.account_url, 'https://openrouter.ai/settings/credits');
         assert.deepEqual(calls.splice(0), ['/api/v1/credits', '/api/v1/key']);
 
@@ -104,7 +104,7 @@ test('模擬サーバーで /credits → /key の実際の GET 順序と結果�
     }
 });
 
-test('同梱アイコンは元 PNG と同一で、配布時の cwd に依存しない', () => {
+test('Bundled icons match source PNGs independently of deployment cwd', () => {
     const { AKARI_APP_ICON } = require('../../lib/browser/settings/app-icon.js');
     const original = readFileSync(new URL('../../../../resources/icons/icon-512.png', import.meta.url));
     assert.deepEqual(Buffer.from(AKARI_APP_ICON.replace(/^data:image\/png;base64,/, ''), 'base64'), original);

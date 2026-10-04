@@ -167,10 +167,10 @@ export function createEmptyOnboardingEdit(): object {
 
 export function createOnboardingEdit(samplePath: string, withTitle = false): object {
     const frames = 1128;
-    const tracks: object[] = [{ id: 'video', lane: 'visual', name: '本編', items: [
+    const tracks: object[] = [{ id: 'video', lane: 'visual', name: 'Main video', items: [
         { id: 'sample', at: 0, duration: frames, source: { kind: 'media', src: 'sample', in: 0, out: 37.6 } }
     ] }];
-    if (withTitle) tracks.push({ id: 'captions', lane: 'visual', name: '字幕とタイトル', items: [
+    if (withTitle) tracks.push({ id: 'captions', lane: 'visual', name: 'Captions and title', items: [
         { id: 'captions', at: 0, duration: frames, source: { kind: 'captions', path: 'captions.json' } }
     ] });
     return { version: 2, output: { width: 1280, height: 720, fps: 30, geometry: 'source' },
@@ -186,8 +186,8 @@ export function createOnboardingCaptions(segments: readonly TranscriptSegment[],
     }));
     if (withTitle) captions.push({
         id: `c-${String(segments.length + 1).padStart(4, '0')}`, start: 0, end: 37.6,
-        text: 'AI と話すだけで動画編集', speaker: null, sourceRef: null,
-        display_text: 'AI と話すだけで動画編集', runs: [],
+        text: 'Edit video by talking to AI', speaker: null, sourceRef: null,
+        display_text: 'Edit video by talking to AI', runs: [],
         edited: true, time_domain: 'output', style_preset: 'title-impact',
         text_style: { zone: 'top-right', size_px: 38, weight: 800, letter_spacing_em: 0.035,
             max_characters: 40, color: '#FFFFFF',

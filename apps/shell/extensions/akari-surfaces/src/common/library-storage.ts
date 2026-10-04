@@ -41,7 +41,7 @@ export function summarizeLibraryStorage(items: readonly LibraryStorageItem[]): L
 }
 
 export function librarySyncChoices(state: string | null): readonly string[] {
-    return state === 'pending' ? ['このまま使う', '別の場所を選ぶ', '今は移さない'] : [];
+    return state === 'pending' ? ['Use this location', 'Choose another location', 'Do not move now'] : [];
 }
 
 export function libraryMoveCopy(
@@ -50,14 +50,14 @@ export function libraryMoveCopy(
     cloud: string | null
 ): { transfer?: string; sync?: string; retained?: string } {
     if (state === 'declined') {
-        return { retained: '今の置き場のまま使います。あとから設定の「素材の置き場を変える…」で移せます。' };
+        return { retained: 'Keep the current location. Move it later using Change footage location… in Settings.' };
     }
     if (state === 'done') return {};
     return {
-        ...(previous.count > 0 ? { transfer: `${previous.count} 個・約 ${formatLibraryBytes(previous.bytes)} を新しい場所へ移します。` } : {}),
+        ...(previous.count > 0 ? { transfer: `${previous.count} items · About ${formatLibraryBytes(previous.bytes)} will move to the new location.` } : {}),
         ...(state === 'pending' ? { sync: previous.bytes > 0
-            ? `この場所は ${cloud ?? 'クラウド'} と同期されています。約 ${formatLibraryBytes(previous.bytes)} が同期に乗ります。`
-            : `この場所は ${cloud ?? 'クラウド'} と同期されています。素材を入れると同期されます。` } : {})
+            ? `This location is synced with ${cloud ?? 'Cloud'}. About ${formatLibraryBytes(previous.bytes)} will be synced.`
+            : `This location is synced with ${cloud ?? 'Cloud'}. Added footage will be synced.` } : {})
     };
 }
 

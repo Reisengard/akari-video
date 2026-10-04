@@ -99,7 +99,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
 
     protected async localLibraryItems(): Promise<LibraryStorageItem[]> {
         const modulePath = await this.findUpwardFile('packages/asset-resolver/src/state.mjs');
-        if (!modulePath) throw new Error('素材の一覧を読み取れませんでした。');
+        if (!modulePath) throw new Error('Could not read the footage list.');
         const resolver = await importEsm<{ composeState(options: { env: NodeJS.ProcessEnv; fetchImpl: () => Promise<never> }): Promise<{ items: LibraryStorageItem[] }> }>(pathToFileURL(modulePath).toString());
         const state = await resolver.composeState({ env: process.env, fetchImpl: async () => { throw new Error('offline'); } });
         return state.items;
@@ -129,7 +129,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
     }
 
     async moveLibrary(root?: string): Promise<{ state: string | null; moved: number; bytes: number; failures: Array<{ path: string; message: string }> }> {
-        if (this.libraryMoving) throw new Error('素材を移動しています。終わるまでお待ちください。');
+        if (this.libraryMoving) throw new Error('Moving footage. Please wait until finished.');
         this.libraryMoving = true;
         this.libraryProgress = { bytes: 0, totalBytes: 0 };
         try {
@@ -140,7 +140,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
                 : await creator.migrateAssetLibrary({ env: process.env, allowCloud: true, onProgress });
             if (result.busy || result.skippedReason || result.failures.length || result.skipped?.length
                 || (result.state !== 'done' && !(root && result.state === 'pending'))) {
-                throw new Error('素材をすべて移動できませんでした。置き場を確認して、もう一度お試しください。');
+                throw new Error('Could not move all footage. Check the location and try again.');
             }
             return result;
         } finally { this.libraryMoving = false; this.libraryProgress = undefined; }
@@ -154,7 +154,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
     }
 
     async labCleanupTargets(directories: string[]): Promise<string[]> {
-        if (this.libraryMoving) throw new Error('素材を移動しています。終わるまでお待ちください。');
+        if (this.libraryMoving) throw new Error('Moving footage. Please wait until finished.');
         const creator = await this.loadCreatorRootModule();
         const roots = await Promise.all(creator.resolveAssetLibraryRoots(process.env).read.map(root => fs.realpath(root).catch(() => resolve(root))));
         const candidates = [];
@@ -183,7 +183,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
     protected async loadScaffoldModule(): Promise<ProjectScaffoldModule> {
         const candidate = await this.findUpwardFile('packages/project-scaffold/src/index.mjs');
         if (!candidate) {
-            throw new Error('project-scaffold（packages/project-scaffold/src/index.mjs）が見つかりませんでした。');
+            throw new Error('project-scaffold (packages/project-scaffold/src/index.mjs) not found.');
         }
         return importEsm<ProjectScaffoldModule>(pathToFileURL(candidate).toString());
     }
@@ -211,7 +211,7 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
     protected async loadCreatorRootModule(): Promise<CreatorRootModule> {
         const candidate = await this.findUpwardFile('packages/creator-root/src/index.mjs');
         if (!candidate) {
-            throw new Error('creator-root（packages/creator-root/src/index.mjs）が見つかりませんでした。');
+            throw new Error('creator-root (packages/creator-root/src/index.mjs) not found.');
         }
         return importEsm<CreatorRootModule>(pathToFileURL(candidate).toString());
     }
@@ -293,14 +293,14 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
         switch (code) {
             case 'ROOT_MANIFEST_INVALID_JSON':
             case 'ROOT_MANIFEST_UNKNOWN_SCHEMA':
-                return 'チャンネルの置き場を確認できませんでした（データの場所の中身を確認してください）。';
+                return 'Could not check the channel location. Check the data folder contents.';
             case 'EACCES':
             case 'EPERM':
-                return 'チャンネルの置き場を作る権限がありませんでした。';
+                return 'No permission to create the channel location.';
             default:
                 return error instanceof Error
-                    ? `チャンネルの置き場の作成に失敗しました（${error.message}）。`
-                    : 'チャンネルの置き場の作成に失敗しました。';
+                    ? `Could not create the channel location (${error.message}）。`
+                    : 'Could not create the channel location.';
         }
     }
 
@@ -316,29 +316,29 @@ export class AkariNewProjectServiceImpl implements AkariNewProjectService {
             : undefined;
         switch (code) {
             case 'ADOPT_DESTINATION_EXISTS':
-                return '同名のプロジェクトが、そのチャンネルに既にあります。';
+                return 'A project with that name already exists in the channel.';
             case 'ADOPT_NOT_A_PROJECT':
-                return 'AKARI Video のプロジェクトとして認識できませんでした。';
+                return 'Not recognized as an AKARI Video project.';
             case 'ADOPT_COPY_VERIFY_FAILED':
-                return 'コピーの検証に失敗しました（元の場所はそのまま残しています）。';
+                return 'Copy verification failed. The original location is preserved.';
             case 'ROOT_MANIFEST_NOT_FOUND':
             case 'ROOT_MANIFEST_INVALID_JSON':
             case 'ROOT_MANIFEST_UNKNOWN_SCHEMA':
-                return '作業場の情報を読み取れませんでした。';
+                return 'Could not read workspace information.';
             case 'EBUSY':
             case 'EPERM':
-                return 'ファイルが使用中のため移動できませんでした。';
+                return 'Could not move files because they are in use.';
             default:
                 return error instanceof Error
-                    ? `チャンネルへの移動に失敗しました（${error.message}）。`
-                    : 'チャンネルへの移動に失敗しました。';
+                    ? `Could not move to the channel（${error.message}）。`
+                    : 'Could not move to the channel。';
         }
     }
 
     protected async resolveTemplateDir(): Promise<string> {
         const candidate = await this.findUpwardDirectory('templates/project-default');
         if (!candidate) {
-            throw new Error('プロジェクト雛形（templates/project-default）が見つかりませんでした。');
+            throw new Error('Project template (templates/project-default) not found.');
         }
         return candidate;
     }

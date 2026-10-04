@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { measureLibraryBytes } = require('../../lib/node/library-measure.js');
 
-test('移さない状態でも旧置き場の実容量を数え、リンク先は重複計上しない', async t => {
+test('Declining migration still measures old storage without double-counting symlink targets', async t => {
     const root = await fs.mkdtemp(path.join(tmpdir(), 'akari-library-measure-'));
     t.after(() => fs.rm(root, { recursive: true, force: true }));
     const asset = path.join(root, 'audio', 'theme');

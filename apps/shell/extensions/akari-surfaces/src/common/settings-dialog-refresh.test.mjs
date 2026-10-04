@@ -111,10 +111,10 @@ function makeDialog(values = {}, extra = {}) {
 }
 
 // ---- (a) ナビの順と新しい 2 節 ---------------------------------------------------------------------
-test('(a) ナビは AKARI アカウント先頭・外観を新設し、開発者モードだけが開発者グループ', () => {
+test('Account leads navigation; appearance is separate and developer is the only developer section', () => {
     const { SETTINGS_SECTIONS, SECTION_PREFERENCE_KEYS, resolveSettingsSectionId, sectionForPreferenceKey } = require('../../lib/common/settings-sections.js');
     assert.deepEqual(SETTINGS_SECTIONS.map(section => section.label),
-        ['AKARI アカウント', 'はじめかた', '書き出し', '外観', '接続と API キー', 'AI モデル', 'パートナー', '文字起こし', '読み上げ', 'プレビュー品質', '通知', '道具', 'ショートカット', 'ストレージ', 'プライバシーとアクセス許可', '統計と利用状況', '困ったとき', 'このアプリについて', '開発者モード']);
+        ['AKARI account', 'Getting started', 'Export', 'Appearance', 'Connections and API keys', 'AI models', 'Partner', 'Transcription', 'Narration', 'Preview quality', 'Notifications', 'Tools', 'Shortcuts', 'Storage', 'Privacy and permissions', 'Statistics and usage', 'Help', 'About', 'Developer mode']);
     assert.deepEqual(SETTINGS_SECTIONS.filter(section => section.group === 'developer').map(section => section.id), ['developer']);
     const { SETTINGS_ICON_PATHS } = require('../../lib/browser/settings/settings-icons.js');
     for (const section of SETTINGS_SECTIONS) { assert.ok(section.icon in SETTINGS_ICON_PATHS, section.id); }
@@ -130,7 +130,7 @@ test('(a) ナビは AKARI アカウント先頭・外観を新設し、開発者
     assert.equal(resolveSettingsSectionId('appearance'), 'appearance');
 });
 
-test('(a) 選択中のナビは面の色で示し、縦バー（border-inline-start）を使わない', () => {
+test('Selected navigation uses background color without border-inline-start', () => {
     const dialog = source('../browser/akari-settings-dialog.ts');
     const css = require('../../lib/browser/settings/settings-ui-style.js').AKARI_SETTINGS_UI_CSS;
     assert.doesNotMatch(dialog, /borderInlineStart|border-inline-start|borderLeft/);
@@ -141,7 +141,7 @@ test('(a) 選択中のナビは面の色で示し、縦バー（border-inline-st
 });
 
 // ---- (b) 既定エンジンの optgroup 以外は素の select / radio / checkbox を作らない -----------------------
-test('(b) 既定エンジンの optgroup 以外は素の select / radio / checkbox を生成しない', () => {
+test('Only default engine optgroups use native select, radio, or checkbox controls', () => {
     const files = ['../browser/akari-settings-dialog.ts', ...readdirSync(new URL('../browser/settings/', import.meta.url)).map(name => `../browser/settings/${name}`)];
     for (const file of files) {
         const text = source(file);
@@ -160,7 +160,7 @@ test('(b) 既定エンジンの optgroup 以外は素の select / radio / checkb
 });
 
 // ---- (c) 絵文字・記号文字のアイコンが無い -------------------------------------------------------------
-test('(c) 設定ダイアログの表示文字列に絵文字・記号文字のアイコンが無い', () => {
+test('Settings display strings contain no emoji or symbol icons', () => {
     const files = ['../browser/akari-settings-dialog.ts', '../common/settings-sections.ts',
         ...readdirSync(new URL('../browser/settings/', import.meta.url)).filter(name => name !== 'provider-logos.ts').map(name => `../browser/settings/${name}`)];
     const emoji = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}\u{2300}-\u{23FF}]/u;
@@ -176,7 +176,7 @@ test('(c) 設定ダイアログの表示文字列に絵文字・記号文字の�
 });
 
 // ---- (d) Store の行はアカウント節にあり、接続節に無い ------------------------------------------------------
-test('(d) Store はアカウント節に描かれ、接続と API キーの一覧には入らない', () => {
+test('Store is in account and outside the connections provider list', () => {
     const store = new FakeNode('div'), account = new FakeNode('section');
     const opened = [];
     const { dialog } = makeDialog({}, {
@@ -191,7 +191,7 @@ test('(d) Store はアカウント節に描かれ、接続と API キーの一�
     assert.equal(find(store, node => node.attributes['data-akari-store-status'])?.attributes['data-akari-store-status'], 'disconnected');
     assert.ok(all(store).some(node => node._text === 'AKARI Video Lab'));
     assert.equal(all(store).some(node => /AKARI Store|ストア/.test(node._text)), false);
-    byText(store, '開く').click();
+    byText(store, 'Open').click();
     assert.equal(opened.length, 1);
     assert.match(opened[0][0], /^https:\/\/akari\.video\/lab\/$/);
     // プラン（準備中）の枠は出さない。
@@ -207,7 +207,7 @@ test('(d) Store はアカウント節に描かれ、接続と API キーの一�
 });
 
 // ---- (e) 残高の口がある / 無いサービスの表 ------------------------------------------------------------------
-test('(e) 残高の口: OpenRouter / fal / ElevenLabs はあり、Groq / Replicate は管理画面だけ', () => {
+test('OpenRouter, fal, and ElevenLabs provide balances; Groq and Replicate link to dashboards', () => {
     const { PROVIDER_BALANCE_SUPPORT, providerHasBalanceEndpoint } = require('../../lib/common/akari-connections-protocol.js');
     assert.deepEqual(Object.fromEntries(Object.entries(PROVIDER_BALANCE_SUPPORT).map(([id, entry]) => [id, entry.balance])),
         { openrouter: true, fal: true, elevenlabs: true, groq: false, replicate: false });
@@ -227,16 +227,16 @@ test('(e) 残高の口: OpenRouter / fal / ElevenLabs はあり、Groq / Replica
     assert.deepEqual(BALANCE_REQUESTS.elevenlabs.headers('k'), { 'xi-api-key': 'k' });
     // 応答 → 1 行の表示
     assert.deepEqual(describeBalanceResponse('openrouter', 200, { data: { total_credits: 10, total_usage: 3.25 } }),
-        { ok: true, display: '口座の残高 残り $6.75' });
+        { ok: true, display: 'Remaining account balance: $6.75' });
     assert.deepEqual(describeBalanceResponse('openrouter', 403, {}, { status: 200, body: { data: { limit_remaining: 4.7234, usage: 1 } } }),
-        { ok: true, display: 'キーの上限 残り $4.72', account_url: 'https://openrouter.ai/settings/credits' });
+        { ok: true, display: 'Remaining key limit: $4.72', account_url: 'https://openrouter.ai/settings/credits' });
     assert.deepEqual(describeBalanceResponse('openrouter', 403, {}, { status: 200, body: { data: { limit_remaining: null, usage: 12.5 } } }),
-        { ok: true, display: 'キーの上限なし · 使用 $12.50', account_url: 'https://openrouter.ai/settings/credits' });
-    assert.deepEqual(describeBalanceResponse('fal', 200, { credits: { current_balance: 18.4, currency: 'USD' } }), { ok: true, display: '口座のクレジット 残り $18.40' });
-    assert.deepEqual(describeBalanceResponse('elevenlabs', 200, { character_limit: 100000, character_count: 12345 }), { ok: true, display: '今月の残り 87,655 クレジット' });
+        { ok: true, display: 'No key limit · Used: $12.50', account_url: 'https://openrouter.ai/settings/credits' });
+    assert.deepEqual(describeBalanceResponse('fal', 200, { credits: { current_balance: 18.4, currency: 'USD' } }), { ok: true, display: 'Remaining account credits: $18.40' });
+    assert.deepEqual(describeBalanceResponse('elevenlabs', 200, { character_limit: 100000, character_count: 12345 }), { ok: true, display: 'Remaining this month: 87,655 credits' });
     assert.match(describeBalanceResponse('fal', 403, {}).error, /ADMIN/);
     assert.equal(describeBalanceResponse('openrouter', 401, {}).ok, false);
-    assert.equal(describeBalanceResponse('openrouter', 500, {}).error, '残高を取得できませんでした（HTTP 500）。');
+    assert.equal(describeBalanceResponse('openrouter', 500, {}).error, 'Could not retrieve balance (HTTP 500）。');
     assert.equal(describeBalanceResponse('fal', 200, { credits: { current_balance: 'x' } }).ok, false);
     // 模擬サーバーへの向け替えはループバックだけ
     assert.equal(balanceRequestUrl('https://api.fal.ai/v1/account/billing?expand=credits', { AKARI_BALANCE_API_ORIGIN: 'http://127.0.0.1:9458' }),
@@ -245,7 +245,7 @@ test('(e) 残高の口: OpenRouter / fal / ElevenLabs はあり、Groq / Replica
     assert.equal(balanceRequestUrl('https://openrouter.ai/api/v1/key', {}), 'https://openrouter.ai/api/v1/key');
 });
 
-test('(e) 残高を見るは押したときだけ問い合わせ、未登録なら押せない', async () => {
+test('Balance queries run only on click and require configured credentials', async () => {
     const calls = [];
     const { dialog } = makeDialog({}, {
         providerList: new FakeNode('div'), storage: new FakeNode('div'), windows: { openNewWindow() {} }, renderSection() {},
@@ -263,12 +263,12 @@ test('(e) 残高を見るは押したときだけ問い合わせ、未登録な�
     assert.ok(button('openrouter'));
     assert.equal(button('openrouter').disabled, false);
     assert.equal(button('elevenlabs').disabled, true, 'no key → disabled');
-    assert.equal(find(list, node => node.attributes['data-akari-balance'] === 'elevenlabs').textContent.includes('未接続'), true);
+    assert.equal(find(list, node => node.attributes['data-akari-balance'] === 'elevenlabs').textContent.includes('Not connected'), true);
     assert.equal(button('groq'), undefined);
     assert.equal(button('replicate'), undefined);
     for (const id of ['groq', 'replicate']) {
         const provider = find(list, node => node.attributes['data-akari-provider'] === id);
-        assert.ok(byText(provider, '管理画面'), `${id} has a billing link`);
+        assert.ok(byText(provider, 'Dashboard'), `${id} has a billing link`);
     }
     // グループ見出し: 生成 AI / 文字起こし
     assert.deepEqual(list.children.map(card => card.attributes['data-akari-provider-group']), ['generate', 'transcribe']);
@@ -280,12 +280,12 @@ test('(e) 残高を見るは押したときだけ問い合わせ、未登録な�
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(calls, ['openrouter']);
     const balance = find(list, node => node.attributes['data-akari-balance'] === 'openrouter');
-    assert.match(balance.textContent, /残り \$4\.72.*たった今/);
+    assert.match(balance.textContent, /残り \$4\.72.*Just now/);
     // OpenRouter の説明は Akari Vibe の趣旨（シェル側の 1 か所の上書き）
-    assert.match(find(list, node => node.attributes['data-akari-provider'] === 'openrouter').textContent, /1 つのキーで。つなぐと Akari Vibe（声で話しかけて動画を編集）が使えます/);
+    assert.match(find(list, node => node.attributes['data-akari-provider'] === 'openrouter').textContent, /Connect to use Akari Vibe and edit videos by voice/);
 });
 
-test('公式ロゴの表は各社の公式ドメインの出典と取得日を持つ', () => {
+test('Official logos have official source domains and acquisition dates', () => {
     const text = source('../browser/settings/provider-logos.ts');
     for (const origin of ['https://fal.ai/', 'https://openrouter.ai/', 'https://elevenlabs.io/', 'https://groq.com/', 'https://static.replicateassets.com/']) {
         assert.ok(text.includes(origin), origin);
@@ -301,10 +301,10 @@ test('公式ロゴの表は各社の公式ドメインの出典と取得日を�
 });
 
 // ---- 部品の操作 ----------------------------------------------------------------------------------------------
-test('自前ドロップダウンは ↓ Enter で開いて選び、Esc はダイアログへ伝えずに閉じる', () => {
+test('Dropdown keyboard selection works and Escape closes without reaching the dialog', () => {
     const { dropdown } = require('../../lib/browser/settings/settings-ui.js');
     const picked = [];
-    const control = dropdown({ label: '形式', value: 'a', onChange: value => picked.push(value), options: [
+    const control = dropdown({ label: 'Format', value: 'a', onChange: value => picked.push(value), options: [
         { value: 'a', label: 'A', description: 'first' }, { value: 'b', label: 'B', description: 'second' }, { value: 'c', label: 'C', disabled: true }] });
     const button = control.children[0], list = control.children[1];
     assert.equal(button.getAttribute('aria-haspopup'), 'listbox');
@@ -330,11 +330,11 @@ test('自前ドロップダウンは ↓ Enter で開いて選び、Esc はダ�
     assert.deepEqual(picked, ['b']);
 });
 
-test('選択カード・セグメントは矢印キーで選び、スイッチは role=switch で切り替える', () => {
+test('Cards and segments use arrow keys; switches expose role=switch', () => {
     const { choiceCards, segmentedControl, switchControl } = require('../../lib/browser/settings/settings-ui.js');
     const picked = [];
-    const cards = choiceCards({ label: '画質', columns: 4, value: 'standard', onChange: value => picked.push(value),
-        options: [{ value: 'light', label: '軽量' }, { value: 'standard', label: '標準' }, { value: 'high', label: '高画質' }] });
+    const cards = choiceCards({ label: 'Quality', columns: 4, value: 'standard', onChange: value => picked.push(value),
+        options: [{ value: 'light', label: 'Lightweight' }, { value: 'standard', label: 'Standard' }, { value: 'high', label: 'High quality' }] });
     assert.equal(cards.getAttribute('role'), 'radiogroup');
     assert.deepEqual(cards.children.map(card => [card.getAttribute('role'), card.getAttribute('aria-checked'), card.tabIndex]),
         [['radio', 'false', -1], ['radio', 'true', 0], ['radio', 'false', -1]]);
@@ -342,42 +342,42 @@ test('選択カード・セグメントは矢印キーで選び、スイッチ�
     cards.children[0].click();
     assert.deepEqual(picked, ['high', 'light']);
     const segment = segmentedControl({ label: 'fps', value: '', onChange: value => picked.push(value),
-        options: [{ value: '', label: '編集データ' }, { value: '24', label: '24' }, { value: '30', label: '30', disabled: true }] });
+        options: [{ value: '', label: 'Edit data' }, { value: '24', label: '24' }, { value: '30', label: '30', disabled: true }] });
     segment.children[0].fire('keydown', { key: 'ArrowLeft' });
     assert.equal(picked.at(-1), '24');
     const toggled = [];
-    const toggle = switchControl({ label: '通知', checked: true, onChange: value => toggled.push(value) });
+    const toggle = switchControl({ label: 'Notifications', checked: true, onChange: value => toggled.push(value) });
     assert.equal(toggle.getAttribute('role'), 'switch');
     toggle.click(); toggle.click();
     assert.deepEqual(toggled, [false, true]);
 });
 
-test('書き出し: 画質カード・形式ドロップダウン・fps セグメントの操作が設定値へ保存される', async () => {
+test('Export quality, format, and FPS controls save preferences', async () => {
     const page = new FakeNode('section');
     const { dialog, writes } = makeDialog({ 'akari.export.quality': 'standard', 'akari.export.codec': 'h264' }, { sections: new Map([['export', page]]) });
     dialog.renderSection('export');
-    const quality = find(page, node => node.attributes['data-akari-choice-cards'] === '書き出し画質');
-    assert.deepEqual(quality.children.map(card => card.textContent), ['軽量共有・確認向け', '標準ふだんの投稿', '高画質大きい画面向け', 'マスター再編集・保管用']);
+    const quality = find(page, node => node.attributes['data-akari-choice-cards'] === 'Export quality');
+    assert.deepEqual(quality.children.map(card => card.textContent), ['LightweightSharing and review', 'StandardEveryday posts', 'High qualityLarge screens', 'MasterRe-editing and archiving']);
     quality.children[3].click();
-    const codec = find(page, node => node.attributes['data-akari-dropdown'] === '形式 / コーデック');
+    const codec = find(page, node => node.attributes['data-akari-dropdown'] === 'Format / Codec');
     codec.children[0].click();
     codec.children[1].children[2].fire('click');
-    const fps = find(page, node => node.attributes['data-akari-segmented'] === 'フレームレート');
+    const fps = find(page, node => node.attributes['data-akari-segmented'] === 'Frame rate');
     fps.children[2].click();
     fps.children[0].click();
-    const encoder = find(page, node => node.attributes['data-akari-segmented'] === 'エンコーダ');
-    assert.deepEqual(encoder.children.filter(item => item.tag === 'button').map(item => item.textContent), ['自動', 'GPU', 'CPU']);
+    const encoder = find(page, node => node.attributes['data-akari-segmented'] === 'Encoder');
+    assert.deepEqual(encoder.children.filter(item => item.tag === 'button').map(item => item.textContent), ['Automatic', 'GPU', 'CPU']);
     await dialog.preferenceWrites;
     assert.deepEqual(writes.map(([key, value]) => [key, value]), [
         ['akari.export.quality', 'master'], ['akari.export.codec', 'prores422'], ['akari.export.fps', 30], ['akari.export.fps', undefined]
     ]);
 });
 
-test('外観: テーマはプレビュー付きのカードで選び、ダーク / ライトを保存する', async () => {
+test('Appearance cards preview themes and save dark or light', async () => {
     const page = new FakeNode('section');
     const { dialog, writes } = makeDialog({ 'workbench.colorTheme': 'dark' }, { sections: new Map([['appearance', page]]) });
     dialog.renderSection('appearance');
-    const cards = find(page, node => node.attributes['data-akari-choice-cards'] === 'テーマ');
+    const cards = find(page, node => node.attributes['data-akari-choice-cards'] === 'Theme');
     assert.deepEqual(cards.children.map(card => [card.getAttribute('data-value'), find(card, node => node.className === 'akari-set-theme-preview')?.getAttribute('data-theme')]),
         [['dark', 'dark'], ['light', 'light'], ['system', 'system']]);
     cards.children[1].click();
@@ -391,7 +391,7 @@ test('外観: テーマはプレビュー付きのカードで選び、ダーク
     assert.equal(all(developer).some(node => node.attributes['data-akari-choice-cards']), false);
 });
 
-test('カタログのフォルダは手入力と選択でユーザー設定に保存し、キャンセルでは変更しない', async () => {
+test('Catalog folder input and picker save user preferences; cancellation preserves them', async () => {
     const { PreferenceScope } = require('@theia/core/lib/common/preferences/preference-scope');
     const page = new FakeNode('section'), tools = new FakeNode('div');
     let destination;
@@ -404,11 +404,11 @@ test('カタログのフォルダは手入力と選択でユーザー設定に�
         } }
     });
     const input = () => find(page, node => node.tag === 'input');
-    const pick = () => find(page, node => node.tag === 'button' && node.textContent === '選ぶ').listeners.click[0]();
+    const pick = () => find(page, node => node.tag === 'button' && node.textContent === 'Choose').listeners.click[0]();
     dialog.renderSection('tools');
     assert.ok(page.children.includes(tools));
     assert.equal(input().value, '/catalog/initial');
-    assert.equal(input().attributes['aria-label'], 'カタログの素材フォルダ');
+    assert.equal(input().attributes['aria-label'], 'Catalog footage folder');
     input().value = '';
     input().fire('change');
     await dialog.preferenceWrites;
@@ -419,33 +419,33 @@ test('カタログのフォルダは手入力と選択でユーザー設定に�
     assert.equal(writes.length, 1);
     destination = { path: { fsPath: () => '/catalog/選んだ素材' } };
     await pick();
-    assert.notEqual(input(), beforeCancel, '選択後は保存した値で再描画する');
+    assert.notEqual(input(), beforeCancel, '選択後はSaveした値で再描画する');
     assert.equal(input().value, '/catalog/選んだ素材');
     assert.equal(values['akari.catalog.root'], '/catalog/選んだ素材');
     assert.deepEqual(writes.at(-1), ['akari.catalog.root', '/catalog/選んだ素材', PreferenceScope.User]);
 });
 
-test('文字起こし: モードのカードで比較・カットのフォームを置き換え、設定値を保つ', async () => {
+test('Transcription mode cards switch comparison and cut forms while retaining preferences', async () => {
     const { PreferenceScope } = require('@theia/core/lib/common/preferences/preference-scope');
     const { dialog, values, writes } = makeDialog({ 'akari.transcribe.compareSet': ['whisper-cpp', 'cloud:scribe'], 'akari.transcribe.autoCuts': false });
     dialog.preferences.set = async (key, value, scope) => { values[key] = value; writes.push([key, value, scope]); dialog.renderTranscribe(); };
     const chips = () => all(dialog.transcribe).filter(node => node.getAttribute('role') === 'checkbox');
     const switches = () => all(dialog.transcribe).filter(node => node.getAttribute('role') === 'switch');
     const selectMode = async mode => {
-        find(dialog.transcribe, node => node.attributes['data-akari-choice-cards'] === '文字起こしのモード')
+        find(dialog.transcribe, node => node.attributes['data-akari-choice-cards'] === 'Transcription mode')
             .children.find(card => card.getAttribute('data-value') === mode).click();
         await dialog.preferenceWrites;
     };
     dialog.renderTranscribe();
-    const modes = find(dialog.transcribe, node => node.attributes['data-akari-choice-cards'] === '文字起こしのモード');
+    const modes = find(dialog.transcribe, node => node.attributes['data-akari-choice-cards'] === 'Transcription mode');
     assert.deepEqual(modes.children.map(card => [card.getAttribute('data-value'), card.getAttribute('aria-checked')]), [['simple', 'true'], ['advanced', 'false']]);
     assert.equal(chips().length, 0);
-    assert.equal(all(dialog.transcribe).filter(node => node._text.includes('アドバンスで使います')).length, 1);
+    assert.equal(all(dialog.transcribe).filter(node => node._text.includes('Advanced mode')).length, 1);
     await selectMode('advanced');
     assert.equal(chips().length, 4);
     assert.equal(chips().filter(node => node.getAttribute('aria-checked') === 'true').length, 2);
     assert.deepEqual(switches().map(node => node.getAttribute('aria-checked')), ['true', 'false']);
-    assert.equal(all(dialog.transcribe).filter(node => node._text.includes('アドバンスで使います')).length, 0);
+    assert.equal(all(dialog.transcribe).filter(node => node._text.includes('Advanced mode')).length, 0);
     await selectMode('simple');
     assert.equal(chips().length, 0);
     assert.deepEqual(writes, [
@@ -456,12 +456,12 @@ test('文字起こし: モードのカードで比較・カットのフォーム
     assert.equal(values['akari.transcribe.autoCuts'], false);
 });
 
-test('文字起こし: エンジンはおまかせ / 決めたエンジンのセグメントとドロップダウンで保存する', async () => {
+test('Transcription engine segments and dropdown save automatic or selected engine', async () => {
     const { dialog, writes } = makeDialog({ 'akari.transcribe.backend': 'auto' });
     dialog.renderTranscribe();
-    const engine = find(dialog.transcribe, node => node.attributes['data-akari-dropdown'] === '文字起こしのエンジン');
-    assert.equal(engine.children[0].disabled, true, 'おまかせのときはエンジンを選べない');
-    const policy = find(dialog.transcribe, node => node.attributes['data-akari-segmented'] === '使うエンジン');
+    const engine = find(dialog.transcribe, node => node.attributes['data-akari-dropdown'] === 'Transcription engine');
+    assert.equal(engine.children[0].disabled, true, 'AutomaticのときはEngineを選べない');
+    const policy = find(dialog.transcribe, node => node.attributes['data-akari-segmented'] === 'Engine to use');
     policy.children[1].click();
     assert.equal(engine.children[0].disabled, false);
     engine.children[0].click();
@@ -473,13 +473,13 @@ test('文字起こし: エンジンはおまかせ / 決めたエンジンのセ
     ]);
 });
 
-test('プレビュー品質: Draft / Final のカードと「値を読む機能が無い」注記、サムネイルはスイッチ', async () => {
+test('Preview quality shows Draft and Final, a reserved-value note, and thumbnail switch', async () => {
     const page = new FakeNode('section');
     const { dialog, writes } = makeDialog({}, { sections: new Map([['quality', page]]) });
     dialog.renderSection('quality');
-    const cards = find(page, node => node.attributes['data-akari-choice-cards'] === 'プレビュー品質');
+    const cards = find(page, node => node.attributes['data-akari-choice-cards'] === 'Preview quality');
     assert.deepEqual(cards.children.map(card => card.getAttribute('data-value')), ['draft', 'final']);
-    assert.ok(all(page).some(node => node._text === '今はこの値を読む機能がありません（AI 生成の品質段階として予約）'));
+    assert.ok(all(page).some(node => node._text === 'No feature currently uses this value (reserved for AI generation quality tiers)'));
     cards.children[1].click();
     find(page, node => node.getAttribute('role') === 'switch').click();
     await dialog.preferenceWrites;

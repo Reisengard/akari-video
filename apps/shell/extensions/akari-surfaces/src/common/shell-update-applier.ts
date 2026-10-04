@@ -207,7 +207,7 @@ export function reconcileVisibleUpdateEvent(
     offeredVersion: string | undefined
 ): ShellUpdaterEvent {
     if (event.kind === 'update-not-available' && state.checkRequestedByUser && offeredVersion) {
-        return { kind: 'error', reason: `通知に表示した v${offeredVersion} をアプリ内更新で見つけられませんでした` };
+        return { kind: 'error', reason: `Version v${offeredVersion} shown in the notification was not found by the in-app updater` };
     }
     return event;
 }
@@ -248,13 +248,13 @@ export function formatUpdaterFallbackText(state: ShellUpdaterUiState): string {
     if (!state.fallbackReason) {
         return '';
     }
-    return 'ダウンロードページを開きます';
+    return 'Open the download page';
 }
 
-const APP_TRANSLOCATION_REASON = 'アプリを Applications フォルダへ移動してから再起動してください';
-const OFFLINE_UPDATE_REASON = 'オフラインのため更新を確認できませんでした';
-const UPDATE_DESTINATION_UNREACHABLE_REASON = '配信先に接続できませんでした。時間をおいてお試しください';
-const UPDATE_CHECK_FAILED_REASON = '更新を確認できませんでした。時間をおいてもう一度お試しください';
+const APP_TRANSLOCATION_REASON = 'Move the app to Applications, then restart';
+const OFFLINE_UPDATE_REASON = 'Could not check for updates while offline';
+const UPDATE_DESTINATION_UNREACHABLE_REASON = 'Could not connect to the update server. Try again later';
+const UPDATE_CHECK_FAILED_REASON = 'Could not check for updates. Wait a while and try again';
 
 /** macOS App Translocation の実行パスを、OS API に依存せず判定する純粋関数。 */
 export function isAppTranslocationPath(executablePath: string | null | undefined): boolean {
@@ -285,7 +285,7 @@ export function resolveShellUpdaterErrorReason(
 
 function normalizeUpdaterReason(reason: string | null | undefined): string {
     const normalized = typeof reason === 'string' ? reason.replace(/\s+/g, ' ').trim() : '';
-    return normalized || '原因を確認できませんでした';
+    return normalized || 'Could not determine the cause';
 }
 
 /**
@@ -312,7 +312,7 @@ export function formatDownloadedBannerText(state: ShellUpdaterUiState): string {
     if (!state.downloaded || !state.downloadedVersion) {
         return '';
     }
-    return `AKARI Video v${state.downloadedVersion} をダウンロード済みです。再起動すると適用されます。`;
+    return `AKARI Video v${state.downloadedVersion} downloaded. Restart to apply.`;
 }
 
 /** 「ダウンロード中」バナー本文。DL 中でなければ空文字（バナー非表示の合図）。 */
@@ -320,5 +320,5 @@ export function formatDownloadingBannerText(state: ShellUpdaterUiState): string 
     if (state.downloaded || !state.downloading || !state.downloadingVersion) {
         return '';
     }
-    return `AKARI Video v${state.downloadingVersion} をダウンロードしています。完了すると再起動ボタンが表示されます。`;
+    return `AKARI Video v${state.downloadingVersion} downloading. A restart button appears when finished.`;
 }

@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { selectLabCleanupTargets } = require('../../lib/node/library-cleanup.js');
 
-test('片づけ候補は確認済みの Lab ディレクトリだけで、置き場の外を除く', () => {
+test('Cleanup includes only verified Lab directories inside the library', () => {
     const root = path.join(path.sep, 'tmp', 'akari-test-library');
     const candidate = (sourceKind, name, actualDir = path.join(root, name)) => ({
         sourceKind, libraryDir: path.join(root, name), actualDir

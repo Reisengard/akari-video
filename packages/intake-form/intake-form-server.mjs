@@ -11,6 +11,7 @@
 // CLI ラッパーから使い回せるように分離。副作用は listen() 呼び出し側の責任）。
 
 import { createServer } from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -51,10 +52,11 @@ export function createIntakeFormServer(projectRoot) {
             const url = new URL(req.url ?? '/', 'http://127.0.0.1');
 
             if (req.method === 'GET' && url.pathname === '/') {
-                const html = await readFile(TEMPLATE_PATH, 'utf8');
+                const nonce = randomBytes(16).toString('base64');
+                const html = (await readFile(TEMPLATE_PATH, 'utf8')).replace('<script>', `<script nonce="${nonce}">`);
                 res.writeHead(200, {
                     'Content-Type': 'text/html; charset=utf-8',
-                    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; img-src data:; base-uri 'none'; form-action 'none'",
+                    'Content-Security-Policy': `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src data:; base-uri 'none'; form-action 'none'`,
                     'X-Content-Type-Options': 'nosniff',
                 });
                 res.end(html);

@@ -9,7 +9,7 @@ const fresh = {
     legacySetupMarkerSeen: false, guideStateSeen: false, announcementMarkerSeen: false
 };
 
-test('完全初回は通知も記録もせず、既存利用者の証拠は各1回通知する', () => {
+test('Fresh installations neither notify nor record; existing user evidence notifies once', () => {
     assert.deepEqual(guideAnnouncementDecision(fresh), { show: false, record: false });
     for (const key of ['hasOpenProject', 'hasProjectHistory', 'hasCreatorRootPointer', 'hasWorkspaceDirectory', 'legacySetupMarkerSeen']) {
         const facts = { ...fresh, [key]: true };
@@ -22,7 +22,7 @@ test('完全初回は通知も記録もせず、既存利用者の証拠は各1�
     }
 });
 
-test('ガイドを使った人と、記録済みの人には通知を再表示しない', () => {
+test('Guide users and recorded users never receive the announcement again', () => {
     const existing = { ...fresh, hasProjectHistory: true };
     for (const key of ['guideStateSeen', 'announcementMarkerSeen']) {
         const decision = guideAnnouncementDecision({ ...existing, [key]: true });
