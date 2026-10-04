@@ -44,8 +44,8 @@ test("cut transform and opacity update/remove paths keep partial objects valid",
 });
 
 test("cut transform write rejects schema-invalid scale and opacity values", () => {
-  assert.throws(() => updateCutTransformInSource(source, 0, { scale: 0 }), /正の数/u);
-  assert.throws(() => updateCutOpacityInSource(source, 0, 1.1), /0〜1/u);
+  assert.throws(() => updateCutTransformInSource(source, 0, { scale: 0 }), /positive number/u);
+  assert.throws(() => updateCutOpacityInSource(source, 0, 1.1), /from 0 to 1/u);
 });
 
 test("setCutTransitionOutInSource appends transition_out when absent and leaves other cuts untouched", () => {
@@ -78,8 +78,8 @@ test("setCutTransitionOutInSource with null removes the property entirely (undo 
 });
 
 test("setCutTransitionOutInSource rejects invalid type/duration", () => {
-  assert.throws(() => setCutTransitionOutInSource(source, 0, { type: "dissolve", duration: 0 }), /正の数/u);
-  assert.throws(() => setCutTransitionOutInSource(source, 0, { type: "wipe", duration: 0.5 }), /種別/u);
+  assert.throws(() => setCutTransitionOutInSource(source, 0, { type: "dissolve", duration: 0 }), /positive number/u);
+  assert.throws(() => setCutTransitionOutInSource(source, 0, { type: "wipe", duration: 0.5 }), /transition type is invalid/u);
 });
 
 test("setCutTransitionOutInSource replaces an existing explicit null (real dogfood-data shape, not merely absent)", () => {
