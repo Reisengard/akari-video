@@ -24,13 +24,13 @@ export function normalizeReference(raw, where) {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new SlotInputError(
       'reference.invalid',
-      `${where}: 参照要素はオブジェクトである必要があります`,
+      `${where}: a reference must be an object`,
     );
   }
   if (typeof raw.path !== 'string' || raw.path.length === 0) {
     throw new SlotInputError(
       'reference.path_required',
-      `${where}: 参照要素には path が必要です`,
+      `${where}: a reference needs a path`,
     );
   }
 
@@ -45,7 +45,7 @@ export function normalizeReference(raw, where) {
     ) {
       throw new SlotInputError(
         'reference.range_invalid',
-        `${where}: range_s は [in, out]（in < out）である必要があります`,
+        `${where}: range_s must be [in, out] with in < out`,
       );
     }
     range = [raw.range_s[0], raw.range_s[1]];
@@ -66,7 +66,7 @@ function normalizeReferenceList(raw, slot) {
   if (!Array.isArray(raw)) {
     throw new SlotInputError(
       'reference.invalid',
-      `${slot}: 参照一覧は配列である必要があります`,
+      `${slot}: the reference list must be an array`,
     );
   }
   return raw.map((reference, index) => normalizeReference(reference, `${slot}[${index}]`));
@@ -75,10 +75,10 @@ function normalizeReferenceList(raw, slot) {
 export function normalizeInputs(raw = {}) {
   const extra = raw.extra ?? {};
   if (extra === null || typeof extra !== 'object' || Array.isArray(extra)) {
-    throw new SlotInputError('extra.invalid', 'extra はオブジェクトである必要があります');
+    throw new SlotInputError('extra.invalid', 'extra must be an object');
   }
   if (raw.seed != null && !Number.isInteger(raw.seed)) {
-    throw new SlotInputError('seed.invalid', 'seed は整数である必要があります');
+    throw new SlotInputError('seed.invalid', 'seed must be an integer');
   }
 
   return {

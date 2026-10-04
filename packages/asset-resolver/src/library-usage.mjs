@@ -8,7 +8,7 @@ export function usagePath(env = process.env) {
 
 export async function appendLibraryUsage({ category, id, project }, env = process.env) {
   if (![category, id].every(value => typeof value === 'string' && value && !/[\\/]/.test(value))) {
-    throw new TypeError('素材の種類・名前が不正です');
+    throw new TypeError('Invalid footage category or name');
   }
   const entry = { at: new Date().toISOString(), category, id, project: await realpath(project) };
   const target = usagePath(env);

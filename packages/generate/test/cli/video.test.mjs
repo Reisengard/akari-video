@@ -50,7 +50,7 @@ test("--dry-run は fetch も meta/edit 書き込みもせず、非 JSON の見�
   assert.deepEqual(await readdir(path.join(root, "assets/generated")), []);
   assert.match(logs.at(-1), /minimax\/h3\/image-to-video/u);
   assert.match(logs.at(-1), /<data:image\/png;base64 … \d+ bytes>/u);
-  assert.equal((logs.join("\n").match(/見積 \$0\.36・as_of 2026-09-12/gu) ?? []).length, 1);
+  assert.equal((logs.join("\n").match(/Estimate \$0\.36 as of 2026-09-12/gu) ?? []).length, 1);
 });
 
 test("非 TTY で --yes が無ければ費用承認 exit 2", async (t) => {
@@ -64,7 +64,7 @@ test("非 TTY で --yes が無ければ費用承認 exit 2", async (t) => {
   });
   assert.equal(result.exitCode, 2);
   assert.equal(fetches, 0);
-  assert.match(errors.join("\n"), /費用承認が必要です.*--yes/u);
+  assert.match(errors.join("\n"), /Cost approval is required.*--yes/u);
 });
 
 test("価格 null は見積不可を表示し、--yes を要求する", async (t) => {
@@ -81,8 +81,8 @@ test("価格 null は見積不可を表示し、--yes を要求する", async (t
   });
   assert.equal(result.exitCode, 2);
   assert.equal(fetches, 0);
-  assert.match(output.join("\n"), /見積不可（価格の記録がありません）/u);
-  assert.match(output.join("\n"), /費用承認が必要です/u);
+  assert.match(output.join("\n"), /No estimate \(no price on record\)/u);
+  assert.match(output.join("\n"), /Cost approval is required/u);
 
   const dryOutput = [];
   const dryResult = await runVideoCommand([...baseArgs(root), "--dry-run"], {
@@ -92,7 +92,7 @@ test("価格 null は見積不可を表示し、--yes を要求する", async (t
   });
   assert.equal(dryResult.exitCode, 0);
   assert.equal(fetches, 0);
-  assert.equal((dryOutput.join("\n").match(/見積不可（価格の記録がありません）/gu) ?? []).length, 1);
+  assert.equal((dryOutput.join("\n").match(/No estimate \(no price on record\)/gu) ?? []).length, 1);
 });
 
 let ffprobe = null;
@@ -312,6 +312,6 @@ test("不正な frames_or_refs は hydration 前に CliError で拒否する", a
       log: line => logs.push(line), errorLog: line => logs.push(line),
     });
     assert.equal(result.exitCode, 2);
-    assert.deepEqual(logs, ["frames_or_refs は frames または references で指定してください"]);
+    assert.deepEqual(logs, ["frames_or_refs must be frames or references"]);
   }
 });

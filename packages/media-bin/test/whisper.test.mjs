@@ -72,7 +72,7 @@ test("resolveWhisperCli: AKARI_WHISPER_BIN の存在しない絶対パスは従�
   assert.throws(
     () => resolveWhisperCli({ env: baseEnv({ AKARI_WHISPER_BIN: "/no/such/whisper-cli-binary" }) }),
     {
-      message: "AKARI_WHISPER_BIN で指定されたファイルがありません: /no/such/whisper-cli-binary",
+      message: "AKARI_WHISPER_BIN points to a file that does not exist: /no/such/whisper-cli-binary",
     },
   );
 });
@@ -89,8 +89,8 @@ test("resolveWhisperCli: PATH にない明示コマンドは原因と次の一�
         env: baseEnv({ AKARI_WHISPER_BIN: "akari-command-that-does-not-exist" }),
       }),
     (error) => {
-      assert.match(error.message, /AKARI_WHISPER_BIN.*明示指定/);
-      assert.match(error.message, /akari-command-that-does-not-exist が PATH に見つかりません/);
+      assert.match(error.message, /AKARI_WHISPER_BIN.*names the command/);
+      assert.match(error.message, /akari-command-that-does-not-exist, which was not found on PATH/);
       return true;
     },
   );
@@ -131,11 +131,11 @@ test("resolveWhisperCli: env・vendor・PATH のいずれも無ければ有益�
   assert.throws(
     () => resolveWhisperCli({ env: STRIPPED_PATH_ENV }),
     (error) => {
-      assert.match(error.message, /whisper-cli が見つかりませんでした/);
+      assert.match(error.message, /whisper-cli was not found/);
       assert.match(error.message, /AKARI_WHISPER_BIN/);
-      assert.match(error.message, /同梱バイナリ/);
+      assert.match(error.message, /bundled binary/);
       // env → 同梱バイナリ → PATH の順序であることをメッセージでも確認する
-      assert.match(error.message, /同梱バイナリ（.*） → PATH/);
+      assert.match(error.message, /bundled binary \(.*\) → PATH/);
       return true;
     },
   );

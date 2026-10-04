@@ -120,13 +120,13 @@ for (const indexState of ['missing', 'empty']) {
     const list = runCli(['list'], env);
     assert.equal(list.status, 0, list.stderr);
     assert.equal(list.stdout,
-      `使える素材 2 件（ライブラリ: ${path.join(home, 'assets')}）\n`
+      `2 footage items (library: ${path.join(home, 'assets')})\n`
       + '  ☁  mini-still\tlab\t[still]\tフィクスチャ素材 mini-still\n'
       + '  ¥500  mini-paid\tlab\t[still]\tフィクスチャ素材 mini-paid（有料）\n');
 
     const fetchResult = runCli(['fetch', 'mini-still'], env);
     assert.equal(fetchResult.status, 0, fetchResult.stderr);
-    assert.equal(fetchResult.stdout, `取得しました: ${path.join(home, 'assets', 'still', 'mini-still')}\n`);
+    assert.equal(fetchResult.stdout, `Fetched: ${path.join(home, 'assets', 'still', 'mini-still')}\n`);
   });
 }
 
@@ -146,7 +146,7 @@ test('カタログ到達不能・キャッシュ無しで installed item も無�
   const { env } = setupFixtureEnv({ AKARI_ASSETS_CATALOG: 'https://catalog.invalid/catalog.json' });
   await assert.rejects(
     () => loadCatalog({ env, fetchImpl: async () => { throw new Error('offline'); } }),
-    /カタログを取得できず、キャッシュもありません/,
+    /Could not fetch the catalog and there is no cache/,
   );
 });
 
@@ -158,7 +158,7 @@ test('壊れた installed.json は欠損を黙って無視せず明示エラー�
   delete index.packs['fixture-pack'].items[0].files[0].sha256;
   writeFileSync(indexPath, `${JSON.stringify(index)}\n`);
 
-  await assert.rejects(() => loadCatalog({ env }), /files\[\] が不正/);
+  await assert.rejects(() => loadCatalog({ env }), /invalid files\[\]/);
 });
 
 test('installed item の path が素材ディレクトリ外を指す索引は拒否する', async () => {
@@ -169,7 +169,7 @@ test('installed item の path が素材ディレクトリ外を指す索引は�
   index.packs['fixture-pack'].items[0].files[0].path = '../../outside.txt';
   writeFileSync(indexPath, `${JSON.stringify(index)}\n`);
 
-  await assert.rejects(() => loadCatalog({ env }), /パック外を指しています/);
+  await assert.rejects(() => loadCatalog({ env }), /points outside the pack/);
 });
 
 test('sync のキャッシュへ installed item を混ぜない', () => {

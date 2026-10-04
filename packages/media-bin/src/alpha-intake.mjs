@@ -59,10 +59,10 @@ function probeVideo(filePath, ffprobe) {
     "-of", "json", filePath,
   ]);
   if (result.error || result.status !== 0) {
-    throw new Error(summarize(result.stderr || result.error?.message, `ffprobe に失敗しました: ${filePath}`));
+    throw new Error(summarize(result.stderr || result.error?.message, `ffprobe failed: ${filePath}`));
   }
   const stream = JSON.parse(result.stdout)?.streams?.[0];
-  if (!stream) throw new Error(`映像ストリームが見つかりません: ${filePath}`);
+  if (!stream) throw new Error(`No video stream found: ${filePath}`);
   return {
     codec_name: String(stream.codec_name ?? ""),
     pix_fmt: String(stream.pix_fmt ?? ""),
@@ -95,7 +95,7 @@ function verifyPair(source, colorPath, maskPath, ffprobe) {
   if (color.nb_frames !== mask.nb_frames || color.r_frame_rate !== mask.r_frame_rate) {
     failures.push("color/mask timeline mismatch");
   }
-  if (failures.length > 0) throw new Error(`alpha 取り込み結果の検証に失敗しました: ${failures.join(", ")}`);
+  if (failures.length > 0) throw new Error(`Alpha intake result failed validation: ${failures.join(", ")}`);
   return { color, mask };
 }
 
@@ -121,7 +121,7 @@ function acquireFileLock(lockPath) {
       if (error?.code === "ENOENT") continue;
       throw error;
     }
-    if (Date.now() - startedAt >= LOCK_WAIT_MS) throw new Error(`alpha 取り込み lock の待機がタイムアウトしました: ${lockPath}`);
+    if (Date.now() - startedAt >= LOCK_WAIT_MS) throw new Error(`Timed out waiting for the alpha intake lock: ${lockPath}`);
     Atomics.wait(waitArray, 0, 0, 100);
   }
 }
@@ -148,7 +148,7 @@ function ensureColor(input, source, { output, ffmpeg, force }) {
       "-movflags", "+faststart", "-y", temporary,
     ]);
     if (converted.error || converted.status !== 0) {
-      throw new Error(summarize(converted.stderr || converted.error?.message, "色動画の ffmpeg 変換に失敗しました"));
+      throw new Error(summarize(converted.stderr || converted.error?.message, "ffmpeg conversion of the color video failed"));
     }
     fs.renameSync(temporary, output);
     return { skipped: false };
@@ -164,7 +164,7 @@ function ensureAlphaIntakeSync(inputPath, options) {
   const maskPath = path.resolve(options.maskOut ?? alphaMaskPathFor(input));
   try {
     const stat = fs.statSync(input);
-    if (!stat.isFile()) throw new Error(`入力が通常ファイルではありません: ${input}`);
+    if (!stat.isFile()) throw new Error(`Input is not a regular file: ${input}`);
     fs.mkdirSync(path.dirname(colorPath), { recursive: true });
     const lockPath = `${colorPath}.intake.lock`;
     const joinedAnotherProcess = acquireFileLock(lockPath);
@@ -216,7 +216,7 @@ function ensureAlphaIntakeSync(inputPath, options) {
       input,
       colorPath,
       maskPath,
-      reason: summarize(error?.message, "alpha 素材の取り込みに失敗しました"),
+      reason: summarize(error?.message, "Alpha footage intake failed"),
       elapsedMs: performance.now() - startedAt,
     };
   }
@@ -252,7 +252,7 @@ export async function prepareAlphaLayers(edit, { projectRoot, ensure = ensureAlp
     const sourcePath = resolveLayerPath(projectRoot, layer.src);
     const intake = await ensure(sourcePath);
     if (!intake.ok) {
-      const warning = `layer ${layer.id ?? index}: alpha 取り込みに失敗したためスキップしました: ${intake.reason}`;
+      const warning = `layer ${layer.id ?? index}: skipped because alpha intake failed: ${intake.reason}`;
       return { index, layer, candidate: true, ok: false, warning, intake };
     }
     if (!intake.alpha) return { index, layer, candidate: true, ok: true, intake };

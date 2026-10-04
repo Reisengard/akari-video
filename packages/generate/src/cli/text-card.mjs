@@ -84,7 +84,7 @@ main { position: absolute; inset: 0; display: flex; flex-direction: column; alig
 .name { max-width: 86%; color: #fff; font-size: 76px; font-weight: 700; line-height: 1.3; }
 .prompt { max-width: 76%; margin-top: 30px; color: rgba(255,255,255,.58); font-size: 30px; font-weight: 300; line-height: 1.5; }
 footer { position: absolute; right: 52px; bottom: 38px; color: rgba(255,255,255,.52); font-size: 24px; font-weight: 300; }
-</style></head><body data-width="${width}" data-height="${height}"><main><div class="id">${escapeHtml(id)}</div><div class="name">${escapeHtml(name)}</div><div class="prompt">${escapeHtml(String(prompt ?? "").slice(0, 60))}</div></main><footer>planned · 文字カード</footer></body></html>`;
+</style></head><body data-width="${width}" data-height="${height}"><main><div class="id">${escapeHtml(id)}</div><div class="name">${escapeHtml(name)}</div><div class="prompt">${escapeHtml(String(prompt ?? "").slice(0, 60))}</div></main><footer>planned · text card</footer></body></html>`;
 }
 
 async function renderWithChrome({ id, name, prompt, outPath, width, height, loadPuppeteer, resolveChrome }) {
@@ -137,7 +137,7 @@ async function renderWithDrawtext({ id, name, prompt, outPath, width, height, en
     `drawtext=fontfile='${escapeDrawtext(font)}':text='${escapeDrawtext(id)}':fontcolor=white@0.72:fontsize=28:x=(w-text_w)/2:y=h/2-100`,
     `drawtext=fontfile='${escapeDrawtext(font)}':text='${escapeDrawtext(name)}':fontcolor=white:fontsize=76:x=(w-text_w)/2:y=h/2-35`,
     `drawtext=fontfile='${escapeDrawtext(font)}':text='${escapeDrawtext(String(prompt ?? "").slice(0, 60))}':fontcolor=white@0.58:fontsize=30:x=(w-text_w)/2:y=h/2+75`,
-    `drawtext=fontfile='${escapeDrawtext(font)}':text='planned · 文字カード':fontcolor=white@0.52:fontsize=24:x=w-text_w-52:y=h-text_h-38`,
+    `drawtext=fontfile='${escapeDrawtext(font)}':text='planned · text card':fontcolor=white@0.52:fontsize=24:x=w-text_w-52:y=h-text_h-38`,
   ];
   try {
     const result = spawn(ffmpeg, [
@@ -167,14 +167,14 @@ export async function renderTextCard({
 }) {
   await mkdir(dirname(outPath), { recursive: true });
   if (await renderWithChrome({ id, name, prompt, outPath, width, height, loadPuppeteer, resolveChrome })) {
-    logRenderer(`文字カード ${id}: renderer=chrome`);
+    logRenderer(`Text card ${id}: renderer=chrome`);
     return { path: outPath, renderer: "chrome" };
   }
   if (await renderWithDrawtext({ id, name, prompt, outPath, width, height, env, spawn, resolveBinary, fontCandidates })) {
-    logRenderer(`文字カード ${id}: renderer=ffmpeg-drawtext`);
+    logRenderer(`Text card ${id}: renderer=ffmpeg-drawtext`);
     return { path: outPath, renderer: "ffmpeg-drawtext" };
   }
   await writeFile(outPath, solidPng(width, height));
-  logRenderer(`WARN: 文字カード ${id} は文字なしの単色カードにしました: renderer=solid`);
+  logRenderer(`WARN: text card ${id} fell back to a solid card with no text: renderer=solid`);
   return { path: outPath, renderer: "solid" };
 }

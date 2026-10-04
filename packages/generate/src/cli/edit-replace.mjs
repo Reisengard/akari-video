@@ -5,7 +5,7 @@ function round(value) {
 export function planReplacement({ item: _item, sourceEntry: _sourceEntry, actualDurationS, cutsDurationS }) {
   if (!Number.isFinite(actualDurationS) || actualDurationS < 0
     || !Number.isFinite(cutsDurationS) || cutsDurationS <= 0) {
-    throw new Error("差し替え尺は有限の正数である必要があります");
+    throw new Error("Replacement duration must be a finite number greater than 0");
   }
   const mismatch_s = round(Math.abs(actualDurationS - cutsDurationS));
   const shorter = actualDurationS < cutsDurationS;
@@ -41,8 +41,8 @@ export function findItem(edit, itemId) {
 
 export function applyReplacement(project, { itemId, mp4RelativePath, plan }) {
   const item = findItem(project.edit, itemId);
-  if (!item) throw new Error(`item が見つかりません: ${itemId}`);
-  if (item.source?.kind !== "media") throw new Error(`item は media ではありません: ${itemId}`);
+  if (!item) throw new Error(`Item not found: ${itemId}`);
+  if (item.source?.kind !== "media") throw new Error(`Item is not media: ${itemId}`);
   const sourceId = `gen-${itemId}-video`;
   const existing = project.edit.sources.find((source) => source.id === sourceId);
   if (existing) {

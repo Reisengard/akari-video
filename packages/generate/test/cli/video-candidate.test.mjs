@@ -114,13 +114,13 @@ test('--from-image のログと result は従来の形を保つ', async t => {
   assert.equal(result.result.from_image, 'assets/stills/start.png');
   assert.deepEqual(Object.keys(result.result),
     ['from_image', 'mp4', 'duration_s_actual', 'estimate_usd', 'elapsed_s', 'meta']);
-  assert.match(logs.at(-1), /^新しい素材を作りました: assets\/generated\//u);
+  assert.match(logs.at(-1), /^Created new footage: assets\/generated\//u);
 });
 
 test('動画の fal スタブ URL はローカル HTTP だけ受ける', async () => {
   const { falQueueFetch } = await import('../../src/cli/fal-queue.mjs');
-  assert.throws(() => falQueueFetch({ AKARI_FAL_STUB_URL: 'https://example.com' }), /ローカル HTTP/u);
+  assert.throws(() => falQueueFetch({ AKARI_FAL_STUB_URL: 'https://example.com' }), /local HTTP/u);
   const fetch = falQueueFetch({ AKARI_FAL_STUB_URL: 'http://127.0.0.1:9876' }, async url => url);
   assert.equal(await fetch('https://queue.fal.run/example'), 'http://127.0.0.1:9876/example');
-  assert.throws(() => fetch('https://example.com/video'), /ローカル HTTP/u);
+  assert.throws(() => fetch('https://example.com/video'), /local HTTP/u);
 });

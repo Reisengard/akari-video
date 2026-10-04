@@ -9,14 +9,14 @@ export function validateGenerationMeta(meta) {
   const fail = (message) => errors.push(message);
 
   if (!isObject(meta)) {
-    fail("/ は object である必要があります");
+    fail("/ must be an object");
     return { ok: false, errors };
   }
 
   rejectUnknown(meta, ROOT_KEYS, "/", fail);
   requireKeys(meta, ["version", "kind", "status", "model", "inputs", "output", "cost", "job", "provenance", "history"], "/", fail);
 
-  if (meta.version !== 1) fail("/version は 1 である必要があります");
+  if (meta.version !== 1) fail("/version must be 1");
   validateEnum(meta.kind, ["still", "video", "frames", "audio"], "/kind", fail);
   validateEnum(meta.status, STATUS_VALUES, "/status", fail);
   validateModel(meta.model, "/model", fail);
@@ -33,10 +33,10 @@ export function validateGenerationMeta(meta) {
   if (hasOwn(meta, "route")) validateNonEmptyString(meta.route, "/route", fail);
 
   if (meta.status === "generating" && meta.kind === "video" && isObject(meta.job) && !hasOwn(meta.job, "request_id")) {
-    fail("/job に必須キー request_id がありません");
+    fail("/job is missing the required key request_id");
   }
   if (meta.status === "done" && !hasOwn(meta, "result")) {
-    fail("/ に必須キー result がありません");
+    fail("/ is missing the required key result");
   }
 
   return { ok: errors.length === 0, errors };
@@ -49,7 +49,7 @@ function validateModel(value, path, fail) {
   if (hasOwn(value, "id")) validateNonEmptyString(value.id, `${path}/id`, fail);
   if (hasOwn(value, "endpoint")) validateNonEmptyString(value.endpoint, `${path}/endpoint`, fail);
   if (hasOwn(value, "as_of") && (typeof value.as_of !== "string" || !AS_OF_PATTERN.test(value.as_of))) {
-    fail(`${path}/as_of の文字列形式が契約と一致しません`);
+    fail(`${path}/as_of does not match the contract string format`);
   }
 }
 
@@ -64,9 +64,9 @@ function validateReference(value, path, fail) {
   }
   if (hasOwn(value, "range_s") && value.range_s !== null) {
     if (!Array.isArray(value.range_s)) {
-      fail(`${path}/range_s は array または null である必要があります`);
+      fail(`${path}/range_s must be an array or null`);
     } else {
-      if (value.range_s.length !== 2) fail(`${path}/range_s は 2 要素である必要があります`);
+      if (value.range_s.length !== 2) fail(`${path}/range_s must have 2 elements`);
       for (let index = 0; index < Math.min(value.range_s.length, 2); index += 1) {
         validateNumber(value.range_s[index], `${path}/range_s/${index}`, fail, { minimum: 0 });
       }
@@ -94,7 +94,7 @@ function validateInputs(value, path, fail, draft = false) {
   if (draft && hasOwn(value, "frames_or_refs")) validateEnum(value.frames_or_refs, ["frames", "references"], `${path}/frames_or_refs`, fail);
   rejectUnknown(value, keys, path, fail);
   requireKeys(value, ["prompt", "negative_prompt", "first_frame", "last_frame", "reference_images", "reference_videos", "reference_audios", "source_video", "camera", "seed", "extra"], path, fail);
-  if (hasOwn(value, "prompt") && typeof value.prompt !== "string") fail(`${path}/prompt は string である必要があります`);
+  if (hasOwn(value, "prompt") && typeof value.prompt !== "string") fail(`${path}/prompt must be a string`);
   if (hasOwn(value, "negative_prompt")) validateNullableString(value.negative_prompt, `${path}/negative_prompt`, fail);
   for (const key of ["first_frame", "last_frame", "source_video"]) {
     if (hasOwn(value, key)) validateNullableReference(value[key], `${path}/${key}`, fail);
@@ -102,15 +102,15 @@ function validateInputs(value, path, fail, draft = false) {
   for (const key of ["reference_images", "reference_videos", "reference_audios"]) {
     if (!hasOwn(value, key)) continue;
     if (!Array.isArray(value[key])) {
-      fail(`${path}/${key} は array である必要があります`);
+      fail(`${path}/${key} must be an array`);
     } else {
       value[key].forEach((entry, index) => validateReference(entry, `${path}/${key}/${index}`, fail));
     }
   }
   if (hasOwn(value, "mode")) validateEnum(value.mode, ["edit", "extend", "motion", "frame-edit", null], `${path}/mode`, fail);
   if (hasOwn(value, "camera") && value.camera !== null) validateCamera(value.camera, `${path}/camera`, fail);
-  if (hasOwn(value, "seed") && value.seed !== null && !Number.isInteger(value.seed)) fail(`${path}/seed は integer または null である必要があります`);
-  if (hasOwn(value, "extra") && !isObject(value.extra)) fail(`${path}/extra は object である必要があります`);
+  if (hasOwn(value, "seed") && value.seed !== null && !Number.isInteger(value.seed)) fail(`${path}/seed must be an integer or null`);
+  if (hasOwn(value, "extra") && !isObject(value.extra)) fail(`${path}/extra must be an object`);
 }
 
 function validateOutput(value, path, fail) {
@@ -122,11 +122,11 @@ function validateOutput(value, path, fail) {
     if (hasOwn(value, key)) validateNullableString(value[key], `${path}/${key}`, fail);
   }
   if (hasOwn(value, "audio_out") && value.audio_out !== null && typeof value.audio_out !== "boolean") {
-    fail(`${path}/audio_out は boolean または null である必要があります`);
+    fail(`${path}/audio_out must be a boolean or null`);
   }
   if (hasOwn(value, "cropped_from") && (typeof value.cropped_from !== "string"
     || !/^[1-9][0-9]*x[1-9][0-9]*$/u.test(value.cropped_from))) {
-    fail(`${path}/cropped_from は <w>x<h> 形式である必要があります`);
+    fail(`${path}/cropped_from must be in <w>x<h> format`);
   }
 }
 
@@ -151,14 +151,14 @@ function validateJob(value, path, fail) {
   if (hasOwn(value, "started_at")) validateDateTime(value.started_at, `${path}/started_at`, fail);
   if (hasOwn(value, "queue_status")) validateEnum(value.queue_status, ["IN_QUEUE", "IN_PROGRESS", "COMPLETED"], `${path}/queue_status`, fail);
   if (hasOwn(value, "stale_after_s")) validateNumber(value.stale_after_s, `${path}/stale_after_s`, fail, { minimum: 0 });
-  if (hasOwn(value, "routes") && (!Array.isArray(value.routes) || value.routes.some(route => typeof route !== "string"))) fail(`${path}/routes は文字列の array である必要があります`);
+  if (hasOwn(value, "routes") && (!Array.isArray(value.routes) || value.routes.some(route => typeof route !== "string"))) fail(`${path}/routes must be an array of strings`);
   for (const key of ["completed", "candidates"]) if (hasOwn(value, key)) validateInteger(value[key], `${path}/${key}`, fail, 0);
   if (hasOwn(value, "failed") && (!Array.isArray(value.failed) || value.failed.some(row => !isObject(row)
-    || typeof row.route !== "string" || typeof row.reason !== "string"))) fail(`${path}/failed が不正です`);
+    || typeof row.route !== "string" || typeof row.reason !== "string"))) fail(`${path}/failed is invalid`);
   if (hasOwn(value, "results") && (!Array.isArray(value.results) || value.results.some(row => !isObject(row)
     || typeof row.route !== "string" || typeof row.ok !== "boolean"
     || (hasOwn(row, "path") && typeof row.path !== "string")
-    || (hasOwn(row, "reason") && typeof row.reason !== "string")))) fail(`${path}/results が不正です`);
+    || (hasOwn(row, "reason") && typeof row.reason !== "string")))) fail(`${path}/results is invalid`);
 }
 
 function validateProvenance(value, path, fail) {
@@ -183,14 +183,14 @@ function validateResult(value, path, fail) {
     if (hasOwn(value, key)) validateInteger(value[key], `${path}/${key}`, fail, 1);
   }
   if (hasOwn(value, "fps")) validateNonEmptyString(value.fps, `${path}/fps`, fail);
-  if (hasOwn(value, "has_audio") && typeof value.has_audio !== "boolean") fail(`${path}/has_audio は boolean である必要があります`);
-  if (hasOwn(value, "expanded_prompt") && typeof value.expanded_prompt !== "string") fail(`${path}/expanded_prompt は string である必要があります`);
+  if (hasOwn(value, "has_audio") && typeof value.has_audio !== "boolean") fail(`${path}/has_audio must be a boolean`);
+  if (hasOwn(value, "expanded_prompt") && typeof value.expanded_prompt !== "string") fail(`${path}/expanded_prompt must be a string`);
   if (hasOwn(value, "elapsed_s")) validateNumber(value.elapsed_s, `${path}/elapsed_s`, fail, { minimum: 0 });
 }
 
 function validateHistory(value, path, fail) {
   if (!Array.isArray(value)) {
-    fail(`${path} は array である必要があります`);
+    fail(`${path} must be an array`);
     return;
   }
   value.forEach((entry, index) => {
@@ -206,61 +206,61 @@ function validateHistory(value, path, fail) {
 
 function validateObject(value, path, fail) {
   if (isObject(value)) return true;
-  fail(`${path} は object である必要があります`);
+  fail(`${path} must be an object`);
   return false;
 }
 
 function rejectUnknown(value, allowed, path, fail) {
   const allowedSet = new Set(allowed);
   for (const key of Object.keys(value)) {
-    if (!allowedSet.has(key)) fail(`${path} に未定義キー ${key} があります`);
+    if (!allowedSet.has(key)) fail(`${path} has the undefined key ${key}`);
   }
 }
 
 function requireKeys(value, required, path, fail) {
   for (const key of required) {
-    if (!hasOwn(value, key)) fail(`${path} に必須キー ${key} がありません`);
+    if (!hasOwn(value, key)) fail(`${path} is missing the required key ${key}`);
   }
 }
 
 function validateEnum(value, allowed, path, fail) {
-  if (!allowed.includes(value)) fail(`${path} の値が許可された候補と一致しません`);
+  if (!allowed.includes(value)) fail(`${path} is not one of the allowed values`);
 }
 
 function validateNonEmptyString(value, path, fail) {
-  if (typeof value !== "string") fail(`${path} は string である必要があります`);
-  else if (value.length < 1 || !/\S/.test(value)) fail(`${path} の文字列形式が契約と一致しません`);
+  if (typeof value !== "string") fail(`${path} must be a string`);
+  else if (value.length < 1 || !/\S/.test(value)) fail(`${path} does not match the contract string format`);
 }
 
 function validateNullableString(value, path, fail) {
-  if (value !== null && typeof value !== "string") fail(`${path} は string または null である必要があります`);
+  if (value !== null && typeof value !== "string") fail(`${path} must be a string or null`);
 }
 
 function validateSha256(value, path, fail) {
-  if (typeof value !== "string") fail(`${path} は string である必要があります`);
-  else if (!SHA256_PATTERN.test(value)) fail(`${path} の文字列形式が契約と一致しません`);
+  if (typeof value !== "string") fail(`${path} must be a string`);
+  else if (!SHA256_PATTERN.test(value)) fail(`${path} does not match the contract string format`);
 }
 
 function validateDateTime(value, path, fail) {
-  if (typeof value !== "string") fail(`${path} は string である必要があります`);
-  else if (!DATE_TIME_PATTERN.test(value) || !Number.isFinite(Date.parse(value))) fail(`${path} は date-time 形式である必要があります`);
+  if (typeof value !== "string") fail(`${path} must be a string`);
+  else if (!DATE_TIME_PATTERN.test(value) || !Number.isFinite(Date.parse(value))) fail(`${path} must be in date-time format`);
 }
 
 function validateNumber(value, path, fail, bounds = {}) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    fail(`${path} は number である必要があります`);
+    fail(`${path} must be a number`);
     return;
   }
-  if (bounds.minimum !== undefined && value < bounds.minimum) fail(`${path} が契約を満たしません（minimum）`);
-  if (bounds.exclusiveMinimum !== undefined && value <= bounds.exclusiveMinimum) fail(`${path} が契約を満たしません（exclusiveMinimum）`);
+  if (bounds.minimum !== undefined && value < bounds.minimum) fail(`${path} violates the contract (minimum)`);
+  if (bounds.exclusiveMinimum !== undefined && value <= bounds.exclusiveMinimum) fail(`${path} violates the contract (exclusiveMinimum)`);
 }
 
 function validateInteger(value, path, fail, minimum) {
   if (!Number.isInteger(value)) {
-    fail(`${path} は integer である必要があります`);
+    fail(`${path} must be an integer`);
     return;
   }
-  if (value < minimum) fail(`${path} が契約を満たしません（minimum）`);
+  if (value < minimum) fail(`${path} violates the contract (minimum)`);
 }
 
 function isObject(value) {

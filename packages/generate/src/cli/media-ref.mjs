@@ -18,11 +18,11 @@ function mediaPath(projectDir, candidate, env) {
   const lexical = path.isAbsolute(candidate) ? path.resolve(candidate) : path.resolve(root, candidate);
   const relative = path.relative(root, lexical);
   if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-    throw new Error(`projectDir 外の参照は扱えません: ${candidate}`);
+    throw new Error(`A reference outside projectDir is not supported: ${candidate}`);
   }
   const declared = relative.split(path.sep).join("/");
   const absolute = resolveProjectAssetPathSync(projectDir, declared, env);
-  if (!absolute) throw new Error(`素材が見つかりません: ${declared}`);
+  if (!absolute) throw new Error(`Footage not found: ${declared}`);
   return { absolute, relative: declared };
 }
 
@@ -40,10 +40,10 @@ export function makeReference(projectDir, candidate, { source_id = null, name = 
 }
 
 export function resolveMedia(ref, { projectDir, maxBytes = MAX_INLINE_BYTES, env = process.env } = {}) {
-  if (!projectDir) throw new Error("resolveMedia には projectDir が必要です");
+  if (!projectDir) throw new Error("resolveMedia needs projectDir");
   const { absolute } = mediaPath(projectDir, ref?.path, env);
   const size = statSync(absolute).size;
-  if (size > maxBytes) throw new Error("20 MB 超の参照は未対応（fal storage は後日）");
+  if (size > maxBytes) throw new Error("References over 20 MB are not supported yet");
   const mime = MIME.get(path.extname(absolute).toLowerCase()) ?? "application/octet-stream";
   return `data:${mime};base64,${readFileSync(absolute).toString("base64")}`;
 }

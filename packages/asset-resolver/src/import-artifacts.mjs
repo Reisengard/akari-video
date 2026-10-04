@@ -49,11 +49,11 @@ export function placeholderPng() {
 export function generateVideoPreview(source, dest, { env = process.env } = {}) {
   let binary;
   try { binary = resolveFfmpeg({ env }); }
-  catch { return { ok: false, reason: 'ffmpeg が見つからないため動画サムネイルを生成できません' }; }
+  catch { return { ok: false, reason: 'Cannot make a video thumbnail because ffmpeg was not found' }; }
   const result = spawnSync(binary, ['-y', '-i', source, '-map', '0:v:0',
     '-vf', 'scale=640:-2', '-frames:v', '1', dest], { env, stdio: 'ignore', timeout: 30000 });
   return result.status === 0 ? { ok: true }
-    : { ok: false, reason: `ffmpeg の動画サムネイル生成に失敗しました（${result.error?.message ?? `exit ${result.status}`}）` };
+    : { ok: false, reason: `ffmpeg video thumbnail failed (${result.error?.message ?? `exit ${result.status}`})` };
 }
 
 export async function writeImportPreview(payload, stage, { category, env, waveform, thumbnail = generateVideoPreview }) {
@@ -62,7 +62,7 @@ export async function writeImportPreview(payload, stage, { category, env, wavefo
     await copyFile(payload, dest);
     return [];
   }
-  let reason = 'この種類のサムネイルはプレースホルダです';
+  let reason = 'This kind of thumbnail is a placeholder';
   if (category === 'audio' || category === 'broll') {
     try {
       const result = await (category === 'audio' ? waveform : thumbnail)(payload, dest, { env });
@@ -72,7 +72,7 @@ export async function writeImportPreview(payload, stage, { category, env, wavefo
   }
   // Overwrites a partial ffmpeg output as well as handling missing binaries.
   await writeFile(dest, placeholderPng());
-  return [`${reason}。preview.png にプレースホルダを使用しました`];
+  return [`${reason}. Used a placeholder for preview.png`];
 }
 
 export async function writeImportFragment(stage, category, name) {

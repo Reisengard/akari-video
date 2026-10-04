@@ -43,7 +43,7 @@ export function resolveCatalogSource(env = process.env) {
 export function resolveEffectiveBase(env = process.env, catalog) {
   const base = env.AKARI_ASSETS_BASE || catalog?.base;
   if (!base) {
-    throw new Error('素材の配信ベースが決まりません（catalog.base 未設定・AKARI_ASSETS_BASE 未設定）');
+    throw new Error('Cannot determine the footage delivery base (neither catalog.base nor AKARI_ASSETS_BASE is set)');
   }
   return normalizeAkariUrl(base);
 }

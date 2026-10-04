@@ -17,13 +17,13 @@ function durationFmt(value) {
   return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(1)));
 }
 
-function addReferenceMessages(messages, references, capability, slot, label, unit) {
+function addReferenceMessages(messages, references, capability, slot, label) {
   const count = references.length;
   if (Number.isFinite(capability?.max) && count > capability.max) {
     messages.push({
       level: 'error',
       code: `${slot}.max`,
-      text: `${label}は ${fmt(capability.max)} ${unit}までです（${fmt(count)} ${unit}）`,
+      text: `${label}: up to ${fmt(capability.max)} (got ${fmt(count)})`,
     });
   }
 
@@ -34,7 +34,7 @@ function addReferenceMessages(messages, references, capability, slot, label, uni
       messages.push({
         level: 'error',
         code: `${slot}.seconds_each`,
-        text: `${label}は 1 ${unit}あたり ${fmt(capability.seconds_each)} 秒までです（${fmt(maximum)} 秒）`,
+        text: `${label}: up to ${fmt(capability.seconds_each)} seconds each (got ${fmt(maximum)} seconds)`,
       });
     }
   }
@@ -45,7 +45,7 @@ function addReferenceMessages(messages, references, capability, slot, label, uni
       messages.push({
         level: 'error',
         code: `${slot}.seconds_total`,
-        text: `${label}は合計 ${fmt(capability.seconds_total)} 秒までです（${fmt(total)} 秒）`,
+        text: `${label}: up to ${fmt(capability.seconds_total)} seconds in total (got ${fmt(total)} seconds)`,
       });
     }
   }
@@ -85,16 +85,16 @@ function durationMessage(model, from, to) {
   const duration = model.duration;
   const family = model.family ?? model.id;
   const allowed = duration.kind === 'enum'
-    ? `${duration.values.map(durationFmt).join(' / ')} 秒のみ`
-    : `${durationFmt(duration.min)}〜${durationFmt(duration.max)} 秒`;
+    ? `${duration.values.map(durationFmt).join(' / ')} seconds only`
+    : `${durationFmt(duration.min)}-${durationFmt(duration.max)} seconds`;
   const difference = Math.abs(from - to);
-  const suffix = difference > 0.5 ? `。差 ${durationFmt(difference)} 秒` : '';
-  return `尺 ${durationFmt(from)} 秒 → ${durationFmt(to)} 秒に丸めました（${family} は ${allowed}）${suffix}`;
+  const suffix = difference > 0.5 ? `. Difference ${durationFmt(difference)} seconds` : '';
+  return `Rounded duration ${durationFmt(from)}s to ${durationFmt(to)}s (${family} allows ${allowed})${suffix}`;
 }
 
 export function validateInputs({ inputs, output, model }) {
   if (model == null) {
-    throw new SlotInputError('model.required', 'model（カタログ行）が必要です');
+    throw new SlotInputError('model.required', 'model (a catalog row) is required');
   }
 
   const { inputs: selectedInputs, side } = resolveSendSide(inputs);
@@ -114,22 +114,22 @@ export function validateInputs({ inputs, output, model }) {
   const modelInputs = model.inputs;
 
   if (modelInputs.first_frame === 'required' && !normalizedInputs.first_frame) {
-    messages.push({ level: 'error', code: 'first_frame.required', text: 'このモデルは最初のフレームが必要です' });
+    messages.push({ level: 'error', code: 'first_frame.required', text: 'This model requires a first frame' });
   } else if (modelInputs.first_frame === 'none' && normalizedInputs.first_frame) {
     messages.push({
       level: 'error',
       code: 'first_frame.unsupported',
-      text: 'このモデルは最初のフレームを使えません。外して続けるか、対応モデルに切り替えてください',
+      text: 'This model cannot use a first frame. Remove it, or switch to a model that accepts one',
     });
   }
 
   if (modelInputs.last_frame === 'required' && !normalizedInputs.last_frame) {
-    messages.push({ level: 'error', code: 'last_frame.required', text: 'このモデルは最後のフレームが必要です' });
+    messages.push({ level: 'error', code: 'last_frame.required', text: 'This model requires a last frame' });
   } else if (modelInputs.last_frame === 'none' && normalizedInputs.last_frame) {
     messages.push({
       level: 'error',
       code: 'last_frame.unsupported',
-      text: 'このモデルは最後のフレームを使えません。外して続けるか、対応モデルに切り替えてください',
+      text: 'This model cannot use a last frame. Remove it, or switch to a model that accepts one',
     });
   }
 
@@ -138,25 +138,25 @@ export function validateInputs({ inputs, output, model }) {
     || normalizedInputs.reference_videos.length > 0
     || normalizedInputs.reference_audios.length > 0;
   if (!hasFrames && !hasReferences && !normalizedInputs.prompt?.trim()) {
-    messages.push({ level: 'error', code: 'prompt.required', text: '指示文か絵のどちらかが必要です' });
+    messages.push({ level: 'error', code: 'prompt.required', text: 'A prompt or an image is required' });
   }
   if (modelInputs.frames_and_refs_exclusive === true && hasFrames && hasReferences) {
     messages.push({
       level: 'error',
       code: 'frames_refs.exclusive',
-      text: 'このモデルはフレーム指定と参照を同時に使えません。どちらかにしてください',
+      text: 'This model cannot use frames and references together. Use one of them',
     });
   }
 
-  addReferenceMessages(messages, normalizedInputs.reference_images, modelInputs.reference_images, 'reference_images', '参照画像', '枚');
-  addReferenceMessages(messages, normalizedInputs.reference_videos, modelInputs.reference_videos, 'reference_videos', '参照動画', '本');
-  addReferenceMessages(messages, normalizedInputs.reference_audios, modelInputs.reference_audios, 'reference_audios', '参照音声', '本');
+  addReferenceMessages(messages, normalizedInputs.reference_images, modelInputs.reference_images, 'reference_images', 'Reference images');
+  addReferenceMessages(messages, normalizedInputs.reference_videos, modelInputs.reference_videos, 'reference_videos', 'Reference videos');
+  addReferenceMessages(messages, normalizedInputs.reference_audios, modelInputs.reference_audios, 'reference_audios', 'Reference audio');
 
   if (modelInputs.negative_prompt === false && normalizedInputs.negative_prompt) {
     messages.push({
       level: 'error',
       code: 'negative_prompt.unsupported',
-      text: 'このモデルはネガティブプロンプトを受けません',
+      text: 'This model does not accept a negative prompt',
     });
   }
 
@@ -167,7 +167,7 @@ export function validateInputs({ inputs, output, model }) {
       messages.push({
         level: 'info',
         code: 'camera.notation_fallback',
-        text: `このモデルはカメラ記法 ${notation} を受けません。prose（文章）に落として prompt に合成します`,
+        text: `This model does not accept camera notation ${notation}. It is rewritten as prose and merged into the prompt`,
       });
       normalizedInputs.camera.notation = 'prose';
     }
@@ -179,7 +179,7 @@ export function validateInputs({ inputs, output, model }) {
       messages.push({
         level: 'error',
         code: 'extra.not_allowed',
-        text: `このモデルは extra.${key} を受けません`,
+        text: `This model does not accept extra.${key}`,
       });
       delete normalizedInputs.extra[key];
     }
@@ -189,7 +189,7 @@ export function validateInputs({ inputs, output, model }) {
     messages.push({
       level: 'info',
       code: 'seed.unsupported',
-      text: 'このモデルは seed を受けません。seed は送りません',
+      text: 'This model does not accept seed. The seed is not sent',
     });
     normalizedInputs.seed = null;
   }
@@ -199,13 +199,13 @@ export function validateInputs({ inputs, output, model }) {
       messages.push({
         level: 'error',
         code: 'resolution.invalid',
-        text: `解像度 ${normalizedOutput.resolution} はこのモデルにありません（このモデルは解像度を選べません）`,
+        text: `Resolution ${normalizedOutput.resolution} is not available on this model (this model has no resolution choice)`,
       });
     } else if (!model.resolutions.includes(normalizedOutput.resolution)) {
       messages.push({
         level: 'error',
         code: 'resolution.invalid',
-        text: `解像度 ${normalizedOutput.resolution} はこのモデルにありません（${model.resolutions.join(' / ')}）`,
+        text: `Resolution ${normalizedOutput.resolution} is not available on this model (${model.resolutions.join(' / ')})`,
       });
     }
   }
@@ -215,13 +215,13 @@ export function validateInputs({ inputs, output, model }) {
       messages.push({
         level: 'error',
         code: 'aspect.invalid',
-        text: `アスペクト比 ${normalizedOutput.aspect} はこのモデルにありません（このモデルはアスペクト比を選べません）`,
+        text: `Aspect ratio ${normalizedOutput.aspect} is not available on this model (this model has no aspect-ratio choice)`,
       });
     } else if (!model.aspects.includes(normalizedOutput.aspect)) {
       messages.push({
         level: 'error',
         code: 'aspect.invalid',
-        text: `アスペクト比 ${normalizedOutput.aspect} はこのモデルにありません（${model.aspects.join(' / ')}）`,
+        text: `Aspect ratio ${normalizedOutput.aspect} is not available on this model (${model.aspects.join(' / ')})`,
       });
     }
   }
@@ -262,7 +262,7 @@ export function validateInputs({ inputs, output, model }) {
     messages.push({
       level: 'warn',
       code: 'price.unknown',
-      text: '見積不可（価格の記録がありません）。実行には明示の確認が必要です',
+      text: 'No estimate (no price on record). An explicit confirmation is required before running',
     });
   }
 

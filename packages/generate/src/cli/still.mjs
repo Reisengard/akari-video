@@ -21,13 +21,13 @@ function parseArgs(argv) {
     else if (value === "--placeholder") parsed.placeholder = true;
     else if (value === "--dry-run") parsed.dryRun = true;
     else if (value === "--json") parsed.json = true;
-    else if (value.startsWith("-")) throw new Error(`不明なオプションです: ${value}`);
+    else if (value.startsWith("-")) throw new Error(`Unknown option: ${value}`);
     else positional.push(value);
   }
-  if (positional.length !== 1) throw new Error("projectDir を 1 つ指定してください");
-  if (!parsed.spec) throw new Error("--spec <beats.json> が必要です");
+  if (positional.length !== 1) throw new Error("Pass exactly one projectDir");
+  if (!parsed.spec) throw new Error("--spec <beats.json> is required");
   if (!Number.isInteger(parsed.parallel) || parsed.parallel < 1 || parsed.parallel > 32) {
-    throw new Error("--parallel は 1〜32 の整数で指定してください");
+    throw new Error("--parallel must be an integer from 1 to 32");
   }
   parsed.projectDir = resolve(positional[0]);
   parsed.spec = isAbsolute(parsed.spec) ? parsed.spec : resolve(parsed.spec);
@@ -37,32 +37,32 @@ function parseArgs(argv) {
 async function loadSpec(path) {
   const raw = JSON.parse(await readFile(path, "utf8"));
   if (!Array.isArray(raw) && raw?.style_suffix !== undefined && typeof raw.style_suffix !== "string") {
-    throw new Error("style_suffix は文字列で指定してください");
+    throw new Error("style_suffix must be a string");
   }
   const styleSuffix = Array.isArray(raw) ? "" : raw?.style_suffix ?? "";
   const beats = Array.isArray(raw) ? raw : raw?.beats;
-  if (!Array.isArray(beats) || beats.length === 0) throw new Error("spec は 1 件以上の beats 配列を必要とします");
+  if (!Array.isArray(beats) || beats.length === 0) throw new Error("spec needs a beats array with at least one beat");
   const ids = new Set();
   return {
     styleSuffix,
     beats: beats.map((beat, index) => {
-      if (!beat || typeof beat !== "object") throw new Error(`beats[${index}] が object ではありません`);
-      if (typeof beat.id !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(beat.id)) throw new Error(`beats[${index}].id は kebab-case が必要です`);
-      if (ids.has(beat.id)) throw new Error(`beat id が重複しています: ${beat.id}`);
+      if (!beat || typeof beat !== "object") throw new Error(`beats[${index}] is not an object`);
+      if (typeof beat.id !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(beat.id)) throw new Error(`beats[${index}].id must be kebab-case`);
+      if (ids.has(beat.id)) throw new Error(`Duplicate beat id: ${beat.id}`);
       ids.add(beat.id);
-      if (typeof beat.prompt !== "string") throw new Error(`beats[${index}].prompt は文字列が必要です`);
-      if (typeof beat.duration_s !== "number" || !Number.isFinite(beat.duration_s) || beat.duration_s <= 0) throw new Error(`beats[${index}].duration_s は正の数が必要です`);
+      if (typeof beat.prompt !== "string") throw new Error(`beats[${index}].prompt must be a string`);
+      if (typeof beat.duration_s !== "number" || !Number.isFinite(beat.duration_s) || beat.duration_s <= 0) throw new Error(`beats[${index}].duration_s must be a number greater than 0`);
       if (beat.video !== undefined) {
         const video = beat.video;
         if (!video || typeof video !== "object" || Array.isArray(video)
           || Object.keys(video).some((key) => !["prompt", "last"].includes(key))) {
-          throw new Error(`beats[${index}].video は prompt / last の object で指定してください`);
+          throw new Error(`beats[${index}].video must be an object with prompt and last`);
         }
-        if (video.prompt !== undefined && typeof video.prompt !== "string") throw new Error(`beats[${index}].video.prompt は文字列が必要です`);
+        if (video.prompt !== undefined && typeof video.prompt !== "string") throw new Error(`beats[${index}].video.prompt must be a string`);
         if (video.last !== undefined && video.last !== null) {
-          if (video.last === "next" && index === beats.length - 1) throw new Error("最後のビートでは video.last に next を指定できません");
+          if (video.last === "next" && index === beats.length - 1) throw new Error("The last beat cannot set video.last to next");
           if (typeof video.last !== "string" || (video.last !== "next" && !beats.some((entry) => entry?.id === video.last))) {
-            throw new Error(`beats[${index}].video.last の参照先ビートがありません`);
+            throw new Error(`beats[${index}].video.last does not name a beat`);
           }
         }
       }
@@ -87,7 +87,7 @@ function printPlan(rows, json, log) {
     log(JSON.stringify({ planned: rows }, null, 2));
     return;
   }
-  log("id\t尺(秒)\tat(フレーム)\t出力\t方式");
+  log("id\tduration_s\tat_frame\toutput\tmode");
   for (const row of rows) log(`${row.id}\t${row.duration_s}\t${row.at}\t${row.path}\t${row.mode}`);
 }
 
@@ -113,7 +113,7 @@ export async function runStillCommand(argv, options = {}) {
     spec = await loadSpec(args.spec);
     edit = await (options.readEditForPlan ?? readEditForPlan)(args.projectDir);
   } catch (error) {
-    logError(`入力を読めません: ${sanitizeEvidenceText(error instanceof Error ? error.message : String(error), args.projectDir)}`);
+    logError(`Could not read the input: ${sanitizeEvidenceText(error instanceof Error ? error.message : String(error), args.projectDir)}`);
     return { exitCode: 2 };
   }
   const fps = Number(edit.output?.fps) || 30;
@@ -124,11 +124,11 @@ export async function runStillCommand(argv, options = {}) {
     const frames = Math.round(beat.duration_s * fps);
     const path = `assets/generated/${beat.id}.png`;
     if (hasGeneratedId(edit, beat.id)) {
-      logError(`WARN: gen-${beat.id} は既にあるため上書きしません`);
+      logError(`WARN: gen-${beat.id} already exists, leaving it in place`);
       preSkipped += 1;
       continue;
     }
-    rows.push({ ...beat, frames, at, path, mode: args.placeholder ? "文字カード" : "Codex" });
+    rows.push({ ...beat, frames, at, path, mode: args.placeholder ? "text card" : "Codex" });
     at += frames;
   }
   if (args.dryRun) {
@@ -139,7 +139,7 @@ export async function runStillCommand(argv, options = {}) {
   if (rows.length === 0) {
     const summary = { generated: 0, failed: 0, skipped: preSkipped };
     if (args.json) log(JSON.stringify(summary));
-    else log(`完了: 0 枚、失敗 0 枚、スキップ ${summary.skipped} 枚`);
+    else log(`Done: 0 generated, 0 failed, ${summary.skipped} skipped`);
     return { exitCode: 0, ...summary };
   }
 
@@ -152,7 +152,7 @@ export async function runStillCommand(argv, options = {}) {
   const writtenMetas = new Map();
   const writeMeta = async (path, value) => {
     const checked = validateGenerationMeta(value);
-    if (!checked.ok) throw new Error(`generation meta の検証に失敗しました:\n- ${checked.errors.join("\n- ")}`);
+    if (!checked.ok) throw new Error(`Generation meta failed validation:\n- ${checked.errors.join("\n- ")}`);
     await writeMetaImpl(path, value);
     writtenMetas.set(path, value);
   };
@@ -195,7 +195,7 @@ export async function runStillCommand(argv, options = {}) {
       const createdAt = now().toISOString();
       const prompt = sentPrompt(row.prompt, spec.styleSuffix);
       if (!result?.ok) {
-        const reason = sanitizeEvidenceText(result?.error ?? "Codex 画像生成から結果が返りませんでした", args.projectDir);
+        const reason = sanitizeEvidenceText(result?.error ?? "Codex image generation returned no result", args.projectDir);
         await writeMeta(`${absolute}.meta.json`, failedStillMeta({ prompt, duration_s: row.duration_s, at: createdAt, asOf, reason }));
         failed += 1;
         continue;
@@ -232,7 +232,7 @@ export async function runStillCommand(argv, options = {}) {
       }));
     } catch (error) {
       draftFailed = true;
-      logError(`動画予定を保存できません (${row.id}): ${sanitizeEvidenceText(error.message, args.projectDir)}`);
+      logError(`Could not save the video plan (${row.id}): ${sanitizeEvidenceText(error.message, args.projectDir)}`);
     }
   }
 
@@ -245,6 +245,6 @@ export async function runStillCommand(argv, options = {}) {
   }
   const summary = { generated: successful.length, failed, skipped: preSkipped + rows.length - successful.length - failed };
   if (args.json) log(JSON.stringify(summary));
-  else log(`完了: ${summary.generated} 枚、失敗 ${summary.failed} 枚、スキップ ${summary.skipped} 枚`);
+  else log(`Done: ${summary.generated} generated, ${summary.failed} failed, ${summary.skipped} skipped`);
   return { exitCode: failed > 0 || draftFailed ? 1 : 0, ...summary };
 }

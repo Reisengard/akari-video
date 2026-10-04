@@ -24,7 +24,7 @@ export function resolveFileLocation(base, fileEntry) {
   }
   if (fileEntry.url) {
     if (!isRemoteLocation(fileEntry.url)) {
-      throw new Error(`files[].url は絶対 URL である必要があります: ${fileEntry.url}`);
+      throw new Error(`files[].url must be an absolute URL: ${fileEntry.url}`);
     }
     return { location: fileEntry.url, remote: true };
   }
@@ -34,7 +34,7 @@ export function resolveFileLocation(base, fileEntry) {
     }
     return { location: path.join(base, fileEntry.key), remote: false };
   }
-  throw new Error('files[] エントリに local_path / url / key のいずれかが必要です');
+  throw new Error('A files[] entry needs local_path, url, or key');
 }
 
 /**
@@ -54,7 +54,7 @@ export async function materialize({ location, remote }, destPath, { fetchImpl = 
   if (remote) {
     const res = await fetchImpl(location);
     if (!res.ok || !res.body) {
-      throw new Error(`ダウンロード失敗: ${location} → HTTP ${res.status}`);
+      throw new Error(`Download failed: ${location} → HTTP ${res.status}`);
     }
     await pipeline(Readable.fromWeb(res.body), createWriteStream(destPath));
     return;

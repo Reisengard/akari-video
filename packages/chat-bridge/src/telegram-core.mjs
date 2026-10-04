@@ -147,15 +147,15 @@ export function selectActions(updates, { allowedChatId, seen } = {}) {
 export function buildKeyboard(reportUrl) {
   const firstRow = [];
   if (typeof reportUrl === "string" && /^https?:\/\//.test(reportUrl)) {
-    firstRow.push({ text: "レポートを開く", url: reportUrl });
+    firstRow.push({ text: "Open report", url: reportUrl });
   }
 
   return {
     inline_keyboard: [
       ...(firstRow.length > 0 ? [firstRow] : []),
       [
-        { text: "おまかせで確定", callback_data: ACTIONS.COMMIT },
-        { text: "あとで", callback_data: ACTIONS.LATER },
+        { text: "Confirm with defaults", callback_data: ACTIONS.COMMIT },
+        { text: "Later", callback_data: ACTIONS.LATER },
       ],
     ],
   };

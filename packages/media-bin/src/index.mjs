@@ -24,15 +24,15 @@ import { vendorBinaryPath, packagedBinaryPath } from "./binary-manifest.mjs";
 
 const FFMPEG_INSTALL_HINT = {
   darwin: "  brew install ffmpeg",
-  win32: "  winget install Gyan.FFmpeg    （または https://ffmpeg.org/download.html）",
-  linux: "  sudo apt install ffmpeg       （Debian/Ubuntu 系）",
+  win32: "  winget install Gyan.FFmpeg    (or https://ffmpeg.org/download.html)",
+  linux: "  sudo apt install ffmpeg       (Debian/Ubuntu)",
   fallback: "  https://ffmpeg.org/download.html",
 };
 
 const WHISPER_INSTALL_HINT = {
-  darwin: "  brew install whisper-cpp    （whisper-cli コマンドが入る）",
-  win32: "  https://github.com/ggml-org/whisper.cpp/releases    （whisper-bin-x64.zip を展開して PATH に追加）",
-  linux: "  https://github.com/ggml-org/whisper.cpp#quick-start    （ソースビルド）",
+  darwin: "  brew install whisper-cpp    (installs the whisper-cli command)",
+  win32: "  https://github.com/ggml-org/whisper.cpp/releases    (unzip whisper-bin-x64.zip and add it to PATH)",
+  linux: "  https://github.com/ggml-org/whisper.cpp#quick-start    (build from source)",
   fallback: "  https://github.com/ggml-org/whisper.cpp",
 };
 
@@ -54,7 +54,7 @@ function canResolveCommand(command, env) {
 
 function requireExisting(envVar, value) {
   if (!existsSync(value)) {
-    throw new Error(`${envVar} で指定されたファイルがありません: ${value}`);
+    throw new Error(`${envVar} points to a file that does not exist: ${value}`);
   }
   return value;
 }
@@ -63,30 +63,30 @@ function resolveExplicit(envVar, value, env) {
   if (/[\\/]/.test(value)) return requireExisting(envVar, value);
   if (canResolveCommand(value, env)) return value;
   throw new Error(
-    `${envVar} で明示指定されたコマンド ${value} が PATH に見つかりません。` +
-      "絶対パスを指定するか PATH を確認してください。",
+    `${envVar} names the command ${value}, which was not found on PATH. ` +
+      "Give an absolute path or check PATH.",
   );
 }
 
 function notFoundMessage({ label, envVar, legacyEnvVar, vendorPath, packagedPath, installHint, preferVendorOverPath }) {
-  const legacyStep = legacyEnvVar ? ` → ${legacyEnvVar}（既存互換・同じ規則）` : "";
+  const legacyStep = legacyEnvVar ? ` → ${legacyEnvVar} (legacy, same rules)` : "";
   const searchOrder = preferVendorOverPath
-    ? `${envVar}（明示指定: 絶対パス / PATH 上のコマンド名）${legacyStep} → 同梱バイナリ（${vendorPath}） → PATH`
-    : `${envVar}（明示指定: 絶対パス / PATH 上のコマンド名）${legacyStep} → PATH → 同梱バイナリ（${vendorPath}）`;
+    ? `${envVar} (explicit: absolute path or a command name on PATH)${legacyStep} → bundled binary (${vendorPath}) → PATH`
+    : `${envVar} (explicit: absolute path or a command name on PATH)${legacyStep} → PATH → bundled binary (${vendorPath})`;
   return [
-    `${label} が見つかりませんでした。`,
+    `${label} was not found.`,
     "",
-    `探索順: ${searchOrder}`,
-    `  → パッケージ版同梱バイナリ（${packagedPath}）`,
+    `Search order: ${searchOrder}`,
+    `  → bundled binary in the packaged app (${packagedPath})`,
     "",
-    "同梱バイナリは packages/media-bin の npm install（postinstall）で取得されるはずですが、",
-    "見つかりませんでした。npm install をやり直すか、対応プラットフォームが無い場合は",
-    "手動で導入してください:",
+    "The bundled binary should be fetched by npm install (postinstall) in packages/media-bin,",
+    "but it was not found. Run npm install again, or if your platform is not supported,",
+    "install it by hand:",
     "",
     installHint[platform()] ?? installHint.fallback,
     "",
-    `${envVar} には PATH 上のコマンド名または絶対パスを指定できます:`,
-    `  ${envVar}=${label}  または  ${envVar}=/path/to/${label}`,
+    `${envVar} accepts a command name on PATH or an absolute path:`,
+    `  ${envVar}=${label}  or  ${envVar}=/path/to/${label}`,
   ].join("\n");
 }
 

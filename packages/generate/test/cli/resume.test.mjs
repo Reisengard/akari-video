@@ -85,7 +85,7 @@ test("resume: COMPLETED を done にして同じ item へ差し替える", async
   assert.equal(edit.tracks[0].items[0].source.src, "gen-clip-a-video");
   assert.equal(edit.tracks[0].items[0].source.out, 6);
   assert.equal(edit.tracks[0].items[0].source.freeze, null);
-  assert.deepEqual(logs, ["clip-a: 生成動画に差し替えました: assets/generated/clip-a.mp4（out 6・freeze なし）"]);
+  assert.deepEqual(logs, ["clip-a: Replaced with the generated video: assets/generated/clip-a.mp4 (out 6, freeze none)"]);
 });
 
 test("resume: stale でも 1 回再取得し、応答なし表示のまま generating を保持する", async (t) => {
@@ -101,7 +101,7 @@ test("resume: stale でも 1 回再取得し、応答なし表示のまま gener
   });
   assert.equal(result.exitCode, 0);
   assert.equal(fetches, 1);
-  assert.match(logs.join("\n"), /応答なし/u);
+  assert.match(logs.join("\n"), /No response/u);
   assert.equal(JSON.parse(await readFile(metaPath, "utf8")).status, "generating");
 
   const failed = await runResumeCommand([root, "--item", "clip-a"], {
@@ -112,6 +112,6 @@ test("resume: stale でも 1 回再取得し、応答なし表示のまま gener
   });
   assert.equal(failed.exitCode, 1);
   assert.equal(fetches, 2);
-  assert.equal(logs.at(-1), "clip-a: 失敗: provider error");
+  assert.equal(logs.at(-1), "clip-a: Failed: provider error");
   assert.equal(JSON.parse(await readFile(metaPath, "utf8")).status, "failed");
 });

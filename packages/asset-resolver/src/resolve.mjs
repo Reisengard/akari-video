@@ -118,7 +118,7 @@ export async function resolve(
     const { ids: entitlements } = await fetchEntitlements({ env, fetchImpl });
     if (!entitlements.has(item.id) && !entitlements.has(item.product_id)) {
       throw new AssetResolverError(
-        `未購入の素材です（¥${price.toLocaleString()}）。AKARI Video Lab で購入してから再度お試しください: ${item.id}`,
+        `Not purchased (¥${price.toLocaleString('en-US')}). Buy it in AKARI Video Lab and try again: ${item.id}`,
         'locked',
       );
     }
@@ -130,7 +130,7 @@ export async function resolve(
   }
 
   if (!hasFiles) {
-    throw new AssetResolverError(`カタログに files[] がありません: ${item.id}`, 'invalid_catalog_item');
+    throw new AssetResolverError(`The catalog has no files[]: ${item.id}`, 'invalid_catalog_item');
   }
 
   const base = item.source === 'installed' ? null : resolveEffectiveBase(env, catalog);
@@ -146,7 +146,7 @@ export async function resolve(
     let hasMeta = false;
     for (const file of item.files) {
       if (typeof file.name !== 'string' || !file.name) {
-        throw new AssetResolverError(`files[] エントリに name がありません: ${item.id}`, 'invalid_catalog_item');
+        throw new AssetResolverError(`A files[] entry has no name: ${item.id}`, 'invalid_catalog_item');
       }
       if (file.name === 'meta.json') hasMeta = true;
 
@@ -158,7 +158,7 @@ export async function resolve(
         const actual = await sha256File(destPath);
         if (actual !== file.sha256) {
           throw new AssetResolverError(
-            `sha256 が一致しません（改竄または破損の可能性）: ${item.id}/${file.name}（期待 ${file.sha256} / 実際 ${actual}）`,
+            `sha256 mismatch (possible tampering or corruption): ${item.id}/${file.name} (expected ${file.sha256} / actual ${actual})`,
             'integrity',
           );
         }
@@ -170,7 +170,7 @@ export async function resolve(
       const result = spawnSync(process.execPath, [VALIDATE_ASSET_SCRIPT, tempAssetDir], { encoding: 'utf8' });
       if (result.status !== 0) {
         const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim();
-        throw new AssetResolverError(`validate-asset 検証に失敗しました: ${item.id}\n${output}`, 'validation');
+        throw new AssetResolverError(`validate-asset check failed: ${item.id}\n${output}`, 'validation');
       }
     }
 
@@ -200,7 +200,7 @@ async function resolvePaidZip(item, { env, fetchImpl, project, reference, home, 
   if (!credentials) {
     // entitled 判定（fetchEntitlements）が通った直後にここへ来るので通常は発生しないが、
     // その間にトークンが失効した場合も黙って劣化させず拒否する（fail-closed）。
-    throw new AssetResolverError(`AKARI アカウントの接続情報がありません（トークン失効の可能性）: ${item.id}`, 'locked');
+    throw new AssetResolverError(`No AKARI account connection info (the token may have expired): ${item.id}`, 'locked');
   }
 
   await mkdir(home, { recursive: true });
@@ -227,7 +227,7 @@ async function resolvePaidZip(item, { env, fetchImpl, project, reference, home, 
       : [];
     // A shared product zip may contain many assets. Never copy a sibling into this item's directory.
     if (item.product_id && item.product_id !== item.id && !nestedPrefix) {
-      throw new AssetResolverError(`パック内に対象素材がありません: ${item.id}`, 'integrity');
+      throw new AssetResolverError(`The footage is not in the pack: ${item.id}`, 'integrity');
     }
     const payloadRoot = nestedPrefix ? path.join(packageDir, nestedPrefix) : packageDir;
     const assetFiles = nestedPrefix ? nestedFiles : payloadFiles;
@@ -236,7 +236,7 @@ async function resolvePaidZip(item, { env, fetchImpl, project, reference, home, 
     // 誤認して検証スキップのまま通した前歴（#25）があるため fail-closed に倒す
     if (!assetFiles.includes('meta.json')) {
       throw new AssetResolverError(
-        `有料素材の zip に meta.json がありません（期待: assets/<category>/<id>/meta.json または zip 直下）: ${item.id}`,
+        `The paid footage zip has no meta.json (expected assets/<category>/<id>/meta.json or at the zip root): ${item.id}`,
         'integrity',
       );
     }
@@ -254,7 +254,7 @@ async function resolvePaidZip(item, { env, fetchImpl, project, reference, home, 
       const result = spawnSync(process.execPath, [VALIDATE_ASSET_SCRIPT, tempAssetDir], { encoding: 'utf8' });
       if (result.status !== 0) {
         const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim();
-        throw new AssetResolverError(`validate-asset 検証に失敗しました: ${item.id}\n${output}`, 'validation');
+        throw new AssetResolverError(`validate-asset check failed: ${item.id}\n${output}`, 'validation');
       }
     }
 

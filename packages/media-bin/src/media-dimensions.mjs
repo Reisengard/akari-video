@@ -54,20 +54,20 @@ export function probeMediaDimensionsSync(filePath, { env = process.env, ffprobe 
   if (result.error || result.status !== 0) {
     throw new Error(summarize(
       result.stderr || result.error?.message,
-      `ffprobe に失敗しました: ${resolved}`,
+      `ffprobe failed: ${resolved}`,
     ));
   }
   let stream;
   try {
     stream = JSON.parse(result.stdout)?.streams?.[0];
   } catch (error) {
-    throw new Error(`ffprobe の出力を読めません: ${resolved} (${summarize(error?.message, "JSON parse error")})`);
+    throw new Error(`Could not read ffprobe output: ${resolved} (${summarize(error?.message, "JSON parse error")})`);
   }
-  if (!stream) throw new Error(`映像ストリームが見つかりません: ${resolved}`);
+  if (!stream) throw new Error(`No video stream found: ${resolved}`);
   const width = Number(stream.width);
   const height = Number(stream.height);
   if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-    throw new Error(`映像ストリームの寸法を読めません: ${resolved}`);
+    throw new Error(`Could not read the video stream size: ${resolved}`);
   }
   const rotation = readRotation(stream);
   const swapped = rotation % 180 === 90;

@@ -15,23 +15,23 @@ const REFERENCE_LABELS = Object.freeze({
 
 function inlineBytes(uri) {
   if (typeof uri !== "string" || !/^data:[^;,]+;base64,/u.test(uri)) {
-    throw new Error("参照は base64 data URI で解決する必要があります");
+    throw new Error("A reference must resolve to a base64 data URI");
   }
   const encoded = uri.slice(uri.indexOf(",") + 1);
   if (Buffer.byteLength(encoded, "base64") > MAX_INLINE_BYTES) {
-    throw new Error("20 MB 超の参照は未対応（fal storage は後日）");
+    throw new Error("References over 20 MB are not supported yet");
   }
   return Buffer.from(encoded, "base64");
 }
 
 function resolveReference(ref, slot, resolveMedia) {
   if (!ref || typeof ref.path !== "string" || !ref.path.trim()) {
-    throw new Error("参照には path が必要です");
+    throw new Error("A reference needs a path");
   }
   const range = slot === "reference_audios" ? ref.range_s : null;
   if (range != null && (!Array.isArray(range) || range.length !== 2
       || !range.every(Number.isFinite) || range[0] < 0 || range[1] <= range[0])) {
-    throw new Error("range_s は [in, out]（0 <= in < out）で指定してください");
+    throw new Error("range_s must be [in, out] with 0 <= in < out");
   }
   const uri = resolveMedia(ref);
   const bytes = inlineBytes(uri);
@@ -49,7 +49,7 @@ function resolveReference(ref, slot, resolveMedia) {
       "-map", "0:a:0", "-vn", "-c:a", "pcm_s16le", destination,
     ], { stdio: ["ignore", "pipe", "pipe"] });
     if (statSync(destination).size > MAX_INLINE_BYTES) {
-      throw new Error("20 MB 超の参照は未対応（fal storage は後日）");
+      throw new Error("References over 20 MB are not supported yet");
     }
     return `data:audio/wav;base64,${readFileSync(destination).toString("base64")}`;
   } finally {
@@ -91,7 +91,7 @@ export function applyReferenceMap({ MAP, endpoint, inputs, output, resolveMedia,
     result.body.prompt = result.body.prompt.replace(pattern, (match, number) => {
       const index = Number(number);
       if (!Number.isSafeInteger(index) || index <= 0 || index > lists[slot].length) {
-        rejected.push({ slot: "prompt", reason: `${match}: ${slot} の参照番号は 1..${lists[slot].length} です` });
+        rejected.push({ slot: "prompt", reason: `${match}: ${slot} reference number must be 1..${lists[slot].length}` });
       }
       return `${tag}${index}`;
     });

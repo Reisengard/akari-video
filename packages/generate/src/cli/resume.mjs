@@ -11,7 +11,7 @@ import { readVideoMeta, writeFailed, writeQueueStatus } from "./meta-video.mjs";
 import { finalizeGeneratedVideo, probeVideo } from "./video.mjs";
 import { findItem } from "./edit-replace.mjs";
 
-export const usage = "使い方: akari generate resume <projectDir> [--item <itemId>] [--json]";
+export const usage = "Usage: akari generate resume <projectDir> [--item <itemId>] [--json]";
 
 function parse(argv) {
   const options = { projectDir: null, itemId: null, json: false, help: false };
@@ -20,13 +20,13 @@ function parse(argv) {
   for (; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--item") {
-      if (!argv[index + 1] || argv[index + 1].startsWith("--")) throw Object.assign(new Error("--item の値がありません"), { exitCode: 2 });
+      if (!argv[index + 1] || argv[index + 1].startsWith("--")) throw Object.assign(new Error("--item needs a value"), { exitCode: 2 });
       options.itemId = argv[++index];
     } else if (argument === "--json") options.json = true;
     else if (argument === "--help" || argument === "-h") options.help = true;
-    else throw Object.assign(new Error(`不明な引数です: ${argument}`), { exitCode: 2 });
+    else throw Object.assign(new Error(`Unknown argument: ${argument}`), { exitCode: 2 });
   }
-  if (!options.help && !options.projectDir) throw Object.assign(new Error(`projectDir が必要です\n${usage}`), { exitCode: 2 });
+  if (!options.help && !options.projectDir) throw Object.assign(new Error(`projectDir is required\n${usage}`), { exitCode: 2 });
   return options;
 }
 
@@ -68,7 +68,7 @@ export async function runResumeCommand(argv, dependencies = {}) {
       })
       .filter(({ meta, stem }) => meta.kind === "video" && meta.status === "generating"
         && (!options.itemId || meta.candidate_of === options.itemId || matchesItem(stem, options.itemId)));
-    if (candidates.length === 0) { log(options.json ? "[]" : "再取得できる generating 動画はありません"); return { exitCode: 0, result: [] }; }
+    if (candidates.length === 0) { log(options.json ? "[]" : "No videos in the generating state to resume"); return { exitCode: 0, result: [] }; }
     const credentials = (dependencies.resolveFalKeyImpl ?? resolveFalKey)({ env: dependencies.env ?? process.env, credentialsFile: dependencies.credentialsFile });
     const identityProject = await (dependencies.openProjectImpl ?? openProject)(options.projectDir);
     const results = [];
@@ -84,13 +84,13 @@ export async function runResumeCommand(argv, dependencies = {}) {
           : findItem(identityProject.edit, withoutSerial) ? withoutSerial : candidate.stem);
       let status;
       try {
-        if (typeof candidate.meta.job.status_url !== "string") throw new Error("job.status_url がありません");
+        if (typeof candidate.meta.job.status_url !== "string") throw new Error("job.status_url is missing");
         status = await fetchStatus({ statusUrl: candidate.meta.job.status_url, key: credentials.key,
           fetchImpl: falQueueFetch(dependencies.env ?? process.env, dependencies.fetchImpl ?? globalThis.fetch) });
       } catch (error) {
         const message = isStale
-          ? `応答なし（経過 ${Math.floor(age)} 秒）。再取得に失敗: ${error.message}`
-          : `待機中（経過 ${Math.floor(age)} 秒）。再取得に失敗: ${error.message}`;
+          ? `No response (${Math.floor(age)}s elapsed). Resume failed: ${error.message}`
+          : `Waiting (${Math.floor(age)}s elapsed). Resume failed: ${error.message}`;
         results.push({ item: itemId, status: "generating", message });
         if (!options.json) log(`${itemId}: ${message}`);
         continue;
@@ -98,7 +98,7 @@ export async function runResumeCommand(argv, dependencies = {}) {
       try {
         if (candidate.meta.candidate_of) writeQueueStatus(candidate.metaPath, status.status);
         if (status.status === "COMPLETED") {
-          if (typeof candidate.meta.job.response_url !== "string") throw new Error("job.response_url がありません");
+          if (typeof candidate.meta.job.response_url !== "string") throw new Error("job.response_url is missing");
           const mp4AbsolutePath = candidate.metaPath.slice(0, -".meta.json".length);
           const mp4RelativePath = path.relative(options.projectDir, mp4AbsolutePath).split(path.sep).join("/");
           const completed = await finalizeGeneratedVideo({
@@ -113,27 +113,27 @@ export async function runResumeCommand(argv, dependencies = {}) {
           results.push({ item: itemId, status: "done", mp4: mp4RelativePath, out: completed.plan.out, freeze: completed.plan.freeze });
           if (!options.json && !candidate.meta.candidate_of) {
             const freeze = completed.plan.freeze === null
-              ? "なし"
-              : `${completed.plan.freeze.at_sec} 秒から ${completed.plan.freeze.duration_sec} 秒`;
-            log(`${itemId}: 生成動画に差し替えました: ${mp4RelativePath}（out ${completed.plan.out}・freeze ${freeze}）`);
-          } else if (!options.json) log(`${itemId}: 候補動画を再取得しました: ${mp4RelativePath}`);
+              ? "none"
+              : `${completed.plan.freeze.at_sec}s for ${completed.plan.freeze.duration_sec}s`;
+            log(`${itemId}: Replaced with the generated video: ${mp4RelativePath} (out ${completed.plan.out}, freeze ${freeze})`);
+          } else if (!options.json) log(`${itemId}: Fetched the candidate video: ${mp4RelativePath}`);
         } else if (status.status === "FAILED" || status.error) {
           const reason = typeof status.error === "string" ? status.error : "provider FAILED";
           writeFailed({ metaPath: candidate.metaPath, reason, now: dependencies.now });
           results.push({ item: itemId, status: "failed", reason });
-          if (!options.json) log(`${itemId}: 失敗: ${reason}`);
+          if (!options.json) log(`${itemId}: Failed: ${reason}`);
           failed = true;
         } else {
           const message = isStale
-            ? `応答なし（経過 ${Math.floor(age)} 秒）。再取得を試しました`
-            : `待機中（経過 ${Math.floor(age)} 秒・stale まで ${Math.max(0, Math.ceil(staleRemaining))} 秒）`;
+            ? `No response (${Math.floor(age)}s elapsed). Resume was attempted`
+            : `Waiting (${Math.floor(age)}s elapsed, ${Math.max(0, Math.ceil(staleRemaining))}s until stale)`;
           results.push({ item: itemId, status: "generating", message });
           if (!options.json) log(`${itemId}: ${message}`);
         }
       } catch (error) {
         writeFailed({ metaPath: candidate.metaPath, reason: error.message, now: dependencies.now });
         results.push({ item: itemId, status: "failed", reason: error.message });
-        if (!options.json) log(`${itemId}: 失敗: ${error.message}`);
+        if (!options.json) log(`${itemId}: Failed: ${error.message}`);
         failed = true;
       }
     }

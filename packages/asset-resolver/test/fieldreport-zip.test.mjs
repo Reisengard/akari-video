@@ -19,6 +19,6 @@ test('zip extraction falls back in order and gives actionable missing-tools erro
   const missing = { status: null, error: { code: 'ENOENT' } };
   assert.throws(() => extractZipWithTools('input.zip', 'out', {
     platform: 'win32', spawn(command) { called.push(command); return missing; },
-  }), /zip を展開できる道具が見つからない/);
+  }), /No tool found to extract the zip/);
   assert.deepEqual(called, ['tar.exe', 'unzip', 'powershell.exe']);
 });

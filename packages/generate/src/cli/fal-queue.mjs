@@ -11,7 +11,7 @@ export function falQueueFetch(env = process.env, fetchImpl = globalThis.fetch) {
   if (!stub) return fetchImpl;
   const base = new URL(stub);
   if (base.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)) {
-    throw new Error("AKARI_FAL_STUB_URL はローカル HTTP のみ指定できます");
+    throw new Error("AKARI_FAL_STUB_URL must be a local HTTP address");
   }
   return (url, options) => {
     const requested = new URL(url);
@@ -20,7 +20,7 @@ export function falQueueFetch(env = process.env, fetchImpl = globalThis.fetch) {
       requested.host = base.host;
     }
     if (requested.protocol !== "http:" || requested.host !== base.host) {
-      throw new Error("fal スタブへの通信先はローカル HTTP のみ指定できます");
+      throw new Error("The fal stub address must be local HTTP");
     }
     return fetchImpl(requested.toString(), options);
   };
@@ -28,8 +28,8 @@ export function falQueueFetch(env = process.env, fetchImpl = globalThis.fetch) {
 
 async function jsonResponse(response, label) {
   let body;
-  try { body = await response.json(); } catch { throw new Error(`${label} の応答が JSON ではありません`); }
-  if (!response.ok) throw new Error(`${label} が HTTP ${response.status} を返しました`);
+  try { body = await response.json(); } catch { throw new Error(`${label} did not return JSON`); }
+  if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
   return body;
 }
 
@@ -43,7 +43,7 @@ export async function submit({ endpoint, body, key, fetchImpl = globalThis.fetch
   if (typeof value.request_id !== "string" || !value.request_id
     || typeof value.status_url !== "string" || !value.status_url
     || typeof value.response_url !== "string" || !value.response_url) {
-    throw new Error("fal submit の応答に request_id/status_url/response_url がありません");
+    throw new Error("The fal submit response has no request_id, status_url, or response_url");
   }
   return value;
 }
@@ -68,9 +68,9 @@ export async function pollStatus({
     onTick(value);
     if (value.status === "COMPLETED") return value;
     if (value.status === "FAILED" || value.error) {
-      throw new Error(`fal 生成失敗: ${typeof value.error === "string" ? value.error : "FAILED"}`);
+      throw new Error(`fal generation failed: ${typeof value.error === "string" ? value.error : "FAILED"}`);
     }
-    if (Date.now() - started >= deadlineMs) throw new Error("fal 生成がタイムアウトしました");
+    if (Date.now() - started >= deadlineMs) throw new Error("fal generation timed out");
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 }
@@ -82,7 +82,7 @@ export async function fetchResponse({ responseUrl, key, fetchImpl = globalThis.f
 
 export async function download({ url, dest, fetchImpl = globalThis.fetch }) {
   const response = await fetchImpl(url);
-  if (!response.ok) throw new Error(`生成動画の取得に失敗しました（HTTP ${response.status}）`);
+  if (!response.ok) throw new Error(`Could not fetch the generated video (HTTP ${response.status})`);
   const bytes = Buffer.from(await response.arrayBuffer());
   await mkdir(path.dirname(dest), { recursive: true });
   const temporary = `${dest}.tmp-${process.pid}-${Date.now()}`;

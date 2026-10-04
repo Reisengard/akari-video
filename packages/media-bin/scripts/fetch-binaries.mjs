@@ -71,10 +71,10 @@ function extractArchive(archivePath, destDir) {
   // xz を組み込みサポート）。新規 npm 依存（zip/xz パーサ）を増やさないための選択
   const result = spawnSync("tar", ["-xf", archivePath, "-C", destDir], { stdio: "inherit" });
   if (result.error) {
-    throw new Error(`tar の起動に失敗しました（${archivePath} の展開に必要です）: ${result.error.message}`);
+    throw new Error(`Could not start tar (needed to extract ${archivePath}): ${result.error.message}`);
   }
   if (result.status !== 0) {
-    throw new Error(`tar -xf ${archivePath} が失敗しました（exit ${result.status}）`);
+    throw new Error(`tar -xf ${archivePath} failed (exit ${result.status})`);
   }
 }
 
@@ -85,7 +85,7 @@ function extractArchive(archivePath, destDir) {
 export async function ensureVendorBinaries({ target = currentTarget(), force = false, log = () => {} } = {}) {
   const config = BINARY_MANIFEST[target];
   if (!config) {
-    log(`media-bin: ${target} 向けの取得先ピン留めが manifest にありません。PATH の ffmpeg/ffprobe に委ねます。`);
+    log(`media-bin: no pinned download for ${target} in the manifest. Falling back to ffmpeg/ffprobe on PATH.`);
     return { ffmpeg: null, ffprobe: null, supported: false };
   }
 
@@ -116,21 +116,21 @@ export async function ensureVendorBinaries({ target = currentTarget(), force = f
     const expectedSha = entries[0][1].sha256;
     for (const [name, entry] of entries) {
       if (entry.sha256 !== expectedSha) {
-        throw new Error(`manifest 不整合: 同一 URL (${url}) に対して ${name} の sha256 が食い違っています`);
+        throw new Error(`Manifest mismatch: ${name} has conflicting sha256 values for the same URL (${url})`);
       }
     }
 
     const tmpDir = await mkdtemp(path.join(tmpdir(), "akari-media-bin-"));
     try {
       const archivePath = path.join(tmpDir, path.basename(new URL(url).pathname));
-      log(`media-bin: 取得中 ${url}`);
+      log(`media-bin: fetching ${url}`);
       await download(url, archivePath);
 
       const actualSha = await sha256File(archivePath);
       if (actualSha !== expectedSha) {
         throw new Error(
-          `sha256 不一致: ${url}\n  期待値: ${expectedSha}\n  実際値: ${actualSha}\n` +
-            "配布元の内容が変わった、またはダウンロードが破損しています。取得を中止しました。",
+          `sha256 mismatch: ${url}\n  expected: ${expectedSha}\n  actual:   ${actualSha}\n` +
+            "The source changed or the download is corrupt. Fetch aborted.",
         );
       }
 
@@ -141,7 +141,7 @@ export async function ensureVendorBinaries({ target = currentTarget(), force = f
       for (const [name, entry] of entries) {
         const src = path.join(extractDir, entry.member);
         if (!existsSync(src)) {
-          throw new Error(`展開後に想定したファイルがありません: ${entry.member}（アーカイブ: ${url}）`);
+          throw new Error(`Expected file missing after extraction: ${entry.member} (archive: ${url})`);
         }
         const dest = vendorBinaryPath(name, target);
         await copyFile(src, dest);
@@ -153,7 +153,7 @@ export async function ensureVendorBinaries({ target = currentTarget(), force = f
         for (const extraMember of entry.extraMembers ?? []) {
           const extraSrc = path.join(extractDir, extraMember);
           if (!existsSync(extraSrc)) {
-            throw new Error(`展開後に想定した同梱ファイルがありません: ${extraMember}（アーカイブ: ${url}）`);
+            throw new Error(`Expected bundled file missing after extraction: ${extraMember} (archive: ${url})`);
           }
           const extraDest = extraDestPath(name, extraMember, target);
           await copyFile(extraSrc, extraDest);
@@ -188,15 +188,15 @@ if (isMainModule) {
     .then((result) => {
       if (result.supported === false) {
         console.log(
-          "media-bin: このプラットフォームの同梱バイナリは提供していません。" +
-            "resolveFfmpeg()/resolveFfprobe() は PATH または AKARI_FFMPEG_BIN/AKARI_FFPROBE_BIN に委ねます。",
+          "media-bin: no bundled binaries for this platform. " +
+            "resolveFfmpeg() and resolveFfprobe() fall back to PATH or AKARI_FFMPEG_BIN / AKARI_FFPROBE_BIN.",
         );
         return;
       }
-      console.log(`media-bin: 完了（ffmpeg: ${result.ffmpeg} / ffprobe: ${result.ffprobe}）`);
+      console.log(`media-bin: done (ffmpeg: ${result.ffmpeg} / ffprobe: ${result.ffprobe})`);
     })
     .catch((error) => {
-      console.error(`media-bin: バイナリ取得に失敗しました — ${error.message}`);
+      console.error(`media-bin: could not fetch binaries: ${error.message}`);
       process.exit(1);
     });
 }

@@ -402,7 +402,7 @@ export async function readRootManifest(rootDir) {
         raw = await fs.readFile(manifestPath, 'utf8');
     } catch (error) {
         if (error && error.code === 'ENOENT') {
-            throw new CreatorRootError('ROOT_MANIFEST_NOT_FOUND', `root.json が見つかりません: ${manifestPath}`);
+            throw new CreatorRootError('ROOT_MANIFEST_NOT_FOUND', `root.json was not found: ${manifestPath}`);
         }
         throw error;
     }
@@ -411,14 +411,14 @@ export async function readRootManifest(rootDir) {
     try {
         manifest = JSON.parse(raw);
     } catch {
-        throw new CreatorRootError('ROOT_MANIFEST_INVALID_JSON', `root.json の JSON 解析に失敗しました: ${manifestPath}`);
+        throw new CreatorRootError('ROOT_MANIFEST_INVALID_JSON', `root.json is not valid JSON: ${manifestPath}`);
     }
 
     if (!manifest || typeof manifest !== 'object' || manifest.schema !== CREATOR_ROOT_SCHEMA) {
         const foundSchema = manifest && typeof manifest === 'object' ? manifest.schema : undefined;
         throw new CreatorRootError(
             'ROOT_MANIFEST_UNKNOWN_SCHEMA',
-            `未知の schema のため読み取りを拒否しました（期待: ${CREATOR_ROOT_SCHEMA} / 実際: ${foundSchema}）: ${manifestPath}`
+            `Refusing to read an unknown schema (expected: ${CREATOR_ROOT_SCHEMA} / actual: ${foundSchema}): ${manifestPath}`
         );
     }
 
@@ -614,14 +614,14 @@ async function verifyDirectoriesMatch(sourceDir, destinationDir) {
     for (const sourceEntry of sourceEntries) {
         const destinationEntry = destinationByPath.get(sourceEntry.relativePath);
         if (!destinationEntry) {
-            throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', `コピー検証に失敗しました（コピー先に欠落）: ${sourceEntry.relativePath}`);
+            throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', `Copy check failed (missing at the destination): ${sourceEntry.relativePath}`);
         }
         if (sourceEntry.type === 'file' && destinationEntry.size !== sourceEntry.size) {
-            throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', `コピー検証に失敗しました（サイズ不一致）: ${sourceEntry.relativePath}`);
+            throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', `Copy check failed (size mismatch): ${sourceEntry.relativePath}`);
         }
     }
     if (sourceEntries.length !== destinationEntries.length) {
-        throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', 'コピー検証に失敗しました（ファイル件数不一致）');
+        throw new CreatorRootError('ADOPT_COPY_VERIFY_FAILED', 'Copy check failed (file count mismatch)');
     }
 }
 
@@ -651,7 +651,7 @@ export async function adoptProject(rootDir, projectDir, options = {}) {
     if (!isScaffolded) {
         throw new CreatorRootError(
             'ADOPT_NOT_A_PROJECT',
-            `AKARI Video プロジェクトのマーカー（.akari/connections.json）が見つかりません: ${sourceDir}`
+            `AKARI Video project marker (.akari/connections.json) was not found: ${sourceDir}`
         );
     }
 
@@ -665,7 +665,7 @@ export async function adoptProject(rootDir, projectDir, options = {}) {
     const destinationDir = path.join(resolvedRootDir, 'channels', channel, 'videos', basename);
 
     if (await pathExists(destinationDir)) {
-        throw new CreatorRootError('ADOPT_DESTINATION_EXISTS', `同名のプロジェクトが既に取り込まれています: ${destinationDir}`);
+        throw new CreatorRootError('ADOPT_DESTINATION_EXISTS', `A project with this name is already in the workspace: ${destinationDir}`);
     }
 
     // (a) 宛先への移動
@@ -1043,7 +1043,7 @@ export async function migrateAssetLibrary({ env = process.env, platform = proces
 export async function changeAssetLibraryLocation(root, { env = process.env, platform = process.platform, onProgress } = {}) {
     if (!path.isAbsolute(root)) throw new Error('Invalid library location');
     if (env.AKARI_LIBRARY_ROOT && path.resolve(env.AKARI_LIBRARY_ROOT) !== path.resolve(root)) {
-        throw new Error('環境変数で素材の置き場が固定されています');
+        throw new Error('The footage location is fixed by an environment variable');
     }
     const current = resolveAssetLibraryRoots(env, { platform }).write;
     if (path.resolve(current) === path.resolve(root)) return { state: 'done', root, moved: 0, bytes: 0, failures: [] };

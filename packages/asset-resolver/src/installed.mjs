@@ -15,7 +15,7 @@ function localPathWithin(root, ...parts) {
   const absoluteRoot = path.resolve(root);
   const candidate = path.resolve(absoluteRoot, ...parts);
   if (candidate !== absoluteRoot && !candidate.startsWith(`${absoluteRoot}${path.sep}`)) {
-    throw new Error(`導入済み素材のパスがパック外を指しています: ${parts.join('/')}`);
+    throw new Error(`Installed footage path points outside the pack: ${parts.join('/')}`);
   }
   return candidate;
 }
@@ -36,10 +36,10 @@ function catalogItem(packId, pack, item) {
     || typeof item.title !== 'string' || !item.title
     || typeof item.path !== 'string' || !item.path
     || item.version === undefined || item.version === null) {
-    throw new Error(`導入済み素材索引に不正な item があります: ${packId}`);
+    throw new Error(`The installed-footage index has an invalid item: ${packId}`);
   }
   if (!Array.isArray(item.files) || item.files.length === 0) {
-    throw new Error(`導入済み素材索引の item に files[] がありません: ${item.id}`);
+    throw new Error(`An item in the installed-footage index has no files[]: ${item.id}`);
   }
   const itemRoots = (pack.readRoots ?? [pack.root]).map(root => localPathWithin(root, item.path));
 
@@ -54,7 +54,7 @@ function catalogItem(packId, pack, item) {
       if (!file || typeof file.path !== 'string' || !file.path
         || !Number.isInteger(file.bytes) || file.bytes < 0
         || typeof file.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sha256)) {
-        throw new Error(`導入済み素材索引の files[] が不正です: ${item.id}`);
+        throw new Error(`The installed-footage index has an invalid files[]: ${item.id}`);
       }
       return {
         name: file.path,
@@ -78,12 +78,12 @@ export async function loadInstalledItems(env = process.env) {
       index = JSON.parse(await readFile(indexPath, 'utf8'));
     } catch (error) {
       if (error?.code === 'ENOENT') continue;
-      throw new Error(`導入済み素材索引を読めません: ${indexPath}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Could not read the installed-footage index: ${indexPath}: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     if (index?.schema !== INSTALLED_ASSETS_SCHEMA
       || !index.packs || typeof index.packs !== 'object' || Array.isArray(index.packs)) {
-      throw new Error(`導入済み素材索引の形式が想定と違います: ${indexPath}`);
+      throw new Error(`The installed-footage index has an unexpected format: ${indexPath}`);
     }
 
     for (const [packId, pack] of Object.entries(index.packs)) {
@@ -92,12 +92,12 @@ export async function loadInstalledItems(env = process.env) {
         || (typeof pack.version !== 'string' && typeof pack.version !== 'number')
         || typeof pack.installedAt !== 'string' || !pack.installedAt
         || !Array.isArray(pack.items)) {
-        throw new Error(`導入済み素材索引に不正な pack があります: ${packId}`);
+        throw new Error(`The installed-footage index has an invalid pack: ${packId}`);
       }
       const originalRoot = roots.find(root => {
         try { localPathWithin(path.join(root, 'store', packId), pack.root); return true; } catch { return false; }
       });
-      if (!originalRoot) throw new Error(`導入済み素材の root がパック外を指しています: ${pack.root}`);
+      if (!originalRoot) throw new Error(`Installed footage root points outside the pack: ${pack.root}`);
       const relativeRoot = path.relative(originalRoot, pack.root);
       const readablePack = { ...pack, readRoots: roots.map(root => path.join(root, relativeRoot)) };
       for (const item of pack.items) {

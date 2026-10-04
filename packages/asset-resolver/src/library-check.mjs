@@ -43,24 +43,24 @@ function signatureOk(file, bytes) {
 }
 
 export async function checkLibrary({ env = process.env, project } = {}) {
-  if (project && !(await stat(project)).isDirectory()) throw new Error('プロジェクトがフォルダではありません');
+  if (project && !(await stat(project)).isDirectory()) throw new Error('The project is not a folder');
   const findings = [];
   const rows = await directories(env);
   for (const { category, id, dir } of rows) {
     const validated = spawnSync(process.execPath, [validator, dir], { encoding: 'utf8', timeout: 30000 });
     if (validated.status !== 0 || validated.error) findings.push(issue('error', category, id, dir, 'meta',
-      `meta.json / 素材契約: ${(validated.stderr || validated.stdout || validated.error?.message || '検証失敗').trim()}`));
+      `meta.json / footage contract: ${(validated.stderr || validated.stdout || validated.error?.message || 'validation failed').trim()}`));
     let meta;
     try { meta = JSON.parse(await readFile(path.join(dir, 'meta.json'), 'utf8')); } catch { /* validator reports this */ }
     let files;
     try { files = (await readdir(dir)).map(name => ({ name })); }
     catch (error) {
-      findings.push(issue('error', category, id, dir, 'unreadable-directory', `素材ディレクトリを読めません: ${error.message}`));
+      findings.push(issue('error', category, id, dir, 'unreadable-directory', `Could not read the footage directory: ${error.message}`));
       continue;
     }
     const media = primaryMediaFile(category, files);
     if (['audio', 'broll', 'font'].includes(category) && !media) {
-      findings.push(issue('error', category, id, dir, 'media-missing', '主メディアが見つかりません'));
+      findings.push(issue('error', category, id, dir, 'media-missing', 'Main media not found'));
     } else if (media) {
       const file = path.join(dir, media);
       try {
@@ -69,20 +69,20 @@ export async function checkLibrary({ env = process.env, project } = {}) {
         try {
           bytes = Buffer.alloc(512);
           const read = await handle.read(bytes, 0, bytes.length, 0);
-          if (!read.bytesRead) throw new Error('内容を読めません');
+          if (!read.bytesRead) throw new Error('Cannot read the contents');
         } finally { await handle.close(); }
-        if (!signatureOk(file, bytes)) throw new Error('署名または内容を読めません');
+        if (!signatureOk(file, bytes)) throw new Error('Cannot read the signature or contents');
         if (/\.gltf$/i.test(media)) JSON.parse(await readFile(file, 'utf8'));
-        if (/\.svg$/i.test(media) && !(await readFile(file, 'utf8')).includes('<svg')) throw new Error('SVG を読めません');
+        if (/\.svg$/i.test(media) && !(await readFile(file, 'utf8')).includes('<svg')) throw new Error('Cannot read the SVG');
         if (category === 'audio' || category === 'broll' || (category === 'still' && !/\.svg$/i.test(media))) {
           const probe = resolveFfprobe({ env });
           const tested = spawnSync(probe, ['-v', 'error', '-show_entries', 'stream=codec_name:format=duration', '-of', 'json', file], { encoding: 'utf8', timeout: 30000 });
           const data = JSON.parse(tested.stdout);
           if (tested.status !== 0 || !data.streams?.length
-            || ((category === 'audio' || category === 'broll') && !Number.isFinite(Number(data.format?.duration)))) throw new Error('ffprobe で読めません');
+            || ((category === 'audio' || category === 'broll') && !Number.isFinite(Number(data.format?.duration)))) throw new Error('ffprobe cannot read it');
         }
-      } catch (error) { findings.push(issue('error', category, id, dir, 'media-unreadable', `主メディアを読めません: ${error.message}`)); }
-      if (conversion.test(media)) findings.push(issue('warning', category, id, dir, 'conversion', '書き出し時に形式の変換が必要です'));
+      } catch (error) { findings.push(issue('error', category, id, dir, 'media-unreadable', `Could not read the main media: ${error.message}`)); }
+      if (conversion.test(media)) findings.push(issue('warning', category, id, dir, 'conversion', 'The format needs converting at export'));
     }
     if (files.some(file => /\.cube$/i.test(file.name))) {
       for (const file of files.filter(entry => /\.cube$/i.test(entry.name))) {
@@ -92,22 +92,22 @@ export async function checkLibrary({ env = process.env, project } = {}) {
           const triples = lines.filter(line => /^[+\-\d.]/.test(line));
           if (!Number.isInteger(size) || size < 2 || triples.length !== size ** 3
             || triples.some(line => line.split(/\s+/).length !== 3 || line.split(/\s+/).some(value => !Number.isFinite(Number(value))))) {
-            findings.push(issue('error', category, id, dir, 'cube', 'cube の行の形が不正です'));
+            findings.push(issue('error', category, id, dir, 'cube', 'A cube line has an invalid shape'));
           }
-        } catch (error) { findings.push(issue('error', category, id, dir, 'cube', `cube を読めません: ${error.message}`)); }
+        } catch (error) { findings.push(issue('error', category, id, dir, 'cube', `Could not read the cube: ${error.message}`)); }
       }
     }
     if (meta?.license?.attribution_required && !files.some(file => file.name === 'CREDIT.txt')) {
-      findings.push(issue('warning', category, id, dir, 'credit-missing', 'クレジット必須ですが CREDIT.txt がありません'));
+      findings.push(issue('warning', category, id, dir, 'credit-missing', 'Credit is required but CREDIT.txt is missing'));
     }
     if (meta?.tags?.includes('license:subscription')) {
-      findings.push(issue('warning', category, id, dir, 'subscription', 'サブスク素材です。契約が続いているか確認してください'));
+      findings.push(issue('warning', category, id, dir, 'subscription', 'Subscription footage. Check that the subscription is still active'));
     }
   }
   if (project) {
     const known = new Set(rows.map(row => `${row.category}/${row.id}`));
     for (const ref of await readProjectReferences(project)) {
-      if (!known.has(`${ref.category}/${ref.id}`)) findings.push(issue('error', ref.category, ref.id, project, 'reference-missing', '参照の台帳にありますが置き場に素材がありません'));
+      if (!known.has(`${ref.category}/${ref.id}`)) findings.push(issue('error', ref.category, ref.id, project, 'reference-missing', 'Listed in the reference ledger but missing from the library'));
     }
   }
   const affected = new Set(findings.filter(row => row.level === 'error').map(row => `${row.category}/${row.id}`));
@@ -117,7 +117,7 @@ export async function checkLibrary({ env = process.env, project } = {}) {
 }
 
 export async function projectCredits(project, env = process.env) {
-  if (!(await stat(project)).isDirectory()) throw new Error('プロジェクトがフォルダではありません');
+  if (!(await stat(project)).isDirectory()) throw new Error('The project is not a folder');
   const references = await readProjectReferences(project);
   const candidates = [...references];
   for (const category of ASSET_CATEGORIES) {
