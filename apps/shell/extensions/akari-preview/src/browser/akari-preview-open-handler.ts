@@ -1426,7 +1426,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             label: 'Annotate here'
         }));
         for (const [command, label, kind] of [
-            [GROUP_PREVIEW_COMMAND, 'Make canvas', 'group'],
+            [GROUP_PREVIEW_COMMAND, 'Group into canvas', 'group'],
             [UNGROUP_PREVIEW_COMMAND, 'Ungroup canvas', 'ungroup']
         ] as const) {
             this.lifecycleDisposables.push(this.commandRegistry.registerCommand(command, {
