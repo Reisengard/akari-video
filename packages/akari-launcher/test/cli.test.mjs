@@ -118,8 +118,8 @@ test('scaffold 呼び出し: 未セットアップのフォルダでは実際の
     assert.equal(result.scaffolded, true);
     assert.equal(result.claudeLaunched, true);
 
-    assert.ok(lines.some((line) => line.includes('まだセットアップされていません')));
-    assert.ok(lines.some((line) => line.includes('プロジェクトを作成しました')));
+    assert.ok(lines.some((line) => line.includes('is not set up as an AKARI Video project yet')));
+    assert.ok(lines.some((line) => line.includes('Project created')));
     assert.ok(lines.some((line) => line.includes('draft')));
   });
 });
@@ -166,11 +166,11 @@ test('doctor 分岐: 既にセットアップ済みのフォルダでは scaffol
     assert.ok(doctorArgs, 'doctor が呼ばれること');
     assert.equal(doctorArgs.projectRoot, root);
     assert.equal(result.scaffolded, true);
-    assert.ok(lines.some((line) => line.includes('既存の AKARI Video プロジェクトを検出しました')));
+    assert.ok(lines.some((line) => line.includes('Found an existing AKARI Video project')));
     // 安定 ID -> 日本語ラベル（x-akari-labels）が要約に反映されていること。
-    assert.ok(lines.some((line) => line.includes('文字起こし・テロップ') && line.includes('BGM・効果音')));
-    assert.ok(lines.some((line) => line.includes('目標尺 60 秒')));
-    assert.ok(lines.some((line) => line.includes('要所で確認')));
+    assert.ok(lines.some((line) => line.includes('Transcribe and captions') && line.includes('BGM and sound effects')));
+    assert.ok(lines.some((line) => line.includes('target length 60 s')));
+    assert.ok(lines.some((line) => line.includes('With suggestions')));
   });
 });
 
@@ -199,7 +199,7 @@ test('claude 不在→opencode 不在: 両方無い場合は案内を出して�
     assert.equal(opencodeSpawned, false);
     assert.equal(result.exitCode, 1);
     assert.equal(result.opencodeLaunched, false);
-    assert.ok(lines.some((line) => line.includes('claude コマンドが見つかりませんでした')));
+    assert.ok(lines.some((line) => line.includes('The claude command was not found')));
     assert.ok(lines.some((line) => line.includes('https://claude.ai/install.sh')));
   });
 });
@@ -230,7 +230,7 @@ test('claude 不在→opencode でフォールバック: opencode が見つか�
     assert.deepEqual(opencodeCall, { opencodePath: '/fake/bin/opencode', args: [], cwd: root });
     assert.equal(result.exitCode, 0);
     assert.equal(result.opencodeLaunched, true);
-    assert.ok(lines.some((line) => line.includes('Claude Code が見つかりません。opencode を起動します…')));
+    assert.ok(lines.some((line) => line.includes('Claude Code was not found. Starting opencode...')));
   });
 });
 
@@ -255,7 +255,7 @@ test('scaffold が例外を投げても claude 起動までは続行する（「
       ...isolatedUpdateOptions(root)
     });
 
-    assert.ok(lines.some((line) => line.includes('エラーが発生しました（続行します）')));
+    assert.ok(lines.some((line) => line.includes('failed (continuing)')));
     assert.ok(claudeCall, 'scaffold が失敗しても claude 起動まで到達すること');
     assert.equal(result.exitCode, 7, 'claude の終了コードがそのまま伝播すること');
   });
@@ -285,7 +285,7 @@ test('opencode モード: --opencode フラグで opencode を起動する', asy
     assert.deepEqual(opencodeCall, { opencodePath: '/fake/bin/opencode', args: ['--continue'], cwd: root });
     assert.equal(result.exitCode, 0);
     assert.equal(result.opencodeLaunched, true);
-    assert.ok(lines.some((line) => line.includes('opencode を起動します…')));
+    assert.ok(lines.some((line) => line.includes('Starting opencode...')));
   });
 });
 
@@ -313,7 +313,7 @@ test('opencode 不在時の案内: PATH に opencode が無い場合は案内を
     assert.equal(opencodeSpawned, false);
     assert.equal(result.exitCode, 1);
     assert.equal(result.opencodeLaunched, false);
-    assert.ok(lines.some((line) => line.includes('opencode コマンドが見つかりませんでした')));
+    assert.ok(lines.some((line) => line.includes('The opencode command was not found')));
     assert.ok(lines.some((line) => line.includes('npm install -g opencode-ai')));
   });
 });

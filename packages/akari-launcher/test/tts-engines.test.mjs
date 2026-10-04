@@ -52,7 +52,7 @@ test('目録の全 payload は保存した OpenAPI required とキー名に従�
   assert.match(multilingual.info['x-fal-metadata'].about, /Multilingual/);
   assert.equal(multilingual.components.schemas.ChatterboxTextToSpeechMultilingualInput.properties.text.maxLength, 300);
   assert.deepEqual(falTtsEngine('chatterbox').buildPayload({ text: 'こんにちは' }), { text: 'こんにちは', voice: 'japanese' });
-  assert.match(falTtsEngine('chatterbox').caution, /日本語の読みが不安定/);
+  assert.match(falTtsEngine('chatterbox').caution, /Japanese readings are unstable/);
   assert.deepEqual(falTtsEngine('chatterbox').buildPayload({ text: 'こんにちは', audioUrl: 'data:audio/wav;base64,YQ==' }),
     { text: 'こんにちは', voice: 'data:audio/wav;base64,YQ==', custom_audio_language: 'japanese' });
 });
@@ -95,7 +95,7 @@ test('新エンジンは --yes なしで HTTP 0 回、5000 字と 300 字の上�
     let value = await run('minimax-2.6-hd', 'こんにちは');
     assert.equal(value.code, 2);
     assert.equal(value.value.estimate_usd, null);
-    assert.equal(value.value.reason, '見積不可');
+    assert.equal(value.value.reason, 'no estimate available');
     value = await run('elevenlabs-v3', 'あ'.repeat(5001));
     assert.equal(value.code, 2);
     assert.match(value.value.error, /5000/);

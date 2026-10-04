@@ -11,10 +11,10 @@ export async function runCaptureCommand(argv, options = {}) {
     // 探索した置き場を名指しして、報告・切り分けに使える形で止める（issue #74）。
     const missing = assets.captureScript ?? CAPTURE_SCRIPT_RELATIVE;
     logError(
-      `akari capture の実行スクリプトが見つかりません: ${missing}`
-      + `（探索先: ${assets.repoRoot ?? "不明"}）。`
-      + "この AKARI Video 配布物に packages/akari-tools/bin/capture.mjs が同梱されていません。"
-      + "バージョンと OS を添えて https://github.com/AkariLabs/akari-video/issues へ報告してください。",
+      `The script for akari capture was not found: ${missing}`
+      + ` (searched: ${assets.repoRoot ?? "unknown"}). `
+      + "This AKARI Video distribution does not bundle packages/akari-tools/bin/capture.mjs. "
+      + "Please report it at https://github.com/AkariLabs/akari-video/issues with your version and OS.",
     );
     return { exitCode: 1 };
   }

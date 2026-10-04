@@ -7,7 +7,7 @@ export async function runGenerateCommand(args, options = {}) {
   const assets = options.assets ?? resolveLauncherAssets();
   const spawn = options.spawn ?? spawnSync;
   if (!assets.generateScript) {
-    logError("akari generate の実行スクリプトが見つかりません。完全な AKARI Video を再導入してください:");
+    logError("The script for akari generate was not found. Reinstall the complete AKARI Video:");
     logError("  npm install -g akari-video");
     return { exitCode: 1 };
   }

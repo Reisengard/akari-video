@@ -26,6 +26,6 @@ test("capture reports a missing packaged script", async () => {
   assert.equal(errors.length, 1);
   // issue #74: 再インストール案内ではなく、欠けている同梱物と探索先を名指しする。
   assert.match(errors[0], /packages\/akari-tools\/bin\/capture\.mjs/);
-  assert.match(errors[0], /探索先: \/opt\/akari\/resources/);
-  assert.doesNotMatch(errors[0], /再インストール/);
+  assert.match(errors[0], /searched: \/opt\/akari\/resources/);
+  assert.doesNotMatch(errors[0], /reinstall/);
 });

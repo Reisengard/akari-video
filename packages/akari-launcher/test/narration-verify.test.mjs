@@ -58,7 +58,7 @@ test('transcribe モジュールが無い場合、verify と --check-backend は
       });
       assert.equal(result.exitCode, 3);
       assert.equal(JSON.parse(output.lines[0]).status, 'unavailable');
-      assert.match(JSON.parse(output.lines[0]).reason, /同梱/);
+      assert.match(JSON.parse(output.lines[0]).reason, /not bundled/);
     }
     const output = collect();
     const result = await runNarrationCommand(['verify', '--project', root, '--check-backend', '--json'], {

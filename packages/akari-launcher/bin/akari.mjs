@@ -40,8 +40,8 @@ async function printVersion() {
 // `--help` は claude/opencode へそのまま転送されてしまっていた — AKARI Video 自身の
 // コマンド一覧が一度も出ない行き止まりだったため新設した）。
 async function printCliHelp() {
-  for (const line of [...describeCliHelp(), '  world                    ワールド地図を検査・生成・プレビュー・停留所移動',
-    '  skills                   入口スキルを配置・削除・確認（install/remove --entry, status --json）']) {
+  for (const line of [...describeCliHelp(), '  world                    Check, generate, and preview the world map, and move between stops',
+    '  skills                   Install, remove, and check the entry skill (install/remove --entry, status --json)']) {
     console.log(line);
   }
   return { exitCode: 0 };
@@ -61,7 +61,7 @@ const doctorJson = argv[0] === 'doctor' && argv.includes('--json');
 try {
   maybeApplyPendingUpdateOnLaunch({ env: process.env, log: doctorJson ? () => {} : (line) => console.log(line) });
 } catch (error) {
-  console.error(`自動更新の適用確認でエラーが発生しました（続行します）: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`Checking whether to apply the automatic update failed (continuing): ${error instanceof Error ? error.message : String(error)}`);
 }
 refreshEntrySkillOnLaunch({ env: process.env });
 

@@ -23,9 +23,9 @@ test('bin/akari.mjs: --version は1行目の CLI 版を維持し、本体版と�
     assert.equal(result.status, 0, result.stderr);
     const lines = result.stdout.trim().split('\n');
     assert.equal(lines[0], `v${readOwnVersion()}`, '既存の機械観測契約として1行目は CLI 版だけ');
-    assert.ok(lines.includes(`CLI バージョン: v${readOwnVersion()}`));
-    assert.ok(lines.includes('本体バージョン: v0.1.11（更新判定の基準）'));
-    assert.ok(lines.some((line) => line.includes('本体が古い')));
+    assert.ok(lines.includes(`CLI version: v${readOwnVersion()}`));
+    assert.ok(lines.includes('App version: v0.1.11 (the basis for update checks)'));
+    assert.ok(lines.some((line) => line.includes('the app is older')));
   } finally {
     await rm(akariHome, { recursive: true, force: true });
   }
@@ -58,7 +58,7 @@ for (const flag of ['--help', '-h']) {
   test(`bin/akari.mjs: ${flag} は claude/opencode へ転送せず、初心者目線で並べ替えた一覧を表示する`, () => {
     const result = spawnSync(process.execPath, [bin, flag], { encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /使い方: akari \[command\] \[options\.\.\.\]/);
+    assert.match(result.stdout, /Usage: akari \[command\] \[options\.\.\.\]/);
 
     // 「作る → プレビュー/連携/素材 → 更新」の順（作る=引数なし・開発者向けフラグは末尾）。
     const connectIndex = result.stdout.indexOf('store connect');

@@ -7,7 +7,7 @@ export async function runMediaCommand(args, options = {}) {
   const assets = options.assets ?? resolveLauncherAssets();
   const spawn = options.spawn ?? spawnSync;
   if (!assets.mediaScript) {
-    logError("akari media の実行スクリプトが見つかりません。完全な AKARI Video を再導入してください:");
+    logError("The script for akari media was not found. Reinstall the complete AKARI Video:");
     logError("  npm install -g akari-video");
     return { exitCode: 1 };
   }

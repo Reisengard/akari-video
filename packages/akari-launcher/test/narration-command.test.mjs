@@ -57,7 +57,7 @@ test('彩: URL 優先順・声レシピ・自由 caption・速度・provenance �
     });
     value = await run();
     assert.equal(value.result.exitCode, 1);
-    assert.match(value.json.error, /接続できません/);
+    assert.match(value.json.error, /Cannot connect to the Irodori server/);
     process.env.AKARI_IRODORI_TIMEOUT_MS = '12345';
     globalThis.fetch = async () => ({ ok: false, status: 500, headers: { get: () => 'application/json' },
       arrayBuffer: async () => Buffer.from('{"error":"model unavailable"}') });
@@ -112,7 +112,7 @@ test('彩 URL が不正でも engines 全体は exit 0、彩だけ unconfigured�
       const engines = JSON.parse(output.lines[0]).engines;
       assert.deepEqual(engines.map(row => row.id), ['voicevox', 'gemini-tts', 'irodori', 'fal-qwen3', 'gemini-3.1-flash-tts', 'elevenlabs-v3', 'minimax-2.6-hd', 'chatterbox', 'index-tts-2', 'fish-s2.1-pro', 'gemini-3.8-flash-tts']);
       assert.equal(engines[2].availability.state, 'unconfigured');
-      assert.match(engines[2].availability.label, /接続先 URL が正しくありません/);
+      assert.match(engines[2].availability.label, /The server URL is not valid/);
       assert.match(engines[2].availability.detail.setup_url, /Irodori-TTS-Server/);
     }
     const output = collectLogs();
@@ -134,7 +134,7 @@ test('akari narration --help: generate の使い方を表示して exit 0', asyn
   const output = collectLogs();
   const result = await runNarrationCommand(['--help'], output);
   assert.equal(result.exitCode, 0);
-  assert.match(output.lines.join('\n'), /サブコマンド:/);
+  assert.match(output.lines.join('\n'), /Subcommands:/);
   assert.match(output.lines.join('\n'), /akari narration generate/);
 });
 
@@ -142,15 +142,15 @@ test('akari narration generate: 不明な引数は exit 2', async () => {
   const output = collectLogs();
   const result = await runNarrationCommand(['generate', '--unknown'], output);
   assert.equal(result.exitCode, 2);
-  assert.match(output.errors.join('\n'), /不明な引数/);
+  assert.match(output.errors.join('\n'), /Unknown argument/);
 });
 
 test('akari narration: 不明なサブコマンドは従来どおり JSON エラーと exit 2', async () => {
   const output = collectLogs();
   const result = await runNarrationCommand(['unknown'], output);
   assert.equal(result.exitCode, 2);
-  assert.match(output.errors.join('\n'), /不明なサブコマンド/);
-  assert.equal(JSON.parse(output.lines.at(-1)).error.includes('不明なサブコマンド'), true);
+  assert.match(output.errors.join('\n'), /Unknown subcommand/);
+  assert.equal(JSON.parse(output.lines.at(-1)).error.includes('Unknown subcommand'), true);
 });
 
 test('akari narration generate --dry-run: VOICEVOX を起動せず従来形式の JSON を返す', async () => {
@@ -265,17 +265,17 @@ test('engines の fal availability は一時 HOME / AKARI_HOME の fal の写し
   };
   try {
     assert.deepEqual(await inspect('new-fal', { fal: true }),
-      { state: 'available', label: '声プロファイルを使用できます', detail: { profiles_with_fal: 1 } });
+      { state: 'available', label: 'Voice profiles are ready', detail: { profiles_with_fal: 1 } });
     assert.deepEqual(await inspect('irodori-only', { irodori: true }),
-      { state: 'needs', label: 'fal の写しがある声がありません（自分の声をつくる）', detail: { profiles_with_fal: 0 } });
+      { state: 'needs', label: 'No voice has a fal copy (create your own voice)', detail: { profiles_with_fal: 0 } });
     assert.deepEqual(await inspect('legacy-only', { legacy: true }),
-      { state: 'available', label: '声プロファイルを使用できます', detail: { profiles_with_fal: 1 } });
+      { state: 'available', label: 'Voice profiles are ready', detail: { profiles_with_fal: 1 } });
     assert.deepEqual(await inspect('empty'),
-      { state: 'needs', label: 'fal の写しがある声がありません（自分の声をつくる）', detail: { profiles_with_fal: 0 } });
+      { state: 'needs', label: 'No voice has a fal copy (create your own voice)', detail: { profiles_with_fal: 0 } });
     assert.deepEqual(await inspect('no-key', { fal: true, key: false }),
-      { state: 'unconfigured', label: 'fal の鍵を登録', detail: { profiles_with_fal: 1 } });
+      { state: 'unconfigured', label: 'Register a fal key', detail: { profiles_with_fal: 1 } });
     assert.deepEqual(await inspect('userprofile-only', { fal: true, userProfileOnly: true }),
-      { state: 'available', label: '声プロファイルを使用できます', detail: { profiles_with_fal: 1 } });
+      { state: 'available', label: 'Voice profiles are ready', detail: { profiles_with_fal: 1 } });
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
@@ -304,7 +304,7 @@ test('壊れた meta.json があっても engines --json は fal を needs に�
     assert.equal(typeof engines[0].availability.state, 'string');
     assert.equal(typeof engines[2].availability.state, 'string');
     assert.deepEqual(engines[3].availability,
-      { state: 'needs', label: 'fal の写しがある声がありません（自分の声をつくる）', detail: { profiles_with_fal: 0 } });
+      { state: 'needs', label: 'No voice has a fal copy (create your own voice)', detail: { profiles_with_fal: 0 } });
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
@@ -551,7 +551,7 @@ test('Gemini voices JSON は Leda が先頭で 30 声', async () => {
   assert.equal((await runNarrationCommand(['voices', '--engine', 'gemini-tts', '--json'], output)).exitCode, 0);
   const json = JSON.parse(output.lines[0]);
   assert.equal(json.voices.length, 30);
-  assert.deepEqual(json.voices[0], { id: 'Leda', label: 'Leda（Youthful）', default: true });
+  assert.deepEqual(json.voices[0], { id: 'Leda', label: 'Leda (Youthful)', default: true });
 });
 
 test('VOICEVOX voices JSON は speakers.styles を平坦化する', async () => {
@@ -628,8 +628,8 @@ test('Gemini --json は 1 行・ログを stderr・speed 警告・payload と pr
       '--text', 'こんにちは', '--t', '0', '--voice', 'Leda', '--style', '穏やかに', '--speed', '1.2', '--yes', '--json'], output);
     assert.equal(result.exitCode, 0);
     assert.equal(output.lines.length, 1);
-    assert.match(output.errors.join('\n'), /推定費用/);
-    assert.match(output.errors.join('\n'), /--speed に対応していない/);
+    assert.match(output.errors.join('\n'), /estimated cost/);
+    assert.match(output.errors.join('\n'), /does not support --speed/);
     const json = JSON.parse(output.lines[0]);
     assert.equal(json.status, 'ok');
     assert.equal(json.speed_applied, false);
@@ -711,7 +711,7 @@ test('narration --profile は新 → 旧の順で解決し、彩は voice_id を
     await writeFile(join(newDir, 'meta.json'), JSON.stringify(meta));
     const missing = collectLogs();
     assert.equal((await runNarrationCommand(['generate', '--project', scratch, '--engine', 'irodori', '--profile', 'owner-ja', '--text', 'こんにちは', '--dry-run', '--json'], missing)).exitCode, 2);
-    assert.match(JSON.parse(missing.lines[0]).error, /彩の写しがありません/);
+    assert.match(JSON.parse(missing.lines[0]).error, /This voice has no Irodori copy/);
     const { rm: remove } = await import('node:fs/promises');
     await remove(newDir, { recursive: true });
     const legacy = collectLogs();

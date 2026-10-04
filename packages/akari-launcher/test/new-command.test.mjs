@@ -23,7 +23,7 @@ test('akari new: 不明なオプションは exit 1', async () => {
   const output = collectLogs();
   const result = await runNewCommand(['project', '--unknown'], output);
   assert.equal(result.exitCode, 1);
-  assert.match(output.errors.join('\n'), /不明なオプション/);
+  assert.match(output.errors.join('\n'), /Unknown option/);
 });
 
 test('akari new: assets の雛形・skills・schemas と注入した scaffold を使う', async () => {
@@ -61,7 +61,7 @@ test('akari new: assets の雛形・skills・schemas と注入した scaffold �
     assert.equal(received[0], join(scratch, 'project'));
     assert.equal(received[1], templateDir);
     assert.deepEqual(received[2], { skillsSourceDir, schemasSourceDir });
-    assert.match(output.lines.join('\n'), /プロジェクトを作成しました/);
+    assert.match(output.lines.join('\n'), /Project created/);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }

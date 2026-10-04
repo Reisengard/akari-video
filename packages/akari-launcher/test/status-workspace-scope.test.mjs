@@ -229,9 +229,9 @@ test("runStatusCommand: human output shows CLI and install-ref body versions", a
       log: (line) => lines.push(line),
     });
     const output = lines.join("");
-    assert.match(output, /CLI バージョン: v0\.1\.12/u);
-    assert.match(output, /本体バージョン: v0\.1\.11/u);
-    assert.match(output, /本体が古い/u);
+    assert.match(output, /CLI version: v0\.1\.12/u);
+    assert.match(output, /App version: v0\.1\.11/u);
+    assert.match(output, /the app is older/u);
   });
 });
 

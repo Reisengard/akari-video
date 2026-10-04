@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 import { resolveLauncherAssets } from './repo-assets.mjs';
 
-const usage = '使い方: akari new <target-dir> [--template <path>]';
+const usage = 'Usage: akari new <target-dir> [--template <path>]';
 
 function parseArguments(args) {
     let target;
@@ -15,16 +15,16 @@ function parseArguments(args) {
         if (argument === '--template') {
             const value = args[index + 1];
             if (!value || value.startsWith('--')) {
-                throw new Error(`${usage}\n--template にはパスが必要です。`);
+                throw new Error(`${usage}\n--template requires a path.`);
             }
             template = value;
             index += 1;
         } else if (argument.startsWith('-')) {
-            throw new Error(`${usage}\n不明なオプションです: ${argument}`);
+            throw new Error(`${usage}\nUnknown option: ${argument}`);
         } else if (target === undefined) {
             target = argument;
         } else {
-            throw new Error(`${usage}\n作成先は 1 つだけ指定してください。`);
+            throw new Error(`${usage}\nGive only one destination.`);
         }
     }
 
@@ -67,7 +67,7 @@ export async function runNewCommand(args, options = {}) {
     const templateDir = template ? path.resolve(cwd, template) : assets.templateDir;
 
     if (!templateDir) {
-        logError('プロジェクト雛形が見つかりません。');
+        logError('The project template was not found.');
         return { exitCode: 1 };
     }
 
@@ -77,20 +77,20 @@ export async function runNewCommand(args, options = {}) {
             throw new Error('not a directory');
         }
     } catch {
-        logError(`雛形が見つかりません: ${templateDir}`);
+        logError(`Template not found: ${templateDir}`);
         return { exitCode: 1 };
     }
 
     const skillsSourceDir = assets.skillsSourceDir;
     const hasSkills = await directoryHasFile(skillsSourceDir, 'analyze-footage/SKILL.md');
     if (!hasSkills) {
-        logError(`スキル正本が見つからないため、スキル同梱をスキップします: ${skillsSourceDir ?? '未検出'}`);
+        logError(`The skill source was not found, so bundling skills is skipped: ${skillsSourceDir ?? 'not found'}`);
     }
     const schemasSourceDir = assets.schemasSourceDir;
     const hasSchemas = await directoryHasFile(schemasSourceDir, 'analysis.schema.json');
 
     if (!assets.scaffoldModulePath && !options.createProject) {
-        logError('プロジェクト作成モジュールが見つかりません。');
+        logError('The project creation module was not found.');
         return { exitCode: 1 };
     }
 
@@ -99,13 +99,13 @@ export async function runNewCommand(args, options = {}) {
         const result = await createProject(targetDir, templateDir, hasSkills
             ? { skillsSourceDir, schemasSourceDir: hasSchemas ? schemasSourceDir : undefined }
             : {});
-        log(`プロジェクトを作成しました: ${result.destination}`);
-        log(`コピー: ${result.copy.copiedFiles.length} 件`);
-        log(`フォールバック補完: ${result.fallback.writtenFiles.length} 件`);
-        log(`シンボリックリンクのスキップ: ${result.copy.skippedSymlinks.length} 件`);
-        log(`スキル同梱: ${hasSkills ? `実施（${skillsSourceDir}）` : 'スキップ'}`);
+        log(`Project created: ${result.destination}`);
+        log(`Copied: ${result.copy.copiedFiles.length}`);
+        log(`Filled in from the fallback: ${result.fallback.writtenFiles.length}`);
+        log(`Skipped symbolic links: ${result.copy.skippedSymlinks.length}`);
+        log(`Skills bundled: ${hasSkills ? `yes (${skillsSourceDir})` : 'skipped'}`);
         log(`git: ${result.git.action}`);
-        log(`作成結果レポート: ${result.reportPath}`);
+        log(`Creation report: ${result.reportPath}`);
         return { exitCode: 0, result };
     } catch (error) {
         logError(error instanceof Error ? error.message : String(error));

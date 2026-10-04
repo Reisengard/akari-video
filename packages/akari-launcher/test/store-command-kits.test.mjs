@@ -118,7 +118,7 @@ test('kit install --from: manifest 検査失敗は fail-closed', async () => {
   try {
     const result = await runStoreCommand(['install', 'sample-kit', '--from', fixtureZip(ctx, { invalid: true })], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((line) => line.includes('キットの検査に失敗')));
+    assert.ok(ctx.lines.some((line) => line.includes('Checking the kit failed')));
     assert.equal(existsSync(path.join(ctx.home, 'kits', 'plugin', 'skills', 'sample-kit-skill')), false);
   } finally { ctx.cleanup(); }
 });
@@ -129,8 +129,8 @@ test('配布形で manifest 検査器と runtime registry が無ければ warnin
     ctx.options.assets = { repoRoot: path.join(ctx.home, 'vendor'), schemasSourceDir: null, skillsSourceDir: null };
     const result = await runStoreCommand(['install', 'sample-kit', '--from', fixtureZip(ctx, { compatible: true })], ctx.options);
     assert.equal(result.exitCode, 0);
-    assert.ok(ctx.lines.some((line) => line.includes('キットの検査ツールが見つからないため検査をスキップしました')));
-    assert.ok(ctx.lines.some((line) => line.includes('runtime registry が見つからないため')));
+    assert.ok(ctx.lines.some((line) => line.includes('The kit check tool was not found, so the check was skipped')));
+    assert.ok(ctx.lines.some((line) => line.includes('The runtime registry was not found')));
   } finally { ctx.cleanup(); }
 });
 
@@ -168,7 +168,7 @@ test('規定位置でも kind 非 kit の manifest はログなしで従来経�
     const result = await runStoreCommand(['install', 'asset-pack', '--from', zipPath], ctx.options);
     assert.equal(result.exitCode, 0);
     assert.equal(existsSync(path.join(ctx.home, 'kits', 'installed.json')), false);
-    assert.ok(ctx.lines.every((line) => !line.includes('キットの検査') && !line.includes('拡張キットを有効化')));
+    assert.ok(ctx.lines.every((line) => !line.includes('Checking the kit') && !line.includes('Enable the extension kit')));
   } finally { ctx.cleanup(); }
 });
 
@@ -213,8 +213,8 @@ test('store status は既存表示の後ろに拡張キット節を出す', asyn
     ctx.lines.length = 0;
     const result = await runStoreCommand(['status'], ctx.options);
     assert.equal(result.exitCode, 0);
-    const section = ctx.lines.indexOf('拡張キット:');
-    assert.ok(section > ctx.lines.findIndex((line) => line.startsWith('接続中:')));
-    assert.match(ctx.lines[section + 1], /sample-kit v1.*sample-kit-skill.*素材: 0 件/u);
+    const section = ctx.lines.indexOf('Extension kits:');
+    assert.ok(section > ctx.lines.findIndex((line) => line.startsWith('Connected:')));
+    assert.match(ctx.lines[section + 1], /sample-kit v1.*sample-kit-skill.*assets: 0/u);
   } finally { ctx.cleanup(); }
 });

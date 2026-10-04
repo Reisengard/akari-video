@@ -1,10 +1,10 @@
 import { doctorExitCode, resolveDoctorReport } from './runtime-diagnostics.mjs';
 
 const usage = [
-  '使い方: akari doctor [--json]',
+  'Usage: akari doctor [--json]',
   '',
-  '必須部品の実在、解決元、PATH を確認します。',
-  '  --json  機械可読な診断結果を 1 オブジェクトで出力',
+  'Checks that the required parts exist, where each one is resolved from, and PATH.',
+  '  --json  Print the diagnosis as one machine-readable object',
 ].join('\n');
 
 export async function runDoctorCommand(argv, options = {}) {
@@ -16,7 +16,7 @@ export async function runDoctorCommand(argv, options = {}) {
   }
   const unknown = argv.find((argument) => argument !== '--json');
   if (unknown) {
-    error(`不明な doctor オプションです: ${unknown}\n${usage}`);
+    error(`Unknown doctor option: ${unknown}\n${usage}`);
     return { exitCode: 2 };
   }
 
@@ -30,44 +30,44 @@ export function formatDoctorReport(report) {
   const rows = [
     ['cli', 'ok', `v${report.cli.version} — ${report.cli.entry_path}`],
     ['node', report.cli.node?.runtime ?? 'unknown', report.cli.node
-      ? `v${report.cli.node.version} — ${report.cli.node.exec_path}${report.cli.node.runtime === 'electron' ? ' （Node として使うには ELECTRON_RUN_AS_NODE=1 を付けて呼ぶ）' : ''}`
-      : '診断情報がありません'],
+      ? `v${report.cli.node.version} — ${report.cli.node.exec_path}${report.cli.node.runtime === 'electron' ? ' (to use it as Node, call it with ELECTRON_RUN_AS_NODE=1)' : ''}`
+      : 'No diagnostic information'],
     ['app_managed', report.app_managed.status, detail(report.app_managed.path, report.app_managed.version)],
     ['app_bundle', report.app_bundle.found ? 'found' : 'missing', detail(report.app_bundle.path, report.app_bundle.version)],
-    ['render_cut', report.render_cut.origin, report.render_cut.path ?? '見つかりません'],
-    ['edit_lint', report.edit_lint.origin, report.edit_lint.path ?? '見つかりません'],
-    ['ffmpeg', report.ffmpeg.origin, report.ffmpeg.path ?? '見つかりません'],
-    ['ffprobe', report.ffprobe.origin, report.ffprobe.path ?? '見つかりません'],
-    ['gpu_export', report.gpu_export?.available ? 'ok' : 'unavailable', report.gpu_export?.reason ?? '診断情報がありません'],
+    ['render_cut', report.render_cut.origin, report.render_cut.path ?? 'not found'],
+    ['edit_lint', report.edit_lint.origin, report.edit_lint.path ?? 'not found'],
+    ['ffmpeg', report.ffmpeg.origin, report.ffmpeg.path ?? 'not found'],
+    ['ffprobe', report.ffprobe.origin, report.ffprobe.path ?? 'not found'],
+    ['gpu_export', report.gpu_export?.available ? 'ok' : 'unavailable', report.gpu_export?.reason ?? 'No diagnostic information'],
     ['fal_key', report.fal_key?.source ?? 'missing', report.fal_key?.source === 'env'
-      ? '環境変数 FAL_KEY'
+      ? 'FAL_KEY environment variable'
       : report.fal_key?.source === 'credentials.env'
         ? report.fal_key.credentials_path
-        : '環境変数にも credentials.env にもありません'],
-    ['鍵の置き場', report.fal_key?.location ?? 'なし', '新 / 旧 / 両方'],
+        : 'Not in the environment and not in credentials.env'],
+    ['Key location', report.fal_key?.location ?? 'none', 'new / old / both'],
     ['path', report.path.on_path ? 'ok' : 'missing', report.path.cli_shim_dir],
   ];
   const widths = [
-    Math.max('項目'.length, ...rows.map((row) => row[0].length)),
-    Math.max('状態'.length, ...rows.map((row) => row[1].length)),
+    Math.max('Item'.length, ...rows.map((row) => row[0].length)),
+    Math.max('Status'.length, ...rows.map((row) => row[1].length)),
   ];
   const lines = [
     'AKARI Video doctor',
     '',
-    `${'項目'.padEnd(widths[0])}  ${'状態'.padEnd(widths[1])}  詳細`,
+    `${'Item'.padEnd(widths[0])}  ${'Status'.padEnd(widths[1])}  Details`,
     `${'-'.repeat(widths[0])}  ${'-'.repeat(widths[1])}  ${'-'.repeat(20)}`,
     ...rows.map((row) => `${row[0].padEnd(widths[0])}  ${row[1].padEnd(widths[1])}  ${row[2]}`),
     '',
-    `判定: ${report.verdict}`,
+    `Verdict: ${report.verdict}`,
   ];
   if (report.next_steps.length > 0) {
-    lines.push('次の手順:');
+    lines.push('Next steps:');
     lines.push(...report.next_steps.map((step) => `  - ${step}`));
   }
   return lines.join('\n');
 }
 
 function detail(path, version) {
-  const location = path ?? '見つかりません';
+  const location = path ?? 'not found';
   return version ? `v${version} — ${location}` : location;
 }

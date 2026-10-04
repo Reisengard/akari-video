@@ -161,12 +161,12 @@ test('loadTaskLabels: 実 packages/schemas/intake.schema.json の x-akari-labels
 
 test('loadTaskLabels: schemasSourceDir が無ければ組み込みフォールバックを返す', () => {
   const labels = loadTaskLabels(null);
-  assert.equal(labels['transcribe-captions'], '文字起こし・テロップ');
+  assert.equal(labels['transcribe-captions'], 'Transcribe and captions');
 });
 
 test('describeIntake: draft のときは未確定であることを案内する', () => {
   const text = describeIntake({ status: 'draft' }, {});
-  assert.match(text, /未確定/);
+  assert.match(text, /not settled yet/);
 });
 
 test('describeIntake: submitted のときは tasks / target / autonomy を要約する', () => {
@@ -180,13 +180,13 @@ test('describeIntake: submitted のときは tasks / target / autonomy を要約
     { 'silence-cut': 'いらない間・NG のカット' }
   );
   assert.match(text, /いらない間・NG のカット/);
-  assert.match(text, /尺は素材のまま/);
-  assert.match(text, /すべておまかせ/);
+  assert.match(text, /keep the footage length/);
+  assert.match(text, /autonomy: As is/);
 });
 
 test('describeIntake: intake が無ければその旨を伝える', () => {
   const text = describeIntake(null, {});
-  assert.match(text, /まだありません/);
+  assert.match(text, /no intake form/);
 });
 
 test('claudeMissingGuidance: インストール手順の URL を含む', () => {
@@ -196,7 +196,7 @@ test('claudeMissingGuidance: インストール手順の URL を含む', () => {
 
 test('creatorRootFoundNotice: 作業場パスを 1 行で示す', () => {
   const text = creatorRootFoundNotice('/workspaces/AkariVideo');
-  assert.equal(text, '作業場: /workspaces/AkariVideo');
+  assert.equal(text, 'Workspace: /workspaces/AkariVideo');
   assert.equal(text.includes('\n'), false, '1 行主義');
 });
 
@@ -208,14 +208,14 @@ test('creatorRootNewProjectNotice: 作業場パスと新規プロジェクトパ
 
 test('creatorRootCreatedNotice: 作業場を作成した旨と新規プロジェクトパスを含む', () => {
   const text = creatorRootCreatedNotice('/root', '/root/channels/my-channel/videos/2026-08-02-video');
-  assert.match(text, /作業場を作成しました/);
+  assert.match(text, /Workspace created/);
   assert.match(text, /2026-08-02-video/);
 });
 
 test('creatorRootCreateFailedNotice: エラーメッセージを含み、続行の旨を示す', () => {
   const text = creatorRootCreateFailedNotice('EACCES');
   assert.match(text, /EACCES/);
-  assert.match(text, /続けます/);
+  assert.match(text, /continuing in this folder/);
 });
 
 test('creatorRootPromptText: 既定パスを含む 1 行の質問文', () => {

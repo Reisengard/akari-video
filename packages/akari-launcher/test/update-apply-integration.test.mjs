@@ -162,7 +162,7 @@ serverTest('akari update: app 経由インストール + 新版フィードな�
       });
 
       assert.equal(result.exitCode, 0);
-      assert.ok(lines.some((line) => line.includes('v0.2.0 に更新しました')), JSON.stringify(lines));
+      assert.ok(lines.some((line) => line.includes('Updated to v0.2.0')), JSON.stringify(lines));
       assert.equal(akariVersionOf(appDir, env), 'v0.2.0', 'akari --version が新版を返すこと');
 
       const { log: rbLog, lines: rbLines } = collectLogs();
@@ -173,7 +173,7 @@ serverTest('akari update: app 経由インストール + 新版フィードな�
         fetchImpl: OFFLINE_FETCH
       });
       assert.equal(rollbackResult.exitCode, 0);
-      assert.ok(rbLines.some((line) => line.includes('v0.1.0 へロールバックしました')), JSON.stringify(rbLines));
+      assert.ok(rbLines.some((line) => line.includes('Rolled back to v0.1.0')), JSON.stringify(rbLines));
       assert.equal(akariVersionOf(appDir, env), 'v0.1.0', '--rollback 後は akari --version が旧版に戻ること');
     });
   });
@@ -210,7 +210,7 @@ serverTest('akari update: app 外（モノレポ checkout 相当）から実行�
     });
 
     assert.equal(result.exitCode, 0);
-    assert.ok(lines.some((line) => line.includes('最新バージョン: v0.2.0')), JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Latest version: v0.2.0')), JSON.stringify(lines));
     assert.ok(lines.some((line) => line.includes('npm i -g')), '従来どおりの手動インストール案内が出ること');
     assert.equal(existsSync(resolveAppPreviousDir(env)), false, '適用されていないこと');
   });
@@ -245,7 +245,7 @@ serverTest('akari update: フィードに components.app が無い（旧フィ�
     });
 
     assert.equal(result.exitCode, 0);
-    assert.ok(lines.some((line) => line.includes('最新バージョン: v0.2.0')), JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Latest version: v0.2.0')), JSON.stringify(lines));
     assert.equal(akariVersionOf(appDir, env), 'v0.1.0', '適用されていないこと');
   });
 });

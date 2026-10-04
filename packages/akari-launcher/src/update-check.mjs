@@ -367,9 +367,9 @@ export function maybeApplyPendingUpdateOnLaunch({ env = process.env, log = () =>
   const { staged: _droppedStaged, ...cacheWithoutStaged } = latestCache;
   writeCacheSync(cachePath, cacheWithoutStaged);
 
-  log(`v${staged.version} に更新しました`);
+  log(`Updated to v${staged.version}`);
   if (feed.notes_url) {
-    log(`リリースノート: ${feed.notes_url}`);
+    log(`Release notes: ${feed.notes_url}`);
   }
   return { applied: true, version: staged.version, notesUrl: feed.notes_url };
 }

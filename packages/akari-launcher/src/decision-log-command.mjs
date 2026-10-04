@@ -7,7 +7,7 @@ export async function runDecisionLogCommand(argv, options = {}) {
   const logError = options.error ?? options.logError ?? ((line) => console.error(line));
   const assets = options.assets ?? resolveLauncherAssets();
   if (!assets.decisionLogScript || !existsSync(assets.decisionLogScript)) {
-    logError("akari decision-log の実行スクリプトが見つかりません。AKARI Video を再インストールしてください。");
+    logError("The script for akari decision-log was not found. Please reinstall AKARI Video.");
     return { exitCode: 1 };
   }
 

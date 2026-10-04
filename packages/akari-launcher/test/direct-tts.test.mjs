@@ -101,8 +101,8 @@ test('直接 API は鍵なしで unconfigured、--yes なしで HTTP 0 回', asy
   assert.equal(listed.exitCode, 0);
   const rows = JSON.parse(io.lines[0]).engines;
   assert.deepEqual(rows.slice(-2).map(row => row.availability), [
-    { state: 'unconfigured', label: 'Fish Audio の鍵を登録' },
-    { state: 'unconfigured', label: 'Google AI の鍵を登録' },
+    { state: 'unconfigured', label: 'Register a Fish Audio key' },
+    { state: 'unconfigured', label: 'Register a Google AI key' },
   ]);
   fs.mkdirSync(env.AKARI_HOME, { recursive: true });
   fs.writeFileSync(path.join(env.AKARI_HOME, 'credentials.env'),
@@ -122,7 +122,7 @@ test('直接 API は鍵なしで unconfigured、--yes なしで HTTP 0 回', asy
   const clone = await runNarrationCommand(['generate', '--project', root, '--engine', gemini.id,
     '--profile', 'sample', '--text', 'こんにちは', '--yes', '--json'], unsupported);
   assert.equal(clone.exitCode, 2);
-  assert.match(JSON.parse(unsupported.lines.at(-1)).error, /声プロファイルが見つかりません/);
+  assert.match(JSON.parse(unsupported.lines.at(-1)).error, /Voice profile not found/);
   assert.equal(calls, 0);
 });
 

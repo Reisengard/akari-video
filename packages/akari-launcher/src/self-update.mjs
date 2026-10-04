@@ -79,7 +79,7 @@ async function downloadFile({ url, destPath, fetchImpl = globalThis.fetch, timeo
   try {
     response = await fetchImpl(url, { signal: controller.signal });
   } catch (error) {
-    throw new Error(`ネットワークエラー: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Network error: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     clearTimeout(timeout);
   }
@@ -102,7 +102,7 @@ function extractTarGz({ tarPath, destDir }) {
     throw result.error;
   }
   if (result.status !== 0) {
-    throw new Error(`tar が失敗しました（code ${result.status}）: ${result.stderr?.toString().trim() ?? ''}`);
+    throw new Error(`tar failed (code ${result.status}): ${result.stderr?.toString().trim() ?? ''}`);
   }
 }
 
@@ -197,7 +197,7 @@ export async function stageSelfUpdate({
 } = {}) {
   const appComponent = feed?.components?.app;
   if (!appComponent?.url || !appComponent?.sha256) {
-    log('更新フィードに app 成分がありません（旧フィード）。手動更新の案内に切り替えます。');
+    log('The update feed has no app component (old feed). Switching to the manual update instructions.');
     return { ok: false, reason: 'no-app-component' };
   }
 
@@ -211,19 +211,19 @@ export async function stageSelfUpdate({
   rmSync(downloadPath, { force: true });
   mkdirSync(stagingRoot, { recursive: true });
 
-  log(`v${version} をダウンロードしています…`);
+  log(`Downloading v${version}...`);
   try {
     await downloadFile({ url: appComponent.url, destPath: downloadPath, fetchImpl, timeoutMs });
   } catch (error) {
     rmSync(downloadPath, { force: true });
-    log(`更新のダウンロードに失敗しました（現在のインストールは変更していません）: ${error.message}`);
+    log(`Downloading the update failed (the current install is unchanged): ${error.message}`);
     return { ok: false, reason: 'download-failed' };
   }
 
   const actualSha256 = sha256File(downloadPath);
   if (actualSha256 !== appComponent.sha256) {
     rmSync(downloadPath, { force: true });
-    log(`更新の検証に失敗しました（sha256 不一致。期待値 ${appComponent.sha256} / 実際 ${actualSha256}）。適用を中止しました（現在のインストールは変更していません）。`);
+    log(`Verifying the update failed (sha256 mismatch: expected ${appComponent.sha256} / actual ${actualSha256}). The update was not applied (the current install is unchanged).`);
     return { ok: false, reason: 'hash-mismatch' };
   }
 
@@ -233,7 +233,7 @@ export async function stageSelfUpdate({
   } catch (error) {
     rmSync(stagingDir, { recursive: true, force: true });
     rmSync(downloadPath, { force: true });
-    log(`更新の展開に失敗しました（現在のインストールは変更していません）: ${error instanceof Error ? error.message : String(error)}`);
+    log(`Extracting the update failed (the current install is unchanged): ${error instanceof Error ? error.message : String(error)}`);
     return { ok: false, reason: 'extract-failed' };
   }
   rmSync(downloadPath, { force: true });
@@ -259,7 +259,7 @@ export function swapStagedApp({
 } = {}) {
   const lockPath = acquireApplyLock(env);
   if (!lockPath) {
-    log('他のプロセスが更新を適用中のため、今回の適用は見送りました。次回に持ち越します。');
+    log('Another process is applying an update, so this one was skipped. It will be tried next time.');
     return { exitCode: 1, applied: false, lockContention: true };
   }
 
@@ -276,7 +276,7 @@ export function swapStagedApp({
         renameSync(appDir, swapTag);
       } catch (error) {
         rmSync(stagingDir, { recursive: true, force: true });
-        log(`更新の適用に失敗しました（既存インストールの退避に失敗。現在のインストールは変更していません）: ${error.message}`);
+        log(`Applying the update failed (could not move the existing install aside; the current install is unchanged): ${error.message}`);
         return { exitCode: 1, applied: false };
       }
     }
@@ -301,11 +301,11 @@ export function swapStagedApp({
           renameSync(swapTag, appDir);
         } catch {
           // 復元も失敗した場合は打つ手がない。手動介入を促すメッセージだけ残す。
-          log(`重大: 旧インストールの復元にも失敗しました。手動確認が必要です（退避先: ${swapTag}）。`);
+          log(`Critical: restoring the previous install also failed. Check it by hand (moved to: ${swapTag}).`);
         }
       }
       rmSync(stagingDir, { recursive: true, force: true });
-      log(`更新の適用に失敗しました（切り替えに失敗。可能な範囲で元の状態へ復元しました）: ${error instanceof Error ? error.message : String(error)}`);
+      log(`Applying the update failed (the switch failed; the previous state was restored as far as possible): ${error instanceof Error ? error.message : String(error)}`);
       return { exitCode: 1, applied: false };
     }
 
@@ -320,12 +320,12 @@ export function swapStagedApp({
 
     const npmResult = runNpmInstall({ cwd: appDir });
     if (!npmResult.ok) {
-      log(`npm install が失敗しました（更新自体は適用済みです。問題が続く場合は \`akari update --rollback\` を検討してください）: ${npmResult.message ?? ''}`);
+      log(`npm install failed (the update itself was applied; if problems continue, consider \`akari update --rollback\`): ${npmResult.message ?? ''}`);
     }
 
-    log(`v${version} に更新しました`);
+    log(`Updated to v${version}`);
     if (notesUrl) {
-      log(`リリースノート: ${notesUrl}`);
+      log(`Release notes: ${notesUrl}`);
     }
     return { exitCode: 0, applied: true, version, npmInstallOk: npmResult.ok };
   } finally {
@@ -372,7 +372,7 @@ export function rollbackSelfUpdate({ env = process.env, log = () => {} } = {}) {
   const appPreviousDir = resolveAppPreviousDir(env);
 
   if (!existsSync(appPreviousDir)) {
-    log('ロールバック対象がありません（保存されている前バージョンがありません）。');
+    log('Nothing to roll back to (no previous version is saved).');
     return { exitCode: 1, rolledBack: false };
   }
 
@@ -387,7 +387,7 @@ export function rollbackSelfUpdate({ env = process.env, log = () => {} } = {}) {
       renameSync(swapTag, appPreviousDir);
     }
   } catch (error) {
-    log(`ロールバックに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+    log(`Rollback failed: ${error instanceof Error ? error.message : String(error)}`);
     return { exitCode: 1, rolledBack: false };
   }
 
@@ -396,6 +396,6 @@ export function rollbackSelfUpdate({ env = process.env, log = () => {} } = {}) {
     // install-ref が無い古い app-previous へ戻した場合も、以後の更新判定を本体版基準に保つ。
     writeFileSync(join(appDir, '.akari-install-ref'), `v${version}\n`, 'utf8');
   }
-  log(version ? `v${version} へロールバックしました` : 'ロールバックしました');
+  log(version ? `Rolled back to v${version}` : 'Rolled back');
   return { exitCode: 0, rolledBack: true, version };
 }

@@ -8,7 +8,7 @@ test("the retired browser-install command exits 1 with one migration message", a
   const command = ["ch", "rome"].join("");
   const result = await run([command, "install"], { error: (line) => errors.push(line) });
   assert.equal(result.exitCode, 1);
-  assert.match(errors[0], /廃止されました/);
-  assert.match(errors[0], /不要になりました/);
+  assert.match(errors[0], /has been retired/);
+  assert.match(errors[0], /no longer needed/);
 });
 

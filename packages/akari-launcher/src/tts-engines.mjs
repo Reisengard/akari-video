@@ -9,7 +9,7 @@ const geminiVoices = Object.entries({
   Sadachbia: 'Lively', Sadaltager: 'Knowledgeable', Schedar: 'Even',
   Sulafat: 'Warm', Umbriel: 'Easy-going', Vindemiatrix: 'Gentle',
   Zephyr: 'Bright', Zubenelgenubi: 'Casual',
-}).map(([id, description]) => ({ id, label: `${id}（${description}）`, ...(id === 'Leda' ? { default: true } : {}) }));
+}).map(([id, description]) => ({ id, label: `${id} (${description})`, ...(id === 'Leda' ? { default: true } : {}) }));
 
 const price = (unit, value, verified = false, as_of = '2026-09-24') => ({ unit, value, verified, as_of });
 const audio = result => result?.audio?.url;
@@ -37,20 +37,20 @@ export const FAL_TTS_ENGINES = Object.freeze([
       speaker_voice_embedding_file_url: profileMeta.embedding_source_url,
       reference_text: profileMeta.reference_text, max_new_tokens: 2048 }),
   }),
-  row('gemini-3.1-flash-tts', 'Gemini 3.1 Flash TTS（既製の声）', 'fal-ai/gemini-3.1-flash-tts', {
+  row('gemini-3.1-flash-tts', 'Gemini 3.1 Flash TTS (ready-made voices)', 'fal-ai/gemini-3.1-flash-tts', {
     price: price(null, null), voices: geminiVoices, default_voice: 'Leda',
     supports: { speed: false, style: true, clone: 'none' },
     buildPayload: ({ text, voice, style }) => ({ prompt: text, voice, output_format: 'mp3',
       language_code: 'Japanese (Japan)', ...(style ? { style_instructions: style } : {}) }),
   }),
-  row('elevenlabs-v3', 'ElevenLabs v3（既製の声）', 'fal-ai/elevenlabs/tts/eleven-v3', {
+  row('elevenlabs-v3', 'ElevenLabs v3 (ready-made voices)', 'fal-ai/elevenlabs/tts/eleven-v3', {
     price: price('usd_per_1000_chars', 0.10),
     voices: ['Rachel', 'Aria', 'Sarah', 'Laura', 'Charlie', 'George', 'River', 'Liam', 'Charlotte', 'Alice']
       .map(id => ({ id, label: id, ...(id === 'Rachel' ? { default: true } : {}) })),
     default_voice: 'Rachel', supports: { speed: false, style: false, clone: 'none' },
     buildPayload: ({ text, voice }) => ({ text, voice, language_code: 'ja' }),
   }),
-  row('minimax-2.6-hd', 'MiniMax Speech 2.6 HD（自分の声対応）', 'fal-ai/minimax/speech-2.6-hd', {
+  row('minimax-2.6-hd', 'MiniMax Speech 2.6 HD (supports your own voice)', 'fal-ai/minimax/speech-2.6-hd', {
     price: price(null, null),
     voices: ['Wise_Woman', 'Friendly_Person', 'Inspirational_girl', 'Deep_Voice_Man',
       'Calm_Woman', 'Casual_Guy', 'Lively_Girl', 'Patient_Man', 'Lovely_Girl', 'Elegant_Man']
@@ -60,14 +60,14 @@ export const FAL_TTS_ENGINES = Object.freeze([
       output_format: 'url', voice_setting: { voice_id: profileMeta?.engines?.['minimax-2.6-hd']?.custom_voice_id ?? voice,
         ...(speed != null ? { speed } : {}) } }),
   }),
-  row('chatterbox', 'Chatterbox 多言語（参照音声対応）', 'fal-ai/chatterbox/text-to-speech/multilingual', {
-    caution: '日本語の読みが不安定です（聞き取りで確かめるのがおすすめ）',
-    price: price('usd_per_1000_chars', 0.025), voices: [{ id: 'japanese', label: '日本語', default: true }], default_voice: 'japanese',
+  row('chatterbox', 'Chatterbox multilingual (supports reference audio)', 'fal-ai/chatterbox/text-to-speech/multilingual', {
+    caution: 'Japanese readings are unstable (checking by listening is recommended)',
+    price: price('usd_per_1000_chars', 0.025), voices: [{ id: 'japanese', label: 'Japanese', default: true }], default_voice: 'japanese',
     supports: { speed: false, style: false, clone: 'per-request' },
     buildPayload: ({ text, audioUrl }) => ({ text, voice: audioUrl ?? 'japanese',
       ...(audioUrl ? { custom_audio_language: 'japanese' } : {}) }),
   }),
-  row('index-tts-2', 'Index TTS 2（参照音声対応）', 'fal-ai/index-tts-2/text-to-speech', {
+  row('index-tts-2', 'Index TTS 2 (supports reference audio)', 'fal-ai/index-tts-2/text-to-speech', {
     price: price('usd_per_second', 0.002), voices: null, default_voice: null,
     supports: { speed: false, style: false, clone: 'per-request' },
     buildPayload: ({ text, audioUrl }) => ({ prompt: text, audio_url: audioUrl }),
@@ -77,11 +77,11 @@ export const FAL_TTS_ENGINES = Object.freeze([
 export const falTtsEngine = id => FAL_TTS_ENGINES.find(engine => engine.id === id);
 
 const fishVoices = [
-  ['5161d41404314212af1254556477c17d', '元気な女性'],
-  ['46745543e52548238593a3962be77e3a', 'ふうか'],
-  ['63bc41e652214372b15d9416a30a60b4', '元気な女性v2'],
-  ['0089dce5fefb4c6ba9b9f2f0debe1ddc', '落ち着いた女性'],
-  ['45c5d3723c9c42f598e4776dcfd5f02d', '落ち着いた男性'],
+  ['5161d41404314212af1254556477c17d', 'Energetic woman'],
+  ['46745543e52548238593a3962be77e3a', 'Fuka'],
+  ['63bc41e652214372b15d9416a30a60b4', 'Energetic woman v2'],
+  ['0089dce5fefb4c6ba9b9f2f0debe1ddc', 'Calm woman'],
+  ['45c5d3723c9c42f598e4776dcfd5f02d', 'Calm man'],
 ].map(([id, label], index) => ({ id, label, ...(index === 0 ? { default: true } : {}) }));
 
 const fishStyle = style => {
@@ -100,14 +100,14 @@ function msgpack(value) {
     else if (typeof item === 'string') { const data = Buffer.from(item); const head = Buffer.alloc(5); head[0] = 0xdb; head.writeUInt32BE(data.length, 1); write(head, data); }
     else if (Array.isArray(item)) { const head = Buffer.alloc(5); head[0] = 0xdd; head.writeUInt32BE(item.length, 1); write(head); item.forEach(encode); }
     else if (item && typeof item === 'object') { const entries = Object.entries(item); const head = Buffer.alloc(5); head[0] = 0xdf; head.writeUInt32BE(entries.length, 1); write(head); for (const [key, value] of entries) { encode(key); encode(value); } }
-    else throw new TypeError('MessagePack の値が不正です');
+    else throw new TypeError('Invalid MessagePack value');
   };
   encode(value);
   return Buffer.concat(parts);
 }
 
 export function pcmToWav(pcm) {
-  if (pcm.length % 2) throw new Error('PCM のバイト数が不正です');
+  if (pcm.length % 2) throw new Error('Invalid PCM byte count');
   const header = Buffer.alloc(44);
   header.write('RIFF', 0); header.writeUInt32LE(pcm.length + 36, 4); header.write('WAVEfmt ', 8);
   header.writeUInt32LE(16, 16); header.writeUInt16LE(1, 20); header.writeUInt16LE(1, 22);
@@ -119,11 +119,11 @@ export function pcmToWav(pcm) {
 export function parseGeminiAudio(result) {
   const content = result?.steps?.filter(step => step.type === 'model_output').flatMap(step => step.content ?? [])
     .find(part => part.type === 'audio' && typeof part.data === 'string');
-  if (!content) throw new Error('Gemini API の応答に音声がありません');
+  if (!content) throw new Error('The Gemini API response has no audio');
   const bytes = Buffer.from(content.data, 'base64');
   if (bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WAVE') return bytes;
   if (content.mime_type === 'audio/l16') return pcmToWav(bytes);
-  throw new Error(`Gemini API の音声形式に対応していません: ${content.mime_type ?? 'unknown'}`);
+  throw new Error(`Unsupported audio format from the Gemini API: ${content.mime_type ?? 'unknown'}`);
 }
 
 export const DIRECT_TTS_ENGINES = Object.freeze([
@@ -165,8 +165,8 @@ export const ttsEngine = id => falTtsEngine(id) ?? DIRECT_TTS_ENGINES.find(engin
 export const MAX_REFERENCE_BYTES = 20 * 1024 * 1024;
 
 export function referenceDataUri(bytes) {
-  if (!Buffer.isBuffer(bytes)) throw new Error('参照音声のデータが不正です');
-  if (bytes.length > MAX_REFERENCE_BYTES) throw new Error('20 MB 超の参照音声は送信できません');
+  if (!Buffer.isBuffer(bytes)) throw new Error('Invalid reference audio data');
+  if (bytes.length > MAX_REFERENCE_BYTES) throw new Error('Reference audio over 20 MB cannot be sent');
   return `data:audio/wav;base64,${bytes.toString('base64')}`;
 }
 

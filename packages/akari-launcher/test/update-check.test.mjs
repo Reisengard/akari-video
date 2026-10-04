@@ -489,7 +489,7 @@ serverTest('maybeApplyPendingUpdateOnLaunch: staged が feed 最新と一致し�
 
     assert.equal(result.applied, true);
     assert.equal(result.version, '9.9.9');
-    assert.ok(lines.some((line) => line.includes('v9.9.9 に更新しました')), JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Updated to v9.9.9')), JSON.stringify(lines));
     assert.ok(lines.some((line) => line.includes(feed.notes_url)));
     assert.equal(await packageVersionAt(appDir), '9.9.9');
     assert.equal(await packageVersionAt(resolveAppPreviousDir(env)), '0.1.0');

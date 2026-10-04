@@ -62,21 +62,21 @@ export async function fetchStoreEntitlements(fetchImpl, baseUrl, token) {
       headers: { authorization: `Bearer ${token}` }
     });
   } catch (error) {
-    return { error: `AKARI Video Lab に接続できませんでした: ${error instanceof Error ? error.message : String(error)}` };
+    return { error: `Could not connect to AKARI Video Lab: ${error instanceof Error ? error.message : String(error)}` };
   }
-  if (response.status === 401) return { error: 'トークンが無効です。マイページで発行し直してください。' };
-  if (!response.ok) return { error: `AKARI Video Lab がエラーを返しました（${response.status}）` };
+  if (response.status === 401) return { error: 'The token is invalid. Issue a new one on your account page.' };
+  if (!response.ok) return { error: `AKARI Video Lab returned an error (${response.status})` };
   return { data: await response.json() };
 }
 
 export function formatStoreEntitlements(data, log) {
   if (data.entitlements.length === 0) {
-    log('購入済みの商品はまだありません。');
+    log('No purchased products yet.');
     return;
   }
-  log('購入済みの商品:');
+  log('Purchased products:');
   for (const entitlement of data.entitlements) {
-    log(`  - ${entitlement.product_id}（v${entitlement.current_version}）`);
+    log(`  - ${entitlement.product_id} (v${entitlement.current_version})`);
   }
 }
 
@@ -86,7 +86,7 @@ export async function validateAndSaveCredentials(
   token
 ) {
   if (!/^akst_[A-Za-z0-9_-]+$/.test(token)) {
-    const error = 'トークンの形式が正しくありません（akst_ で始まる文字列です）。';
+    const error = 'The token format is not right (it is a string that starts with akst_).';
     log(error);
     return { status: 'error', error };
   }
@@ -102,9 +102,9 @@ export async function validateAndSaveCredentials(
     connected_at: now().toISOString()
   };
   writeCredentials(env, credentials);
-  log(`接続しました: ${data.email}`);
+  log(`Connected: ${data.email}`);
   formatStoreEntitlements(data, log);
-  log('セッション内で「購入した素材をセットアップして」と頼むと展開まで進みます。');
+  log('In a session, ask to "set up the assets I purchased" and it continues through extraction.');
   return { status: 'approved', credentials, entitlements: data.entitlements };
 }
 
@@ -125,16 +125,16 @@ export async function startDeviceConnection({
   } catch (error) {
     return {
       status: 'network-error',
-      error: `AKARI Video Lab に接続できませんでした: ${error instanceof Error ? error.message : String(error)}`
+      error: `Could not connect to AKARI Video Lab: ${error instanceof Error ? error.message : String(error)}`
     };
   }
   if (!response.ok) {
-    return { status: 'error', error: `AKARI Video Lab に接続できませんでした（${response.status}）` };
+    return { status: 'error', error: `Could not connect to AKARI Video Lab (${response.status})` };
   }
   const body = await response.json().catch(() => ({}));
   if (typeof body.device_code !== 'string' || typeof body.user_code !== 'string'
     || typeof body.verification_url !== 'string') {
-    return { status: 'error', error: 'AKARI Video Lab から接続に必要な情報を受け取れませんでした。' };
+    return { status: 'error', error: 'Did not receive the information needed to connect from AKARI Video Lab.' };
   }
   const result = {
     status: 'started',
@@ -168,7 +168,7 @@ export async function pollDeviceConnection({
   } catch (error) {
     return {
       status: 'network-error',
-      error: `AKARI Video Lab に接続できませんでした: ${error instanceof Error ? error.message : String(error)}`
+      error: `Could not connect to AKARI Video Lab: ${error instanceof Error ? error.message : String(error)}`
     };
   }
   if (response.status === 410) {
