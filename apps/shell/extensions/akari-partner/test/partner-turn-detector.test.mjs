@@ -4,7 +4,7 @@ import { PartnerTurnDetector } from '../lib/common/partner-turn-detector.js';
 
 const OPTS = { maxGapMs: 1000, armAfterMs: 3000, idleFireMs: 2000 };
 
-test('連続出力が armAfterMs 続くと armed になる', () => {
+test('Continuous output for armAfterMs becomes armed', () => {
     const detector = new PartnerTurnDetector(OPTS);
     let now = 0;
     // 100ms 間隔のスピナー的出力
@@ -14,7 +14,7 @@ test('連続出力が armAfterMs 続くと armed になる', () => {
     assert.equal(detector.feed('.', 3000).armed, true);
 });
 
-test('散発出力（キー入力エコー相当）では armed にならない', () => {
+test('Sporadic output, like a key-echo, does not become armed', () => {
     const detector = new PartnerTurnDetector(OPTS);
     // 1.5s 間隔 = maxGapMs(1s) を超える → 毎回 burst リセット
     for (let now = 0; now <= 15000; now += 1500) {
@@ -22,7 +22,7 @@ test('散発出力（キー入力エコー相当）では armed にならない'
     }
 });
 
-test('armed 後 idleFireMs 静止で turn end（一度だけ）', () => {
+test('After armed, idleFireMs of silence fires turn end once', () => {
     const detector = new PartnerTurnDetector(OPTS);
     for (let now = 0; now <= 3000; now += 100) {
         detector.feed('.', now);
@@ -35,7 +35,7 @@ test('armed 後 idleFireMs 静止で turn end（一度だけ）', () => {
     assert.equal(detector.isArmed, false);
 });
 
-test('turn end 後に再び出力が続けば再度 armed → turn end できる', () => {
+test('Output that continues after turn end can arm and fire turn end again', () => {
     const detector = new PartnerTurnDetector(OPTS);
     for (let now = 0; now <= 3000; now += 100) {
         detector.feed('.', now);
@@ -49,7 +49,7 @@ test('turn end 後に再び出力が続けば再度 armed → turn end できる
     assert.equal(detector.checkTurnEnd(15100), true);
 });
 
-test('BEL は armed に関係なく即時報告され armed を解除する', () => {
+test('BEL reports immediately regardless of armed, and clears armed', () => {
     const detector = new PartnerTurnDetector(OPTS);
     assert.deepEqual(detector.feed('\u0007', 0), { bell: true, armed: false });
     for (let now = 100; now <= 3100; now += 100) {
@@ -62,7 +62,7 @@ test('BEL は armed に関係なく即時報告され armed を解除する', ()
     assert.equal(detector.checkTurnEnd(9999), false);
 });
 
-test('nextCheckDelayMs は残り待ち時間を返す（armed でなければ undefined）', () => {
+test('nextCheckDelayMs returns the remaining wait, or undefined when not armed', () => {
     const detector = new PartnerTurnDetector(OPTS);
     assert.equal(detector.nextCheckDelayMs(0), undefined);
     for (let now = 0; now <= 3000; now += 100) {
@@ -73,7 +73,7 @@ test('nextCheckDelayMs は残り待ち時間を返す（armed でなければ un
     assert.equal(detector.nextCheckDelayMs(9000), 0);
 });
 
-test('長い連続出力の途中では turn end しない', () => {
+test('A long stretch of continuous output does not fire turn end in the middle', () => {
     const detector = new PartnerTurnDetector(OPTS);
     let fired = 0;
     for (let now = 0; now <= 60000; now += 200) {

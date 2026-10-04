@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { partnerCliCandidates } from '../../lib/node/partner-cli-candidates.js';
 import { bootstrapRunner } from '../../lib/node/bootstrap-runner.js';
 
-test('設定と bootstrap に渡す候補関数は Command Code の正式名と既定配置を共有する', () => {
+test('The candidate function shared by settings and bootstrap uses the Command Code name and default locations', () => {
     const homeDir = '/tmp/akari-candidate-home';
     const env = { PATH: '/tmp/akari-path' };
     assert.deepEqual(partnerCliCandidates('commandcode', { homeDir, platform: 'darwin', env }), [
@@ -18,7 +18,7 @@ test('設定と bootstrap に渡す候補関数は Command Code の正式名と�
     assert.match(bootstrapRunner.toString(), /candidatePaths\(config\.agent/);
 });
 
-test('Windows の Claude 候補はネイティブ、APPDATA npm、PATH の順で実行可能な拡張子だけを含む', () => {
+test('Windows Claude candidates are native, then APPDATA npm, then PATH, and only executable extensions', () => {
     const homeDir = '/tmp/akari-candidate-home';
     const env = { APPDATA: '/tmp/akari-appdata', PATH: '/tmp/akari-path', PATHEXT: '.PS1;.JS;.CMD;.EXE;.BAT' };
     const candidates = partnerCliCandidates('claude', { homeDir, platform: 'win32', env });
@@ -33,7 +33,7 @@ test('Windows の Claude 候補はネイティブ、APPDATA npm、PATH の順で
         ['.exe', '.cmd', '.bat'].map(ext => `${homeDir}/AppData/Roaming/npm/claude${ext}`));
 });
 
-test('Claude の拡張子制限は他エージェントの PATHEXT と候補順を変えない', () => {
+test('The Claude extension limit does not change PATHEXT or candidate order for other agents', () => {
     const homeDir = '/tmp/akari-candidate-home';
     const env = { APPDATA: '/tmp/akari-appdata', PATH: '/tmp/akari-path', PATHEXT: '.PS1;.EXE;.CMD' };
     assert.deepEqual(partnerCliCandidates('pi', { homeDir, platform: 'win32', env }),

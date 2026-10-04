@@ -6,7 +6,7 @@ import { PARTNER_CATALOG } from './partner-catalog';
 
 // ホームの接続案内カード（「パートナーに接続する」CTA）は裁定 C4 により撤去済み
 // （task 2026-08-17-home-launcher-popup）。接続は右側「パートナーを追加」パネルが正。
-const PARTNER_NOT_CONNECTED_MESSAGE = 'パートナー未接続。右側の「パートナーを追加」パネルから接続してください';
+const PARTNER_NOT_CONNECTED_MESSAGE = 'Partner is not connected. Connect from the Add partner panel on the right.';
 
 /**
  * ホーム v2（task.md 2026-07-21-home-flow）向けの薄いコマンド境界。
@@ -29,15 +29,15 @@ const PARTNER_NOT_CONNECTED_MESSAGE = 'パートナー未接続。右側の「�
 export const AkariPartnerCommands = {
     OPEN: {
         id: 'akari.partner.open',
-        label: 'パートナーを開く'
+        label: 'Open partner'
     } as Command,
     BEGIN_ONBOARDING: {
         id: 'akari.partner.beginOnboarding',
-        label: 'AI パートナーに接続する'
+        label: 'Connect to the AI partner'
     } as Command,
     SEND_TO_PARTNER: {
         id: 'akari.partner.send',
-        label: 'パートナーにメッセージを送る'
+        label: 'Send a message to the partner'
     } as Command,
     /**
      * 輸入リスト④（素材カード「エージェントに頼む」）向けの注入コマンド。
@@ -48,7 +48,7 @@ export const AkariPartnerCommands = {
      */
     INJECT_PROMPT: {
         id: 'akari.partner.injectPrompt',
-        label: '文脈パケットをパートナーへ送る'
+        label: 'Send a context packet to the partner'
     } as Command
 };
 

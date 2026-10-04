@@ -57,10 +57,10 @@ export class PartnerExtensionUpdater {
         try {
             ext = await this.extensionsModel.resolve(entry.extensionId);
         } catch {
-            return { kind: 'skipped', reason: 'registry-unavailable', needsReload: false, detail: '拡張の情報を取得できませんでした' };
+            return { kind: 'skipped', reason: 'registry-unavailable', needsReload: false, detail: 'Could not load extension information' };
         }
         if (!ext.installed) {
-            return { kind: 'skipped', reason: 'not-installed', needsReload: false, detail: '拡張は未インストールです' };
+            return { kind: 'skipped', reason: 'not-installed', needsReload: false, detail: 'The extension is not installed' };
         }
         const installed = ext.installedVersion;
         let latest: string | undefined;
@@ -77,17 +77,17 @@ export class PartnerExtensionUpdater {
         const versions = { installedVersion: installed, latestVersion: latest };
         if (decision.action === 'none') {
             const details: Record<ExtensionFreshnessReason, string> = {
-                'not-installed': '拡張は未インストールです',
-                'registry-unavailable': '最新の拡張情報を取得できませんでした',
-                'unparsable': '拡張のバージョンを比較できませんでした',
-                'up-to-date': '拡張は最新です',
-                'newer-available': '拡張の更新があります'
+                'not-installed': 'The extension is not installed',
+                'registry-unavailable': 'Could not load the latest extension information',
+                'unparsable': 'Could not compare extension versions',
+                'up-to-date': 'The extension is up to date',
+                'newer-available': 'An extension update is available'
             };
             return { ...versions, kind: decision.reason === 'up-to-date' ? 'up-to-date' : 'skipped',
                 reason: decision.reason, needsReload: false, detail: details[decision.reason] };
         }
         try {
-            progress?.('拡張を更新しています…', `${installed} → ${latest}`);
+            progress?.('Updating the extension…', `${installed} → ${latest}`);
             await this.pluginServer.install(VSCodeExtensionUri.fromId(entry.extensionId).toString());
             const newId = PluginIdentifiers.idAndVersionToVersionedId({ id: entry.extensionId as PluginIdentifiers.UnversionedId, version: latest! });
             let deployed = false;
@@ -102,10 +102,10 @@ export class PartnerExtensionUpdater {
                 }
             }
             if (!deployed) {
-                return { ...versions, kind: 'failed', reason: 'install-failed', needsReload: false, detail: '新版の配備を確認できませんでした' };
+                return { ...versions, kind: 'failed', reason: 'install-failed', needsReload: false, detail: 'Could not confirm the new version was deployed' };
             }
         } catch {
-            return { ...versions, kind: 'failed', reason: 'install-failed', needsReload: false, detail: '新版の配備に失敗しました' };
+            return { ...versions, kind: 'failed', reason: 'install-failed', needsReload: false, detail: 'Failed to deploy the new version' };
         }
         let reason: ExtensionUpdateOutcome['reason'] = 'newer-available';
         let detail = formatExtensionUpdateNotice(entry.name, installed!, latest!);
@@ -113,7 +113,7 @@ export class PartnerExtensionUpdater {
             await this.pluginServer.uninstall(PluginIdentifiers.idAndVersionToVersionedId({ id: entry.extensionId as PluginIdentifiers.UnversionedId, version: installed! }));
         } catch {
             reason = 'uninstall-failed';
-            detail += '。旧版の撤去に失敗しました（次回起動では新版が優先されます）';
+            detail += '. Failed to remove the old version (the new version takes priority on the next launch)';
         }
         console.info('[akari-partner] extension updated', { id: entry.extensionId, from: installed, to: latest });
         return { ...versions, kind: 'updated', reason, needsReload: true, detail };
@@ -140,8 +140,8 @@ export class PartnerExtensionUpdater {
             }
         }
         if (notices.length) {
-            const choice = await this.messageService.info(notices.join('\n'), '今すぐ再読み込み', '後で');
-            if (choice === '今すぐ再読み込み') {
+            const choice = await this.messageService.info(notices.join('\n'), 'Reload now', 'Later');
+            if (choice === 'Reload now') {
                 this.windowService.reload();
             }
         }

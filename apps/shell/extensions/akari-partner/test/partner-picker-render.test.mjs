@@ -33,27 +33,27 @@ function nodes(tree) {
 
 function partner() {
     return Object.assign(renderer('akari-partner-widget.tsx', 'AkariPartnerWidget', ['renderOnboarding', 'renderConnected']), {
-        entryFlow: () => ({ state: 'failed', status: '失敗', detail: '詳細', warning: '別の警告' }),
-        entryActionLabel: () => 'セットアップ',
+        entryFlow: () => ({ state: 'failed', status: 'Failed', detail: 'Detail', warning: 'Another warning' }),
+        entryActionLabel: () => 'Setup',
         extensionViewLost: () => true,
         selected: catalog[0]
     });
 }
 
-test('両状態の重複見出しは隠し、見出しの寸法・タブ名・説明文は維持する', () => {
+test('Hide the duplicate heading in both states, and keep heading size, tab name, and description', () => {
     const picker = partner();
-    for (const [method, title] of [['renderOnboarding', 'パートナーを追加'], ['renderConnected', 'パートナー接続済み']]) {
+    for (const [method, title] of [['renderOnboarding', 'Add partner'], ['renderConnected', 'Partner connected']]) {
         const headings = nodes(picker[method]()).filter(node => node.type === 'h2');
         assert.equal(headings.length, 1);
         assert.deepEqual(headings[0].children, [title]);
         assert.deepEqual(headings[0].props.style, { margin: '0 0 10px', fontSize: 21, visibility: 'hidden' });
     }
     const onboarding = JSON.stringify(picker.renderOnboarding());
-    assert.ok(onboarding.includes('CLI または公式拡張を選んで、右パネルに追加します。'));
-    assert.match(read('../src/browser/akari-partner-widget.tsx'), /this.title.label = 'パートナーを追加';/);
+    assert.ok(onboarding.includes('Choose a CLI or an official extension and add it to the right panel.'));
+    assert.match(read('../src/browser/akari-partner-widget.tsx'), /this.title.label = 'Add partner';/);
 });
 
-test('caution データがあっても両ピッカーに描画せず、他の警告・復帰ヒントは残す', () => {
+test('Do not render caution data in either picker, and keep the other warning and the resume hint', () => {
     const picker = partner();
     const onboarding = picker.renderOnboarding();
     const left = renderer('akari-partner-catalog-widget.tsx', 'AkariPartnerCatalogWidget', ['renderSlot']);
@@ -62,15 +62,15 @@ test('caution データがあっても両ピッカーに描画せず、他の警
     assert.equal(catalog.filter(entry => entry.caution).length, 2);
     for (const tree of trees) {
         assert.ok(nodes(tree).every(node => !Object.hasOwn(node.props, 'data-partner-caution')));
-        assert.ok(!JSON.stringify(tree).includes('拡張ホストが再起動すると会話が切れます'));
+        assert.ok(!JSON.stringify(tree).includes('A conversation ends if the extension host restarts'));
     }
-    assert.ok(JSON.stringify(onboarding).includes('別の警告'));
+    assert.ok(JSON.stringify(onboarding).includes('Another warning'));
     assert.ok(nodes(onboarding).some(node => node.props['data-akari-partner-resume-hint'] === 'true'));
-    assert.ok(JSON.stringify(slots).includes('導入時にプラットフォーム用バイナリを検証'));
+    assert.ok(JSON.stringify(slots).includes('Verifies the platform binary during setup'));
     assert.equal(nodes(onboarding).filter(node => node.type === 'button' && node.props['data-partner-form']).length, catalog.length);
 });
 
-test('推奨 Claude のアイコンだけにテーマ背景の下地を付け、ボタンの寸法・順序を維持する', () => {
+test('Only the recommended Claude icon gets a theme background, and button size and order stay', () => {
     const buttons = nodes(partner().renderOnboarding()).filter(node =>
         node.type === 'button' && node.props['data-partner-form']
     );

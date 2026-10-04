@@ -234,14 +234,14 @@ export class AkariPartnerServerImpl implements AkariPartnerServer {
 
     async verifyExtensionBinary(request: BinaryVerificationRequest): Promise<BinaryVerificationResult> {
         if (!request.packagePath) {
-            return { checked: false, found: false, reason: '拡張の配置先を取得できませんでした' };
+            return { checked: false, found: false, reason: 'Could not locate the extension install path' };
         }
         const root = this.toFsPath(request.packagePath);
         try {
             const match = await this.findExecutable(root, request, 0);
             return match
                 ? { checked: true, found: true, match }
-                : { checked: true, found: false, reason: `対象プラットフォーム用バイナリがありません (${request.platformTokens.join(', ')})` };
+                : { checked: true, found: false, reason: `No binary for this platform (${request.platformTokens.join(', ')})` };
         } catch (error) {
             return { checked: false, found: false, reason: this.errorMessage(error) };
         }

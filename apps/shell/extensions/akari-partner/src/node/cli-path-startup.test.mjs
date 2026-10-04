@@ -18,21 +18,21 @@ const cases = [
 ];
 
 for (const { name, delimiter, shimDir, otherEntries } of cases) {
-    test(`prependCliShimDirToPath: ${name} の空 PATH は shimDir だけになる`, () => {
+    test(`prependCliShimDirToPath: an empty PATH for ${name} becomes only shimDir`, () => {
         assert.equal(prependCliShimDirToPath({ shimDir, existingPath: '', pathDelimiter: delimiter }), shimDir);
     });
 
-    test(`prependCliShimDirToPath: ${name} の先頭に shimDir があれば不変`, () => {
+    test(`prependCliShimDirToPath: ${name} stays unchanged when shimDir is already first`, () => {
         const existingPath = [shimDir, ...otherEntries].join(delimiter);
         assert.equal(prependCliShimDirToPath({ shimDir, existingPath, pathDelimiter: delimiter }), existingPath);
     });
 
-    test(`prependCliShimDirToPath: ${name} の途中に shimDir があれば不変`, () => {
+    test(`prependCliShimDirToPath: ${name} stays unchanged when shimDir is already present`, () => {
         const existingPath = [otherEntries[0], shimDir, otherEntries[1]].join(delimiter);
         assert.equal(prependCliShimDirToPath({ shimDir, existingPath, pathDelimiter: delimiter }), existingPath);
     });
 
-    test(`prependCliShimDirToPath: ${name} に shimDir が無ければ先頭へ加える`, () => {
+    test(`prependCliShimDirToPath: ${name} adds shimDir at the front when it is missing`, () => {
         const existingPath = otherEntries.join(delimiter);
         assert.equal(
             prependCliShimDirToPath({ shimDir, existingPath, pathDelimiter: delimiter }),

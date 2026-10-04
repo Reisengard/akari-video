@@ -4,7 +4,7 @@
     "agent": "claude",
     "form": "cli",
     "name": "Claude Code CLI",
-    "description": "Claude Code を PTY タブで直接使います",
+    "description": "Use Claude Code directly in a PTY tab",
     "recommended": true
   },
   {
@@ -12,9 +12,9 @@
     "extensionId": "anthropic.claude-code",
     "agent": "claude",
     "form": "extension",
-    "name": "Claude Code 拡張",
-    "description": "Anthropic 公式拡張のビューを使います",
-    "caution": "拡張ホストが再起動すると会話が切れます。長い作業には CLI 形態をおすすめします。",
+    "name": "Claude Code extension",
+    "description": "Use the view from the official Anthropic extension",
+    "caution": "A conversation ends if the extension host restarts. For long work, use the CLI form.",
     "recommended": false,
     "viewContainerIds": [
       "workbench.view.extension.claude-sidebar-secondary",
@@ -27,7 +27,7 @@
     "agent": "codex",
     "form": "cli",
     "name": "Codex CLI",
-    "description": "Codex を PTY タブで直接使います",
+    "description": "Use Codex directly in a PTY tab",
     "recommended": false
   },
   {
@@ -35,9 +35,9 @@
     "extensionId": "openai.chatgpt",
     "agent": "codex",
     "form": "extension",
-    "name": "Codex 拡張",
-    "description": "OpenAI 公式拡張のビューを使います",
-    "caution": "拡張ホストが再起動すると会話が切れます。長い作業には CLI 形態をおすすめします。",
+    "name": "Codex extension",
+    "description": "Use the view from the official OpenAI extension",
+    "caution": "A conversation ends if the extension host restarts. For long work, use the CLI form.",
     "recommended": false,
     "viewContainerIds": [
       "workbench.view.extension.codexSecondaryViewContainer",
@@ -56,7 +56,7 @@
     "agent": "opencode",
     "form": "cli",
     "name": "opencode CLI",
-    "description": "opencode を PTY タブで直接使います",
+    "description": "Use opencode directly in a PTY tab",
     "recommended": false
   },
   {
@@ -64,7 +64,7 @@
     "agent": "commandcode",
     "form": "cli",
     "name": "Command Code CLI",
-    "description": "Command Code を PTY タブで直接使います",
+    "description": "Use Command Code directly in a PTY tab",
     "recommended": false
   },
   {
@@ -72,7 +72,7 @@
     "agent": "pi",
     "form": "cli",
     "name": "Pi CLI",
-    "description": "Pi を PTY タブで直接使います",
+    "description": "Use Pi directly in a PTY tab",
     "recommended": false
   },
   {
@@ -80,7 +80,7 @@
     "agent": "devin",
     "form": "cli",
     "name": "Devin CLI",
-    "description": "Devin を PTY タブで直接使います",
+    "description": "Use Devin directly in a PTY tab",
     "recommended": false
   },
   {
@@ -88,7 +88,7 @@
     "agent": "copilot",
     "form": "cli",
     "name": "Copilot CLI",
-    "description": "GitHub Copilot CLI を PTY タブで直接使います",
+    "description": "Use GitHub Copilot CLI directly in a PTY tab",
     "recommended": false
   },
   {
@@ -96,7 +96,7 @@
     "agent": "cursor",
     "form": "cli",
     "name": "Cursor CLI",
-    "description": "Cursor のエージェント CLI（cursor-agent）を PTY タブで直接使います",
+    "description": "Use Cursor's agent CLI (cursor-agent) directly in a PTY tab",
     "recommended": false
   },
   {
@@ -104,7 +104,7 @@
     "agent": "antigravity",
     "form": "cli",
     "name": "Antigravity CLI",
-    "description": "Google の Antigravity CLI（agy・Gemini CLI 後継）を PTY タブで直接使います",
+    "description": "Use Google's Antigravity CLI (agy, the successor to Gemini CLI) directly in a PTY tab",
     "recommended": false
   },
   {
@@ -112,7 +112,7 @@
     "agent": "grok",
     "form": "cli",
     "name": "Grok Build CLI",
-    "description": "xAI の Grok Build（grok）を PTY タブで直接使います",
+    "description": "Use xAI Grok Build (grok) directly in a PTY tab",
     "recommended": false
   }
 ]

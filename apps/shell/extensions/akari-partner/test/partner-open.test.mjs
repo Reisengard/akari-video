@@ -11,8 +11,8 @@ const registration = register.body.statements.find(node => ts.isExpressionStatem
     ts.isCallExpression(node.expression) && node.expression.expression.getText(source) === 'registry.registerCommand' &&
     node.expression.arguments[0]?.getText(source) === 'AkariPartnerCommands.OPEN');
 
-test('パートナーを開くだけのコマンドを登録する', () => {
-    assert.match(text, /OPEN\s*:\s*\{\s*id:\s*'akari\.partner\.open',\s*label:\s*'パートナーを開く'/);
+test('Registers a command that only opens the partner', () => {
+    assert.match(text, /OPEN\s*:\s*\{\s*id:\s*'akari\.partner\.open',\s*label:\s*'Open partner'/);
     assert.ok(registration, 'registerCommands registers AkariPartnerCommands.OPEN');
 });
 
@@ -24,7 +24,7 @@ function openHandler() {
     return execute.initializer;
 }
 
-test('開く処理は接続・オンボーディング・PTY を開始しない', () => {
+test('Open does not start a connection, onboarding, or a PTY', () => {
     const execute = openHandler();
     assert.doesNotMatch(execute.getText(source), /beginRecommended|beginCli|connect|Dialog|terminal|pty/i);
     const calls = [];
@@ -38,7 +38,7 @@ test('開く処理は接続・オンボーディング・PTY を開始しない'
     ]);
 });
 
-test('未配置なら右ドックへ追加し、配置済みなら前面にするだけ', async () => {
+test('Add to the right dock when it is not placed, otherwise only bring it forward', async () => {
     const code = ts.transpileModule(`const execute = ${openHandler().getText(source)};`, {
         compilerOptions: { target: ts.ScriptTarget.ES2022 }
     }).outputText;

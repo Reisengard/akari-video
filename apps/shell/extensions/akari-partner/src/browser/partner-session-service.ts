@@ -141,24 +141,24 @@ export class PartnerSessionService implements FrontendApplicationContribution {
         switch (event.type) {
             case 'video-added':
                 return subject
-                    ? `${subject} が追加されました。analyze-footage スキルで分析を開始してください。`
-                    : '新しい素材が追加されました。analyze-footage スキルで分析を開始してください。';
+                    ? `${subject} was added. Start analysis with the analyze-footage skill.`
+                    : 'New footage was added. Start analysis with the analyze-footage skill.';
             case 'report-generated':
                 return subject
-                    ? `レポートを作成しました（${subject}）。内容を確認し、問題なければ承認してください。`
-                    : 'レポートを作成しました。内容を確認し、問題なければ承認してください。';
+                    ? `Created a report (${subject}). Review it, and approve it if it looks right.`
+                    : 'Created a report. Review it, and approve it if it looks right.';
             case 'report-approved':
-                return 'レポートが承認されました。edit-plan スキルで編集を進めてください。';
+                return 'The report was approved. Continue the edit with the edit-plan skill.';
             case 'edit-completed':
-                return '編集が完了しました。プレビューで仕上がりを確認し、必要ならテロップ等を overlay-authoring スキルで調整してください。';
+                return 'The edit is done. Check the result in Preview, and adjust Captions and other overlays with the overlay-authoring skill if needed.';
             case 'export-completed':
                 return subject
-                    ? `書き出しが完了しました（${subject}）。exports フォルダーで最終版を確認してください。`
-                    : '書き出しが完了しました。exports フォルダーで最終版を確認してください。';
+                    ? `Export finished (${subject}). Check the final file in the exports folder.`
+                    : 'Export finished. Check the final file in the exports folder.';
             default:
                 return subject
-                    ? `${subject} が更新されました。内容を確認し、次の一手を進めてください。`
-                    : `更新がありました（${event.type}）。内容を確認し、次の一手を進めてください。`;
+                    ? `${subject} was updated. Review it and take the next step.`
+                    : `There is an update (${event.type}). Review it and take the next step.`;
         }
     }
 

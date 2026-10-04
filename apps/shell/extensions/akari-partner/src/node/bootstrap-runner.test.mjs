@@ -268,7 +268,7 @@ async function runClaudeDetectionCase({ platform, files, pathDir, appData, force
     }
 }
 
-test('Windows の APPDATA npm に claude.cmd だけあれば再利用し URL を取得しない', async () => {
+test('Reuse claude.cmd from the Windows APPDATA npm directory and do not fetch a URL', async () => {
     const { result, home, requests } = await runClaudeDetectionCase({
         platform: 'win32', appData: 'AppData/Roaming', files: ['AppData/Roaming/npm/claude.cmd']
     });
@@ -276,10 +276,10 @@ test('Windows の APPDATA npm に claude.cmd だけあれば再利用し URL を
     assert.match(result.stdout, /"reused":true/);
     assert.ok(result.stdout.includes(`"executablePath":"${home}/AppData/Roaming/npm/claude.cmd"`));
     assert.equal(requests, '');
-    assert.doesNotMatch(result.stdout, /Claude installer を取得しています/);
+    assert.doesNotMatch(result.stdout, /Fetching the Claude installer/);
 });
 
-test('mac の PATH 上だけに claude があれば再利用する', async () => {
+test('Reuse claude when it is only on the macOS PATH', async () => {
     const { result, home, requests } = await runClaudeDetectionCase({
         platform: 'darwin', pathDir: 'path-bin', files: ['path-bin/claude']
     });
@@ -289,7 +289,7 @@ test('mac の PATH 上だけに claude があれば再利用する', async () =>
     assert.equal(requests, '');
 });
 
-test('ネイティブと PATH の両方に claude があればネイティブを選ぶ', async () => {
+test('Prefer the native claude when both a native binary and PATH have one', async () => {
     const { result, home, requests } = await runClaudeDetectionCase({
         platform: 'darwin', pathDir: 'path-bin', files: ['.local/bin/claude', 'path-bin/claude']
     });
@@ -298,32 +298,32 @@ test('ネイティブと PATH の両方に claude があればネイティブを
     assert.equal(requests, '');
 });
 
-test('claude が無ければインストーラー URL へ進む', async () => {
+test('Go to the installer URL when claude is missing', async () => {
     const { result, requests } = await runClaudeDetectionCase({ platform: 'darwin', files: [] });
     assert.equal(result.code, 1);
-    assert.match(result.stdout, /Claude installer を取得しています/);
+    assert.match(result.stdout, /Fetching the Claude installer/);
     assert.equal(requests, 'http://127.0.0.1:9/unreachable\n');
 });
 
-test('Windows の PATH 上に非対応拡張子だけならインストーラー URL へ進む', async () => {
+test('Go to the installer URL when the Windows PATH has only an unsupported extension', async () => {
     const { result, requests } = await runClaudeDetectionCase({
         platform: 'win32', pathDir: 'path-bin', files: ['path-bin/claude.ps1', 'path-bin/claude.js', 'path-bin/claude']
     });
     assert.equal(result.code, 1);
-    assert.match(result.stdout, /Claude installer を取得しています/);
+    assert.match(result.stdout, /Fetching the Claude installer/);
     assert.equal(requests, 'http://127.0.0.1:9/unreachable\n');
 });
 
-test('FORCE_REINSTALL=1 は既存 claude があってもインストーラー URL へ進む', async () => {
+test('FORCE_REINSTALL=1 goes to the installer URL even when claude already exists', async () => {
     const { result, requests } = await runClaudeDetectionCase({
         platform: 'darwin', pathDir: 'path-bin', files: ['path-bin/claude'], force: true
     });
     assert.equal(result.code, 1);
-    assert.match(result.stdout, /Claude installer を取得しています/);
+    assert.match(result.stdout, /Fetching the Claude installer/);
     assert.equal(requests, 'http://127.0.0.1:9/unreachable\n');
 });
 
-test('PATH 上の既存 Command Code を再利用する', async () => {
+test('Reuse an existing Command Code on PATH', async () => {
     const home = await makeHome('akari-commandcode-existing-home-');
     const binDir = await makeHome('akari-commandcode-existing-bin-');
     const executable = path.join(binDir, 'command-code');
@@ -337,7 +337,7 @@ test('PATH 上の既存 Command Code を再利用する', async () => {
             pathEnv: binDir
         });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, new RegExp(`既存の commandcode 1\\.45\\.0 を検出: ${executable}`));
+        assert.match(result.stdout, new RegExp(`Found an existing commandcode 1\\.45\\.0: ${executable}`));
         assert.match(result.stdout, /"reused":true/);
     } finally {
         await rm(home, { recursive: true, force: true });
@@ -345,7 +345,7 @@ test('PATH 上の既存 Command Code を再利用する', async () => {
     }
 });
 
-test('Pi は Node 22.18 では専用 Node を使い npm の現行パッケージを導入する', async () => {
+test('Pi on Node 22.18 uses the private Node and installs the current npm package', async () => {
     const home = await makeHome('akari-pi-private-home-');
     const toolsDir = await makeHome('akari-pi-node2218-tools-');
     const archive = privateNodeArchive('pi');
@@ -363,7 +363,7 @@ test('Pi は Node 22.18 では専用 Node を使い npm の現行パッケージ
         assert.equal(result.code, 0, result.stderr || result.stdout);
         assert.match(result.stdout, /"nodeSource":"private"/);
         assert.equal(await readFile(path.join(home, 'runtime/node', `v${NODE_VERSION}`, 'pi-installed'), 'utf8'), 'private\n');
-        assert.match(result.stdout, /Pi 1\.45\.0 を検出/);
+        assert.match(result.stdout, /Found Pi 1\.45\.0/);
         assert.match(await readFile(path.join(home, 'npm-args.txt'), 'utf8'), /@earendil-works\/pi-coding-agent\n$/);
     } finally {
         await rm(home, { recursive: true, force: true });
@@ -371,7 +371,7 @@ test('Pi は Node 22.18 では専用 Node を使い npm の現行パッケージ
     }
 });
 
-test('npm 製エージェントの起動確認エラーは必要な Node.js 版を示す', async () => {
+test('A startup-check error for an npm agent names the required Node.js version', async () => {
     for (const [agent, executableName, expectedVersion] of [
         ['commandcode', 'command-code', '22'],
         ['pi', 'pi', '22.19']
@@ -384,7 +384,7 @@ test('npm 製エージェントの起動確認エラーは必要な Node.js 版�
         try {
             const result = await runBootstrap({ home, agent, pathEnv: toolsDir, mock: { origin: 'http://example.test' } });
             assert.notEqual(result.code, 0);
-            assert.match(result.stderr, new RegExp(`Node\\.js ${expectedVersion.replace('.', '\\.') } 以上を確認して再インストールしてください`));
+            assert.match(result.stderr, new RegExp(`Node\\.js ${expectedVersion.replace('.', '\\.') } or newer`));
         } finally {
             await rm(home, { recursive: true, force: true });
             await rm(toolsDir, { recursive: true, force: true });
@@ -398,7 +398,7 @@ done
 echo 'Error: Login canceled' >&2
 `;
 
-test('Devin installer の setup が非 0 でも実体と --version が成功すれば導入済みと判定する', async () => {
+test('Treat Devin as installed when setup exits non-zero but the binary and --version succeed', async () => {
     const home = await makeHome('akari-devin-home-');
     const script = `#!/usr/bin/env bash
 [[ -n "$HOME" ]] || exit 90
@@ -415,8 +415,8 @@ exit 1
             extraEnv: { AKARI_PARTNER_DEVIN_INSTALL_URL: 'http://example.test/devin-install' }
         });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, /--version \(devin 3000\.11\.3\) が成功/);
-        assert.match(result.stdout, /判定します: Error: Login canceled\n/);
+        assert.match(result.stdout, /--version \(devin 3000\.11\.3\) succeeded/);
+        assert.match(result.stdout, /counts as installed: Error: Login canceled\n/);
         assert.doesNotMatch(result.stdout, /progress-/);
         assert.match(result.stdout, /"reused":false/);
     } finally {
@@ -424,7 +424,7 @@ exit 1
     }
 });
 
-test('Devin installer の非 0 終了は --version 失敗時に成功扱いしない', async () => {
+test('A non-zero Devin installer exit is not success when --version fails', async () => {
     const home = await makeHome('akari-devin-broken-home-');
     const script = `#!/usr/bin/env bash
 mkdir -p "$HOME/.local/bin"
@@ -440,7 +440,7 @@ exit 1
             extraEnv: { AKARI_PARTNER_DEVIN_INSTALL_URL: 'http://example.test/devin-install' }
         });
         assert.notEqual(result.code, 0);
-        assert.match(result.stderr, /インストールと起動確認に失敗/);
+        assert.match(result.stderr, /installation and startup check failed/);
         const summary = result.stderr.trim().split('\n').at(-1);
         assert.match(summary, /\(Error: Login canceled; Error: version failed\)$/);
         assert.doesNotMatch(summary, /progress-/);
@@ -449,7 +449,7 @@ exit 1
     }
 });
 
-test('Devin installer が失敗し実行ファイルも無い場合、エラーは最後の 1 行だけを含む', async () => {
+test('When the Devin installer fails and no executable exists, the error keeps only the last line', async () => {
     const home = await makeHome('akari-devin-missing-home-');
     const script = `#!/usr/bin/env bash\n${noisyInstallerProgress}exit 1\n`;
     try {
@@ -460,14 +460,14 @@ test('Devin installer が失敗し実行ファイルも無い場合、エラー�
         });
         assert.notEqual(result.code, 0);
         const summary = result.stderr.trim().split('\n').at(-1);
-        assert.match(summary, /実行ファイルが見つかりませんでした.*\(Error: Login canceled\)$/);
+        assert.match(summary, /executable was not found after the install script.*\(Error: Login canceled\)$/);
         assert.doesNotMatch(summary, /progress-/);
     } finally {
         await rm(home, { recursive: true, force: true });
     }
 });
 
-test('Devin は Windows の LOCALAPPDATA 配下にある既存 exe を検出する', async () => {
+test('Devin finds an existing exe under Windows LOCALAPPDATA', async () => {
     const home = await makeHome('akari-devin-win-home-');
     const executable = path.join(home, 'local-app-data', 'devin', 'cli', 'bin', 'devin.exe');
     await mkdir(path.dirname(executable), { recursive: true });
@@ -483,7 +483,7 @@ test('Devin は Windows の LOCALAPPDATA 配下にある既存 exe を検出す�
     }
 });
 
-test('Command Code を公式 npm パッケージからユーザー領域へ導入する', async () => {
+test('Install Command Code from the official npm package into the user directory', async () => {
     const home = await makeHome('akari-commandcode-install-home-');
     const toolsDir = await makeHome('akari-commandcode-install-tools-');
     const fakeNode = path.join(toolsDir, 'node');
@@ -505,8 +505,8 @@ chmod +x "$HOME/.local/bin/command-code"
             pathEnv: toolsDir
         });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, /Command Code を npm 公式パッケージからユーザー領域へインストールしています/);
-        assert.match(result.stdout, /Command Code 1\.45\.0 を検出/);
+        assert.match(result.stdout, /Installing Command Code from the official npm package into the user directory/);
+        assert.match(result.stdout, /Found Command Code 1\.45\.0/);
         assert.match(result.stdout, /"reused":false/);
         assert.equal(
             await readFile(path.join(home, 'npm-args.txt'), 'utf8'),
@@ -518,7 +518,7 @@ chmod +x "$HOME/.local/bin/command-code"
     }
 });
 
-test('Command Code は Node.js 22 未満なら専用 Node を取得してインストールする', async () => {
+test('Command Code fetches the private Node and installs when Node.js is older than 22', async () => {
     const home = await makeHome('akari-commandcode-node20-home-');
     const toolsDir = await makeHome('akari-commandcode-node20-tools-');
     const fakeNode = path.join(toolsDir, 'node');
@@ -540,7 +540,7 @@ test('Command Code は Node.js 22 未満なら専用 Node を取得してイン�
             }
         });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, /Node.js archive sha256 検証 OK/);
+        assert.match(result.stdout, /Node.js archive sha256 verified/);
         assert.match(result.stdout, /"nodeSource":"private"/);
         assert.equal(await readFile(path.join(home, 'runtime/node', `v${NODE_VERSION}`, 'command-code-installed'), 'utf8'), 'private\n');
     } finally {
@@ -549,7 +549,7 @@ test('Command Code は Node.js 22 未満なら専用 Node を取得してイン�
     }
 });
 
-test('Command Code はシステム Node が使えれば専用 Node を取得しない', async () => {
+test('Command Code does not fetch the private Node when the system Node is usable', async () => {
     const home = await makeHome('akari-commandcode-system-home-');
     const toolsDir = await makeHome('akari-commandcode-system-tools-');
     const requestLogPath = path.join(home, 'requests.txt');
@@ -567,7 +567,7 @@ test('Command Code はシステム Node が使えれば専用 Node を取得し�
     }
 });
 
-test('Command Code はシステム Node が無ければ専用 Node を取得し、次回は再取得しない', async () => {
+test('Command Code fetches the private Node when there is no system Node, and does not fetch it again', async () => {
     const home = await makeHome('akari-commandcode-private-home-');
     const archive = privateNodeArchive();
     const requestLogPath = path.join(home, 'requests.txt');
@@ -582,7 +582,7 @@ test('Command Code はシステム Node が無ければ専用 Node を取得し�
         const second = await runBootstrap({ home, mock: nodeMock(archive, NODE_ASSET, requestLogPath),
             agent: 'commandcode', extraEnv: nodeEnv(archive) });
         assert.equal(second.code, 0, second.stderr || second.stdout);
-        assert.match(second.stdout, /用意済みの AKARI 専用 Node.js を使います/);
+        assert.match(second.stdout, /Using the prepared AKARI private Node.js/);
         assert.match(second.stdout, /"reused":true/);
         await assert.rejects(readFile(requestLogPath));
     } finally {
@@ -590,7 +590,7 @@ test('Command Code はシステム Node が無ければ専用 Node を取得し�
     }
 });
 
-test('既存の Command Code も Node が無ければ専用 Node を用意して再利用する', async () => {
+test('An existing Command Code still prepares the private Node and is reused when Node is missing', async () => {
     const home = await makeHome('akari-commandcode-existing-private-home-');
     const archive = privateNodeArchive();
     const executable = path.join(home, '.local/bin/command-code');
@@ -606,7 +606,7 @@ test('既存の Command Code も Node が無ければ専用 Node を用意して
     }
 });
 
-test('専用 Node tar は pax の path と linkpath を使って展開する', async () => {
+test('The private Node tar extracts with pax path and linkpath', async () => {
     const home = await makeHome('akari-commandcode-pax-home-');
     const archive = privateNodePaxArchive();
     try {
@@ -618,7 +618,7 @@ test('専用 Node tar は pax の path と linkpath を使って展開する', a
     }
 });
 
-test('専用 Node の sha256 不一致は確定ディレクトリを作らない', async () => {
+test('A private Node sha256 mismatch does not create the final directory', async () => {
     const home = await makeHome('akari-commandcode-hash-home-');
     const archive = privateNodeArchive();
     try {
@@ -632,7 +632,7 @@ test('専用 Node の sha256 不一致は確定ディレクトリを作らない
     }
 });
 
-test('配布元 URL の上書きなしでは sha256 上書きを無視し、固定値で検証する', async () => {
+test('Without a dist URL override, ignore the sha256 override and verify the pinned value', async () => {
     const home = await makeHome('akari-commandcode-pinned-hash-home-');
     const archive = privateNodeArchive();
     const requestLogPath = path.join(home, 'requests.txt');
@@ -691,7 +691,7 @@ function makeZip(entries) {
     return Buffer.concat([...local, directory, end]);
 }
 
-test('Windows の専用 Node zip は全ファイルを展開する', async () => {
+test('The Windows private Node zip extracts every file', async () => {
     const home = await makeHome('akari-commandcode-win-node-home-');
     const asset = `node-v${NODE_VERSION}-win-x64.zip`;
     const root = `node-v${NODE_VERSION}-win-x64`;
@@ -710,7 +710,7 @@ test('Windows の専用 Node zip は全ファイルを展開する', async () =>
     }
 });
 
-test('Windows の専用 Node zip はディレクトリ外への書き込みを拒否する', async () => {
+test('The Windows private Node zip refuses a write outside the directory', async () => {
     const home = await makeHome('akari-commandcode-win-zipslip-home-');
     const asset = `node-v${NODE_VERSION}-win-x64.zip`;
     const archive = makeZip([{ name: '../escape.txt', content: 'unsafe' }]);
@@ -725,7 +725,7 @@ test('Windows の専用 Node zip はディレクトリ外への書き込みを�
     }
 });
 
-test('Windows の .cmd 起動は空白入りの command と各引数を引用する', () => {
+test('A Windows .cmd launch quotes a command that contains spaces, and each argument', () => {
     const source = bootstrapRunner.toString();
     const start = source.indexOf('function shellInvocation(');
     const end = source.indexOf('async function run(', start);
@@ -751,7 +751,7 @@ function latestRelease(origin = '__ORIGIN__') {
     };
 }
 
-test('Codex バンドルアセット名を全対応 platform / arch で表引きする', async () => {
+test('Look up Codex bundle asset names for every supported platform and arch', async () => {
     const fixtures = {
         '/latest': fixture(JSON.stringify(latestRelease()), 200, 'application/json')
     };
@@ -774,7 +774,7 @@ test('Codex バンドルアセット名を全対応 platform / arch で表引き
     }
 });
 
-test('クリーンインストールで多ファイル tar・サブディレクトリ・実行属性・host 隣接を復元する', async () => {
+test('A clean install restores a multi-file tar, subdirectories, the executable bit, and an adjacent host', async () => {
     const home = await makeHome('akari-codex-clean-');
     const mock = await startFixtureServer({
         '/latest': fixture(JSON.stringify(latestRelease()), 200, 'application/json'),
@@ -797,7 +797,7 @@ test('クリーンインストールで多ファイル tar・サブディレク�
     }
 });
 
-test('PATH 上の AKARI 管理外 codex は既存 Codex として検出せず隣へ host を書かない', async () => {
+test('A codex on PATH that AKARI does not manage is not an existing Codex, and no host is written beside it', async () => {
     const home = await makeHome('akari-codex-path-home-');
     const foreignDir = await makeHome('akari-codex-foreign-');
     const foreignCodex = path.join(foreignDir, 'codex');
@@ -810,7 +810,7 @@ test('PATH 上の AKARI 管理外 codex は既存 Codex として検出せず隣
     try {
         const result = await runBootstrap({ home, mock, pathEnv: foreignDir });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.doesNotMatch(result.stdout, new RegExp(`既存の codex を検出: ${foreignCodex}`));
+        assert.doesNotMatch(result.stdout, new RegExp(`Found an existing codex: ${foreignCodex}`));
         assert.equal(await readFile(foreignCodex, 'utf8'), '#!/bin/sh\necho codex-cli 0.149.1\n');
         await assert.rejects(readFile(path.join(foreignDir, 'codex-code-mode-host')));
         assert.ok((await lstat(path.join(home, '.local', 'bin', 'codex'))).isSymbolicLink());
@@ -821,7 +821,7 @@ test('PATH 上の AKARI 管理外 codex は既存 Codex として検出せず隣
     }
 });
 
-test('host の無い既存 Codex は codex --version と同じタグから host だけを補充する', async () => {
+test('An existing Codex without a host repairs only the host from the same tag as codex --version', async () => {
     const home = await makeHome('akari-codex-repair-');
     const binDir = path.join(home, '.local', 'bin');
     await mkdir(binDir, { recursive: true });
@@ -842,8 +842,8 @@ test('host の無い既存 Codex は codex --version と同じタグから host 
     try {
         const result = await runBootstrap({ home, mock });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, /Codex code-mode host: 補充した/);
-        assert.doesNotMatch(result.stdout, /Codex リリース情報を取得しています/);
+        assert.match(result.stdout, /Codex code-mode host: repaired/);
+        assert.doesNotMatch(result.stdout, /Fetching Codex release information/);
         assert.equal(await readFile(path.join(binDir, 'codex-code-mode-host'), 'utf8'), 'repaired matching host');
         assert.equal(await readFile(codex, 'utf8'), '#!/bin/sh\necho codex-cli 0.149.1\n');
     } finally {
@@ -852,7 +852,7 @@ test('host の無い既存 Codex は codex --version と同じタグから host 
     }
 });
 
-test('同版 host のタグ取得に失敗したら既存本体を触らず公式バンドルへフォールバックする', async () => {
+test('If the same-version host tag cannot be fetched, leave the existing binary and fall back to the official bundle', async () => {
     const home = await makeHome('akari-codex-fallback-');
     const binDir = path.join(home, '.local', 'bin');
     await mkdir(binDir, { recursive: true });
@@ -867,7 +867,7 @@ test('同版 host のタグ取得に失敗したら既存本体を触らず公�
     try {
         const result = await runBootstrap({ home, mock });
         assert.equal(result.code, 0, result.stderr || result.stdout);
-        assert.match(result.stdout, /公式バンドルへ切り替えます/);
+        assert.match(result.stdout, /switching to the official bundle/);
         assert.ok((await lstat(codex)).isSymbolicLink());
         const executable = await realpath(codex);
         assert.match(executable, /share\/akari-video\/codex\/0\.149\.1\/bin\/codex$/);

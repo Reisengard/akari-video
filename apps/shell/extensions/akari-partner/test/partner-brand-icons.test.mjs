@@ -9,17 +9,17 @@ const iconRules = agent => rules.filter(rule =>
     rule.split('{')[0].includes(`.akari-partner-${agent}-cli-icon`)
 ).map(rule => rule.trim()).join('\n');
 
-test('Claude は選択・ホバー時のタブ色に依存しないブランドオレンジ', () => {
+test('Claude uses its brand orange and does not follow the selected or hovered tab color', () => {
     assert.match(iconRules('claude'), /background-color: #D97757 !important;/);
 });
 
-test('Codex / Copilot はボタン・タブの選択色ではなくテーマの文字色を共有する', () => {
+test('Codex and Copilot share the theme text color, not the selected button or tab color', () => {
     for (const agent of ['codex', 'copilot']) {
         assert.match(iconRules(agent), /background-color: var\(--theia-editor-foreground, currentColor\) !important;/);
     }
 });
 
-test('Antigravity は提供された公式多色 SVG を background-image で描く', () => {
+test('Antigravity draws the supplied official multicolor SVG as a background-image', () => {
     const rule = rules.find(rule => rule.trimStart().startsWith('.akari-partner-antigravity-cli-icon {'));
     assert.match(rule, /background-image: url\("data:image\/svg\+xml;base64,/);
     assert.match(rule, /\n    mask-image: none;/);
@@ -41,7 +41,7 @@ test('Antigravity は提供された公式多色 SVG を background-image で描
     }
 });
 
-test('Antigravity のサイドタブは background shorthand に画像を消されず、中央に標準サイズで描く', () => {
+test('The Antigravity side tab keeps its image under the background shorthand and draws it centered at the standard size', () => {
     const sideRule = rules.find(rule => rule.includes('.lm-TabBar.theia-app-sides .lm-TabBar-tabIcon.akari-partner-antigravity-cli-icon {'));
     const baseRule = rules.find(rule => rule.trimStart().startsWith('.akari-partner-antigravity-cli-icon {'));
     assert.ok(sideRule);
@@ -57,7 +57,7 @@ test('Antigravity のサイドタブは background shorthand に画像を消さ�
 
 // 2026-09-22 の編集前に評価した出力 CSS。共通ルールも含め文字列を固定する。
 // 現行ソースから期待値を再生成しないこと。
-test('Grok / Cursor / OpenCode / Command Code の出力 CSS は BEFORE と同一', () => {
+test('Grok, Cursor, OpenCode, and Command Code output CSS stays identical to BEFORE', () => {
     const before = JSON.parse(readFileSync(new URL('./fixtures/partner-icons-before.json', import.meta.url), 'utf8'));
     assert.deepEqual(Object.keys(before), ['grok', 'cursor', 'opencode', 'commandcode']);
     for (const [agent, expected] of Object.entries(before)) {
@@ -67,7 +67,7 @@ test('Grok / Cursor / OpenCode / Command Code の出力 CSS は BEFORE と同一
     }
 });
 
-test('3 つの表示面が共通の iconClass 対応表を参照する', () => {
+test('Three surfaces share one iconClass table', () => {
     const read = name => readFileSync(new URL(`../src/browser/${name}`, import.meta.url), 'utf8');
     const widget = read('akari-partner-widget.tsx');
     assert.match(widget, /className=\{PARTNER_CLI_ICON_CLASSES\[entry.agent\]\}/);

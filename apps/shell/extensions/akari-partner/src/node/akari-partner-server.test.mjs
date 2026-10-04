@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolvePartnerProcessLaunch } from '../../lib/node/akari-partner-server.js';
 
-test('Windows の Command Code npm shim は cmd.exe 経由で PTY 起動する', () => {
+test('The Windows Command Code npm shim starts the PTY through cmd.exe', () => {
     assert.deepEqual(
         resolvePartnerProcessLaunch(
             'commandcode',
@@ -22,19 +22,19 @@ test('Windows の Command Code npm shim は cmd.exe 経由で PTY 起動する',
     );
 });
 
-test('POSIX と他パートナーの起動計画は従来どおり変更しない', () => {
+test('POSIX and the other partners keep their existing launch plan', () => {
     assert.deepEqual(resolvePartnerProcessLaunch('commandcode', '/opt/bin/command-code', 'darwin', {}), { args: [] });
     assert.deepEqual(resolvePartnerProcessLaunch('codex', 'C:\\tools\\codex.exe', 'win32', {}), { args: [] });
 });
 
-test('Windows の Pi npm shim も cmd.exe 経由で起動し、Devin は引数なし', () => {
+test('The Windows Pi npm shim also starts through cmd.exe, and Devin takes no arguments', () => {
     assert.deepEqual(resolvePartnerProcessLaunch('pi', 'C:\\Users\\creator\\.local\\pi.cmd', 'win32', { ComSpec: 'C:\\Windows\\cmd.exe' }), {
         executablePath: 'C:\\Windows\\cmd.exe', args: ['/d', '/s', '/c', 'C:\\Users\\creator\\.local\\pi.cmd']
     });
     assert.deepEqual(resolvePartnerProcessLaunch('devin', 'C:\\devin\\devin.exe', 'win32', {}), { args: [] });
 });
 
-test('Windows の Claude npm shim は cmd.exe 経由、ネイティブ exe は直接起動する', () => {
+test('The Windows Claude npm shim goes through cmd.exe, and a native exe starts directly', () => {
     const shim = 'C:\\Users\\creator\\AppData\\Roaming\\npm\\claude.cmd';
     assert.deepEqual(resolvePartnerProcessLaunch('claude', shim, 'win32', { ComSpec: 'C:\\Windows\\cmd.exe' }), {
         executablePath: 'C:\\Windows\\cmd.exe', args: ['/d', '/s', '/c', shim]

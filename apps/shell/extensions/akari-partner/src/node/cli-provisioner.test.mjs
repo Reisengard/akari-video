@@ -76,7 +76,7 @@ function makeFakeSpawnTar(mjsContent) {
 
 // --- packument 解析・integrity 検証 ---------------------------------------------
 
-test('parseRegistryVersionMetadata: dist.tarball / dist.integrity を抽出する', () => {
+test('parseRegistryVersionMetadata: extracts dist.tarball and dist.integrity', () => {
     const metadata = parseRegistryVersionMetadata({
         dist: { tarball: 'https://registry.npmjs.org/akari-video/-/akari-video-0.1.11.tgz', integrity: 'sha512-abc==' }
     });
@@ -86,30 +86,30 @@ test('parseRegistryVersionMetadata: dist.tarball / dist.integrity を抽出す�
     });
 });
 
-test('parseRegistryVersionMetadata: dist が無い/欠けた応答は undefined', () => {
+test('parseRegistryVersionMetadata: a response with a missing dist is undefined', () => {
     assert.equal(parseRegistryVersionMetadata(null), undefined);
     assert.equal(parseRegistryVersionMetadata({}), undefined);
     assert.equal(parseRegistryVersionMetadata({ dist: { tarball: 'x' } }), undefined);
     assert.equal(parseRegistryVersionMetadata({ dist: { integrity: 'sha512-x' } }), undefined);
 });
 
-test('verifyTarballIntegrity: 一致する sha512 で true', () => {
+test('verifyTarballIntegrity: true when the sha512 matches', () => {
     const buf = Buffer.from('hello world');
     const digest = createHash('sha512').update(buf).digest('base64');
     assert.equal(verifyTarballIntegrity(buf, `sha512-${digest}`), true);
 });
 
-test('verifyTarballIntegrity: 不一致は false', () => {
+test('verifyTarballIntegrity: false when the sha512 does not match', () => {
     const buf = Buffer.from('hello world');
     assert.equal(verifyTarballIntegrity(buf, 'sha512-thisIsNotTheRealHash=='), false);
 });
 
-test('resolveTarBinary: darwin/linux は /usr/bin/tar絶対パス', () => {
+test('resolveTarBinary: darwin and linux use the absolute path /usr/bin/tar', () => {
     assert.equal(resolveTarBinary('darwin'), '/usr/bin/tar');
     assert.equal(resolveTarBinary('linux'), '/usr/bin/tar');
 });
 
-test('resolveTarBinary: win32 は SystemRoot 配下の System32\\tar.exe を指す', () => {
+test('resolveTarBinary: win32 points at System32\\tar.exe under SystemRoot', () => {
     // ホストの `path` モジュール（この test はいつも POSIX ホストで走る）で join するため、
     // 区切り文字はホスト依存 — ここではセグメントの中身だけを検証する（実 Windows では
     // 同じ import が Windows 版 path を使うため区切りは正しく `\` になる）。
@@ -117,14 +117,14 @@ test('resolveTarBinary: win32 は SystemRoot 配下の System32\\tar.exe を指�
     assert.match(result, /^C:\\Windows[\\/]System32[\\/]tar\.exe$/);
 });
 
-test('resolveTarBinary: win32 で SystemRoot 未設定なら C:\\Windows を既定とする', () => {
+test('resolveTarBinary: win32 defaults to C:\\Windows when SystemRoot is unset', () => {
     const result = resolveTarBinary('win32', {});
     assert.match(result, /^C:\\Windows[\\/]System32[\\/]tar\.exe$/);
 });
 
 // --- シム内容生成（darwin/win32 x dev/packaged の 4 象限） -----------------------
 
-test('buildShimScript: darwin packaged はベイクした Electron 実行体を経由するフォールバックを含む', () => {
+test('buildShimScript: a packaged darwin shim falls back through the baked Electron executable', () => {
     const targetMjsPath = '/opt/akari-test/.akari/cli/0.1.11/package/bin/akari.mjs';
     const script = buildShimScript({ platform: 'darwin', targetMjsPath, bakedNodeExecPath: PACKAGED_EXEC_PATH });
     assert.ok(script.startsWith('#!/bin/sh'));
@@ -133,14 +133,14 @@ test('buildShimScript: darwin packaged はベイクした Electron 実行体を�
     assert.ok(script.includes(`exec node "${targetMjsPath}" "$@"`));
 });
 
-test('buildShimScript: darwin dev は bakedNodeExecPath 無しで PATH の node へフォールバック', () => {
+test('buildShimScript: a darwin dev shim has no bakedNodeExecPath and falls back to node on PATH', () => {
     const targetMjsPath = '/repo/packages/akari-launcher/bin/akari.mjs';
     const script = buildShimScript({ platform: 'darwin', targetMjsPath });
     assert.ok(!script.includes('ELECTRON_RUN_AS_NODE'));
     assert.ok(script.includes(`exec node "${targetMjsPath}" "$@"`));
 });
 
-test('buildShimScript: win32 packaged は .cmd 形式で ELECTRON_RUN_AS_NODE を設定する', () => {
+test('buildShimScript: a packaged win32 shim is a .cmd that sets ELECTRON_RUN_AS_NODE', () => {
     const targetMjsPath = 'C:\\Users\\x\\.akari\\cli\\0.1.11\\package\\bin\\akari.mjs';
     const bakedNodeExecPath = 'C:\\Program Files\\AKARI Video\\AKARI Video.exe';
     const script = buildShimScript({ platform: 'win32', targetMjsPath, bakedNodeExecPath });
@@ -149,7 +149,7 @@ test('buildShimScript: win32 packaged は .cmd 形式で ELECTRON_RUN_AS_NODE �
     assert.ok(script.includes(`"${bakedNodeExecPath}" "${targetMjsPath}" %*`));
 });
 
-test('buildShimScript: win32 dev は bakedNodeExecPath 無しで PATH の node を呼ぶ', () => {
+test('buildShimScript: a win32 dev shim has no bakedNodeExecPath and calls node on PATH', () => {
     const targetMjsPath = 'C:\\repo\\packages\\akari-launcher\\bin\\akari.mjs';
     const script = buildShimScript({ platform: 'win32', targetMjsPath });
     assert.ok(!script.includes('ELECTRON_RUN_AS_NODE'));
@@ -158,16 +158,16 @@ test('buildShimScript: win32 dev は bakedNodeExecPath 無しで PATH の node �
 
 // --- 旧版掃除（直近 1 世代だけ残す） ---------------------------------------------
 
-test('selectVersionDirsToDelete: 現行版以外は直近 1 世代だけ残して削除対象にする', () => {
+test('selectVersionDirsToDelete: keep only the newest previous generation besides the current version', () => {
     const toDelete = selectVersionDirsToDelete(['0.1.9', '0.1.10', '0.1.11', 'bin', '.download-tmp'], '0.1.11');
     assert.deepEqual(toDelete, ['0.1.9']);
 });
 
-test('selectVersionDirsToDelete: 旧版が無ければ削除対象は空', () => {
+test('selectVersionDirsToDelete: nothing to delete when there is no old version', () => {
     assert.deepEqual(selectVersionDirsToDelete(['0.1.11', 'bin'], '0.1.11'), []);
 });
 
-test('compareVersionTriplets: セマンティックに比較する（辞書順ではない）', () => {
+test('compareVersionTriplets: compares semantically, not lexicographically', () => {
     assert.ok(compareVersionTriplets('0.1.9', '0.1.10') < 0);
     assert.ok(compareVersionTriplets('0.2.0', '0.1.99') > 0);
     assert.equal(compareVersionTriplets('0.1.11', '0.1.11'), 0);
@@ -175,7 +175,7 @@ test('compareVersionTriplets: セマンティックに比較する（辞書順�
 
 // --- prepareLaunch の PATH 合成 -------------------------------------------------
 
-test('buildCliPathEnv: シムが存在すれば PATH の先頭に前置する', async () => {
+test('buildCliPathEnv: prepends the shim directory when the shim exists', async () => {
     const home = await tempDir('akari-cli-path-ready-');
     const shimDir = resolveCliShimDir(home);
     mkdirSync(shimDir, { recursive: true });
@@ -184,7 +184,7 @@ test('buildCliPathEnv: シムが存在すれば PATH の先頭に前置する', 
     assert.equal(env.PATH, `${shimDir}:/usr/bin:/bin`);
 });
 
-test('buildCliPathEnv: PATH の先頭が既にシム dir なら不変', async () => {
+test('buildCliPathEnv: stays unchanged when the shim directory is already first', async () => {
     const home = await tempDir('akari-cli-path-idempotent-');
     const shimDir = resolveCliShimDir(home);
     mkdirSync(shimDir, { recursive: true });
@@ -194,13 +194,13 @@ test('buildCliPathEnv: PATH の先頭が既にシム dir なら不変', async ()
     assert.equal(env.PATH, existingPath);
 });
 
-test('buildCliPathEnv: シム未配備なら PATH を一切変更しない', async () => {
+test('buildCliPathEnv: does not change PATH when the shim is not provisioned', async () => {
     const home = await tempDir('akari-cli-path-missing-');
     const env = buildCliPathEnv({ akariHome: home, platform: 'darwin', existingPath: '/usr/bin:/bin' });
     assert.deepEqual(env, {});
 });
 
-test('buildPrivateNodePathEnv: 専用 Node 導入時だけシムと共存して先頭へ加える', () => {
+test('buildPrivateNodePathEnv: prepends the private Node beside the shim only when that Node is installed', () => {
     const akariHome = '/tmp/akari-private-node-test';
     const root = path.join(akariHome, 'runtime/node/v24.21.0');
     const files = new Set([path.join(root, 'command-code-installed'), path.join(root, 'bin/node'), path.join(root, 'bin/npm')]);
@@ -210,7 +210,7 @@ test('buildPrivateNodePathEnv: 専用 Node 導入時だけシムと共存して�
     assert.deepEqual(buildPrivateNodePathEnv(options), {});
 });
 
-test('buildPrivateNodePathEnv: Windows は ; 区切りで専用 Node を前置する', () => {
+test('buildPrivateNodePathEnv: on Windows, prepends the private Node with a semicolon', () => {
     const akariHome = '/tmp/akari-win-node-test';
     const root = path.join(akariHome, 'runtime/node/v24.21.0');
     const files = new Set([path.join(root, 'command-code-installed'), path.join(root, 'node.exe'), path.join(root, 'npm.cmd')]);
@@ -218,7 +218,7 @@ test('buildPrivateNodePathEnv: Windows は ; 区切りで専用 Node を前置�
     assert.deepEqual(result, { PATH: `${root};C:\\Akari\\cli;C:\\Windows` });
 });
 
-test('buildPrivateNodePathEnv: Pi は自分のマーカーだけで専用 Node を前置する', () => {
+test('buildPrivateNodePathEnv: Pi prepends the private Node from its own marker', () => {
     const akariHome = '/tmp/akari-pi-node-test';
     const root = path.join(akariHome, 'runtime/node/v24.21.0');
     const files = new Set([path.join(root, 'command-code-installed'), path.join(root, 'bin/node'), path.join(root, 'bin/npm')]);
@@ -228,9 +228,9 @@ test('buildPrivateNodePathEnv: Pi は自分のマーカーだけで専用 Node �
     assert.deepEqual(buildPrivateNodePathEnv(options), { PATH: `${path.join(root, 'bin')}:/usr/bin` });
 });
 
-test('起動 PATH の専用 Node 版は bootstrap runner の固定版と一致する', () => {
+test('The private Node version on the launch PATH matches the bootstrap runner pin', () => {
     const match = /const nodeVersion = '([^']+)'/.exec(bootstrapRunner.toString());
-    assert.ok(match, 'runner の固定 Node.js 版を読み取れること');
+    assert.ok(match, 'the runner pin for the Node.js version can be read');
     const akariHome = '/tmp/akari-node-version-contract';
     const root = path.join(akariHome, 'runtime', 'node', `v${match[1]}`);
     const binDir = path.join(root, 'bin');
@@ -241,7 +241,7 @@ test('起動 PATH の専用 Node 版は bootstrap runner の固定版と一致�
 
 // --- Electron 実行体判定 ---------------------------------------------------------
 
-test('isElectronExecutable: electron を含む実行体パスまたは Electron ランタイムを packaged とみなす', () => {
+test('isElectronExecutable: an executable path containing electron, or the Electron runtime, counts as packaged', () => {
     assert.equal(isElectronExecutable(PACKAGED_EXEC_PATH, false), true);
     assert.equal(isElectronExecutable('/usr/local/bin/node', true), true);
     assert.equal(isElectronExecutable('/usr/local/bin/node', false), false);
@@ -249,7 +249,7 @@ test('isElectronExecutable: electron を含む実行体パスまたは Electron 
 
 // --- シェル自身の版の解決 ---------------------------------------------------------
 
-test('resolveShellVersion: 上方探索で @akari-video/shell の package.json を見つける', async () => {
+test('resolveShellVersion: finds @akari-video/shell package.json by walking upward', async () => {
     const root = await tempDir('akari-shell-version-');
     const nested = path.join(root, 'apps', 'shell', 'src', 'node');
     await mkdir(nested, { recursive: true });
@@ -257,7 +257,7 @@ test('resolveShellVersion: 上方探索で @akari-video/shell の package.json �
     assert.equal(await resolveShellVersion({ startDirs: [nested] }), '0.1.11');
 });
 
-test('resolveShellVersion: 名前が一致しない package.json はスキップして探索を続ける', async () => {
+test('resolveShellVersion: skips a package.json whose name does not match and keeps looking', async () => {
     const root = await tempDir('akari-shell-version-skip-');
     const nested = path.join(root, 'apps', 'shell', 'src', 'node');
     await mkdir(nested, { recursive: true });
@@ -266,14 +266,14 @@ test('resolveShellVersion: 名前が一致しない package.json はスキップ
     assert.equal(await resolveShellVersion({ startDirs: [nested] }), '0.1.11');
 });
 
-test('resolveShellVersion: 見つからなければ undefined', async () => {
+test('resolveShellVersion: undefined when nothing is found', async () => {
     const root = await tempDir('akari-shell-version-none-');
     assert.equal(await resolveShellVersion({ startDirs: [root] }), undefined);
 });
 
 // --- dev 実行時のリポ探索 ---------------------------------------------------------
 
-test('findRepoAkariLauncherMjs: リポ上方探索で packages/akari-launcher/bin/akari.mjs を見つける', async () => {
+test('findRepoAkariLauncherMjs: finds packages/akari-launcher/bin/akari.mjs by walking upward', async () => {
     const root = await tempDir('akari-repo-search-');
     const nested = path.join(root, 'apps', 'shell', 'extensions', 'akari-partner', 'src', 'node');
     await mkdir(nested, { recursive: true });
@@ -283,14 +283,14 @@ test('findRepoAkariLauncherMjs: リポ上方探索で packages/akari-launcher/bi
     assert.equal(await findRepoAkariLauncherMjs([nested]), path.join(mjsDir, 'akari.mjs'));
 });
 
-test('findRepoAkariLauncherMjs: 見つからなければ undefined', async () => {
+test('findRepoAkariLauncherMjs: undefined when nothing is found', async () => {
     const root = await tempDir('akari-repo-search-none-');
     assert.equal(await findRepoAkariLauncherMjs([root]), undefined);
 });
 
 // --- ensureCli 統合（fetch/tar を差し替えた fail-soft 経路の一気通貫確認） -------
 
-test('ensureCli: dev 実行はダウンロードせずリポの akari.mjs を直接シムへ焼き込む', async () => {
+test('ensureCli: a dev run bakes the repo akari.mjs into the shim and does not download', async () => {
     const home = await tempDir('akari-ensure-dev-home-');
     const repoRoot = await tempDir('akari-ensure-dev-repo-');
     const nested = path.join(repoRoot, 'apps', 'shell', 'extensions', 'akari-partner', 'src', 'node');
@@ -316,7 +316,7 @@ test('ensureCli: dev 実行はダウンロードせずリポの akari.mjs を直
     assert.ok(!shimContent.includes('ELECTRON_RUN_AS_NODE'));
 });
 
-test('ensureCli: dev 実行でリポの akari.mjs が見つからなければ skipped（シムは作らない）', async () => {
+test('ensureCli: a dev run is skipped and writes no shim when the repo akari.mjs is missing', async () => {
     const home = await tempDir('akari-ensure-dev-missing-home-');
     const emptyRepo = await tempDir('akari-ensure-dev-missing-repo-');
     const result = await ensureCli({
@@ -330,7 +330,7 @@ test('ensureCli: dev 実行でリポの akari.mjs が見つからなければ sk
     assert.ok(!existsSync(cliShimFilePath(resolveCliShimDir(home), 'darwin')));
 });
 
-test('ensureCli: packaged 実行は registry から取得し integrity 検証の上で配備・シム生成する', async () => {
+test('ensureCli: a packaged run fetches from the registry, checks integrity, then provisions and writes the shim', async () => {
     const home = await tempDir('akari-ensure-pkg-home-');
     const shellRoot = await tempDir('akari-ensure-pkg-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');
@@ -361,7 +361,7 @@ test('ensureCli: packaged 実行は registry から取得し integrity 検証の
     assert.ok(shimContent.includes(PACKAGED_EXEC_PATH));
 });
 
-test('ensureCli: 配備済みの版は再取得せず ready を返す（冪等・fetch は呼ばれない）', async () => {
+test('ensureCli: an already provisioned version returns ready without fetching again', async () => {
     const home = await tempDir('akari-ensure-idem-home-');
     const shellRoot = await tempDir('akari-ensure-idem-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');
@@ -384,7 +384,7 @@ test('ensureCli: 配備済みの版は再取得せず ready を返す（冪等�
     assert.equal(result.version, '0.1.11');
 });
 
-test('ensureCli: CLI 版 > install-ref 本体版のずれを数字付きで返す', async () => {
+test('ensureCli: reports a numeric mismatch when the CLI version is newer than the install-ref app version', async () => {
     const home = await tempDir('akari-ensure-version-mismatch-home-');
     const shellRoot = await tempDir('akari-ensure-version-mismatch-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -402,7 +402,7 @@ test('ensureCli: CLI 版 > install-ref 本体版のずれを数字付きで返�
         platform: 'darwin',
         shellPackageJsonStartDirs: [shellRoot],
         fetchImpl: async () => {
-            throw new Error('配備済みなので fetch されないこと');
+            throw new Error('already provisioned, so fetch must not run');
         }
     });
 
@@ -410,10 +410,10 @@ test('ensureCli: CLI 版 > install-ref 本体版のずれを数字付きで返�
     assert.equal(result.version, '0.1.12');
     assert.equal(result.appVersion, '0.1.11');
     assert.equal(result.appVersionRelation, 'older');
-    assert.ok(result.log.some(line => line.includes('CLI v0.1.12 / 本体 v0.1.11 → 本体が古い')));
+    assert.ok(result.log.some(line => line.includes('CLI v0.1.12 / app v0.1.11. The app is older')));
 });
 
-test('ensureCli: 版が変わったら新版を配備しシムを差し替え、旧版は直近 1 世代だけ残す', async () => {
+test('ensureCli: a new version is provisioned, the shim is replaced, and only the newest previous generation is kept', async () => {
     const home = await tempDir('akari-ensure-upgrade-home-');
     for (const oldVersion of ['0.1.9', '0.1.10']) {
         const dir = path.join(resolveCliRoot(home), oldVersion, 'package', 'bin');
@@ -447,7 +447,7 @@ test('ensureCli: 版が変わったら新版を配備しシムを差し替え、
     assert.deepEqual(remaining, ['0.1.10', '0.1.11']);
 });
 
-test('ensureCli: tarball の integrity 不一致は failed を返しファイルを残さない', async () => {
+test('ensureCli: a tarball integrity mismatch returns failed and leaves no files', async () => {
     const home = await tempDir('akari-ensure-integrity-home-');
     const shellRoot = await tempDir('akari-ensure-integrity-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');
@@ -476,7 +476,7 @@ test('ensureCli: tarball の integrity 不一致は failed を返しファイル
     assert.ok(!existsSync(cliShimFilePath(resolveCliShimDir(home), 'darwin')));
 });
 
-test('ensureCli: 同梱 CLI があれば registry の integrity 検証経路へ入らない', async () => {
+test('ensureCli: a bundled CLI does not enter the registry integrity path', async () => {
     const home = await tempDir('akari-ensure-bundled-no-integrity-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-no-integrity-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');
@@ -496,19 +496,19 @@ test('ensureCli: 同梱 CLI があれば registry の integrity 検証経路へ�
         shellPackageJsonStartDirs: [shellRoot],
         fetchImpl: async () => {
             fetchCalls += 1;
-            throw new Error('同梱 CLI があれば fetch を呼ばないこと');
+            throw new Error('a bundled CLI must not call fetch');
         }
     });
 
     assert.equal(result.status, 'ready');
     assert.equal(result.version, '0.1.11');
     assert.equal(fetchCalls, 0);
-    assert.ok(result.log.some(line => line.includes('シムは不変') && line.includes(bundledMjsPath)));
+    assert.ok(result.log.some(line => line.includes('the shim stays the same') && line.includes(bundledMjsPath)));
     const shimContent = await readFile(cliShimFilePath(resolveCliShimDir(home), 'darwin'), 'utf8');
     assert.ok(shimContent.includes(bundledMjsPath));
 });
 
-test('ensureCli: registry 404（未公開版）は例外を投げず fail-soft を返す', async () => {
+test('ensureCli: a registry 404 for an unpublished version returns fail-soft and does not throw', async () => {
     const home = await tempDir('akari-ensure-404-home-');
     const shellRoot = await tempDir('akari-ensure-404-shell-');
     await writeShellPackageJson(shellRoot, '9.9.9-dev');
@@ -527,7 +527,7 @@ test('ensureCli: registry 404（未公開版）は例外を投げず fail-soft �
     assert.ok(result.log.some(line => line.includes('404')));
 });
 
-test('ensureCli: ネットワーク不通は例外を投げず fail-soft を返す（接続フローを止めない）', async () => {
+test('ensureCli: a network failure returns fail-soft and does not throw, so the connection flow continues', async () => {
     const home = await tempDir('akari-ensure-network-home-');
     const shellRoot = await tempDir('akari-ensure-network-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');
@@ -549,7 +549,7 @@ test('ensureCli: ネットワーク不通は例外を投げず fail-soft を返�
 
 // --- packaged 実行の同梱 CLI 固定 --------------------------------------------
 
-test('ensureCli: 同梱 CLI は配備済み registry 版より優先し、旧版と途中生成物を全削除する', async () => {
+test('ensureCli: a bundled CLI wins over a provisioned registry version and deletes old versions and partial files', async () => {
     const home = await tempDir('akari-ensure-bundled-cleanup-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-cleanup-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -577,7 +577,7 @@ test('ensureCli: 同梱 CLI は配備済み registry 版より優先し、旧版
         shellPackageJsonStartDirs: [shellRoot],
         fetchImpl: async () => {
             fetchCalls += 1;
-            throw new Error('同梱 CLI があれば fetch を呼ばないこと');
+            throw new Error('a bundled CLI must not call fetch');
         }
     });
 
@@ -592,7 +592,7 @@ test('ensureCli: 同梱 CLI は配備済み registry 版より優先し、旧版
     assert.equal(existsSync(path.join(cliRoot, '.keep')), true);
 });
 
-test('ensureCli: 同梱 CLI が無ければ従来どおり registry へアクセスする', async () => {
+test('ensureCli: without a bundled CLI, it still reaches the registry', async () => {
     const home = await tempDir('akari-ensure-bundled-missing-registry-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-missing-registry-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -625,7 +625,7 @@ test('ensureCli: 同梱 CLI が無ければ従来どおり registry へアクセ
     assert.ok(existsSync(registryMjs));
 });
 
-test('ensureCli: 同梱 CLI は同じ版の registry 配備済みディレクトリも無視して削除する', async () => {
+test('ensureCli: a bundled CLI ignores and deletes a registry directory of the same version', async () => {
     const home = await tempDir('akari-ensure-bundled-removes-current-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-removes-current-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -647,7 +647,7 @@ test('ensureCli: 同梱 CLI は同じ版の registry 配備済みディレクト
         resourcesPath: resourcesRoot,
         shellPackageJsonStartDirs: [shellRoot],
         fetchImpl: async () => {
-            throw new Error('配備済みなので fetch されないこと');
+            throw new Error('already provisioned, so fetch must not run');
         }
     });
 
@@ -658,7 +658,7 @@ test('ensureCli: 同梱 CLI は同じ版の registry 配備済みディレクト
     assert.equal(existsSync(path.join(resolveCliRoot(home), '0.1.12')), false);
 });
 
-test('ensureCli: オフラインでも resourcesPath 配下に同梱 CLI があれば ready を返す', async () => {
+test('ensureCli: returns ready offline when a bundled CLI is under resourcesPath', async () => {
     const home = await tempDir('akari-ensure-bundled-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -682,7 +682,7 @@ test('ensureCli: オフラインでも resourcesPath 配下に同梱 CLI があ�
 
     assert.equal(result.status, 'ready');
     assert.equal(result.version, '0.1.12');
-    assert.ok(result.log.some(line => line.includes('シムは不変') && line.includes(bundledMjsPath)));
+    assert.ok(result.log.some(line => line.includes('the shim stays the same') && line.includes(bundledMjsPath)));
     const shimContent = await readFile(cliShimFilePath(resolveCliShimDir(home), 'darwin'), 'utf8');
     assert.ok(shimContent.includes(bundledMjsPath));
     assert.ok(shimContent.includes('ELECTRON_RUN_AS_NODE=1'));
@@ -690,7 +690,7 @@ test('ensureCli: オフラインでも resourcesPath 配下に同梱 CLI があ�
     assert.ok(!existsSync(path.join(resolveCliRoot(home), '0.1.12', 'package', 'bin', 'akari.mjs')));
 });
 
-test('ensureCli: 同梱 CLI が無い旧構成では registry 到達不可を fail-soft で返す', async () => {
+test('ensureCli: an old layout with no bundled CLI returns fail-soft when the registry is unreachable', async () => {
     const home = await tempDir('akari-ensure-bundled-missing-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-missing-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -713,7 +713,7 @@ test('ensureCli: 同梱 CLI が無い旧構成では registry 到達不可を fa
     assert.ok(!existsSync(cliShimFilePath(resolveCliShimDir(home), 'darwin')));
 });
 
-test('ensureCli: shellVersion が変わっても同じ Resources と実行体ならシムはバイト同一', async () => {
+test('ensureCli: the shim bytes stay the same when shellVersion changes but Resources and the executable do not', async () => {
     const home = await tempDir('akari-ensure-bundled-stable-shim-home-');
     const shellRoot = await tempDir('akari-ensure-bundled-stable-shim-shell-');
     await writeShellPackageJson(shellRoot, '0.1.12');
@@ -731,7 +731,7 @@ test('ensureCli: shellVersion が変わっても同じ Resources と実行体な
         resourcesPath: resourcesRoot,
         shellPackageJsonStartDirs: [shellRoot],
         fetchImpl: async () => {
-            throw new Error('同梱 CLI があれば fetch を呼ばないこと');
+            throw new Error('a bundled CLI must not call fetch');
         }
     };
 
@@ -752,7 +752,7 @@ test('ensureCli: shellVersion が変わっても同じ Resources と実行体な
 
 // --- ensureCli → buildCliPathEnv: 接続フロー全体の PATH 合成確認 -----------------
 
-test('ensureCli → buildCliPathEnv: ready 配備後は PATH がシム dir で始まる', async () => {
+test('ensureCli then buildCliPathEnv: after a ready provision, PATH starts with the shim directory', async () => {
     const home = await tempDir('akari-ensure-path-ready-home-');
     const repoRoot = await tempDir('akari-ensure-path-ready-repo-');
     const nested = path.join(repoRoot, 'apps', 'shell', 'extensions', 'akari-partner', 'src', 'node');
@@ -774,7 +774,7 @@ test('ensureCli → buildCliPathEnv: ready 配備後は PATH がシム dir で�
     assert.ok(env.PATH.startsWith(`${resolveCliShimDir(home)}:`));
 });
 
-test('ensureCli → buildCliPathEnv: failed 時は PATH を一切変更しない', async () => {
+test('ensureCli then buildCliPathEnv: a failed provision does not change PATH', async () => {
     const home = await tempDir('akari-ensure-path-failed-home-');
     const shellRoot = await tempDir('akari-ensure-path-failed-shell-');
     await writeShellPackageJson(shellRoot, '0.1.11');

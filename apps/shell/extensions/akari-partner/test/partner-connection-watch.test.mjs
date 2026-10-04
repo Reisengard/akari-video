@@ -22,44 +22,44 @@ function connectionsJson(status) {
     return JSON.stringify({ providers: [{ id: 'akari-cloud', doctor: { status } }] });
 }
 
-test('isProjectConnectionsOk: ファイル無し（undefined）は未接続', () => {
+test('isProjectConnectionsOk: a missing file (undefined) is not connected', () => {
     assert.equal(isProjectConnectionsOk(undefined), false);
 });
 
-test('isProjectConnectionsOk: 壊れた JSON は未接続', () => {
-    assert.equal(isProjectConnectionsOk('{ これは JSON ではない'), false);
+test('isProjectConnectionsOk: broken JSON is not connected', () => {
+    assert.equal(isProjectConnectionsOk('{ this is not JSON'), false);
 });
 
-test('isProjectConnectionsOk: akari-cloud エントリが無ければ未接続', () => {
+test('isProjectConnectionsOk: missing the akari-cloud entry is not connected', () => {
     const raw = JSON.stringify({ providers: [{ id: 'voicevox', doctor: { status: 'ok' } }] });
     assert.equal(isProjectConnectionsOk(raw), false);
 });
 
-test('isProjectConnectionsOk: doctor.status が ok 以外なら未接続', () => {
+test('isProjectConnectionsOk: a doctor.status other than ok is not connected', () => {
     assert.equal(isProjectConnectionsOk(connectionsJson('unchecked')), false);
 });
 
-test('isProjectConnectionsOk: doctor.status === ok で接続済み', () => {
+test('isProjectConnectionsOk: doctor.status === ok is connected', () => {
     assert.equal(isProjectConnectionsOk(connectionsJson('ok')), true);
 });
 
-test('isAppMarkerOk: ファイル無し（undefined）は未接続', () => {
+test('isAppMarkerOk: a missing file (undefined) is not connected', () => {
     assert.equal(isAppMarkerOk(undefined), false);
 });
 
-test('isAppMarkerOk: 壊れた JSON は未接続', () => {
+test('isAppMarkerOk: broken JSON is not connected', () => {
     assert.equal(isAppMarkerOk('not json'), false);
 });
 
-test('isAppMarkerOk: status が ok 以外は未接続', () => {
+test('isAppMarkerOk: a status other than ok is not connected', () => {
     assert.equal(isAppMarkerOk(JSON.stringify({ status: 'pending' })), false);
 });
 
-test('isAppMarkerOk: status === ok で接続済み', () => {
+test('isAppMarkerOk: status === ok is connected', () => {
     assert.equal(isAppMarkerOk(JSON.stringify({ status: 'ok' })), true);
 });
 
-test('isPartnerConnected: プロジェクト/アプリのどちらか一方が ok なら接続済み（ホームの readConnected() と同じ OR 判定）', () => {
+test('isPartnerConnected: connected when either the project or the app is ok, the same OR as home readConnected()', () => {
     assert.equal(
         isPartnerConnected({ projectConnectionsRaw: undefined, appMarkerRaw: JSON.stringify({ status: 'ok' }) }),
         true
@@ -74,7 +74,7 @@ test('isPartnerConnected: プロジェクト/アプリのどちらか一方が o
     );
 });
 
-test('checkPartnerConnection: 実ファイル(fs) 経由でも判定できる', async () => {
+test('checkPartnerConnection: can decide from real files', async () => {
     const dir = await mkdtemp(path.join(tmpdir(), 'akari-partner-watch-'));
     const connectionsPath = path.join(dir, 'connections.json');
     const markerPath = path.join(dir, 'partner-connection.json');
@@ -103,7 +103,7 @@ test('checkPartnerConnection: 実ファイル(fs) 経由でも判定できる', 
     await rm(dir, { recursive: true, force: true });
 });
 
-test('PartnerConnectionTransitionDetector: 未接続 → 接続のタイミングだけ 1 回発火する（フラッピングなし）', () => {
+test('PartnerConnectionTransitionDetector: fires once on the not-connected to connected edge, with no flapping', () => {
     const detector = new PartnerConnectionTransitionDetector();
     assert.equal(detector.ingest('disconnected'), false);
     assert.equal(detector.ingest('disconnected'), false);
@@ -114,7 +114,7 @@ test('PartnerConnectionTransitionDetector: 未接続 → 接続のタイミン�
     assert.equal(detector.state, 'connected');
 });
 
-test('PartnerConnectionTransitionDetector: ポーリングをシミュレートした一連の流れでダイアログの状態遷移相当が 1 回だけ発火する', async () => {
+test('PartnerConnectionTransitionDetector: a simulated poll fires the dialog transition once', async () => {
     const dir = await mkdtemp(path.join(tmpdir(), 'akari-partner-watch-'));
     const connectionsPath = path.join(dir, 'connections.json');
     const access = {
