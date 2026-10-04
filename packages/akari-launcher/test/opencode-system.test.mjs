@@ -71,7 +71,7 @@ test('システムテスト: opencode モードでプロジェクト作成から
     assert.equal(result.opencodeLaunched, true);
 
     // ログに適切なメッセージが含まれていることを確認
-    assert.ok(lines.some((line) => line.includes('opencode を起動します…')));
+    assert.ok(lines.some((line) => line.includes('Starting opencode...')));
   });
 });
 
@@ -98,7 +98,7 @@ test('システムテスト: 既存プロジェクトで opencode モードを�
     });
 
     // 既存プロジェクトが検出されていることを確認
-    assert.ok(lines.some((line) => line.includes('既存の AKARI Video プロジェクトを検出しました')));
+    assert.ok(lines.some((line) => line.includes('Found an existing AKARI Video project')));
 
     // opencode が起動されていることを確認
     assert.deepEqual(opencodeCall, { opencodePath: '/fake/bin/opencode', args: ['--continue'], cwd: root });
@@ -131,7 +131,7 @@ test('システムテスト: opencode モードで doctor が実行される', a
 
     // doctor が実行されていることを確認
     assert.equal(doctorCalled, true);
-    assert.ok(lines.some((line) => line.includes('接続状態を確認します…')));
+    assert.ok(lines.some((line) => line.includes('Checking connections...')));
   });
 });
 
@@ -167,8 +167,8 @@ test('システムテスト: opencode モードで-intake 内容が要約され�
     });
 
     // intake 内容が要約されていることを確認
-    assert.ok(lines.some((line) => line.includes('文字起こし・テロップ') && line.includes('BGM・効果音')));
-    assert.ok(lines.some((line) => line.includes('目標尺 120 秒')));
-    assert.ok(lines.some((line) => line.includes('すべておまかせ')));
+    assert.ok(lines.some((line) => line.includes('Transcribe and captions') && line.includes('BGM and sound effects')));
+    assert.ok(lines.some((line) => line.includes('target length 120 s')));
+    assert.ok(lines.some((line) => line.includes('autonomy: As is')));
   });
 });

@@ -50,11 +50,11 @@ test('first call: shows the notice once, mentions on-demand fetch, the free star
         const result = maybeShowAssetIntroNotice({ env, log: (l) => logs.push(l) });
         assert.equal(result.action, 'shown');
         assert.equal(logs.length, 1, '案内は 1 行だけ');
-        assert.match(logs[0], /使うときに必要な分だけ/);
-        assert.match(logs[0], /無料の素材パック/, '無料スターターパックの案内を含む（オーナー裁定 2026-08-11 R2）');
+        assert.match(logs[0], /only as much as needed/);
+        assert.match(logs[0], /free asset pack/, '無料スターターパックの案内を含む（オーナー裁定 2026-08-11 R2）');
         assert.match(logs[0], /akari store connect/);
         assert.match(logs[0], /akari sounds/);
-        assert.doesNotMatch(logs[0], /約\s*\d+\s*点/, '実数（約 N 点）に依存する表現は使わない');
+        assert.doesNotMatch(logs[0], /about\s*\d+/, '実数（約 N 点）に依存する表現は使わない');
         assert.ok(existsSync(path.join(home, '.akari-asset-intro-shown.json')), '生涯 1 回のマーカーを書く');
     });
 });
@@ -114,7 +114,7 @@ test('akari sounds: passes arguments through and reports success', async () => {
         });
         assert.equal(result.exitCode, 0);
         assert.deepEqual(calls[0].args, ['--variant', 'wav', '--force']);
-        assert.ok(logs.some((l) => l.includes('追加カタログ')));
+        assert.ok(logs.some((l) => l.includes('additional catalog')));
     });
 });
 

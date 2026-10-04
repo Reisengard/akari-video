@@ -50,7 +50,7 @@ test('store connect: 無効トークン（401）は保存しない', async () =>
     const result = await runStoreCommand(['connect', '--token', TOKEN], ctx.options);
     assert.equal(result.exitCode, 1);
     assert.ok(!existsSync(resolveCredentialsPath(ctx.env)), 'no credentials saved');
-    assert.ok(ctx.lines.some((l) => l.includes('無効')), 'error message shown');
+    assert.ok(ctx.lines.some((l) => l.includes('invalid')), 'error message shown');
   } finally {
     ctx.cleanup();
   }
@@ -114,7 +114,7 @@ test('store download: 未購入（403）は exit 1', async () => {
     await runStoreCommand(['connect', '--token', TOKEN, '--url', 'http://localhost:9999/api/store'], ctx.options);
     const result = await runStoreCommand(['download', 'phone-pro-titanium'], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((l) => l.includes('購入が確認できません')));
+    assert.ok(ctx.lines.some((l) => l.includes('No purchase was found for this product')));
   } finally {
     ctx.cleanup();
   }
@@ -177,7 +177,7 @@ test('store download: bundle は構成商品の個別 download を案内する',
     const result = await runStoreCommand(['download', 'multi-device-combo'], ctx.options);
     assert.equal(result.exitCode, 1);
     assert.ok(ctx.lines.some((l) =>
-      l.includes('セット商品は構成商品を個別に download してください')
+      l.includes('For a bundle, download each product in it separately')
       && l.includes('phone-pro-titanium')
       && l.includes('laptop-slim-aluminum')
       && l.includes('app-icon-squircle')));
@@ -197,8 +197,8 @@ test('store download: 未購入の bundle（403）は従来の購入確認エラ
     await runStoreCommand(['connect', '--token', TOKEN, '--url', 'http://localhost:9999/api/store'], ctx.options);
     const result = await runStoreCommand(['download', 'multi-device-combo'], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((l) => l.includes('この商品の購入が確認できません: multi-device-combo')));
-    assert.ok(ctx.lines.every((l) => !l.includes('セット商品は構成商品を個別に download してください')));
+    assert.ok(ctx.lines.some((l) => l.includes('No purchase was found for this product: multi-device-combo')));
+    assert.ok(ctx.lines.every((l) => !l.includes('For a bundle, download each product in it separately')));
   } finally {
     ctx.cleanup();
   }
@@ -228,7 +228,7 @@ test('store download: products 応答で判明した bundle を固定文言で�
     await runStoreCommand(['connect', '--token', TOKEN, '--url', 'http://localhost:9999/api/store'], ctx.options);
     const result = await runStoreCommand(['download', 'creator-bundle'], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((l) => l === 'セット商品は構成商品を個別に download してください'));
+    assert.ok(ctx.lines.some((l) => l === 'For a bundle, download each product in it separately'));
   } finally {
     ctx.cleanup();
   }
@@ -245,7 +245,7 @@ test('store download: 非 JSON 応答は従来の HTTP エラーへフォール�
     await runStoreCommand(['connect', '--token', TOKEN, '--url', 'http://localhost:9999/api/store'], ctx.options);
     const result = await runStoreCommand(['download', 'broken-product'], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((l) => l.includes('ダウンロードに失敗しました（500）')));
+    assert.ok(ctx.lines.some((l) => l.includes('Download failed (500)')));
   } finally {
     ctx.cleanup();
   }
@@ -389,8 +389,8 @@ test('store install --from: SKU 入れ子形 PACK.json を平坦化して instal
     assert.equal(index.packs['text-pack'].items[0].title, 'メタ由来タイトル');
     assert.equal(index.packs['text-pack'].items[1].title, '親タイトル');
     assert.ok(path.isAbsolute(index.packs['text-pack'].root));
-    assert.ok(ctx.lines.includes('akari assets list に 2 件を登録しました'));
-    assert.ok(ctx.lines.includes('次の一手: akari assets fetch text-one'));
+    assert.ok(ctx.lines.includes('Registered 2 items in akari assets list'));
+    assert.ok(ctx.lines.includes('Next step: akari assets fetch text-one'));
   } finally {
     ctx.cleanup();
   }
@@ -447,7 +447,7 @@ test('store install --from: PACK.json が無ければ従来どおり展開だけ
     const result = await runStoreCommand(['install', 'legacy-pack', '--from', zipPath], ctx.options);
     assert.equal(result.exitCode, 0);
     assert.equal(existsSync(path.join(ctx.home, 'assets', 'installed.json')), false);
-    assert.ok(ctx.lines.some((line) => line.startsWith('導入手順:')));
+    assert.ok(ctx.lines.some((line) => line.startsWith('Install guide:')));
   } finally {
     ctx.cleanup();
   }
@@ -473,7 +473,7 @@ test('store install --from: PACK.json のパック外 path は索引へ登録し
   try {
     await assert.rejects(
       () => runStoreCommand(['install', 'broken-pack', '--from', zipPath], ctx.options),
-      /path がパック外を指しています/,
+      /A path in PACK.json points outside the pack/,
     );
     assert.equal(existsSync(path.join(ctx.home, 'assets', 'installed.json')), false);
   } finally {
@@ -486,7 +486,7 @@ test('store help: install に --from と installed 索引の説明を出す', as
   try {
     const result = await runStoreCommand([], ctx.options);
     assert.equal(result.exitCode, 0);
-    assert.ok(ctx.lines.some((line) => line.includes('install <productId> [--from <zip>]') && line.includes('installed 索引')));
+    assert.ok(ctx.lines.some((line) => line.includes('install <productId> [--from <zip>]') && line.includes('installed index')));
   } finally {
     ctx.cleanup();
   }
@@ -510,7 +510,7 @@ test('store: 未知のサブコマンドは使い方を出して exit 1', async 
   try {
     const result = await runStoreCommand(['frobnicate'], ctx.options);
     assert.equal(result.exitCode, 1);
-    assert.ok(ctx.lines.some((l) => l.includes('使い方')));
+    assert.ok(ctx.lines.some((l) => l.includes('Usage')));
   } finally {
     ctx.cleanup();
   }

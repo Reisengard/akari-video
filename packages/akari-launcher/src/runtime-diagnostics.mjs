@@ -203,7 +203,7 @@ function resolveFalKeySource({ env, homeDirectory }) {
   try { state = creatorCredentials?.readCredentials(credentialEnv); }
   catch { state = { values: new Map(), primaryExists: false, legacyExists: false }; }
   state ??= { values: new Map(), primaryExists: false, legacyExists: false };
-  const location = state.primaryExists && state.legacyExists ? '両方' : state.primaryExists ? '新' : state.legacyExists ? '旧' : 'なし';
+  const location = state.primaryExists && state.legacyExists ? 'both' : state.primaryExists ? 'new' : state.legacyExists ? 'old' : 'none';
   if (typeof env.FAL_KEY === 'string' && env.FAL_KEY.trim().length > 0) {
     return { source: 'env', credentials_path: credentialsPath, location };
   }
@@ -308,18 +308,18 @@ export function determineDoctorVerdict(report) {
 function doctorNextSteps(report) {
   const steps = [];
   if (report.render_cut.origin === 'none' && report.edit_lint.origin === 'none') {
-    steps.push('書き出し部品がありません。デスクトップ版を導入するか、install.sh 経路の本体を導入してください。');
+    steps.push('The export parts are missing. Install the desktop app, or install the app with install.sh.');
   } else {
-    if (report.render_cut.origin === 'none') steps.push('render-cut がありません。デスクトップ版または install.sh 経路の本体を修復してください。');
-    if (report.edit_lint.origin === 'none') steps.push('edit-lint がありません。デスクトップ版または install.sh 経路の本体を修復してください。');
+    if (report.render_cut.origin === 'none') steps.push('render-cut is missing. Repair the desktop app or the app installed with install.sh.');
+    if (report.edit_lint.origin === 'none') steps.push('edit-lint is missing. Repair the desktop app or the app installed with install.sh.');
   }
-  if (report.ffmpeg.origin === 'none') steps.push('ffmpeg を導入し、PATH または AKARI_FFMPEG_BIN で参照できるようにしてください。');
-  if (report.ffprobe.origin === 'none') steps.push('ffprobe を導入し、PATH または AKARI_FFPROBE_BIN で参照できるようにしてください。');
+  if (report.ffmpeg.origin === 'none') steps.push('Install ffmpeg and make it reachable through PATH or AKARI_FFMPEG_BIN.');
+  if (report.ffprobe.origin === 'none') steps.push('Install ffprobe and make it reachable through PATH or AKARI_FFPROBE_BIN.');
   if (!report.path.on_path && report.render_cut.origin !== 'monorepo') {
-    steps.push('`~/.akari/cli/bin` を PATH に追加してください。');
+    steps.push('Add `~/.akari/cli/bin` to PATH.');
   }
   if (report.fal_key?.source === 'missing') {
-    steps.push('FAL_KEY がありません。環境変数 FAL_KEY か credentials.env に置くと fal の生成が使えます（無くても書き出しは動きます）。');
+    steps.push('FAL_KEY is missing. Put it in the FAL_KEY environment variable or in credentials.env to use fal generation (export works without it).');
   }
   return steps;
 }

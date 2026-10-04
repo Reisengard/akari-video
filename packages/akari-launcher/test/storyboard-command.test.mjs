@@ -10,7 +10,7 @@ test("akari storyboard --help は launcher 側で使い方を表示して spawn 
     spawn: () => { throw new Error("spawn は呼ばれない"); },
   });
   assert.equal(result.exitCode, 0);
-  assert.equal(lines[0], "使い方: akari storyboard <projectDir> [--no-capture] [--captures <dir>] [--out <dir>]");
+  assert.equal(lines[0], "Usage: akari storyboard <projectDir> [--no-capture] [--captures <dir>] [--out <dir>]");
 });
 
 test("storyboardScript が未同梱なら日本語エラーを表示して exit 2", async () => {
@@ -21,7 +21,7 @@ test("storyboardScript が未同梱なら日本語エラーを表示して exit 
     spawn: () => { throw new Error("spawn は呼ばれない"); },
   });
   assert.equal(result.exitCode, 2);
-  assert.match(errors.join("\n"), /実行スクリプトが見つかりません/);
+  assert.match(errors.join("\n"), /script for akari storyboard was not found/);
 });
 
 test("storyboard の引数を印刷スクリプトへそのまま透過する", async () => {

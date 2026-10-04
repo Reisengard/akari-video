@@ -73,7 +73,7 @@ test('run() は素材案内ステップが throw しても claude 起動まで�
         }));
         assert.equal(result.exitCode, 0);
         assert.equal(claudeLaunched, true);
-        assert.ok(logs.some((line) => line.includes('素材案内の表示でエラー')));
+        assert.ok(logs.some((line) => line.includes('Showing the asset guide failed')));
     });
 });
 
@@ -117,7 +117,7 @@ test('run() 既定実装（未接続の一時 HOME）: スターターパック�
         const logs = [];
         const result = await run([], baseOptions(root, { env, log: (line) => logs.push(line) }));
         assert.equal(result.exitCode, 0);
-        assert.ok(logs.some((line) => line.includes('無料の素材パック') && line.includes('akari store connect')), '未接続なら無料スターターパックの案内が出る');
+        assert.ok(logs.some((line) => line.includes('free asset pack') && line.includes('akari store connect')), '未接続なら無料スターターパックの案内が出る');
     });
 });
 

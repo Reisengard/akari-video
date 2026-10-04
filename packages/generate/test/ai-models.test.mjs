@@ -224,8 +224,8 @@ test('entire normalized rows are stable across all kinds and a standalone route'
     },
     "tts:elevenlabs-v3": {
       "kind": "voice",
-      "name": "ElevenLabs v3（既製の声）",
-      "family": "ElevenLabs v3（既製の声）",
+      "name": "ElevenLabs v3 (ready-made voices)",
+      "family": "ElevenLabs v3 (ready-made voices)",
       "via": "api",
       "provider": "fal",
       "inputs": {

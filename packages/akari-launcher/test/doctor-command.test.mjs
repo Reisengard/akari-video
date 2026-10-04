@@ -139,7 +139,7 @@ test('formatDoctorReport は Electron の node 実行方法と Node の実行体
   assert.doesNotMatch(node, /ELECTRON_RUN_AS_NODE/u);
 
   const legacy = formatDoctorReport(base);
-  assert.match(legacy, /node\s+unknown\s+診断情報がありません/u);
+  assert.match(legacy, /node\s+unknown\s+No diagnostic information/u);
 });
 
 test('render-cut 解決順は monorepo → managed-app → app-bundle → none', async () => {
@@ -258,11 +258,11 @@ test('doctor は鍵の置き場を値なしで表示する', () => {
     cli: { version: 'test', entry_path: 'akari.mjs' }, app_managed: { status: 'valid' },
     app_bundle: { found: false }, render_cut: { origin: 'none' }, edit_lint: { origin: 'none' },
     ffmpeg: { origin: 'none' }, ffprobe: { origin: 'none' }, gpu_export: { available: false },
-    fal_key: { source: 'credentials.env', location: '両方', credentials_path: '/isolated/credentials.env' },
+    fal_key: { source: 'credentials.env', location: 'both', credentials_path: '/isolated/credentials.env' },
     path: { on_path: false, cli_shim_dir: '/isolated/bin' }, verdict: 'degraded', next_steps: []
   };
   const output = formatDoctorReport(report);
-  assert.match(output, /鍵の置き場\s+両方/);
+  assert.match(output, /Key location\s+both/);
   assert.equal(output.includes('dummy-not-a-real-key'), false);
 });
 
@@ -331,7 +331,7 @@ test('update --force は managed app 不在時に install.sh を案内し、npm 
     });
     assert.equal(result.exitCode, 0);
     assert.equal(applied, false);
-    assert.match(lines.join('\n'), /この CLI からは install\.sh 経路の本体を入れ直せません/u);
+    assert.match(lines.join('\n'), /This CLI cannot reinstall the app that install\.sh installs/u);
     assert.match(lines.join('\n'), /raw\.githubusercontent\.com\/AkariLabs\/akari-video\/main\/install\.sh/u);
     assert.doesNotMatch(lines.join('\n'), /cli\.tgz/u);
   });
@@ -354,7 +354,7 @@ test('update --force は render-cut も managed app も不在なら install.sh �
     });
     assert.equal(result.exitCode, 0);
     assert.equal(applied, false);
-    assert.match(lines.join('\n'), /この CLI からは install\.sh 経路の本体を入れ直せません/u);
+    assert.match(lines.join('\n'), /This CLI cannot reinstall the app that install\.sh installs/u);
     assert.match(lines.join('\n'), /raw\.githubusercontent\.com\/AkariLabs\/akari-video\/main\/install\.sh/u);
   });
 });
@@ -373,7 +373,7 @@ test('update --force の npm / monorepo 起動判定は従来の CLI 更新案�
     });
     assert.equal(result.exitCode, 0);
     assert.match(lines.join('\n'), /npm i -g https:\/\/example\.invalid\/cli\.tgz/u);
-    assert.doesNotMatch(lines.join('\n'), /この CLI からは install\.sh/u);
+    assert.doesNotMatch(lines.join('\n'), /This CLI cannot reinstall the app that install\.sh/u);
   });
 });
 
@@ -387,10 +387,10 @@ test('status は install.sh 経路 missing を render-cut の実解決元付き�
     });
     assert.ok(result.exitCode === 0 || result.exitCode === 1);
     const output = lines.join('');
-    assert.match(output, /install\.sh 経路の本体は未導入/u);
-    assert.match(output, /書き出しは app-bundle の render-cut を使います/u);
-    assert.match(output, /詳細: `akari doctor`/u);
-    assert.doesNotMatch(output, /本体バージョン: 未記録/u);
+    assert.match(output, /The app from install\.sh is not installed/u);
+    assert.match(output, /export uses render-cut from app-bundle/u);
+    assert.match(output, /Details: `akari doctor`/u);
+    assert.doesNotMatch(output, /App version: not recorded/u);
   });
 });
 
@@ -403,8 +403,8 @@ test('status は render-cut が none のときだけ書き出し不能と復旧�
       runtimeDiagnostics: runtimeFixture('none'),
     });
     const output = lines.join('');
-    assert.match(output, /書き出しできません/u);
-    assert.match(output, /復旧するには/u);
+    assert.match(output, /export is not possible/u);
+    assert.match(output, /To recover/u);
   });
 });
 

@@ -88,7 +88,7 @@ test('(a) 作業場内の既存プロジェクトでは scaffold を呼ばず現
     assert.deepEqual(claudeCall, { claudePath: '/fake/bin/claude', args: [], cwd: projectDir });
     assert.equal(result.exitCode, 0);
     assert.equal(result.scaffolded, true);
-    assert.ok(lines.includes(`作業場: ${rootDir}`), '実出力: ' + JSON.stringify(lines));
+    assert.ok(lines.includes(`Workspace: ${rootDir}`), '実出力: ' + JSON.stringify(lines));
   });
 });
 
@@ -119,7 +119,7 @@ test('(a) 作業場を伴わない独立プロジェクト（従来どおり）�
     });
 
     assert.equal(claudeCall?.cwd, projectDir);
-    assert.ok(!lines.some((line) => line.startsWith('作業場')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(!lines.some((line) => /^(Workspace|Creating a new project in the workspace|Creating the workspace failed)/.test(line)), '実出力: ' + JSON.stringify(lines));
   });
 });
 
@@ -162,7 +162,7 @@ test('(b) 作業場の中だがプロジェクトではない cwd からは既�
     assert.equal(pointer.lastRoot, rootDir);
 
     assert.ok(
-      lines.some((line) => line.includes(`作業場 ${rootDir} に新規プロジェクトを作成します`)),
+      lines.some((line) => line.includes(`Creating a new project in the workspace ${rootDir}`)),
       '実出力: ' + JSON.stringify(lines)
     );
   });
@@ -310,7 +310,7 @@ test('(c) TTY: 1 問の確認で Enter（既定応答）なら既定パスに作
     const expectedProjectDir = join(expectedRoot, 'channels', DEFAULT_CHANNEL_NAME, 'videos', '2026-08-02-video');
     assert.ok(promptText?.includes(expectedRoot), '実出力: ' + promptText);
     assert.equal(claudeCall?.cwd, expectedProjectDir);
-    assert.ok(lines.some((line) => line.includes('作業場を作成しました')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Workspace created')), '実出力: ' + JSON.stringify(lines));
   });
 });
 
@@ -446,7 +446,7 @@ test('--here: 作業場の中にいてもお試しモードを強制し、現行
 
     assert.equal(claudeCall?.cwd, cwd);
     assert.deepEqual(claudeCall.args, []);
-    assert.ok(!lines.some((line) => line.startsWith('作業場')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(!lines.some((line) => /^(Workspace|Creating a new project in the workspace|Creating the workspace failed)/.test(line)), '実出力: ' + JSON.stringify(lines));
   });
 });
 
@@ -479,6 +479,6 @@ test('creator-root モジュール未解決（npm 配布で vendor 未同梱等�
 
     // creator-root が読めないので、作業場が実在してもリダイレクトされず現行動作のまま。
     assert.equal(claudeCall?.cwd, rootDir);
-    assert.ok(!lines.some((line) => line.startsWith('作業場')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(!lines.some((line) => /^(Workspace|Creating a new project in the workspace|Creating the workspace failed)/.test(line)), '実出力: ' + JSON.stringify(lines));
   });
 });

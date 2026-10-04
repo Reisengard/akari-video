@@ -7,7 +7,7 @@ export async function runCaptionsCommand(argv, options = {}) {
   const logError = options.error ?? options.logError ?? ((line) => console.error(line));
   const assets = options.assets ?? resolveLauncherAssets();
   if (!assets.captionsScript || !existsSync(assets.captionsScript)) {
-    logError("akari captions の実行スクリプトが見つかりません。AKARI Video を再インストールしてください。");
+    logError("The script for akari captions was not found. Please reinstall AKARI Video.");
     return { exitCode: 1 };
   }
 

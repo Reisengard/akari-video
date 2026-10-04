@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 export const ENTRY_VERSION_FILE = '.akari-entry-version';
-const usage = `使い方: akari skills install --entry [--target <dir>]...
+const usage = `Usage: akari skills install --entry [--target <dir>]...
         akari skills remove --entry [--target <dir>]...
         akari skills status --json
---target は入口スキル自体の配置先（例: ~/.codex/skills/akari）。既定の 2 か所に追加する。`;
+--target is where the entry skill itself goes (for example ~/.codex/skills/akari). It is added to the two default locations.`;
 
 function stat(path) {
   try { return lstatSync(path); } catch (error) {
@@ -36,10 +36,10 @@ export function resolveEntrySource({ env = process.env, repoRoot = REPO_ROOT } =
     const source = join(root, 'skills', 'akari');
     if (!stat(join(source, 'SKILL.md'))?.isFile()) continue;
     const version = JSON.parse(readFileSync(join(root, 'packages', 'akari-launcher', 'package.json'), 'utf8')).version;
-    if (typeof version !== 'string' || !version.trim()) throw new Error(`ランチャー版が不正です: ${root}`);
+    if (typeof version !== 'string' || !version.trim()) throw new Error(`The launcher version is invalid: ${root}`);
     return { source, version };
   }
-  throw new Error('入口スキル skills/akari/SKILL.md が見つかりません。');
+  throw new Error('The entry skill skills/akari/SKILL.md was not found.');
 }
 
 // ディレクトリだけでなく配下の SKILL.md / 版印、親の skills がリンクの場合も触らない。
@@ -73,12 +73,12 @@ export function entryStatus(options = {}) {
 
 function installTarget(path, source, version, warn) {
   if (hasLinkedAncestor(path) || hasLinkedContent(path) || hasLinkedContent(source)) {
-    warn(`symlink は変更しません: ${path}`);
+    warn(`Leaving the symlink unchanged: ${path}`);
     return false;
   }
   const state = inspectTarget(path, version);
   if (state.exists && !state.managed) {
-    warn(`入口スキルの版印がないため変更しません: ${path}`);
+    warn(`Not changing it because the entry skill has no version stamp: ${path}`);
     return false;
   }
   mkdirSync(path, { recursive: true });
@@ -138,18 +138,18 @@ export async function runSkillsCommand(args, options = {}) {
     let skipped = false;
     for (const path of paths) {
       if (command === 'install') {
-        if (installTarget(path, source.source, source.version, warn)) log(`入口スキルを配置しました: ${path}`);
+        if (installTarget(path, source.source, source.version, warn)) log(`Installed the entry skill: ${path}`);
         else skipped = true;
       } else {
         if (!stat(path)) continue;
         const state = inspectTarget(path, null);
         if (!state.managed || hasLinkedContent(path)) {
-          warn(`版印がない、または symlink のため削除しません: ${path}`);
+          warn(`Not deleting it because it has no version stamp or is a symlink: ${path}`);
           skipped = true;
           continue;
         }
         rmSync(path, { recursive: true });
-        log(`入口スキルを削除しました: ${path}`);
+        log(`Removed the entry skill: ${path}`);
       }
     }
     return { exitCode: skipped ? 1 : 0 };

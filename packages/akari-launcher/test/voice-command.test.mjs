@@ -67,7 +67,7 @@ test('Gemini の同意録音は照合 0.8・backend・承認を通るまで送�
     result = await run(base, { ...mock, verifyScript: () => ({ ...validVerify, score: 0.79 }) });
     assert.equal(result.code, 2); assert.equal(calls, 0);
     result = await run(base, mock);
-    assert.equal(result.json.status, 'needs_approval'); assert.equal(result.json.reason, '見積不可'); assert.equal(calls, 0);
+    assert.equal(result.json.status, 'needs_approval'); assert.equal(result.json.reason, 'no estimate available'); assert.equal(calls, 0);
     result = await run([...base, '--yes'], mock);
     assert.equal(result.code, 0); assert.equal(calls, 1);
     assert.equal(sent.url, 'https://generativelanguage.googleapis.com/v1beta/voices');
@@ -101,7 +101,7 @@ test('Gemini は 40 秒の正本を先頭 30 秒に制限し、9 秒の正本は
       },
       fetchImpl: async () => { calls++; return { ok: true, json: async () => ({ id: 'voice_dummy123' }) }; } };
     const short = await run(args, runtime);
-    assert.equal(short.code, 2); assert.match(short.json.error, /10 秒以上/);
+    assert.equal(short.code, 2); assert.match(short.json.error, /10 seconds or longer/);
     assert.equal(calls, 0); assert.equal(conversions.length, 0);
     const metaPath = path.join(dir, 'meta.json');
     const meta = JSON.parse(fs.readFileSync(metaPath)); meta.reference.duration_s = 40;
@@ -166,7 +166,7 @@ test('create は本人同意・check 合格を要求し、voice.json の既存�
   try {
     const runtime = fixtureRuntime(box.env);
     let result = await run(createArgs, runtime);
-    assert.equal(result.code, 2); assert.match(result.json.error, /同意/);
+    assert.equal(result.code, 2); assert.match(result.json.error, /Consent for your own voice/);
     result = await run([...createArgs, '--consent-self'], { ...runtime, verifyScript: () => ({ score: 0.1, backend: 'whisper-cpp' }) });
     assert.equal(result.code, 2); assert.equal(fs.existsSync(path.join(box.env.AKARI_HOME, 'avatars')), false);
     const unavailableArgs = [...createArgs]; unavailableArgs[2] = 'offline'; unavailableArgs[4] = 'offline-sample';
@@ -239,7 +239,7 @@ test('extend は失敗時に正本を保ち、連結後に prev・stale・警告
     result = await run(args, runtime);
     assert.equal(result.code, 0, result.json.error);
     assert.equal(result.json.duration_s, 80);
-    assert.match(result.json.warnings[0], /写しを作り直して/);
+    assert.match(result.json.warnings[0], /Remake them with akari voice copy/);
     assert.deepEqual(fs.readFileSync(path.join(dir, 'ref-recording.prev.wav')), original);
     assert.equal(fs.statSync(path.join(dir, 'ref-recording.prev.wav')).mode & 0o777, 0o600);
     const updated = JSON.parse(fs.readFileSync(path.join(dir, 'meta.json')));

@@ -28,7 +28,7 @@ export async function runMigrateCommand(args, options = {}) {
   try {
     text = await readText(editPath, 'utf8');
   } catch (cause) {
-    error(`edit.json を読めません: ${editPath} (${messageOf(cause)})`);
+    error(`Cannot read edit.json: ${editPath} (${messageOf(cause)})`);
     return { exitCode: 2 };
   }
   const migrate = options.migrate ?? loadMigrateModule(options.assets ?? resolveLauncherAssets());
@@ -50,16 +50,16 @@ export async function runMigrateCommand(args, options = {}) {
     : migrate.planMigration(projectRoot, editPath, text, { hasCaptions, now: options.now });
   if (proposal.ok === false) {
     if (parsed.json) {
-      log(JSON.stringify({ ok: false, error: 'このプロジェクトは変換できません', blockers: proposal.blockers }));
+      log(JSON.stringify({ ok: false, error: 'This project cannot be converted', blockers: proposal.blockers }));
     } else {
-      error('このプロジェクトは変換できません。');
+      error('This project cannot be converted.');
       for (const blocker of proposal.blockers) error(`- ${blocker}`);
     }
     return { exitCode: 2 };
   }
   if (proposal.noop === true) {
     if (parsed.json) log(JSON.stringify({ ok: true, noop: true, version: proposal.version }));
-    else log('変換の必要はありません。');
+    else log('No conversion is needed.');
     return { exitCode: 0, proposal };
   }
   if (parsed.json) {
@@ -68,33 +68,33 @@ export async function runMigrateCommand(args, options = {}) {
       filePath: proposal.filePath, backupPath: proposal.backupPath, changes: proposal.changes
     }));
   } else {
-    log(`変換対象: ${proposal.filePath} (version ${proposal.version}${proposal.version === 2 ? ' 正規化' : ' -> 2'})`);
+    log(`To convert: ${proposal.filePath} (version ${proposal.version}${proposal.version === 2 ? ' normalize' : ' -> 2'})`);
     for (const change of proposal.changes) log(`- ${change.path}: ${change.note}`);
-    log(`変換前の退避先: ${proposal.backupPath}`);
+    log(`Backup before conversion: ${proposal.backupPath}`);
   }
   if (parsed.dryRun) {
-    if (!parsed.json) log('--dry-run のため、ファイルは変更しません。');
+    if (!parsed.json) log('--dry-run: no file is changed.');
     return { exitCode: 0, proposal };
   }
   if (!parsed.yes) {
     const isTTY = options.isTTY ?? (process.stdin.isTTY && process.stdout.isTTY);
     if (!isTTY) {
-      error('非 TTY では明示承認が必要です。内容を確認し、--yes を付けて再実行してください。');
+      error('A non-TTY session needs explicit approval. Check the details, then run again with --yes.');
       return { exitCode: 2, proposal };
     }
     const accepted = options.confirm
       ? await options.confirm()
       : await promptForConfirmation();
     if (!accepted) {
-      if (!parsed.json) log('変換しませんでした。edit.json は変更されていません。');
+      if (!parsed.json) log('Not converted. edit.json is unchanged.');
       return { exitCode: 0, proposal };
     }
   }
   await migrate.applyMigration(proposal);
   if (!parsed.json) {
     log(proposal.version === 2
-      ? `version 2 を正規化しました。元ファイル: ${proposal.backupPath}`
-      : `version 2 へ変換しました。元ファイル: ${proposal.backupPath}`);
+      ? `Normalized version 2. Original file: ${proposal.backupPath}`
+      : `Converted to version 2. Original file: ${proposal.backupPath}`);
   }
   return { exitCode: 0, proposal };
 }
@@ -104,16 +104,16 @@ function loadMigrateModule(assets) {
   try {
     return require(modulePath);
   } catch (cause) {
-    throw new Error(`変換器を読み込めません: ${modulePath} (${messageOf(cause)})`);
+    throw new Error(`Cannot load the converter: ${modulePath} (${messageOf(cause)})`);
   }
 }
 
 function parseArguments(args, cwd) {
   const flags = new Set(args.filter(value => value.startsWith('-')));
   const unknown = [...flags].filter(value => !['--yes', '-y', '--dry-run', '--json', '--help', '-h'].includes(value));
-  if (unknown.length > 0) return { ok: false, message: `未知のオプションです: ${unknown.join(', ')}` };
+  if (unknown.length > 0) return { ok: false, message: `Unknown option: ${unknown.join(', ')}` };
   const positional = args.filter(value => !value.startsWith('-'));
-  if (positional.length > 1) return { ok: false, message: '引数のプロジェクトディレクトリは 1 つだけ指定できます。' };
+  if (positional.length > 1) return { ok: false, message: 'Only one project directory can be given.' };
   return {
     ok: true,
     help: flags.has('--help') || flags.has('-h'),
@@ -127,7 +127,7 @@ function parseArguments(args, cwd) {
 async function promptForConfirmation() {
   const readline = createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = await readline.question('上記の内容で version 2 へ変換しますか? [y/N] ');
+    const answer = await readline.question('Convert to version 2 with the changes above? [y/N] ');
     return /^(?:y|yes)$/iu.test(answer.trim());
   } finally {
     readline.close();
@@ -136,15 +136,15 @@ async function promptForConfirmation() {
 
 export function migrateHelp() {
   return [
-    '使い方: akari migrate [dir] [--yes] [--dry-run] [--json]',
+    'Usage: akari migrate [dir] [--yes] [--dry-run] [--json]',
     '',
-    'v0/v1 の edit.json を v2 へ片道変換し、v2 は正規形へ移行します。',
-    '既定は変更内容を表示して y/n で確認し、変換前の全文を .akari/backup/ へ退避します。',
+    'Converts a v0/v1 edit.json to v2 (one way), and moves a v2 file to its canonical form.',
+    'By default it shows the changes and asks y/n, and saves the full original to .akari/backup/ first.',
     '',
-    '  --yes, -y   表示後の確認を省略',
-    '  --dry-run   提案の表示だけで書き込まない',
-    '  --json      機械可読な JSON を出力',
-    '  --help, -h  このヘルプを表示'
+    '  --yes, -y   Skip the confirmation after showing the changes',
+    '  --dry-run   Only show the proposal and write nothing',
+    '  --json      Print machine-readable JSON',
+    '  --help, -h  Show this help'
   ];
 }
 

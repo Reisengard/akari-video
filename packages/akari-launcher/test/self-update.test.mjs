@@ -154,7 +154,7 @@ serverTest('applySelfUpdate: 正常系 — DL・sha256 検証・展開・スワ�
         assert.equal(result.exitCode, 0);
         assert.equal(result.applied, true);
         assert.equal(result.version, '0.2.0');
-        assert.ok(lines.some((line) => line.includes('v0.2.0 に更新しました')), JSON.stringify(lines));
+        assert.ok(lines.some((line) => line.includes('Updated to v0.2.0')), JSON.stringify(lines));
         assert.ok(lines.some((line) => line.includes(feed.notes_url)));
 
         const appDir = resolveAppDir(env);
@@ -203,7 +203,7 @@ serverTest('applySelfUpdate: sha256 不一致（1 バイト改竄）なら適用
 
         assert.equal(result.exitCode, 1);
         assert.equal(result.applied, false);
-        assert.ok(lines.some((line) => line.includes('sha256 不一致')), JSON.stringify(lines));
+        assert.ok(lines.some((line) => line.includes('sha256 mismatch')), JSON.stringify(lines));
 
         const appDir = resolveAppDir(env);
         assert.equal(await packageVersionAt(appDir), '0.1.0', 'app は改竄検出時に一切変更されないこと');
@@ -229,7 +229,7 @@ serverTest('applySelfUpdate: ダウンロード途中失敗（接続不可）で
 
     assert.equal(result.exitCode, 1);
     assert.equal(result.applied, false);
-    assert.ok(lines.some((line) => line.includes('ダウンロードに失敗しました')), JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Downloading the update failed')), JSON.stringify(lines));
 
     const appDir = resolveAppDir(env);
     assert.equal(await packageVersionAt(appDir), '0.1.0');
@@ -245,7 +245,7 @@ serverTest('applySelfUpdate: フィードに components.app が無ければ適�
     const result = await applySelfUpdate({ env, feed, log });
     assert.equal(result.exitCode, 1);
     assert.equal(result.applied, false);
-    assert.ok(lines.some((line) => line.includes('app 成分がありません')));
+    assert.ok(lines.some((line) => line.includes('The update feed has no app component')));
   });
 });
 
@@ -274,7 +274,7 @@ serverTest('rollbackSelfUpdate: app-previous を app へ戻す（往復可能）
         const rollbackResult = rollbackSelfUpdate({ env, log });
         assert.equal(rollbackResult.exitCode, 0);
         assert.equal(rollbackResult.rolledBack, true);
-        assert.ok(lines.some((line) => line.includes('v0.1.0 へロールバックしました')), JSON.stringify(lines));
+        assert.ok(lines.some((line) => line.includes('Rolled back to v0.1.0')), JSON.stringify(lines));
 
         const appDir = resolveAppDir(env);
         assert.equal(await packageVersionAt(appDir), '0.1.0', 'app が旧版へ戻ること');
@@ -292,7 +292,7 @@ serverTest('rollbackSelfUpdate: app-previous が無ければロールバック�
     const result = rollbackSelfUpdate({ env, log });
     assert.equal(result.exitCode, 1);
     assert.equal(result.rolledBack, false);
-    assert.ok(lines.some((line) => line.includes('ロールバック対象がありません')));
+    assert.ok(lines.some((line) => line.includes('Nothing to roll back to')));
   });
 });
 
@@ -353,7 +353,7 @@ serverTest('stageSelfUpdate → swapStagedApp: 2 段に分けて呼んでも app
 
         assert.equal(result.exitCode, 0);
         assert.equal(result.applied, true);
-        assert.ok(lines.some((line) => line.includes('v0.2.0 に更新しました')), JSON.stringify(lines));
+        assert.ok(lines.some((line) => line.includes('Updated to v0.2.0')), JSON.stringify(lines));
         assert.ok(lines.some((line) => line.includes(feed.notes_url)));
 
         const appDir = resolveAppDir(env);
@@ -391,7 +391,7 @@ serverTest('swapStagedApp: ロック取得に失敗したら静かに見送り�
         assert.equal(result.exitCode, 1);
         assert.equal(result.applied, false);
         assert.equal(result.lockContention, true);
-        assert.ok(lines.some((line) => line.includes('他のプロセスが更新を適用中')), JSON.stringify(lines));
+        assert.ok(lines.some((line) => line.includes('Another process is applying an update')), JSON.stringify(lines));
         assert.equal(await packageVersionAt(resolveAppDir(env)), '0.1.0', 'ロック競合時は app が変更されないこと');
         assert.equal(existsSync(resolveAppPreviousDir(env)), false);
         // 呼び出し元が保持していたロック（他プロセスを模したもの）は解放されないままである

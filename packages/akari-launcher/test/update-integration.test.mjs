@@ -127,12 +127,12 @@ serverTest('akari 実行 1 回目: キャッシュ未形成のため通知なし
       await run([], { ...baseOptions, log: log2 });
       const notice = lines2.find((line) => line.startsWith('⬆ AKARI Video'));
       assert.ok(notice, '2 回目は通知が出ること（実出力: ' + JSON.stringify(lines2) + '）');
-      assert.equal(notice, '⬆ AKARI Video v0.2.0（プレリリース）があります（現在 v0.1.0）→ 詳細: akari update');
+      assert.equal(notice, '⬆ AKARI Video v0.2.0 (prerelease) is available (current v0.1.0) → details: akari update');
 
       // akari update --dismiss で今回の版を既読にする。
       const { log: logUpdate, lines: linesUpdate } = collectLogs();
       await runUpdateCommand(['--dismiss'], { log: logUpdate, env, currentVersion: '0.1.0', fetchImpl: OFFLINE_FETCH });
-      assert.ok(linesUpdate.some((line) => line.includes('今後表示しません')), '実出力: ' + JSON.stringify(linesUpdate));
+      assert.ok(linesUpdate.some((line) => line.includes('will no longer be shown')), '実出力: ' + JSON.stringify(linesUpdate));
 
       // 3 回目: dismissed 済みのため通知は出ない。
       const { log: log3, lines: lines3 } = collectLogs();

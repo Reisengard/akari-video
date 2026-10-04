@@ -1,14 +1,14 @@
 import { compareVersions } from './update-check.mjs';
 
 const AUTONOMY_LABELS = {
-  'full-auto': 'すべておまかせ',
-  checkpoint: '要所で確認（既定）',
-  collaborative: '相談しながら'
+  'full-auto': 'As is',
+  checkpoint: 'With suggestions (default)',
+  collaborative: 'Make it together'
 };
 
 /** channel が prerelease のときだけ付ける版名の注記（CLI・シェルで共通の規則）。 */
 function channelSuffix(channel) {
-  return channel === 'prerelease' ? '（プレリリース）' : '';
+  return channel === 'prerelease' ? ' (prerelease)' : '';
 }
 
 /**
@@ -16,40 +16,40 @@ function channelSuffix(channel) {
  */
 export function describeIntake(intake, taskLabels) {
   if (!intake) {
-    return '進め方フォーム（.akari/intake.json）がまだありません。';
+    return 'There is no intake form (.akari/intake.json) yet.';
   }
   if (intake.status !== 'submitted') {
-    return '進め方はまだ未確定です（.akari/intake.json: draft）。intake フォーム、または対話で「やること・尺・おまかせ度」を確定してください。';
+    return 'How to proceed is not settled yet (.akari/intake.json: draft). Settle what to do, the length, and how much to leave to the agent in the intake form or in conversation.';
   }
 
   const tasks = Array.isArray(intake.tasks) ? intake.tasks : [];
   const taskText = tasks.length > 0
-    ? tasks.map((id) => taskLabels?.[id] ?? id).join('、')
-    : '（やること未選択）';
-  const autonomyText = AUTONOMY_LABELS[intake.autonomy] ?? intake.autonomy ?? '未設定';
+    ? tasks.map((id) => taskLabels?.[id] ?? id).join(', ')
+    : '(no tasks selected)';
+  const autonomyText = AUTONOMY_LABELS[intake.autonomy] ?? intake.autonomy ?? 'not set';
   const target = intake.target ?? {};
   const targetText = target.keep_length
-    ? '尺は素材のまま'
+    ? 'keep the footage length'
     : typeof target.duration_s === 'number'
-      ? `目標尺 ${target.duration_s} 秒`
-      : '尺は未指定';
+      ? `target length ${target.duration_s} s`
+      : 'length not specified';
 
-  return `進め方: ${taskText} / ${targetText} / 進め方は${autonomyText}。この内容で進めます。`;
+  return `How to proceed: ${taskText} / ${targetText} / autonomy: ${autonomyText}. Proceeding with this.`;
 }
 
 export function claudeMissingGuidance() {
   return [
-    'claude コマンドが見つかりませんでした。',
-    'Claude Code をインストールしてください: https://claude.ai/install.sh',
-    'インストール後、このフォルダーで再度 `akari` を実行してください。'
+    'The claude command was not found.',
+    'Install Claude Code: https://claude.ai/install.sh',
+    'After installing, run `akari` again in this folder.'
   ].join('\n');
 }
 
 export function opencodeMissingGuidance() {
   return [
-    'opencode コマンドが見つかりませんでした。',
-    'opencode をインストールしてください: npm install -g opencode-ai',
-    'インストール後、このフォルダーで再度 `akari --opencode` を実行してください。'
+    'The opencode command was not found.',
+    'Install opencode: npm install -g opencode-ai',
+    'After installing, run `akari --opencode` again in this folder.'
   ].join('\n');
 }
 
@@ -65,27 +65,27 @@ export function formatUpdateNotice(status) {
     return null;
   }
   const current = status.mismatch
-    ? `CLI v${status.cliVersion} / 本体 v${status.appVersion} → ${versionRelationLabel(status)}`
-    : `現在 v${status.currentVersion}`;
-  return `⬆ AKARI Video v${status.latestVersion}${channelSuffix(status.channel)}があります（${current}）→ 詳細: akari update`;
+    ? `CLI v${status.cliVersion} / app v${status.appVersion} → ${versionRelationLabel(status)}`
+    : `current v${status.currentVersion}`;
+  return `⬆ AKARI Video v${status.latestVersion}${channelSuffix(status.channel)} is available (${current}) → details: akari update`;
 }
 
 /** `akari doctor` 系出力に足す 1 行（現在版 + フィード取得状態）。 */
 export function describeVersionStatus(versionOrInfo, cache, runtimeDiagnostics) {
   if (typeof versionOrInfo === 'string') {
     if (!cache?.feed) {
-      return `バージョン: v${versionOrInfo}（更新フィード: 未取得）`;
+      return `Version: v${versionOrInfo} (update feed: not fetched)`;
     }
-    const fetchedAt = typeof cache.fetched_at === 'string' ? cache.fetched_at : '不明';
-    return `バージョン: v${versionOrInfo}（更新フィード: 取得済み・${fetchedAt} 時点）`;
+    const fetchedAt = typeof cache.fetched_at === 'string' ? cache.fetched_at : 'unknown';
+    return `Version: v${versionOrInfo} (update feed: fetched, as of ${fetchedAt})`;
   }
   const info = normalizeVersionInfo(versionOrInfo);
   const installed = describeInstalledVersions(info, runtimeDiagnostics).join(' / ');
   if (!cache?.feed) {
-    return `${installed}（更新フィード: 未取得）`;
+    return `${installed} (update feed: not fetched)`;
   }
-  const fetchedAt = typeof cache.fetched_at === 'string' ? cache.fetched_at : '不明';
-  return `${installed}（更新フィード: 取得済み・${fetchedAt} 時点）`;
+  const fetchedAt = typeof cache.fetched_at === 'string' ? cache.fetched_at : 'unknown';
+  return `${installed} (update feed: fetched, as of ${fetchedAt})`;
 }
 
 export function describeInstalledVersions(versionOrInfo, runtimeDiagnostics) {
@@ -93,49 +93,49 @@ export function describeInstalledVersions(versionOrInfo, runtimeDiagnostics) {
   if (info.installRefNeedsRepair) {
     const installRefPath = info.installRefPath ?? '~/.akari/app/.akari-install-ref';
     return [
-      `CLI バージョン: v${info.cliVersion}`,
-      `本体版を判定できません（\`${installRefPath}\` が壊れています）。`,
-      '修復するには `akari update --force` を実行してください。'
+      `CLI version: v${info.cliVersion}`,
+      `The app version cannot be determined (\`${installRefPath}\` is damaged).`,
+      'To repair it, run `akari update --force`.'
     ];
   }
   if (!info.appVersion) {
     if (info.installRefStatus === 'missing' && runtimeDiagnostics?.render_cut) {
       const renderCut = runtimeDiagnostics.render_cut;
       const availability = renderCut.origin === 'none'
-        ? 'render-cut が見つからないため書き出しできません'
-        : `書き出しは ${humanRenderOrigin(renderCut.origin)} の render-cut を使います`;
+        ? 'render-cut was not found, so export is not possible'
+        : `export uses render-cut from ${humanRenderOrigin(renderCut.origin)}`;
       const lines = [
-        `現在のバージョン: v${info.currentVersion}`,
-        `CLI バージョン: v${info.cliVersion}`,
-        `install.sh 経路の本体は未導入（${availability}。詳細: \`akari doctor\`）`,
+        `Current version: v${info.currentVersion}`,
+        `CLI version: v${info.cliVersion}`,
+        `The app from install.sh is not installed (${availability}. Details: \`akari doctor\`)`,
       ];
       if (renderCut.origin === 'none') {
-        lines.push('復旧するにはデスクトップ版を導入するか、install.sh 経路の本体を導入してください。');
+        lines.push('To recover, install the desktop app or install the app with install.sh.');
       }
       return lines;
     }
     return [
-      `現在のバージョン: v${info.currentVersion}`,
-      `CLI バージョン: v${info.cliVersion}`,
-      `本体バージョン: 未記録（更新判定は CLI v${info.currentVersion} へフォールバック）`
+      `Current version: v${info.currentVersion}`,
+      `CLI version: v${info.cliVersion}`,
+      `App version: not recorded (update checks fall back to CLI v${info.currentVersion})`
     ];
   }
-  const lines = [`CLI バージョン: v${info.cliVersion}`, `本体バージョン: v${info.appVersion}（更新判定の基準）`];
+  const lines = [`CLI version: v${info.cliVersion}`, `App version: v${info.appVersion} (the basis for update checks)`];
   if (info.mismatch) {
-    lines.push(`版のずれ: CLI v${info.cliVersion} / 本体 v${info.appVersion} → ${versionRelationLabel(info)}`);
+    lines.push(`Version mismatch: CLI v${info.cliVersion} / app v${info.appVersion} → ${versionRelationLabel(info)}`);
   }
   return lines;
 }
 
 function humanRenderOrigin(origin) {
-  return origin === 'monorepo' ? '開発リポジトリ' : origin;
+  return origin === 'monorepo' ? 'the development repository' : origin;
 }
 
 export function describeForceReinstall(versionOrInfo, targetVersion) {
   const info = normalizeVersionInfo(versionOrInfo);
   return info.installRefNeedsRepair
-    ? `--force: 版を判定できない install.sh 経路の本体 → v${targetVersion} を入れ直します。`
-    : `--force: install.sh 経路の本体 v${info.currentVersion} → v${targetVersion} を入れ直します。`;
+    ? `--force: reinstalling the install.sh app, whose version cannot be determined → v${targetVersion}.`
+    : `--force: reinstalling the install.sh app v${info.currentVersion} → v${targetVersion}.`;
 }
 
 function normalizeVersionInfo(value) {
@@ -146,15 +146,15 @@ function normalizeVersionInfo(value) {
 }
 
 function versionRelationLabel(info) {
-  return compareVersions(info.appVersion, info.cliVersion) < 0 ? '本体が古い' : 'CLI が古い';
+  return compareVersions(info.appVersion, info.cliVersion) < 0 ? 'the app is older' : 'the CLI is older';
 }
 
 function formatVersionMismatch(info) {
   const relation = versionRelationLabel(info);
-  const guidance = relation === '本体が古い'
-    ? '`akari update` で本体を更新してください。'
-    : '`npm i -g akari-video@latest` で CLI を更新してください。';
-  return `⚠ CLI v${info.cliVersion} / 本体 v${info.appVersion} → ${relation}。${guidance}`;
+  const guidance = relation === 'the app is older'
+    ? 'Update the app with `akari update`.'
+    : 'Update the CLI with `npm i -g akari-video@latest`.';
+  return `⚠ CLI v${info.cliVersion} / app v${info.appVersion} → ${relation}. ${guidance}`;
 }
 
 /**
@@ -164,27 +164,27 @@ function formatVersionMismatch(info) {
 
 /** (a) 既存プロジェクトが作業場の中にある場合に添える 1 行。 */
 export function creatorRootFoundNotice(rootDir) {
-  return `作業場: ${rootDir}`;
+  return `Workspace: ${rootDir}`;
 }
 
 /** (b) 作業場の中だがプロジェクトではない cwd から新規プロジェクトを作るときの 1 行。 */
 export function creatorRootNewProjectNotice(rootDir, projectDir) {
-  return `作業場 ${rootDir} に新規プロジェクトを作成します: ${projectDir}`;
+  return `Creating a new project in the workspace ${rootDir}: ${projectDir}`;
 }
 
 /** (c) 作業場を新規作成してプロジェクトを作るときの 1 行。 */
 export function creatorRootCreatedNotice(rootDir, projectDir) {
-  return `作業場を作成しました: ${rootDir}（新規プロジェクト: ${projectDir}）`;
+  return `Workspace created: ${rootDir} (new project: ${projectDir})`;
 }
 
 /** (c) 作業場の作成でエラーが発生した場合の 1 行（このフォルダでの単体運用を続ける）。 */
 export function creatorRootCreateFailedNotice(errorMessage) {
-  return `作業場の作成でエラーが発生しました（このフォルダでの単体運用を続けます）: ${errorMessage}`;
+  return `Creating the workspace failed (continuing in this folder on its own): ${errorMessage}`;
 }
 
 /** (c) の TTY プロンプト文言。既定パスを 1 行で提示する。 */
 export function creatorRootPromptText(defaultPath) {
-  return `作業場を作って始めますか？ [Enter: ${defaultPath} / パスを入力 / n: このフォルダだけで試す] `;
+  return `Create a workspace to start in? [Enter: ${defaultPath} / type a path / n: just try this folder] `;
 }
 
 /**
@@ -193,11 +193,11 @@ export function creatorRootPromptText(defaultPath) {
  */
 export function describeUpdateCommand({ currentVersion, versionInfo, cache, dismissed, usingCachedFeed = false, runtimeDiagnostics, npmAvailable = true }) {
   const info = versionInfo ?? normalizeVersionInfo(currentVersion);
-  const lines = versionInfo ? describeInstalledVersions(info, runtimeDiagnostics) : [`現在のバージョン: v${currentVersion}`];
+  const lines = versionInfo ? describeInstalledVersions(info, runtimeDiagnostics) : [`Current version: v${currentVersion}`];
   const feed = cache?.feed;
   if (!feed) {
-    lines.push('最新情報をまだ取得できていません（オフライン、または初回起動直後の可能性があります）。');
-    lines.push('少し待ってから、もう一度 `akari` を実行すると次回チェックされます。');
+    lines.push('The latest information has not been fetched yet (you may be offline, or this may be right after the first launch).');
+    lines.push('Wait a little and run `akari` again, and it will be checked next time.');
     return lines;
   }
 
@@ -205,40 +205,40 @@ export function describeUpdateCommand({ currentVersion, versionInfo, cache, dism
     lines.push(describeUpdateCacheFallback(cache));
   }
 
-  lines.push(`最新バージョン: v${feed.product}${channelSuffix(feed.channel)}`);
+  lines.push(`Latest version: v${feed.product}${channelSuffix(feed.channel)}`);
   if (feed.notes_url) {
-    lines.push(`リリースノート: ${feed.notes_url}`);
+    lines.push(`Release notes: ${feed.notes_url}`);
   }
 
   if (info.installRefNeedsRepair) {
-    lines.push('本体版を判定できないため、更新判定を行いません。');
+    lines.push('The app version cannot be determined, so no update check is made.');
     return lines;
   }
 
   if (compareVersions(feed.product, info.currentVersion) <= 0) {
-    lines.push('お使いのバージョンは最新です。');
+    lines.push('You are on the latest version.');
     return lines;
   }
 
   const tarballUrl = feed.components?.cli?.tarball?.url;
   if (npmAvailable) {
-    lines.push('CLI を更新するには、次のコマンドを実行してください（自動実行はしません）:');
+    lines.push('To update the CLI, run this command (it is not run for you):');
     lines.push(tarballUrl ? `  npm i -g ${tarballUrl}` : '  npm i -g akari-video@latest');
   } else {
-    lines.push('npm が PATH に無いため、CLI の npm 更新コマンドは表示しません。');
+    lines.push('npm is not on PATH, so the npm command for updating the CLI is not shown.');
   }
   lines.push(
     dismissed
-      ? `この版（v${feed.product}）の通知は今後表示しません。`
-      : 'この版の通知を今後出さない場合は `akari update --dismiss` を実行してください。'
+      ? `Notices for this version (v${feed.product}) will no longer be shown.`
+      : 'To stop notices for this version, run `akari update --dismiss`.'
   );
   return lines;
 }
 
 /** 明示 update の再取得失敗時に、参照するキャッシュの取得時刻を示す 1 行。 */
 export function describeUpdateCacheFallback(cache) {
-  const fetchedAt = typeof cache?.fetched_at === 'string' ? cache.fetched_at : '取得時刻不明';
-  return `更新フィードを取得できなかったため、${fetchedAt} 時点のキャッシュを表示します。`;
+  const fetchedAt = typeof cache?.fetched_at === 'string' ? cache.fetched_at : 'an unknown time';
+  return `The update feed could not be fetched, so the cache from ${fetchedAt} is shown.`;
 }
 
 /**
@@ -248,22 +248,22 @@ export function describeUpdateCacheFallback(cache) {
 
 /** 既存の作業場が見つかり、何も作らず確認しただけの場合の人間向け行。 */
 export function initFoundNotice(rootDir) {
-  return `既存の作業場を確認しました: ${rootDir}`;
+  return `Found the existing workspace: ${rootDir}`;
 }
 
 /** 新規に作業場を作成した場合の人間向け行。 */
 export function initCreatedNotice(rootDir) {
-  return `作業場を作成しました: ${rootDir}`;
+  return `Workspace created: ${rootDir}`;
 }
 
 /** creator-root モジュールが解決できない場合のエラー（stderr 1 行。init にフォールバック先は無い）。 */
 export function initModuleMissingError() {
-  return '作業場モジュール（creator-root）が見つかりませんでした。';
+  return 'The workspace module (creator-root) was not found.';
 }
 
 /** 作業場の初期化に失敗した場合のエラー（root.json 破損・未知 schema・書き込み不能など。stderr 1 行）。 */
 export function initFailedError(errorMessage) {
-  return `作業場の初期化に失敗しました: ${errorMessage}`;
+  return `Initializing the workspace failed: ${errorMessage}`;
 }
 
 /**
@@ -285,27 +285,27 @@ export function initFailedError(errorMessage) {
 
 /** `akari` 起動時に生涯 1 回だけ出す素材案内（質問ではない・対話をブロックしない）。 */
 export function assetIntroNotice() {
-  return '素材（B-roll・背景・音源）は使うときに必要な分だけ自動で取得されます。無料の素材パックもあります — `akari store connect` でアカウント連携すると使えるようになります。まとめて音源だけ欲しい場合は `akari sounds` で一括ダウンロードできます（この案内は次回以降表示しません）。';
+  return 'Assets (B-roll, backgrounds, audio) are fetched automatically when they are used, only as much as needed. There is also a free asset pack: link your account with `akari store connect` to use it. If you only want the audio in bulk, `akari sounds` downloads it all at once (this notice is not shown again).';
 }
 
 /** ダウンロード成功後の完了 + 追加カタログ（外部補完）の案内。`akari sounds` の完了時に使う。 */
 export function soundsCompleteNotice() {
-  return '公式音源ライブラリの登録が完了しました。公式に無い系統（拍手・失敗音・和風打撃など）は追加カタログにあります — セッションで「追加の音源も入れて」と頼むと取得を代行します。';
+  return 'The official sound library is registered. Sounds it does not have (applause, fail sounds, Japanese-style hits, and so on) are in an additional catalog: ask in a session to "add the extra sounds too" and they are fetched for you.';
 }
 
 /** ダウンロード失敗時の 1 行（起動は止めない・再入口を示す）。 */
 export function soundsFailedNotice() {
-  return '音源のダウンロードに失敗しました（続行します）。後から `akari sounds` で再試行できます。';
+  return 'Downloading the sounds failed (continuing). You can retry later with `akari sounds`.';
 }
 
 /** `akari sounds`: セットアップスクリプトが同梱されていない場合のエラー（stderr 1 行）。 */
 export function soundsUnavailableError() {
-  return '音源セットアップスクリプト（audio-library-setup）が見つかりませんでした。';
+  return 'The sound setup script (audio-library-setup) was not found.';
 }
 
 /** `akari assets`: 素材 resolver（asset-resolver）が同梱されていない場合のエラー（stderr 1 行）。 */
 export function assetsResolverUnavailableError() {
-  return '素材 resolver（asset-resolver）が見つかりませんでした。`akari assets` は使えません。';
+  return 'The asset resolver (asset-resolver) was not found. `akari assets` cannot be used.';
 }
 
 /**
@@ -318,32 +318,32 @@ export function assetsResolverUnavailableError() {
  */
 export function describeCliHelp() {
   return [
-    'AKARI Video — AI が主体で動画を編集するツール',
+    'AKARI Video — a video editing tool where AI does the editing',
     '',
-    '使い方: akari [command] [options...]',
+    'Usage: akari [command] [options...]',
     '',
-    'よく使うコマンド:',
-    '  (引数なし)              プロジェクトを開いて AI エージェントを起動（未作成なら自動作成）',
-    '  store connect          アカウント連携（無料の素材パックと購入済み素材が使えるようになる）',
-    '  sounds                 公式音源ライブラリを一括ダウンロード（無料）',
-    '  doctor [--json]        必須部品の実在と解決元を診断する',
-    '  update [--force]       更新を確認する（--force で install.sh 経路の本体を入れ直す）',
-    '  status                 接続状態を確認する',
-    '  migrate [dir]          古い edit.json を退避バックアップ付きで v2 へ変換',
-    '  generate               台本のビートから静止画クリップを生成',
-    '  storyboard             タイムラインから印刷用の絵コンテを作成',
-    '  akari clean [dir]      使い捨ての中間ファイルを一覧・削除（既定は一覧のみ）',
+    'Common commands:',
+    '  (no arguments)         Open the project and start the AI agent (created automatically if missing)',
+    '  store connect          Link your account (the free asset pack and purchased assets become available)',
+    '  sounds                 Download the official sound library in one go (free)',
+    '  doctor [--json]        Diagnose whether the required parts exist and where they are resolved from',
+    '  update [--force]       Check for updates (--force reinstalls the app that install.sh installs)',
+    '  status                 Check the connection status',
+    '  migrate [dir]          Convert an old edit.json to v2, with a backup',
+    '  generate               Generate still-image clips from the beats of a script',
+    '  storyboard             Make a printable storyboard from the timeline',
+    '  akari clean [dir]      List and delete disposable intermediate files (lists only by default)',
     '',
-    '開発者向け:',
-    '  --opencode              Claude Code の代わりに opencode を起動する',
-    '  --claude, --claudecode  Claude Code を明示的に起動する',
-    '  -y, --yes               自動承認（確認をスキップ）',
-    '  --version, -v            インストール済みのバージョンを表示',
-    '  new <dir>                雛形からプロジェクトを新規作成',
-    '  init                     保存フォルダ（作業場）だけを作成・確認',
-    '  narration / assets / internal / capability   各機能の詳細は `akari <command> --help`',
-    '  -h, --help               このヘルプを表示',
+    'For developers:',
+    '  --opencode              Start opencode instead of Claude Code',
+    '  --claude, --claudecode  Start Claude Code explicitly',
+    '  -y, --yes               Auto-approve (skip confirmations)',
+    '  --version, -v            Show the installed version',
+    '  new <dir>                Create a new project from the template',
+    '  init                     Only create or check the save folder (workspace)',
+    '  narration / assets / internal / capability   For details of each: `akari <command> --help`',
+    '  -h, --help               Show this help',
     '',
-    'プレビューサーバー（ブラウザで確認する画面）はシェル版のみ対応です: akari.sh --preview'
+    'The preview server (the page you check in a browser) is only in the shell version: akari.sh --preview'
   ];
 }

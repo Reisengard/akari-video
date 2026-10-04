@@ -9,7 +9,7 @@ export async function runWorldCommand(args, options = {}) {
   const assets = options.assets ?? resolveLauncherAssets();
   const script = assets.repoRoot ? path.join(assets.repoRoot, WORLD_CLI_RELATIVE) : null;
   if (!script || !existsSync(script)) {
-    logError('内部コマンド world の実行スクリプトが見つかりません。AKARI Video の完全な checkout または配布物を確認してください。');
+    logError('The script for the internal command world was not found. Check that you have a complete AKARI Video checkout or distribution.');
     return { exitCode: 1 };
   }
   const result = (options.spawn ?? spawnSync)(process.execPath, [script, ...args], { stdio: 'inherit' });

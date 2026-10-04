@@ -119,7 +119,7 @@ test('asset の既存実ディレクトリを壊さず warning にする', () =>
       validateAssetPath: '/fixture/validator.mjs', spawnSyncImpl: () => ({ status: 0 })
     });
     assert.equal(readFileSync(path.join(destination, 'keep.txt'), 'utf8'), 'keep');
-    assert.match(result.warnings.join('\n'), /既存の実ディレクトリ/u);
+    assert.match(result.warnings.join('\n'), /existing real directory/u);
   } finally { ctx.cleanup(); }
 });
 
@@ -132,7 +132,7 @@ test('別キットの同名 skill は blocker', () => {
     mkdirSync(path.join(second, 'skills', 'same'), { recursive: true });
     const manifest = { skills: [{ dir: 'skills/same', name: 'same' }] };
     linkKitSkills(first, manifest, ctx.home);
-    assert.match(linkKitSkills(second, manifest, ctx.home).blockers.join('\n'), /別のキット/u);
+    assert.match(linkKitSkills(second, manifest, ctx.home).blockers.join('\n'), /another kit/u);
   } finally { ctx.cleanup(); }
 });
 

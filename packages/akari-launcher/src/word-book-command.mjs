@@ -7,7 +7,7 @@ export async function runWordBookCommand(args, options = {}) {
   const assets = options.assets ?? resolveLauncherAssets();
   const spawn = options.spawn ?? spawnSync;
   if (!assets.wordBookScript) {
-    logError("akari word-book の実行スクリプトが見つかりません。完全な AKARI Video を再導入してください:");
+    logError("The script for akari word-book was not found. Reinstall the complete AKARI Video:");
     logError("  npm install -g akari-video");
     return { exitCode: 1 };
   }

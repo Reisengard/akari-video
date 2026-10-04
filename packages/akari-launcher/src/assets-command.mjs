@@ -35,7 +35,7 @@ export async function runAssetsCommand(args, options = {}) {
   // first-party Sounds fetcher, while the resolver catalog contains only individual IDs.
   if (args[0] === 'fetch' && /^akari-sounds-[a-z0-9-]+$/u.test(args[1] ?? '')) {
     if (!assets?.audioFetchScriptPath) {
-      logError('AKARI Sounds の取得スクリプトが同梱されていません');
+      logError('The AKARI Sounds fetch script is not bundled');
       return { exitCode: 1 };
     }
     const spawn = options.spawnSoundsCli ?? defaultSpawnAssetsCli;

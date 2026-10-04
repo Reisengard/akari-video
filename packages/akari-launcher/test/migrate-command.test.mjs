@@ -117,7 +117,7 @@ test('正規形の v2 は「変換の必要はありません」で exit 0・バ
       migrate, log: line => lines.push(line), error: () => {},
     });
     assert.equal(result.exitCode, 0);
-    assert.match(lines.join('\n'), /変換の必要はありません/u);
+    assert.match(lines.join('\n'), /No conversion is needed/u);
     assert.equal(await readFile(editPath, 'utf8'), text);
   } finally {
     await rm(root, { recursive: true, force: true });

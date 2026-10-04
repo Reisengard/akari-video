@@ -23,11 +23,11 @@ test('akari world: スクリプト不在は既存 internal-command と同じ案�
   const errors = [];
   const result = await runWorldCommand([], { assets: { repoRoot: '/not/a/repository' }, logError: (line) => errors.push(line) });
   assert.equal(result.exitCode, 1);
-  assert.match(errors.join('\n'), /完全な checkout または配布物/);
+  assert.match(errors.join('\n'), /complete AKARI Video checkout or distribution/);
 });
 
 test('akari --help: world が一覧に出る', async () => {
   const result = spawnSync(process.execPath, [new URL('../bin/akari.mjs', import.meta.url).pathname, '--help'], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /world\s+ワールド地図/);
+  assert.match(result.stdout, /world\s+Check, generate, and preview the world map/);
 });

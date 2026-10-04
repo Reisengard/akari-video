@@ -4,44 +4,44 @@ import path from 'node:path';
 const RECENT_GUARD_MS = 60 * 60 * 1000;
 
 export const CLEAN_MANIFEST = Object.freeze([
-  manifest('.akari/render-tmp/*', 'disposable', '書き出しの一時作業領域', 'render-cut'),
-  manifest('.akari/cache/**', 'disposable', '原本から再生成できるキャッシュ', 'AKARI Video'),
-  manifest('.akari/diffs/*', 'disposable', '「変更を見る」で再生成できる差分', 'AKARI Video'),
-  manifest('exports/*.gpu-video.mp4', 'disposable', 'GPU 書き出しの映像中間ファイル', 'render-cut'),
-  manifest('exports/*.osr-video.mp4', 'disposable', 'OSR 書き出しの映像中間ファイル', 'render-cut'),
-  manifest('exports/run.json', 'disposable', '書き出し子プロセスの一時記録', 'render-cut'),
-  manifest('.akari/work/tmp/**', 'disposable', '明示された使い捨て作業領域', '実行したスキル'),
-  manifest('.akari/work/** (with .akari-disposable)', 'disposable', '使い捨て目印がある作業領域', '実行したスキル'),
+  manifest('.akari/render-tmp/*', 'disposable', 'Temporary work area for export', 'render-cut'),
+  manifest('.akari/cache/**', 'disposable', 'Cache that can be rebuilt from the originals', 'AKARI Video'),
+  manifest('.akari/diffs/*', 'disposable', 'Diffs that "View changes" can rebuild', 'AKARI Video'),
+  manifest('exports/*.gpu-video.mp4', 'disposable', 'Video intermediates from GPU export', 'render-cut'),
+  manifest('exports/*.osr-video.mp4', 'disposable', 'Video intermediates from OSR export', 'render-cut'),
+  manifest('exports/run.json', 'disposable', 'Temporary records from the export child process', 'render-cut'),
+  manifest('.akari/work/tmp/**', 'disposable', 'Work area declared as disposable', 'the skill that ran'),
+  manifest('.akari/work/** (with .akari-disposable)', 'disposable', 'Work area with a disposable marker', 'the skill that ran'),
 
-  manifest('edit.json', 'keep', '編集内容の正本', null),
-  manifest('captions.json', 'keep', '字幕データ', null),
-  manifest('review.json', 'keep', 'レビュー注釈', null),
-  manifest('plan.json', 'keep', '承認済みの計画', null),
-  manifest('motion/**', 'keep', '再生成できないキーフレーム曲線', null),
-  manifest('assets/**', 'keep', '素材の原本', null),
-  manifest('planning/**', 'keep', '企画・計画文書', null),
-  manifest('exports/*.mp4', 'keep', '納品用の書き出し', null),
-  manifest('exports/nle/**', 'keep', 'NLE 用の書き出し', null),
-  manifest('.akari/reports/**', 'keep', '検証と人間確認の証跡', null),
-  manifest('.akari/sidecars/**', 'keep', '素材分析などの高価なサイドカー', null),
-  manifest('.akari/*.json', 'keep', 'プロジェクト状態の契約ファイル', null),
-  manifest('.akari/backup/**', 'keep', '移行前の退避', null),
-  manifest('.akari/events/**', 'keep', '節目の記録', null),
-  manifest('.akari/work/keep/**', 'keep', '作り直せない作業成果', null),
-  manifest('.akari/work/** (with .akari-keep)', 'keep', '保持目印がある作業領域', null),
-  manifest('.akari/work/**/.akari-disposable', 'keep', '作業領域の分類目印', null),
-  manifest('.akari/work/**/.akari-keep', 'keep', '作業領域の分類目印', null),
-  manifest('.claude/**', 'keep', 'プロジェクトのエージェント設定', null),
-  manifest('.opencode/**', 'keep', 'プロジェクトのエージェント設定', null),
-  manifest('AGENTS.md', 'keep', 'プロジェクトのエージェント向け案内', null),
-  manifest('CLAUDE.md', 'keep', 'プロジェクトのエージェント向け案内', null),
-  manifest('akari.sh', 'keep', 'プロジェクトの起動スクリプト', null),
-  manifest('.gitignore', 'keep', 'プロジェクトの除外設定', null),
+  manifest('edit.json', 'keep', 'The edit itself (source of truth)', null),
+  manifest('captions.json', 'keep', 'Caption data', null),
+  manifest('review.json', 'keep', 'Review annotations', null),
+  manifest('plan.json', 'keep', 'Approved plans', null),
+  manifest('motion/**', 'keep', 'Keyframe curves that cannot be regenerated', null),
+  manifest('assets/**', 'keep', 'Original footage', null),
+  manifest('planning/**', 'keep', 'Planning documents', null),
+  manifest('exports/*.mp4', 'keep', 'Exports for delivery', null),
+  manifest('exports/nle/**', 'keep', 'Exports for an NLE', null),
+  manifest('.akari/reports/**', 'keep', 'Evidence of verification and human review', null),
+  manifest('.akari/sidecars/**', 'keep', 'Costly sidecars such as footage analysis', null),
+  manifest('.akari/*.json', 'keep', 'Contract files for the project state', null),
+  manifest('.akari/backup/**', 'keep', 'Backups from before a migration', null),
+  manifest('.akari/events/**', 'keep', 'Milestone records', null),
+  manifest('.akari/work/keep/**', 'keep', 'Work that cannot be recreated', null),
+  manifest('.akari/work/** (with .akari-keep)', 'keep', 'Work area with a keep marker', null),
+  manifest('.akari/work/**/.akari-disposable', 'keep', 'Work area classification marker', null),
+  manifest('.akari/work/**/.akari-keep', 'keep', 'Work area classification marker', null),
+  manifest('.claude/**', 'keep', 'Agent settings for the project', null),
+  manifest('.opencode/**', 'keep', 'Agent settings for the project', null),
+  manifest('AGENTS.md', 'keep', 'Agent guide for the project', null),
+  manifest('CLAUDE.md', 'keep', 'Agent guide for the project', null),
+  manifest('akari.sh', 'keep', 'Project launch script', null),
+  manifest('.gitignore', 'keep', 'Ignore settings for the project', null),
 
-  manifest('.akari/work/**', 'undecided', '使い捨てと正本の区別がない作業領域', null),
-  manifest('<recent-disposable>', 'undecided', '実行中の可能性', null),
-  manifest('<symbolic-link>', 'undecided', 'シンボリックリンク（参照先は調べません）', null),
-  manifest('<unknown-top-level>', 'undecided', '宣言表に分類がありません', null),
+  manifest('.akari/work/**', 'undecided', 'Work area with no disposable or keep marker', null),
+  manifest('<recent-disposable>', 'undecided', 'May be in use', null),
+  manifest('<symbolic-link>', 'undecided', 'Symbolic link (the target is not inspected)', null),
+  manifest('<unknown-top-level>', 'undecided', 'Not classified in the declaration table', null),
 ]);
 
 const RULES = new Map(CLEAN_MANIFEST.map((entry) => [entry.pattern, entry]));
@@ -286,7 +286,7 @@ function addKnownKeep(node, keepRule, context) {
 function addDisposable(node, disposableRule, context) {
   if (node.kind === 'symlink') return addSymlink(node, context);
   if (node.hasSymlink) {
-    addEntry(node, rule('<symbolic-link>'), context, { heldReason: 'シンボリックリンクを含むため' });
+    addEntry(node, rule('<symbolic-link>'), context, { heldReason: 'It contains a symbolic link' });
     return;
   }
   addEntry(node, disposableRule, context, { guardRecent: true });
@@ -303,7 +303,7 @@ function addEntry(node, manifestRule, context, options = {}) {
   let heldReason = options.heldReason;
   if (options.guardRecent && stats.latestMtimeMs >= context.nowMs - RECENT_GUARD_MS) {
     className = 'undecided';
-    heldReason = '実行中の可能性';
+    heldReason = 'May be in use';
     reason = rule('<recent-disposable>').reason;
   }
 

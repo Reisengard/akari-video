@@ -66,7 +66,7 @@ test('akari internal: 不明なサブコマンドは一覧を添えて exit 1', 
     logError: (line) => errors.push(line)
   });
   assert.equal(result.exitCode, 1);
-  assert.match(errors.join('\n'), /不明な internal サブコマンド/);
+  assert.match(errors.join('\n'), /Unknown internal subcommand/);
   assert.match(lines.join('\n'), /beat-sync-beatmap/);
 });
 
@@ -80,5 +80,5 @@ test('akari internal: 実行スクリプトが無ければ日本語エラーで 
     }
   });
   assert.equal(result.exitCode, 1);
-  assert.match(errors.join('\n'), /実行スクリプトが見つかりません/);
+  assert.match(errors.join('\n'), /script for the internal command .* was not found/);
 });

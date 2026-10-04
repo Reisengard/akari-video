@@ -148,8 +148,8 @@ test('fixture をクラス順・パス順に分類し、60 分以内の run を�
     assert.deepEqual(
       result.undecided.find((entry) => entry.path.endsWith('/recent')),
       {
-        path: '.akari/render-tmp/recent', class: 'undecided', reason: '実行中の可能性',
-        files: 1, bytes: 6, held_reason: '実行中の可能性',
+        path: '.akari/render-tmp/recent', class: 'undecided', reason: 'May be in use',
+        files: 1, bytes: 6, held_reason: 'May be in use',
       },
     );
     for (const className of ['disposable', 'keep', 'undecided']) {
@@ -280,7 +280,7 @@ test('プロジェクト外を指す symlink は判断保留で、参照先を�
     const linkEntry = classification.undecided.find((entry) => entry.path.endsWith('outside-link'));
     assert.equal(linkEntry.path, '.akari/cache/outside-link');
     assert.equal(linkEntry.class, 'undecided');
-    assert.equal(linkEntry.reason, 'シンボリックリンク（参照先は調べません）');
+    assert.equal(linkEntry.reason, 'Symbolic link (the target is not inspected)');
     assert.equal(linkEntry.files, 1);
     assert.ok(linkEntry.bytes >= 0);
     const result = await runCleanCommand([root, '--yes'], { now: NOW, log: () => {}, error: () => {} });
@@ -310,7 +310,7 @@ test('削除失敗は exit 1・失敗パスを stderr に出し、残りも続�
     assert.equal(calls.length, result.classification.disposable.length);
     assert.equal(result.failures.length, 1);
     assert.match(errors.join('\n'), /EPERM/u);
-    assert.match(errors.join('\n'), /終了してから再実行/u);
+    assert.match(errors.join('\n'), /Quit AKARI Video and any export in progress, then run again/u);
   });
 });
 
@@ -322,7 +322,7 @@ test('edit.json が無いプロジェクトは exit 2', async () => {
       log: () => {}, error: (line) => errors.push(line),
     });
     assert.equal(result.exitCode, 2);
-    assert.match(errors.join('\n'), /edit\.json が見つかりません/u);
+    assert.match(errors.join('\n'), /edit\.json was not found/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -334,8 +334,8 @@ test('未知フラグは exit 2 で help も stderr に出す', async () => {
     log: () => {}, error: (line) => errors.push(line),
   });
   assert.equal(result.exitCode, 2);
-  assert.match(errors.join('\n'), /未知のオプション/u);
-  assert.match(errors.join('\n'), /使い方: akari clean/u);
+  assert.match(errors.join('\n'), /Unknown option/u);
+  assert.match(errors.join('\n'), /Usage: akari clean/u);
 });
 
 test('--json は分類結果だけを stdout に出す', async () => {
@@ -358,12 +358,12 @@ test('人向け一覧は 3 見出し・合計容量・由来警告を決定的�
       now: NOW, log: (line) => lines.push(line), error: () => {},
     });
     assert.equal(result.exitCode, 0);
-    assert.ok(lines.includes('削除可能:'));
-    assert.ok(lines.includes('保持:'));
-    assert.ok(lines.includes('判断保留:'));
-    assert.ok(lines.some((line) => line.startsWith('削除可能 合計 ')));
-    assert.ok(lines.some((line) => line.includes('由来: .akari/work/keep/camera-plan.json')));
-    assert.ok(lines.includes('[警告] 由来の計画ファイルが見当たりません: planning/missing.json'));
+    assert.ok(lines.includes('Disposable:'));
+    assert.ok(lines.includes('Keep:'));
+    assert.ok(lines.includes('Undecided:'));
+    assert.ok(lines.some((line) => line.startsWith('Disposable total ')));
+    assert.ok(lines.some((line) => line.includes('origin: .akari/work/keep/camera-plan.json')));
+    assert.ok(lines.includes('[warning] The plan file it came from is missing: planning/missing.json'));
   });
 });
 

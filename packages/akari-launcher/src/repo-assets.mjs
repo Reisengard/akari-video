@@ -52,9 +52,9 @@ export const WORLD_VALIDATOR_RELATIVE = path.join('packages', 'schemas', 'bin', 
 // resources は assets.repoRoot または実行中 CLI の位置から自己解決し、vendor を見ない経路。
 // relative は上の解決定数だけから組み立て、配布検査と実行時解決の文字列を乖離させない。
 export const LAUNCHER_SUBCOMMAND_EXECUTABLES = [
-  { command: '接続 doctor（manage-connections）', relative: DOCTOR_SCRIPT_RELATIVE, resolution: 'launcher-assets' },
+  { command: 'connection doctor (manage-connections)', relative: DOCTOR_SCRIPT_RELATIVE, resolution: 'launcher-assets' },
   { command: 'akari new', relative: SCAFFOLD_MODULE_RELATIVE, resolution: 'launcher-assets' },
-  { command: '初回動線（first-run）の作業場モジュール', relative: CREATOR_ROOT_MODULE_RELATIVE, resolution: 'launcher-assets' },
+  { command: 'the first-run workspace module', relative: CREATOR_ROOT_MODULE_RELATIVE, resolution: 'launcher-assets' },
   { command: 'akari sounds', relative: AUDIO_FETCH_SCRIPT_RELATIVE, resolution: 'launcher-assets' },
   { command: 'akari assets', relative: ASSET_RESOLVER_CLI_RELATIVE, resolution: 'launcher-assets' },
   { command: 'akari internal beat-sync-beatmap', relative: BEATMAP_SCRIPT_RELATIVE, resolution: 'launcher-assets' },

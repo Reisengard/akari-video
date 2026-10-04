@@ -201,7 +201,7 @@ serverTest('U5 一気通貫: 1 回目の起動で裏 staging が完了し、2 �
       //     bin/akari.mjs の先頭で自動適用が走り、その場で新版に切り替わる。
       const result = akariVersionOf(appDir, env);
 
-      assert.ok(result.includes(`v${nextVersion} に更新しました`), result);
+      assert.ok(result.includes(`Updated to v${nextVersion}`), result);
       assert.ok(result.includes(notesUrl), result);
       assert.ok(result.split('\n').includes(`v${nextVersion}`), 'akari --version が新版を返すこと');
 
@@ -216,7 +216,7 @@ serverTest('U5 一気通貫: 1 回目の起動で裏 staging が完了し、2 �
       // --- 3 回目の起動: ループガード — 既に適用済みなので、再度呼んでも通知は出ない
       //     （staging ディレクトリが既に消費済みのため自然に no-op）。
       const thirdResult = akariVersionOf(appDir, env);
-      assert.ok(!thirdResult.includes('に更新しました'), '3 回目の起動では再適用の通知が出ないこと');
+      assert.ok(!thirdResult.includes('Updated to'), '3 回目の起動では再適用の通知が出ないこと');
       assert.ok(thirdResult.split('\n').includes(`v${nextVersion}`));
     });
   });
@@ -247,7 +247,7 @@ serverTest('U5: AKARI_NO_AUTO_UPDATE=1 では 1 回目の起動で staging が�
       await writeFile(resolveCachePath(env), JSON.stringify({ schema: 1, fetched_at: 't0', feed, dismissed: {} }), 'utf8');
 
       const versionOutput = akariVersionOf(appDir, optOutEnv);
-      assert.ok(!versionOutput.includes('に更新しました'));
+      assert.ok(!versionOutput.includes('Updated to'));
       assert.match(versionOutput, /^v0\.1\.0$/m, 'opt-out では適用もされないこと');
     });
   });
@@ -277,7 +277,7 @@ serverTest('U5: staging の tarball が改竄されていれば staged が記録
       await writeFile(resolveCachePath(env), JSON.stringify({ schema: 1, fetched_at: 't0', feed, dismissed: {} }), 'utf8');
 
       const versionOutput = akariVersionOf(appDir, env);
-      assert.ok(!versionOutput.includes('に更新しました'));
+      assert.ok(!versionOutput.includes('Updated to'));
       assert.match(versionOutput, /^v0\.1\.0$/m, '検証 NG のときは適用されず app が不変のこと');
     });
   });

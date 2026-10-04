@@ -46,5 +46,5 @@ test('doctor text includes the GPU export row without changing verdict', () => {
     next_steps: [],
   });
   assert.match(output, /gpu_export\s+ok\s+tier 2/u);
-  assert.match(output, /判定: ok/u);
+  assert.match(output, /Verdict: ok/u);
 });

@@ -70,7 +70,7 @@ test('引数なし × 既存あり: resolveCreatorRoot が見つけた作業場�
 
     assert.equal(result.exitCode, 0);
     assert.equal(lines[0], rootDir, 'stdout 1 行目は作業場の絶対パス');
-    assert.ok(lines.some((line) => line.includes('既存の作業場を確認しました')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Found the existing workspace')), '実出力: ' + JSON.stringify(lines));
 
     const pointer = JSON.parse(await readFile(join(env.AKARI_HOME, 'creator-root.json'), 'utf8'));
     assert.equal(pointer.lastRoot, rootDir, 'ensure でも updateMachinePointer が呼ばれること');
@@ -89,7 +89,7 @@ test('引数なし × 既存なし: defaultRootPath に新規作成する', asyn
     const expectedRoot = defaultRootPath(env, { platform: process.platform });
     assert.equal(result.exitCode, 0);
     assert.equal(lines[0], expectedRoot, 'stdout 1 行目は作業場の絶対パス');
-    assert.ok(lines.some((line) => line.includes('作業場を作成しました')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Workspace created')), '実出力: ' + JSON.stringify(lines));
 
     const manifest = JSON.parse(await readFile(join(expectedRoot, '.akari', 'root.json'), 'utf8'));
     assert.equal(manifest.schema, 'creator-root/v1');
@@ -112,7 +112,7 @@ test('パス指定作成: 指定パスに作業場を作成する', async () => 
 
     assert.equal(result.exitCode, 0);
     assert.equal(lines[0], explicitTarget);
-    assert.ok(lines.some((line) => line.includes('作業場を作成しました')), '実出力: ' + JSON.stringify(lines));
+    assert.ok(lines.some((line) => line.includes('Workspace created')), '実出力: ' + JSON.stringify(lines));
 
     const manifest = JSON.parse(await readFile(join(explicitTarget, '.akari', 'root.json'), 'utf8'));
     assert.equal(manifest.schema, 'creator-root/v1');
@@ -135,7 +135,7 @@ test('冪等: 既に有効な作業場があるパスを指定すると no-op �
     const result2 = await runInitCommand([explicitTarget], { cwd, env, assets, log: second.log, logError: second.logError });
     assert.equal(result2.exitCode, 0);
     assert.equal(second.lines[0], explicitTarget);
-    assert.ok(second.lines.some((line) => line.includes('既存の作業場を確認しました')), '実出力: ' + JSON.stringify(second.lines));
+    assert.ok(second.lines.some((line) => line.includes('Found the existing workspace')), '実出力: ' + JSON.stringify(second.lines));
 
     const manifestAfterSecond = JSON.parse(await readFile(join(explicitTarget, '.akari', 'root.json'), 'utf8'));
     assert.deepEqual(manifestAfterSecond, manifestAfterFirst, '2 回目で root.json が書き換わっていないこと（既存ファイルを上書きしない）');
@@ -231,7 +231,7 @@ test('モジュール欠如: assets.creatorRootModulePath が無いと exit 1（
 
     assert.equal(result.exitCode, 1);
     assert.equal(errors.length, 1, 'stderr にエラー 1 行');
-    assert.ok(errors[0].includes('見つかりませんでした'), '実出力: ' + JSON.stringify(errors));
+    assert.ok(errors[0].includes('was not found'), '実出力: ' + JSON.stringify(errors));
   });
 });
 

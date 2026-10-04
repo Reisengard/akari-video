@@ -57,7 +57,7 @@ test('akari assets: errors with a Japanese message + exit 1 when the resolver is
   assert.equal(result.exitCode, 1);
   assert.equal(errors.length, 1);
   assert.match(errors[0], /resolver/);
-  assert.match(errors[0], /[぀-ヿ一-鿿]/, '日本語エラーであること');
+  assert.match(errors[0], /was not found/, 'English error');
 });
 
 test('AKARI Sounds pack id selects the first-party pack fetcher', async () => {

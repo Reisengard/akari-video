@@ -42,7 +42,7 @@ export async function run(args, options = {}) {
   const retiredBrowserCommand = 'chrome';
   if (args[0] === retiredBrowserCommand) {
     const error = options.error ?? ((line) => console.error(line));
-    error(`akari ${retiredBrowserCommand} は廃止されました（Chrome は不要になりました）`);
+    error(`akari ${retiredBrowserCommand} has been retired (Chrome is no longer needed)`);
     return { exitCode: 1 };
   }
   if (args[0] === 'decision-log') return runDecisionLogCommand(args.slice(1), options);
@@ -78,8 +78,8 @@ export async function run(args, options = {}) {
   const bareNonInteractive = args.length === 0
     && !(options.isTTY ?? Boolean(process.stdin.isTTY && process.stdout.isTTY));
   if (bareNonInteractive && !detectProjectState(projectRoot).scaffolded) {
-    log(`このフォルダーは AKARI Video プロジェクトとしてまだセットアップされていません: ${projectRoot}`);
-    log('非対話シェルのため状態確認のみで終了します。');
+    log(`This folder is not set up as an AKARI Video project yet: ${projectRoot}`);
+    log('This is a non-interactive shell, so only the status was checked.');
     return { exitCode: 0, scaffolded: false, claudeLaunched: false, opencodeLaunched: false };
   }
 
@@ -92,48 +92,48 @@ export async function run(args, options = {}) {
   try {
     const creatorRoot = await defaultLoadCreatorRootModule(assets);
     const migration = await creatorRoot?.migrateAssetLibrary({ env, platform, automatic: true, notify: log });
-    for (const failure of migration?.failures ?? []) log(`素材の移行を再試行します: ${failure.message}`);
+    for (const failure of migration?.failures ?? []) log(`Retrying the asset migration: ${failure.message}`);
   } catch (error) {
-    log(`素材の移行を再試行します: ${error.message}`);
+    log(`Retrying the asset migration: ${error.message}`);
   }
 
   let state = detectProjectState(projectRoot);
 
   if (!state.scaffolded) {
-    log(`このフォルダーは AKARI Video プロジェクトとしてまだセットアップされていません: ${projectRoot}`);
+    log(`This folder is not set up as an AKARI Video project yet: ${projectRoot}`);
     if (!assets.templateDir || !assets.scaffoldModulePath) {
-      log('プロジェクト雛形が見つからないため、雛形の作成をスキップしました。');
+      log('The project template was not found, so creating the project from it was skipped.');
     } else {
-      log('プロジェクトの雛形を作成します…');
+      log('Creating the project from the template...');
       try {
         const report = await scaffold(projectRoot, assets);
-        log(`プロジェクトを作成しました（コピー ${report.copy.copiedFiles.length} 件 / 補完 ${report.fallback.writtenFiles.length} 件 / git: ${report.git.action}）。`);
+        log(`Project created (copied ${report.copy.copiedFiles.length} / filled in ${report.fallback.writtenFiles.length} / git: ${report.git.action}).`);
       } catch (error) {
         // scaffold の失敗で claude 起動まで止めない（「最後に claude を exec」は不変条件）。
-        log(`プロジェクトの雛形作成でエラーが発生しました（続行します）: ${error instanceof Error ? error.message : String(error)}`);
+        log(`Creating the project from the template failed (continuing): ${error instanceof Error ? error.message : String(error)}`);
       }
       state = detectProjectState(projectRoot);
     }
   } else {
-    log(`既存の AKARI Video プロジェクトを検出しました: ${projectRoot}`);
+    log(`Found an existing AKARI Video project: ${projectRoot}`);
   }
 
   const taskLabels = loadTaskLabels(assets.schemasSourceDir);
   log(describeIntake(state.intake, taskLabels));
 
   if (state.scaffolded && assets.doctorScript) {
-    log('接続状態を確認します…');
+    log('Checking connections...');
     try {
       runDoctor(assets.doctorScript, projectRoot);
     } catch (error) {
-      log(`接続確認でエラーが発生しました（続行します）: ${error instanceof Error ? error.message : String(error)}`);
+      log(`Checking connections failed (continuing): ${error instanceof Error ? error.message : String(error)}`);
     }
     const runtimeDiagnostics = options.runtimeDiagnostics ?? resolveRuntimePaths({ ...options, env, platform });
     log(describeVersionStatus(versionInfo, readCacheSync(resolveCachePath(env)), runtimeDiagnostics));
   }
 
   if (bareNonInteractive) {
-    log('非対話シェルのため状態確認のみで終了します。');
+    log('This is a non-interactive shell, so only the status was checked.');
     return { exitCode: 0, scaffolded: state.scaffolded, claudeLaunched: false, opencodeLaunched: false };
   }
 
@@ -153,11 +153,11 @@ export async function run(args, options = {}) {
   try {
     await (options.showAssetIntro ?? maybeShowAssetIntroNotice)({ env, log });
   } catch (error) {
-    log(`素材案内の表示でエラーが発生しました（続行します）: ${error instanceof Error ? error.message : String(error)}`);
+    log(`Showing the asset guide failed (continuing): ${error instanceof Error ? error.message : String(error)}`);
   }
 
   if (useOpencode) {
-    log('opencode を起動します…');
+    log('Starting opencode...');
     const opencodePath = resolveOpencode();
     if (!opencodePath) {
       log(opencodeMissingGuidance());
@@ -171,14 +171,14 @@ export async function run(args, options = {}) {
   } else {
     const claudePath = resolveClaude();
     if (claudePath) {
-      log('Claude Code を起動します…');
+      log('Starting Claude Code...');
       const claudeArgs = autoConfirm ? ['--permission-mode', 'acceptEdits', ...filteredArgs] : filteredArgs;
       const result = spawnClaude(claudePath, claudeArgs, projectRoot);
       const exitCode = typeof result.status === 'number' ? result.status : (result.error ? 1 : 0);
       return { exitCode, scaffolded: state.scaffolded, claudeLaunched: true };
     }
 
-    log('Claude Code が見つかりません。opencode を起動します…');
+    log('Claude Code was not found. Starting opencode...');
     const opencodePath = resolveOpencode();
     if (!opencodePath) {
       log(claudeMissingGuidance());
@@ -288,8 +288,8 @@ export async function runUpdateCommand(args, options = {}) {
     if (forceRequested
         && versionInfo.installRefStatus === 'missing'
         && runtimeDiagnostics.render_cut.origin !== 'monorepo') {
-      log('この CLI からは install.sh 経路の本体を入れ直せません。');
-      log('導入するには `curl -fsSL https://raw.githubusercontent.com/AkariLabs/akari-video/main/install.sh | bash` を実行してください（デスクトップ版だけで使う場合は不要です）。');
+      log('This CLI cannot reinstall the app that install.sh installs.');
+      log('To install it, run `curl -fsSL https://raw.githubusercontent.com/AkariLabs/akari-video/main/install.sh | bash` (not needed if you only use the desktop app).');
     }
     return { exitCode: 0 };
   }
@@ -300,7 +300,7 @@ export async function runUpdateCommand(args, options = {}) {
   for (const line of describeInstalledVersions(versionInfo, runtimeDiagnostics)) {
     log(line);
   }
-  log(`最新バージョン: v${feed.product}`);
+  log(`Latest version: v${feed.product}`);
   if (forceRequested) {
     log(describeForceReinstall(versionInfo, feed.product));
   }
