@@ -49,7 +49,7 @@ export function probeDuration(file, { env = process.env } = {}) {
   if (result.error || result.status !== 0) throw new Error(`ffprobe: ${result.error?.message || result.stderr?.trim() || `exit ${result.status}`}`);
   let duration;
   try { duration = Number(JSON.parse(result.stdout).format?.duration); } catch { /* reject below */ }
-  if (!Number.isFinite(duration) || duration <= 0) throw new Error('ffprobe: 有効な尺を取得できません');
+  if (!Number.isFinite(duration) || duration <= 0) throw new Error('ffprobe: could not read a valid duration');
   return duration;
 }
 
@@ -82,7 +82,7 @@ async function findDuplicate(entry, sizes, hashFile = sha256File) {
 
 /** The probe injection keeps duration boundaries independent of installed tools. */
 export async function planAdd(paths, { env = process.env, probe = probeDuration, hashFile = sha256File } = {}) {
-  if (!Array.isArray(paths) || !paths.length) throw new Error('add --plan にはファイルかフォルダが必要です');
+  if (!Array.isArray(paths) || !paths.length) throw new Error('add --plan needs a file or folder');
   const result = { schema: ADD_PLAN_SCHEMA, items: [], duplicates: [], rejected: [], truncated: false, limit: MAX_IMPORT_FILES, warnings: [] };
   const seen = new Set();
   const keys = await occupiedKeys(env);
@@ -116,14 +116,14 @@ export async function planAdd(paths, { env = process.env, probe = probeDuration,
       proposedId: proposedAssetId(name), ...(folder === undefined ? {} : { folder }) };
     try {
       if (!category) throw new Error(path.extname(name).toLowerCase() === '.cube'
-        ? 'LUT（cube）は presets/ の管轄のため v0 では取り込めません' : '対応していない形式');
-      if (!info.size) throw new Error('0 バイトのファイルは読み込めません');
+        ? 'LUTs (cube) belong to presets/ and cannot be imported in v0' : 'Unsupported format');
+      if (!info.size) throw new Error('Cannot import a 0-byte file');
       const handle = await open(absolute, 'r');
       try { await handle.read(Buffer.alloc(512), 0, 512, 0); }
       finally { await handle.close(); }
       if (category === 'audio') {
         entry.durationSec = await probe(absolute, { env });
-        if (entry.durationSec !== null && (!Number.isFinite(entry.durationSec) || entry.durationSec <= 0)) throw new Error('ffprobe: 有効な尺を取得できません');
+        if (entry.durationSec !== null && (!Number.isFinite(entry.durationSec) || entry.durationSec <= 0)) throw new Error('ffprobe: could not read a valid duration');
         entry.durationSource = entry.durationSec === null ? 'size' : 'ffprobe';
         entry.ambiguous = entry.durationSec === null ? info.size >= 1_200_000 && info.size <= 4_000_000
           : entry.durationSec >= 10 && entry.durationSec < 30;
@@ -136,17 +136,17 @@ export async function planAdd(paths, { env = process.env, probe = probeDuration,
     } catch (error) { result.rejected.push({ ...entry, reason: error.message }); }
   }
   for (const input of paths) {
-    if (typeof input !== 'string' || !input) throw new Error('取り込み元のパスが不正です');
+    if (typeof input !== 'string' || !input) throw new Error('The import source path is invalid');
     await walk(input);
     if (result.truncated) break;
   }
-  if (result.truncated) result.warnings.push(`${MAX_IMPORT_FILES} ファイルで打ち切りました。残りは別の plan で指定してください`);
+  if (result.truncated) result.warnings.push(`Stopped at ${MAX_IMPORT_FILES} files. Put the rest in another plan`);
   return result;
 }
 
 export function createImportMeta(entry, options = {}) {
   const origin = options.origin ?? 'own';
-  if (!['own', 'site'].includes(origin)) throw new Error('origin は own または site で指定してください');
+  if (!['own', 'site'].includes(origin)) throw new Error('origin must be own or site');
   const tags = [`origin:${origin}`];
   if (entry.folder) tags.push(`folder:${oneLine(entry.folder)}`);
   if (entry.category === 'audio' && entry.kind === 'sfx') tags.push('sfx');
@@ -178,13 +178,13 @@ export function validateImport(dir) {
   const result = spawnSync(process.execPath, [VALIDATOR, dir], { encoding: 'utf8' });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(`validate-asset 検証に失敗しました: ${result.stderr || result.stdout || result.status}`);
+    throw new Error(`validate-asset check failed: ${result.stderr || result.stdout || result.status}`);
   }
   return [];
 }
 
 async function assertPlainPath(file) {
-  if ((await lstat(file)).isSymbolicLink()) throw new Error(`シンボリックリンクは取り込みません: ${file}`);
+  if ((await lstat(file)).isSymbolicLink()) throw new Error(`Symbolic links are not imported: ${file}`);
 }
 async function occupiedKeys(env) {
   const keys = scanLocalLibrary(env);
@@ -208,20 +208,20 @@ async function copyPayload(source, dest) {
   await copyFile(source, dest, constants.COPYFILE_FICLONE);
 }
 async function preparePack(root, pack, category) {
-  if (!pack || !ID_PATTERN.test(pack.id) || typeof pack.title !== 'string' || !pack.title.trim()) throw new Error('pack には有効な id と title が必要です');
+  if (!pack || !ID_PATTERN.test(pack.id) || typeof pack.title !== 'string' || !pack.title.trim()) throw new Error('A pack needs a valid id and title');
   const file = path.join(root, 'packs.json');
   let index;
   try { index = JSON.parse(await readFile(file, 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; index = { schema: 'akari-catalog-packs/v0', packs: [] }; }
-  if (index.schema !== 'akari-catalog-packs/v0' || !Array.isArray(index.packs)) throw new Error('packs.json の形式が不正です');
+  if (index.schema !== 'akari-catalog-packs/v0' || !Array.isArray(index.packs)) throw new Error('packs.json has an invalid format');
   const existing = index.packs.find(row => row.id === pack.id);
-  if (existing && existing.title !== pack.title) throw new Error(`pack id は既に使われています: ${pack.id}`);
+  if (existing && existing.title !== pack.title) throw new Error(`The pack id is already in use: ${pack.id}`);
   if (!existing) index.packs.push({ id: pack.id, title: pack.title, category, summary: 'ローカルから取り込んだ素材セット' });
   return { file, data: `${JSON.stringify(index, null, 2)}\n` };
 }
 
 export async function applyAdd(plan, { env = process.env, waveform = generateWaveformPreview, thumbnail, validate = validateImport, copy = copyPayload } = {}) {
-  if (plan?.schema !== ADD_PLAN_SCHEMA || !Array.isArray(plan.items)) throw new Error('add plan の形式が不正です');
+  if (plan?.schema !== ADD_PLAN_SCHEMA || !Array.isArray(plan.items)) throw new Error('The add plan has an invalid format');
   const result = { added: [], duplicates: [...(plan.duplicates ?? [])], rejected: [...(plan.rejected ?? [])], failures: [] };
   const root = path.resolve(resolveAssetLibraryRoots(env).write);
   let lock;
@@ -230,7 +230,7 @@ export async function applyAdd(plan, { env = process.env, waveform = generateWav
     lock = path.join(root, '.add-lock');
     await mkdir(lock);
   } catch (error) {
-    result.failures.push({ reason: `取り込み先を確保できません: ${error.message}` });
+    result.failures.push({ reason: `Could not reserve the import destination: ${error.message}` });
     return result;
   }
   try {
@@ -241,14 +241,14 @@ export async function applyAdd(plan, { env = process.env, waveform = generateWav
       let tempRoot, committedDir, packTemp;
       try {
         if (!entry || typeof entry.path !== 'string' || !path.isAbsolute(entry.path)
-          || !ID_PATTERN.test(entry.proposedId) || categoryOf(entry.path) !== entry.category) throw new Error('plan の path / category / proposedId が不正です');
-        if (entry.category === 'audio' && !['sfx', 'bgm'].includes(entry.kind)) throw new Error('音の kind は sfx または bgm で指定してください');
+          || !ID_PATTERN.test(entry.proposedId) || categoryOf(entry.path) !== entry.category) throw new Error('The plan has an invalid path, category, or proposedId');
+        if (entry.category === 'audio' && !['sfx', 'bgm'].includes(entry.kind)) throw new Error('Audio kind must be sfx or bgm');
         await assertPlainPath(entry.path);
         const info = await lstat(entry.path);
-        if (!info.isFile() || !info.size || info.size !== entry.bytes) throw new Error('元ファイルが変更されたか読み込めません。plan を作り直してください');
-        if (entry.mtimeMs !== undefined && entry.mtimeMs !== info.mtimeMs) throw new Error('元ファイルの内容が変更されました。plan を作り直してください');
+        if (!info.isFile() || !info.size || info.size !== entry.bytes) throw new Error('The source file changed or cannot be read. Make the plan again');
+        if (entry.mtimeMs !== undefined && entry.mtimeMs !== info.mtimeMs) throw new Error('The source file changed. Make the plan again');
         const hash = await sha256File(entry.path);
-        if (entry.sha256 && entry.sha256 !== hash) throw new Error('元ファイルの内容が変更されました。plan を作り直してください');
+        if (entry.sha256 && entry.sha256 !== hash) throw new Error('The source file changed. Make the plan again');
         const duplicate = await findDuplicate({ ...entry, sha256: hash }, sizes);
         if (duplicate) { result.duplicates.push({ ...entry, ...duplicate, status: 'duplicate' }); continue; }
         const id = uniqueId(entry.category, entry.proposedId, keys);
@@ -262,7 +262,7 @@ export async function applyAdd(plan, { env = process.env, waveform = generateWav
         const name = path.basename(entry.path).toLowerCase() === 'preview.png' ? 'media.png' : path.basename(entry.path);
         const payload = path.join(stage, name);
         await copy(entry.path, payload);
-        if (await sha256File(payload) !== hash) throw new Error('コピー中に元ファイルが変更されたかコピーが破損しました');
+        if (await sha256File(payload) !== hash) throw new Error('The source file changed during the copy, or the copy is corrupt');
         await writeFile(path.join(stage, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`);
         const credit = oneLine(options.credit);
         if (credit) await writeFile(path.join(stage, 'CREDIT.txt'), `${credit}\n`);
@@ -276,7 +276,7 @@ export async function applyAdd(plan, { env = process.env, waveform = generateWav
         const dest = path.join(root, entry.category, id);
         await mkdir(path.dirname(dest), { recursive: true });
         // Another importer is excluded by .add-lock; do not overwrite outsiders either.
-        try { await lstat(dest); throw new Error(`登録先が既に存在します: ${dest}`); }
+        try { await lstat(dest); throw new Error(`The destination already exists: ${dest}`); }
         catch (error) { if (error.code !== 'ENOENT') throw error; }
         await rename(stage, dest);
         committedDir = dest;

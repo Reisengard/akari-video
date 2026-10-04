@@ -10,7 +10,7 @@ export async function loadCatalog(repoRoot) {
     : DEFAULT_CATALOG;
   const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
   if (!catalog || catalog.version !== 1 || !Array.isArray(catalog.models)) {
-    throw new Error("gen-models.json の形式が不正です");
+    throw new Error("gen-models.json has an invalid format");
   }
   return catalog;
 }

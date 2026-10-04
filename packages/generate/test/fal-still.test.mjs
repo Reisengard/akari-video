@@ -56,6 +56,6 @@ test('queue flow uses only the loopback stub and writes its PNG', async () => {
     assert.equal(calls.length, 4);
     assert(calls.every(call => new URL(call.url).origin === 'http://127.0.0.1:7777'));
     assert.equal(calls[0].method, 'POST');
-    assert.throws(() => falStillFetch({ fetchImpl, env: { AKARI_FAL_STUB_URL: 'http://127.0.0.1:7777' } })('https://example.com/secret'), /スタブ以外/);
+    assert.throws(() => falStillFetch({ fetchImpl, env: { AKARI_FAL_STUB_URL: 'http://127.0.0.1:7777' } })('https://example.com/secret'), /outside the stub/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

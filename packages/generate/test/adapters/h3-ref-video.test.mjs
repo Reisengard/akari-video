@@ -77,7 +77,7 @@ for (const prompt of ["@画像3", "@画像0", "@画像-1", "@画像1.5", "@動�
   test(`H3 ${prompt}: 参照番号エラーで偽fetchも0回`, async (t) => {
     const value = await run(t, inputs(prompt));
     assert.equal(value.result.exitCode, 1);
-    assert.match(value.logs.join("\n"), /参照番号/u);
+    assert.match(value.logs.join("\n"), /reference number/u);
     assert.equal(value.requests.length, 0);
   });
 }

@@ -85,7 +85,7 @@ async function findSingleSubdirectory(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const dirs = entries.filter((e) => e.isDirectory());
   if (dirs.length !== 1) {
-    throw new Error(`ソース展開結果が想定外です（${dir} 直下のディレクトリ数 ${dirs.length}）`);
+    throw new Error(`Unexpected source layout (${dirs.length} directories directly under ${dir})`);
   }
   return path.join(dir, dirs[0].name);
 }
@@ -97,20 +97,20 @@ async function findSingleSubdirectory(dir) {
  */
 export async function buildWhisperCli({ target = currentTarget(), force = false, log = () => {} } = {}) {
   if (!target.startsWith("darwin-")) {
-    log(`build-whisper: ${target} はソースビルド対象外です（win32 は fetch-binaries.mjs の通常経路を使用）。`);
+    log(`build-whisper: ${target} is not a source-build target (win32 uses the normal fetch-binaries.mjs path).`);
     return { supported: false, reason: "not-darwin" };
   }
 
   const dest = vendorBinaryPath("whisper-cli", target);
   if (existsSync(dest) && !force) {
-    log(`build-whisper: 既に存在するためスキップします: ${path.relative(VENDOR_ROOT, dest)}`);
+    log(`build-whisper: skipping, already exists: ${path.relative(VENDOR_ROOT, dest)}`);
     return { supported: true, whisperCli: dest, skipped: true };
   }
 
   if (!commandExists("cmake")) {
     log(
-      "build-whisper: cmake が見つかりません。whisper-cli のソースビルドをスキップします " +
-        "（システムへの自動インストールはしません — 必要なら手動で cmake を導入してください）。",
+      "build-whisper: cmake was not found. Skipping the whisper-cli source build " +
+        "(nothing is installed on your system automatically; install cmake by hand if you need it).",
     );
     return { supported: false, reason: "cmake-missing" };
   }
@@ -120,14 +120,14 @@ export async function buildWhisperCli({ target = currentTarget(), force = false,
   await mkdir(BUILD_ROOT, { recursive: true });
 
   const archivePath = path.join(BUILD_ROOT, `whisper.cpp-${WHISPER_CPP_SOURCE.tag}.tar.gz`);
-  log(`build-whisper: ソース取得中 ${WHISPER_CPP_SOURCE.url}`);
+  log(`build-whisper: fetching source ${WHISPER_CPP_SOURCE.url}`);
   await download(WHISPER_CPP_SOURCE.url, archivePath);
 
   const actualSha = await sha256File(archivePath);
   if (actualSha !== WHISPER_CPP_SOURCE.sha256) {
     throw new Error(
-      `sha256 不一致: ${WHISPER_CPP_SOURCE.url}\n  期待値: ${WHISPER_CPP_SOURCE.sha256}\n  実際値: ${actualSha}\n` +
-        "配布元の内容が変わった、またはダウンロードが破損しています。ビルドを中止しました。",
+      `sha256 mismatch: ${WHISPER_CPP_SOURCE.url}\n  expected: ${WHISPER_CPP_SOURCE.sha256}\n  actual:   ${actualSha}\n` +
+        "The source changed or the download is corrupt. Build aborted.",
     );
   }
 
@@ -135,19 +135,19 @@ export async function buildWhisperCli({ target = currentTarget(), force = false,
   await mkdir(extractDir, { recursive: true });
   const extractResult = spawnSync("tar", ["-xf", archivePath, "-C", extractDir], { stdio: "inherit" });
   if (extractResult.status !== 0) {
-    throw new Error(`tar -xf ${archivePath} が失敗しました（exit ${extractResult.status}）`);
+    throw new Error(`tar -xf ${archivePath} failed (exit ${extractResult.status})`);
   }
   const sourceDir = await findSingleSubdirectory(extractDir);
 
   const buildDir = path.join(BUILD_ROOT, "build");
-  log(`build-whisper: cmake configure（${sourceDir}）`);
+  log(`build-whisper: cmake configure (${sourceDir})`);
   const configure = spawnSync(
     "cmake",
     ["-S", sourceDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=OFF"],
     { stdio: "inherit" },
   );
   if (configure.status !== 0) {
-    throw new Error(`cmake configure が失敗しました（exit ${configure.status}）`);
+    throw new Error(`cmake configure failed (exit ${configure.status})`);
   }
 
   const jobs = Math.max(1, os.cpus()?.length ?? 1);
@@ -158,12 +158,12 @@ export async function buildWhisperCli({ target = currentTarget(), force = false,
     { stdio: "inherit" },
   );
   if (build.status !== 0) {
-    throw new Error(`cmake --build が失敗しました（exit ${build.status}）`);
+    throw new Error(`cmake --build failed (exit ${build.status})`);
   }
 
   const builtBinary = path.join(buildDir, "bin", "whisper-cli");
   if (!existsSync(builtBinary)) {
-    throw new Error(`ビルド後に想定した成果物がありません: ${builtBinary}`);
+    throw new Error(`Expected build output is missing: ${builtBinary}`);
   }
 
   await mkdir(path.dirname(dest), { recursive: true });
@@ -178,14 +178,14 @@ export async function buildWhisperCli({ target = currentTarget(), force = false,
   for (const dylib of strayDylibs) {
     const dylibDest = path.join(path.dirname(dest), dylib.name);
     await copyFile(path.join(buildBinDir, dylib.name), dylibDest);
-    log(`build-whisper: 想定外の dylib を同梱しました（保険）: ${path.relative(VENDOR_ROOT, dylibDest)}`);
+    log(`build-whisper: bundled an unexpected dylib (safety net): ${path.relative(VENDOR_ROOT, dylibDest)}`);
   }
 
   const helpResult = spawnSync(dest, ["--help"], { stdio: "pipe", encoding: "utf8" });
   if (helpResult.status !== 0) {
     throw new Error(
-      `ビルドした whisper-cli の --help が exit ${helpResult.status} でした` +
-        `（stderr: ${helpResult.stderr?.slice(0, 500) ?? ""}）`,
+      `The built whisper-cli exited with ${helpResult.status} on --help` +
+        ` (stderr: ${helpResult.stderr?.slice(0, 500) ?? ""})`,
     );
   }
 
@@ -193,8 +193,8 @@ export async function buildWhisperCli({ target = currentTarget(), force = false,
   const sizeBytes = (await stat(dest)).size;
   const sizeMb = (sizeBytes / (1024 * 1024)).toFixed(1);
   log(
-    `build-whisper: 完了 — ${path.relative(VENDOR_ROOT, dest)}（${sizeMb}MB, ${elapsedSeconds}s, ` +
-      `dylib companions: ${strayDylibs.length}）--help exit 0 確認済み`,
+    `build-whisper: done - ${path.relative(VENDOR_ROOT, dest)} (${sizeMb}MB, ${elapsedSeconds}s, ` +
+      `dylib companions: ${strayDylibs.length}), --help exit 0 verified`,
   );
 
   return {
@@ -222,13 +222,13 @@ if (isMainModule) {
   buildWhisperCli({ force: forceFlag, log: (msg) => console.log(msg) })
     .then((result) => {
       if (result.supported === false) {
-        console.log(`build-whisper: スキップしました（reason: ${result.reason}）。`);
+        console.log(`build-whisper: skipped (reason: ${result.reason}).`);
         return;
       }
       console.log(`build-whisper: whisper-cli -> ${result.whisperCli}`);
     })
     .catch((error) => {
-      console.error(`build-whisper: 失敗しました — ${error.message}`);
+      console.error(`build-whisper: failed: ${error.message}`);
       process.exit(1);
     });
 }

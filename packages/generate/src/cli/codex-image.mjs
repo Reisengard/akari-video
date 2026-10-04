@@ -29,7 +29,7 @@ class AppServer {
     });
     this.#process.once("error", (error) => this.#rejectAll(error));
     this.#process.once("exit", (code) => {
-      if (code !== 0) this.#rejectAll(new Error(`Codex app-server が終了しました（exit ${code}）`));
+      if (code !== 0) this.#rejectAll(new Error(`Codex app-server exited (exit ${code})`));
     });
     this.#process.stdout.setEncoding("utf8");
     this.#process.stderr.setEncoding("utf8");
@@ -70,7 +70,7 @@ class AppServer {
       this.#turns.delete(threadId);
       const status = message.params?.turn?.status ?? (message.method === "turn/failed" ? "failed" : "completed");
       if (status === "completed") waiter.resolve();
-      else waiter.reject(new Error(message.params?.turn?.error?.message ?? `Codex turn が ${status} で終了しました`));
+      else waiter.reject(new Error(message.params?.turn?.error?.message ?? `Codex turn ended with ${status}`));
     }
   }
 
@@ -154,7 +154,7 @@ export async function generateCodexImages({
     await server.start();
   } catch (error) {
     const reason = sanitize(error instanceof Error ? error.message : String(error));
-    logError(`Codex app-server を起動できません: ${reason}`);
+    logError(`Could not start Codex app-server: ${reason}`);
     server.close();
     return items.map((item) => ({ id: item.id, ok: false, error: reason }));
   }
@@ -165,11 +165,11 @@ export async function generateCodexImages({
         const output = resolve(projectDir, item.path);
         const root = resolve(projectDir);
         if (output !== root && !output.startsWith(`${root}${sep}`)) {
-          results.push({ id: item.id, ok: false, error: "出力先がプロジェクト外です" });
+          results.push({ id: item.id, ok: false, error: "The output path is outside the project" });
           continue;
         }
         if (await exists(output)) {
-          log(`WARN: ${item.id} は既存ファイルを使います`);
+          log(`WARN: ${item.id} already exists, using the existing file`);
           results.push({ id: item.id, ok: true, existing: true, elapsed_s: 0 });
           continue;
         }
@@ -177,13 +177,13 @@ export async function generateCodexImages({
         try {
           await mkdir(dirname(output), { recursive: true });
           await server.run(promptFor(item, output), item.references);
-          if (!(await exists(output))) throw new Error("生成ターン完了後も画像がありません");
+          if (!(await exists(output))) throw new Error("No image after the generation turn finished");
           const elapsed_s = (Date.now() - started) / 1000;
-          log(`生成 ${item.id}: 所要秒 ${elapsed_s.toFixed(1)}`);
+          log(`Generated ${item.id}: ${elapsed_s.toFixed(1)}s`);
           results.push({ id: item.id, ok: true, elapsed_s });
         } catch (error) {
           const reason = sanitize(error instanceof Error ? error.message : String(error));
-          logError(`生成失敗 ${item.id}: ${reason}`);
+          logError(`Generation failed ${item.id}: ${reason}`);
           results.push({ id: item.id, ok: false, error: reason });
         }
       }

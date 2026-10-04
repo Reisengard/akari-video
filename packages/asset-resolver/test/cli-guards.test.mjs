@@ -58,7 +58,7 @@ for (const viaLauncher of [false, true]) {
       const result = spawnSync(process.execPath, viaLauncher ? [launcher, 'assets', ...args] : [cli, ...args],
         { env: f.env, encoding: 'utf8', timeout: 30000 });
       assert.equal(result.status, status, `${args.join(' ')}: ${result.stderr}`);
-      assert.match(result.stdout, /使い方: akari-assets/);
+      assert.match(result.stdout, /Usage: akari-assets/);
       assert.deepEqual(await manifest(f.temp), before, args.join(' '));
       await assert.rejects(fs.stat(path.join(f.home, 'library-location.json')), { code: 'ENOENT' });
     }

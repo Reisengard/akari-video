@@ -26,7 +26,7 @@ test('尺の丸め注記は小数 1 桁、整数はそのまま表示する', ()
     const result = validateInputs({ inputs: { prompt: 'A garden.' }, output: { duration_s: seconds }, model });
     const note = result.messages.find(message => message.code === 'duration.rounded');
     assert.ok(note, String(seconds));
-    assert.match(note.text, new RegExp(`^尺 ${expected} 秒 → 6 秒に丸めました`, 'u'));
+    assert.match(note.text, new RegExp(`^Rounded duration ${expected}s to 6s`, 'u'));
   }
 });
 
@@ -128,12 +128,12 @@ const CASES = [
   {
     name: 'Veo の 7.2 秒を近い 8 秒へ丸め差も示す', model: MODELS.veo, inputs: veoInputs,
     output: { duration_s: 7.2, resolution: '1080p' },
-    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 7.2, to: 8, reason: 'enum' } }, texts: { 'duration.rounded': '尺 7.2 秒 → 8 秒に丸めました（Veo 3.1 first-last は 4 / 6 / 8 秒のみ）。差 0.8 秒' } },
+    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 7.2, to: 8, reason: 'enum' } }, texts: { 'duration.rounded': 'Rounded duration 7.2s to 8s (Veo 3.1 first-last allows 4 / 6 / 8 seconds only). Difference 0.8 seconds' } },
   },
   {
     name: 'Veo の 6.2 秒を cuts 以上の 8 秒へ丸める', model: MODELS.veo, inputs: veoInputs,
     output: { duration_s: 6.2, resolution: '1080p' },
-    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 6.2, to: 8, reason: 'enum' } }, texts: { 'duration.rounded': '尺 6.2 秒 → 8 秒に丸めました（Veo 3.1 first-last は 4 / 6 / 8 秒のみ）。差 1.8 秒' } },
+    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 6.2, to: 8, reason: 'enum' } }, texts: { 'duration.rounded': 'Rounded duration 6.2s to 8s (Veo 3.1 first-last allows 4 / 6 / 8 seconds only). Difference 1.8 seconds' } },
   },
   {
     name: 'Veo の5 秒は cuts 以上の 6 秒へ丸める', model: MODELS.veo, inputs: veoInputs,
@@ -143,17 +143,17 @@ const CASES = [
   {
     name: 'H3 の上限外 20 秒を 15 秒へ clamp する', model: MODELS.h3, inputs: { prompt: 'A garden.' },
     output: { duration_s: 20, resolution: '768P' },
-    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 20, to: 15, reason: 'clamp' } }, texts: { 'duration.rounded': '尺 20 秒 → 15 秒に丸めました（MiniMax H3 は 5〜15 秒）。差 5 秒' } },
+    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 20, to: 15, reason: 'clamp' } }, texts: { 'duration.rounded': 'Rounded duration 20s to 15s (MiniMax H3 allows 5-15 seconds). Difference 5 seconds' } },
   },
   {
     name: 'Kling の下限外 2.4 秒を 3 秒へ clamp する', model: MODELS.kling, inputs: klingInputs,
     output: { duration_s: 2.4 },
-    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 2.4, to: 3, reason: 'clamp' } }, texts: { 'duration.rounded': '尺 2.4 秒 → 3 秒に丸めました（Kling v3 pro は 3〜15 秒）。差 0.6 秒' } },
+    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 2.4, to: 3, reason: 'clamp' } }, texts: { 'duration.rounded': 'Rounded duration 2.4s to 3s (Kling v3 pro allows 3-15 seconds). Difference 0.6 seconds' } },
   },
   {
     name: 'H3 の 6.592 秒を step で 7 秒へ丸める', model: MODELS.h3, inputs: { prompt: 'A garden.' },
     output: { duration_s: 6.592, resolution: '768P' },
-    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 6.592, to: 7, reason: 'step' } }, texts: { 'duration.rounded': '尺 6.6 秒 → 7 秒に丸めました（MiniMax H3 は 5〜15 秒）' } },
+    expect: { ok: true, codes: ['duration.rounded'], rounded: { duration_s: { from: 6.592, to: 7, reason: 'step' } }, texts: { 'duration.rounded': 'Rounded duration 6.6s to 7s (MiniMax H3 allows 5-15 seconds)' } },
   },
   {
     name: 'H3 の許容値 6 秒は丸めない', model: MODELS.h3, inputs: { prompt: 'A garden.' },
@@ -163,22 +163,22 @@ const CASES = [
   {
     name: 'Seedance の参照画像 10 枚は上限 9 枚を超える', model: MODELS.seedance,
     inputs: { reference_images: many(10, 'image.png') }, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['reference_images.max'], texts: { 'reference_images.max': '参照画像は 9 枚までです（10 枚）' } },
+    expect: { ok: false, codes: ['reference_images.max'], texts: { 'reference_images.max': 'Reference images: up to 9 (got 10)' } },
   },
   {
     name: 'Seedance の参照動画 4 本は上限 3 本を超える', model: MODELS.seedance,
     inputs: { reference_videos: many(4, 'video.mp4', [0, 1]) }, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['reference_videos.max'], texts: { 'reference_videos.max': '参照動画は 3 本までです（4 本）' } },
+    expect: { ok: false, codes: ['reference_videos.max'], texts: { 'reference_videos.max': 'Reference videos: up to 3 (got 4)' } },
   },
   {
     name: 'Seedance の参照音声 4 本は上限 3 本を超える', model: MODELS.seedance,
     inputs: { reference_audios: many(4, 'audio.wav', [0, 1]) }, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['reference_audios.max'], texts: { 'reference_audios.max': '参照音声は 3 本までです（4 本）' } },
+    expect: { ok: false, codes: ['reference_audios.max'], texts: { 'reference_audios.max': 'Reference audio: up to 3 (got 4)' } },
   },
   {
     name: 'Seedance の参照動画 20 秒は単体と合計の両上限を超える', model: MODELS.seedance,
     inputs: { reference_videos: [ref('video.mp4', [0, 20])] }, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['reference_videos.seconds_each', 'reference_videos.seconds_total'], texts: { 'reference_videos.seconds_each': '参照動画は 1 本あたり 15 秒までです（20 秒）', 'reference_videos.seconds_total': '参照動画は合計 15 秒までです（20 秒）' } },
+    expect: { ok: false, codes: ['reference_videos.seconds_each', 'reference_videos.seconds_total'], texts: { 'reference_videos.seconds_each': 'Reference videos: up to 15 seconds each (got 20 seconds)', 'reference_videos.seconds_total': 'Reference videos: up to 15 seconds in total (got 20 seconds)' } },
   },
   {
     name: 'Seedance の参照動画 10 秒二本は合計だけ上限を超える', model: MODELS.seedance,
@@ -200,7 +200,7 @@ const CASES = [
     // （排他は同じ family の i2v 行と ref 行で表現）。この fixture は排他処理の検証用。
     name: 'Seedance はフレームと参照画像の併用を拒否する', model: MODELS.seedance,
     inputs: { first_frame: ref('first.png'), reference_images: [ref('reference.png')] }, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['frames_refs.exclusive'], texts: { 'frames_refs.exclusive': 'このモデルはフレーム指定と参照を同時に使えません。どちらかにしてください' } },
+    expect: { ok: false, codes: ['frames_refs.exclusive'], texts: { 'frames_refs.exclusive': 'This model cannot use frames and references together. Use one of them' } },
   },
   {
     name: 'Seedance は参照画像だけなら受け入れる', model: MODELS.seedance,
@@ -230,7 +230,7 @@ const CASES = [
   {
     name: 'H3 は許可外 extra を拒否して正規化結果から落とす', model: MODELS.h3,
     inputs: { prompt: 'A garden.', extra: { foo: 1 } }, output: { resolution: '768P' },
-    expect: { ok: false, codes: ['extra.not_allowed'], texts: { 'extra.not_allowed': 'このモデルは extra.foo を受けません' }, extra: {} },
+    expect: { ok: false, codes: ['extra.not_allowed'], texts: { 'extra.not_allowed': 'This model does not accept extra.foo' }, extra: {} },
   },
   {
     name: 'Grok は任意の extra を拒否する', model: MODELS.grok,
@@ -285,7 +285,7 @@ const CASES = [
   {
     name: 'H3 は参照画像を受けない（上限 0 枚）', model: MODELS.h3,
     inputs: { reference_images: [ref('reference.png')] }, output: { resolution: '768P' },
-    expect: { ok: false, codes: ['reference_images.max'], texts: { 'reference_images.max': '参照画像は 0 枚までです（1 枚）' } },
+    expect: { ok: false, codes: ['reference_images.max'], texts: { 'reference_images.max': 'Reference images: up to 0 (got 1)' } },
   },
   {
     name: 'Kling は非対応 seed を通知して落とす', model: MODELS.kling,
@@ -300,12 +300,12 @@ const CASES = [
   {
     name: 'H3 は列挙外の解像度を拒否して候補を示す', model: MODELS.h3,
     inputs: { prompt: 'A garden.' }, output: { resolution: '1080p' },
-    expect: { ok: false, codes: ['resolution.invalid', 'price.unknown'], texts: { 'resolution.invalid': '解像度 1080p はこのモデルにありません（480P / 768P / 2K / 4K）' } },
+    expect: { ok: false, codes: ['resolution.invalid', 'price.unknown'], texts: { 'resolution.invalid': 'Resolution 1080p is not available on this model (480P / 768P / 2K / 4K)' } },
   },
   {
     name: 'Kling は選択不能な解像度指定を拒否する', model: MODELS.kling,
     inputs: klingInputs, output: { resolution: '720p' },
-    expect: { ok: false, codes: ['resolution.invalid', 'price.unknown'], texts: { 'resolution.invalid': '解像度 720p はこのモデルにありません（このモデルは解像度を選べません）' } },
+    expect: { ok: false, codes: ['resolution.invalid', 'price.unknown'], texts: { 'resolution.invalid': 'Resolution 720p is not available on this model (this model has no resolution choice)' } },
   },
   {
     name: 'Veo は列挙外のアスペクト比を拒否する', model: MODELS.veo,
@@ -385,7 +385,7 @@ for (const [name, inputs, model, code] of [
   const result = validateInputs({ inputs, output: { resolution: model.resolutions[0] }, model });
   assert.equal(result.ok, code === null);
   if (code) assert.ok(result.messages.some(message => message.code === code));
-  if (code === 'prompt.required') assert.equal(result.messages.find(message => message.code === code).text, '指示文か絵のどちらかが必要です');
+  if (code === 'prompt.required') assert.equal(result.messages.find(message => message.code === code).text, 'A prompt or an image is required');
 });
 
 test('非選択側を保持する下書きは送信側だけ検証する', () => {

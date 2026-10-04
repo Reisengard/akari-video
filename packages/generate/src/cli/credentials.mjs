@@ -16,7 +16,7 @@ export function resolveFalKey({ env = process.env, credentialsFile } = {}) {
     const fromFile = readCredentials(credentialsFile ? { ...env, AKARI_CREDENTIALS_FILE: credentialsFile } : env).values.get("FAL_KEY")?.trim();
     if (fromFile) return { key: fromFile, key_source: "file:credentials.env" };
   } catch (error) {
-    if (error?.code !== "ENOENT") throw new CredentialsError("credentials.env を読めません");
+    if (error?.code !== "ENOENT") throw new CredentialsError("Could not read credentials.env");
   }
-  throw new CredentialsError("FAL_KEY が env にも credentials.env にもありません");
+  throw new CredentialsError("FAL_KEY is in neither the environment nor credentials.env");
 }

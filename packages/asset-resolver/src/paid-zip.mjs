@@ -26,13 +26,13 @@ export async function downloadPaidZip(id, credentials, destZipPath, { env = proc
     res = await fetchImpl(url, { headers: { authorization: `Bearer ${credentials.token}` } });
   } catch (error) {
     throw new AssetResolverError(
-      `有料素材のダウンロードに失敗しました（ネットワークエラー）: ${id}: ${error instanceof Error ? error.message : String(error)}`,
+      `Paid footage download failed (network error): ${id}: ${error instanceof Error ? error.message : String(error)}`,
       'download_failed',
     );
   }
   if (!res.ok || !res.body) {
     throw new AssetResolverError(
-      `有料素材のダウンロードに失敗しました: ${id}（HTTP ${res.status ?? '不明'}）`,
+      `Paid footage download failed: ${id} (HTTP ${res.status ?? 'unknown'})`,
       'download_failed',
     );
   }
@@ -62,8 +62,8 @@ export function extractZipWithTools(zipPath, destDir, { spawn = spawnSync, platf
     }
   }
   throw new Error(failures.length
-    ? `zip の展開に失敗しました: ${failures.join('; ')}`
-    : 'zip を展開できる道具が見つからないため失敗しました。Windows 10 以降の tar.exe、unzip、または PowerShell Expand-Archive を利用可能にしてください。');
+    ? `Could not extract the zip: ${failures.join('; ')}`
+    : 'No tool found to extract the zip. Make tar.exe (Windows 10 or later), unzip, or PowerShell Expand-Archive available.');
 }
 
 export function extractZip(zipPath, destDir, options = {}) {
@@ -85,7 +85,7 @@ export async function verifyPaidZipContents(extractedRoot, id) {
   const rootDirs = entries.filter((entry) => entry.isDirectory());
   if (rootDirs.length !== 1) {
     throw new AssetResolverError(
-      `zip の構成が想定と違います（契約 §6: <product_id>-v<version>/ 直下の単一ディレクトリを期待）: ${id}`,
+      `The zip layout is unexpected (contract §6 expects a single <product_id>-v<version>/ directory at the top): ${id}`,
       'integrity',
     );
   }
@@ -95,7 +95,7 @@ export async function verifyPaidZipContents(extractedRoot, id) {
   try {
     checksumsRaw = await readFile(path.join(packageDir, 'checksums.txt'), 'utf8');
   } catch {
-    throw new AssetResolverError(`checksums.txt がありません: ${id}`, 'integrity');
+    throw new AssetResolverError(`checksums.txt is missing: ${id}`, 'integrity');
   }
 
   const expected = [];
@@ -104,17 +104,17 @@ export async function verifyPaidZipContents(extractedRoot, id) {
     if (!trimmed) continue;
     const match = /^([0-9a-f]{64})\s+(.+)$/.exec(trimmed);
     if (!match) {
-      throw new AssetResolverError(`checksums.txt の行を解釈できません: ${id}: ${trimmed}`, 'integrity');
+      throw new AssetResolverError(`Cannot parse a checksums.txt line: ${id}: ${trimmed}`, 'integrity');
     }
     const relPath = match[2];
     // zip-slip 防御: checksums.txt 経由で packageDir の外を参照させない（絶対パス・`..` 拒否）
     if (path.isAbsolute(relPath) || relPath.split(/[\\/]/).includes('..')) {
-      throw new AssetResolverError(`checksums.txt に不正なパスがあります: ${id}: ${relPath}`, 'integrity');
+      throw new AssetResolverError(`checksums.txt has an invalid path: ${id}: ${relPath}`, 'integrity');
     }
     expected.push({ sha256: match[1], relPath });
   }
   if (expected.length === 0) {
-    throw new AssetResolverError(`checksums.txt が空です: ${id}`, 'integrity');
+    throw new AssetResolverError(`checksums.txt is empty: ${id}`, 'integrity');
   }
 
   for (const entry of expected) {
@@ -123,11 +123,11 @@ export async function verifyPaidZipContents(extractedRoot, id) {
     try {
       actual = await sha256File(filePath);
     } catch {
-      throw new AssetResolverError(`checksums.txt に記載のファイルがありません: ${id}/${entry.relPath}`, 'integrity');
+      throw new AssetResolverError(`A file listed in checksums.txt is missing: ${id}/${entry.relPath}`, 'integrity');
     }
     if (actual !== entry.sha256) {
       throw new AssetResolverError(
-        `sha256 が一致しません（改竄または破損の可能性）: ${id}/${entry.relPath}（期待 ${entry.sha256} / 実際 ${actual}）`,
+        `sha256 mismatch (possible tampering or corruption): ${id}/${entry.relPath} (expected ${entry.sha256} / actual ${actual})`,
         'integrity',
       );
     }
@@ -135,7 +135,7 @@ export async function verifyPaidZipContents(extractedRoot, id) {
 
   const payloadFiles = expected.map((entry) => entry.relPath).filter((relPath) => !NON_PAYLOAD_FILES.has(relPath));
   if (payloadFiles.length === 0) {
-    throw new AssetResolverError(`zip に素材本体（fragment.html / meta.json / *.glb 等）がありません: ${id}`, 'integrity');
+    throw new AssetResolverError(`The zip has no footage body (fragment.html, meta.json, *.glb, etc.): ${id}`, 'integrity');
   }
   return { packageDir, payloadFiles };
 }

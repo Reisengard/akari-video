@@ -30,24 +30,24 @@ export function runAudioMeasureCli(argv, io = {}) {
   const stderr = io.stderr ?? ((line) => process.stderr.write(`${line}\n`));
   try {
     const [filePath, ...rest] = argv;
-    if (!filePath || filePath.startsWith("-")) throw new Error("使い方: akari-audio-measure <file> [--cache-dir <dir>] [--no-cache]");
+    if (!filePath || filePath.startsWith("-")) throw new Error("Usage: akari-audio-measure <file> [--cache-dir <dir>] [--no-cache]");
     let cacheDir = defaultCacheDir(filePath);
     let useCache = true;
     for (let index = 0; index < rest.length; index += 1) {
       if (rest[index] === "--no-cache") {
         useCache = false;
       } else if (rest[index] === "--cache-dir") {
-        if (!rest[index + 1] || rest[index + 1].startsWith("--")) throw new Error("--cache-dir の値が必要です");
+        if (!rest[index + 1] || rest[index + 1].startsWith("--")) throw new Error("--cache-dir needs a value");
         cacheDir = rest[++index];
       } else {
-        throw new Error(`不明なオプションです: ${rest[index]}`);
+        throw new Error(`Unknown option: ${rest[index]}`);
       }
     }
     const output = measureAudioLevels({ ffmpegPath: resolveFfmpeg(), filePath, cacheDir, useCache });
     stdout(JSON.stringify(output));
     return 0;
   } catch (error) {
-    stderr(`音声レベルを計測できませんでした: ${error instanceof Error ? error.message : String(error)}`.replace(/\s+/gu, " "));
+    stderr(`Could not measure audio levels: ${error instanceof Error ? error.message : String(error)}`.replace(/\s+/gu, " "));
     return 1;
   }
 }

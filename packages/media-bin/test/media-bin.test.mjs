@@ -52,10 +52,10 @@ test("resolveFfmpeg: vendor / packaged 不在時のエラーに packaged 候補�
   });
 
   assert.throws(() => resolveFfmpeg({ env: STRIPPED_PATH_ENV }), error => {
-    assert.match(error.message, /ffmpeg が見つかりませんでした/);
-    assert.match(error.message, /探索順:/);
+    assert.match(error.message, /ffmpeg was not found/);
+    assert.match(error.message, /Search order:/);
     assert.ok(error.message.includes(vendorPath));
-    assert.ok(error.message.includes(`パッケージ版同梱バイナリ（${packagedPath}）`));
+    assert.ok(error.message.includes(`bundled binary in the packaged app (${packagedPath})`));
     return true;
   });
 });
@@ -83,7 +83,7 @@ test("resolveFfmpeg: AKARI_FFMPEG_BIN の存在しない絶対パスは従来の
   assert.throws(
     () => resolveFfmpeg({ env: baseEnv({ AKARI_FFMPEG_BIN: "/no/such/ffmpeg-binary" }) }),
     {
-      message: "AKARI_FFMPEG_BIN で指定されたファイルがありません: /no/such/ffmpeg-binary",
+      message: "AKARI_FFMPEG_BIN points to a file that does not exist: /no/such/ffmpeg-binary",
     },
   );
 });
@@ -105,9 +105,9 @@ test("resolveFfprobe: PATH にない明示コマンドは原因と次の一手�
         env: baseEnv({ AKARI_FFPROBE_BIN: "akari-command-that-does-not-exist" }),
       }),
     (error) => {
-      assert.match(error.message, /AKARI_FFPROBE_BIN.*明示指定/);
-      assert.match(error.message, /akari-command-that-does-not-exist が PATH に見つかりません/);
-      assert.match(error.message, /絶対パスを指定するか PATH を確認/);
+      assert.match(error.message, /AKARI_FFPROBE_BIN.*names the command/);
+      assert.match(error.message, /akari-command-that-does-not-exist, which was not found on PATH/);
+      assert.match(error.message, /Give an absolute path or check PATH/);
       return true;
     },
   );
@@ -120,7 +120,7 @@ test("resolveFfprobe: バックスラッシュを含む値は PATH 探索せず�
         env: baseEnv({ AKARI_FFPROBE_BIN: "missing\\ffprobe.exe" }),
       }),
     {
-      message: "AKARI_FFPROBE_BIN で指定されたファイルがありません: missing\\ffprobe.exe",
+      message: "AKARI_FFPROBE_BIN points to a file that does not exist: missing\\ffprobe.exe",
     },
   );
 });
@@ -141,7 +141,7 @@ test("resolveFfmpeg: FFMPEG_PATH の存在しない絶対パスは従来のエ�
   assert.throws(
     () => resolveFfmpeg({ env: baseEnv({ FFMPEG_PATH: "/no/such/legacy-ffmpeg-binary" }) }),
     {
-      message: "FFMPEG_PATH で指定されたファイルがありません: /no/such/legacy-ffmpeg-binary",
+      message: "FFMPEG_PATH points to a file that does not exist: /no/such/legacy-ffmpeg-binary",
     },
   );
 });
@@ -153,9 +153,9 @@ test("resolveFfmpeg: PATH にない FFMPEG_PATH のコマンド名も明示指�
         env: baseEnv({ FFMPEG_PATH: "akari-command-that-does-not-exist" }),
       }),
     (error) => {
-      assert.match(error.message, /FFMPEG_PATH.*明示指定/);
-      assert.match(error.message, /akari-command-that-does-not-exist が PATH に見つかりません/);
-      assert.match(error.message, /絶対パスを指定するか PATH を確認/);
+      assert.match(error.message, /FFMPEG_PATH names the command/);
+      assert.match(error.message, /akari-command-that-does-not-exist, which was not found on PATH/);
+      assert.match(error.message, /Give an absolute path or check PATH/);
       return true;
     },
   );

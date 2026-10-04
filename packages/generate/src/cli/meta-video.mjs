@@ -11,7 +11,7 @@ function writeValidated(metaPath, meta) {
   const checked = validateGenerationMeta(meta);
   if (!checked.ok) {
     rmSync(temporary, { force: true });
-    throw new Error(`generation meta の検証に失敗しました:\n- ${checked.errors.join("\n- ")}`);
+    throw new Error(`Generation meta failed validation:\n- ${checked.errors.join("\n- ")}`);
   }
   renameSync(temporary, metaPath);
   return meta;

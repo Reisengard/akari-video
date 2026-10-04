@@ -17,7 +17,7 @@ export async function bundleProjectReferences({
         const resolved = await resolveAsset(reference.id, { env });
         if (resolved.category !== reference.category) {
           throw new Error(
-            `カタログのカテゴリが台帳と一致しません: ${reference.category}/${reference.id}（実際: ${resolved.category}）`,
+            `Catalog category does not match the ledger: ${reference.category}/${reference.id} (actual: ${resolved.category})`,
           );
         }
       }

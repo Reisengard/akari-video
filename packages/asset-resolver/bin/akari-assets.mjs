@@ -39,27 +39,27 @@ function validateArgs(sub, args) {
     credits: { values: ['--project'], flags: [], max: 0 },
   };
   const spec = specs[sub];
-  if (!spec) throw new Error(`不明なコマンド: ${sub}`);
+  if (!spec) throw new Error(`Unknown command: ${sub}`);
   const seen = new Set();
   const positional = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (!arg.startsWith('-')) { positional.push(arg); continue; }
-    if (!spec.values.includes(arg) && !spec.flags.includes(arg)) throw new Error(`不明なオプション: ${arg}`);
-    if (seen.has(arg)) throw new Error(`重複したオプション: ${arg}`);
+    if (!spec.values.includes(arg) && !spec.flags.includes(arg)) throw new Error(`Unknown option: ${arg}`);
+    if (seen.has(arg)) throw new Error(`Duplicate option: ${arg}`);
     seen.add(arg);
-    if (spec.values.includes(arg) && (!args[++i] || args[i].startsWith('-'))) throw new Error(`${arg} には値が必要です`);
+    if (spec.values.includes(arg) && (!args[++i] || args[i].startsWith('-'))) throw new Error(`${arg} needs a value`);
   }
-  if (positional.length < (spec.min ?? 0) || positional.length > spec.max) throw new Error('引数の数が正しくありません');
+  if (positional.length < (spec.min ?? 0) || positional.length > spec.max) throw new Error('Wrong number of arguments');
   if (sub === 'add' && (seen.has('--plan') === seen.has('--apply')
     || (seen.has('--apply') ? positional.length !== 0 : positional.length === 0))) {
-    throw new Error('add は <path...> --plan または --apply <plan.json> を指定してください');
+    throw new Error('add needs <path...> --plan, or --apply <plan.json>');
   }
-  if (sub === 'bundle' && !seen.has('--project')) throw new Error('--project <dir> が必要です');
-  if (sub === 'credits' && !seen.has('--project')) throw new Error('--project <dir> が必要です');
+  if (sub === 'bundle' && !seen.has('--project')) throw new Error('--project <dir> is required');
+  if (sub === 'credits' && !seen.has('--project')) throw new Error('--project <dir> is required');
   if (sub === 'fetch') {
-    if (args[0] !== positional[0]) throw new Error('fetch の先頭には素材 ID を指定してください');
-    if (seen.has('--reference') && !seen.has('--project')) throw new Error('--reference には --project <dir> が必要です');
+    if (args[0] !== positional[0]) throw new Error('Put the footage id first for fetch');
+    if (seen.has('--reference') && !seen.has('--project')) throw new Error('--reference needs --project <dir>');
   }
 }
 
@@ -75,9 +75,9 @@ async function cmdList(args, env) {
   const category = flagValue(args, '--category');
   const asJson = args.includes('--json');
   const source = flagValue(args, '--source');
-  if (args.includes('--source') && !['lab', 'site', 'own'].includes(source)) throw new Error('--source は lab / site / own で指定してください');
+  if (args.includes('--source') && !['lab', 'site', 'own'].includes(source)) throw new Error('--source must be lab, site, or own');
   const { libraryRoots, items, warnings } = await composeState({ env });
-  for (const warning of warnings) console.error(`警告: ${warning}`);
+  for (const warning of warnings) console.error(`Warning: ${warning}`);
   const filtered = items.filter(item => (!category || item.category === category) && (!source || item.sourceKind === source));
 
   if (asJson) {
@@ -85,7 +85,7 @@ async function cmdList(args, env) {
     return;
   }
 
-  console.log(`使える素材 ${filtered.length} 件（ライブラリ: ${libraryRoots.write}）`);
+  console.log(`${filtered.length} footage items (library: ${libraryRoots.write})`);
   for (const item of filtered) {
     console.log(`  ${badgeOf(item)}  ${item.id}\t${item.sourceKind}\t[${item.category}]\t${item.title}`);
   }
@@ -93,14 +93,14 @@ async function cmdList(args, env) {
 
 async function cmdAdd(args, env) {
   const apply = flagValue(args, '--apply');
-  if (args.includes('--plan') === args.includes('--apply')) throw new Error('add は --plan または --apply <plan.json> のどちらかを指定してください');
+  if (args.includes('--plan') === args.includes('--apply')) throw new Error('add needs either --plan or --apply <plan.json>');
   let result;
   if (args.includes('--apply')) {
-    if (!apply || args.some((arg, index) => !['--apply', '--json'].includes(arg) && index !== args.indexOf('--apply') + 1)) throw new Error('使い方: akari-assets add --apply <plan.json> [--json]');
+    if (!apply || args.some((arg, index) => !['--apply', '--json'].includes(arg) && index !== args.indexOf('--apply') + 1)) throw new Error('Usage: akari-assets add --apply <plan.json> [--json]');
     result = await applyAdd(JSON.parse(await readFile(apply, 'utf8')), { env });
     if (result.failures.length) process.exitCode = 1;
   } else {
-    if (args.some(arg => arg.startsWith('--') && !['--plan', '--json'].includes(arg))) throw new Error('使い方: akari-assets add <path...> --plan [--json]');
+    if (args.some(arg => arg.startsWith('--') && !['--plan', '--json'].includes(arg))) throw new Error('Usage: akari-assets add <path...> --plan [--json]');
     result = await planAdd(args.filter(arg => !['--plan', '--json'].includes(arg)), { env });
   }
   console.log(JSON.stringify(result, null, 2));
@@ -109,7 +109,7 @@ async function cmdAdd(args, env) {
 async function cmdFetch(args, env) {
   const id = args[0];
   if (!id || id.startsWith('--')) {
-    console.error('使い方: akari-assets fetch <id> [--project <dir>] [--reference] [--force]');
+    console.error('Usage: akari-assets fetch <id> [--project <dir>] [--reference] [--force]');
     process.exitCode = 1;
     return;
   }
@@ -117,15 +117,15 @@ async function cmdFetch(args, env) {
   const reference = args.includes('--reference');
   const force = args.includes('--force');
   if (reference && !project) {
-    console.error('--reference には --project <dir> が必要です');
+    console.error('--reference needs --project <dir>');
     process.exitCode = 1;
     return;
   }
   try {
     const result = await resolveAsset(id, { env, project, force, reference });
-    console.log(`${result.cached ? '取得済み（キャッシュ）を使用' : '取得しました'}: ${result.dir}`);
-    if (result.projectDir) console.log(`  プロジェクトへコピー: ${result.projectDir}`);
-    if (result.referenced) console.log(`  参照を記帳: ${result.category}/${result.id}`);
+    console.log(`${result.cached ? 'Using the cached copy' : 'Fetched'}: ${result.dir}`);
+    if (result.projectDir) console.log(`  Copied into the project: ${result.projectDir}`);
+    if (result.referenced) console.log(`  Recorded a reference: ${result.category}/${result.id}`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
@@ -136,30 +136,30 @@ async function cmdBundle(args, env) {
   const project = flagValue(args, '--project');
   const dryRun = args.includes('--dry-run');
   if (!project) {
-    console.error('使い方: akari-assets bundle --project <dir> [--dry-run]');
+    console.error('Usage: akari-assets bundle --project <dir> [--dry-run]');
     process.exitCode = 1;
     return;
   }
 
   const result = await bundleProjectReferences({ project, env, dryRun });
   if (result.planned.length === 0) {
-    console.log('実体化する参照はありません');
+    console.log('No references to materialize');
     return;
   }
   if (dryRun) {
     for (const reference of result.planned) {
-      console.log(`実体化予定: ${reference.category}/${reference.id}`);
+      console.log(`To be materialized: ${reference.category}/${reference.id}`);
     }
     return;
   }
 
   for (const materialized of result.materialized) {
     console.log(
-      `実体化しました: ${materialized.category}/${materialized.id} -> ${materialized.projectDir}`,
+      `Materialized: ${materialized.category}/${materialized.id} -> ${materialized.projectDir}`,
     );
   }
   if (result.failures.length > 0) {
-    console.error(`実体化できなかった参照 ${result.failures.length} 件:`);
+    console.error(`Could not materialize ${result.failures.length} references:`);
     for (const failure of result.failures) {
       console.error(
         `  ${failure.reference.category}/${failure.reference.id}: ${failure.message}`,
@@ -172,7 +172,7 @@ async function cmdBundle(args, env) {
 async function cmdSync(_args, env) {
   const catalog = await loadCatalog({ env, includeInstalled: false });
   await cacheCatalog(env, catalog);
-  console.log(`カタログを同期しました: ${catalog.items.length} 件（version ${catalog.version ?? '不明'}）`);
+  console.log(`Synced the catalog: ${catalog.items.length} items (version ${catalog.version ?? 'unknown'})`);
 }
 
 async function cmdBrowse(args, env) {
@@ -185,8 +185,8 @@ async function cmdCheck(args, env) {
   const result = await checkLibrary({ env, project: flagValue(args, '--project') });
   if (args.includes('--json')) console.log(JSON.stringify(result, null, 2));
   else {
-    console.log(`問題なし ${result.ok} 件 / 注意 ${result.warnings.length} 件 / エラー ${result.errors.length} 件`);
-    for (const row of result.findings) console.log(`${row.level === 'error' ? 'エラー' : '注意'}: ${row.category}/${row.id}: ${row.message} (${row.dir})`);
+    console.log(`${result.ok} ok / ${result.warnings.length} warnings / ${result.errors.length} errors`);
+    for (const row of result.findings) console.log(`${row.level === 'error' ? 'error' : 'warning'}: ${row.category}/${row.id}: ${row.message} (${row.dir})`);
   }
   if (result.errors.length) process.exitCode = 1;
 }
@@ -196,27 +196,27 @@ async function cmdCredits(args, env) {
 }
 
 function printUsage() {
-  console.log(`使い方: akari-assets <list|add|fetch|bundle|migrate|sync|browse|check|credits> [options]
+  console.log(`Usage: akari-assets <list|add|fetch|bundle|migrate|sync|browse|check|credits> [options]
 
   list [--category <c>] [--source <lab|site|own>] [--json]
-                                          出どころ・取得状態つき素材一覧
-  add <path...> --plan [--json]           ローカル素材の取り込み計画（書き込みなし）
-  add --apply <plan.json> [--json]        計画で選択した素材を複製して登録
+                                          List footage with origin and fetch state
+  add <path...> --plan [--json]           Plan a local import (no writes)
+  add --apply <plan.json> [--json]        Copy the footage selected in a plan and register it
   fetch <id> [--project <dir>] [--reference] [--force]
-                                          素材を解決して登録（--reference はコピーせず参照を記帳）
-  bundle --project <dir> [--dry-run]      参照素材をプロジェクトへ実体化（素材をまとめる）
-  migrate [--dry-run]                     ライブラリを作業場へ移行
-  sync                                    カタログを取得してローカルにキャッシュ（オフライン用）
-  browse [--port <n>]                     ローカル HTTP サーバでカタログを閲覧・投入（既定 8910）
-  check [--project <dir>] [--json]         ライブラリを読み取り専用で点検
-  credits --project <dir>                 プロジェクトのクレジット文面を一覧
+                                          Resolve footage and register it (--reference records a reference and does not copy)
+  bundle --project <dir> [--dry-run]      Materialize referenced footage into the project
+  migrate [--dry-run]                     Move the library into the workspace
+  sync                                    Fetch the catalog and cache it locally
+  browse [--port <n>]                     Browse and fetch the catalog over local HTTP (default 8910)
+  check [--project <dir>] [--json]        Read-only library check
+  credits --project <dir>                 List credit lines for the project
 
-環境変数:
-  AKARI_HOME             マシン設定の置き場（既定: ~/.akari）
-  AKARI_LIBRARY_ROOT     ライブラリの置き場の上書き
-  AKARI_ASSETS_CATALOG   カタログの取得元。URL またはローカルパス（既定: ${DEFAULT_CATALOG_URL}）
-  AKARI_ASSETS_BASE      素材実体の配信ベースの上書き（既定はカタログの "base" フィールド）
-  AKARI_STORE_API        entitlements API のホスト上書き（既定: ${DEFAULT_STORE_API}）`);
+Environment:
+  AKARI_HOME             Machine config directory (default: ~/.akari)
+  AKARI_LIBRARY_ROOT     Override the library location
+  AKARI_ASSETS_CATALOG   Catalog source. URL or local path (default: ${DEFAULT_CATALOG_URL})
+  AKARI_ASSETS_BASE      Override the footage delivery base (default: the catalog "base" field)
+  AKARI_STORE_API        Override the entitlements API host (default: ${DEFAULT_STORE_API})`);
 }
 
 async function main() {

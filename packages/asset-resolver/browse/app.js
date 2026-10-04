@@ -12,7 +12,7 @@
   let onlyGot = false;
   let selectedId = null;
 
-  $('#home-line').textContent = `ライブラリ: ${home}`;
+  $('#home-line').textContent = `Library: ${home}`;
 
   function categories() {
     const set = new Set(items.map((i) => i.category));
@@ -25,7 +25,7 @@
     chips.innerHTML = '';
     for (const c of categories()) {
       const count = c === 'all' ? items.length : items.filter((i) => i.category === c).length;
-      const btn = el(`<button class="chip-btn${c === activeCategory ? ' active' : ''}" data-c="${c}">${c === 'all' ? 'すべて' : esc(c)}（${count}）</button>`);
+      const btn = el(`<button class="chip-btn${c === activeCategory ? ' active' : ''}" data-c="${c}">${c === 'all' ? 'All' : esc(c)} (${count})</button>`);
       btn.addEventListener('click', () => { activeCategory = c; renderChips(); renderGrid(); });
       chips.append(btn);
     }
@@ -44,14 +44,14 @@
   /* ---- グリッド ---- */
   const grid = $('#grid');
   function badgeOf(item) {
-    if (item.state === 'cached') return '<span class="badge got">✓ 取得済み</span>';
-    if (item.state === 'locked') return `<span class="badge paid">¥${(item.price ?? 0).toLocaleString()}</span>`;
-    return '<span class="badge">☁ 未取得</span>';
+    if (item.state === 'cached') return '<span class="badge got">Fetched</span>';
+    if (item.state === 'locked') return `<span class="badge paid">¥${(item.price ?? 0).toLocaleString('en-US')}</span>`;
+    return '<span class="badge">Not fetched</span>';
   }
   function renderGrid() {
     grid.innerHTML = '';
     const list = items.filter(matches);
-    $('#count-line').textContent = `${list.length} 件 ・ 一覧はサムネとメタデータだけ（実体は未取得のまま）`;
+    $('#count-line').textContent = `${list.length} items. The list is thumbnails and metadata only. Files stay unfetched.`;
     list.forEach((item) => {
       const card = el(`
         <div class="card ${item.category}${item.id === selectedId ? ' selected' : ''}" data-id="${item.id}">
@@ -78,9 +78,9 @@
       ${item.preview && !isAudio ? `<img class="big" src="/thumb/${encodeURIComponent(item.id)}" alt="">` : ''}
       ${item.preview && isAudio ? `<audio controls preload="none" src="/media/${encodeURIComponent(item.id)}"></audio>` : ''}
       <h2>${esc(item.title)}</h2>
-      <p class="id">${esc(item.id)} ・ ${esc(item.license?.spdx ?? '')}${item.price ? ` ・ ¥${item.price.toLocaleString()}` : ' ・ 無料'}</p>
+      <p class="id">${esc(item.id)} · ${esc(item.license?.spdx ?? '')}${item.price ? ` · ¥${item.price.toLocaleString('en-US')}` : ' · Free'}</p>
       <div class="tagrow">${(item.tags || []).map((t) => `<span>${esc(t)}</span>`).join('')}</div>
-      ${item.provenance?.prompt ? `<details class="prompt"><summary>生成プロンプト</summary><p>${esc(item.provenance.prompt)}</p></details>` : ''}
+      ${item.provenance?.prompt ? `<details class="prompt"><summary>Generation prompt</summary><p>${esc(item.provenance.prompt)}</p></details>` : ''}
       <div class="actions" id="actions"></div>
       <p class="msg" id="msg"></p>
     </div>`));
@@ -89,31 +89,31 @@
     const say = (ok, text) => { msg.className = `msg ${ok ? 'ok' : 'err'}`; msg.textContent = text; };
 
     if (item.state === 'locked') {
-      actions.append(el(`<button class="btn" disabled>未購入（¥${(item.price ?? 0).toLocaleString()}） — AKARI Video Lab で購入してください</button>`));
+      actions.append(el(`<button class="btn" disabled>Not purchased (¥${(item.price ?? 0).toLocaleString('en-US')}). Buy it in AKARI Video Lab.</button>`));
     } else if (item.state === 'cached') {
-      actions.append(el('<p class="note">✓ ライブラリに取得済みです。</p>'));
+      actions.append(el('<p class="note">Already in the library.</p>'));
     } else {
-      const lib = el('<button class="btn">ライブラリへ取得する</button>');
+      const lib = el('<button class="btn">Fetch into the library</button>');
       lib.addEventListener('click', async () => {
         lib.disabled = true;
         const r = await (await fetch('/api/fetch', { method: 'POST', body: JSON.stringify({ id: item.id }) })).json();
-        if (r.ok) { say(true, `取得した → ${r.dir}`); await refreshItems(); renderChips(); renderGrid(); renderDetail(items.find((i) => i.id === item.id)); }
-        else { say(false, r.error ?? '失敗'); lib.disabled = false; }
+        if (r.ok) { say(true, `Fetched: ${r.dir}`); await refreshItems(); renderChips(); renderGrid(); renderDetail(items.find((i) => i.id === item.id)); }
+        else { say(false, r.error ?? 'Failed'); lib.disabled = false; }
       });
       actions.append(lib);
     }
 
     if (item.state !== 'locked') {
       const proj = el(`<div class="proj">
-        <input id="proj-path" placeholder="/path/to/project（実在ディレクトリ）" value="${esc(localStorage.getItem('projPath') ?? '')}">
-        <button class="btn secondary" style="width:100%">プロジェクトへ入れる（assets/${esc(item.id)}/）</button>
+        <input id="proj-path" placeholder="/path/to/project (existing directory)" value="${esc(localStorage.getItem('projPath') ?? '')}">
+        <button class="btn secondary" style="width:100%">Add to the project (assets/${esc(item.id)}/)</button>
       </div>`);
       proj.querySelector('button').addEventListener('click', async () => {
         const projectPath = proj.querySelector('input').value.trim();
         localStorage.setItem('projPath', projectPath);
         const r = await (await fetch('/api/fetch', { method: 'POST', body: JSON.stringify({ id: item.id, project: projectPath }) })).json();
-        if (r.ok) { say(true, `プロジェクトへ入れた → ${r.projectDir}`); await refreshItems(); renderChips(); renderGrid(); }
-        else say(false, r.error ?? '失敗');
+        if (r.ok) { say(true, `Added to the project: ${r.projectDir}`); await refreshItems(); renderChips(); renderGrid(); }
+        else say(false, r.error ?? 'Failed');
       });
       actions.append(proj);
     }

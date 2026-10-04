@@ -63,7 +63,7 @@ test('all supported extensions classify; unsupported, cube and empty files are r
   for (const [category, exts] of Object.entries(groups)) assert.equal(p.items.filter(item => item.category === category).length, exts.split(' ').length);
   assert.equal(p.rejected.length, 3);
   assert.match(p.rejected.find(row => row.name === 'grade.cube').reason, /presets/);
-  assert.match(p.rejected.find(row => row.name === 'empty.wav').reason, /0 バイト/);
+  assert.match(p.rejected.find(row => row.name === 'empty.wav').reason, /0-byte/);
   assert.ok(p.items.every(row => row.folder === 'input'));
   assert.equal(existsSync(f.env.AKARI_HOME), false);
   assert.equal(existsSync(f.env.AKARI_LIBRARY_ROOT), false);
@@ -220,12 +220,12 @@ test('plan/apply rechecks source bytes and rejects symlink replacement and unsaf
   const p = await plan(f, [source]);
   writeFileSync(source, 'BBBB');
   utimesSync(source, new Date(), new Date(Date.now() + 2000));
-  assert.match((await apply(f, p)).failures[0].reason, /内容が変更/);
+  assert.match((await apply(f, p)).failures[0].reason, /source file changed/);
   rmSync(source);
   symlinkSync(f.file('other.wav', 'AAAA'), source);
-  assert.match((await apply(f, p)).failures[0].reason, /シンボリックリンク/);
+  assert.match((await apply(f, p)).failures[0].reason, /Symbolic links/);
   p.items[0].proposedId = '../../escape';
-  assert.match((await apply(f, p)).failures[0].reason, /不正/);
+  assert.match((await apply(f, p)).failures[0].reason, /invalid/);
 });
 
 test('selected=false is skipped and repeated apply deduplicates', async t => {

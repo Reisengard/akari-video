@@ -54,7 +54,7 @@ function probeAudio(filePath, ffprobePath = resolveFfprobe()) {
     "-show_entries", "stream=sample_rate,channels:format=duration", "-of", "json", filePath,
   ], { encoding: "utf8", maxBuffer: CAPTURE_LIMIT_BYTES });
   if (result.error || result.status !== 0) {
-    throw new Error(summarize(result.stderr || result.error?.message, "ffprobe による音声情報の取得に失敗しました"));
+    throw new Error(summarize(result.stderr || result.error?.message, "ffprobe could not read the audio info"));
   }
   const value = JSON.parse(result.stdout || "{}");
   const stream = Array.isArray(value.streams) ? value.streams[0] : undefined;
@@ -63,7 +63,7 @@ function probeAudio(filePath, ffprobePath = resolveFfprobe()) {
   const channels = Number(stream?.channels);
   if (!Number.isFinite(duration) || duration < 0 || !Number.isFinite(sampleRate) || sampleRate <= 0
     || !Number.isInteger(channels) || channels <= 0) {
-    throw new Error("ffprobe が有効な音声情報を返しませんでした");
+    throw new Error("ffprobe returned no valid audio info");
   }
   return { duration_sec: duration, sample_rate: sampleRate, channels };
 }
@@ -75,11 +75,11 @@ function cacheKey(realPath, stat) {
 }
 
 export function measureAudioLevels({ ffmpegPath, filePath, cacheDir, useCache = true }) {
-  if (typeof ffmpegPath !== "string" || !ffmpegPath) throw new Error("ffmpegPath が必要です");
-  if (typeof filePath !== "string" || !filePath) throw new Error("filePath が必要です");
+  if (typeof ffmpegPath !== "string" || !ffmpegPath) throw new Error("ffmpegPath is required");
+  if (typeof filePath !== "string" || !filePath) throw new Error("filePath is required");
   const realPath = fs.realpathSync(filePath);
   const stat = fs.statSync(realPath);
-  if (!stat.isFile()) throw new Error("計測対象が通常ファイルではありません");
+  if (!stat.isFile()) throw new Error("The file to measure is not a regular file");
   const key = cacheKey(realPath, stat);
   const cachePath = cacheDir ? path.join(path.resolve(cacheDir), `${key}.json`) : null;
   if (useCache && cachePath) {
@@ -97,12 +97,12 @@ export function measureAudioLevels({ ffmpegPath, filePath, cacheDir, useCache = 
     "-f", "null", "-",
   ], { encoding: "utf8", maxBuffer: CAPTURE_LIMIT_BYTES });
   if (result.error || result.status !== 0) {
-    throw new Error(summarize(result.stderr || result.error?.message, "ffmpeg による音声レベル計測に失敗しました"));
+    throw new Error(summarize(result.stderr || result.error?.message, "ffmpeg audio level measurement failed"));
   }
   const measured = parseAudioMeasureStderr(result.stderr);
   if (measured.integrated_lufs === null && measured.sample_peak_dbfs === null
     && measured.true_peak_dbtp === null && !/\bSummary:/u.test(result.stderr)) {
-    throw new Error("ffmpeg の音声レベル計測結果を解析できませんでした");
+    throw new Error("Could not parse the ffmpeg audio level result");
   }
   const metadata = probeAudio(realPath);
   const output = {

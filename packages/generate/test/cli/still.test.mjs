@@ -93,7 +93,7 @@ test("still: dry-run は fps と既存末尾から at を計算し、何も書�
     { id: "one", at: 36, frames: 36 },
     { id: "two", at: 72, frames: 48 },
   ]);
-  assert.match(output.join("\n"), /id\t尺\(秒\)\tat\(フレーム\)/);
+  assert.match(output.join("\n"), /id\tduration_s\tat_frame/);
   assert.equal(await readFile(join(projectDir, "edit.json"), "utf8"), before);
 });
 
@@ -318,5 +318,5 @@ test('still --spec の最後のビートで last: next は非 0 終了と日本�
   });
   assert.notEqual(result.exitCode, 0);
   assert.equal(generated, false);
-  assert.match(errors.join('\n'), /最後のビートでは video.last に next を指定できません/);
+  assert.match(errors.join('\n'), /The last beat cannot set video.last to next/);
 });

@@ -22,7 +22,7 @@ import { writeGenerating, writeDone, writeFailed, writeQueueStatus } from "./met
 import { applyReplacement, findItem, planReplacement } from "./edit-replace.mjs";
 
 export const usage = [
-  "使い方: akari generate video <projectDir> --item <itemId> [options]",
+  "Usage: akari generate video <projectDir> --item <itemId> [options]",
   "       akari generate video <projectDir> --from-image <relativePath> [options]",
   "       akari generate video <projectDir> --item <itemId> --candidate [options]",
   "  --model <id> --prompt <text> --negative-prompt <text>",
@@ -30,7 +30,7 @@ export const usage = [
   "  --reference-audio <path> --camera <text> --duration <s> --resolution <res>",
   "  --aspect <a> --audio-out true|false --seed <n> --extra k=v --inputs <json>",
   "  --stale-after <s> --dry-run --yes --json --help",
-  "  --inputs 未指定時は素材 meta の next を使用。--model 等の個別指定は下書きより優先",
+  "  With no --inputs, video uses the footage meta next. A flag such as --model wins over the draft.",
 ].join("\n");
 
 class CliError extends Error {
@@ -50,7 +50,7 @@ const FLAGS = new Set(["--dry-run", "--yes", "--json", "--candidate", "--help", 
 function parseBoolean(value, option) {
   if (value === "true") return true;
   if (value === "false") return false;
-  throw new CliError(`${option} は true または false で指定してください`);
+  throw new CliError(`${option} must be true or false`);
 }
 
 function parseScalar(value) {
@@ -74,7 +74,7 @@ export function parseVideoArguments(argv) {
     const argument = argv[index];
     if (VALUES.has(argument)) {
       const value = argv[++index];
-      if (value === undefined || VALUES.has(value) || FLAGS.has(value)) throw new CliError(`${argument} の値がありません`);
+      if (value === undefined || VALUES.has(value) || FLAGS.has(value)) throw new CliError(`${argument} needs a value`);
       switch (argument) {
         case "--item": options.itemId = value; break;
         case "--from-image": options.fromImage = value; break;
@@ -93,7 +93,7 @@ export function parseVideoArguments(argv) {
         case "--seed": options.seed = Number(value); break;
         case "--extra": {
           const separator = value.indexOf("=");
-          if (separator < 1) throw new CliError("--extra は k=v で指定してください");
+          if (separator < 1) throw new CliError("--extra must be k=v");
           options.extra[value.slice(0, separator)] = parseScalar(value.slice(separator + 1));
           break;
         }
@@ -106,17 +106,17 @@ export function parseVideoArguments(argv) {
     else if (argument === "--yes") options.yes = true;
     else if (argument === "--json") options.json = true;
     else if (argument === "--help" || argument === "-h") options.help = true;
-    else throw new CliError(`不明な引数です: ${argument}\n${usage}`);
+    else throw new CliError(`Unknown argument: ${argument}\n${usage}`);
   }
-  if (!options.help && !options.projectDir) throw new CliError(`projectDir が必要です\n${usage}`);
-  if (options.itemId && options.fromImage) throw new CliError("--item と --from-image は同時に指定できません");
-  if (options.candidate && options.fromImage) throw new CliError("--candidate と --from-image は同時に指定できません");
-  if (!options.help && !options.itemId && !options.fromImage) throw new CliError("--item か --from-image が必要です");
+  if (!options.help && !options.projectDir) throw new CliError(`projectDir is required\n${usage}`);
+  if (options.itemId && options.fromImage) throw new CliError("Do not pass --item and --from-image together");
+  if (options.candidate && options.fromImage) throw new CliError("Do not pass --candidate and --from-image together");
+  if (!options.help && !options.itemId && !options.fromImage) throw new CliError("--item or --from-image is required");
   if (options.duration !== undefined && (!Number.isFinite(options.duration) || options.duration <= 0)) {
-    throw new CliError("--duration は 0 より大きい有限数で指定してください");
+    throw new CliError("--duration must be a finite number greater than 0");
   }
-  if (options.seed !== undefined && !Number.isInteger(options.seed)) throw new CliError("--seed は整数で指定してください");
-  if (!Number.isFinite(options.staleAfterS) || options.staleAfterS < 0) throw new CliError("--stale-after は 0 以上で指定してください");
+  if (options.seed !== undefined && !Number.isInteger(options.seed)) throw new CliError("--seed must be an integer");
+  if (!Number.isFinite(options.staleAfterS) || options.staleAfterS < 0) throw new CliError("--stale-after must be 0 or greater");
   return options;
 }
 
@@ -129,7 +129,7 @@ function readInputJson(projectDir, value) {
     const parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
     return parsed;
-  } catch { throw new CliError("--inputs は JSON object または JSON ファイルで指定してください"); }
+  } catch { throw new CliError("--inputs must be a JSON object or a JSON file"); }
 }
 
 function findSource(edit, sourceId) {
@@ -141,13 +141,13 @@ const STILL_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bm
 function checkedImage(projectDir, relativePath, env = process.env) {
   let declared;
   try { declared = declaredProjectAssetPath(relativePath); }
-  catch { throw new CliError("--from-image はプロジェクト内の静止画の相対パスで指定してください"); }
+  catch { throw new CliError("--from-image must be a still-image path relative to the project"); }
   if (!STILL_EXTENSIONS.has(path.extname(declared).toLowerCase())) {
-    throw new CliError("--from-image はプロジェクト内の静止画の相対パスで指定してください");
+    throw new CliError("--from-image must be a still-image path relative to the project");
   }
   try {
     if (!resolveProjectAssetPathSync(projectDir, declared, env)) throw new Error();
-  } catch { throw new CliError("--from-image の静止画がプロジェクト内に見つかりません"); }
+  } catch { throw new CliError("The --from-image still was not found in the project"); }
   return path.relative(projectDir, path.resolve(projectDir, declared)).split(path.sep).join("/");
 }
 
@@ -161,7 +161,7 @@ function modelDefault(projectDir) {
 function hydrateReference(projectDir, value, defaults = {}, env = process.env) {
   if (value == null) return null;
   const raw = typeof value === "string" ? { path: value } : value;
-  if (!raw || typeof raw.path !== "string") throw new CliError("参照には path が必要です");
+  if (!raw || typeof raw.path !== "string") throw new CliError("A reference needs a path");
   return makeReference(projectDir, raw.path, {
     source_id: raw.source_id ?? defaults.source_id ?? null,
     name: raw.name ?? null,
@@ -208,13 +208,13 @@ function summarizeData(value) {
 
 function estimateLabel(cost, model) {
   return cost.estimate_usd === null
-    ? "見積不可（価格の記録がありません）"
-    : `見積 $${cost.estimate_usd}・as_of ${cost.as_of ?? model.as_of}`;
+    ? "No estimate (no price on record)"
+    : `Estimate $${cost.estimate_usd} as of ${cost.as_of ?? model.as_of}`;
 }
 
 async function askApproval({ input, output, label }) {
   const prompt = readline.createInterface({ input, output });
-  try { return (await prompt.question(`費用承認: ${label}。実行しますか？ [y/N] `)).trim().toLowerCase() === "y"; }
+  try { return (await prompt.question(`Approve the cost: ${label}. Continue? [y/N] `)).trim().toLowerCase() === "y"; }
   finally { prompt.close(); }
 }
 
@@ -240,7 +240,7 @@ function nextImageOutput(projectDir, fromImage, ms) {
 }
 
 function nextCandidateOutput(projectDir, itemId, route, ms) {
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(itemId)) throw new CliError("itemId が不正です");
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(itemId)) throw new CliError("itemId is invalid");
   const safeRoute = route.replace(/[:./]/gu, "-").replace(/[^A-Za-z0-9_-]/gu, "-");
   const directory = path.join(projectDir, "assets", "generated", "candidates", itemId);
   for (let serial = 0; ; serial += 1) {
@@ -258,7 +258,7 @@ export function probeVideo(filePath, { env = process.env, ffprobe = resolveFfpro
   const video = value.streams?.find((stream) => stream.codec_type === "video");
   const audio = value.streams?.some((stream) => stream.codec_type === "audio") ?? false;
   const duration = Number(value.format?.duration);
-  if (!Number.isFinite(duration)) throw new Error("ffprobe で動画の実尺を取得できませんでした");
+  if (!Number.isFinite(duration)) throw new Error("ffprobe could not read the video duration");
   return {
     duration_s_actual: Number(duration.toFixed(3)),
     ...(Number.isInteger(video?.width) ? { width: video.width } : {}),
@@ -274,7 +274,7 @@ export async function finalizeGeneratedVideo({
   openProjectImpl = openProject, snapshotImpl = snapshot, probeImpl = probeVideo,
 }) {
   const response = await fetchResponse({ responseUrl, key, fetchImpl });
-  if (typeof response?.video?.url !== "string" || !response.video.url) throw new Error("fal response に video.url がありません");
+  if (typeof response?.video?.url !== "string" || !response.video.url) throw new Error("The fal response has no video.url");
   const downloaded = await download({ url: response.video.url, dest: mp4AbsolutePath, fetchImpl });
   const probe = probeImpl(mp4AbsolutePath);
   const bytes = readFileSync(mp4AbsolutePath);
@@ -290,7 +290,7 @@ export async function finalizeGeneratedVideo({
   if (meta.candidate_of || meta.provenance?.tool === "akari generate video --from-image") return { probe, elapsed_s, meta, plan: { out: null, freeze: null } };
   const project = await openProjectImpl(projectDir);
   const item = findItem(project.edit, itemId);
-  if (!item || item.source?.kind !== "media") throw new Error(`差し替え対象 item が見つかりません: ${itemId}`);
+  if (!item || item.source?.kind !== "media") throw new Error(`No item to replace: ${itemId}`);
   const cutsDurationS = item.source.out - item.source.in;
   const plan = planReplacement({ item, sourceEntry: findSource(project.edit, item.source.src), actualDurationS: probe.duration_s_actual, cutsDurationS });
   await snapshotImpl({ projectDir, label: `生成した動画に差し替え: ${itemId}` });
@@ -310,9 +310,9 @@ export async function runVideoCommand(argv, dependencies = {}) {
     const fromImage = options.fromImage ? checkedImage(options.projectDir, options.fromImage, env) : null;
     const project = fromImage ? null : await (dependencies.openProjectImpl ?? openProject)(options.projectDir);
     const item = fromImage ? null : findItem(project.edit, options.itemId);
-    if (!fromImage && (!item || item.source?.kind !== "media")) throw new CliError(`media item が見つかりません: ${options.itemId}`);
+    if (!fromImage && (!item || item.source?.kind !== "media")) throw new CliError(`Media item not found: ${options.itemId}`);
     const sourceEntry = fromImage ? { path: fromImage, id: null } : findSource(project.edit, item.source.src);
-    if (!sourceEntry) throw new CliError(`source が見つかりません: ${item.source.src}`);
+    if (!sourceEntry) throw new CliError(`Source not found: ${item.source.src}`);
     let supplied;
     if (options.inputJson !== null) {
       supplied = readInputJson(options.projectDir, options.inputJson);
@@ -324,13 +324,13 @@ export async function runVideoCommand(argv, dependencies = {}) {
     const suppliedInputs = { ...(supplied.inputs ?? supplied) };
     const framesOrRefs = suppliedInputs.frames_or_refs;
     if (framesOrRefs !== undefined && !["frames", "references"].includes(framesOrRefs)) {
-      throw new CliError("frames_or_refs は frames または references で指定してください");
+      throw new CliError("frames_or_refs must be frames or references");
     }
     const suppliedOutput = supplied.output ?? {};
     const catalog = await (dependencies.loadCatalogImpl ?? loadCatalog)();
     const modelId = options.modelId ?? supplied.model?.id ?? modelDefault(options.projectDir);
     const model = findModel(catalog, modelId);
-    if (!model) throw new CliError(`生成モデルがカタログにありません: ${modelId}`);
+    if (!model) throw new CliError(`Generation model is not in the catalog: ${modelId}`);
     const hasSuppliedFirst = Object.hasOwn(suppliedInputs, "first_frame");
     // first_frame を受けない行（参照から作る行）には、既定の絵を入れない。
     const usesDefaultFirst = model.inputs.first_frame !== "none"
@@ -345,7 +345,7 @@ export async function runVideoCommand(argv, dependencies = {}) {
       reference_audios: options.referenceAudios.length ? options.referenceAudios : suppliedInputs.reference_audios,
     });
     if (usesDefaultFirst && selectedInputs.first_frame !== null && !STILL_EXTENSIONS.has(path.extname(sourceEntry.path).toLowerCase())) {
-      throw new CliError("既定の first_frame は静止画 source の item だけで使えます");
+      throw new CliError("The default first_frame applies only to a still-image source item");
     }
     const rawInputs = {
       ...selectedInputs,
@@ -376,7 +376,7 @@ export async function runVideoCommand(argv, dependencies = {}) {
     for (const message of validation.messages) (message.level === "error" ? errorLog : log)(`${message.level}: ${message.text}`);
     if (!validation.ok) return { exitCode: 1 };
     const adapter = getAdapter(model.id);
-    if (!adapter) throw new CliError(`生成モデルのアダプタがありません: ${model.id}`, 1);
+    if (!adapter) throw new CliError(`No adapter for generation model: ${model.id}`, 1);
     const resolver = createMediaResolver(options.projectDir, { env });
     const allReferences = [validation.normalized.inputs.first_frame, validation.normalized.inputs.last_frame,
       ...validation.normalized.inputs.reference_images, ...validation.normalized.inputs.reference_videos,
@@ -397,7 +397,7 @@ export async function runVideoCommand(argv, dependencies = {}) {
       const hasUnknownPriceMessage = validation.messages.some((message) => message.code === "price.unknown");
       log(options.json
         ? JSON.stringify(dry)
-        : `送信予定 endpoint: ${dry.endpoint}\nbody: ${JSON.stringify(dry.body, null, 2)}${hasUnknownPriceMessage ? "" : `\n${estimate}`}`);
+        : `Planned endpoint: ${dry.endpoint}\nbody: ${JSON.stringify(dry.body, null, 2)}${hasUnknownPriceMessage ? "" : `\n${estimate}`}`);
       return { exitCode: 0, result: dry };
     }
     if (!validation.messages.some((message) => message.code === "price.unknown")) log(estimate);
@@ -407,7 +407,7 @@ export async function runVideoCommand(argv, dependencies = {}) {
       const approved = input.isTTY && output.isTTY
         ? await (dependencies.confirmImpl ?? askApproval)({ input, output, label: estimate })
         : false;
-      if (!approved) throw new CliError(`費用承認が必要です（${estimate}）。--yes を付けて再実行`);
+      if (!approved) throw new CliError(`Cost approval is required (${estimate}). Re-run with --yes`);
     }
     const credentials = (dependencies.resolveFalKeyImpl ?? resolveFalKey)({ env: dependencies.env ?? process.env, credentialsFile: dependencies.credentialsFile });
     const startedDate = (dependencies.now ?? (() => new Date()))();
@@ -460,8 +460,8 @@ export async function runVideoCommand(argv, dependencies = {}) {
       freeze: completed.plan.freeze, estimate_usd: validation.cost.estimate_usd,
       elapsed_s: completed.elapsed_s, meta: path.relative(options.projectDir, metaPath).split(path.sep).join("/"),
     };
-    log(options.json ? JSON.stringify(result) : fromImage ? `新しい素材を作りました: ${destination.relative}`
-      : options.candidate ? `候補動画を作りました: ${destination.relative}` : `生成動画に差し替えました: ${destination.relative}`);
+    log(options.json ? JSON.stringify(result) : fromImage ? `Created new footage: ${destination.relative}`
+      : options.candidate ? `Created a candidate video: ${destination.relative}` : `Replaced with the generated video: ${destination.relative}`);
     return { exitCode: 0, result };
   } catch (error) {
     if (metaPath && existsSync(metaPath)) {

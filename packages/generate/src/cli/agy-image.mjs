@@ -43,7 +43,7 @@ async function normalizePng(output, { cwd, env, spawnProcess, onChild, timeoutMs
       .find(candidate => candidate !== output && candidate);
     if (!source || !await exists(source)) {
       const jpeg = output.replace(/\.png$/iu, '.jpeg');
-      if (!await exists(jpeg)) throw new Error('指定の PNG がありません');
+      if (!await exists(jpeg)) throw new Error('The expected PNG is missing');
       source = jpeg;
     }
   }
@@ -52,12 +52,12 @@ async function normalizePng(output, { cwd, env, spawnProcess, onChild, timeoutMs
     if (source !== output) await rename(source, output);
     return;
   }
-  if (!(signature[0] === 0xff && signature[1] === 0xd8)) throw new Error('生成物が PNG/JPEG ではありません');
+  if (!(signature[0] === 0xff && signature[1] === 0xd8)) throw new Error('The output is not a PNG or JPEG');
   const converted = `${output}.converted.png`;
   const ffmpeg = resolveFfmpeg({ env });
   const result = await run(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-y', '-i', source, '-frames:v', '1', converted],
     { cwd, env, spawnProcess, timeoutMs: Math.min(60_000, timeoutMs), onChild });
-  if (result.code !== 0 || !await exists(converted)) throw new Error(`JPEG を PNG に変換できません: ${concise(result.output)}`);
+  if (result.code !== 0 || !await exists(converted)) throw new Error(`Could not convert the JPEG to PNG: ${concise(result.output)}`);
   await rename(converted, output);
   if (source !== output) await rm(source, { force: true });
 }
@@ -67,7 +67,7 @@ export async function generateCliImage({ route, projectDir, item, aspect, env = 
   references = [], spawnProcess = spawn, onChild, timeoutMs = 600_000 }) {
   const root = resolve(projectDir);
   const output = resolve(root, item.path);
-  if (!output.startsWith(`${root}${sep}`)) return { id: item.id, ok: false, error: '出力先がプロジェクト外です' };
+  if (!output.startsWith(`${root}${sep}`)) return { id: item.id, ok: false, error: 'The output path is outside the project' };
   const safeEnv = cleanEnv(env);
   const prefix = route === 'grok' ? `${item.prompt}\n\n${references.length
     ? `image_edit の image に参照画像（絶対指定）${references.join('、')} を渡してください。image_gen は使わないでください。`
@@ -81,12 +81,12 @@ export async function generateCliImage({ route, projectDir, item, aspect, env = 
   try {
     await mkdir(dirname(output), { recursive: true });
     const result = await run(command, args, { cwd: root, env: safeEnv, spawnProcess, timeoutMs, onChild });
-    if (result.timedOut) throw new Error('10 分で打ち切りました');
+    if (result.timedOut) throw new Error('Stopped after 10 minutes');
     if (result.code !== 0) throw new Error(concise(result.output) || `${route} exit ${result.code}`);
     const remaining = timeoutMs - (Date.now() - started);
-    if (remaining <= 0) throw new Error('10 分で打ち切りました');
+    if (remaining <= 0) throw new Error('Stopped after 10 minutes');
     try { await normalizePng(output, { cwd: root, env: safeEnv, spawnProcess, onChild, timeoutMs: remaining }); }
-    catch (error) { throw new Error(`${error.message}。${concise(result.output)}`); }
+    catch (error) { throw new Error(`${error.message}. ${concise(result.output)}`); }
     return { id: item.id, ok: true, elapsed_s: (Date.now() - started) / 1000 };
   } catch (error) {
     return { id: item.id, ok: false, error: error.message ?? String(error) };

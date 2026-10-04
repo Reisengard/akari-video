@@ -35,7 +35,7 @@ test("credentials.env の鍵は値を露出せず file source で返す", async 
   });
   assert.throws(
     () => resolveFalKey({ env: {}, credentialsFile: path.join(root, "missing.env") }),
-    (error) => error.exitCode === 2 && error.message === "FAL_KEY が env にも credentials.env にもありません",
+    (error) => error.exitCode === 2 && error.message === "FAL_KEY is in neither the environment nor credentials.env",
   );
 });
 
@@ -48,6 +48,6 @@ test("20 MB 超の参照は data URI にせず契約メッセージで拒否す�
   const reference = makeReference(root, "large.png");
   assert.throws(
     () => resolveMedia(reference, { projectDir: root }),
-    /20 MB 超の参照は未対応（fal storage は後日）/u,
+    /References over 20 MB are not supported yet/u,
   );
 });

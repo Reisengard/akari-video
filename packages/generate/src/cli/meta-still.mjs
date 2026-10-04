@@ -18,7 +18,7 @@ export async function readCodexModelAsOf() {
 export async function inspectPng(path) {
   const contents = await readFile(path);
   if (contents.length < 24 || contents.subarray(1, 4).toString("ascii") !== "PNG") {
-    throw new Error("生成物が PNG ではありません");
+    throw new Error("The output is not a PNG");
   }
   const info = await stat(path);
   return {

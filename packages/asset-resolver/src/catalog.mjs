@@ -8,7 +8,7 @@ import { loadInstalledItems, mergeInstalledItems } from './installed.mjs';
 
 function normalizeCatalog(catalog) {
   if (!catalog || !Array.isArray(catalog.items)) {
-    throw new Error('カタログの形式が想定と違います（items 配列がない）');
+    throw new Error('The catalog has an unexpected format (no items array)');
   }
   return catalog;
 }
@@ -53,9 +53,9 @@ export async function loadCatalog({ env = process.env, fetchImpl = fetch, includ
         catalog = { schema: 'akari-assets-catalog/v0', version: null, base: null, items: [] };
       } else {
         throw new Error(
-          `カタログを取得できず、キャッシュもありません（${source.value}）: ${
+          `Could not fetch the catalog and there is no cache (${source.value}): ${
             error instanceof Error ? error.message : String(error)
-          }。オンライン環境で先に \`akari-assets sync\` を実行してください`,
+          }. Run \`akari-assets sync\` first while online`,
         );
       }
     }

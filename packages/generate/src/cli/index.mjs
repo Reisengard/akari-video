@@ -15,20 +15,20 @@ export async function runGenerateCommand(argv, options = {}) {
     return { exitCode: 0 };
   }
   if (!SUBCOMMANDS.has(subcommand)) {
-    logError(`不明な generate サブコマンドです: ${subcommand}`);
+    logError(`Unknown generate subcommand: ${subcommand}`);
     logError(GENERATE_USAGE);
     return { exitCode: 2 };
   }
   const moduleUrl = new URL(`./${subcommand}.mjs`, import.meta.url);
   if (!existsSync(moduleUrl)) {
-    logError(`akari generate ${subcommand} は未同梱です。`);
+    logError(`akari generate ${subcommand} is not bundled.`);
     return { exitCode: 2 };
   }
   const module = await import(moduleUrl.href);
   const runner = subcommand === "still"
     ? module.runStillCommand
     : subcommand === "video" ? module.runVideoCommand : module.runResumeCommand;
-  if (typeof runner !== "function") throw new Error(`akari generate ${subcommand} の実行関数がありません`);
+  if (typeof runner !== "function") throw new Error(`akari generate ${subcommand} has no runner`);
   return runner(rest, options);
 }
 

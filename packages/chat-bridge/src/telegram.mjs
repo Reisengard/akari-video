@@ -24,30 +24,30 @@ const MAX_PHOTOS = 6;
 const POLL_TIMEOUT_SECONDS = 25;
 
 function usage() {
-  return `使い方:
-  node packages/chat-bridge/src/telegram.mjs --helper <URL> [オプション]
+  return `Usage:
+  node packages/chat-bridge/src/telegram.mjs --helper <URL> [options]
 
-必須:
-  --helper <URL>        report-helper のベース URL（例 http://127.0.0.1:8791）
+Required:
+  --helper <URL>        report-helper base URL (for example http://127.0.0.1:8791)
 
-オプション:
-  --report-url <URL>    チャットの「レポートを開く」ボタンが指す URL（tailnet 限定 URL）
-  --title <文字列>       見出し（既定: 承認をお願いします）
-  --summary <文字列>     本文の要約
-  --photo <パス>         添える画像（繰り返し可・最大 ${MAX_PHOTOS} 枚）
-  --max-wait <秒>        承認を待つ上限（既定 3600）
-  --notify-only         通知だけ送って終了する（応答を待たない）
+Options:
+  --report-url <URL>    URL for the "Open report" button (tailnet-only URL)
+  --title <text>        Heading (default: Please approve)
+  --summary <text>      Short summary
+  --photo <path>        Image to attach (repeatable, up to ${MAX_PHOTOS})
+  --max-wait <seconds>  How long to wait for approval (default 3600)
+  --notify-only         Send the notice and exit without waiting
 
-認証情報は ~/.akari/credentials.env（600）から読む。旧い場所も読み取る。
-  ${TOKEN_ENV_KEY}=...   BotFather が発行したトークン
-  ${CHAT_ENV_KEY}=...    通知先の chat ID（この ID 以外からの応答は破棄する）`;
+Credentials are read from ~/.akari/credentials.env (mode 600). Older locations are still read.
+  ${TOKEN_ENV_KEY}=...   Token from BotFather
+  ${CHAT_ENV_KEY}=...    Chat id to notify (responses from any other id are dropped)`;
 }
 
 function parseArguments(argv) {
   const options = {
     helper: null,
     reportUrl: null,
-    title: "承認をお願いします",
+    title: "Please approve",
     summary: null,
     photos: [],
     maxWaitSeconds: 3600,
@@ -58,7 +58,7 @@ function parseArguments(argv) {
     const flag = argv[index];
     const next = () => {
       const value = argv[index + 1];
-      if (value === undefined) throw new Error(`${flag} に値がありません`);
+      if (value === undefined) throw new Error(`${flag} needs a value`);
       index += 1;
       return value;
     };
@@ -72,16 +72,16 @@ function parseArguments(argv) {
       case "--max-wait": options.maxWaitSeconds = Number(next()); break;
       case "--notify-only": options.notifyOnly = true; break;
       case "--help": case "-h": console.log(usage()); process.exit(0); break;
-      default: throw new Error(`不明な引数: ${flag}`);
+      default: throw new Error(`Unknown argument: ${flag}`);
     }
   }
 
-  if (options.helper === null) throw new Error("--helper は必須です");
+  if (options.helper === null) throw new Error("--helper is required");
   if (!Number.isFinite(options.maxWaitSeconds) || options.maxWaitSeconds <= 0) {
-    throw new Error("--max-wait は正の秒数で指定してください");
+    throw new Error("--max-wait must be a number of seconds greater than 0");
   }
   if (options.photos.length > MAX_PHOTOS) {
-    throw new Error(`--photo は最大 ${MAX_PHOTOS} 枚までです`);
+    throw new Error(`--photo accepts at most ${MAX_PHOTOS} images`);
   }
 
   options.helper = options.helper.replace(/\/+$/, "");
@@ -93,20 +93,20 @@ async function loadCredentials() {
   const state = readCredentials();
   if (!state.primaryExists && !state.legacyExists) {
     throw new Error(
-      `credentials.env がありません: ${path}\n` +
-        `作成して 600 にし、${TOKEN_ENV_KEY} と ${CHAT_ENV_KEY} を 1 行ずつ登録してください。`,
+      `credentials.env is missing: ${path}\n` +
+        `Create it with mode 600 and add ${TOKEN_ENV_KEY} and ${CHAT_ENV_KEY}, one per line.`,
     );
   }
 
   const mode = (state.primaryExists ? state.primaryMode : state.legacyMode).toString(8).padStart(3, "0");
   if (mode !== "600") {
-    console.warn(`警告: credentials.env の権限が 600 ではありません（現在 ${mode}）。chmod 600 ${path}`);
+    console.warn(`Warning: credentials.env is not mode 600 (now ${mode}). chmod 600 ${path}`);
   }
 
   const token = state.values.get(TOKEN_ENV_KEY) ?? null;
   const chatId = state.values.get(CHAT_ENV_KEY) ?? null;
-  if (token === null) throw new Error(`${TOKEN_ENV_KEY} が credentials.env にありません: ${path}`);
-  if (chatId === null) throw new Error(`${CHAT_ENV_KEY} が credentials.env にありません: ${path}`);
+  if (token === null) throw new Error(`${TOKEN_ENV_KEY} is missing from credentials.env: ${path}`);
+  if (chatId === null) throw new Error(`${CHAT_ENV_KEY} is missing from credentials.env: ${path}`);
   return { token, chatId };
 }
 
@@ -125,7 +125,7 @@ async function callApi(token, method, payload, { isForm = false } = {}) {
       }),
     });
   } catch (error) {
-    throw new Error(`Telegram API 呼び出しに失敗（${method}）: ${redactToken(error.message, token)}`);
+    throw new Error(`Telegram API call failed (${method}): ${redactToken(error.message, token)}`);
   }
 
   const text = await response.text();
@@ -134,7 +134,7 @@ async function callApi(token, method, payload, { isForm = false } = {}) {
 
   if (!response.ok || parsed?.ok !== true) {
     const detail = parsed?.description ?? text.slice(0, 300);
-    throw new Error(`Telegram API がエラーを返しました（${method}）: ${redactToken(detail, token)}`);
+    throw new Error(`Telegram API returned an error (${method}): ${redactToken(detail, token)}`);
   }
 
   return parsed.result;
@@ -146,7 +146,7 @@ async function sendPhotos(token, chatId, photos) {
     try {
       bytes = await readFile(photoPath);
     } catch {
-      console.warn(`警告: 画像を読めませんでした（送信をスキップ）: ${photoPath}`);
+      console.warn(`Warning: could not read the image, skipping send: ${photoPath}`);
       continue;
     }
 
@@ -185,7 +185,7 @@ async function main() {
     reply_markup: buildKeyboard(options.reportUrl),
   });
 
-  console.log(`通知を送信しました（message_id: ${sent?.message_id ?? "?"}）`);
+  console.log(`Sent the notice (message_id: ${sent?.message_id ?? "?"})`);
   if (options.notifyOnly) return;
 
   const seen = new Set();
@@ -201,7 +201,7 @@ async function main() {
         allowed_updates: ["callback_query"],
       });
     } catch (error) {
-      console.warn(`警告: ${error.message}（10 秒後に再試行）`);
+      console.warn(`Warning: ${error.message} (retrying in 10 seconds)`);
       await new Promise((resolve) => setTimeout(resolve, 10_000));
       continue;
     }
@@ -216,7 +216,7 @@ async function main() {
     for (const entry of rejected) {
       if (entry.updateId !== null) seen.add(entry.updateId);
       if (entry.reason === "chat-not-allowed") {
-        console.warn("警告: 登録外の chat からの応答を破棄しました");
+        console.warn("Warning: dropped a response from an unregistered chat");
       }
     }
 
@@ -226,9 +226,9 @@ async function main() {
       if (action.action === ACTIONS.LATER) {
         await callApi(token, "answerCallbackQuery", {
           callback_query_id: action.callbackQueryId,
-          text: "あとで確認します",
+          text: "Will check later",
         });
-        console.log("「あとで」を受け取りました。承認待ちを終了します。");
+        console.log("Received Later. Stopping the approval wait.");
         return;
       }
 
@@ -236,28 +236,28 @@ async function main() {
       await callApi(token, "answerCallbackQuery", {
         callback_query_id: action.callbackQueryId,
         text: result.ok
-          ? "確定しました"
+          ? "Confirmed"
           : result.reason === "already-committed"
-            ? "すでに確定済みです"
-            : "確定に失敗しました",
+            ? "Already confirmed"
+            : "Confirm failed",
       });
 
       await callApi(token, "sendMessage", {
         chat_id: chatId,
         text: result.ok
-          ? "✅ 確定しました。処理を続行します。"
+          ? "✅ Confirmed. Continuing."
           : result.reason === "already-committed"
-            ? "ℹ️ すでに確定済みでした。"
-            : `⚠️ 確定に失敗しました: ${result.reason}`,
+            ? "ℹ️ Already confirmed."
+            : `⚠️ Could not confirm: ${result.reason}`,
         disable_web_page_preview: true,
       });
 
-      console.log(result.ok ? "確定しました。" : `確定できませんでした: ${result.reason}`);
+      console.log(result.ok ? "Confirmed." : `Could not confirm: ${result.reason}`);
       return;
     }
   }
 
-  console.log("承認を待つ上限に達しました。ブリッジを終了します。");
+  console.log("The approval wait reached its limit. Exiting the bridge.");
 }
 
 main().catch((error) => {

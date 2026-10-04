@@ -121,7 +121,7 @@ export async function startBrowseServer({
 
       if (pathname === '/api/fetch' && req.method === 'POST') {
         const { id, project } = await readJsonBody(req);
-        if (!id) return sendJson(res, 400, { ok: false, error: 'id が必要です' });
+        if (!id) return sendJson(res, 400, { ok: false, error: 'id is required' });
         try {
           const result = await resolveAsset(id, { env, fetchImpl, project: project || null });
           return sendJson(res, 200, { ok: true, ...result });

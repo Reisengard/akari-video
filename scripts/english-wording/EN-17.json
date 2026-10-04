@@ -1,5 +1,5 @@
 {
   "id": "EN-17",
   "glob": "{packages/generate/**,packages/asset-resolver/**,packages/overlay-runtime/**,packages/media-bin/**,packages/creator-root/**,packages/chat-bridge/**}",
-  "max": 42705
+  "max": 36191
 }

@@ -133,7 +133,7 @@ for (const prompt of ["@画像3", "@画像0", "@画像-1", "@動画2", "@音声1
     const root = await fixture(t);
     const value = await run(root, inputs(prompt));
     assert.equal(value.result.exitCode, 1);
-    assert.match(value.logs.join("\n"), /参照番号/u);
+    assert.match(value.logs.join("\n"), /reference number/u);
     assert.equal(value.requests.length, 0);
   });
 }
