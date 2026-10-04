@@ -24,9 +24,9 @@ const {
 } = createRequire(import.meta.url)("../../edit-store/lib/write-gate.js");
 
 const usage = [
-  "使い方: akari-word-book <subcommand> [options]",
+  "Usage: akari-word-book <subcommand> [options]",
   "",
-  "サブコマンド:",
+  "Subcommands:",
   "  resolve [--project <dir>] [--word-book <path>] [--json]",
   "  validate <file>",
   "  add --surface <s> [--variant <v>]... --scope project|channel|workspace [options]",
@@ -49,7 +49,7 @@ export async function runWordBookCli(argv, options = {}) {
     if (command === "resolve") return await runResolve(rest, { stdout, env });
     if (command === "add") return await runAdd(rest, { stdout, stderr, env });
     if (command === "apply") return await runApply(rest, { stdout, env });
-    stderr(`不明な word-book サブコマンドです: ${command}`);
+    stderr(`Unknown word-book subcommand: ${command}`);
     stderr(usage);
     return 1;
   } catch (error) {
@@ -90,11 +90,11 @@ async function runAdd(argv, { stdout, env }) {
     booleans: new Map([["--protect-break", "protectBreak"]]),
     repeat: new Set(["variants"]),
   });
-  if (!parsed.surface) throw new Error("add: --surface が必要です");
-  if (!parsed.scope) throw new Error("add: --scope が必要です");
-  if (!new Set(["project", "channel", "workspace"]).has(parsed.scope)) throw new Error("add: --scope は project / channel / workspace のいずれかです");
+  if (!parsed.surface) throw new Error("add: --surface is required");
+  if (!parsed.scope) throw new Error("add: --scope is required");
+  if (!new Set(["project", "channel", "workspace"]).has(parsed.scope)) throw new Error("add: --scope must be project, channel, or workspace");
   const kind = parsed.kind ?? "term";
-  if (!new Set(["term", "notation", "ng", "reading-only"]).has(kind)) throw new Error("add: --kind が不正です");
+  if (!new Set(["term", "notation", "ng", "reading-only"]).has(kind)) throw new Error("add: --kind is invalid");
   const projectRoot = path.resolve(parsed.project ?? process.cwd());
   let creatorRoot = null;
   if (parsed.scope !== "project") {
@@ -103,7 +103,7 @@ async function runAdd(argv, { stdout, env }) {
   }
   const filePath = layerPathFor({ scope: parsed.scope, projectRoot, creatorRoot });
   if (!filePath) {
-    const error = new Error("作業場がありません（お試しモード）。`--scope project` を使うか作業場を作ってください");
+    const error = new Error("There is no workspace (trial mode). Use `--scope project` or create a workspace");
     error.exitCode = 2;
     throw error;
   }
@@ -116,7 +116,7 @@ async function runAdd(argv, { stdout, env }) {
     source: parsed.source ?? "manual",
   };
   const result = await addEntry(filePath, entry);
-  stdout(`${result.replaced ? "置換" : "追加"}: ${entry.surface} -> ${filePath}`);
+  stdout(`${result.replaced ? "Replaced" : "Added"}: ${entry.surface} -> ${filePath}`);
   return 0;
 }
 
@@ -167,8 +167,8 @@ async function runApply(argv, { stdout, env }) {
   if (parsed.json) {
     stdout(JSON.stringify(result));
   } else {
-    stdout(`analysis.json: ${total.replaced} 語を置換（${changedFiles}/${analysisPaths.length} ファイル${parsed.dryRun ? "・dry-run" : ""}）`);
-    stdout(`captions.json: ${captionResult.replaced} 語を置換（${captionResult.records_written} 行${parsed.dryRun ? "・dry-run" : ""}）`);
+    stdout(`analysis.json: replaced ${total.replaced} words (${changedFiles}/${analysisPaths.length} files${parsed.dryRun ? ", dry-run" : ""})`);
+    stdout(`captions.json: replaced ${captionResult.replaced} words (${captionResult.records_written} rows${parsed.dryRun ? ", dry-run" : ""})`);
   }
   return 0;
 }
@@ -183,14 +183,14 @@ function parseOptions(argv, { values, booleans, repeat = new Set() }) {
     }
     if (values.has(argument)) {
       const value = argv[index + 1];
-      if (value === undefined || value.startsWith("--")) throw new Error(`${argument} の値が必要です`);
+      if (value === undefined || value.startsWith("--")) throw new Error(`${argument} requires a value`);
       const key = values.get(argument);
       if (repeat.has(key)) (result[key] ??= []).push(value);
       else result[key] = value;
       index += 1;
       continue;
     }
-    throw new Error(`不明なオプションです: ${argument}`);
+    throw new Error(`Unknown option: ${argument}`);
   }
   return result;
 }

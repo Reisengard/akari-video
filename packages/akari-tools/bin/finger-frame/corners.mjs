@@ -120,7 +120,7 @@ function bestRotationMatching(ring, previousRing) {
 // omit it (or pass null) only for that first sample.
 export function orderCornersFromPoints(points, previousRing = null) {
   if (!Array.isArray(points) || points.length !== 4) {
-    throw new Error("orderCornersFromPoints: points には [x,y] を 4 個渡してください");
+    throw new Error("orderCornersFromPoints: points must contain 4 [x,y] points");
   }
   const angleRing = angleSortRing(points); // some clockwise rotation of TL,TR,BR,BL
   const ring = previousRing

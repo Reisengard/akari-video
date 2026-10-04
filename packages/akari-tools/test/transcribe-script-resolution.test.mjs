@@ -8,7 +8,7 @@ import { runMediaCli } from "../bin/media.mjs";
 import { resolveAnalyzeFootageScript, speechAnalyzerAvailable, transcribeMedia } from "../src/media/transcribe.mjs";
 
 const scriptNames = ["transcribe-sa.mjs", "transcribe-cloud.mjs"];
-const requirements = "SpeechAnalyzer は macOS 26 以上 + Command Line Tools が必要です";
+const requirements = "SpeechAnalyzer requires macOS 26 or later and the Command Line Tools";
 const segments = [{ start: 0, end: 1, text: "test" }];
 const success = (value) => ({ status: 0, stdout: JSON.stringify(value), stderr: "" });
 
@@ -95,7 +95,7 @@ for (const vendor of [false, true]) {
 }
 
 for (const [reason, expected] of [
-  [null, "SpeechAnalyzer の実装スクリプトが見つからない"],
+  [null, "SpeechAnalyzer implementation script not found"],
   ["macOS 15.6 は 26 未満です", "macOS 26 未満"],
   ["swiftc が PATH 上にありません", "swiftc が無い"],
 ]) {
@@ -150,7 +150,7 @@ test("明示 SpeechAnalyzer の欠落エラーは候補 2 つの絶対パスを�
   assert.equal(speechAnalyzerAvailable(f.options), false);
   assert.deepEqual(f.calls, []);
   await assert.rejects(transcribeMedia("input.wav", { ...f.options, backend: "speech-analyzer" }), (error) => {
-    assert.match(error.message, /^SpeechAnalyzer の実装が同梱されていません/);
+    assert.match(error.message, /^The SpeechAnalyzer implementation is not bundled/);
     for (const vendor of [false, true]) assert.ok(error.message.includes(f.candidate("transcribe-sa.mjs", vendor)));
     assert.ok(!error.message.includes(requirements));
     return true;
@@ -212,7 +212,7 @@ test("cloud はファイル欠落と実行失敗を区別する", async (t) => {
   const f = fixture(t);
   const options = { ...f.options, backend: "cloud:groq-test" };
   await assert.rejects(transcribeMedia("input.wav", options), (error) => {
-    assert.match(error.message, /^クラウド文字起こしの実装が同梱されていません/);
+    assert.match(error.message, /^The cloud transcription implementation is not bundled/);
     for (const vendor of [false, true]) assert.ok(error.message.includes(f.candidate("transcribe-cloud.mjs", vendor)));
     return true;
   });
@@ -220,6 +220,6 @@ test("cloud はファイル欠落と実行失敗を区別する", async (t) => {
   await assert.rejects(transcribeMedia("input.wav", {
     ...options,
     spawn: (command, args) => args.includes("--send") ? { status: 1, stderr: "provider rejected request" } : options.spawn(command, args),
-  }), { message: "クラウド文字起こしの実行に失敗しました: provider rejected request" });
+  }), { message: "Cloud transcription failed: provider rejected request" });
   assert.deepEqual(f.logs, []);
 });

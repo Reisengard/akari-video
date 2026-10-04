@@ -5,20 +5,20 @@ const FRAMINGS = new Set(["bust", "full"]);
 
 function positiveNumber(value, option) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) throw new Error(`${option} は正数である必要があります`);
+  if (!Number.isFinite(number) || number <= 0) throw new Error(`${option} must be a positive number`);
   return number;
 }
 
 function positiveInteger(value, option) {
   const number = Number(value);
-  if (!Number.isInteger(number) || number <= 0) throw new Error(`${option} は正の整数である必要があります`);
+  if (!Number.isInteger(number) || number <= 0) throw new Error(`${option} must be a positive integer`);
   return number;
 }
 
 function unitNumber(value, option) {
   const number = Number(value);
   if (!Number.isFinite(number) || number < 0 || number > 1) {
-    throw new Error(`${option} は 0 以上 1 以下である必要があります`);
+    throw new Error(`${option} must be from 0 to 1 inclusive`);
   }
   return number;
 }
@@ -53,9 +53,9 @@ export function parseArguments(argv) {
     if (arg === "--apply") { options.apply = true; continue; }
     if (arg === "--check") { options.check = true; continue; }
     if (arg === "--no-idle") { options.idle = false; continue; }
-    if (!arg.startsWith("--")) throw new Error(`不明な引数です: ${arg}`);
+    if (!arg.startsWith("--")) throw new Error(`Unknown option: ${arg}`);
     const value = argv[++index];
-    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} の値がありません`);
+    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} requires a value`);
     if (arg === "--model") options.model = resolve(value);
     else if (arg === "--drive") options.drive = resolve(value);
     else if (arg === "--out") options.out = resolve(value);
@@ -70,14 +70,14 @@ export function parseArguments(argv) {
     else if (arg === "--idle-seed") options.idleSeed = value;
     else if (arg === "--head-source") options.headSource = value;
     else if (arg === "--springbone") options.springbone = value;
-    else throw new Error(`不明な引数です: ${arg}`);
+    else throw new Error(`Unknown option: ${arg}`);
   }
-  if (!FRAMINGS.has(options.framing)) throw new Error(`--framing が不正です: ${options.framing}`);
-  if (!isPosition(options.position)) throw new Error(`--position が不正です: ${options.position}`);
-  if (!/^[-A-Za-z0-9_.]+$/.test(options.layerId)) throw new Error("--layer-id に使用できない文字があります");
-  if (options.idleSeed !== null && options.idleSeed.length === 0) throw new Error("--idle-seed は空にできません");
-  if (!new Set(["track", "idle", "both"]).has(options.headSource)) throw new Error(`--head-source が不正です: ${options.headSource}`);
-  if (!new Set(["on", "off"]).has(options.springbone)) throw new Error(`--springbone が不正です: ${options.springbone}`);
-  if (options.apply && !options.project) throw new Error("--apply には --project <dir> が必要です");
+  if (!FRAMINGS.has(options.framing)) throw new Error(`--framing is invalid: ${options.framing}`);
+  if (!isPosition(options.position)) throw new Error(`--position is invalid: ${options.position}`);
+  if (!/^[-A-Za-z0-9_.]+$/.test(options.layerId)) throw new Error("--layer-id contains characters that are not allowed");
+  if (options.idleSeed !== null && options.idleSeed.length === 0) throw new Error("--idle-seed must not be empty");
+  if (!new Set(["track", "idle", "both"]).has(options.headSource)) throw new Error(`--head-source is invalid: ${options.headSource}`);
+  if (!new Set(["on", "off"]).has(options.springbone)) throw new Error(`--springbone is invalid: ${options.springbone}`);
+  if (options.apply && !options.project) throw new Error("--apply requires --project <dir>");
   return options;
 }

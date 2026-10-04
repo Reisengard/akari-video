@@ -88,13 +88,13 @@ test("validate-edit applies inline ordering and reference paths recursively", as
     await writeFile(editPath, JSON.stringify(value));
     const duplicate = spawnSync(process.execPath, [join(packageRoot, "bin", "validate-edit.mjs"), editPath], { encoding: "utf8" });
     assert.equal(duplicate.status, 1);
-    assert.match(duplicate.stderr, /昇順かつ重複禁止/);
+    assert.match(duplicate.stderr, /strictly increasing/);
 
     leaf.keyframes = { path: "outside/root.json", count: 2 };
     await writeFile(editPath, JSON.stringify(value));
     const outside = spawnSync(process.execPath, [join(packageRoot, "bin", "validate-edit.mjs"), editPath], { encoding: "utf8" });
     assert.equal(outside.status, 1);
-    assert.match(outside.stderr, /motion\/ 配下/);
+    assert.match(outside.stderr, /JSON file under motion\//);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -10,7 +10,7 @@ function probeDuration(path, ffprobeCommand) {
   ], { encoding: "utf8" });
   const duration = Number(result.stdout?.trim());
   if (result.error || result.status !== 0 || !(duration > 0)) {
-    throw new Error(`source の長さを取得できません: ${path}: ${String(result.stderr || result.error?.message).trim()}`);
+    throw new Error(`Could not read the duration of source: ${path}: ${String(result.stderr || result.error?.message).trim()}`);
   }
   return duration;
 }
@@ -31,19 +31,19 @@ export function loadProjectTimeline(projectPath, { ffprobeCommand } = {}) {
   const fps = Number(edit?.output?.fps);
   const width = Number(edit?.output?.width);
   const height = Number(edit?.output?.height);
-  if (!(fps > 0 && width > 0 && height > 0)) throw new Error("edit.json output の width/height/fps が不正です");
+  if (!(fps > 0 && width > 0 && height > 0)) throw new Error("edit.json output width/height/fps is invalid");
   const sources = new Map();
   if (Array.isArray(edit.sources)) {
     for (const source of edit.sources) {
-      if (typeof source?.id !== "string" || typeof source?.path !== "string") throw new Error("sources[] が不正です");
+      if (typeof source?.id !== "string" || typeof source?.path !== "string") throw new Error("sources[] is invalid");
       sources.set(source.id, resolve(dirname(editPath), source.path));
     }
   } else if (typeof edit?.source?.path === "string") {
     sources.set("__single__", resolve(dirname(editPath), edit.source.path));
   } else {
-    throw new Error("edit.json に source / sources[] がありません");
+    throw new Error("edit.json has no source or sources[]");
   }
-  if (sources.size === 0) throw new Error("edit.json の sources[] が空です");
+  if (sources.size === 0) throw new Error("edit.json sources[] is empty");
 
   let cuts;
   if (Array.isArray(edit.cuts) && edit.cuts.length > 0) {
@@ -53,12 +53,12 @@ export function loadProjectTimeline(projectPath, { ffprobeCommand } = {}) {
       const start = Number(cut.in);
       const end = Number(cut.out);
       const speed = Number(cut.speed ?? 1);
-      if (!path) throw new Error(`cuts[${index}].src が sources[] にありません: ${sourceId}`);
-      if (!(end > start && start >= 0 && speed > 0)) throw new Error(`cuts[${index}] の in/out/speed が不正です`);
+      if (!path) throw new Error(`cuts[${index}].src is not in sources[]: ${sourceId}`);
+      if (!(end > start && start >= 0 && speed > 0)) throw new Error(`cuts[${index}] has invalid in/out/speed`);
       return { path, start, end, speed };
     });
   } else {
-    if (sources.size !== 1) throw new Error("cuts[] が空の複数 source プロジェクトは音声 source を一意に決められません");
+    if (sources.size !== 1) throw new Error("Cannot determine the audio source: the project has multiple sources and cuts[] is empty");
     const [path] = sources.values();
     cuts = [{ path, start: 0, end: probeDuration(path, ffprobeCommand ?? resolveFfprobe()), speed: 1 }];
   }
@@ -131,7 +131,7 @@ export function extractRmsEnvelope(timeline, sampleRate, { ffmpegCommand } = {})
     "-f", "f32le", "pipe:1",
   ], { encoding: null, maxBuffer: 256 * 1024 * 1024 });
   if (result.error || result.status !== 0) {
-    throw new Error(`音声エンベロープ抽出に失敗しました: ${String(result.stderr || result.error?.message).trim()}`);
+    throw new Error(`Audio envelope extraction failed: ${String(result.stderr || result.error?.message).trim()}`);
   }
   const frameCount = Math.max(1, Math.round(timeline.duration * timeline.fps));
   return {

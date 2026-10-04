@@ -31,7 +31,7 @@ const positional = args.filter((a, i) => i !== flattenIndex && i !== flattenValu
 const projectRoot = resolve(positional[0] ?? '.');
 const times = positional.slice(1).map(Number).filter((n) => Number.isFinite(n));
 if (!times.length) {
-  console.error('usage: probe-frame.mjs <project> <秒> [<秒> ...] [--flatten #rrggbb]');
+  console.error('Usage: probe-frame.mjs <project> <sec> [<sec> ...] [--flatten #rrggbb]');
   process.exit(1);
 }
 
@@ -55,8 +55,8 @@ let puppeteer;
 try {
   puppeteer = require('puppeteer-core');
 } catch (error) {
-  console.error('`akari internal beat-sync-probe-frame` には puppeteer-core が必要です（配布版には同梱していません）。モノレポの checkout で実行するか、代わりに `akari capture -t <秒>` を使ってください。');
-  console.error(`原因: ${error instanceof Error ? error.message : String(error)}`);
+  console.error('`akari internal beat-sync-probe-frame` requires puppeteer-core (not bundled in the distributed build). Run it from a monorepo checkout, or use `akari capture -t <sec>` instead.');
+  console.error(`Cause: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 const configuredChromePath = process.env.AKARI_CHROME_BIN?.trim();
@@ -64,7 +64,7 @@ const chromePath = configuredChromePath
   ? (existsSync(configuredChromePath) ? configuredChromePath : null)
   : findChrome();
 if (!chromePath) {
-  console.error('この機能には Chrome が必要です（`AKARI_CHROME_BIN` で指定）');
+  console.error('Chrome is required (set `AKARI_CHROME_BIN` to its path)');
   process.exit(1);
 }
 

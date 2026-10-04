@@ -65,7 +65,7 @@ test("avatar-drive mouth transition: RGBA 全 byte を直接 lerp する", () =>
   assert.deepEqual(blendFrameBuffers(first, second, 0), first);
   assert.deepEqual(blendFrameBuffers(first, second, 1), second);
   assert.deepEqual(blendFrameBuffers(first, second, 0.5), Buffer.from([50, 60, 71, 81]));
-  assert.throws(() => blendFrameBuffers(Buffer.alloc(1), Buffer.alloc(2), 0.5), /長/);
+  assert.throws(() => blendFrameBuffers(Buffer.alloc(1), Buffer.alloc(2), 0.5), /length/);
 });
 
 test("avatar-drive: エンベロープからの口状態列は平滑・ヒステリシス込みで決定論的", () => {
@@ -399,7 +399,7 @@ test("avatar-drive CLI: --no-motion は従来寸法・決定論を保ち、数�
   assert.equal(JSON.parse(first.stdout).stats.height, 128);
   const conflict = spawnSync(process.execPath, [...args, "--motion-intensity", "0.5"], { encoding: "utf8" });
   assert.equal(conflict.status, 2);
-  assert.match(JSON.parse(conflict.stdout).reason, /同時/);
+  assert.match(JSON.parse(conflict.stdout).reason, /together/);
 });
 
 test("avatar-drive motion: intensity 1 の全 frame は透明境界内に収まる", { timeout: 30_000 }, async (t) => {
@@ -455,7 +455,7 @@ test("avatar-drive CLI: 必須入力なしは exit 2、--check は可否 JSON", 
   for (const value of ["-1", "1.5", "NaN"]) {
     const invalid = spawnSync(process.execPath, [script, "--check", "--mouth-transition", value], { encoding: "utf8" });
     assert.equal(invalid.status, 2);
-    assert.match(JSON.parse(invalid.stdout).reason, /--mouth-transition.*0 以上の整数/);
+    assert.match(JSON.parse(invalid.stdout).reason, /--mouth-transition.*integer >= 0/);
   }
 });
 
@@ -488,7 +488,7 @@ test("avatar-drive vowel: captions と最小 transcript を同じ単語列へ正
   assert.deepEqual(parseTranscript([expected[1], expected[0]]), expected);
   assert.throws(() => parseTranscript([{ text: "あ", start: 1, end: 1 }]), /end.*start/);
   assert.throws(() => parseTranscript({ captions: [null] }), /object/);
-  assert.throws(() => parseTranscript({ words: [] }), /配列または captions/);
+  assert.throws(() => parseTranscript({ words: [] }), /array or an object with a captions array/);
 });
 
 test("avatar-drive vowel: 単語内はモーラ均等割り、語間ギャップは null", () => {

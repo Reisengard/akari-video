@@ -9,7 +9,7 @@ export function loadEditJson(editPath) {
   const raw = readFileSync(editPath, "utf8");
   const edit = JSON.parse(raw);
   if (edit === null || typeof edit !== "object" || Array.isArray(edit)) {
-    throw new Error("edit.json のルートは object である必要があります");
+    throw new Error("edit.json root must be an object");
   }
   return edit;
 }
@@ -25,7 +25,7 @@ export function appendLayersAdditive(editPath, newLayers) {
   const existingIds = new Set(existingLayers.map((l) => l?.id));
   const collisions = newLayers.filter((l) => existingIds.has(l.id)).map((l) => l.id);
   if (collisions.length > 0) {
-    return { ok: false, reason: `edit.json.layers に同じ id が既に存在します: ${collisions.join(", ")}` };
+    return { ok: false, reason: `edit.json.layers already has the same id: ${collisions.join(", ")}` };
   }
   edit.layers = [...existingLayers, ...newLayers];
 

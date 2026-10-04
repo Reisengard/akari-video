@@ -36,32 +36,32 @@ test("storyboard fields including two cutaways and camera hints are valid", () =
 test("newer research-plan.json version stops honestly", () => {
   const executed = run("unsupported-version");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(executed.stderr, /This file uses a newer format\. Update the skills or the app\./);
 });
 
 test("empty sources warns without failing (byDefault-style advisory, not a hard stop)", () => {
   const executed = run("warns-empty-sources");
   assert.equal(executed.status, 0, executed.stderr);
-  assert.match(executed.stderr, /sources が空です/);
+  assert.match(executed.stderr, /sources is empty/);
   assert.match(executed.stdout, /warnings\)/);
 });
 
 test("duplicate candidate ids fail", () => {
   const executed = run("invalid-duplicate-candidate-id");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /topic\.candidates\[\]\.id が重複しています: idea-ramen-broth/);
+  assert.match(executed.stderr, /topic\.candidates\[\]\.id is duplicated: idea-ramen-broth/);
 });
 
 test("missing required shot field fails", () => {
   const executed = run("invalid-missing-required-field");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /structure\.shots\[0\]\.description は必須です/);
+  assert.match(executed.stderr, /structure\.shots\[0\]\.description is required/);
 });
 
 test("unknown candidate category fails", () => {
   const executed = run("invalid-bad-category-enum");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /category は hub \/ hero \/ help/);
+  assert.match(executed.stderr, /category must be one of hub \/ hero \/ help/);
 });
 
 test("topic.selected referencing a missing candidate fails", () => {
@@ -69,20 +69,20 @@ test("topic.selected referencing a missing candidate fails", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /topic\.selected が topic\.candidates\[\]\.id を参照していません: idea-not-exists/,
+    /topic\.selected does not reference a topic\.candidates\[\]\.id: idea-not-exists/,
   );
 });
 
 test("selected without decided_at fails (decision-cards commit time must be recorded)", () => {
   const executed = run("invalid-decided-at-mismatch");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /topic\.decided_at が null です/);
+  assert.match(executed.stderr, /topic\.decided_at is null/);
 });
 
 test("empty japan_sns notes fails (required research axis)", () => {
   const executed = run("invalid-japan-sns-notes-empty");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /target\.japan_sns\.notes は空でない文字列である必要があります/);
+  assert.match(executed.stderr, /target\.japan_sns\.notes must be a non-empty string/);
 });
 
 test("shot referencing a missing chapter fails", () => {
@@ -90,20 +90,20 @@ test("shot referencing a missing chapter fails", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /structure\.shots\[0\]\.chapter_id が structure\.chapters\[\]\.id を参照していません: ch-nope/,
+    /structure\.shots\[0\]\.chapter_id does not reference a structure\.chapters\[\]\.id: ch-nope/,
   );
 });
 
 test("nested cutaway fails because v1 supports one level only", () => {
   const executed = run("invalid-nested-cutaway");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /カットアウェイは 1 段のみ/);
+  assert.match(executed.stderr, /cutaways are one level only/);
 });
 
 test("structure.confirmed true without confirmed_at fails", () => {
   const executed = run("invalid-structure-confirmed-mismatch");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /structure\.confirmed_at が null です/);
+  assert.match(executed.stderr, /structure\.confirmed_at is null/);
 });
 
 test("shot_list referencing a missing shot fails", () => {
@@ -111,6 +111,6 @@ test("shot_list referencing a missing shot fails", () => {
   assert.equal(executed.status, 1);
   assert.match(
     executed.stderr,
-    /shot_list\[0\]\.ref_shot_id が structure\.shots\[\]\.id を参照していません: sh-nope/,
+    /shot_list\[0\]\.ref_shot_id does not reference a structure\.shots\[\]\.id: sh-nope/,
   );
 });

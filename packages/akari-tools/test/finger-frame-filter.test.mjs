@@ -45,13 +45,13 @@ test('finger-frame filter rejects --media', () => {
     'media/insert.mp4',
   ], { encoding: 'utf8' });
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /--kind filter では --media と --layer-id を指定できません/u);
+  assert.match(result.stderr, /--media and --layer-id cannot be used with --kind filter/u);
 });
 
 test('finger-frame filter requires --filter', () => {
   const result = spawnSync(process.execPath, [script, fixtureRoot, '--kind', 'filter'], { encoding: 'utf8' });
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /--kind filter では --filter/u);
+  assert.match(result.stderr, /--kind filter requires --filter/u);
 });
 
 test('finger-frame filter without --apply leaves the committed fixture unchanged', () => {

@@ -153,7 +153,7 @@ test("standalone punctuation merges into the preceding piece even over limits", 
 test("missing words split sentences with proportional timestamps and warning", () => {
   const result = build([{ start: 2, end: 8, text: "前。後半分。" }], { readoutSeconds: 0, minDurationSeconds: 0 });
   assert.deepEqual(result.captions.map(({ text, start, end }) => ({ text, start, end })), [{ text: "前。", start: 2, end: 4 }, { text: "後半分。", start: 4, end: 8 }]);
-  assert.match(result.warnings.join(" "), /按分/);
+  assert.match(result.warnings.join(" "), /distributed by character count/);
 });
 
 test("source duration caps readout and drops cues shorter than 0.2 seconds", () => {
@@ -161,7 +161,7 @@ test("source duration caps readout and drops cues shorter than 0.2 seconds", () 
   assert.equal(build([segment(9.5, 10.2)], { sourceDurationSeconds: 10.033333333333 }).captions[0].end, 10.033);
   const result = build([segment(9.9, 10), segment(11, 12)], { sourceDurationSeconds: 10 });
   assert.equal(result.captions.length, 0);
-  assert.equal(result.warnings.filter((warning) => /0.2 秒未満/.test(warning)).length, 2);
+  assert.equal(result.warnings.filter((warning) => /under 0.2 s/.test(warning)).length, 2);
   assert.equal(build([segment(9.8, 10)], { sourceDurationSeconds: 10 }).captions.length, 1);
 });
 

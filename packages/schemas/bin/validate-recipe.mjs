@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-recipe.mjs <recipe.json>";
+const usage = "Usage: node packages/schemas/bin/validate-recipe.mjs <recipe.json>";
 const recipeArgument = process.argv[2];
 
 if (!recipeArgument || process.argv.length !== 3) {
@@ -30,7 +30,7 @@ const CONFIRMED_BY = new Set(["intake", "structure-confirm", "edit-approval", "r
 const NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 if (!isRegularFile(recipePath)) {
-  fail(`recipe.json が見つかりません: ${recipePath}`);
+  fail(`recipe.json was not found: ${recipePath}`);
   finish();
 }
 
@@ -38,11 +38,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`recipe.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`recipe.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:recipe:v0") {
-  fail("recipe.schema.json の $id が v0 契約と一致しません");
+  fail("recipe.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -50,7 +50,7 @@ let recipe;
 try {
   recipe = JSON.parse(fs.readFileSync(recipePath, "utf8"));
 } catch (error) {
-  fail(`recipe.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`recipe.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -59,52 +59,52 @@ finish();
 
 function validateRecipe(value) {
   if (!isPlainObject(value)) {
-    fail("recipe.json のルートは object である必要があります");
+    fail("recipe.json root must be an object");
     return;
   }
   if (Number.isInteger(value.version) && value.version > 0) {
     fail(
-      `version ${value.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `version ${value.version} is newer than this validator supports. This file uses a newer format. Update the skills or the app.`,
     );
     return;
   }
   if (!hasOwn(value, "version")) {
-    fail("version は必須です");
+    fail("version is required");
   } else if (value.version !== 0) {
-    fail("version は 0 である必要があります");
+    fail("version must be 0");
   }
   if (!hasOwn(value, "name")) {
-    fail("name は必須です");
+    fail("name is required");
   } else if (!isNonEmptyString(value.name) || !NAME_PATTERN.test(value.name)) {
-    fail(`name は kebab-case（小文字英数字とハイフンのみ）の空でない文字列である必要があります: ${JSON.stringify(value.name)}`);
+    fail(`name must be a non-empty kebab-case string (lowercase letters, digits, and hyphens only): ${JSON.stringify(value.name)}`);
   }
   if (!hasOwn(value, "frozen_at")) {
-    fail("frozen_at は必須です");
+    fail("frozen_at is required");
   } else if (typeof value.frozen_at !== "string" || !isIsoDateTime(value.frozen_at)) {
-    fail("frozen_at は ISO 8601 日時の文字列である必要があります");
+    fail("frozen_at must be an ISO 8601 date-time string");
   }
   if (!hasOwn(value, "source_project")) {
-    fail("source_project は必須です");
+    fail("source_project is required");
   } else if (!isNonEmptyString(value.source_project)) {
-    fail("source_project は空でない文字列である必要があります");
+    fail("source_project must be a non-empty string");
   } else if (value.source_project.includes("/") || value.source_project.includes("\\")) {
     fail(
-      `source_project はパスではなく「プロジェクト名 + 日付」の名前を書く必要があります（プロジェクト移動で壊れる参照を持たない契約。§6）: ${value.source_project}`,
+      `source_project must be a "project name + date" name, not a path (the contract avoids references that break when a project moves; §6): ${value.source_project}`,
     );
   }
   if (!hasOwn(value, "workflow")) {
-    fail("workflow は必須です");
+    fail("workflow is required");
   } else if (!WORKFLOWS.has(value.workflow)) {
-    fail("workflow は edit / research のいずれかである必要があります");
+    fail("workflow must be one of edit / research");
   }
   let confirmedKeys = null;
   if (!hasOwn(value, "confirmed")) {
-    fail("confirmed は必須です");
+    fail("confirmed is required");
   } else {
     confirmedKeys = validateConfirmed(value.confirmed);
   }
   if (!hasOwn(value, "provenance")) {
-    fail("provenance は必須です");
+    fail("provenance is required");
   } else {
     validateProvenance(value.provenance, confirmedKeys);
   }
@@ -112,26 +112,26 @@ function validateRecipe(value) {
 
 function validateConfirmed(value) {
   if (!isPlainObject(value)) {
-    fail("confirmed は object である必要があります");
+    fail("confirmed must be an object");
     return null;
   }
   const keys = Object.keys(value);
   if (keys.length === 0) {
     fail(
-      "confirmed は少なくとも 1 件の確認済みフィールドを持つ必要があります（確認済みのみ記録する契約のため、空なら freeze しない）",
+      "confirmed must have at least 1 confirmed field (only confirmed values are recorded, so an empty recipe is not frozen)",
     );
   }
   if (hasOwn(value, "aspect") && !ASPECTS.has(value.aspect)) {
-    fail("confirmed.aspect は 16:9 / 9:16 / 1:1 のいずれかである必要があります");
+    fail("confirmed.aspect must be one of 16:9 / 9:16 / 1:1");
   }
   if (hasOwn(value, "target_duration_band") && !isNonEmptyString(value.target_duration_band)) {
-    fail("confirmed.target_duration_band は空でない文字列である必要があります");
+    fail("confirmed.target_duration_band must be a non-empty string");
   }
   if (hasOwn(value, "caption_style_ref") && !isNonEmptyString(value.caption_style_ref)) {
-    fail("confirmed.caption_style_ref は空でない文字列である必要があります");
+    fail("confirmed.caption_style_ref must be a non-empty string");
   }
   if (hasOwn(value, "bgm_profile") && !isNonEmptyString(value.bgm_profile)) {
-    fail("confirmed.bgm_profile は空でない文字列である必要があります");
+    fail("confirmed.bgm_profile must be a non-empty string");
   }
   if (hasOwn(value, "overlay_kinds")) {
     validateOverlayKinds(value.overlay_kinds);
@@ -144,22 +144,22 @@ function validateConfirmed(value) {
 
 function validateOverlayKinds(value) {
   if (!Array.isArray(value)) {
-    fail("confirmed.overlay_kinds は配列である必要があります");
+    fail("confirmed.overlay_kinds must be an array");
     return;
   }
   if (value.length === 0) {
-    fail("confirmed.overlay_kinds は最低 1 件の要素が必要です");
+    fail("confirmed.overlay_kinds must have at least 1 item");
     return;
   }
   const seen = new Set();
   for (const [index, kind] of value.entries()) {
     const label = `confirmed.overlay_kinds[${index}]`;
     if (!isNonEmptyString(kind)) {
-      fail(`${label} は空でない文字列である必要があります`);
+      fail(`${label} must be a non-empty string`);
       continue;
     }
     if (seen.has(kind)) {
-      fail(`confirmed.overlay_kinds に重複した値があります: ${kind}`);
+      fail(`confirmed.overlay_kinds has a duplicate value: ${kind}`);
     } else {
       seen.add(kind);
     }
@@ -168,57 +168,57 @@ function validateOverlayKinds(value) {
 
 function validateNarration(value) {
   if (!isPlainObject(value)) {
-    fail("confirmed.narration は object である必要があります");
+    fail("confirmed.narration must be an object");
     return;
   }
   const keys = Object.keys(value);
   if (keys.length === 0) {
-    fail("confirmed.narration は engine または voice のうち少なくとも 1 件を持つ必要があります");
+    fail("confirmed.narration must have at least one of engine or voice");
   }
   if (hasOwn(value, "engine") && !isNonEmptyString(value.engine)) {
-    fail("confirmed.narration.engine は空でない文字列である必要があります");
+    fail("confirmed.narration.engine must be a non-empty string");
   }
   if (hasOwn(value, "voice") && !isNonEmptyString(value.voice)) {
-    fail("confirmed.narration.voice は空でない文字列である必要があります");
+    fail("confirmed.narration.voice must be a non-empty string");
   }
 }
 
 function validateProvenance(value, confirmedKeys) {
   if (!isPlainObject(value)) {
-    fail("provenance は object である必要があります");
+    fail("provenance must be an object");
     return;
   }
   const provenanceKeys = new Set(Object.keys(value));
   if (provenanceKeys.size === 0) {
-    fail("provenance は少なくとも 1 件のエントリを持つ必要があります");
+    fail("provenance must have at least 1 entry");
   }
   if (confirmedKeys) {
     for (const key of confirmedKeys) {
       if (!provenanceKeys.has(key)) {
-        fail(`provenance.${key} が欠けています（confirmed.${key} には出所（confirmed_by, at）の対応エントリが必要です）`);
+        fail(`provenance.${key} is missing (confirmed.${key} needs a matching provenance entry with confirmed_by and at)`);
       }
     }
     for (const key of provenanceKeys) {
       if (!confirmedKeys.has(key)) {
-        fail(`provenance.${key} に対応する confirmed.${key} がありません（存在しない確認値の出所は記録できません）`);
+        fail(`provenance.${key} has no matching confirmed.${key} (provenance cannot be recorded for a value that does not exist)`);
       }
     }
   }
   for (const [key, entry] of Object.entries(value)) {
     const label = `provenance.${key}`;
     if (!isPlainObject(entry)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (!hasOwn(entry, "confirmed_by")) {
-      fail(`${label}.confirmed_by は必須です`);
+      fail(`${label}.confirmed_by is required`);
     } else if (!CONFIRMED_BY.has(entry.confirmed_by)) {
-      fail(`${label}.confirmed_by は intake / structure-confirm / edit-approval / render-approval のいずれかである必要があります`);
+      fail(`${label}.confirmed_by must be one of intake / structure-confirm / edit-approval / render-approval`);
     }
     if (!hasOwn(entry, "at")) {
-      fail(`${label}.at は必須です`);
+      fail(`${label}.at is required`);
     } else if (typeof entry.at !== "string" || !isIsoDateTime(entry.at)) {
-      fail(`${label}.at は ISO 8601 日時の文字列である必要があります`);
+      fail(`${label}.at must be an ISO 8601 date-time string`);
     }
   }
 }

@@ -38,7 +38,7 @@ test("help has the required first line, including via symlink", async (t) => {
   for (const path of [bin, linked]) {
     const result = spawnSync(process.execPath, [path, "--help"], { encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stdout.split("\n")[0], "使い方: akari decision-log <subcommand> <project-dir> [options]");
+    assert.equal(result.stdout.split("\n")[0], "Usage: akari decision-log <subcommand> <project-dir> [options]");
   }
 });
 

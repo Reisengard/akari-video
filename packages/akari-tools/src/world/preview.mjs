@@ -69,10 +69,10 @@ export async function captureFrames({ projectRoot, edit, html, htmlPath, times, 
   try {
     puppeteer = require("puppeteer-core");
   } catch (error) {
-    throw new Error("`akari world preview` には puppeteer-core が必要です（配布版には同梱していません）。モノレポの checkout で実行するか、`akari world build` / `check` / `overview` を使ってください。", { cause: error });
+    throw new Error("`akari world preview` requires puppeteer-core, which is not bundled in the distributed build. Run it from a monorepo checkout, or use `akari world build` / `check` / `overview`.", { cause: error });
   }
   const executablePath = chromePath ?? process.env.AKARI_CHROME_BIN?.trim() ?? findChrome();
-  if (!executablePath || !existsSync(executablePath)) throw new Error("この機能には Chrome が必要です（`AKARI_CHROME_BIN` で指定）");
+  if (!executablePath || !existsSync(executablePath)) throw new Error("Chrome is required for this feature (set it with `AKARI_CHROME_BIN`)");
   const browser = await puppeteer.launch({ executablePath, headless: true, protocolTimeout: 600_000, args: ["--no-sandbox", "--disable-gpu", "--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--disable-dev-shm-usage", "--no-first-run", "--no-default-browser-check", "--allow-file-access-from-files"] });
   const files = new Map();
   try {
@@ -95,7 +95,7 @@ export async function captureFrames({ projectRoot, edit, html, htmlPath, times, 
 export function measurePng(file, options = {}) {
   const ffmpeg = options.ffmpeg ?? resolveFfmpeg();
   const result = (options.spawn ?? spawnSync)(ffmpeg, ["-v", "error", "-i", file, "-vf", "signalstats,format=rgb24", "-frames:v", "1", "-f", "rawvideo", "-"], { encoding: null, maxBuffer: 64 * 1024 * 1024 });
-  if (result.status !== 0) throw new Error(`ffmpeg signalstats に失敗しました: ${String(result.stderr ?? "")}`);
+  if (result.status !== 0) throw new Error(`ffmpeg signalstats failed: ${String(result.stderr ?? "")}`);
   const pixels = result.stdout;
   const count = pixels.length / 3;
   const sums = [0, 0, 0];
@@ -119,16 +119,16 @@ export async function writeMeasuredCovers(file, measurements) {
 export function replaceEdgeCover(text, edgeId, cover) {
   const marker = new RegExp(`"id"\\s*:\\s*"${escapeRegExp(edgeId)}"`, "g");
   const match = marker.exec(text);
-  if (!match) throw new Error(`world-map.json に edge ${edgeId} がありません`);
+  if (!match) throw new Error(`world-map.json has no edge ${edgeId}`);
   const end = objectEnd(text, text.lastIndexOf("{", match.index));
   const segment = text.slice(match.index, end);
   const coverMatch = /"transition"\s*:\s*\{[^{}]*?"cover"(\s*:\s*)(null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|"(?:\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})|[^"\\\u0000-\u001f])*")/s.exec(segment);
-  if (!coverMatch) throw new Error(`edge ${edgeId} の transition.cover がありません`);
+  if (!coverMatch) throw new Error(`edge ${edgeId} has no transition.cover`);
   const start = match.index + coverMatch.index + coverMatch[0].lastIndexOf(coverMatch[2]);
   return text.slice(0, start) + String(cover) + text.slice(start + coverMatch[2].length);
 }
 
-function objectEnd(text, start) { let depth = 0, string = false, escaped = false; for (let i = start; i < text.length; i += 1) { const c = text[i]; if (string) { if (escaped) escaped = false; else if (c === "\\") escaped = true; else if (c === '"') string = false; } else if (c === '"') string = true; else if (c === "{") depth += 1; else if (c === "}" && --depth === 0) return i + 1; } throw new Error("world-map.json の edge object が閉じていません"); }
+function objectEnd(text, start) { let depth = 0, string = false, escaped = false; for (let i = start; i < text.length; i += 1) { const c = text[i]; if (string) { if (escaped) escaped = false; else if (c === "\\") escaped = true; else if (c === '"') string = false; } else if (c === '"') string = true; else if (c === "{") depth += 1; else if (c === "}" && --depth === 0) return i + 1; } throw new Error("The edge object in world-map.json is not closed"); }
 function longestCoveredRun(samples) { let best = 0, current = 0; for (const sample of samples) { current = sample.covered ? current + 1 : 0; best = Math.max(best, current); } return best; }
 function frameRange(start, end) { const first = Math.ceil((start - 1e-9) * FPS); const last = Math.floor((end + 1e-9) * FPS); return Array.from({ length: last - first + 1 }, (_, index) => roundTime((first + index) / FPS)); }
 function editDurationSeconds(edit) { const fps = edit.output?.fps ?? FPS; let frames = 1; const visit = (item, offset = 0) => { frames = Math.max(frames, offset + (item.at ?? 0) + (item.duration ?? 0)); for (const child of item.items ?? []) visit(child, offset + (item.at ?? 0)); }; for (const track of edit.tracks ?? []) for (const item of track.items ?? []) visit(item); return frames / fps; }

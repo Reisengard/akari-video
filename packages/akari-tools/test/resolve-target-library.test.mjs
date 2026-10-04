@@ -61,16 +61,16 @@ test("resolveTarget: source id 指定でも同じ library 実体と宣言パス�
 test("resolveTarget: 台帳に無い・library に実体が無い参照は従来のエラー文で失敗する", async t => {
   const unregistered = await fixture(t, { reference: false });
   assert.throws(() => resolveTarget(DECLARED, unregistered.options),
-    { message: `素材ファイルが見つかりません: ${DECLARED}` });
+    { message: `Footage file was not found: ${DECLARED}` });
   const missingFile = await fixture(t, { libraryFile: false });
   assert.throws(() => resolveTarget(DECLARED, missingFile.options),
-    { message: `素材ファイルが見つかりません: ${DECLARED}` });
+    { message: `Footage file was not found: ${DECLARED}` });
 });
 
 test("resolveTarget: プロジェクト外へ出る target は library を引かずに失敗する", async t => {
   const f = await fixture(t);
   assert.throws(() => resolveTarget("../outside.mp4", f.options),
-    { message: "素材ファイルが見つかりません: ../outside.mp4" });
+    { message: "Footage file was not found: ../outside.mp4" });
 });
 
 test("resolveTarget: プロジェクト内に実体があれば library より優先し、既存の解決順を変えない", async t => {

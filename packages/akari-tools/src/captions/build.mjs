@@ -7,15 +7,15 @@ export function buildCaptionsFromTranscript(segments, {
   src, readoutSeconds = 0.3, minDurationSeconds = 1.0, maxCharacters = 20, idStart = 1,
   splitMode = "phrase", maxSeconds = 7.0, pauseSeconds = 0.6, sourceDurationSeconds = null,
 } = {}) {
-  if (!Array.isArray(segments)) throw new Error("transcript は配列で指定してください");
+  if (!Array.isArray(segments)) throw new Error("transcript must be an array");
   for (const [name, value] of Object.entries({ readoutSeconds, minDurationSeconds, maxSeconds, pauseSeconds })) {
-    if (!Number.isFinite(value) || value < 0) throw new Error(`${name} は 0 以上の数値で指定してください`);
+    if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be a number of 0 or more`);
   }
   if (maxCharacters !== null && (!Number.isInteger(maxCharacters) || maxCharacters < 0)) {
-    throw new Error("maxCharacters は 0 以上の整数で指定してください");
+    throw new Error("maxCharacters must be an integer of 0 or more");
   }
-  if (!["phrase", "none"].includes(splitMode)) throw new Error("splitMode は phrase または none で指定してください");
-  if (!Number.isInteger(idStart) || idStart < 1 || idStart > 9999) throw new Error("idStart は 1〜9999 で指定してください");
+  if (!["phrase", "none"].includes(splitMode)) throw new Error("splitMode must be phrase or none");
+  if (!Number.isInteger(idStart) || idStart < 1 || idStart > 9999) throw new Error("idStart must be between 1 and 9999");
   const warnings = [];
   const captions = [];
   const sorted = segments.map((segment, index) => ({ segment, index }))
@@ -23,7 +23,7 @@ export function buildCaptionsFromTranscript(segments, {
   for (const { segment, index } of sorted) {
     const text = segment.text.trim();
     if (!text) {
-      warnings.push(`segment ${index}: 空の text をスキップしました`);
+      warnings.push(`segment ${index}: skipped empty text`);
       continue;
     }
     let pieces = [{ text, words: segment.words }];
@@ -31,20 +31,20 @@ export function buildCaptionsFromTranscript(segments, {
       if (segment.words?.length) pieces = splitPhrases(text, segment.words, { maxCharacters, maxSeconds, pauseSeconds });
       else {
         pieces = splitProportionally(text, segment);
-        warnings.push(`segment ${index}: words が無いため文字数比で時刻を按分しました`);
+        warnings.push(`segment ${index}: no words, so timing was distributed by character count`);
       }
     } else if (maxCharacters && length(text) > maxCharacters) {
-      if (!segment.words?.length) warnings.push(`segment ${index}: words が無いため分割しませんでした`);
+      if (!segment.words?.length) warnings.push(`segment ${index}: no words, so it was not split`);
       else pieces = splitWords(text, segment.words, maxCharacters);
     }
     for (const piece of pieces) {
       const start = piece.words?.length ? piece.words[0].start : piece.start ?? segment.start;
       const lastEnd = piece.words?.length ? piece.words.at(-1).end : piece.end ?? segment.end;
       if (!Number.isFinite(start) || !Number.isFinite(lastEnd) || start < 0 || lastEnd < start) {
-        throw new Error(`segment ${index}: 時刻が不正です`);
+        throw new Error(`segment ${index}: invalid timing`);
       }
       const id = idStart + captions.length;
-      if (id > 9999) throw new Error("字幕 ID が c-9999 を超えます");
+      if (id > 9999) throw new Error("Caption ID exceeds c-9999");
       captions.push({
         id: `c-${String(id).padStart(4, "0")}`,
         start: roundTime(start), end: roundTime(lastEnd + readoutSeconds), text: piece.text,
@@ -64,7 +64,7 @@ export function buildCaptionsFromTranscript(segments, {
       caption.end = Math.min(roundTime(caption.start + minDurationSeconds), nextStart);
     }
     if (caption.end - caption.start < minDurationSeconds - 1e-9) {
-      warnings.push(`${caption.id}: 表示時間が ${minDurationSeconds} 秒未満です`);
+      warnings.push(`${caption.id}: display time is under ${minDurationSeconds} s`);
     }
   }
   if (Number.isFinite(sourceDurationSeconds)) {
@@ -72,7 +72,7 @@ export function buildCaptionsFromTranscript(segments, {
       const caption = captions[index];
       caption.end = roundTime(Math.min(caption.end, sourceDurationSeconds));
       if (caption.end - caption.start < 0.2 - 1e-9) {
-        warnings.push(`${caption.id}: 素材尺で丸めた表示時間が 0.2 秒未満のためスキップしました`);
+        warnings.push(`${caption.id}: skipped because the display time clamped to the footage duration is under 0.2 s`);
         captions.splice(index, 1);
       }
     }

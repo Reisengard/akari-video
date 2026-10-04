@@ -54,7 +54,7 @@ const CAPTION_FIELDS = new Set([
   "text_style",
 ]);
 const REQUIRED_CAPTION_FIELDS = ["id", "start", "end", "text", "speaker", "sourceRef", "edited"];
-const usage = "使い方: node packages/schemas/bin/validate-captions.mjs <captions.json>";
+const usage = "Usage: node packages/schemas/bin/validate-captions.mjs <captions.json>";
 const captionsArgument = process.argv[2];
 
 if (!captionsArgument || process.argv.length !== 3) {
@@ -72,7 +72,7 @@ const schemaPath = fileURLToPath(new URL("../captions.schema.json", import.meta.
 const errors = [];
 
 if (!isRegularFile(captionsPath)) {
-  fail(`captions.json が見つかりません: ${captionsPath}`);
+  fail(`captions.json was not found: ${captionsPath}`);
   finish();
 }
 
@@ -80,11 +80,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`captions.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`captions.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:captions:v0") {
-  fail("captions.schema.json の $id が v0 契約と一致しません");
+  fail("captions.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -92,7 +92,7 @@ let root;
 try {
   root = JSON.parse(fs.readFileSync(captionsPath, "utf8"));
 } catch (error) {
-  fail(`captions.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`captions.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -111,7 +111,7 @@ function validateCaptionsRoot(value) {
         && key !== "emphasis_words"
         && key !== "captions"
       ) {
-        fail(`captions.json のルートに未知のキーがあります: ${key}`);
+        fail(`captions.json root has an unknown key: ${key}`);
       }
     }
     if (hasOwn(value, "default_text_style")) {
@@ -120,17 +120,17 @@ function validateCaptionsRoot(value) {
     if (hasOwn(value, "display_policy")) validateDisplayPolicy(value.display_policy);
     if (hasOwn(value, "emphasis_words")) validateEmphasisWords(value.emphasis_words);
     if (!hasOwn(value, "captions")) {
-      fail("captions.json の object ルートでは captions が必須です");
+      fail("captions is required when the captions.json root is an object");
       return;
     }
     if (!Array.isArray(value.captions)) {
-      fail("captions は配列である必要があります");
+      fail("captions must be an array");
       return;
     }
     captions = value.captions;
     if (hasOwn(value, "display_policy")) validateDisplayPolicyCaptions(captions, value.display_policy);
   } else {
-    fail("captions.json のルートは配列または object である必要があります");
+    fail("captions.json root must be an array or an object");
     return;
   }
   validateCaptionsArray(
@@ -143,41 +143,41 @@ function validateCaptionsRoot(value) {
 // edit.json v1 の emphasis_words と同形だが、captions.json では object ルートだけに置く。
 function validateEmphasisWords(value) {
   if (!Array.isArray(value)) {
-    fail("emphasis_words は配列である必要があります");
+    fail("emphasis_words must be an array");
     return;
   }
   const ids = new Set();
   for (const [index, item] of value.entries()) {
     const label = `emphasis_words[${index}]`;
     if (!isPlainObject(item)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     if (typeof item.id !== "string" || !/^e-\d{4}$/.test(item.id)) {
-      fail(`${label}.id は e- に続く 4 桁の数字である必要があります`);
+      fail(`${label}.id must be e- followed by 4 digits`);
     } else if (ids.has(item.id)) {
-      fail(`emphasis_words[].id が重複しています: ${item.id}`);
+      fail(`emphasis_words[].id is duplicated: ${item.id}`);
     } else {
       ids.add(item.id);
     }
     const hasStart = isFiniteNumber(item.t_start) && item.t_start >= 0;
     const hasEnd = isFiniteNumber(item.t_end) && item.t_end >= 0;
-    if (!hasStart) fail(`${label}.t_start は 0 以上の有限数である必要があります`);
-    if (!hasEnd) fail(`${label}.t_end は 0 以上の有限数である必要があります`);
+    if (!hasStart) fail(`${label}.t_start must be a finite number >= 0`);
+    if (!hasEnd) fail(`${label}.t_end must be a finite number >= 0`);
     if (hasStart && hasEnd && item.t_end <= item.t_start) {
-      fail(`${label}.t_end は t_start より大きい必要があります`);
+      fail(`${label}.t_end must be greater than t_start`);
     }
     if (!isNonEmptyString(item.word)) {
-      fail(`${label}.word は空でない文字列である必要があります`);
+      fail(`${label}.word must be a non-empty string`);
     }
     if (!isNonEmptyString(item.emotion)) {
-      fail(`${label}.emotion は空でない文字列である必要があります`);
+      fail(`${label}.emotion must be a non-empty string`);
     }
     if (hasOwn(item, "src") && !isNonEmptyString(item.src)) {
-      fail(`${label}.src は空でない文字列である必要があります`);
+      fail(`${label}.src must be a non-empty string`);
     }
     if (hasOwn(item, "style_hint") && typeof item.style_hint !== "string") {
-      fail(`${label}.style_hint は文字列である必要があります`);
+      fail(`${label}.style_hint must be a string`);
     }
   }
 }
@@ -187,70 +187,70 @@ function validateCaptionsArray(captions, optInDefaultTextStyle = null) {
   captions.forEach((caption, index) => {
     const label = `captions[${index}]`;
     if (!isPlainObject(caption)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       return;
     }
     for (const field of REQUIRED_CAPTION_FIELDS) {
-      if (!hasOwn(caption, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(caption, field)) fail(`${label}.${field} is required`);
     }
     for (const key of Object.keys(caption)) {
-      if (!CAPTION_FIELDS.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+      if (!CAPTION_FIELDS.has(key)) fail(`${label} has an unknown key: ${key}`);
     }
     if (
       typeof caption.id !== "string"
       || (!CAPTION_ID.test(caption.id) && !LEGACY_CAPTION_ID.test(caption.id))
     ) {
-      fail(`${label}.id は c- に続く 4 桁の数字である必要があります`);
+      fail(`${label}.id must be c- followed by 4 digits`);
     } else if (ids.has(caption.id)) {
-      fail(`captions[].id が重複しています: ${caption.id}`);
+      fail(`captions[].id is duplicated: ${caption.id}`);
     } else {
       ids.add(caption.id);
     }
     const startValid = isFiniteNumber(caption.start) && caption.start >= 0;
     const endValid = isFiniteNumber(caption.end) && caption.end >= 0;
     if (!startValid || !endValid || caption.end <= caption.start) {
-      fail(`${label} は 0 <= start < end を満たす必要があります`);
+      fail(`${label} must satisfy 0 <= start < end`);
     }
     if (!isNonEmptyString(caption.text)) {
-      fail(`${label}.text は空でない文字列である必要があります`);
+      fail(`${label}.text must be a non-empty string`);
     }
     if (caption.speaker !== null && typeof caption.speaker !== "string") {
-      fail(`${label}.speaker は文字列または null である必要があります`);
+      fail(`${label}.speaker must be a string or null`);
     }
     validateSourceRef(caption.sourceRef, `${label}.sourceRef`);
     if (typeof caption.edited !== "boolean") {
-      fail(`${label}.edited は boolean である必要があります`);
+      fail(`${label}.edited must be a boolean`);
     }
     if (hasOwn(caption, "src") && !isNonEmptyString(caption.src)) {
-      fail(`${label}.src は空でない文字列である必要があります`);
+      fail(`${label}.src must be a non-empty string`);
     }
     if (
       hasOwn(caption, "time_domain")
       && caption.time_domain !== "source"
       && caption.time_domain !== "output"
     ) {
-      fail(`${label}.time_domain は source または output である必要があります`);
+      fail(`${label}.time_domain must be source or output`);
     }
     if (hasOwn(caption, "words")) validateCaptionWords(caption.words, label);
     if (hasOwn(caption, "unrecognized")) {
       validateCaptionUnrecognized(caption.unrecognized, caption, label);
     }
     if (hasOwn(caption, "style") && !CAPTION_STYLES.has(caption.style)) {
-      fail(`${label}.style は karaoke/pop/reveal/reveal-word のいずれかである必要があります`);
+      fail(`${label}.style must be one of karaoke/pop/reveal/reveal-word`);
     }
     if (hasOwn(caption, "display_text") && typeof caption.display_text !== "string") {
-      fail(`${label}.display_text は文字列である必要があります`);
+      fail(`${label}.display_text must be a string`);
     }
     if (hasOwn(caption, "display_fragments") && !Array.isArray(caption.display_fragments)) {
-      fail(`${label}.display_fragments は配列である必要があります`);
+      fail(`${label}.display_fragments must be an array`);
     }
     if (hasOwn(caption, "display_timing")
       && caption.display_timing !== "full" && caption.display_timing !== "speech-tight") {
-      fail(`${label}.display_timing は full または speech-tight である必要があります`);
+      fail(`${label}.display_timing must be full or speech-tight`);
     }
     if (hasOwn(caption, "style_preset")
       && (typeof caption.style_preset !== "string" || !TEXTSTYLE_PRESET_ID.test(caption.style_preset))) {
-      fail(`${label}.style_preset は小文字英数字で始まる小文字英数字・ハイフンの id である必要があります`);
+      fail(`${label}.style_preset must be an id of lowercase letters, digits, and hyphens that starts with a letter or digit`);
     }
     if (hasOwn(caption, "text_style")) {
       validateTextStyle(caption.text_style, `${label}.text_style`);
@@ -258,12 +258,12 @@ function validateCaptionsArray(captions, optInDefaultTextStyle = null) {
         const mergedHasZone = hasOwn(caption.text_style, "zone") || hasOwn(optInDefaultTextStyle, "zone");
         const mergedHasLayout = hasOwn(caption.text_style, "layout") || hasOwn(optInDefaultTextStyle, "layout");
         if (mergedHasZone && mergedHasLayout) {
-          fail(`${label}.text_style は default_text_style とのマージ後に zone と layout を併用できません`);
+          fail(`${label}.text_style cannot combine zone and layout after merging with default_text_style`);
         }
         const mergedHasReferenceHeight = hasOwn(caption.text_style, "reference_height_px")
           || hasOwn(optInDefaultTextStyle, "reference_height_px");
         if (mergedHasReferenceHeight && mergedHasLayout) {
-          fail(`${label}.text_style は default_text_style とのマージ後に layout と reference_height_px を併用できません`);
+          fail(`${label}.text_style cannot combine layout and reference_height_px after merging with default_text_style`);
         }
       }
     }
@@ -273,78 +273,78 @@ function validateCaptionsArray(captions, optInDefaultTextStyle = null) {
 function validateSourceRef(value, label) {
   if (value === null) return;
   if (!isPlainObject(value)) {
-    fail(`${label} は null または object である必要があります`);
+    fail(`${label} must be null or an object`);
     return;
   }
   for (const key of Object.keys(value)) {
-    if (key !== "segment") fail(`${label} に未知のキーがあります: ${key}`);
+    if (key !== "segment") fail(`${label} has an unknown key: ${key}`);
   }
   if (!Number.isInteger(value.segment) || value.segment < 0) {
-    fail(`${label}.segment は 0 以上の整数である必要があります`);
+    fail(`${label}.segment must be an integer >= 0`);
   }
 }
 
 function validateCaptionWords(value, captionLabel) {
   if (!Array.isArray(value)) {
-    fail(`${captionLabel}.words は配列である必要があります`);
+    fail(`${captionLabel}.words must be an array`);
     return;
   }
   value.forEach((word, index) => {
     const label = `${captionLabel}.words[${index}]`;
     if (!isPlainObject(word)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       return;
     }
     for (const field of ["start", "end", "text"]) {
-      if (!hasOwn(word, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(word, field)) fail(`${label}.${field} is required`);
     }
     for (const key of Object.keys(word)) {
-      if (!["start", "end", "raw_start", "raw_end", "text"].includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
+      if (!["start", "end", "raw_start", "raw_end", "text"].includes(key)) fail(`${label} has an unknown key: ${key}`);
     }
     const startValid = isFiniteNumber(word.start) && word.start >= 0;
     const endValid = isFiniteNumber(word.end) && word.end >= 0;
     if (!startValid || !endValid || word.end < word.start) {
-      fail(`${label} は 0 <= start <= end を満たす必要があります`);
+      fail(`${label} must satisfy 0 <= start <= end`);
     }
     const hasRawStart = hasOwn(word, "raw_start");
     const hasRawEnd = hasOwn(word, "raw_end");
-    if (hasRawStart !== hasRawEnd) fail(`${label}.raw_start / raw_end は両方指定してください`);
+    if (hasRawStart !== hasRawEnd) fail(`${label}.raw_start / raw_end must be specified together`);
     if (hasRawStart && (!isFiniteNumber(word.raw_start) || word.raw_start < 0
         || !isFiniteNumber(word.raw_end) || word.raw_end < word.raw_start)) {
-      fail(`${label} は 0 <= raw_start <= raw_end を満たす必要があります`);
+      fail(`${label} must satisfy 0 <= raw_start <= raw_end`);
     }
     if (!isNonEmptyString(word.text)) {
-      fail(`${label}.text は空でない文字列である必要があります`);
+      fail(`${label}.text must be a non-empty string`);
     }
   });
 }
 
 function validateCaptionUnrecognized(value, caption, captionLabel) {
   if (!Array.isArray(value)) {
-    fail(`${captionLabel}.unrecognized は配列である必要があります`);
+    fail(`${captionLabel}.unrecognized must be an array`);
     return;
   }
   let previous = null;
   value.forEach((span, index) => {
     const label = `${captionLabel}.unrecognized[${index}]`;
     if (!isPlainObject(span)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       return;
     }
     for (const field of ["start", "end"]) {
-      if (!hasOwn(span, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(span, field)) fail(`${label}.${field} is required`);
     }
     for (const key of Object.keys(span)) {
-      if (!["start", "end"].includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
+      if (!["start", "end"].includes(key)) fail(`${label} has an unknown key: ${key}`);
     }
     const startValid = isFiniteNumber(span.start) && span.start >= 0;
     const endValid = isFiniteNumber(span.end) && span.end >= 0;
     if (!startValid || !endValid || span.end < span.start) {
-      fail(`${label} は 0 <= start <= end を満たす必要があります`);
+      fail(`${label} must satisfy 0 <= start <= end`);
       return;
     }
     if (previous && span.start < previous.end) {
-      fail(`${label} は start 昇順かつ前の区間と非重複である必要があります`);
+      fail(`${label} must be ascending starts that do not overlap the previous span`);
     }
     previous = span;
   });
@@ -353,7 +353,7 @@ function validateCaptionUnrecognized(value, caption, captionLabel) {
 
 function validateTextStyle(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   // textstyle v0（2026-08-03）で render-cut の legacy 字幕レールが実装した語彙まで含む。
@@ -366,35 +366,35 @@ function validateTextStyle(value, label) {
     "karaoke", "stroke_inner", "fill_gradient", "extrude", "strokes", "fill",
   ]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   validateTextStyleV0(value, label);
   if (hasOwn(value, "color")) validateHexColor(value.color, `${label}.color`);
   if (hasOwn(value, "karaoke")) {
     const karaoke = value.karaoke;
-    if (!isPlainObject(karaoke)) fail(`${label}.karaoke は object である必要があります`);
+    if (!isPlainObject(karaoke)) fail(`${label}.karaoke must be an object`);
     else {
       for (const key of Object.keys(karaoke)) {
-        if (!["done_color", "fill", "start_index"].includes(key)) fail(`${label}.karaoke に未知のキーがあります: ${key}`);
+        if (!["done_color", "fill", "start_index"].includes(key)) fail(`${label}.karaoke has an unknown key: ${key}`);
       }
       if (hasOwn(karaoke, "done_color")) validateHexColor(karaoke.done_color, `${label}.karaoke.done_color`);
-      if (hasOwn(karaoke, "fill") && !["char", "word", "smooth"].includes(karaoke.fill)) fail(`${label}.karaoke.fill は char/word/smooth のいずれかです`);
-      if (hasOwn(karaoke, "start_index") && (!Number.isInteger(karaoke.start_index) || karaoke.start_index < 0)) fail(`${label}.karaoke.start_index は 0 以上の整数です`);
+      if (hasOwn(karaoke, "fill") && !["char", "word", "smooth"].includes(karaoke.fill)) fail(`${label}.karaoke.fill must be one of char/word/smooth`);
+      if (hasOwn(karaoke, "start_index") && (!Number.isInteger(karaoke.start_index) || karaoke.start_index < 0)) fail(`${label}.karaoke.start_index must be an integer >= 0`);
     }
   }
   if (hasOwn(value, "size_px") && (!isFiniteNumber(value.size_px) || value.size_px <= 0)) {
-    fail(`${label}.size_px は 0 より大きい有限数である必要があります`);
+    fail(`${label}.size_px must be a finite number > 0`);
   }
   // zone 方式の px 系フィールドの基準出力高さ（issue #40 §2）。integer >= 1・layout と排他。
   if (hasOwn(value, "reference_height_px")
     && (!Number.isInteger(value.reference_height_px) || value.reference_height_px < 1)) {
-    fail(`${label}.reference_height_px は 1 以上の整数である必要があります`);
+    fail(`${label}.reference_height_px must be an integer >= 1`);
   }
   if (hasOwn(value, "font_weight") && (!Number.isInteger(value.font_weight) || value.font_weight < 1 || value.font_weight > 1000)) {
-    fail(`${label}.font_weight は 1 から 1000 の整数である必要があります`);
+    fail(`${label}.font_weight must be an integer from 1 to 1000`);
   }
   if (hasOwn(value, "line_height") && (!isFiniteNumber(value.line_height) || value.line_height <= 0)) {
-    fail(`${label}.line_height は 0 より大きい有限数である必要があります`);
+    fail(`${label}.line_height must be a finite number > 0`);
   }
   if (hasOwn(value, "stroke")) validateTextStrokeStyle(value.stroke, `${label}.stroke`);
   if (hasOwn(value, "strokes")) validateRichStrokes(value.strokes, `${label}.strokes`);
@@ -406,14 +406,14 @@ function validateTextStyle(value, label) {
     validateTextBackgroundStyle(value.background, `${label}.background`);
   }
   if (hasOwn(value, "zone") && !CAPTION_ZONES.has(value.zone)) {
-    fail(`${label}.zone は定義済みの 9 値のいずれかである必要があります`);
+    fail(`${label}.zone must be one of the 9 defined values`);
   }
   if (hasOwn(value, "layout")) validateReferencePixelLayout(value.layout, `${label}.layout`);
   if (hasOwn(value, "zone") && hasOwn(value, "layout")) {
-    fail(`${label} では zone と layout を併用できません`);
+    fail(`${label} cannot combine zone and layout`);
   }
   if (hasOwn(value, "layout") && hasOwn(value, "reference_height_px")) {
-    fail(`${label} では layout と reference_height_px を併用できません`);
+    fail(`${label} cannot combine layout and reference_height_px`);
   }
 }
 
@@ -480,72 +480,72 @@ function validateRichFill(value, label) {
 // textstyle v0 のフィールド検証。受理条件は render-cut の normalizeTextStyle と 1 対 1。
 function validateTextStyleV0(value, label) {
   if (hasOwn(value, "font_family") && (typeof value.font_family !== "string" || value.font_family === "")) {
-    fail(`${label}.font_family は空でない文字列である必要があります`);
+    fail(`${label}.font_family must be a non-empty string`);
   }
   if (hasOwn(value, "weight") && (!Number.isInteger(value.weight) || value.weight < 100 || value.weight > 900)) {
-    fail(`${label}.weight は 100 から 900 の整数である必要があります`);
+    fail(`${label}.weight must be an integer from 100 to 900`);
   }
   for (const key of ["italic", "underline", "vertical"]) {
-    if (hasOwn(value, key) && typeof value[key] !== "boolean") fail(`${label}.${key} は boolean である必要があります`);
+    if (hasOwn(value, key) && typeof value[key] !== "boolean") fail(`${label}.${key} must be a boolean`);
   }
   if (hasOwn(value, "strikethrough") && typeof value.strikethrough !== "boolean") {
-    fail(`${label}.strikethrough は boolean である必要があります`);
+    fail(`${label}.strikethrough must be a boolean`);
   }
   if (hasOwn(value, "list") && value.list !== "bullet" && value.list !== null) {
-    fail(`${label}.list は bullet または null である必要があります`);
+    fail(`${label}.list must be bullet or null`);
   }
   if (hasOwn(value, "opacity")
     && (!isFiniteNumber(value.opacity) || value.opacity < 0 || value.opacity > 1)) {
-    fail(`${label}.opacity は 0 から 1 の範囲の有限数である必要があります`);
+    fail(`${label}.opacity must be a finite number from 0 to 1`);
   }
   if (hasOwn(value, "letter_spacing_em") && !isFiniteNumber(value.letter_spacing_em)) {
-    fail(`${label}.letter_spacing_em は有限数である必要があります`);
+    fail(`${label}.letter_spacing_em must be a finite number`);
   }
   if (hasOwn(value, "align") && !TEXT_ALIGN_VALUES.has(value.align)) {
-    fail(`${label}.align は left / center / right のいずれかである必要があります`);
+    fail(`${label}.align must be one of left / center / right`);
   }
   if (hasOwn(value, "vertical_align") && !VERTICAL_ALIGN_VALUES.has(value.vertical_align)) {
-    fail(`${label}.vertical_align は top / middle / bottom のいずれかである必要があります`);
+    fail(`${label}.vertical_align must be one of top / middle / bottom`);
   }
   if (hasOwn(value, "text_transform") && !TEXT_TRANSFORM_VALUES.has(value.text_transform)) {
-    fail(`${label}.text_transform は定義済みの 7 値のいずれかである必要があります`);
+    fail(`${label}.text_transform must be one of the 7 defined values`);
   }
   if (hasOwn(value, "max_width_pct")
     && (!isFiniteNumber(value.max_width_pct) || value.max_width_pct <= 0 || value.max_width_pct >= 100)) {
-    fail(`${label}.max_width_pct は 0 より大きく 100 未満の有限数である必要があります`);
+    fail(`${label}.max_width_pct must be a finite number > 0 and < 100`);
   }
   if (hasOwn(value, "wrap_width_pct")
     && (!isFiniteNumber(value.wrap_width_pct) || value.wrap_width_pct <= 0 || value.wrap_width_pct > 100)) {
-    fail(`${label}.wrap_width_pct は 0 より大きく 100 以下の有限数である必要があります`);
+    fail(`${label}.wrap_width_pct must be a finite number > 0 and <= 100`);
   }
   if (hasOwn(value, "max_characters")
     && (!Number.isInteger(value.max_characters) || value.max_characters <= 0)) {
-    fail(`${label}.max_characters は 0 より大きい整数である必要があります`);
+    fail(`${label}.max_characters must be an integer > 0`);
   }
   if (hasOwn(value, "text_anchor") && !TEXT_ANCHOR_VALUES.has(value.text_anchor)) {
-    fail(`${label}.text_anchor は定義済みの 9 値のいずれかである必要があります`);
+    fail(`${label}.text_anchor must be one of the 9 defined values`);
   }
   if (hasOwn(value, "position")) {
     if (!isPlainObject(value.position)) {
-      fail(`${label}.position は object である必要があります`);
+      fail(`${label}.position must be an object`);
     } else {
       for (const key of Object.keys(value.position)) {
-        if (key !== "x" && key !== "y") fail(`${label}.position に未知のキーがあります: ${key}`);
+        if (key !== "x" && key !== "y") fail(`${label}.position has an unknown key: ${key}`);
       }
       for (const axis of ["x", "y"]) {
         if (hasOwn(value.position, axis) && !isFiniteNumber(value.position[axis])) {
-          fail(`${label}.position.${axis} は有限数である必要があります`);
+          fail(`${label}.position.${axis} must be a finite number`);
         }
       }
     }
   }
   if (hasOwn(value, "scale")
     && (!isFiniteNumber(value.scale) || value.scale < 0.4 || value.scale > 3)) {
-    fail(`${label}.scale は 0.4 から 3 の有限数である必要があります`);
+    fail(`${label}.scale must be a finite number from 0.4 to 3`);
   }
   if (hasOwn(value, "rotate")
     && (!isFiniteNumber(value.rotate) || value.rotate < -180 || value.rotate > 180)) {
-    fail(`${label}.rotate は -180 から 180 の有限数である必要があります`);
+    fail(`${label}.rotate must be a finite number from -180 to 180`);
   }
   if (hasOwn(value, "shadow")) validateShadowLike(value.shadow, SHADOW_KEYS, `${label}.shadow`);
   if (hasOwn(value, "glow")) validateShadowLike(value.glow, GLOW_KEYS, `${label}.glow`);
@@ -555,129 +555,129 @@ function validateTextStyleV0(value, label) {
 // shadow / glow は「color 必須 + 残りは数値」の同型。
 function validateShadowLike(value, keys, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   for (const key of Object.keys(value)) {
-    if (!keys.includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!keys.includes(key)) fail(`${label} has an unknown key: ${key}`);
   }
-  if (!hasOwn(value, "color")) fail(`${label}.color は必須です`);
+  if (!hasOwn(value, "color")) fail(`${label}.color is required`);
   else validateHexColor(value.color, `${label}.color`);
   for (const key of keys) {
     if (key === "color" || !hasOwn(value, key)) continue;
     if (!isFiniteNumber(value[key])) {
-      fail(`${label}.${key} は有限数である必要があります`);
+      fail(`${label}.${key} must be a finite number`);
       continue;
     }
     if (key === "opacity" && (value[key] < 0 || value[key] > 1)) {
-      fail(`${label}.opacity は 0 から 1 の範囲である必要があります`);
+      fail(`${label}.opacity must be from 0 to 1`);
     }
     // 非負なのは長さ・量のみ。angle_deg は向きなので負値が正当（-90 = 真上）、
     // offset_* も両方向へ動かせる。
     if (NON_NEGATIVE_SHADOW_KEYS.includes(key) && value[key] < 0) {
-      fail(`${label}.${key} は 0 以上である必要があります`);
+      fail(`${label}.${key} must be >= 0`);
     }
   }
 }
 
 function validateTextAnimation(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   for (const key of Object.keys(value)) {
-    if (!ANIMATION_SLOTS.includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!ANIMATION_SLOTS.includes(key)) fail(`${label} has an unknown key: ${key}`);
   }
   for (const slot of ANIMATION_SLOTS) {
     if (!hasOwn(value, slot)) continue;
     const entry = value[slot];
     const slotLabel = `${label}.${slot}`;
     if (!isPlainObject(entry)) {
-      fail(`${slotLabel} は object である必要があります`);
+      fail(`${slotLabel} must be an object`);
       continue;
     }
     for (const key of Object.keys(entry)) {
-      if (!ANIMATION_SLOT_KEYS.includes(key)) fail(`${slotLabel} に未知のキーがあります: ${key}`);
+      if (!ANIMATION_SLOT_KEYS.includes(key)) fail(`${slotLabel} has an unknown key: ${key}`);
     }
-    if (typeof entry.id !== "string" || entry.id === "") fail(`${slotLabel}.id は空でない文字列である必要があります`);
+    if (typeof entry.id !== "string" || entry.id === "") fail(`${slotLabel}.id must be a non-empty string`);
     if (hasOwn(entry, "duration_sec") && (!isFiniteNumber(entry.duration_sec) || entry.duration_sec <= 0)) {
-      fail(`${slotLabel}.duration_sec は 0 より大きい有限数である必要があります`);
+      fail(`${slotLabel}.duration_sec must be a finite number > 0`);
     }
     if (hasOwn(entry, "ease") && (typeof entry.ease !== "string" || entry.ease === "")) {
-      fail(`${slotLabel}.ease は空でない文字列である必要があります`);
+      fail(`${slotLabel}.ease must be a non-empty string`);
     }
     if (hasOwn(entry, "amp") && (!isFiniteNumber(entry.amp) || entry.amp <= 0)) {
-      fail(`${slotLabel}.amp は 0 より大きい有限数である必要があります`);
+      fail(`${slotLabel}.amp must be a finite number > 0`);
     }
   }
 }
 
 function validateTextStrokeStyle(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   for (const key of Object.keys(value)) {
-    if (key !== "method" && key !== "color" && key !== "width_px") fail(`${label} に未知のキーがあります: ${key}`);
+    if (key !== "method" && key !== "color" && key !== "width_px") fail(`${label} has an unknown key: ${key}`);
   }
-  if (hasOwn(value, "method") && value.method !== "webkit-outline") fail(`${label}.method は webkit-outline である必要があります`);
+  if (hasOwn(value, "method") && value.method !== "webkit-outline") fail(`${label}.method must be webkit-outline`);
   if (hasOwn(value, "color")) validateHexColor(value.color, `${label}.color`);
   if (hasOwn(value, "width_px") && (!isFiniteNumber(value.width_px) || value.width_px < 0)) {
-    fail(`${label}.width_px は 0 以上の有限数である必要があります`);
+    fail(`${label}.width_px must be a finite number >= 0`);
   }
 }
 
 function validateInnerStroke(value, label) {
-  if (!isPlainObject(value)) return fail(`${label} は object である必要があります`);
-  for (const key of Object.keys(value)) if (key !== "color" && key !== "width_px") fail(`${label} に未知のキーがあります: ${key}`);
+  if (!isPlainObject(value)) return fail(`${label} must be an object`);
+  for (const key of Object.keys(value)) if (key !== "color" && key !== "width_px") fail(`${label} has an unknown key: ${key}`);
   if (hasOwn(value, "color")) validateHexColor(value.color, `${label}.color`);
-  if (hasOwn(value, "width_px") && (!isFiniteNumber(value.width_px) || value.width_px < 0)) fail(`${label}.width_px は 0 以上の有限数である必要があります`);
+  if (hasOwn(value, "width_px") && (!isFiniteNumber(value.width_px) || value.width_px < 0)) fail(`${label}.width_px must be a finite number >= 0`);
 }
 
 function validateFillGradient(value, label) {
-  if (!isPlainObject(value)) return fail(`${label} は object である必要があります`);
-  for (const key of Object.keys(value)) if (key !== "colors" && key !== "angle_deg") fail(`${label} に未知のキーがあります: ${key}`);
-  if (!Array.isArray(value.colors) || value.colors.length < 2 || value.colors.length > 3) fail(`${label}.colors は 2〜3 色の配列である必要があります`);
+  if (!isPlainObject(value)) return fail(`${label} must be an object`);
+  for (const key of Object.keys(value)) if (key !== "colors" && key !== "angle_deg") fail(`${label} has an unknown key: ${key}`);
+  if (!Array.isArray(value.colors) || value.colors.length < 2 || value.colors.length > 3) fail(`${label}.colors must be an array of 2 or 3 colors`);
   else value.colors.forEach((color, index) => validateHexColor(color, `${label}.colors[${index}]`));
-  if (!isFiniteNumber(value.angle_deg)) fail(`${label}.angle_deg は有限数である必要があります`);
+  if (!isFiniteNumber(value.angle_deg)) fail(`${label}.angle_deg must be a finite number`);
 }
 
 function validateExtrude(value, label) {
-  if (!isPlainObject(value)) return fail(`${label} は object である必要があります`);
-  for (const key of Object.keys(value)) if (!["depth_px", "color", "color_end", "angle_deg"].includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
-  if (!Number.isInteger(value.depth_px) || value.depth_px < 1 || value.depth_px > 32) fail(`${label}.depth_px は 1〜32 の整数である必要があります`);
+  if (!isPlainObject(value)) return fail(`${label} must be an object`);
+  for (const key of Object.keys(value)) if (!["depth_px", "color", "color_end", "angle_deg"].includes(key)) fail(`${label} has an unknown key: ${key}`);
+  if (!Number.isInteger(value.depth_px) || value.depth_px < 1 || value.depth_px > 32) fail(`${label}.depth_px must be an integer from 1 to 32`);
   validateHexColor(value.color, `${label}.color`);
   if (hasOwn(value, "color_end")) validateHexColor(value.color_end, `${label}.color_end`);
-  if (!isFiniteNumber(value.angle_deg)) fail(`${label}.angle_deg は有限数である必要があります`);
+  if (!isFiniteNumber(value.angle_deg)) fail(`${label}.angle_deg must be a finite number`);
 }
 
 function validateDisplayPolicy(value) {
   if (!isPlainObject(value)) {
-    fail("display_policy は object である必要があります");
+    fail("display_policy must be an object");
     return;
   }
   const allowed = new Set(["mode", "algorithm", "unit_metric", "max_line_units", "minimum_fragment_duration_seconds", "locale", "lines", "wrap", "break_hints"]);
-  for (const key of Object.keys(value)) if (!allowed.has(key)) fail(`display_policy に未知のキーがあります: ${key}`);
-  if (value.mode !== "single_line_sequential") fail("display_policy.mode は single_line_sequential である必要があります");
-  if (value.algorithm !== "a4-ja-two-fragment-v1") fail("display_policy.algorithm は a4-ja-two-fragment-v1 である必要があります");
-  if (value.unit_metric !== "ascii-half-other-one-v1") fail("display_policy.unit_metric は ascii-half-other-one-v1 である必要があります");
-  if (!isFiniteNumber(value.max_line_units) || value.max_line_units <= 0) fail("display_policy.max_line_units は正の有限数である必要があります");
-  if (!isFiniteNumber(value.minimum_fragment_duration_seconds) || value.minimum_fragment_duration_seconds <= 0) fail("display_policy.minimum_fragment_duration_seconds は正の有限数である必要があります");
-  if (!strictText(value.locale)) fail("display_policy.locale は NFC かつ前後空白のない文字列である必要があります");
+  for (const key of Object.keys(value)) if (!allowed.has(key)) fail(`display_policy has an unknown key: ${key}`);
+  if (value.mode !== "single_line_sequential") fail("display_policy.mode must be single_line_sequential");
+  if (value.algorithm !== "a4-ja-two-fragment-v1") fail("display_policy.algorithm must be a4-ja-two-fragment-v1");
+  if (value.unit_metric !== "ascii-half-other-one-v1") fail("display_policy.unit_metric must be ascii-half-other-one-v1");
+  if (!isFiniteNumber(value.max_line_units) || value.max_line_units <= 0) fail("display_policy.max_line_units must be a positive finite number");
+  if (!isFiniteNumber(value.minimum_fragment_duration_seconds) || value.minimum_fragment_duration_seconds <= 0) fail("display_policy.minimum_fragment_duration_seconds must be a positive finite number");
+  if (!strictText(value.locale)) fail("display_policy.locale must be an NFC string with no leading or trailing whitespace");
   if (value.lines !== undefined && (!Number.isInteger(value.lines) || value.lines < 1 || value.lines > 6)) {
-    fail("display_policy.lines は 1 から 6 の整数である必要があります");
+    fail("display_policy.lines must be an integer from 1 to 6");
   }
   if (value.wrap !== undefined && value.wrap !== "multi" && value.wrap !== "fold") {
-    fail("display_policy.wrap は multi または fold である必要があります");
+    fail("display_policy.wrap must be multi or fold");
   }
   if (value.break_hints !== undefined) {
-    if (!isPlainObject(value.break_hints)) return fail("display_policy.break_hints は object である必要があります");
+    if (!isPlainObject(value.break_hints)) return fail("display_policy.break_hints must be an object");
     const keys = ["preferred_second_starts", "preferred_first_ends", "protected_terms"];
-    for (const key of Object.keys(value.break_hints)) if (!keys.includes(key)) fail(`display_policy.break_hints に未知のキーがあります: ${key}`);
+    for (const key of Object.keys(value.break_hints)) if (!keys.includes(key)) fail(`display_policy.break_hints has an unknown key: ${key}`);
     for (const key of keys) {
       const list = value.break_hints[key];
       if (list !== undefined && (!Array.isArray(list) || list.some(item => !strictText(item)))) {
-        fail(`display_policy.break_hints.${key} は NFC かつ前後空白のない文字列配列である必要があります`);
+        fail(`display_policy.break_hints.${key} must be an array of NFC strings with no leading or trailing whitespace`);
       }
     }
   }
@@ -688,30 +688,30 @@ function validateDisplayPolicyCaptions(captions, policy) {
   captions.forEach((caption, index) => {
     if (!isPlainObject(caption)) return;
     const text = caption.display_text ?? caption.text;
-    if (!strictText(text)) fail(`captions[${index}] の display_text ?? text は NFC かつ前後空白なしである必要があります`);
-    if (["karaoke", "pop", "reveal", "reveal-word"].includes(caption.style)) fail(`captions[${index}].style は display_policy と併用できません`);
+    if (!strictText(text)) fail(`captions[${index}] display_text ?? text must be NFC with no leading or trailing whitespace`);
+    if (["karaoke", "pop", "reveal", "reveal-word"].includes(caption.style)) fail(`captions[${index}].style cannot be combined with display_policy`);
     if (caption.display_fragments !== undefined) {
       const fragments = caption.display_fragments;
       if (!Array.isArray(fragments) || fragments.length < 1 || fragments.length > 6 || fragments.some(item => !strictText(item))) {
-        fail(`captions[${index}].display_fragments は 1〜6 件の NFC かつ前後空白のない文字列である必要があります`);
+        fail(`captions[${index}].display_fragments must be 1 to 6 NFC strings with no leading or trailing whitespace`);
       } else {
-        if (fragments.join("") !== text) fail(`captions[${index}].display_fragments は表示文字列を厳密に保存する必要があります`);
-        if (fragments.some(item => measureUnits(item) > policy.max_line_units)) fail(`captions[${index}].display_fragments は max_line_units 以下である必要があります`);
+        if (fragments.join("") !== text) fail(`captions[${index}].display_fragments must preserve the display text exactly`);
+        if (fragments.some(item => measureUnits(item) > policy.max_line_units)) fail(`captions[${index}].display_fragments must be <= max_line_units`);
       }
     }
   });
 }
 
 function validateReferencePixelLayout(value, label) {
-  if (!isPlainObject(value)) return fail(`${label} は object である必要があります`);
+  if (!isPlainObject(value)) return fail(`${label} must be an object`);
   const keys = ["mode", "reference_width_px", "reference_height_px", "left_px", "width_px", "bottom_px", "text_align", "max_lines"];
-  for (const key of Object.keys(value)) if (!keys.includes(key)) fail(`${label} に未知のキーがあります: ${key}`);
-  for (const key of keys) if (!hasOwn(value, key)) fail(`${label}.${key} は必須です`);
-  if (value.mode !== "reference-pixel") fail(`${label}.mode は reference-pixel である必要があります`);
-  if (!Number.isInteger(value.reference_width_px) || value.reference_width_px <= 0 || !Number.isInteger(value.reference_height_px) || value.reference_height_px <= 0) fail(`${label} の reference dimensions は正整数である必要があります`);
-  if (!isFiniteNumber(value.left_px) || value.left_px < 0 || !isFiniteNumber(value.width_px) || value.width_px <= 0 || value.left_px + value.width_px > value.reference_width_px) fail(`${label} の left_px/width_px は参照幅内である必要があります`);
-  if (!isFiniteNumber(value.bottom_px) || value.bottom_px < 0) fail(`${label}.bottom_px は 0 以上の有限数である必要があります`);
-  if (value.text_align !== "center" || value.max_lines !== 1) fail(`${label} は text_align=center / max_lines=1 である必要があります`);
+  for (const key of Object.keys(value)) if (!keys.includes(key)) fail(`${label} has an unknown key: ${key}`);
+  for (const key of keys) if (!hasOwn(value, key)) fail(`${label}.${key} is required`);
+  if (value.mode !== "reference-pixel") fail(`${label}.mode must be reference-pixel`);
+  if (!Number.isInteger(value.reference_width_px) || value.reference_width_px <= 0 || !Number.isInteger(value.reference_height_px) || value.reference_height_px <= 0) fail(`${label} reference dimensions must be positive integers`);
+  if (!isFiniteNumber(value.left_px) || value.left_px < 0 || !isFiniteNumber(value.width_px) || value.width_px <= 0 || value.left_px + value.width_px > value.reference_width_px) fail(`${label} left_px/width_px must be within the reference width`);
+  if (!isFiniteNumber(value.bottom_px) || value.bottom_px < 0) fail(`${label}.bottom_px must be a finite number >= 0`);
+  if (value.text_align !== "center" || value.max_lines !== 1) fail(`${label} must be text_align=center / max_lines=1`);
 }
 
 function strictText(value) {
@@ -724,7 +724,7 @@ function measureUnits(value) {
 
 function validateTextBackgroundStyle(value, label) {
   if (!isPlainObject(value)) {
-    fail(`${label} は object である必要があります`);
+    fail(`${label} must be an object`);
     return;
   }
   const allowedKeys = new Set([
@@ -733,16 +733,16 @@ function validateTextBackgroundStyle(value, label) {
     "padding_px", "width_pct", "height_pct", "offset_x", "offset_y", "fit",
   ]);
   for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) fail(`${label} に未知のキーがあります: ${key}`);
+    if (!allowedKeys.has(key)) fail(`${label} has an unknown key: ${key}`);
   }
   for (const key of ["padding_px", "width_pct", "height_pct"]) {
     if (hasOwn(value, key) && (!isFiniteNumber(value[key]) || value[key] < 0)) {
-      fail(`${label}.${key} は 0 以上の有限数である必要があります`);
+      fail(`${label}.${key} must be a finite number >= 0`);
     }
   }
   for (const key of ["offset_x", "offset_y"]) {
     if (hasOwn(value, key) && !isFiniteNumber(value[key])) {
-      fail(`${label}.${key} は有限数である必要があります`);
+      fail(`${label}.${key} must be a finite number`);
     }
   }
   if (hasOwn(value, "color")) validateHexColor(value.color, `${label}.color`);
@@ -750,22 +750,22 @@ function validateTextBackgroundStyle(value, label) {
     hasOwn(value, "opacity")
     && (!isFiniteNumber(value.opacity) || value.opacity < 0 || value.opacity > 1)
   ) {
-    fail(`${label}.opacity は 0 から 1 の範囲の有限数である必要があります`);
+    fail(`${label}.opacity must be a finite number from 0 to 1`);
   }
   if (hasOwn(value, "radius_px") && (!isFiniteNumber(value.radius_px) || value.radius_px < 0)) {
-    fail(`${label}.radius_px は 0 以上の有限数である必要があります`);
+    fail(`${label}.radius_px must be a finite number >= 0`);
   }
   if (hasOwn(value, "mode") && value.mode !== "per-line" && value.mode !== "block") {
-    fail(`${label}.mode は per-line または block である必要があります`);
+    fail(`${label}.mode must be per-line or block`);
   }
   if (hasOwn(value, "fit") && value.fit !== "text" && value.fit !== "frame") {
-    fail(`${label}.fit は text または frame である必要があります`);
+    fail(`${label}.fit must be text or frame`);
   }
 }
 
 function validateHexColor(value, label) {
   if (typeof value !== "string" || !HEX_COLOR.test(value)) {
-    fail(`${label} は #RGB/#RRGGBB/#RRGGBBAA 形式の hex カラーである必要があります`);
+    fail(`${label} must be a hex color in #RGB, #RRGGBB, or #RRGGBBAA form`);
   }
 }
 

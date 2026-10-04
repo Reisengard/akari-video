@@ -46,7 +46,7 @@ test("world item clock: 対応 stop がない zone は delay があっても開�
 
 test("world item clock: delay は 0 以上の有限数、role は background のみ", () => {
   const validate = extra => validateWorldItems({ schemaVersion: 1, items: [{ ...item, ...extra }] });
-  for (const delay of [-0.1, NaN, Infinity, -Infinity, "1", null]) assert.throws(() => validate({ delay }), /delay は 0 以上の有限数/);
-  for (const role of ["foreground", "", null, 1]) assert.throws(() => validate({ role }), /role は background/);
+  for (const delay of [-0.1, NaN, Infinity, -Infinity, "1", null]) assert.throws(() => validate({ delay }), /delay must be a finite number of 0 or more/);
+  for (const role of ["foreground", "", null, 1]) assert.throws(() => validate({ role }), /role must be background/);
   for (const extra of [{}, { delay: 0 }, { delay: 0.5, role: "background" }]) assert.doesNotThrow(() => validate(extra));
 });

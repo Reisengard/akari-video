@@ -24,7 +24,7 @@ for (const fixture of ["planned", "generating", "stale", "done", "failed", "stil
 test("引数なしは使い方を表示して exit code 2", () => {
   const executed = spawnSync(process.execPath, [cliPath], { encoding: "utf8" });
   assert.equal(executed.status, 2);
-  assert.match(executed.stderr, /使い方:/);
+  assert.match(executed.stderr, /Usage:/);
 });
 
 test("未定義キーを持つサイドカーは NG になる", () => {
@@ -33,7 +33,7 @@ test("未定義キーを持つサイドカーは NG になる", () => {
   const result = validateTemporary(done);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /^NG: /);
-  assert.match(result.stderr, /未定義キー provider_request_id/);
+  assert.match(result.stderr, /unknown key provider_request_id/);
 });
 
 test("status generating で job.request_id が無いと NG になる", () => {
@@ -41,7 +41,7 @@ test("status generating で job.request_id が無いと NG になる", () => {
   delete generating.job.request_id;
   const result = validateTemporary(generating);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /\/job に必須キー request_id がありません/);
+  assert.match(result.stderr, /\/job is missing required key request_id/);
 });
 
 test("status done で result が無いと NG になる", () => {
@@ -49,7 +49,7 @@ test("status done で result が無いと NG になる", () => {
   delete done.result;
   const result = validateTemporary(done);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /\/ に必須キー result がありません/);
+  assert.match(result.stderr, /\/ is missing required key result/);
 });
 
 test("inputs.extra はモデル固有引数を保存できる", () => {

@@ -88,12 +88,12 @@ export function buildSkeletonPlan({
   outPathFor,
 }) {
   if (track?.kind !== "body-pose-3d") {
-    return { ok: false, reason: "track.kind が body-pose-3d ではありません" };
+    return { ok: false, reason: "track.kind is not body-pose-3d" };
   }
   const segments = extractPoseSegments(track);
-  if (segments.length === 0) return { ok: false, reason: "有効な 3D ボディポーズ検出がありません" };
+  if (segments.length === 0) return { ok: false, reason: "No valid 3D body pose detections" };
   const runs = sourceCutRuns(cuts, sourceId);
-  if (runs.length === 0) return { ok: false, reason: "対象 source を表示する cut 区間がありません" };
+  if (runs.length === 0) return { ok: false, reason: "No cut range shows the target source" };
 
   const warnings = [];
   const jobs = [];
@@ -101,7 +101,7 @@ export function buildSkeletonPlan({
   let ordinal = 0;
   for (const run of runs) {
     if (!defaultCutGeometry(run.cut)) {
-      warnings.push("framing/cut transform を持つ区間は座標一致を保証できないためスキップしました");
+      warnings.push("Skipped a range with a framing/cut transform because coordinate alignment cannot be guaranteed");
       continue;
     }
     for (const segment of segments) {
@@ -167,7 +167,7 @@ export function buildSkeletonPlan({
     }
   }
   if (jobs.length === 0) {
-    return { ok: false, reason: "検出区間と表示 cut が重なる描画可能な区間がありません", warnings };
+    return { ok: false, reason: "No renderable range where a detected range overlaps a visible cut", warnings };
   }
   return { ok: true, jobs, layers, warnings };
 }

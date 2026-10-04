@@ -18,23 +18,23 @@ test("valid 実例を受理する", () => {
 });
 
 test("variant 正規化キーの entry 間衝突を拒否する", () => {
-  assert.match(validateWordBook(example("word-book-v0-invalid-variant-conflict")).errors.join("\n"), /衝突/);
+  assert.match(validateWordBook(example("word-book-v0-invalid-variant-conflict")).errors.join("\n"), /collides/);
 });
 
 test("reading-only の variants を拒否する", () => {
-  assert.match(validateWordBook(example("word-book-v0-invalid-reading-only-variants")).errors.join("\n"), /reading-only では空/);
+  assert.match(validateWordBook(example("word-book-v0-invalid-reading-only-variants")).errors.join("\n"), /must be empty when reading-only/);
 });
 
 test("version 1 は更新案内つきで停止する", () => {
   const result = validateWordBook(example("word-book-v0-invalid-version-1"));
   assert.equal(result.tooNew, true);
-  assert.match(result.errors[0], /このファイルは新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(result.errors[0], /This file uses a newer format\. Update the skills or the app\./);
 });
 
 test("surface は trim 済み NFC を要求する", () => {
   const spaced = validateWordBook({ version: 0, entries: [{ surface: " 語", kind: "term" }] });
   const decomposed = validateWordBook({ version: 0, entries: [{ surface: "ガ", kind: "term" }] });
-  assert.match(spaced.errors.join("\n"), /前後空白/);
+  assert.match(spaced.errors.join("\n"), /leading or trailing whitespace/);
   assert.match(decomposed.errors.join("\n"), /NFC/);
 });
 
@@ -43,7 +43,7 @@ test("surface の正規化キーは一意である", () => {
     version: 0,
     entries: [{ surface: "AKARI Video", kind: "term" }, { surface: "ａｋａｒｉ　ｖｉｄｅｏ", kind: "term" }],
   });
-  assert.match(result.errors.join("\n"), /重複/);
+  assert.match(result.errors.join("\n"), /duplicates/);
 });
 
 test("variant は自 entry の surface と同じキーでもよい", () => {
@@ -52,12 +52,12 @@ test("variant は自 entry の surface と同じキーでもよい", () => {
 });
 
 test("notation は variant を 1 件以上要求する", () => {
-  assert.match(validateWordBook({ version: 0, entries: [{ surface: "動画", kind: "notation" }] }).errors.join("\n"), /1 件以上/);
+  assert.match(validateWordBook({ version: 0, entries: [{ surface: "動画", kind: "notation" }] }).errors.join("\n"), /at least 1 item/);
 });
 
 test("reading はかなと長音だけを受理する", () => {
   assert.equal(validateWordBook({ version: 0, entries: [{ surface: "語", reading: "ゴー", kind: "term" }] }).valid, true);
-  assert.match(validateWordBook({ version: 0, entries: [{ surface: "語", reading: "go", kind: "term" }] }).errors.join("\n"), /ひらがな/);
+  assert.match(validateWordBook({ version: 0, entries: [{ surface: "語", reading: "go", kind: "term" }] }).errors.join("\n"), /hiragana/);
 });
 
 test("未知 entry フィールドは info に留めて保持可能にする", () => {

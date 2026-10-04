@@ -88,7 +88,7 @@ test("CLI は object でない JSON をスタックトレースなしで拒否�
     const result = validateTemporary(value);
     assert.equal(result.status, 1);
     assert.match(result.stdout, /^NG: /);
-    assert.match(result.stderr, /^\[IO\] ルートは object である必要があります\n$/);
+    assert.match(result.stderr, /^\[IO\] root must be an object\n$/);
     assert.doesNotMatch(`${result.stdout}${result.stderr}`, /TypeError|\bat\s+file:/);
   }
 });
@@ -97,7 +97,7 @@ test("CLI は schemaVersion 3 より新しい形式を正規化せず停止す�
   const result = validateTemporary({ schemaVersion: 9 }, "--migrate");
   assert.equal(result.status, 1);
   assert.equal(result.stdout, "");
-  assert.match(result.stderr, /\[IO\] schemaVersion 9 は新しすぎるため検証できません。このファイルは新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(result.stderr, /\[IO\] schemaVersion 9 is newer than this validator supports\. This file uses a newer format\. Update the skills or the app\./);
   assert.doesNotMatch(result.stderr, /TypeError|\bat\s+file:/);
 });
 

@@ -68,7 +68,7 @@ test('--max-load の値が欠けた場合は usage エラーになる', async (t
     spawn: () => { throw new Error('子を起動してはいけない'); }
   });
   assert.notEqual(rc, 0);
-  assert.match(errors.join('\n'), /使い方/);
+  assert.match(errors.join('\n'), /Usage/);
 });
 
 test('未知フラグと -- 以降の追加引数をそのまま渡す', async (t) => {
@@ -95,6 +95,6 @@ test('Windows では待機せず理由を stderr とログに記録する', asyn
   });
   assert.equal(rc, 0);
   assert.equal(calls, 1);
-  assert.match(errors.join('\n'), /この OS では負荷を測れないため待機しません/);
-  assert.match(log(), /この OS では負荷を測れないため待機しません/);
+  assert.match(errors.join('\n'), /Not waiting because load cannot be measured on this OS/);
+  assert.match(log(), /Not waiting because load cannot be measured on this OS/);
 });

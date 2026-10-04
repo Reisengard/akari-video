@@ -12,10 +12,10 @@ export function decodePartImages(partsSet, ffmpegCommand) {
       "-v", "error", "-i", asset.path, "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1",
     ], { encoding: null, maxBuffer: asset.width * asset.height * 4 + 1024 * 1024 });
     if (result.error || result.status !== 0) {
-      throw new Error(`part ${part.id} の PNG 復号に失敗しました: ${String(result.stderr || result.error?.message).trim()}`);
+      throw new Error(`Failed to decode the PNG of part ${part.id}: ${String(result.stderr || result.error?.message).trim()}`);
     }
     const expected = asset.width * asset.height * 4;
-    if (result.stdout.length !== expected) throw new Error(`part ${part.id} の byte 数が不正です: ${result.stdout.length} != ${expected}`);
+    if (result.stdout.length !== expected) throw new Error(`part ${part.id} has an unexpected byte count: ${result.stdout.length} != ${expected}`);
     decoded[part.id] = { width: asset.width, height: asset.height, pixels: result.stdout };
   }
   return decoded;

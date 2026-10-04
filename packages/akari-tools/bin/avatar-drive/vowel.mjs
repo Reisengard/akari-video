@@ -100,12 +100,12 @@ function record(value) {
 }
 
 function normalizeWord(value, label) {
-  if (!record(value)) throw new Error(`${label} は object である必要があります`);
-  if (typeof value.text !== "string") throw new Error(`${label}.text は文字列である必要があります`);
+  if (!record(value)) throw new Error(`${label} must be an object`);
+  if (typeof value.text !== "string") throw new Error(`${label}.text must be a string`);
   if (!Number.isFinite(value.start) || !Number.isFinite(value.end)) {
-    throw new Error(`${label}.start / end は有限の秒数である必要があります`);
+    throw new Error(`${label}.start / end must be a finite number of seconds`);
   }
-  if (value.end <= value.start) throw new Error(`${label}.end は start より大きい必要があります`);
+  if (value.end <= value.start) throw new Error(`${label}.end must be greater than start`);
   return { start: value.start, end: value.end, text: value.text };
 }
 
@@ -117,7 +117,7 @@ export function parseTranscript(parsedJson) {
     entries = parsedJson.captions;
     captionsRoot = true;
   }
-  else throw new Error("transcript は配列または captions 配列を持つ object である必要があります");
+  else throw new Error("transcript must be an array or an object with a captions array");
 
   const captionsFormat = captionsRoot || entries.some((entry) => (
     record(entry) && Object.prototype.hasOwnProperty.call(entry, "words")
@@ -125,9 +125,9 @@ export function parseTranscript(parsedJson) {
   const words = [];
   if (captionsFormat) {
     entries.forEach((caption, captionIndex) => {
-      if (!record(caption)) throw new Error(`captions[${captionIndex}] は object である必要があります`);
+      if (!record(caption)) throw new Error(`captions[${captionIndex}] must be an object`);
       if (caption.words === undefined) return;
-      if (!Array.isArray(caption.words)) throw new Error(`captions[${captionIndex}].words は配列である必要があります`);
+      if (!Array.isArray(caption.words)) throw new Error(`captions[${captionIndex}].words must be an array`);
       caption.words.forEach((word, wordIndex) => {
         words.push(normalizeWord(word, `captions[${captionIndex}].words[${wordIndex}]`));
       });
@@ -157,7 +157,7 @@ export function buildVowelTimeline({ words, frameCount, fps }) {
 }
 
 export function resolveMouthStates({ vowelTimeline, volumeStates }) {
-  if (vowelTimeline.length !== volumeStates.length) throw new Error("母音列と音量状態列の長さが一致しません");
+  if (vowelTimeline.length !== volumeStates.length) throw new Error("Vowel sequence and volume state sequence differ in length");
   return volumeStates.map((volumeState, frame) => {
     if (volumeState === "closed") return "closed";
     return vowelTimeline[frame] ?? "a";

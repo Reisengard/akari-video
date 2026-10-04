@@ -103,7 +103,7 @@ test("world build: edit.json v1 は変更せず migrate 案内で fail-closed �
   const file = path.join(root, "edit.json");
   const legacy = `${JSON.stringify({ version: 1, output: { width: 1920, height: 1080, fps: 30 }, sources: [{ id: "base", path: "base.mp4" }], cuts: [{ src: "base", in: 0, out: 1 }], overlays: [] }, null, 2)}\n`;
   await writeFile(file, legacy);
-  await assert.rejects(() => buildWorld(root), /先に akari migrate <project-root> を実行してください/);
+  await assert.rejects(() => buildWorld(root), /Run akari migrate <project-root> first/);
   assert.equal(await readFile(file, "utf8"), legacy);
 });
 

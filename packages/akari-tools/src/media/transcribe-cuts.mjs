@@ -32,7 +32,7 @@ export function pickBasisByFillerHits(transcripts) {
 
 function numeric(value, fallback, label) {
   const resolved = value ?? fallback;
-  if (!Number.isFinite(resolved) || resolved < 0) throw new Error(`${label} は 0 以上の数値で指定してください`);
+  if (!Number.isFinite(resolved) || resolved < 0) throw new Error(`${label} must be a number of 0 or more`);
   return resolved;
 }
 
@@ -103,7 +103,7 @@ export async function transcribeCutsMedia(argument, options = {}) {
   const filler = options.filler ?? "off";
   const redo = options.redo ?? "off";
   for (const [name, value] of Object.entries({ filler, redo })) {
-    if (!["on", "off"].includes(value)) throw new Error(`--${name} は on / off で指定してください`);
+    if (!["on", "off"].includes(value)) throw new Error(`--${name} must be on or off`);
   }
   const silenceMin = numeric(options.silenceMin, 1.5, "--silence-min");
   const silenceBreak = numeric(options.silenceBreak, 3, "--silence-break");
@@ -114,7 +114,7 @@ export async function transcribeCutsMedia(argument, options = {}) {
   const { basis, reason: basisReason } = requested
     ? { basis: transcripts.find((transcript) => transcript.backend === requested), reason: `explicit (--basis ${options.basis})` }
     : pickBasisByFillerHits(transcripts);
-  if (!basis) throw new Error(`根拠エンジンの文字起こしがありません: ${requested}`);
+  if (!basis) throw new Error(`No transcript from the basis engine: ${requested}`);
   const { ffmpeg, ffprobe } = resolveTools(options);
   let detected;
   try {
@@ -124,7 +124,7 @@ export async function transcribeCutsMedia(argument, options = {}) {
       silenceDb: UNRECOGNIZED_DEFAULTS.silenceDb, silenceMinSec: UNRECOGNIZED_DEFAULTS.silenceMinSec, options,
     });
   } catch (error) {
-    throw Object.assign(new Error(`素材を読めません: ${error.message}`), { exitCode: 2 });
+    throw Object.assign(new Error(`Could not read the footage: ${error.message}`), { exitCode: 2 });
   }
   const candidates = textCandidates(basis.segments, { filler, redo });
   for (const silence of Array.isArray(detected) ? detected : detected?.silences ?? []) {
@@ -154,12 +154,12 @@ export async function transcribeCutsMedia(argument, options = {}) {
   const directory = path.dirname(transcriptsDirForTarget(target));
   const cutsPath = path.join(directory, "cuts.json");
   const previous = existsSync(cutsPath) ? await readJson(cutsPath) : { candidates: [] };
-  if (!Array.isArray(previous?.candidates)) throw new Error("既存 cuts.json の candidates が不正です");
+  if (!Array.isArray(previous?.candidates)) throw new Error("candidates in the existing cuts.json is invalid");
   const previousOn = new Map(previous.candidates.map((candidate) => [candidate.id, candidate.on]));
   const captionsPath = path.join(target.projectRoot, "captions.json");
   const captionRoot = existsSync(captionsPath) ? await readJson(captionsPath) : [];
   const captions = Array.isArray(captionRoot) ? captionRoot : captionRoot?.captions;
-  if (!Array.isArray(captions)) throw new Error("captions.json の形式が不正です");
+  if (!Array.isArray(captions)) throw new Error("captions.json has an invalid format");
   const handEdited = applyHandEdited(unique, captions, basis, target);
   for (const candidate of unique) {
     const on = previousOn.get(candidate.id);

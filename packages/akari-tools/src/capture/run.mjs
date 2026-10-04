@@ -339,15 +339,15 @@ export function unionOnFrameGrid(times, fps, duration, { onWarning } = {}) {
     const snappedTime = frame / fps;
     if (frame !== requestedFrame) {
       onWarning?.(
-        `capture: t=${formatWarningNumber(time)} はタイムライン長 ${duration.toFixed(1)}s を超えるため `
-          + `${formatWarningNumber(snappedTime)}s に丸めました`,
+        `capture: t=${formatWarningNumber(time)} is beyond the timeline length ${duration.toFixed(1)}s, so it was `
+          + `rounded to ${formatWarningNumber(snappedTime)}s`,
       );
     }
     const previous = selected.get(frame);
     if (previous) {
       onWarning?.(
-        `capture: t=${formatWarningNumber(time)} は t=${formatWarningNumber(previous.time)} と同じ `
-          + `${formatWarningNumber(snappedTime)}s のフレームになるため重複を除きました`,
+        `capture: t=${formatWarningNumber(time)} gives the same frame as t=${formatWarningNumber(previous.time)} `
+          + `(${formatWarningNumber(snappedTime)}s), so the duplicate was dropped`,
       );
       continue;
     }

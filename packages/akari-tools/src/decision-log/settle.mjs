@@ -76,7 +76,7 @@ export async function settleDecisionLog({ projectRoot, actor = "machine:render-c
   });
   const results = [];
   const lines = [];
-  if (/[|\r\n]/u.test(actor)) throw new Error("actor に縦棒・改行は使えません");
+  if (/[|\r\n]/u.test(actor)) throw new Error("actor must not contain a pipe or a newline");
   for (const proposal of proposals) {
     const { subject, sha, cells } = proposal;
     if (settled.has(subject)) continue;

@@ -30,10 +30,10 @@ function has(value, key) {
 
 function resolveTargets(targets) {
   if (targets === undefined) return DEFAULT_LEVEL_TARGETS;
-  if (!isRecord(targets)) throw new Error("--targets は JSON object で指定してください");
+  if (!isRecord(targets)) throw new Error("--targets must be a JSON object");
   const result = { ...DEFAULT_LEVEL_TARGETS };
   for (const [role, value] of Object.entries(targets)) {
-    if (!Number.isFinite(value)) throw new Error(`--targets の ${role} は有限数で指定してください`);
+    if (!Number.isFinite(value)) throw new Error(`--targets ${role} must be a finite number`);
     result[role] = value;
   }
   return result;
@@ -137,7 +137,7 @@ async function assertLintPass(projectRoot, lintRunner) {
   const errors = Array.isArray(result?.findings)
     ? result.findings.filter((finding) => finding?.severity === "error") : [];
   if (errors.length > 0 || result?.verdict === "fail") {
-    throw new Error(errors[0]?.message ?? "edit-lint が変更を拒否しました");
+    throw new Error(errors[0]?.message ?? "edit-lint rejected the change");
   }
 }
 
@@ -160,7 +160,7 @@ async function writeRows({ projectRoot, editPath, originalText, version, rows, l
     await assertLintPass(projectRoot, lintRunner);
   } catch (error) {
     fs.writeFileSync(editPath, originalText, "utf8");
-    throw new Error(`edit-lint error のため edit.json を元に戻しました: ${error instanceof Error ? error.message : String(error)}`.replace(/\s+/gu, " "));
+    throw new Error(`Restored edit.json because of an edit-lint error: ${error instanceof Error ? error.message : String(error)}`.replace(/\s+/gu, " "));
   }
 }
 
@@ -175,7 +175,7 @@ export async function audioLevelProject(projectDir, options = {}) {
   const rows = [];
   const targets = resolveTargets(options.targets);
   const ceilingDbtp = options.ceilingDbtp ?? DEFAULT_TRUE_PEAK_CEILING_DBTP;
-  if (!Number.isFinite(ceilingDbtp)) throw new Error("--ceiling は有限数で指定してください");
+  if (!Number.isFinite(ceilingDbtp)) throw new Error("--ceiling must be a finite number");
   const ffmpegPath = options.ffmpegPath ?? resolveFfmpeg();
   const measureRunner = options.measureRunner ?? measureAudioLevels;
   const cacheDir = path.join(projectRoot, ".akari", "cache", "audio-measure");
@@ -184,7 +184,7 @@ export async function audioLevelProject(projectDir, options = {}) {
     const materialPath = path.isAbsolute(clip.declaredPath)
       ? clip.declaredPath : path.resolve(path.dirname(editPath), clip.declaredPath);
     if (!fs.existsSync(materialPath)) {
-      warnings.push(`warning: 素材が見つからないため省略します: ${clip.declaredPath}`);
+      warnings.push(`warning: skipping ${clip.declaredPath}: footage not found`);
       continue;
     }
     try {
@@ -211,7 +211,7 @@ export async function audioLevelProject(projectDir, options = {}) {
         clip,
       });
     } catch (error) {
-      warnings.push(`warning: 計測できないため省略します: ${clip.declaredPath} (${error instanceof Error ? error.message : String(error)})`.replace(/\s+/gu, " "));
+      warnings.push(`warning: skipping ${clip.declaredPath}: could not be measured (${error instanceof Error ? error.message : String(error)})`.replace(/\s+/gu, " "));
     }
   }
 
@@ -236,7 +236,7 @@ function displayNumber(value) {
 }
 
 export function formatAudioLevelTable(result) {
-  if (result.targetCount === 0) return ["対象 0 件"];
+  if (result.targetCount === 0) return ["No targets"];
   const lines = ["path\trole\tbasis\tI(LUFS)\tTP(dBTP)\tgain_db\tfade_in\tfade_out\tstatus"];
   for (const row of result.rows) lines.push([
     row.path,
@@ -247,7 +247,7 @@ export function formatAudioLevelTable(result) {
     displayNumber(row.gain_db),
     displayNumber(row.fade_in),
     displayNumber(row.fade_out),
-    row.written ? "書込済み" : "-",
+    row.written ? "written" : "-",
   ].join("\t"));
   return lines;
 }

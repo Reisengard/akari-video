@@ -45,7 +45,7 @@ export function parseColor(value) {
   const raw = String(value ?? "#00e5ff").trim();
   const hex = raw.startsWith("#") ? raw.slice(1) : raw;
   if (!/^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hex)) {
-    throw new Error("--color は #RRGGBB または #RRGGBBAA 形式です");
+    throw new Error("--color must be #RRGGBB or #RRGGBBAA");
   }
   return {
     r: Number.parseInt(hex.slice(0, 2), 16),

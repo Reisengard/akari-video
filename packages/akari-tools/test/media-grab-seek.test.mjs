@@ -240,7 +240,7 @@ test("showinfo が無い ffmpeg でも取得は続け、検査だけを諦める
     assert.equal(filterOf(calls[1]), SEPARATE_FRAME_FILTER);
     assert.ok(calls[1].indexOf("-ss") < calls[1].indexOf("-i"));
     assert.equal(calls[1][calls[1].indexOf("-ss") + 1], "11.000000");
-    assert.deepEqual(warnings, ["grab: この ffmpeg は showinfo filter を持たないため、シーク位置の検査を省略します。"]);
+    assert.deepEqual(warnings, ["grab: this ffmpeg has no showinfo filter, so the seek position check is skipped."]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

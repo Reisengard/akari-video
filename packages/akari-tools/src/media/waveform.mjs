@@ -16,11 +16,11 @@ export async function waveformMedia(targetArgument, options = {}) {
   const target = resolveTarget(targetArgument, options);
   const { ffmpeg, ffprobe } = resolveTools(options);
   const { value, duration } = probeRaw(target.inputPath, ffprobe, options);
-  if (!value.streams?.some((stream) => stream.codec_type === "audio")) throw new Error("音声ストリームがありません");
+  if (!value.streams?.some((stream) => stream.codec_type === "audio")) throw new Error("No audio stream");
   const silenceDb = options.silenceDb ?? -35;
   const minSilence = options.minSilence ?? 0.6;
-  if (!Number.isFinite(silenceDb)) throw new Error("--silence-db は数値で指定してください");
-  if (!Number.isFinite(minSilence) || minSilence <= 0) throw new Error("--min-silence は 0 より大きい秒数で指定してください");
+  if (!Number.isFinite(silenceDb)) throw new Error("--silence-db must be a number");
+  if (!Number.isFinite(minSilence) || minSilence <= 0) throw new Error("--min-silence must be a number of seconds greater than 0");
 
   const silenceResult = runChecked(ffmpeg, [
     "-hide_banner", "-nostdin", "-i", target.inputPath,

@@ -22,7 +22,7 @@ function centerFor(position, outputWidth, outputHeight, width, height) {
   };
   const explicit = explicitPosition(position);
   if (explicit) return explicit;
-  if (!named[position]) throw new Error(`--position が不正です: ${position}`);
+  if (!named[position]) throw new Error(`--position is invalid: ${position}`);
   return named[position];
 }
 
@@ -39,7 +39,7 @@ export function buildAvatarVrmLayer({
   bakeWidth = BAKE_SIZE.width,
   bakeHeight = BAKE_SIZE.height,
 }) {
-  if (!(scale > 0)) throw new Error("--scale は正数である必要があります");
+  if (!(scale > 0)) throw new Error("--scale must be a positive number");
   const center = centerFor(position, outputWidth, outputHeight, bakeWidth * scale, bakeHeight * scale);
   const relativePath = projectRoot ? relative(projectRoot, outPath) : outPath;
   const src = !projectRoot || isAbsolute(relativePath) || relativePath.startsWith("..")

@@ -38,7 +38,7 @@ function parseArguments(argv) {
     if (arg === "--no-motion") { options.noMotion = true; continue; }
     if (!arg.startsWith("--") && options.project === null) { options.project = resolve(arg); continue; }
     const value = argv[++index];
-    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} の値がありません`);
+    if (value === undefined || value.startsWith("--")) throw new Error(`${arg} requires a value`);
     if (arg === "--project") options.project = resolve(value);
     else if (arg === "--sprites") options.sprites = resolve(value);
     else if (arg === "--out") options.out = resolve(value);
@@ -63,25 +63,25 @@ function parseArguments(argv) {
     else if (arg === "--blink-period") options.profile.blinkPeriod = Number(value);
     else if (arg === "--blink-jitter") options.profile.blinkJitter = Number(value);
     else if (arg === "--blink-duration") options.profile.blinkDuration = Number(value);
-    else throw new Error(`不明な引数です: ${arg}`);
+    else throw new Error(`Unknown option: ${arg}`);
   }
-  if (!(options.scale > 0)) throw new Error("--scale は正数である必要があります");
-  if (!(options.margin >= 0)) throw new Error("--margin は 0 以上である必要があります");
+  if (!(options.scale > 0)) throw new Error("--scale must be a positive number");
+  if (!(options.margin >= 0)) throw new Error("--margin must be >= 0");
   if (!Number.isInteger(options.mouthTransition) || options.mouthTransition < 0) {
-    throw new Error("--mouth-transition は 0 以上の整数である必要があります");
+    throw new Error("--mouth-transition must be an integer >= 0");
   }
   if (!Number.isInteger(options.headSmoothing) || options.headSmoothing < 0) {
-    throw new Error("--head-smoothing は 0 以上の整数である必要があります");
+    throw new Error("--head-smoothing must be an integer >= 0");
   }
   if (!Number.isFinite(options.motionIntensity) || options.motionIntensity < 0 || options.motionIntensity > 1) {
-    throw new Error("--motion-intensity は 0 以上 1 以下である必要があります");
+    throw new Error("--motion-intensity must be from 0 to 1 inclusive");
   }
   if (options.noMotion && options.motionIntensitySpecified) {
-    throw new Error("--no-motion と --motion-intensity は同時に指定できません");
+    throw new Error("--no-motion and --motion-intensity cannot be used together");
   }
   if (options.noMotion) options.motionIntensity = 0;
-  if (!["volume", "vowel"].includes(options.mouthMode)) throw new Error("--mouth-mode は volume または vowel である必要があります");
-  if (!/^[-A-Za-z0-9_.]+$/.test(options.layerId)) throw new Error("--layer-id に使用できない文字があります");
+  if (!["volume", "vowel"].includes(options.mouthMode)) throw new Error("--mouth-mode must be volume or vowel");
+  if (!/^[-A-Za-z0-9_.]+$/.test(options.layerId)) throw new Error("--layer-id contains characters that are not allowed");
   return options;
 }
 
@@ -95,15 +95,15 @@ function availability() {
 async function main() {
   let options;
   try { options = parseArguments(process.argv.slice(2)); }
-  catch (error) { printJson({ ok: false, reason: summary(error.message, "引数が不正です") }); process.exitCode = 2; return; }
+  catch (error) { printJson({ ok: false, reason: summary(error.message, "Invalid arguments") }); process.exitCode = 2; return; }
   if (options.check) { printJson(availability()); return; }
   if (!options.project || !options.sprites) {
-    printJson({ ok: false, reason: "project と --sprites <dir> が必要です" });
+    printJson({ ok: false, reason: "project and --sprites <dir> are required" });
     process.exitCode = 2;
     return;
   }
   if (options.mouthMode === "vowel" && !options.transcript) {
-    printJson({ ok: false, reason: "--mouth-mode vowel には --transcript <path> が必要です" });
+    printJson({ ok: false, reason: "--mouth-mode vowel requires --transcript <path>" });
     process.exitCode = 1;
     return;
   }
@@ -241,7 +241,7 @@ async function main() {
     }
     printJson(output);
   } catch (error) {
-    printJson({ ok: false, reason: summary(error.message, "avatar-drive 生成に失敗しました") });
+    printJson({ ok: false, reason: summary(error.message, "avatar-drive Generation failed") });
     process.exitCode = 1;
   }
 }

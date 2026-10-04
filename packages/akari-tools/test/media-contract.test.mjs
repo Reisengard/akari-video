@@ -243,7 +243,7 @@ test("transcribe CLI の --no-snap は吸着監査情報と raw 語時刻を付�
 test("transcribe は backend 不在なら exit 1 相当で推測しない", async () => {
   await assert.rejects(
     transcribeMedia(wavPath, { ffmpegCommand: ffmpeg, ffprobeCommand: ffprobe, speechAnalyzerAvailable: false, whisperAvailable: false, noRecord: true }),
-    /利用できるローカル文字起こし backend/,
+    /No local transcription backend is available/,
   );
 });
 

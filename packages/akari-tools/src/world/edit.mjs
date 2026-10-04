@@ -6,10 +6,10 @@ import { checkWorldMap } from "./invariants.mjs";
 import { normalizeWorldMap } from "./normalize.mjs";
 
 const NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
-const UNMEASURED_COVER_NOTE = "cover が未測定です。`akari world preview --measure` を先に";
+const UNMEASURED_COVER_NOTE = "The cover is not measured. Run `akari world preview --measure` first";
 
 export function formatCoordinateNumber(value) {
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError("座標は有限数である必要があります");
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError("Coordinates must be finite numbers");
   if (Number.isInteger(value)) return String(value);
   const source = String(value);
   if (!/[eE]/.test(source)) return source.replace(/(\.\d*?[1-9])0+$|\.0+$/, "$1");
@@ -46,11 +46,11 @@ export function replaceStopCoordinate(text, stopId, c) {
     try { parsed = JSON.parse(text.slice(range.start, range.end)); } catch { continue; }
     if (parsed?.id === stopId) { stop = range; break; }
   }
-  if (!stop) throw new Error(`world-map.json の cameraStops に ${stopId} がありません`);
+  if (!stop) throw new Error(`cameraStops in world-map.json has no stop ${stopId}`);
   const property = directPropertyArray(text, stop.start, stop.end, "c");
-  if (!property) throw new Error(`cameraStop ${stopId} に c がありません`);
+  if (!property) throw new Error(`cameraStop ${stopId} has no c`);
   const literals = directNumberLiterals(text, property.start, property.end);
-  if (literals.length < c.length) throw new Error(`cameraStop ${stopId} の c は ${c.length} 要素未満です`);
+  if (literals.length < c.length) throw new Error(`c of cameraStop ${stopId} has fewer than ${c.length} elements`);
   let result = text;
   for (let index = c.length - 1; index >= 0; index -= 1) {
     const literal = literals[index];
@@ -68,16 +68,16 @@ export async function moveWorldStop(projectRoot, options = {}) {
   try { text = await read(file, "utf8"); } catch (error) { return failure("IO", error, file); }
   let source;
   try { source = JSON.parse(text); } catch (error) { return failure("PARSE", error, file); }
-  if (typeof source?.schemaVersion === "number" && source.schemaVersion > 3) return failure("VERSION", `schemaVersion ${source.schemaVersion} は未対応です`, file);
+  if (typeof source?.schemaVersion === "number" && source.schemaVersion > 3) return failure("VERSION", `schemaVersion ${source.schemaVersion} is not supported`, file);
   const map = source?.schemaVersion === 3 ? source : normalizeWorldMap(source).map;
   const beforeChecked = check(map, { strict: false });
-  if (map?.kind !== "flat") return failure("KIND", "spatial の停留所は移動できません（flat のみ）", file);
+  if (map?.kind !== "flat") return failure("KIND", "Spatial stops cannot be moved (flat only)", file);
   const stop = Array.isArray(map?.cameraStops) ? map.cameraStops.find((candidate) => candidate?.id === options.stopId) : undefined;
-  if (!stop) return failure("NO_STOP", `world-map.json の cameraStops に ${options.stopId} がありません`, file);
+  if (!stop) return failure("NO_STOP", `cameraStops in world-map.json has no stop ${options.stopId}`, file);
   try { assertCoordinate(options.c); } catch (error) { return failure("ARG", error, file); }
-  if (options.c.length === 3 && !(options.c[2] > 0)) return failure("ARG", "scale は 0 より大きい必要があります", file);
+  if (options.c.length === 3 && !(options.c[2] > 0)) return failure("ARG", "scale must be greater than 0", file);
   const world = Array.isArray(map?.worlds) ? map.worlds.find((candidate) => candidate?.id === stop.world) : undefined;
-  if (!withinWorldBounds(world, options.c)) return failure("BOUNDS", `world ${stop.world} の bounds ${JSON.stringify(world?.flat?.bounds)} の外へは移動できません`, file);
+  if (!withinWorldBounds(world, options.c)) return failure("BOUNDS", `Cannot move outside the bounds ${JSON.stringify(world?.flat?.bounds)} of world ${stop.world}`, file);
   const rounded = options.c.map((value, index) => round(value, index === 2 ? 4 : 3));
   let next;
   try { next = replaceStopCoordinate(text, options.stopId, rounded); } catch (error) { return failure("WRITE_BACK", error, file); }
@@ -90,19 +90,19 @@ export async function moveWorldStop(projectRoot, options = {}) {
   const errors = checked.errors.filter((finding) => finding.code !== "C7" || !previousC7.has(findingKey(finding)));
   if (errors.length > 0) {
     const hasNewC7 = errors.some((finding) => finding.code === "C7");
-    const reason = `書き戻し後の world-map.json が不変条件に違反します${hasNewC7 ? `。${UNMEASURED_COVER_NOTE}` : ""}`;
+    const reason = `world-map.json violates the invariants after write-back${hasNewC7 ? `. ${UNMEASURED_COVER_NOTE}` : ""}`;
     return { ...failure("INVARIANT", reason, file), errors };
   }
   const before = Array.isArray(stop.c) ? [...stop.c] : [];
   const after = [...before];
   rounded.forEach((value, index) => { after[index] = value; });
   const nextStop = Array.isArray(map2?.cameraStops) ? map2.cameraStops.find((candidate) => candidate?.id === options.stopId) : undefined;
-  if (!isDeepStrictEqual(nextStop?.c, after)) return failure("WRITE_BACK", "書き戻した座標を再読込できません", file);
+  if (!isDeepStrictEqual(nextStop?.c, after)) return failure("WRITE_BACK", "Could not reload the written-back coordinates", file);
   const expected = structuredClone(source);
   const expectedStop = Array.isArray(expected?.cameraStops) ? expected.cameraStops.find((candidate) => candidate?.id === options.stopId) : undefined;
-  if (!expectedStop || !Array.isArray(expectedStop.c)) return failure("WRITE_BACK", "元の停留所座標を検証できません", file);
+  if (!expectedStop || !Array.isArray(expectedStop.c)) return failure("WRITE_BACK", "Could not verify the original stop coordinates", file);
   expectedStop.c = after;
-  if (!isDeepStrictEqual(expected, nextSource)) return failure("WRITE_BACK", "停留所の座標以外が変更されました", file);
+  if (!isDeepStrictEqual(expected, nextSource)) return failure("WRITE_BACK", "Something other than the stop coordinates was changed", file);
   const changed = next !== text;
   if (changed) {
     try { await write(file, next, "utf8"); } catch (error) { return failure("IO", error, file); }
@@ -116,7 +116,7 @@ function findingKey(finding) {
 
 function assertCoordinate(c) {
   if (!Array.isArray(c) || c.length < 2 || c.length > 3 || !c.every((value) => typeof value === "number" && Number.isFinite(value))) {
-    throw new TypeError("c は 2〜3 要素の有限数配列である必要があります");
+    throw new TypeError("c must be an array of 2 or 3 finite numbers");
   }
 }
 
@@ -135,9 +135,9 @@ function topLevelArray(text, key) {
     const state = structuralState(text, match.index);
     if (state.objectDepth !== 1 || state.arrayDepth !== 0) continue;
     const start = match.index + match[0].lastIndexOf("[");
-    return { start, end: matchingEnd(text, start, "[", "]", `world-map.json の ${key} 配列が閉じていません`) };
+    return { start, end: matchingEnd(text, start, "[", "]", `The ${key} array in world-map.json is not closed`) };
   }
-  throw new Error(`world-map.json に "${key}" がありません`);
+  throw new Error(`world-map.json has no "${key}"`);
 }
 
 function directObjects(text, arrayStart, arrayEnd) {
@@ -163,7 +163,7 @@ function directPropertyArray(text, objectStart, objectEnd, key) {
     const state = structuralState(text, match.index, objectStart);
     if (state.objectDepth !== 1 || state.arrayDepth !== 0) continue;
     const start = match.index + match[0].lastIndexOf("[");
-    return { start, end: matchingEnd(text, start, "[", "]", `cameraStop の ${key} 配列が閉じていません`) };
+    return { start, end: matchingEnd(text, start, "[", "]", `The ${key} array of the cameraStop is not closed`) };
   }
   return undefined;
 }
@@ -175,7 +175,7 @@ function directNumberLiterals(text, start, end) {
     if (/\s|,/.test(text[index])) { index += 1; continue; }
     NUMBER.lastIndex = index;
     const match = NUMBER.exec(text);
-    if (!match || match.index >= end) throw new Error("cameraStop の c に数値以外の要素があります");
+    if (!match || match.index >= end) throw new Error("c of the cameraStop has a non-numeric element");
     result.push({ start: index, end: NUMBER.lastIndex });
     index = NUMBER.lastIndex;
   }

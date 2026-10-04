@@ -33,6 +33,6 @@ test('beatmap reads the pinned library and fallback declarations by track id', a
   await fs.writeFile(path.join(home,'assets/audio/declarations.json'), 'null');
   const missing = spawnSync(process.execPath,[cli,project,'theme'],{env,encoding:'utf8'});
   assert.equal(missing.status,1);
-  assert.match(missing.stderr,/読み取れる declarations.json/);
+  assert.match(missing.stderr,/readable declarations.json/);
   assert.doesNotMatch(missing.stderr,/SyntaxError|TypeError|at JSON.parse/);
 });

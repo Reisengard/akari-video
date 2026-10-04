@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-plan-comments.mjs <plan-comments.json>";
+const usage = "Usage: node packages/schemas/bin/validate-plan-comments.mjs <plan-comments.json>";
 const planCommentsArgument = process.argv[2];
 
 if (!planCommentsArgument || process.argv.length !== 3) {
@@ -29,7 +29,7 @@ const TARGET_KINDS = new Set(["shot", "slot", "cut", "clip"]);
 const INDEX_TARGET_KINDS = new Set(["shot", "cut"]);
 
 if (!isRegularFile(planCommentsPath)) {
-  fail(`plan-comments.json が見つかりません: ${planCommentsPath}`);
+  fail(`plan-comments.json was not found: ${planCommentsPath}`);
   finish();
 }
 
@@ -37,11 +37,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`plan-comments.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`plan-comments.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:plan-comments:v0") {
-  fail("plan-comments.schema.json の $id が v0 契約と一致しません");
+  fail("plan-comments.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -49,7 +49,7 @@ let planComments;
 try {
   planComments = JSON.parse(fs.readFileSync(planCommentsPath, "utf8"));
 } catch (error) {
-  fail(`plan-comments.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`plan-comments.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -58,32 +58,32 @@ finish();
 
 function validatePlanComments(value) {
   if (!isPlainObject(value)) {
-    fail("plan-comments.json のルートは object である必要があります");
+    fail("plan-comments.json root must be an object");
     return;
   }
   if (Number.isInteger(value.version) && value.version > 0) {
     fail(
-      `version ${value.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `version ${value.version} is newer than this validator supports. This file uses a newer format. Update the skills or the app.`,
     );
     return;
   }
   if (!hasOwn(value, "version")) {
-    fail("version は必須です");
+    fail("version is required");
   } else if (value.version !== 0) {
-    fail("version は 0 である必要があります");
+    fail("version must be 0");
   }
   if (!hasOwn(value, "pass")) {
-    fail("pass は必須です");
+    fail("pass is required");
   } else if (!PASSES.has(value.pass)) {
-    fail("pass は structure / scaffold / final のいずれかである必要があります");
+    fail("pass must be one of structure / scaffold / final");
   }
   if (!hasOwn(value, "submitted_at")) {
-    fail("submitted_at は必須です");
+    fail("submitted_at is required");
   } else if (typeof value.submitted_at !== "string" || !isIsoDateTime(value.submitted_at)) {
-    fail("submitted_at は ISO 8601 日時の文字列である必要があります");
+    fail("submitted_at must be an ISO 8601 date-time string");
   }
   if (!hasOwn(value, "comments")) {
-    fail("comments は必須です");
+    fail("comments is required");
   } else {
     validateComments(value.comments);
   }
@@ -91,37 +91,37 @@ function validatePlanComments(value) {
 
 function validateComments(value) {
   if (!Array.isArray(value)) {
-    fail("comments は配列である必要があります");
+    fail("comments must be an array");
     return;
   }
   for (const [index, comment] of value.entries()) {
     const label = `comments[${index}]`;
     if (!isPlainObject(comment)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     for (const field of ["target_kind", "target_id", "title", "text"]) {
       if (!hasOwn(comment, field)) {
-        fail(`${label}.${field} は必須です`);
+        fail(`${label}.${field} is required`);
       }
     }
     if (hasOwn(comment, "target_kind") && !TARGET_KINDS.has(comment.target_kind)) {
-      fail(`${label}.target_kind は shot / slot / cut / clip のいずれかである必要があります`);
+      fail(`${label}.target_kind must be one of shot / slot / cut / clip`);
     }
     if (hasOwn(comment, "target_id")) {
       if (!isNonEmptyString(comment.target_id)) {
-        fail(`${label}.target_id は空でない文字列である必要があります`);
+        fail(`${label}.target_id must be a non-empty string`);
       } else if (INDEX_TARGET_KINDS.has(comment.target_kind) && !/^\d+$/.test(comment.target_id)) {
         fail(
-          `${label}.target_id は target_kind ${comment.target_kind} では配列インデックスの数字文字列である必要があります: ${comment.target_id}`,
+          `${label}.target_id must be a numeric array-index string when target_kind is ${comment.target_kind}: ${comment.target_id}`,
         );
       }
     }
     if (hasOwn(comment, "title") && !isNonEmptyString(comment.title)) {
-      fail(`${label}.title は空でない文字列である必要があります`);
+      fail(`${label}.title must be a non-empty string`);
     }
     if (hasOwn(comment, "text") && !isNonEmptyString(comment.text)) {
-      fail(`${label}.text は空でない文字列である必要があります`);
+      fail(`${label}.text must be a non-empty string`);
     }
   }
 }

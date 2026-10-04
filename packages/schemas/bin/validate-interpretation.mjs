@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const usage = "使い方: node packages/schemas/bin/validate-interpretation.mjs <interpretation.json>";
+const usage = "Usage: node packages/schemas/bin/validate-interpretation.mjs <interpretation.json>";
 const interpretationArgument = process.argv[2];
 
 if (!interpretationArgument || process.argv.length !== 3) {
@@ -28,7 +28,7 @@ const FLAG_TYPES = new Set(["orphan", "unclear", "trouble_overlap"]);
 const OPEN_QUESTION_STATUSES = new Set(["open", "answered"]);
 
 if (!isRegularFile(interpretationPath)) {
-  fail(`interpretation.json が見つかりません: ${interpretationPath}`);
+  fail(`interpretation.json was not found: ${interpretationPath}`);
   finish();
 }
 
@@ -36,11 +36,11 @@ let schema;
 try {
   schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 } catch (error) {
-  fail(`interpretation.schema.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`interpretation.schema.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 if (schema.$id !== "urn:akari-video:schema:interpretation:v0") {
-  fail("interpretation.schema.json の $id が v0 契約と一致しません");
+  fail("interpretation.schema.json $id does not match the v0 contract");
   finish();
 }
 
@@ -48,7 +48,7 @@ let interpretation;
 try {
   interpretation = JSON.parse(fs.readFileSync(interpretationPath, "utf8"));
 } catch (error) {
-  fail(`interpretation.json を JSON として読めません: ${messageOf(error)}`);
+  fail(`interpretation.json is not valid JSON: ${messageOf(error)}`);
   finish();
 }
 
@@ -57,25 +57,25 @@ finish();
 
 function validateInterpretation(value) {
   if (!isPlainObject(value)) {
-    fail("interpretation.json のルートは object である必要があります");
+    fail("interpretation.json root must be an object");
     return;
   }
   if (Number.isInteger(value.version) && value.version > 0) {
     fail(
-      `version ${value.version} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`,
+      `version ${value.version} is too new to validate. This file uses a newer format. Update the skill / app`,
     );
     return;
   }
   if (value.version !== 0) {
-    fail("version は 0 である必要があります");
+    fail("version must be 0");
     return;
   }
 
   const rootFields = ["version", "inputs", "assets", "arc", "open_questions"];
   for (const field of rootFields) {
-    if (!hasOwn(value, field)) fail(`${field} は必須です`);
+    if (!hasOwn(value, field)) fail(`${field} is required`);
   }
-  rejectUnknownFields(value, rootFields, "ルート");
+  rejectUnknownFields(value, rootFields, "root");
 
   const analysisRefs = validateInputs(value.inputs);
   const assetRefs = validateAssets(value.assets);
@@ -87,33 +87,33 @@ function validateInterpretation(value) {
 function validateInputs(value) {
   const analysisRefs = new Set();
   if (!isPlainObject(value)) {
-    fail("inputs は object である必要があります");
+    fail("inputs must be an object");
     return analysisRefs;
   }
   const fields = ["analyses", "context"];
-  if (!hasOwn(value, "analyses")) fail("inputs.analyses は必須です");
+  if (!hasOwn(value, "analyses")) fail("inputs.analyses is required");
   rejectUnknownFields(value, fields, "inputs");
 
   if (hasOwn(value, "analyses")) {
     if (!Array.isArray(value.analyses) || value.analyses.length === 0) {
-      fail("inputs.analyses は 1 件以上の配列である必要があります");
+      fail("inputs.analyses must be an array of at least 1 item");
     } else {
       for (const [index, entry] of value.analyses.entries()) {
         const label = `inputs.analyses[${index}]`;
         if (!isPlainObject(entry)) {
-          fail(`${label} は object である必要があります`);
+          fail(`${label} must be an object`);
           continue;
         }
         const entryFields = ["ref", "path", "source"];
         for (const field of entryFields) {
-          if (!hasOwn(entry, field)) fail(`${label}.${field} は必須です`);
+          if (!hasOwn(entry, field)) fail(`${label}.${field} is required`);
         }
         rejectUnknownFields(entry, entryFields, label);
         if (hasOwn(entry, "ref")) {
           if (!isNonEmptyString(entry.ref)) {
-            fail(`${label}.ref は空でない文字列である必要があります`);
+            fail(`${label}.ref must be a non-empty string`);
           } else if (analysisRefs.has(entry.ref)) {
-            fail(`inputs.analyses[].ref が重複しています: ${entry.ref}`);
+            fail(`inputs.analyses[].ref is duplicated: ${entry.ref}`);
           } else {
             analysisRefs.add(entry.ref);
           }
@@ -134,44 +134,44 @@ function validateInputs(value) {
 function validateAnalysesAssetCorrespondence(analysisRefs, assetRefs) {
   for (const ref of analysisRefs) {
     if (!assetRefs.has(ref)) {
-      fail(`inputs.analyses[].ref が assets[].ref に存在しません: ${ref}`);
+      fail(`inputs.analyses[].ref does not exist in assets[].ref: ${ref}`);
     }
   }
   for (const ref of assetRefs) {
     if (!analysisRefs.has(ref)) {
-      fail(`assets[].ref に対応する inputs.analyses[].ref がありません: ${ref}`);
+      fail(`No inputs.analyses[].ref corresponds to assets[].ref: ${ref}`);
     }
   }
 }
 
 function validateContext(value) {
   if (!isPlainObject(value)) {
-    fail("inputs.context は object である必要があります（省略はできても null 化はできません）");
+    fail("inputs.context must be an object (it may be omitted but not set to null)");
     return;
   }
   const fields = ["intake", "past_projects", "interview", "notes"];
   for (const field of ["past_projects", "interview"]) {
-    if (!hasOwn(value, field)) fail(`inputs.context.${field} は必須です（値が空でもキーは省略しない）`);
+    if (!hasOwn(value, field)) fail(`inputs.context.${field} is required (do not omit the key even when the value is empty)`);
   }
   rejectUnknownFields(value, fields, "inputs.context");
 
   if (hasOwn(value, "intake") && !isPlainObject(value.intake)) {
-    fail("inputs.context.intake は object である必要があります（省略可。null にしない）");
+    fail("inputs.context.intake must be an object (optional; do not set it to null)");
   }
 
   if (hasOwn(value, "past_projects")) {
     if (!Array.isArray(value.past_projects)) {
-      fail("inputs.context.past_projects は配列である必要があります");
+      fail("inputs.context.past_projects must be an array");
     } else {
       for (const [index, entry] of value.past_projects.entries()) {
         const label = `inputs.context.past_projects[${index}]`;
         if (!isPlainObject(entry)) {
-          fail(`${label} は object である必要があります`);
+          fail(`${label} must be an object`);
           continue;
         }
         const entryFields = ["ref", "notes"];
         for (const field of entryFields) {
-          if (!hasOwn(entry, field)) fail(`${label}.${field} は必須です`);
+          if (!hasOwn(entry, field)) fail(`${label}.${field} is required`);
         }
         rejectUnknownFields(entry, entryFields, label);
         if (hasOwn(entry, "ref")) validateNonEmptyString(entry.ref, `${label}.ref`);
@@ -182,17 +182,17 @@ function validateContext(value) {
 
   if (hasOwn(value, "interview")) {
     if (!Array.isArray(value.interview)) {
-      fail("inputs.context.interview は配列である必要があります");
+      fail("inputs.context.interview must be an array");
     } else {
       for (const [index, entry] of value.interview.entries()) {
         const label = `inputs.context.interview[${index}]`;
         if (!isPlainObject(entry)) {
-          fail(`${label} は object である必要があります`);
+          fail(`${label} must be an object`);
           continue;
         }
         const entryFields = ["q", "a"];
         for (const field of entryFields) {
-          if (!hasOwn(entry, field)) fail(`${label}.${field} は必須です`);
+          if (!hasOwn(entry, field)) fail(`${label}.${field} is required`);
         }
         rejectUnknownFields(entry, entryFields, label);
         if (hasOwn(entry, "q")) validateNonEmptyString(entry.q, `${label}.q`);
@@ -207,27 +207,27 @@ function validateContext(value) {
 function validateAssets(value) {
   const refs = new Set();
   if (!Array.isArray(value) || value.length === 0) {
-    fail("assets は 1 件以上の配列である必要があります");
+    fail("assets must be an array of at least 1 item");
     return refs;
   }
   for (const [index, asset] of value.entries()) {
     const label = `assets[${index}]`;
     if (!isPlainObject(asset)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const requiredFields = ["ref", "role", "summary", "relations", "flags"];
     const allFields = ["ref", "role", "summary", "sections", "relations", "flags"];
     for (const field of requiredFields) {
-      if (!hasOwn(asset, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(asset, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(asset, allFields, label);
 
     if (hasOwn(asset, "ref")) {
       if (!isNonEmptyString(asset.ref)) {
-        fail(`${label}.ref は空でない文字列である必要があります`);
+        fail(`${label}.ref must be a non-empty string`);
       } else if (refs.has(asset.ref)) {
-        fail(`assets[].ref が重複しています: ${asset.ref}`);
+        fail(`assets[].ref is duplicated: ${asset.ref}`);
       } else {
         refs.add(asset.ref);
       }
@@ -246,9 +246,9 @@ function validateAssets(value) {
       if (!isPlainObject(relation) || !isNonEmptyString(relation.target)) continue;
       const relLabel = `${label}.relations[${relIndex}]`;
       if (!refs.has(relation.target)) {
-        fail(`${relLabel}.target が assets[].ref を参照していません: ${relation.target}`);
+        fail(`${relLabel}.target does not reference assets[].ref: ${relation.target}`);
       } else if (relation.target === asset.ref) {
-        fail(`${relLabel}.target が自素材への自己参照になっています: ${relation.target}`);
+        fail(`${relLabel}.target refers back to its own asset: ${relation.target}`);
       }
     }
   }
@@ -257,27 +257,27 @@ function validateAssets(value) {
 
 function validateSections(value, assetLabel) {
   if (!Array.isArray(value)) {
-    fail(`${assetLabel}.sections は配列である必要があります`);
+    fail(`${assetLabel}.sections must be an array`);
     return;
   }
   const ids = new Set();
   for (const [index, section] of value.entries()) {
     const label = `${assetLabel}.sections[${index}]`;
     if (!isPlainObject(section)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const fields = ["id", "start", "end", "title", "role", "evidence"];
     for (const field of fields) {
-      if (!hasOwn(section, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(section, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(section, fields, label);
 
     if (hasOwn(section, "id")) {
       if (!isNonEmptyString(section.id)) {
-        fail(`${label}.id は空でない文字列である必要があります`);
+        fail(`${label}.id must be a non-empty string`);
       } else if (ids.has(section.id)) {
-        fail(`${assetLabel}.sections[].id が重複しています: ${section.id}`);
+        fail(`${assetLabel}.sections[].id is duplicated: ${section.id}`);
       } else {
         ids.add(section.id);
       }
@@ -291,19 +291,19 @@ function validateSections(value, assetLabel) {
 
 function validateRelations(value, assetLabel) {
   if (!Array.isArray(value)) {
-    fail(`${assetLabel}.relations は配列である必要があります`);
+    fail(`${assetLabel}.relations must be an array`);
     return;
   }
   for (const [index, relation] of value.entries()) {
     const label = `${assetLabel}.relations[${index}]`;
     if (!isPlainObject(relation)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const requiredFields = ["target", "kind", "evidence"];
     const allFields = ["target", "kind", "evidence", "note"];
     for (const field of requiredFields) {
-      if (!hasOwn(relation, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(relation, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(relation, allFields, label);
     if (hasOwn(relation, "target")) validateNonEmptyString(relation.target, `${label}.target`);
@@ -315,24 +315,24 @@ function validateRelations(value, assetLabel) {
 
 function validateFlags(value, assetLabel) {
   if (!Array.isArray(value)) {
-    fail(`${assetLabel}.flags は配列である必要があります`);
+    fail(`${assetLabel}.flags must be an array`);
     return;
   }
   for (const [index, flag] of value.entries()) {
     const label = `${assetLabel}.flags[${index}]`;
     if (!isPlainObject(flag)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const requiredFields = ["type", "evidence"];
     const allFields = ["type", "evidence", "start", "end", "note"];
     for (const field of requiredFields) {
-      if (!hasOwn(flag, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(flag, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(flag, allFields, label);
 
     if (hasOwn(flag, "type") && !FLAG_TYPES.has(flag.type)) {
-      fail(`${label}.type は orphan / unclear / trouble_overlap のいずれかである必要があります`);
+      fail(`${label}.type must be one of orphan / unclear / trouble_overlap`);
     }
     if (hasOwn(flag, "evidence")) validateNonEmptyString(flag.evidence, `${label}.evidence`);
     if (hasOwn(flag, "note")) validateNonEmptyString(flag.note, `${label}.note`);
@@ -342,27 +342,27 @@ function validateFlags(value, assetLabel) {
 
 function validateArc(value, assetRefs) {
   if (!Array.isArray(value) || value.length === 0) {
-    fail("arc は 1 件以上の配列である必要があります");
+    fail("arc must be an array of at least 1 item");
     return;
   }
   const orders = new Set();
   for (const [index, entry] of value.entries()) {
     const label = `arc[${index}]`;
     if (!isPlainObject(entry)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const fields = ["order", "title", "refs", "purpose", "evidence"];
     for (const field of fields) {
-      if (!hasOwn(entry, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(entry, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(entry, fields, label);
 
     if (hasOwn(entry, "order")) {
       if (!Number.isInteger(entry.order) || entry.order < 1) {
-        fail(`${label}.order は 1 以上の整数である必要があります`);
+        fail(`${label}.order must be an integer >= 1`);
       } else if (orders.has(entry.order)) {
-        fail(`arc[].order が重複しています: ${entry.order}`);
+        fail(`arc[].order is duplicated: ${entry.order}`);
       } else {
         orders.add(entry.order);
       }
@@ -373,22 +373,22 @@ function validateArc(value, assetRefs) {
 
     if (hasOwn(entry, "refs")) {
       if (!Array.isArray(entry.refs) || entry.refs.length === 0) {
-        fail(`${label}.refs は 1 件以上の配列である必要があります`);
+        fail(`${label}.refs must be an array of at least 1 item`);
       } else {
         for (const [refIndex, ref] of entry.refs.entries()) {
           const refLabel = `${label}.refs[${refIndex}]`;
           if (!isPlainObject(ref)) {
-            fail(`${refLabel} は object である必要があります`);
+            fail(`${refLabel} must be an object`);
             continue;
           }
           const refFields = ["asset", "start", "end"];
-          if (!hasOwn(ref, "asset")) fail(`${refLabel}.asset は必須です`);
+          if (!hasOwn(ref, "asset")) fail(`${refLabel}.asset is required`);
           rejectUnknownFields(ref, refFields, refLabel);
           if (hasOwn(ref, "asset")) {
             if (!isNonEmptyString(ref.asset)) {
-              fail(`${refLabel}.asset は空でない文字列である必要があります`);
+              fail(`${refLabel}.asset must be a non-empty string`);
             } else if (!assetRefs.has(ref.asset)) {
-              fail(`${refLabel}.asset が assets[].ref を参照していません: ${ref.asset}`);
+              fail(`${refLabel}.asset does not reference assets[].ref: ${ref.asset}`);
             }
           }
           validateSecondsPair(ref, refLabel);
@@ -400,28 +400,28 @@ function validateArc(value, assetRefs) {
 
 function validateOpenQuestions(value) {
   if (!Array.isArray(value)) {
-    fail("open_questions は配列である必要があります");
+    fail("open_questions must be an array");
     return;
   }
   const ids = new Set();
   for (const [index, entry] of value.entries()) {
     const label = `open_questions[${index}]`;
     if (!isPlainObject(entry)) {
-      fail(`${label} は object である必要があります`);
+      fail(`${label} must be an object`);
       continue;
     }
     const requiredFields = ["id", "question", "fills", "status"];
     const allFields = ["id", "question", "fills", "status", "answer"];
     for (const field of requiredFields) {
-      if (!hasOwn(entry, field)) fail(`${label}.${field} は必須です`);
+      if (!hasOwn(entry, field)) fail(`${label}.${field} is required`);
     }
     rejectUnknownFields(entry, allFields, label);
 
     if (hasOwn(entry, "id")) {
       if (!isNonEmptyString(entry.id)) {
-        fail(`${label}.id は空でない文字列である必要があります`);
+        fail(`${label}.id must be a non-empty string`);
       } else if (ids.has(entry.id)) {
-        fail(`open_questions[].id が重複しています: ${entry.id}`);
+        fail(`open_questions[].id is duplicated: ${entry.id}`);
       } else {
         ids.add(entry.id);
       }
@@ -429,13 +429,13 @@ function validateOpenQuestions(value) {
     if (hasOwn(entry, "question")) validateNonEmptyString(entry.question, `${label}.question`);
     if (hasOwn(entry, "fills")) validateNonEmptyString(entry.fills, `${label}.fills`);
     if (hasOwn(entry, "status") && !OPEN_QUESTION_STATUSES.has(entry.status)) {
-      fail(`${label}.status は open / answered のいずれかである必要があります`);
+      fail(`${label}.status must be one of open / answered`);
     }
     if (entry.status === "answered" && !isNonEmptyString(entry.answer)) {
-      fail(`${label}.answer は status が answered のとき必須です`);
+      fail(`${label}.answer is required when status is answered`);
     }
     if (entry.status === "open" && hasOwn(entry, "answer")) {
-      fail(`${label}.answer は status が open のとき省略する必要があります（null にしない）`);
+      fail(`${label}.answer must be omitted when status is open (do not set it to null)`);
     }
   }
 }
@@ -444,32 +444,32 @@ function validateSecondsPair(value, label) {
   const hasStart = hasOwn(value, "start");
   const hasEnd = hasOwn(value, "end");
   if (hasStart && !isFiniteNumber(value.start)) {
-    fail(`${label}.start は有限数（秒）である必要があります`);
+    fail(`${label}.start must be a finite number (seconds)`);
   }
   if (hasEnd && !isFiniteNumber(value.end)) {
-    fail(`${label}.end は有限数（秒）である必要があります`);
+    fail(`${label}.end must be a finite number (seconds)`);
   }
   if (hasStart !== hasEnd) {
-    fail(`${label} は start/end を両方指定するか、両方省略する必要があります`);
+    fail(`${label} must specify both start and end, or omit both`);
     return;
   }
   if (hasStart && hasEnd && isFiniteNumber(value.start) && isFiniteNumber(value.end)) {
     if (value.start < 0 || value.end < 0) {
-      fail(`${label}.start/end は 0 以上である必要があります`);
+      fail(`${label}.start/end must be >= 0`);
     } else if (value.end <= value.start) {
-      fail(`${label} は end > start を満たす必要があります`);
+      fail(`${label} must satisfy end > start`);
     }
   }
 }
 
 function rejectUnknownFields(value, allowed, label) {
   for (const field of Object.keys(value)) {
-    if (!allowed.includes(field)) fail(`${label}.${field} は未定義のフィールドです`);
+    if (!allowed.includes(field)) fail(`${label}.${field} is an unknown field`);
   }
 }
 
 function validateNonEmptyString(value, label) {
-  if (!isNonEmptyString(value)) fail(`${label} は空でない文字列である必要があります`);
+  if (!isNonEmptyString(value)) fail(`${label} must be a non-empty string`);
 }
 
 function isRegularFile(filePath) {

@@ -40,7 +40,7 @@ function pickHand(detections, chirality, sourceWidth, sourceHeight) {
 // Returns one entry per input sample: { t, left: {thumb,index,dist} | null, right: (same) | null }.
 export function extractHandSamples(samples, { sourceWidth, sourceHeight }) {
   if (!(sourceWidth > 0) || !(sourceHeight > 0)) {
-    throw new Error("extractHandSamples: sourceWidth/sourceHeight は正の数である必要があります");
+    throw new Error("extractHandSamples: sourceWidth/sourceHeight must be a positive number");
   }
   return (samples ?? []).map((sample) => ({
     t: sample.t,

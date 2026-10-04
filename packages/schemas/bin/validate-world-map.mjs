@@ -7,7 +7,7 @@ import path from "node:path";
 import { normalizeWorldMap } from "../../akari-tools/src/world/normalize.mjs";
 import { checkWorldMap } from "../../akari-tools/src/world/invariants.mjs";
 
-const usage = "使い方: node packages/schemas/bin/validate-world-map.mjs <project-root or world-map.json> [--strict] [--migrate] [--json]";
+const usage = "Usage: node packages/schemas/bin/validate-world-map.mjs <project-root or world-map.json> [--strict] [--migrate] [--json]";
 const args = process.argv.slice(2);
 if (args.includes("--help") || args.includes("-h")) {
   console.log(usage);
@@ -30,18 +30,18 @@ if (directory(file)) {
   file = regular(planned) ? planned : direct;
 }
 
-if (!regular(file)) finishFailure(`world-map.json が見つかりません: ${file}`);
+if (!regular(file)) finishFailure(`world-map.json was not found: ${file}`);
 
 let input;
 try {
   input = JSON.parse(fs.readFileSync(file, "utf8"));
 } catch (cause) {
-  finishFailure(`world-map.json を JSON として読めません: ${cause instanceof Error ? cause.message : String(cause)}`);
+  finishFailure(`world-map.json is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`);
 }
 
-if (!object(input)) finishFailure("ルートは object である必要があります");
+if (!object(input)) finishFailure("root must be an object");
 if (typeof input.schemaVersion === "number" && input.schemaVersion > 3) {
-  finishFailure(`schemaVersion ${input.schemaVersion} は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください`);
+  finishFailure(`schemaVersion ${input.schemaVersion} is newer than this validator supports. This file uses a newer format. Update the skills or the app.`);
 }
 
 const schemaVersionIn = input.schemaVersion ?? null;
@@ -66,7 +66,7 @@ if (jsonOutput) {
 process.exit(result.ok ? 0 : 1);
 
 function reportHuman(output) {
-  if (result.ok) output.write(`OK: ${file}（world ${map.worlds?.length ?? 0} / stop ${map.cameraStops?.length ?? 0} / edge ${map.edges?.length ?? 0}・warning ${warnings.length} 件）\n`);
+  if (result.ok) output.write(`OK: ${file} (worlds ${map.worlds?.length ?? 0}, stops ${map.cameraStops?.length ?? 0}, edges ${map.edges?.length ?? 0}, warnings ${warnings.length})\n`);
   else output.write(`NG: ${file}\n`);
   for (const finding of errors) output.write(`[${finding.code}] ${finding.message}\n`);
   for (const finding of warnings) output.write(`[${finding.code}] ${finding.message}\n`);
@@ -75,27 +75,27 @@ function reportHuman(output) {
 function validateSchema(value) {
   const findings = [];
   const fail = (message) => findings.push({ code: "SCHEMA", message });
-  if (!object(value)) return [{ code: "SCHEMA", message: "ルートは object である必要があります" }];
-  exact(value, ["schemaVersion", "kind", "worlds", "zones", "cameraStops", "edges", "retainedNodes"], ["schemaVersion", "kind", "worlds", "zones", "cameraStops", "edges", "retainedNodes", "inventory"], "ルート", fail);
-  if (value.schemaVersion !== 3) fail("schemaVersion は 3 である必要があります");
-  if (!oneOf(value.kind, ["flat", "spatial"])) fail("kind は flat / spatial のいずれかである必要があります");
-  if (!Array.isArray(value.worlds) || value.worlds.length < 1) fail("worlds は 1 件以上の配列である必要があります");
+  if (!object(value)) return [{ code: "SCHEMA", message: "root must be an object" }];
+  exact(value, ["schemaVersion", "kind", "worlds", "zones", "cameraStops", "edges", "retainedNodes"], ["schemaVersion", "kind", "worlds", "zones", "cameraStops", "edges", "retainedNodes", "inventory"], "root", fail);
+  if (value.schemaVersion !== 3) fail("schemaVersion must be 3");
+  if (!oneOf(value.kind, ["flat", "spatial"])) fail("kind must be one of flat / spatial");
+  if (!Array.isArray(value.worlds) || value.worlds.length < 1) fail("worlds must be an array of at least 1 item");
   for (const [index, world] of entries(value.worlds)) {
     exact(world, ["id", "label", value.kind], ["id", "label", "palette", "flat", "spatial"], `worlds[${index}]`, fail);
     string(world?.id, `worlds[${index}].id`, fail);
     string(world?.label, `worlds[${index}].label`, fail);
     if (world?.palette !== undefined) {
       exact(world.palette, ["background", "dots", "accent"], ["background", "dots", "accent", "haze"], `worlds[${index}].palette`, fail);
-      for (const [key, color] of Object.entries(world.palette ?? {})) if (!/^#[0-9a-fA-F]{6}$/.test(color)) fail(`worlds[${index}].palette.${key} は 6 桁 hex である必要があります`);
+      for (const [key, color] of Object.entries(world.palette ?? {})) if (!/^#[0-9a-fA-F]{6}$/.test(color)) fail(`worlds[${index}].palette.${key} must be a 6-digit hex value`);
     }
     if (value.kind === "flat") {
       exact(world?.flat, ["bounds", "pattern"], ["bounds", "pattern", "far"], `worlds[${index}].flat`, fail);
       vector(world?.flat?.bounds, 4, `worlds[${index}].flat.bounds`, fail);
-      if (!oneOf(world?.flat?.pattern, ["dots", "grid", "none"])) fail(`worlds[${index}].flat.pattern が未定義です`);
+      if (!oneOf(world?.flat?.pattern, ["dots", "grid", "none"])) fail(`worlds[${index}].flat.pattern is not defined`);
       if (world?.flat?.far !== undefined) for (const [farIndex, far] of entries(world.flat.far)) {
         exact(far, ["z", "color"], ["z", "color"], `worlds[${index}].flat.far[${farIndex}]`, fail);
-        if (!number(far?.z) || far.z < 0 || far.z > 1) fail(`worlds[${index}].flat.far[${farIndex}].z は 0 以上 1 以下です`);
-        if (!/^#[0-9a-fA-F]{6}$/.test(far?.color)) fail(`worlds[${index}].flat.far[${farIndex}].color は 6 桁 hex です`);
+        if (!number(far?.z) || far.z < 0 || far.z > 1) fail(`worlds[${index}].flat.far[${farIndex}].z must be between 0 and 1`);
+        if (!/^#[0-9a-fA-F]{6}$/.test(far?.color)) fail(`worlds[${index}].flat.far[${farIndex}].color must be a 6-digit hex value`);
       }
     } else {
       exact(world?.spatial, ["c"], ["c", "floor", "background", "haze"], `worlds[${index}].spatial`, fail);
@@ -105,54 +105,54 @@ function validateSchema(value) {
         vector(world.spatial.floor.center, 3, `worlds[${index}].spatial.floor.center`, fail);
         vector(world.spatial.floor.size, 2, `worlds[${index}].spatial.floor.size`, fail);
       }
-      for (const key of ["background", "haze"]) if (world?.spatial?.[key] !== undefined && !numberArray(world.spatial[key])) fail(`worlds[${index}].spatial.${key} は number 配列です`);
+      for (const key of ["background", "haze"]) if (world?.spatial?.[key] !== undefined && !numberArray(world.spatial[key])) fail(`worlds[${index}].spatial.${key} must be an array of numbers`);
     }
   }
-  if (!Array.isArray(value.zones)) fail("zones は配列である必要があります");
+  if (!Array.isArray(value.zones)) fail("zones must be an array");
   for (const [index, zone] of entries(value.zones)) {
     exact(zone, ["id", "world", "c"], ["id", "label", "world", "c"], `zones[${index}]`, fail);
     string(zone?.id, `zones[${index}].id`, fail); string(zone?.world, `zones[${index}].world`, fail);
     if (zone?.label !== undefined) string(zone.label, `zones[${index}].label`, fail);
     vector(zone?.c, value.kind === "flat" ? 2 : 3, `zones[${index}].c`, fail);
   }
-  if (!Array.isArray(value.cameraStops)) fail("cameraStops は配列である必要があります");
+  if (!Array.isArray(value.cameraStops)) fail("cameraStops must be an array");
   for (const [index, stop] of entries(value.cameraStops)) {
     const needed = value.kind === "flat" ? ["id", "world", "at", "leave", "c"] : ["id", "world", "at", "leave", "eye", "target"];
     exact(stop, needed, ["id", "label", "world", "at", "leave", "c", "eye", "target"], `cameraStops[${index}]`, fail);
     string(stop?.id, `cameraStops[${index}].id`, fail); string(stop?.world, `cameraStops[${index}].world`, fail);
-    if (!number(stop?.at) || !number(stop?.leave)) fail(`cameraStops[${index}] の at / leave は number です`);
+    if (!number(stop?.at) || !number(stop?.leave)) fail(`cameraStops[${index}] at and leave must be numbers`);
     if (value.kind === "flat") vector(stop?.c, 3, `cameraStops[${index}].c`, fail);
     else { vector(stop?.eye, 3, `cameraStops[${index}].eye`, fail); vector(stop?.target, 3, `cameraStops[${index}].target`, fail); }
   }
-  if (!Array.isArray(value.edges)) fail("edges は配列である必要があります");
+  if (!Array.isArray(value.edges)) fail("edges must be an array");
   for (const [index, edge] of entries(value.edges)) {
     exact(edge, ["id", "from", "to", "type", "t0", "t1", "transition"], ["id", "from", "to", "type", "t0", "t1", "switchTime", "transition", "via", "carry", "easing"], `edges[${index}]`, fail);
     for (const key of ["id", "from", "to"]) string(edge?.[key], `edges[${index}].${key}`, fail);
-    if (!oneOf(edge?.type, ["move", "portal", "cut"])) fail(`edges[${index}].type が未定義です`);
-    for (const key of ["t0", "t1"]) if (!number(edge?.[key])) fail(`edges[${index}].${key} は number です`);
-    if (edge?.switchTime !== undefined && !number(edge.switchTime)) fail(`edges[${index}].switchTime は number です`);
+    if (!oneOf(edge?.type, ["move", "portal", "cut"])) fail(`edges[${index}].type is not defined`);
+    for (const key of ["t0", "t1"]) if (!number(edge?.[key])) fail(`edges[${index}].${key} must be a number`);
+    if (edge?.switchTime !== undefined && !number(edge.switchTime)) fail(`edges[${index}].switchTime must be a number`);
     exact(edge?.transition, ["kind", "cover"], ["kind", "cover"], `edges[${index}].transition`, fail);
-    if (!oneOf(edge?.transition?.kind, ["none", "dive", "mist", "occluder", "fade", "push"])) fail(`edges[${index}].transition.kind が未定義です`);
-    if (edge?.transition?.cover !== null && !number(edge?.transition?.cover)) fail(`edges[${index}].transition.cover は number または null です`);
+    if (!oneOf(edge?.transition?.kind, ["none", "dive", "mist", "occluder", "fade", "push"])) fail(`edges[${index}].transition.kind is not defined`);
+    if (edge?.transition?.cover !== null && !number(edge?.transition?.cover)) fail(`edges[${index}].transition.cover must be a number or null`);
     if (edge?.via !== undefined) string(edge.via, `edges[${index}].via`, fail);
-    if (edge?.carry !== undefined && !stringArray(edge.carry)) fail(`edges[${index}].carry は string 配列です`);
-    if (edge?.easing !== undefined && !oneOf(edge.easing, ["ease-in-out", "linear"])) fail(`edges[${index}].easing が未定義です`);
+    if (edge?.carry !== undefined && !stringArray(edge.carry)) fail(`edges[${index}].carry must be an array of strings`);
+    if (edge?.easing !== undefined && !oneOf(edge.easing, ["ease-in-out", "linear"])) fail(`edges[${index}].easing is not defined`);
   }
-  if (!stringArray(value.retainedNodes)) fail("retainedNodes は string 配列である必要があります");
-  if (value.inventory !== undefined && !Array.isArray(value.inventory)) fail("inventory は配列である必要があります");
+  if (!stringArray(value.retainedNodes)) fail("retainedNodes must be an array of strings");
+  if (value.inventory !== undefined && !Array.isArray(value.inventory)) fail("inventory must be an array");
   return findings;
 }
 
 function exact(value, required, allowed, label, fail) {
-  if (!object(value)) { fail(`${label} は object である必要があります`); return; }
-  for (const key of required) if (!Object.hasOwn(value, key)) fail(`${label} に必須キー ${key} がありません`);
-  for (const key of Object.keys(value)) if (!allowed.includes(key)) fail(`${label}.${key} は未定義です`);
+  if (!object(value)) { fail(`${label} must be an object`); return; }
+  for (const key of required) if (!Object.hasOwn(value, key)) fail(`${label} is missing required key ${key}`);
+  for (const key of Object.keys(value)) if (!allowed.includes(key)) fail(`${label}.${key} is an unknown field`);
 }
-function vector(value, length, label, fail) { if (!Array.isArray(value) || value.length !== length || !value.every(number)) fail(`${label} は number ${length} 要素です`); }
+function vector(value, length, label, fail) { if (!Array.isArray(value) || value.length !== length || !value.every(number)) fail(`${label} must be an array of ${length} numbers`); }
 function entries(value) { return Array.isArray(value) ? value.entries() : []; }
 function object(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function number(value) { return typeof value === "number" && Number.isFinite(value); }
-function string(value, label, fail) { if (typeof value !== "string" || value.length === 0) fail(`${label} は空でない string です`); }
+function string(value, label, fail) { if (typeof value !== "string" || value.length === 0) fail(`${label} must be a non-empty string`); }
 function oneOf(value, choices) { return choices.includes(value); }
 function stringArray(value) { return Array.isArray(value) && value.every((item) => typeof item === "string"); }
 function numberArray(value) { return Array.isArray(value) && value.every(number); }

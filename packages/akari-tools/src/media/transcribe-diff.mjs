@@ -11,35 +11,35 @@ export function comparisonTarget(argument, options) {
     target = resolveTarget(argument, options);
     accessSync(target.inputPath, constants.R_OK);
   } catch (error) {
-    throw Object.assign(new Error(`素材を読めません: ${error.message}`), { exitCode: 2 });
+    throw Object.assign(new Error(`Could not read the footage: ${error.message}`), { exitCode: 2 });
   }
-  if (!transcriptsDirForTarget(target)) throw new Error("プロジェクト内の素材を指定してください");
+  if (!transcriptsDirForTarget(target)) throw new Error("Specify footage inside the project");
   return target;
 }
 
 export async function readJson(file) {
   try { return JSON.parse(await readFile(file, "utf8")); }
-  catch (error) { throw new Error(`JSON を読めません: ${file}（${error.code ?? "形式不正"}）`); }
+  catch (error) { throw new Error(`Could not read JSON: ${file} (${error.code ?? "invalid format"})`); }
 }
 
 export async function readEngineTranscripts(target, engines) {
   const directory = transcriptsDirForTarget(target);
   let files;
   try { files = await readdir(directory); }
-  catch { throw new Error("transcripts が見つかりません。先に文字起こしを実行してください"); }
+  catch { throw new Error("transcripts was not found. Run transcription first"); }
   const available = files.filter((file) => /^[A-Za-z0-9_-]+\.json$/.test(file)).sort();
   const names = engines === undefined ? available.map((file) => file.slice(0, -5))
     : (Array.isArray(engines) ? engines : String(engines).split(",")).map((name) => name.trim().replace(/:/g, "-"));
   if (!names.length || names.some((name) => !/^[A-Za-z0-9_-]+$/.test(name)) || new Set(names).size !== names.length) {
-    throw new Error("比較するエンジンを重複なく指定してください");
+    throw new Error("Specify the engines to compare without duplicates");
   }
   const transcripts = [];
   for (const name of names) {
-    if (!available.includes(`${name}.json`)) throw new Error(`エンジンの文字起こしがありません: ${name}`);
+    if (!available.includes(`${name}.json`)) throw new Error(`No transcript for engine: ${name}`);
     const transcript = await readJson(path.join(directory, `${name}.json`));
     if (transcript?.version !== 1 || transcript.backend?.replace(/:/g, "-") !== name
       || !Array.isArray(transcript.segments) || transcript.segments.some((segment) => !validSegment(segment))) {
-      throw new Error(`文字起こしの形式が不正です: ${name}`);
+      throw new Error(`Invalid transcript format: ${name}`);
     }
     transcripts.push({ ...transcript, backend: name, segments: [...transcript.segments].sort((a, b) => a.start - b.start || a.end - b.end) });
   }

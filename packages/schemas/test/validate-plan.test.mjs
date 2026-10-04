@@ -24,44 +24,44 @@ test("valid plan passes without findings", () => {
 test("duplicate slot ids fail", () => {
   const executed = run("invalid-duplicate-slot-id");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /slots\[\]\.id が重複しています: s-dup/);
+  assert.match(executed.stderr, /slots\[\]\.id is duplicated: s-dup/);
 });
 
 test("missing required slot field fails", () => {
   const executed = run("invalid-missing-required-field");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /target_duration_seconds は必須です/);
+  assert.match(executed.stderr, /target_duration_seconds is required/);
 });
 
 test("unknown confidence value fails", () => {
   const executed = run("invalid-bad-confidence-enum");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /confidence は proposed \/ locked \/ filled/);
+  assert.match(executed.stderr, /confidence must be one of proposed \/ locked \/ filled/);
 });
 
 test("constraint referencing a missing slot fails", () => {
   const executed = run("invalid-constraint-bad-applies-to");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /applies_to が slots\[\]\.id を参照していません: s-nope/);
+  assert.match(executed.stderr, /applies_to does not reference a slots\[\]\.id: s-nope/);
 });
 
 test("dangling media path fails", () => {
   const executed = run("invalid-dangling-media-path");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /image_path が実ファイルに解決できません/);
+  assert.match(executed.stderr, /image_path does not resolve to a real file/);
 });
 
 test("newer plan.json version stops honestly", () => {
   const executed = run("unsupported-version");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(executed.stderr, /This file uses a newer format\. Update the skills or the app\./);
 });
 
 test("confidence gaps and duration_exact drift warn without failing", () => {
   const executed = run("warns-confidence-gap");
   assert.equal(executed.status, 0, executed.stderr);
-  assert.match(executed.stderr, /fill\.method が未決/);
-  assert.match(executed.stderr, /media がすべて null/);
-  assert.match(executed.stderr, /duration_exact .* と一致していません/);
+  assert.match(executed.stderr, /fill\.method is undecided/);
+  assert.match(executed.stderr, /all media fields are null/);
+  assert.match(executed.stderr, /does not match duration_exact/);
   assert.match(executed.stdout, /warnings\)/);
 });

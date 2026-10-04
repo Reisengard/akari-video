@@ -144,9 +144,9 @@ test("captions emphasis_words accepts a textstyle catalog style_preset", () => {
 });
 
 for (const [example, message] of [
-  ["captions-emphasis-words-invalid-id", /emphasis_words\[0\]\.id は e- に続く 4 桁/u],
-  ["captions-emphasis-words-empty-word", /emphasis_words\[0\]\.word は空でない文字列/u],
-  ["captions-emphasis-words-missing-emotion", /emphasis_words\[0\]\.emotion は空でない文字列/u],
+  ["captions-emphasis-words-invalid-id", /emphasis_words\[0\]\.id must be e- followed by 4 digits/u],
+  ["captions-emphasis-words-empty-word", /emphasis_words\[0\]\.word must be a non-empty string/u],
+  ["captions-emphasis-words-missing-emotion", /emphasis_words\[0\]\.emotion must be a non-empty string/u],
 ]) {
   test(`${example} fails deterministically`, () => {
     const executed = run(example);
@@ -159,8 +159,8 @@ for (const [example, message] of [
 test("captions emphasis_words requires t_end > t_start", () => {
   const executed = run("captions-emphasis-words-range-invalid");
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /emphasis_words\[0\]\.t_end は t_start より大きい/u);
-  assert.match(executed.stderr, /emphasis_words\[1\]\.t_end は t_start より大きい/u);
+  assert.match(executed.stderr, /emphasis_words\[0\]\.t_end must be greater than t_start/u);
+  assert.match(executed.stderr, /emphasis_words\[1\]\.t_end must be greater than t_start/u);
 });
 
 test("captions array root has no emphasis_words seat", () => {
@@ -171,7 +171,7 @@ test("captions array root has no emphasis_words seat", () => {
     }],
   }]);
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /captions\[0\] に未知のキーがあります: emphasis_words/u);
+  assert.match(executed.stderr, /captions\[0\] has an unknown key: emphasis_words/u);
 });
 
 for (const captionsPath of [
@@ -245,7 +245,7 @@ test("time_domain は source/output を受理し、省略時も後方互換で�
   }
   const invalid = runValue([{ ...caption, time_domain: "timeline" }]);
   assert.equal(invalid.status, 1, invalid.stdout);
-  assert.match(invalid.stderr, /time_domain は source または output/u);
+  assert.match(invalid.stderr, /time_domain must be source or output/u);
 });
 
 test("unrecognized は字幕範囲外も含めて妥当な昇順・非重複区間を受理する", () => {
@@ -260,14 +260,14 @@ test("unrecognized は字幕範囲外も含めて妥当な昇順・非重複区�
 test("unrecognized は配列と start/end の有限数形を要求する", () => {
   const notArray = runValue([{ ...caption, unrecognized: "unknown" }]);
   assert.equal(notArray.status, 1, notArray.stdout);
-  assert.match(notArray.stderr, /unrecognized は配列/u);
+  assert.match(notArray.stderr, /unrecognized must be an array/u);
 
   const malformed = runValue([{
     ...caption,
     unrecognized: [{ start: 1, end: "1.2", extra: true }],
   }]);
   assert.equal(malformed.status, 1, malformed.stdout);
-  assert.match(malformed.stderr, /未知のキーがあります: extra/u);
+  assert.match(malformed.stderr, /has an unknown key: extra/u);
   assert.match(malformed.stderr, /0 <= start <= end/u);
 });
 
@@ -277,7 +277,7 @@ test("unrecognized は start 昇順かつ非重複を要求する", () => {
     unrecognized: [{ start: 1.2, end: 1.7 }, { start: 1.6, end: 1.9 }],
   }]);
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /start 昇順かつ前の区間と非重複/u);
+  assert.match(executed.stderr, /ascending starts that do not overlap the previous span/u);
 });
 
 test("display policy, manual fragments, and reference-pixel style pass together", () => {
@@ -318,7 +318,7 @@ test('display_fragments accepts three and six items, then rejects seven', () => 
     captions: [{ ...caption, text: fragments.join(''), display_fragments: fragments }],
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /1〜6 件/u);
+  assert.match(executed.stderr, /must be 1 to 6 NFC strings/u);
 });
 
 test("display_policy lines/wrap and text_style scale/rotate accept their contract ranges", () => {
@@ -349,8 +349,8 @@ test("display_policy lines/wrap and text_style scale/rotate reject out-of-range 
 
 test("display fragments fail closed on text loss, style conflict, and non-NFC text", () => {
   for (const [override, message] of [
-    [{ display_fragments: ["今回", "設定"] }, /表示文字列を厳密に保存/u],
-    [{ display_fragments: ["今回", "設定します"], style: "karaoke" }, /display_policy と併用できません/u],
+    [{ display_fragments: ["今回", "設定"] }, /must preserve the display text exactly/u],
+    [{ display_fragments: ["今回", "設定します"], style: "karaoke" }, /cannot be combined with display_policy/u],
     [{ text: "e\u0301", display_fragments: ["e\u0301"] }, /NFC/u],
   ]) {
     const executed = runValue({ display_policy: displayPolicy, captions: [{ ...caption, ...override }] });
@@ -376,7 +376,7 @@ test("reference-pixel geometry rejects an overflowing box and unsupported max_li
     captions: [caption],
   });
   assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stderr, /参照幅内/u);
+  assert.match(executed.stderr, /within the reference width/u);
   assert.match(executed.stderr, /max_lines=1/u);
 });
 
@@ -455,7 +455,7 @@ test("text_style.reference_height_px は integer >= 1 を受理し、layout と�
     captions: [{ ...caption, text_style: { reference_height_px: 720 } }],
   });
   assert.equal(merged.status, 1, merged.stdout);
-  assert.match(merged.stderr, /layout と reference_height_px を併用できません/u);
+  assert.match(merged.stderr, /cannot combine layout and reference_height_px/u);
 });
 
 test("caption record の style_preset は正しい id 形式を受理する", () => {
@@ -479,7 +479,7 @@ test("max_characters accepts default and per-caption positive integers", () => {
   });
   assert.equal(executed.status, 0, executed.stderr);
   assert.match(executed.stdout, /^OK: /);
-  assert.doesNotMatch(executed.stderr, /未知のキー/u);
+  assert.doesNotMatch(executed.stderr, /unknown key/u);
 });
 
 test("max_characters rejects non-positive integers and invalid types in either style seat", () => {
@@ -490,8 +490,8 @@ test("max_characters rejects non-positive integers and invalid types in either s
         captions: [{ ...caption, ...(!isDefault ? { text_style: { max_characters: value } } : {}) }],
       });
       assert.equal(executed.status, 1, executed.stdout);
-      assert.match(executed.stderr, /max_characters は 0 より大きい整数/u);
-      assert.doesNotMatch(executed.stderr, /未知のキー/u);
+      assert.match(executed.stderr, /max_characters must be an integer > 0/u);
+      assert.doesNotMatch(executed.stderr, /unknown key/u);
     }
   }
 });

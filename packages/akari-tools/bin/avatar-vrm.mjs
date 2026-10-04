@@ -20,7 +20,7 @@ function availability() {
   try { ffmpeg = resolveFfmpeg(); }
   catch (error) { return { available: false, reason: summary(error.message, "ffmpeg not found") }; }
   const chrome = process.env.AKARI_CHROME_BIN?.trim() || process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || findChrome();
-  if (!chrome || !existsSync(chrome)) return { available: false, reason: "この機能には Chrome が必要です（`AKARI_CHROME_BIN` で指定）" };
+  if (!chrome || !existsSync(chrome)) return { available: false, reason: "Chrome is required (set `AKARI_CHROME_BIN` to its path)" };
   return { available: true, ffmpeg, chrome };
 }
 
@@ -31,7 +31,7 @@ function loadOutputSize(options) {
   const width = Number(edit.output?.width ?? options.outputWidth);
   const height = Number(edit.output?.height ?? options.outputHeight);
   if (!Number.isInteger(width) || width <= 0 || !Number.isInteger(height) || height <= 0) {
-    throw new Error("edit.json output.width/height が不正です");
+    throw new Error("edit.json output.width/height is invalid");
   }
   return { width, height, editPath };
 }
@@ -39,15 +39,15 @@ function loadOutputSize(options) {
 async function main() {
   let options;
   try { options = parseArguments(process.argv.slice(2)); }
-  catch (error) { printJson({ ok: false, reason: summary(error.message, "引数が不正です") }); process.exitCode = 2; return; }
+  catch (error) { printJson({ ok: false, reason: summary(error.message, "Invalid arguments") }); process.exitCode = 2; return; }
   if (options.check) { printJson(availability()); return; }
   if (!options.model || !options.drive || !options.out) {
-    printJson({ ok: false, reason: "--model <path.vrm>、--drive <path.json>、--out <path.mov> が必要です" });
+    printJson({ ok: false, reason: "--model <path.vrm>, --drive <path.json> and --out <path.mov> are required" });
     process.exitCode = 2;
     return;
   }
   if (!existsSync(options.model) || !existsSync(options.drive)) {
-    printJson({ ok: false, reason: "model または drive ファイルが見つかりません" });
+    printJson({ ok: false, reason: "The model or drive file was not found" });
     process.exitCode = 2;
     return;
   }
@@ -112,7 +112,7 @@ async function main() {
     }
     printJson(result);
   } catch (error) {
-    printJson({ ok: false, reason: summary(error.message, "avatar-vrm 生成に失敗しました") });
+    printJson({ ok: false, reason: summary(error.message, "avatar-vrm Generation failed") });
     process.exitCode = 1;
   }
 }

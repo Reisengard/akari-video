@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
-const usage = "使い方: node packages/schemas/bin/validate-motion.mjs <motion/*.json>";
+const usage = "Usage: node packages/schemas/bin/validate-motion.mjs <motion/*.json>";
 const motionArgument = process.argv[2];
 
 if (!motionArgument || process.argv.length !== 3) {
@@ -25,7 +25,7 @@ try {
   motion = JSON.parse(fs.readFileSync(motionPath, "utf8"));
 } catch (error) {
   console.error(`NG: ${motionPath}`);
-  console.error(`- motion JSON を読めません: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`- motion JSON could not be read: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 
@@ -48,7 +48,7 @@ for (const [itemId, keyframes] of Object.entries(motion.items)) {
   for (const [index, keyframe] of keyframes.entries()) {
     if (keyframe.t <= previous) {
       console.error(`NG: ${motionPath}`);
-      console.error(`- /items/${itemId}/${index}/t: 昇順かつ重複禁止です`);
+      console.error(`- /items/${itemId}/${index}/t: must be ascending and unique`);
       process.exit(1);
     }
     previous = keyframe.t;

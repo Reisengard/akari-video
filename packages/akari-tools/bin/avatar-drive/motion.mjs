@@ -59,16 +59,16 @@ function smoothingAlpha(fps, seconds) {
 export function buildMotionFrames({
   mouthStates, fps, intensity = MOTION_DEFAULTS.intensity, seed, width, height, headStates = null,
 }) {
-  if (!Array.isArray(mouthStates) || mouthStates.length === 0) throw new Error("mouthStates は空でない配列です");
-  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps は正数である必要があります");
+  if (!Array.isArray(mouthStates) || mouthStates.length === 0) throw new Error("mouthStates must be a non-empty array");
+  if (!(Number.isFinite(fps) && fps > 0)) throw new Error("fps must be a positive number");
   if (!(Number.isFinite(intensity) && intensity >= 0 && intensity <= 1)) {
-    throw new Error("motion intensity は 0 以上 1 以下である必要があります");
+    throw new Error("motion intensity must be from 0 to 1 inclusive");
   }
   if (!(Number.isInteger(width) && width >= 2 && Number.isInteger(height) && height >= 2)) {
-    throw new Error("sprite size が不正です");
+    throw new Error("sprite size is invalid");
   }
   if (headStates !== null && (!Array.isArray(headStates) || headStates.length !== mouthStates.length)) {
-    throw new Error("headStates と mouthStates の長さが一致しません");
+    throw new Error("headStates and mouthStates differ in length");
   }
   if (intensity === 0) return mouthStates.map(identityFrame);
 

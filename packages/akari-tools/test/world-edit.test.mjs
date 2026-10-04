@@ -55,7 +55,7 @@ test('存在しない stop・c 欠落・非有限数は throw する', () => {
   const source = JSON.stringify(map(), null, 2);
   assert.throws(() => replaceStopCoordinate(source, 'missing', [1, 2]), /cameraStops/);
   const withoutC = source.replace(/,\n\s+"c": \[\n\s+10,\n\s+20,\n\s+1\n\s+\]/u, '');
-  assert.throws(() => replaceStopCoordinate(withoutC, 'a', [1, 2]), /c がありません/);
+  assert.throws(() => replaceStopCoordinate(withoutC, 'a', [1, 2]), /has no c/);
   assert.throws(() => replaceStopCoordinate(source, 'a', [Infinity, 2]), TypeError);
 });
 
@@ -94,7 +94,7 @@ test('moveWorldStop は全検査通過時だけ書き込む', async t => {
     const { root, text } = await fixture(value);
     const result = await moveWorldStop(root, { stopId: 'atelier-desk', c: [11, 13, 1.2] });
     assert.equal(result.ok, true);
-    assert.deepEqual(result.notes, ['cover が未測定です。`akari world preview --measure` を先に']);
+    assert.deepEqual(result.notes, ['The cover is not measured. Run `akari world preview --measure` first']);
     const after = JSON.parse(await readFile(path.join(root, 'planning/world-map.json'), 'utf8'));
     const before = JSON.parse(text);
     before.cameraStops.find((stop) => stop.id === 'atelier-desk').c = [11, 13, 1.2];
@@ -103,14 +103,14 @@ test('moveWorldStop は全検査通過時だけ書き込む', async t => {
   await t.test('書き戻しで新たに生じた C7 は案内付きで拒む', async () => {
     const { root, text } = await fixture();
     const check = value => ({
-      errors: value.cameraStops[0].c[0] === 10 ? [] : [{ code: 'C7', message: 'cut edge synthetic の cover が未測定です' }],
+      errors: value.cameraStops[0].c[0] === 10 ? [] : [{ code: 'C7', message: 'cover of cut edge synthetic is not measured' }],
       warnings: [],
     });
     const result = await moveWorldStop(root, { stopId: 'a', c: [11, 21, 1], check });
     assert.equal(result.ok, false);
     assert.equal(result.code, 'INVARIANT');
-    assert.match(result.reason, /cover が未測定です。`akari world preview --measure` を先に$/);
-    assert.deepEqual(result.errors, [{ code: 'C7', message: 'cut edge synthetic の cover が未測定です' }]);
+    assert.match(result.reason, /The cover is not measured. Run `akari world preview --measure` first$/);
+    assert.deepEqual(result.errors, [{ code: 'C7', message: 'cover of cut edge synthetic is not measured' }]);
     assert.equal(await readFile(path.join(root, 'planning/world-map.json'), 'utf8'), text);
   });
   for (const entry of [

@@ -38,7 +38,7 @@ function parseArguments(argv) {
     if (argument === "--check") { options.check = true; continue; }
     if (argument === "--apply") { options.apply = true; continue; }
     const value = argv[++index];
-    if (value === undefined || value.startsWith("--")) throw new Error(`${argument} の値がありません`);
+    if (value === undefined || value.startsWith("--")) throw new Error(`${argument} requires a value`);
     if (argument === "--analysis") options.analysis = resolve(value);
     else if (argument === "--edit") options.edit = resolve(value);
     else if (argument === "--source-id") options.sourceId = value;
@@ -49,15 +49,15 @@ function parseArguments(argv) {
     else if (argument === "--min-confidence") options.minConfidence = Number(value);
     else if (argument === "--out-dir") options.outDir = resolve(value);
     else if (argument === "--layer-id-prefix") options.layerIdPrefix = value;
-    else throw new Error(`不明な引数です: ${argument}`);
+    else throw new Error(`Unknown option: ${argument}`);
   }
-  if (!(options.strokeWidth > 0)) throw new Error("--stroke-width は 0 より大きい px 値です");
-  if (!(options.jointRadius > 0)) throw new Error("--joint-radius は 0 より大きい px 値です");
+  if (!(options.strokeWidth > 0)) throw new Error("--stroke-width must be a px value greater than 0");
+  if (!(options.jointRadius > 0)) throw new Error("--joint-radius must be a px value greater than 0");
   if (!Number.isInteger(options.smoothing) || options.smoothing < 1) {
-    throw new Error("--smoothing は 1 以上の整数（移動平均 window、1 は平滑化なし）です");
+    throw new Error("--smoothing must be an integer >= 1 (moving-average window; 1 means no smoothing)");
   }
   if (!(options.minConfidence >= 0 && options.minConfidence <= 1)) {
-    throw new Error("--min-confidence は 0..1 です");
+    throw new Error("--min-confidence must be between 0 and 1");
   }
   return options;
 }
@@ -65,11 +65,11 @@ function parseArguments(argv) {
 function loadTrack(analysisPath) {
   const analysis = JSON.parse(readFileSync(analysisPath, "utf8"));
   const pointer = analysis?.tracks?.body_pose_3d;
-  if (!pointer?.path) throw new Error("analysis.json に tracks.body_pose_3d がありません");
+  if (!pointer?.path) throw new Error("analysis.json has no tracks.body_pose_3d");
   const trackPath = isAbsolute(pointer.path) ? pointer.path : resolve(dirname(analysisPath), pointer.path);
-  if (!existsSync(trackPath)) throw new Error(`body-pose-3d トラックが見つかりません: ${trackPath}`);
+  if (!existsSync(trackPath)) throw new Error(`body-pose-3d track was not found: ${trackPath}`);
   const track = JSON.parse(readFileSync(trackPath, "utf8"));
-  if (track?.kind !== "body-pose-3d") throw new Error("track.kind が body-pose-3d ではありません");
+  if (track?.kind !== "body-pose-3d") throw new Error("track.kind is not body-pose-3d");
   return { trackPath, track };
 }
 
@@ -77,18 +77,18 @@ async function main() {
   let options;
   try { options = parseArguments(process.argv.slice(2)); }
   catch (error) {
-    printJson({ ok: false, reason: summary(error.message, "引数が不正です") });
+    printJson({ ok: false, reason: summary(error.message, "Invalid arguments") });
     process.exitCode = 2;
     return;
   }
   if (options.check) { printJson(checkMediaAvailability()); return; }
   if (!options.analysis || !options.edit) {
-    printJson({ ok: false, reason: "--analysis と --edit が必要です" });
+    printJson({ ok: false, reason: "--analysis and --edit are required" });
     process.exitCode = 2;
     return;
   }
   if (!existsSync(options.analysis) || !existsSync(options.edit)) {
-    printJson({ ok: false, reason: "analysis.json または edit.json が見つかりません" });
+    printJson({ ok: false, reason: "analysis.json or edit.json was not found" });
     process.exitCode = 1;
     return;
   }
@@ -104,12 +104,12 @@ async function main() {
     if (!sourceResolution.ok) throw new Error(sourceResolution.reason);
     const sourcePath = resolve(dirname(trackPath), track.source.path);
     const probed = probeSourceDisplaySize(sourcePath);
-    if (!probed.ok) throw new Error(`source の寸法を取得できません: ${probed.reason}`);
+    if (!probed.ok) throw new Error(`Could not read the source dimensions: ${probed.reason}`);
     const canvasWidth = Number(edit?.output?.width);
     const canvasHeight = Number(edit?.output?.height);
     const fps = Number(edit?.output?.fps || 30);
     if (!(canvasWidth > 0 && canvasHeight > 0 && fps > 0)) {
-      throw new Error("edit.json output の width/height/fps が不正です");
+      throw new Error("edit.json output width/height/fps is invalid");
     }
     const projectRoot = dirname(options.edit);
     const outDir = options.outDir ?? join(projectRoot, ".akari", "cache", "pose-skeleton");
@@ -136,7 +136,7 @@ async function main() {
     const assets = [];
     for (let index = 0; index < plan.jobs.length; index += 1) {
       const baked = bakeSkeletonClip(plan.jobs[index]);
-      if (!baked.ok) throw new Error(`clip ${index} のベイクに失敗しました: ${baked.reason}`);
+      if (!baked.ok) throw new Error(`Baking clip ${index} failed: ${baked.reason}`);
       plan.layers[index].src = relative(projectRoot, baked.outPath).split(sep).join("/");
       assets.push({
         path: baked.outPath,
@@ -159,7 +159,7 @@ async function main() {
     }
     printJson(output);
   } catch (error) {
-    printJson({ ok: false, reason: summary(error.message, "pose-skeleton 生成に失敗しました") });
+    printJson({ ok: false, reason: summary(error.message, "pose-skeleton Generation failed") });
     process.exitCode = 1;
   }
 }

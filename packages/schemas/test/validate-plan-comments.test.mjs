@@ -32,43 +32,43 @@ test("unknown top-level and comment fields still pass (tolerant reader)", () => 
 test("missing version fails", () => {
   const executed = run("invalid-missing-version");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /version は必須です/);
+  assert.match(executed.stderr, /version is required/);
 });
 
 test("unknown pass value fails", () => {
   const executed = run("invalid-bad-pass");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /pass は structure \/ scaffold \/ final/);
+  assert.match(executed.stderr, /pass must be one of structure \/ scaffold \/ final/);
 });
 
 test("comments not an array fails", () => {
   const executed = run("invalid-comments-not-array");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /comments は配列である必要があります/);
+  assert.match(executed.stderr, /comments must be an array/);
 });
 
 test("missing required comment field fails", () => {
   const executed = run("invalid-missing-comment-field");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /comments\[0\]\.target_id は必須です/);
+  assert.match(executed.stderr, /comments\[0\]\.target_id is required/);
 });
 
 test("unknown target_kind value fails", () => {
   const executed = run("invalid-bad-target-kind");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /target_kind は shot \/ slot \/ cut/);
+  assert.match(executed.stderr, /target_kind must be one of shot \/ slot \/ cut/);
 });
 
 test("non-numeric target_id for an index-based target_kind fails", () => {
   const executed = run("invalid-bad-target-id-for-index-kind");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /配列インデックスの数字文字列である必要があります: s-hook/);
+  assert.match(executed.stderr, /must be a numeric array-index string when target_kind is shot: s-hook/);
 });
 
 test("newer plan-comments.json version stops honestly", () => {
   const executed = run("unsupported-version");
   assert.equal(executed.status, 1);
-  assert.match(executed.stderr, /新しい形式です。スキル \/ アプリを更新してください/);
+  assert.match(executed.stderr, /This file uses a newer format\. Update the skills or the app\./);
 });
 
 test("scaffold comments accept persistent clip ids and legacy slot ids", () => {
