@@ -91,6 +91,6 @@ test('compiled host turns the context menu hook into the registered annotation m
     assert.ok(branch.includes('x: rect.x + rect.width * message.x'));
     assert.ok(branch.includes('y: rect.y + rect.height * message.y'));
     assert.ok(compiled.includes("id: 'akari.preview.annotateAtPoint'"));
-    assert.ok(compiled.includes("label: 'この位置に注釈'"));
+    assert.ok(compiled.includes("label: 'Annotate here'"));
     assert.ok(compiled.includes("'akari.review.clipAnnotation.request'"));
 });

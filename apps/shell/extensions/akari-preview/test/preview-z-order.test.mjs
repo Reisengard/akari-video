@@ -20,10 +20,10 @@ test('four z menu commands are visible only for one real output-preview selectio
     assert.equal(previewZOrderMenuVisible(invalid), false);
   }
   assert.deepEqual(PREVIEW_Z_ORDER_MENU_ITEMS.map(({ id, label, op, order }) => [id, label, op, order]), [
-    ['akari.preview.zOrder.front', '最前面へ', 'front', '1'],
-    ['akari.preview.zOrder.forward', '前面へ', 'forward', '2'],
-    ['akari.preview.zOrder.backward', '背面へ', 'backward', '3'],
-    ['akari.preview.zOrder.back', '最背面へ', 'back', '4']
+    ['akari.preview.zOrder.front', 'Bring to front', 'front', '1'],
+    ['akari.preview.zOrder.forward', 'Bring forward', 'forward', '2'],
+    ['akari.preview.zOrder.backward', 'Send backward', 'backward', '3'],
+    ['akari.preview.zOrder.back', 'Send to back', 'back', '4']
   ]);
   assert.match(host, /Z_ORDER_PREVIEW_MENU = \[\.\.\.WEBVIEW_CONTEXT_MENU, 'akari-preview-z-order'\]/u);
   assert.match(host, /registerMenuAction\(Z_ORDER_PREVIEW_MENU, \{\s*commandId: id, label, order/u);

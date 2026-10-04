@@ -134,7 +134,7 @@ test('pending capture accepts only its widget and page, rejects busy and timeout
     try {
         const timed = pending.begin('timeout', widget, 'page-1');
         fireTimeout();
-        await assert.rejects(timed, /タイムアウト/u);
+        await assert.rejects(timed, /timed out/u);
     } finally { globalThis.setTimeout = originalTimeout; }
 });
 

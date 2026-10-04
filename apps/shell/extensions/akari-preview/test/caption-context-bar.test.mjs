@@ -18,8 +18,8 @@ const state = { editUri: 'file:///edit.json', selectedId: 'cue-1', kind: 'captio
 
 test('字幕の上のメニューは試作 v2 の順で 1 段の項目を持つ', () => {
     assert.deepEqual(barItems(state).map(item => item.key), [...CAPTION_BAR_ORDER]);
-    assert.equal(barItems(state).at(0).label, 'フォント');
-    assert.equal(barItems(state).at(-1).label, 'スタイル');
+    assert.equal(barItems(state).at(0).label, 'Font');
+    assert.equal(barItems(state).at(-1).label, 'Style');
     assert.deepEqual(barItems({ ...state, selectedId: null }), []);
 });
 
@@ -56,9 +56,9 @@ test('畳んだ押下項目は一覧と「…」の点で示す', () => {
 test('「…」の字幕項目はアイコン・日本語名・オンの印を持つ', () => {
     const view = { state: { item: { textStyle: { underline: true } } }, captionPanel: null, openWindow: null };
     const html = PreviewContextBar.prototype.captionButton.call(view, 'captionUnderline', true);
-    assert.match(html, /aria-label="下線"[^>]*aria-pressed="true"/u);
+    assert.match(html, /aria-label="Underline"[^>]*aria-pressed="true"/u);
     assert.match(html, /akari-ctx-caption-overflow-icon/u);
-    assert.match(html, /akari-ctx-caption-overflow-name">下線/u);
+    assert.match(html, /akari-ctx-caption-overflow-name">Underline/u);
     assert.match(html, /akari-ctx-caption-overflow-check" aria-hidden="true">✓/u);
     assert.doesNotMatch(PreviewContextBar.prototype.captionButton.call(view, 'captionUnderline'),
         /akari-ctx-caption-overflow-name/u);
@@ -77,8 +77,8 @@ test('畳まれる字幕項目は全てアイコン 1 つと名前 1 つを分�
         assert.ok(!icon.includes(name), `${key}: icon must not repeat the name`);
         if (key === 'captionEffect' || key === 'captionAnimation') assert.match(icon, /<svg /u);
     }
-    assert.match(PreviewContextBar.prototype.captionButton.call(view, 'captionEffect'), />エフェクト<\/button>$/u);
-    assert.match(PreviewContextBar.prototype.captionButton.call(view, 'captionAnimation'), />アニメーション<\/button>$/u);
+    assert.match(PreviewContextBar.prototype.captionButton.call(view, 'captionEffect'), />Effect<\/button>$/u);
+    assert.match(PreviewContextBar.prototype.captionButton.call(view, 'captionAnimation'), />Animation<\/button>$/u);
 });
 
 test('Esc は字幕の窓・「…」だけを閉じ、窓なしは選択解除へ渡す', () => {

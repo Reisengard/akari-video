@@ -16,7 +16,7 @@ test('schema defaults off and explains next launch; singleton is bound as a fron
     assert.ok(schema);
     assert.match(schema, /type: 'boolean'/);
     assert.match(schema, /default: false/);
-    assert.match(schema, /description: '[^']*次回起動[^']*'/);
+    assert.match(schema, /description: '[^']*next launch[^']*'/);
     assert.match(moduleSource, /import \{ AkariGpuPreferenceContribution \} from '.\/akari-gpu-preference-contribution';/);
     assert.match(moduleSource, /bind\(AkariGpuPreferenceContribution\)\.toSelf\(\)\.inSingletonScope\(\)/);
     assert.match(moduleSource, /bind\(FrontendApplicationContribution\)\.toService\(AkariGpuPreferenceContribution\)/);
@@ -48,10 +48,10 @@ test('startup reconciliation is nonblocking, quiet when off, unsupported or alre
 });
 
 test('change notifications explain restart and failures include actionable reasons', () => {
-    assert.ok(apply.includes("'高性能 GPU の設定を書き込みました。次回起動から反映されます。'"));
-    assert.ok(apply.includes("'高性能 GPU の設定を元に戻しました。次回起動から反映されます。'"));
+    assert.ok(apply.includes("'Saved the high-performance GPU setting. It applies on the next launch.'"));
+    assert.ok(apply.includes("'Restored the high-performance GPU setting. It applies on the next launch.'"));
     assert.match(apply, /result.ok === false[^]*?warnReason\(result.reason\)[^]*?else if \(enabled\)/);
-    assert.match(source, /reason.startsWith\('unsupported'\)[^]*?messages.warn\('この環境では GPU の割り当てを変更できません。'\)/);
-    assert.match(source, /reason.startsWith\('user-preference'\)[^]*?Windows の「グラフィックスの設定」で変更してください。/);
-    assert.ok(source.includes('高性能 GPU の設定を変更できませんでした: ${reason}'));
+    assert.match(source, /reason.startsWith\('unsupported'\)[^]*?messages.warn\('This environment cannot change the GPU assignment.'\)/);
+    assert.match(source, /reason.startsWith\('user-preference'\)[^]*?Change it in Windows Graphics settings\./);
+    assert.ok(source.includes('Could not change the high-performance GPU setting: ${reason}'));
 });

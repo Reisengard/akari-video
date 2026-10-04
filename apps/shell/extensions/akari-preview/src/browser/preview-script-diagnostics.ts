@@ -109,8 +109,8 @@ export function previewDiagnosticsGuardScript(): string {
                 const blocked = summary.failedStage || summary.stalledStage;
                 const title = document.createElement('strong');
                 title.id = 'akari-preview-diagnostics-title';
-                title.textContent = 'プレビューの初期化が完了しません — 止まった段: '
-                    + (blocked ? blocked.label : '不明');
+                title.textContent = 'Preview startup did not finish. Stopped at stage: '
+                    + (blocked ? blocked.label : 'Unknown');
                 const body = document.createElement('pre');
                 body.id = 'akari-preview-diagnostics-report';
                 Object.assign(body.style, {
@@ -121,7 +121,7 @@ export function previewDiagnosticsGuardScript(): string {
                 const copy = document.createElement('button');
                 copy.id = 'akari-preview-diagnostics-copy';
                 copy.type = 'button';
-                copy.textContent = '診断をコピー';
+                copy.textContent = 'Copy diagnostics';
                 Object.assign(copy.style, {
                     marginTop: '8px', border: '1px solid rgba(255,255,255,0.45)', borderRadius: '4px',
                     padding: '3px 10px', background: 'transparent', color: 'inherit',
@@ -211,15 +211,15 @@ export function previewDiagnosticsGuardScript(): string {
                     } else {
                         message = event && event.message ? event.message : String(event && event.error || '');
                     }
-                } catch { message = '(メッセージの取得に失敗)'; }
+                } catch { message = '(Could not read the message)'; }
                 recordPreviewDiagnosticEvent(trace, {
                     kind,
-                    message: message || '不明なエラー',
+                    message: message || 'Unknown error',
                     filename: String(event && event.filename || ''),
                     lineno: Number(event && event.lineno || 0),
                     at: now()
                 });
-                send({ phase: 'event', event: { kind, message: message || '不明なエラー' } });
+                send({ phase: 'event', event: { kind, message: message || 'Unknown error' } });
             };
             window.addEventListener('error', event => record('error', event), true);
             window.addEventListener('unhandledrejection', event => record('rejection', event), true);
@@ -238,13 +238,13 @@ export function previewDiagnosticsGuardScript(): string {
                 const missing = [];
                 if (!window.__akariPreview) missing.push('window.__akariPreview');
                 if (!window.akari || typeof window.akari.updateLayerLayout !== 'function') {
-                    missing.push('ホストアダプタ (window.akari.updateLayerLayout)');
+                    missing.push('Host adapter (window.akari.updateLayerLayout)');
                 }
                 if (typeof window.AkariEditKernel === 'undefined') {
-                    missing.push('共有カーネル (AkariEditKernel)');
+                    missing.push('Shared kernel (AkariEditKernel)');
                 }
                 if (initialState().frameEngineEnabled === true && typeof window.AkariFrameEngine === 'undefined') {
-                    missing.push('frame-engine バンドル (AkariFrameEngine)');
+                    missing.push('frame-engine bundle (AkariFrameEngine)');
                 }
                 return missing;
             };
@@ -322,7 +322,7 @@ export function previewDiagnosticsGuardScript(): string {
                 const missing = missingGlobals();
                 if (missing.length > 0 && stageOf('scripts-loaded').status !== 'ok') {
                     markPreviewInitStage(trace, 'scripts-loaded', 'failed', {
-                        at: now(), detail: '未読込: ' + missing.join(', ')
+                        at: now(), detail: 'Not loaded: ' + missing.join(', ')
                     });
                 }
                 const final = summarizePreviewInit(trace);
@@ -345,14 +345,14 @@ export function previewDiagnosticsTailScript(): string {
             const initial = window.__akariPreview || {};
             const missing = [];
             if (!window.akari || typeof window.akari.updateLayerLayout !== 'function') {
-                missing.push('ホストアダプタ (window.akari.updateLayerLayout)');
+                missing.push('Host adapter (window.akari.updateLayerLayout)');
             }
-            if (typeof window.AkariEditKernel === 'undefined') missing.push('共有カーネル (AkariEditKernel)');
+            if (typeof window.AkariEditKernel === 'undefined') missing.push('Shared kernel (AkariEditKernel)');
             if (initial.frameEngineEnabled === true && typeof window.AkariFrameEngine === 'undefined') {
-                missing.push('frame-engine バンドル (AkariFrameEngine)');
+                missing.push('frame-engine bundle (AkariFrameEngine)');
             }
             if (missing.length > 0) {
-                diag.fail('scripts-loaded', '未読込: ' + missing.join(', '));
+                diag.fail('scripts-loaded', 'Not loaded: ' + missing.join(', '));
                 return;
             }
             diag.mark('scripts-loaded');

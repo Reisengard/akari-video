@@ -145,7 +145,7 @@ function captionList(root: unknown): unknown[] {
             ? (root as { captions: unknown[] }).captions
             : undefined;
     if (!list) {
-        throw new Error('captions.json の形式が不正です（配列、または captions[] を持つオブジェクトである必要があります）');
+        throw new Error('captions.json must be an array, or an object with captions[].');
     }
     return list;
 }
@@ -155,7 +155,7 @@ function captionIndex(list: readonly unknown[], captionId: string): number {
         !!value && typeof value === 'object' && !Array.isArray(value)
         && (value as { id?: unknown }).id === captionId
     );
-    if (index < 0) throw new Error(`字幕が見つかりません: ${captionId}`);
+    if (index < 0) throw new Error(`Caption not found: ${captionId}`);
     return index;
 }
 

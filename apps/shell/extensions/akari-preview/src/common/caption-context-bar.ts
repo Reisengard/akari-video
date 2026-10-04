@@ -68,10 +68,10 @@ export function captionBarItems(state: ContextBarState): BarItem[] {
     if (state.kind !== 'caption' || !state.selectedId) return [];
     const style = (state.item?.textStyle ?? {}) as Record<string, any>;
     const labels: Record<string, string> = {
-        captionFont: 'フォント', captionSize: 'サイズ', captionTextColor: '文字の色', captionBold: '太字',
-        captionItalic: '斜体', captionUnderline: '下線', captionStrike: '取り消し線', captionCase: '大文字小文字',
-        captionAlign: '配置', captionBullet: '箇条書き', captionSpacing: '間隔', captionVertical: '縦書き',
-        captionOpacity: '透明度', captionEffect: 'エフェクト', captionAnimation: 'アニメーション', captionStyle: 'スタイル'
+        captionFont: 'Font', captionSize: 'Size', captionTextColor: 'Text color', captionBold: 'Bold',
+        captionItalic: 'Italic', captionUnderline: 'Underline', captionStrike: 'Strikethrough', captionCase: 'Letter case',
+        captionAlign: 'Align', captionBullet: 'Bullets', captionSpacing: 'Spacing', captionVertical: 'Vertical',
+        captionOpacity: 'Opacity', captionEffect: 'Effect', captionAnimation: 'Animation', captionStyle: 'Style'
     };
     return CAPTION_BAR_ORDER.map(key => ({ key, label: labels[key], kind: CAPTION_MINI_WINDOWS.has(key) ? 'window' : 'action',
         ...(key === 'captionTextColor' ? { paint: style.color ?? '#ffffff' } : {}) } as BarItem));

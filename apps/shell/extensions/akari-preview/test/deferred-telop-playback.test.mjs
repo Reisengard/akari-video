@@ -73,7 +73,7 @@ test('区間外ではプレースホルダも動画も非表示にする', () =>
 
 test('webview は既存プレースホルダで退役を表示し、ラスタ要求を送らない', () => {
     assert.match(browserSource, /data-akari-deferred-telop-id/);
-    assert.match(browserSource, /テロップ（ATF）は退役しました/);
+    assert.match(browserSource, /Captions \(ATF\) have been retired/);
     assert.match(browserSource, /if \(layer\.retiredTelop\)/);
     assert.match(browserSource, /activeWindow \? 'retired' : 'inactive'/);
     assert.doesNotMatch(browserSource, /rasterizeTelopPreview/);

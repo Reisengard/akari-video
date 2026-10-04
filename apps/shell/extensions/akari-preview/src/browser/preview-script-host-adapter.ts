@@ -103,7 +103,7 @@ export function hostAdapterScript(): string {
                 }, 4000);
             }
             function showReloadError(message) {
-                reloadErrorDetail.textContent = String(message || '原因不明のエラーです。');
+                reloadErrorDetail.textContent = String(message || 'Unknown error.');
                 reloadErrorCard.hidden = false;
             }
             function hideReloadError() {
@@ -187,7 +187,7 @@ export function hostAdapterScript(): string {
             window.akari.previewPlaybackRate = clampPreviewPlaybackRateFn(initial.initialPlaybackRate);
             window.akari.state = { editPath: initial.editPath, summary: initial.summary, selectionFloor: initial.selectionFloor };
             window.akari.showWriteError = error => {
-                const reason = error instanceof Error ? error.message : String(error || '書き込みに失敗しました');
+                const reason = error instanceof Error ? error.message : String(error || 'Write failed');
                 writeErrorMessage.textContent = reason;
                 writeErrorBanner.hidden = false;
             };
@@ -1041,10 +1041,10 @@ export function hostAdapterScript(): string {
                 pending.delete(message.requestId);
                 if (!message.ok) {
                     const fallback = request.kind === 'caption-write'
-                        ? 'captions.json の書き込みに失敗しました'
+                        ? 'Could not write captions.json'
                         : request.kind === 'hevc-fallback'
-                            ? '動画の互換変換に失敗しました'
-                            : 'edit.json の書き込みに失敗しました';
+                            ? 'Could not convert the video for compatibility'
+                            : 'Could not write edit.json';
                     const reason = message.error || fallback;
                     window.akari.showWriteError(reason);
                     request.reject(new Error(reason));

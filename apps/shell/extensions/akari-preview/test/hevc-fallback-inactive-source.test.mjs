@@ -41,7 +41,7 @@ const createFallbackHarness = (resolver, {
         inFlightCount += 1;
         maxInFlight = Math.max(maxInFlight, inFlightCount);
         if (playbackErrored) {
-            messageText = '動画をそのまま再生できませんでした。互換用に変換しています…';
+            messageText = '動画をそのまま再生できませんでした。Converting it for compatibility\.\.\.';
             reloadHidden = true;
         }
         sent.push(request);
@@ -51,7 +51,7 @@ const createFallbackHarness = (resolver, {
             processNext();
         }, () => {
             if (playbackErrored) {
-                messageText = '動画を再生できませんでした。再読み込みを試してください。';
+                messageText = 'Could not play the video. Try reloading.';
                 reloadHidden = false;
             }
             inFlight = false;
@@ -155,7 +155,7 @@ test('ten simultaneous failures stay single-flight and drain in FIFO order after
     assert.match(processBody, /hevcFallbackInFlight \|\| hevcFallbackQueue\.length === 0/u);
     assert.match(processBody, /hevcFallbackQueue\.shift\(\)/u);
     assert.match(processBody, /hevcFallbackInFlight = true/u);
-    assert.match(processBody, /if \(playbackErrored\) \{[\s\S]*?互換用に変換しています…[\s\S]*?previewMessageReload\.hidden = true;/u);
+    assert.match(processBody, /if \(playbackErrored\) \{[\s\S]*?Converting it for compatibility\.\.\.[\s\S]*?previewMessageReload\.hidden = true;/u);
     assert.match(processBody, /\.then\(\(\) => \{[\s\S]*?hevcFallbackInFlight = false;[\s\S]*?processNextHevcFallback\(\);[\s\S]*?\}, \(\) => \{/u);
     assert.match(processBody, /\}, \(\) => \{[\s\S]*?if \(playbackErrored\) \{[\s\S]*?previewMessageReload\.hidden = false;[\s\S]*?\}[\s\S]*?hevcFallbackInFlight = false;[\s\S]*?processNextHevcFallback\(\)/u);
 
@@ -179,7 +179,7 @@ test('ten simultaneous failures stay single-flight and drain in FIFO order after
     assert.deepEqual(harness.sent.map(request => request.requestKey), uris);
     assert.equal(harness.state().maxInFlight, 1);
     assert.equal(harness.state().inFlightCount, 0);
-    assert.equal(harness.state().messageText, '動画を再生できませんでした。再読み込みを試してください。');
+    assert.equal(harness.state().messageText, 'Could not play the video. Try reloading.');
     assert.equal(harness.state().reloadHidden, false);
 });
 

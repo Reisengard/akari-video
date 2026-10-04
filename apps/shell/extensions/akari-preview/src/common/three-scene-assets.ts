@@ -50,7 +50,7 @@ function assertRelativeAssetPath(value: unknown, field: string): asserts value i
         || value.startsWith('/')
         || value.startsWith('\\')
         || /^[a-z][a-z\d+.-]*:/i.test(value)) {
-        throw new TypeError(`${field} は edit.json 相対パスである必要があります`);
+        throw new TypeError(`${field} must be a path relative to edit.json`);
     }
 }
 
@@ -66,7 +66,7 @@ export async function resolveThreeSceneDescriptorAssets(
     overlayVars: Record<string, string> = {}
 ): Promise<ResolvedThreeSceneDescriptor> {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        throw new TypeError('data-akari-3d-scene は JSON object である必要があります');
+        throw new TypeError('data-akari-3d-scene must be a JSON object');
     }
     const source = value as ThreeSceneDescriptor;
     const hasModel = source.model !== undefined;
@@ -74,13 +74,13 @@ export async function resolveThreeSceneDescriptorAssets(
         assertRelativeAssetPath(source.model, 'data-akari-3d-scene.model');
     }
     if (source.texts !== undefined && !Array.isArray(source.texts)) {
-        throw new TypeError('data-akari-3d-scene.texts は配列である必要があります');
+        throw new TypeError('data-akari-3d-scene.texts must be an array');
     }
     const texts = source.texts as unknown[] | undefined;
     const hasNonEmptyTexts = Boolean(texts?.length);
     if (!hasModel && !hasNonEmptyTexts) {
         throw new TypeError(
-            'data-akari-3d-scene は model または非空の texts[] の少なくとも一方を必要とします'
+            'data-akari-3d-scene needs at least one of model or a non-empty texts[]'
         );
     }
 
@@ -94,13 +94,13 @@ export async function resolveThreeSceneDescriptorAssets(
         const resolvedTexts: Record<string, unknown>[] = [];
         for (const [index, entry] of texts.entries()) {
             if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-                throw new TypeError(`texts[${index}] は object である必要があります`);
+                throw new TypeError(`texts[${index}] must be an object`);
             }
             const textDescriptor = entry as Record<string, unknown>;
             const field = `data-akari-3d-scene.texts[${index}].font`;
             assertRelativeAssetPath(textDescriptor.font, field);
             if (!FONT_EXTENSION_PATTERN.test(textDescriptor.font)) {
-                throw new TypeError(`${field} は .ttf または .otf である必要があります`);
+                throw new TypeError(`${field} must be a .ttf or .otf file`);
             }
             resolvedTexts.push({
                 ...textDescriptor,
@@ -120,21 +120,21 @@ export async function resolveThreeSceneDescriptorAssets(
     if (source.materialOverrides !== undefined) {
         if (!source.materialOverrides || typeof source.materialOverrides !== 'object'
             || Array.isArray(source.materialOverrides)) {
-            throw new TypeError('materialOverrides は object である必要があります');
+            throw new TypeError('materialOverrides must be an object');
         }
         const overrides: Record<string, unknown> = Object.create(null);
         for (const [name, value] of Object.entries(source.materialOverrides)) {
             if (!name || !value || typeof value !== 'object' || Array.isArray(value)) {
-                throw new TypeError('materialOverrides は material 名ごとの object である必要があります');
+                throw new TypeError('materialOverrides must be an object per material name');
             }
             const override = value as Record<string, unknown>;
             const field = `materialOverrides.${name}.texture`;
             if (typeof override.texture !== 'string' || !override.texture) {
-                throw new TypeError(`${field} は相対パスである必要があります`);
+                throw new TypeError(`${field} must be a relative path`);
             }
             if (override.textureVar !== undefined && (typeof override.textureVar !== 'string'
                 || !/^--[A-Za-z_][A-Za-z0-9_-]*$/.test(override.textureVar))) {
-                throw new TypeError(`materialOverrides.${name}.textureVar は CSS カスタムプロパティ名である必要があります`);
+                throw new TypeError(`materialOverrides.${name}.textureVar must be a CSS custom property name`);
             }
             const variableTexture = typeof override.textureVar === 'string' ? overlayVars[override.textureVar] : undefined;
             let texture = variableTexture || override.texture;

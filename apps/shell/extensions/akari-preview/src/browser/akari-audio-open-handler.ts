@@ -39,9 +39,9 @@ const AUDIO_MIME_TYPES = new Map<string, string>([
 ]);
 const MAX_INLINE_BYTES = 50 * 1024 * 1024;
 const TRANSCODE_FIRST_EXTENSIONS = new Set(['.aac', '.m4a']);
-const TOO_LARGE_MESSAGE = '大きすぎるためアプリ内で再生できません。';
-const PLAYBACK_ERROR_MESSAGE = 'このファイルはアプリ内で再生できません。';
-const FFMPEG_REQUIRED_MESSAGE = 'このファイルはアプリ内で再生できません。再生には ffmpeg が必要です。';
+const TOO_LARGE_MESSAGE = 'This file is too large to play in the app.';
+const PLAYBACK_ERROR_MESSAGE = 'This file cannot be played in the app.';
+const FFMPEG_REQUIRED_MESSAGE = 'This file cannot be played in the app. Playback needs ffmpeg.';
 // akari-annotations 側の同名イベントと文字列だけをミラーし、拡張間の import 依存を避ける。
 const RAW_PREVIEW_ANNOTATION_STATE_EVENT = 'akari.preview.rawAnnotationState';
 // akari-annotations の ATTACH_AKARI_ANNOTATIONS_PASSIVE.id（akari-annotations-commands.ts）とミラー。
@@ -192,7 +192,7 @@ export class AkariAudioOpenHandler implements OpenHandler, FrontendApplicationCo
 
     protected async render(widget: WebviewWidget, uri: URI): Promise<void> {
         widget.viewType = 'akari.audio';
-        widget.title.label = '素材プレビュー';
+        widget.title.label = 'Footage preview';
         widget.title.caption = uri.toString();
         widget.title.iconClass = 'codicon codicon-unmute';
         widget.setContentOptions({ allowScripts: true, allowForms: false });
@@ -327,14 +327,14 @@ audio { display: block; width: 100%; }
 <main class="card">
 <section id="player-card" data-playback-path="${transcoded ? 'ffmpeg' : 'direct'}">
 <p class="name">${this.escapeHtml(uri.path.base)}</p>
-<p class="metadata"><span>実尺: <span id="duration">読み込み中</span></span><span>サイズ: ${this.escapeHtml(this.formatBytes(fileSize))}</span></p>
-${transcoded ? '<p class="note">ffmpeg 変換で再生中</p>' : ''}
+<p class="metadata"><span>Duration: <span id="duration">Loading</span></span><span>Size: ${this.escapeHtml(this.formatBytes(fileSize))}</span></p>
+${transcoded ? '<p class="note">Playing via ffmpeg conversion</p>' : ''}
 <audio id="audio" controls preload="metadata" data-source="${this.escapeHtml(sourceUri)}"></audio>
 </section>
 <section id="error-card" hidden>
 <p class="message">${this.escapeHtml(PLAYBACK_ERROR_MESSAGE)}</p>
 <p class="name">${this.escapeHtml(uri.path.base)}</p>
-<p class="metadata"><span>サイズ: ${this.escapeHtml(this.formatBytes(fileSize))}</span></p>
+<p class="metadata"><span>Size: ${this.escapeHtml(this.formatBytes(fileSize))}</span></p>
 </section>
 </main>
 <script>
@@ -361,7 +361,7 @@ ${transcoded ? '<p class="note">ffmpeg 変換で再生中</p>' : ''}
     };
     audio.addEventListener('loadedmetadata', () => {
         if (!Number.isFinite(audio.duration)) {
-            duration.textContent = '不明';
+            duration.textContent = 'Unknown';
             return;
         }
         const totalSeconds = Math.max(0, Math.floor(audio.duration));
@@ -422,7 +422,7 @@ body { position: relative; display: grid; place-items: center; padding: 32px; }
 <main class="card">
 <p class="message">${this.escapeHtml(message)}</p>
 <p class="name">${this.escapeHtml(uri.path.base)}</p>
-<p class="metadata">サイズ: ${this.escapeHtml(this.formatBytes(fileSize))}</p>
+<p class="metadata">Size: ${this.escapeHtml(this.formatBytes(fileSize))}</p>
 </main>
 </body>
 </html>`;
@@ -430,7 +430,7 @@ body { position: relative; display: grid; place-items: center; padding: 32px; }
 
     protected formatBytes(bytes?: number): string {
         if (bytes === undefined) {
-            return '取得できません';
+            return 'Unknown';
         }
         if (bytes < 1024) {
             return `${bytes} B`;

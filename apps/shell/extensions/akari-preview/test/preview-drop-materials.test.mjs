@@ -200,12 +200,12 @@ test('素材 MIME・イベント・Explorer tree-node を受けて配置し、�
         node.children.at(-1).listeners.get('drop')(event(external));
         await new Promise(resolve => setImmediate(resolve));
         assert.equal(commands.length, before);
-        assert.deepEqual(warnings, ['プロジェクトの中のファイルだけ置けます']);
+        assert.deepEqual(warnings, ['You can only drop files from inside the project']);
         emit('akari.library.dragStart', { type: 'akari.library.dragStart', detail: { kind: 'text' } });
         emit('dragstart', { clientX: 850, clientY: 200,
             dataTransfer: transfer('application/x-akari-library-item', '') });
         assert.ok(sample());
-        assert.equal(sample().children.at(-1).textContent, 'テキスト');
+        assert.equal(sample().children.at(-1).textContent, 'Text');
         drop.dispose();
         assert.equal(sample(), undefined, 'dispose でも見本を片付ける');
     } finally {

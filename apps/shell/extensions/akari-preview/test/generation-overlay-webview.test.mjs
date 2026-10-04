@@ -125,7 +125,7 @@ test('小窓とぼかし背景は既存 overlay 内でクリックを奪わず�
         assert.ok(overlay.includes(`id="${id}"`));
         assert.match(prepareHtmlMethod, new RegExp(`#${id}\\s*\\{[^}]*pointer-events:\\s*none`, 'u'));
     }
-    assert.match(overlay, /最後の絵/u);
+    assert.match(overlay, /Last frame/u);
     assert.ok(overlay.indexOf('id="akari-gen-blur"') < overlay.indexOf('id="akari-gen-shimmer"'));
     assert.match(prepareHtmlMethod, /#akari-gen-pip\s*\{[^}]*width: 22%/u);
     assert.match(prepareHtmlMethod, /#akari-gen-blur-image\s*\{[^}]*filter: blur\(/u);
@@ -468,8 +468,8 @@ test('生成 overlay のレイアウトは実効倍率を使い、収まらな�
     const properties = new Map();
     const overlay = { hidden: false, style: { setProperty: (name, value) => properties.set(name, value) } };
     const band = { hidden: true };
-    const tag = { textContent: '', clientWidth: 300, get scrollWidth() { return this.textContent.length * 12; } };
-    const full = '▶ 動画予定 · 最初→最後';
+    const tag = { textContent: '', clientWidth: 400, get scrollWidth() { return this.textContent.length * 12; } };
+    const full = '▶ Planned video · First → last';
     for (screenWidth of [810, 400, 1920, 3840]) {
         run(stage, overlay, band, tag, full);
         assert.equal(Number(properties.get('--akari-gen-inv-scale')), 1920 / screenWidth);
@@ -478,8 +478,8 @@ test('生成 overlay のレイアウトは実効倍率を使い、収まらな�
     }
     tag.clientWidth = 100;
     run(stage, overlay, band, tag, full);
-    assert.equal(tag.textContent, '▶ 動画予定');
-    tag.clientWidth = 300;
+    assert.equal(tag.textContent, '▶ Planned video');
+    tag.clientWidth = 400;
     band.hidden = false;
     run(stage, overlay, band, tag, full);
     assert.equal(tag.textContent, full);

@@ -158,7 +158,7 @@ export class ReviewSessionRecorder {
                 throw new DOMException('Microphone access denied', 'NotAllowedError');
             }
             if (!navigator.mediaDevices?.getUserMedia) {
-                throw new Error('この環境ではマイク録音を利用できません。');
+                throw new Error('Microphone recording is not available in this environment.');
             }
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             context = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
@@ -273,7 +273,7 @@ export class ReviewSessionRecorder {
             this.active = undefined;
             this.status = 'error';
             await this.refresh(active.projectRootUri, active.editUri);
-            this.emitState(`録音セッションを完了できませんでした: ${this.message(error)}`);
+            this.emitState(`Could not finish the recording session: ${this.message(error)}`);
         }
     }
 
@@ -717,7 +717,7 @@ export class ReviewSessionRecorder {
             } catch (error) {
                 active.writeError = error instanceof Error ? error : new Error(String(error));
                 this.status = 'error';
-                this.emitState(`録音データを書き込めません: ${active.writeError.message}`);
+                this.emitState(`Could not write recording data: ${active.writeError.message}`);
             }
         });
     }
@@ -791,7 +791,7 @@ export class ReviewSessionRecorder {
 
     protected message(error: unknown): string {
         if (error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
-            return 'マイクの使用が許可されませんでした。設定で権限を確認してください。';
+            return 'Microphone permission was denied. Check the permission in settings.';
         }
         return error instanceof Error ? error.message : String(error);
     }

@@ -58,7 +58,7 @@ export class AkariFragmentPreviewOpenHandler implements OpenHandler {
 
     protected async render(widget: WebviewWidget, uri: URI): Promise<void> {
         widget.viewType = 'akari.fragmentPreview';
-        widget.title.label = '素材プレビュー';
+        widget.title.label = 'Footage preview';
         widget.title.caption = uri.toString();
         widget.title.iconClass = 'codicon codicon-symbol-misc';
         widget.setContentOptions({ allowScripts: true, allowForms: false });
@@ -92,7 +92,7 @@ export class AkariFragmentPreviewOpenHandler implements OpenHandler {
             await release();
             console.warn(`[akari-preview] failed to open ${uri.toString()}`, error);
             if (!widget.isDisposed) {
-                widget.setHTML(this.messageHtml('断片プレビューを読み込めませんでした。'));
+                widget.setHTML(this.messageHtml('Could not load the fragment preview.'));
             }
             this.renders.delete(widget);
         }
@@ -154,10 +154,10 @@ background-image:conic-gradient(#ccc 25%,transparent 0 50%,#ccc 0 75%,transparen
 #error{margin:auto;padding:32px;text-align:center;line-height:1.7}
 </style></head><body>
 <div id="viewport"><div class="akari-material-chip">${this.escapeHtml(filename)}</div><div id="canvas" data-background="checker"><div id="overlay-stage"></div></div></div>
-<div id="controls"><button id="play" type="button" disabled>再生</button>
-<input id="seek" aria-label="再生位置" type="range" min="0" max="${duration}" step="0.01" value="0" disabled>
-<output id="time">0.00 / 5.00 s</output><label>背景 <select id="background">
-<option value="checker">市松</option><option value="white">白</option><option value="black">黒</option>
+<div id="controls"><button id="play" type="button" disabled>Play</button>
+<input id="seek" aria-label="Playhead" type="range" min="0" max="${duration}" step="0.01" value="0" disabled>
+<output id="time">0.00 / 5.00 s</output><label>Background <select id="background">
+<option value="checker">Checker</option><option value="white">white</option><option value="black">black</option>
 </select></label></div><p id="error" role="alert" hidden></p>
 ${scripts.map(url => `<script src="${this.escapeHtml(url)}"></script>`).join('')}
 <script>
@@ -174,10 +174,10 @@ ${scripts.map(url => `<script src="${this.escapeHtml(url)}"></script>`).join('')
  const observer=new ResizeObserver(fit);observer.observe(viewport);fit();
  document.getElementById('background').addEventListener('change',event=>{canvas.dataset.background=event.target.value;});
  let runtime,playing=false,t=0,last=0,raf=0;
- const stop=()=>{playing=false;cancelAnimationFrame(raf);play.textContent='再生';};
+ const stop=()=>{playing=false;cancelAnimationFrame(raf);play.textContent='Play';};
  const fail=error=>{
    stop();play.disabled=true;seek.disabled=true;viewport.hidden=true;document.getElementById('controls').hidden=true;
-   const message=document.getElementById('error');message.hidden=false;message.textContent='断片プレビューを読み込めませんでした。';
+   const message=document.getElementById('error');message.hidden=false;message.textContent='Could not load the fragment preview.';
    console.error(error);
  };
  window.addEventListener('pagehide',()=>{stop();observer.disconnect();runtime?.unmount();});
@@ -194,7 +194,7 @@ ${scripts.map(url => `<script src="${this.escapeHtml(url)}"></script>`).join('')
    };
    play.addEventListener('click',()=>{
      if(playing){stop();return;}
-     playing=true;play.textContent='一時停止';last=performance.now();raf=requestAnimationFrame(step);
+     playing=true;play.textContent='Pause';last=performance.now();raf=requestAnimationFrame(step);
    });
    seek.addEventListener('input',()=>{t=Number(seek.value);last=performance.now();try{draw();}catch(error){fail(error);}});
    draw();play.disabled=false;seek.disabled=false;

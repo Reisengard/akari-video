@@ -326,7 +326,7 @@ export function frameEngineBootstrapScript(): string {
                         onSoftwareFallbackDenied: support => {
                             const known = sourceSupports.get(id);
                             if (!(known && (known.hw || known.any))) {
-                                showNotice('ソフトウェアデコード非対応: ' + support.codec);
+                                showNotice('Software decoding not supported: ' + support.codec);
                             }
                         }
                     });
@@ -448,13 +448,13 @@ export function frameEngineBootstrapScript(): string {
                     }, generation);
                     if (disposed || generation !== sourceGeneration) return;
                     if (decision.chosen === 'auto-proxy') {
-                        showNotice('プロキシ生成中…（' + id + '）');
+                        showNotice('Building proxy... (' + id + ')');
                         const videoUri = initial.videoSourceUris && initial.videoSourceUris[id];
                         if (window.akari && window.akari.engine && videoUri) {
                             void window.akari.engine.resolveHevcFallback(0, videoUri).catch(reason => {
                                 if (disposed || generation !== sourceGeneration) return;
                                 console.warn('[frame-engine] proxy request failed', reason);
-                                showNotice('プロキシを生成できませんでした（' + id + '）');
+                                showNotice('Could not build the proxy (' + id + ')');
                             });
                         }
                     } else if (!sourceSelections.some(selection => selection.chosen === 'auto-proxy')) clearNotice();
@@ -637,12 +637,12 @@ export function frameEngineBootstrapScript(): string {
                     }
                     let message = '';
                     if (supply?.phase === 'degraded') {
-                        message = '一部の音声を再生できません: ' + supply.failed.join(', ');
+                        message = 'Could not play some audio: ' + supply.failed.join(', ');
                     } else if (supply?.gate?.holding && supply.gate.heldMs >= 300) {
-                        message = '音声を待っています（' + (supply.gate.heldMs / 1000).toFixed(1) + ' 秒）';
+                        message = 'Waiting for audio (' + (supply.gate.heldMs / 1000).toFixed(1) + ' sec)';
                     } else if (statusPlaying && missingAudioSinceMs !== null
                         && performance.now() - missingAudioSinceMs >= 300) {
-                        message = '音声を準備中 ' + (supply.required.length - missing.length) + '/' + supply.required.length;
+                        message = 'Preparing audio ' + (supply.required.length - missing.length) + '/' + supply.required.length;
                     }
                     if (audioStatus.textContent !== message) audioStatus.textContent = message;
                     audioStatus.hidden = !message;

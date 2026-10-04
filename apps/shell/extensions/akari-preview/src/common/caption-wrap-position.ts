@@ -4,7 +4,7 @@ export function captionWrapPosition(
 ): { anchor: 'tl'; position: { x: number; y: number } } {
     if (![visualLeft, plateTop, outputWidth, outputHeight].every(Number.isFinite)
         || outputWidth <= 0 || outputHeight <= 0) {
-        throw new Error('文字の位置または出力の大きさが不正です');
+        throw new Error('The text position or output size is invalid.');
     }
     return { anchor: 'tl', position: {
         x: Math.round(visualLeft / outputWidth * 10000) / 10000,

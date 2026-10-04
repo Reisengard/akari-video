@@ -37,13 +37,13 @@ export interface PreviewInitStageDeclaration {
  * 段名は画面・ログ・報告のすべてで同じ語を使う（利用者が読み上げられるようにする）。
  */
 export const PREVIEW_INIT_STAGES: readonly PreviewInitStageDeclaration[] = [
-    { id: 'webview-created', label: 'Webview 生成', side: 'host' },
-    { id: 'model-loaded', label: '編集モデル読込', side: 'host' },
-    { id: 'page-html-set', label: 'ページ HTML 設定', side: 'host' },
-    { id: 'scripts-loaded', label: 'スクリプト読込', side: 'webview' },
-    { id: 'engine-initialized', label: 'エンジン初期化', side: 'webview' },
-    { id: 'media-supplied', label: 'メディア供給', side: 'webview' },
-    { id: 'first-frame', label: '初回描画', side: 'webview' }
+    { id: 'webview-created', label: 'Webview created', side: 'host' },
+    { id: 'model-loaded', label: 'Load edit model', side: 'host' },
+    { id: 'page-html-set', label: 'Page HTML', side: 'host' },
+    { id: 'scripts-loaded', label: 'Load script', side: 'webview' },
+    { id: 'engine-initialized', label: 'Initialize engine', side: 'webview' },
+    { id: 'media-supplied', label: 'Media supply', side: 'webview' },
+    { id: 'first-frame', label: 'First paint', side: 'webview' }
 ];
 
 export type PreviewInitStageStatus = 'pending' | 'ok' | 'failed';
@@ -162,7 +162,7 @@ export function markPreviewInitStage(
         const event: PreviewDiagnosticEvent = {
             kind: 'stage-failure',
             stage: id,
-            message: detail === undefined || detail === '' ? '段の失敗（詳細なし）' : detail
+            message: detail === undefined || detail === '' ? 'Stage failed (no details)' : detail
         };
         if (at !== undefined) event.at = at;
         recordPreviewDiagnosticEvent(trace, event);
@@ -180,7 +180,7 @@ export function recordPreviewDiagnosticEvent(
 ): PreviewInitTrace {
     const limit = 12; // PREVIEW_DIAGNOSTIC_EVENT_LIMIT — toString() 注入のため値を内に置く
     const message = String(event && event.message !== undefined ? event.message : '')
-        .slice(0, 400) || '（メッセージなし）';
+        .slice(0, 400) || '(no message)';
     const normalized: PreviewDiagnosticEvent = {
         kind: event && event.kind ? event.kind : 'note',
         message
@@ -246,29 +246,29 @@ export function formatPreviewInitReport(
 ): string {
     const stageMark = (status: string) => (status === 'ok' ? '[ok]' : status === 'failed' ? '[NG]' : '[--]');
     const lines: string[] = [];
-    lines.push('AKARI Video プレビュー初期化診断');
-    lines.push('入口: ' + String(context.entry));
-    if (context.at) lines.push('時刻: ' + String(context.at));
-    if (context.appVersion) lines.push('アプリ版: ' + String(context.appVersion));
+    lines.push('AKARI Video preview startup diagnostics');
+    lines.push('Entry: ' + String(context.entry));
+    if (context.at) lines.push('Time: ' + String(context.at));
+    if (context.appVersion) lines.push('App version: ' + String(context.appVersion));
     if (context.webviewId) {
         lines.push(
             'Webview: ' + String(context.webviewId)
-            + (context.webviewRole ? '（' + String(context.webviewRole) + '）' : '')
+            + (context.webviewRole ? ' (' + String(context.webviewRole) + ')' : '')
         );
     }
-    if (context.editUri) lines.push('対象: ' + String(context.editUri));
+    if (context.editUri) lines.push('Target: ' + String(context.editUri));
     if (context.frameEngine !== undefined) {
-        lines.push('描画面: ' + (context.frameEngine ? 'frame-engine' : '旧経路（DOM）'));
+        lines.push('Renderer: ' + (context.frameEngine ? 'frame-engine' : 'legacy path (DOM)'));
     }
-    if (context.assetOrigin) lines.push('配信オリジン: ' + String(context.assetOrigin));
+    if (context.assetOrigin) lines.push('Asset origin: ' + String(context.assetOrigin));
     if (context.userAgent) lines.push('UA: ' + String(context.userAgent));
     const blocked = summary.failedStage || summary.stalledStage;
     lines.push(
         summary.complete
-            ? '結果: 初期化は全段 ok'
-            : '止まった段: ' + (blocked ? blocked.label + '（' + blocked.id + '）' : '不明')
+            ? 'Result: startup ok at every stage'
+            : 'Stopped at stage: ' + (blocked ? blocked.label + ' (' + blocked.id + ')' : 'Unknown')
     );
-    lines.push('段の状態:');
+    lines.push('Stage status:');
     for (const stage of summary.stages) {
         lines.push(
             '  ' + stageMark(stage.status) + ' ' + stage.label + ' (' + stage.id + '/' + stage.side + ')'
@@ -278,14 +278,14 @@ export function formatPreviewInitReport(
     if (summary.firstError) {
         const error = summary.firstError;
         lines.push(
-            '最初の例外: [' + error.kind + '] ' + error.message
+            'First exception: [' + error.kind + '] ' + error.message
             + (error.filename ? ' @' + error.filename + (error.lineno ? ':' + error.lineno : '') : '')
         );
     } else {
-        lines.push('最初の例外: 記録なし');
+        lines.push('First exception: none recorded');
     }
     if (summary.events.length > 0) {
-        lines.push('診断イベント:');
+        lines.push('Diagnostic events:');
         for (const event of summary.events) {
             lines.push(
                 '  [' + event.kind + ']'
@@ -295,7 +295,7 @@ export function formatPreviewInitReport(
             );
         }
     }
-    lines.push('※ これは失敗段の記録であり、原因の断定ではない。');
+    lines.push('※ This records the stage that failed; it does not prove the cause.');
     return lines.join('\n');
 }
 
@@ -308,10 +308,10 @@ export function describePreviewWebviewRole(widgetId: string): {
     label: string;
 } {
     const id = typeof widgetId === 'string' ? widgetId : '';
-    if (id.indexOf('akari-output-preview-') === 0) return { role: 'output', label: '出力プレビュー' };
-    if (id.indexOf('akari-material-preview') === 0) return { role: 'material', label: '素材プレビュー枠' };
-    if (id.indexOf('akari-preview-') === 0) return { role: 'raw', label: '素材プレビュー' };
-    return { role: 'unknown', label: 'akari-preview 以外（この拡張の所有ではない）' };
+    if (id.indexOf('akari-output-preview-') === 0) return { role: 'output', label: 'Output preview' };
+    if (id.indexOf('akari-material-preview') === 0) return { role: 'material', label: 'Footage preview frame' };
+    if (id.indexOf('akari-preview-') === 0) return { role: 'raw', label: 'Footage preview' };
+    return { role: 'unknown', label: 'Not akari-preview (not owned by this extension)' };
 }
 
 /**

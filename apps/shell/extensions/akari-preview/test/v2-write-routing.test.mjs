@@ -35,7 +35,7 @@ test('embedded transform write bridge uses host playback time without an out-of-
 
 test('v2 html writes retain the legacy project-boundary and existence gates', () => {
   assert.match(source, /htmlPath\.split\(\/\[\\\\\/\]\//);
-  assert.match(source, /プロジェクト外への書き込みは拒否しました/);
+  assert.match(source, /Refused to write outside the project/);
   assert.match(source, /this\.fileService\.exists\(target\)/);
   assert.match(source, /this\.recentWrites\.set\(target\.toString\(\), Date\.now\(\)\)/);
 });

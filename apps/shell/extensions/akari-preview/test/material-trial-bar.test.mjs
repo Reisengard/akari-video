@@ -29,7 +29,7 @@ test('trial banner lives only above output, routes three actions and disappears 
  const overlayCss = readFileSync(new URL('../../../node_modules/@theia/core/src/browser/style/index.css', import.meta.url), 'utf8');
  const overlayZ = Number(overlayCss.match(/\.theia-transparent-overlay\s*\{[^}]*z-index:\s*(\d+)/)[1]);
  assert.ok(Number(bar.style.cssText.match(/z-index:(\d+)/)[1]) > overlayZ, 'real mouse release stays above the Theia overlay');
- assert.equal(bar.children[0].textContent, 'お試し中: A → B');
+ assert.equal(bar.children[0].textContent, 'Trying: A → B');
  for (const button of bar.children.slice(1)) button.onclick();
  assert.deepEqual(calls, [['akari.timeline.replayMaterialSwap', undefined], ['akari.timeline.finishMaterialSwap', true], ['akari.timeline.finishMaterialSwap', false]]);
  await handler.showMaterialTrial({ editUri: 'edit', originalTitle: 'A', title: 'C' }); assert.equal(output.node.children.length, 1);
@@ -97,7 +97,7 @@ test('trial controls are attached even when no output preview has been configure
  await handler.showMaterialTrial({ editUri: 'edit', title: 'B', originalTitle: 'A' });
  assert.equal(handler.openOutputPreviews.get('edit'), output);
  assert.equal(output.isAttached, true); assert.equal(output.akariPreviewConfigured, undefined);
- assert.equal(output.node.children[0].children[0].textContent, 'お試し中: A → B');
+ assert.equal(output.node.children[0].children[0].textContent, 'Trying: A → B');
 });
 
 test('save notification and ready-seek share one update for identical edit text, in either order', async () => {

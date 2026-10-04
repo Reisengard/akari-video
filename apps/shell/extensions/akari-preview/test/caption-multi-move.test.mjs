@@ -44,7 +44,7 @@ test('batch position source writes all three cues in one document and preserves 
         assert.equal(saved[1].text_style.size_px, 48);
         assert.deepEqual(saved[3], cues[3]);
         if (objectRoot) assert.deepEqual(result.default_text_style, { size_px: 38 });
-        assert.throws(() => updateCaptionCuePositionsSource(source, [...positions, positions[0]]), /重複/u);
+        assert.throws(() => updateCaptionCuePositionsSource(source, [...positions, positions[0]]), /Duplicate caption ID/u);
     }
 });
 

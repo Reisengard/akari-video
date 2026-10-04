@@ -20,10 +20,10 @@ export const summarizePreviewError = (error: unknown): string => {
         .trim();
 
     if (isJsonParseError && summary) {
-        summary = `edit.json を JSON として読めません（${summary}）`;
+        summary = `Could not read edit.json as JSON (${summary})`;
     }
     if (!summary || summary === '[object Object]') {
-        return '原因不明のエラーです。';
+        return 'Unknown error.';
     }
     return summary.length > MAX_SUMMARY_LENGTH
         ? `${summary.slice(0, MAX_SUMMARY_LENGTH - 1)}…`

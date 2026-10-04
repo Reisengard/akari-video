@@ -20,7 +20,7 @@ test('host gives the environment priority, parses invalid values and passes the 
   assert.match(compiled, /initialPlaybackRate = 1, frameEngineRenderScaleMode = 'auto'/u);
   assert.match(compiled, /frameEngineSourceMode,\s*frameEngineRenderScaleMode,\s*frameEngineForceSoftware,/u);
   assert.match(frontend, /'akari.preview.renderScale':\s*\{\s*type: 'string',\s*enum: \['auto', '1', '0.5', '0.25'\],\s*default: 'auto'/u);
-  assert.match(frontend, /プレビュー専用。書き出しと画像の位置・大きさには影響しません/u);
+  assert.match(frontend, /Preview only\. It does not change export or image position and size/u);
 });
 
 test('webview injects all four compiled pure functions and shares one renderOutput', () => {

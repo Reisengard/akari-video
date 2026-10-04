@@ -58,7 +58,7 @@ test('handler rejects a bypassed non-string text request before reading or writi
   host.readText = async () => assert.fail('must reject before reading');
   await host.handleOverlayWrite(widget, request({ text: 42 }));
   assert.equal(responses[0].ok, false);
-  assert.match(responses[0].error, /text は文字列/u);
+  assert.match(responses[0].error, /Part text must be a string/u);
   assert.equal(writes.length, 0); assert.equal(linted.length, 0);
 });
 test('part html is rejected before the host can overwrite the shared card', async () => {

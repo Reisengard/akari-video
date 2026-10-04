@@ -160,7 +160,7 @@ test('auto-proxy requests never block source resolution and stale probes cannot 
   await pending;
   assert.equal(events[0].url, '/a.mp4');
   assert.equal(events[0].selection.chosen, 'auto-proxy');
-  assert.match(events[1], /プロキシ生成中/u);
+  assert.match(events[1], /Building proxy/u);
   assert.equal(events[2], 'proxy requested');
   const stale = resolve(target, 1);
   context.sourceGeneration = 2;

@@ -110,7 +110,7 @@ test('transform writer supports array roots and removes default/empty style keys
   assert.deepEqual(saved[1].text_style, { color: '#eee' });
   assert.throws(
     () => updateCaptionTransformSource(source, ['missing'], { scale: 2 }),
-    /字幕が見つかりません: missing/u
+    /Caption not found: missing/u
   );
 });
 

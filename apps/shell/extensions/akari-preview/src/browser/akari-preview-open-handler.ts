@@ -1058,8 +1058,8 @@ const SHOW_PREVIEW_ZONE_HINT_COMMAND: Command = { id: 'akari.preview.showZoneHin
 const OPEN_AKARI_REVIEW_PANEL_COMMAND_ID = 'akari.review.open';
 // akari-annotations の CLIP_ANNOTATION_REQUEST_EVENT とミラー（逆向き npm 依存を作らない）。
 const CLIP_ANNOTATION_REQUEST_EVENT = 'akari.review.clipAnnotation.request';
-const COMPACT_TRACKS_ACTION = '整理する';
-const KEEP_TRACKS_ACTION = '今はしない';
+const COMPACT_TRACKS_ACTION = 'Tidy';
+const KEEP_TRACKS_ACTION = 'Not now';
 // task/2026-08-09-drop-hevc-proxy: withOpenTimeout はモデル読み込み・createVideoStream・
 // setHTML だけを包む（webview 自体の起動・レンダリングは待たない — setHTML が返れば operation は
 // 完了扱い）。resolveStreamVideoUri がもう resolveHevcProxy を呼ばなくなった今、この区間に
@@ -1067,7 +1067,7 @@ const KEEP_TRACKS_ACTION = '今はしない';
 // widget が開いた後、webview からの再生失敗通知に応じて別経路で走るため、この定数の対象外。
 const PREVIEW_OPEN_TIMEOUT_MS = 10_000;
 const PREVIEW_OPEN_ATTEMPTS = 2;
-const PREVIEW_OPEN_ERROR_MESSAGE = '動画プレビューを開けませんでした。しばらく待ってから、もう一度お試しください。';
+const PREVIEW_OPEN_ERROR_MESSAGE = 'Could not open the video preview. Wait a moment and try again.';
 
 interface TranscriptSeekRequest {
     videoUri?: string;
@@ -1211,12 +1211,12 @@ const CLAIMED_VIDEO_EXTENSIONS = new Set([
     ...PLAYABLE_VIDEO_MIME_TYPES.keys(),
     ...UNSUPPORTED_VIDEO_EXTENSIONS
 ]);
-const UNSUPPORTED_FORMAT_MESSAGE = 'この形式はアプリ内プレビューに未対応です。書き出し後の MP4 をプレビューできます。';
-const OUTSIDE_WORKSPACE_MESSAGE = 'ワークスペース外の動画はプレビューできません。';
+const UNSUPPORTED_FORMAT_MESSAGE = 'This format cannot be previewed in the app. You can preview the exported MP4.';
+const OUTSIDE_WORKSPACE_MESSAGE = 'Videos outside the workspace cannot be previewed.';
 // 新規プロジェクトの edit.json は素材が入る前は空（`{}`）。project-scaffold が作成時点で
 // 置くようになった（2026-08-08）ため、素材を入れる前に「編集データ」を開くのが通常の順序に
 // なった。ソース未宣言は不正ではないので、エラーではなくこの案内を出す。
-const EMPTY_PROJECT_MESSAGE = 'まだ動画が入っていません。左の「素材」に動画をドラッグして取り込むと、ここで仕上がりを確認できます。';
+const EMPTY_PROJECT_MESSAGE = 'No video yet. Drag a video onto Footage on the left, and you can check the result here.';
 const LAYER_BLEND_TO_CSS = new Map<string, string>([
     ['normal', 'normal'],
     ['screen', 'screen'],
@@ -1423,11 +1423,11 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         }));
         this.lifecycleDisposables.push(this.menuModelRegistry.registerMenuAction(WEBVIEW_CONTEXT_MENU, {
             commandId: ANNOTATE_PREVIEW_AT_POINT_COMMAND.id,
-            label: 'この位置に注釈'
+            label: 'Annotate here'
         }));
         for (const [command, label, kind] of [
-            [GROUP_PREVIEW_COMMAND, 'キャンバスにする', 'group'],
-            [UNGROUP_PREVIEW_COMMAND, 'キャンバスをほどく', 'ungroup']
+            [GROUP_PREVIEW_COMMAND, 'Group into canvas', 'group'],
+            [UNGROUP_PREVIEW_COMMAND, 'Ungroup canvas', 'ungroup']
         ] as const) {
             this.lifecycleDisposables.push(this.commandRegistry.registerCommand(command, {
                 isVisible: (context?: typeof this.previewGroupMenuContext) =>
@@ -1522,10 +1522,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         this.registerOutputSeekCommand();
         this.lifecycleDisposables.push(this.commandRegistry.registerCommand(CAPTURE_OUTPUT_PREVIEW_FRAME_COMMAND, {
             execute: async (request?: { editUri: string }): Promise<{ path: string }> => {
-                if (!request?.editUri) throw new Error('出力プレビューを開いてください');
+                if (!request?.editUri) throw new Error('Open the output preview');
                 const widget = this.openOutputPreviews.get(new URI(request.editUri).normalizePath().toString());
                 const pageId = widget?.akariPreviewPlaybackPageId;
-                if (!widget || widget.isDisposed || !pageId) throw new Error('出力プレビューを開いてください');
+                if (!widget || widget.isDisposed || !pageId) throw new Error('Open the output preview');
                 const token = globalThis.crypto.randomUUID();
                 const pending = this.pendingFrameCaptures.begin(token, widget, pageId);
                 try {
@@ -2184,7 +2184,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             }
             void open(this.openerService, sessionsUri, { mode: 'activate' }).catch(error => {
                 const detail = error instanceof Error ? error.message : String(error);
-                this.messages.warn(`録音セッションの保存先を開けません: ${detail}`);
+                this.messages.warn(`Could not open the recording session folder: ${detail}`);
             });
         });
         register(REVIEW_SESSION_VIEWER_SYNC_EVENT, event => {
@@ -2268,13 +2268,13 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         const recorder = this.reviewSessionRecorder;
         const editUri = this.normalizeReviewEditUri(requestedEditUri);
         if (!recorder || !editUri) {
-            recorder?.reportError(projectRootUri, requestedEditUri, 'edit.json の場所を特定できません。');
+            recorder?.reportError(projectRootUri, requestedEditUri, 'Could not locate edit.json.');
             return;
         }
         const visibility = await this.ensureVisible(editUri);
         const widget = this.openOutputPreviews.get(editUri);
         if (visibility === 'unavailable' || !widget?.isAttached) {
-            recorder.reportError(projectRootUri, editUri, '出力プレビューを開けませんでした。');
+            recorder.reportError(projectRootUri, editUri, 'Could not open the output preview.');
             return;
         }
         const transport = this.reviewTransportByEdit.get(editUri) ?? {
@@ -2331,9 +2331,9 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             });
             const input = document.createElement('input');
             input.type = 'checkbox';
-            input.setAttribute('aria-label', '注釈描線を表示');
+            input.setAttribute('aria-label', 'Show annotation strokes');
             const text = document.createElement('span');
-            text.textContent = '描線を表示';
+            text.textContent = 'Show strokes';
             label.append(input, text);
             const sessionList = section.querySelector('[data-review-session]')?.parentElement;
             section.insertBefore(label, sessionList ?? null);
@@ -2348,8 +2348,8 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'theia-button secondary';
-            button.textContent = '描線';
-            button.title = `${sessionId} の保存済み描線を再表示`;
+            button.textContent = 'Strokes';
+            button.title = `Show saved strokes for ${sessionId}`;
             button.setAttribute('data-review-session-strokes', sessionId);
             button.addEventListener('click', () => void this.showReviewSessionStrokes(state, sessionId));
             row.style.gridTemplateColumns = 'auto minmax(0, 1fr) auto auto';
@@ -2375,7 +2375,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         });
         const strokes = normalizePersistentStrokeItems(replay.strokes);
         if (strokes.length === 0) {
-            this.messages.info(`${sessionId} に再表示できる描線はありません。`);
+            this.messages.info(`${sessionId} has no strokes to show again.`);
             return;
         }
         const visibility = await this.ensureVisible(editUri);
@@ -2739,7 +2739,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 id: `akari-output-preview-${this.hash(key)}`, viewId: key
             });
             this.openOutputPreviews.set(key, widget);
-            widget.title.label = '出力プレビュー';
+            widget.title.label = 'Output preview';
         }
         if (request.title) {
             if (!widget.isAttached) this.shell.addWidget(widget, { area: 'main' });
@@ -2752,13 +2752,13 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         // Theia の mousedown 用透明面は z-index:999。実マウスの mouseup/click も帯へ届ける。
         bar.style.cssText = 'position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px;background:var(--theia-editorWidget-background);color:var(--theia-foreground);border-bottom:1px solid var(--theia-focusBorder)';
         const text = document.createElement('span');
-        text.textContent = `お試し中: ${request.originalTitle ?? ''} → ${request.title}`;
+        text.textContent = `Trying: ${request.originalTitle ?? ''} → ${request.title}`;
         text.style.flex = '1';
         bar.appendChild(text);
         for (const [label, command, argument] of [
-            ['▶ もう一度', 'akari.timeline.replayMaterialSwap', undefined],
-            ['差し替える', 'akari.timeline.finishMaterialSwap', true],
-            ['やめる', 'akari.timeline.finishMaterialSwap', false]
+            ['▶ Replay', 'akari.timeline.replayMaterialSwap', undefined],
+            ['Replace', 'akari.timeline.finishMaterialSwap', true],
+            ['Cancel', 'akari.timeline.finishMaterialSwap', false]
         ] as const) {
             const button = document.createElement('button');
             button.className = 'theia-button secondary';
@@ -3063,7 +3063,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             candidateText
         });
         if (!lintResult.pass) {
-            throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+            throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
         }
         this.markRecentWrite(editUri);
         await this.fileService.writeFile(editUri, BinaryBuffer.fromString(candidateText));
@@ -3076,7 +3076,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         afterTrackCount: number
     ): Promise<void> {
         const choice = await this.messages.info(
-            `トラックを ${beforeTrackCount} 本 → ${afterTrackCount} 本に整理できます。整理しますか？`,
+            `Tracks can be tidied from ${beforeTrackCount} to ${afterTrackCount}. Tidy them?`,
             COMPACT_TRACKS_ACTION,
             KEEP_TRACKS_ACTION
         );
@@ -3086,7 +3086,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         try {
             await this.compactTracks({ editUri: editUri.toString() });
         } catch (error) {
-            this.messages.error(`トラックを整理できませんでした: ${error instanceof Error ? error.message : String(error)}`);
+            this.messages.error(`Could not tidy tracks: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
@@ -3297,10 +3297,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             const newerVersion = newerSavedByVersion(stampText, currentVersion);
             if (newerVersion && currentVersion) {
                 const choice = await this.messages.error(
-                    `${uri.path.base}: 動画プレビューを開けませんでした — ${newerVersionOpenNotice(newerVersion, currentVersion)}`,
-                    'アップデートを確認'
+                    `${uri.path.base}: Could not open the video preview — ${newerVersionOpenNotice(newerVersion, currentVersion)}`,
+                    'Check for updates'
                 );
-                if (choice === 'アップデートを確認') {
+                if (choice === 'Check for updates') {
                     await this.commandService.executeCommand('akari.settings.open', { section: 'about' });
                 }
                 return;
@@ -3311,7 +3311,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         const reason = error instanceof Error && error.message ? error.message : undefined;
         void this.messages.error(
             reason
-                ? `${uri.path.base}: 動画プレビューを開けませんでした — ${reason}`
+                ? `${uri.path.base}: Could not open the video preview — ${reason}`
                 : `${uri.path.base}: ${PREVIEW_OPEN_ERROR_MESSAGE}`
         );
     }
@@ -3666,7 +3666,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             if (message?.type === 'akari-preview-capture-busy' && typeof message.token === 'string'
                 && typeof message.pageId === 'string') {
                 this.pendingFrameCaptures.reject(message.token, widget, message.pageId,
-                    new Error('前のコマを保存中です'));
+                    new Error('Still saving the previous frame'));
                 return;
             }
             if (message?.type === 'akari-preview-expand-bag' && kind === 'output'
@@ -4729,8 +4729,8 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 this.showMessageCard(widget, identityUri, EMPTY_PROJECT_MESSAGE, identityUri, kind);
                 return;
             }
-            diagnostics?.markStage('model-loaded', 'failed', 'source.path を解決できませんでした');
-            throw new Error(`${identityUri.toString()} の source.path を解決できませんでした。`);
+            diagnostics?.markStage('model-loaded', 'failed', 'Could not resolve source.path');
+            throw new Error(`Could not resolve source.path of ${identityUri.toString()}.`);
         }
         const extension = videoUri.path.ext.toLowerCase();
         const mimeType = PLAYABLE_VIDEO_MIME_TYPES.get(extension);
@@ -4900,7 +4900,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             (model.motionBagUris ?? []).map(uri => this.resourceSuffix(uri))
         );
         widget.viewType = 'akari.preview';
-        widget.title.label = kind === 'output' ? '出力プレビュー' : '素材プレビュー';
+        widget.title.label = kind === 'output' ? 'Output preview' : 'Footage preview';
         widget.node.setAttribute('data-akari-onboarding-target', kind === 'output' ? 'output' : 'material-preview');
         widget.title.caption = kind === 'output' ? identityUri.toString() : videoUri.toString();
         widget.title.iconClass = kind === 'output' ? 'codicon codicon-preview' : 'codicon codicon-camera-video';
@@ -5329,7 +5329,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         widget.akariPreviewTrackedResources = new Set(kind === 'output' ? [identityUri.toString()] : []);
         widget.akariPreviewTrackedSuffixes = new Set(kind === 'output' ? [this.resourceSuffix(identityUri)] : []);
         widget.viewType = 'akari.preview';
-        widget.title.label = kind === 'output' ? '出力プレビュー' : '素材プレビュー';
+        widget.title.label = kind === 'output' ? 'Output preview' : 'Footage preview';
         widget.node.setAttribute('data-akari-onboarding-target', kind === 'output' ? 'output' : 'material-preview');
         widget.title.caption = kind === 'output' ? identityUri.toString() : videoUri.toString();
         widget.title.iconClass = kind === 'output' ? 'codicon codicon-preview' : 'codicon codicon-camera-video';
@@ -5451,12 +5451,12 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 const prepared = await this.previewService.prepareLegacyEdit({ editUri: editUri.toString(),
                     workspaceRoots: await this.currentWorkspaceRoots() });
                 if ('blockers' in prepared) {
-                    throw new TypeError(`このプロジェクトは変換できません: ${prepared.blockers.join(' / ')}`);
+                    throw new TypeError(`This project cannot be converted: ${prepared.blockers.join(' / ')}`);
                 }
                 editText = prepared.nextText;
                 this.messages.warn(
-                    `edit.json version ${prepared.version} を読み取り専用でプレビュしています。`
-                    + '元ファイルは変更されていません。タイムラインか `akari migrate` で変換できます。'
+                    `edit.json version ${prepared.version} is previewed read-only.`
+                    + 'The original file is unchanged. Convert it from the timeline or with `akari migrate`.'
                 );
             }
             // timeline.tracks 未宣言時の captions 段は captions.json の実在に依存する。
@@ -5509,10 +5509,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 const declaredPath = declared.declaredPath;
                 if (typeof declaredPath !== 'string' || !declaredPath.trim()) {
                     // 宣言位置（`sources[hero]` / `source`）は読み込み層が付ける。版名は出さない。
-                    throw new TypeError(`edit.json の ${declared.declarationPath}.path が不正です。`);
+                    throw new TypeError(`${declared.declarationPath}.path in edit.json is invalid.`);
                 }
                 if (!declared.id) {
-                    throw new TypeError('edit.json の sources[].id が不正です。');
+                    throw new TypeError('sources[].id in edit.json is invalid.');
                 }
                 const uri = await this.resolveEditAssetUri(declaredPath, editUri);
                 let proxyUri: URI | undefined;
@@ -5585,7 +5585,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                             const stream = await ensureAssetStream(backgroundUri.toString(), backgroundUri);
                             background = { type: 'image', url: stream.url };
                         } catch (error) {
-                            videoFxFailures.add('クロマキー');
+                            videoFxFailures.add('Chroma key');
                             console.warn('[akari-preview] chroma background could not be resolved', error);
                             return undefined;
                         }
@@ -5782,7 +5782,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                         const children = item.children.flatMap(child => visit(child, item.id, world));
                         return [{ id: item.id, parentId, kind: 'group',
                             label: typeof item.declaration.name === 'string' && item.declaration.name.trim()
-                                ? item.declaration.name : 'キャンバス', transform: world,
+                                ? item.declaration.name : 'Canvas', transform: world,
                             at: item.at, duration: item.duration,
                             localTransform: item.declaration.transform as OverlayTransform | undefined,
                             motion: item.declaration.motion, keyframes: item.declaration.keyframes as any[],
@@ -6217,17 +6217,17 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             indicators.push(...videoFxFailures);
             const missingProxyCount = layers.filter(layer => layer.kind === 'baked' && layer.proxyMissing).length;
             if (missingProxyCount > 0) {
-                indicators.push(`テロップ ${missingProxyCount}枚（プレビュー用プロキシ未生成）`);
+                indicators.push(`Captions: ${missingProxyCount} missing a preview proxy`);
             }
             if (unsupportedBlendCount > 0) {
-                indicators.push(`素材合成モードが未対応（${unsupportedBlendCount}件、normal で近似）`);
+                indicators.push(`Unsupported blend mode (${unsupportedBlendCount}, shown as normal)`);
             }
             if (isTruthyObject((internal.declaration.audio as { master?: unknown } | undefined)?.master)) {
-                indicators.push('音声マスター処理');
+                indicators.push('Master audio');
             }
             if (cutItems.some(item =>
                 (item.declaration as { transition_out?: { type?: unknown } }).transition_out?.type === 'dissolve')) {
-                indicators.push('ディゾルブ切り替え');
+                indicators.push('Dissolve');
             }
             indicators.push(...unsupportedGltfWarnings);
             const outputCaptions = buildCaptionAnimatorSummaryFields(normalizePreviewCaptionClock(
@@ -6758,7 +6758,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             try {
                 const resolveAsset = async (relativePath: string, field: string): Promise<string> => {
                     if (relativePath.startsWith('/') || /^[a-z][a-z\d+.-]*:/i.test(relativePath)) {
-                        throw new TypeError(`${field} に絶対パスや URL は指定できません`);
+                        throw new TypeError(`${field} cannot be an absolute path or URL`);
                     }
                     const assetUri = await this.resolveEditAssetUri(relativePath, editUri);
                     const key = assetUri.toString();
@@ -6775,10 +6775,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 };
                 const parsedDescriptor: unknown = JSON.parse(declaration.textContent || '{}');
                 if (!parsedDescriptor || typeof parsedDescriptor !== 'object' || Array.isArray(parsedDescriptor)) {
-                    throw new TypeError('data-akari-3d-scene は JSON object である必要があります');
+                    throw new TypeError('data-akari-3d-scene must be a JSON object');
                 }
                 if (Object.keys(parsedDescriptor).some(key => !THREE_SCENE_KEYS.has(key))) {
-                    throw new TypeError('data-akari-3d-scene に未対応の top-level key があります');
+                    throw new TypeError('data-akari-3d-scene has an unsupported top-level key');
                 }
                 const resolved = await resolveThreeSceneDescriptorAssets(parsedDescriptor, resolveAsset, overlayVars);
                 const descriptor = resolved.descriptor;
@@ -6789,8 +6789,8 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                         );
                         if (unsupported.length > 0) {
                             unsupportedGltfWarnings.push(
-                                `3D モデル ${resolved.modelPath} が ${unsupported.join('/')} 圧縮のため読み込めません` +
-                                `（書き出しも同様に失敗します。非圧縮で書き出し直してください）`
+                                `3D model ${resolved.modelPath} uses ${unsupported.join('/')} compression and cannot be loaded` +
+                                `(Export will fail the same way. Re-export without compression.)`
                             );
                         }
                     } catch (error) {
@@ -6804,7 +6804,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 declaration.textContent = JSON.stringify(descriptor).replace(/</g, '\\u003c');
             } catch (error) {
                 declaration.textContent = JSON.stringify({ model: '' });
-                unsupportedGltfWarnings.push(`3D の読み込みに失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+                unsupportedGltfWarnings.push(`Could not load 3D: ${error instanceof Error ? error.message : String(error)}`);
                 console.warn('[akari-preview] failed to resolve declarative 3D scene asset', error);
             }
         }
@@ -6866,7 +6866,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                     }),
                     legacy: () => this.loadLegacyPreviewCaptions(captionsUri, editUri),
                     warn: code => this.messages.warn(
-                        `字幕の表示設定を解決できないため、設定を無視して表示しています: ${code}`
+                        `Could not resolve the caption display settings, so they are ignored: ${code}`
                     ),
                     state: this.captionDisplayFallbackState
                 });
@@ -6994,16 +6994,16 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 type: 'akari-preview-overlay-write-response',
                 requestId: request.requestId,
                 ok: false,
-                error: '編集中の edit.json がありません'
+                error: 'There is no edit.json open for editing'
             });
             return;
         }
         try {
             if ('text' in request.patch && typeof request.patch.text !== 'string') {
-                throw new Error('部品の text は文字列である必要があります');
+                throw new Error('Part text must be a string');
             }
             if (request.patch.duplicate) {
-                if (!request.patch.transform) throw new Error('複製を書き込めません');
+                if (!request.patch.transform) throw new Error('Could not write the duplicate');
                 const handled = this.commandRegistry.getCommand('akari.annotations.commitPreviewTransform')
                     ? await this.commandRegistry.executeCommand('akari.annotations.commitPreviewTransform',
                         editUri.toString(), { kind: 'duplicate', itemId: request.overlayId,
@@ -7014,7 +7014,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                     const lintResult = await this.previewService.lintEditCandidate({
                         editUri: editUri.toString(), candidateText
                     });
-                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
                     this.recentWrites.set(editUri.toString(), Date.now());
                     await this.fileService.writeFile(editUri, BinaryBuffer.fromString(candidateText));
                     this.queueRefresh(widget, editUri, 'output', undefined, false, candidateText);
@@ -7036,23 +7036,23 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             // lint「html does not resolve to a regular file」で弾かれる — 契約上ファイル参照）
             if (typeof request.patch.html === 'string') {
                 if (!request.patch.html.trim()) {
-                    throw new Error('html が空です');
+                    throw new Error('html is empty');
                 }
                 const projectRoot = editUri.parent;
                 const htmlPath = resolved.htmlPath;
                 if (typeof htmlPath !== 'string' || !htmlPath) {
-                    throw new Error(`HTML 断片の参照先を特定できません: ${request.overlayId}`);
+                    throw new Error(`Could not locate the HTML fragment reference: ${request.overlayId}`);
                 }
                 // URI.resolve は '..' を正規化しない可能性があるため、セグメント検査で先に弾く
                 if (htmlPath.startsWith('/') || htmlPath.split(/[\\/]/).some(segment => segment === '..')) {
-                    throw new Error('プロジェクト外への書き込みは拒否しました');
+                    throw new Error('Refused to write outside the project');
                 }
                 const target = projectRoot.resolve(htmlPath);
                 if (!`${target.toString()}/`.startsWith(`${projectRoot.toString()}/`)) {
-                    throw new Error('プロジェクト外への書き込みは拒否しました');
+                    throw new Error('Refused to write outside the project');
                 }
                 if (!(await this.fileService.exists(target))) {
-                    throw new Error(`断片ファイルがありません: ${htmlPath}`);
+                    throw new Error(`Fragment file not found: ${htmlPath}`);
                 }
                 const source = await this.readText(target);
                 const candidate = patchFragmentSourceText(source, request.patch.html);
@@ -7073,7 +7073,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                         type: 'akari-preview-overlay-write-response',
                         requestId: request.requestId,
                         ok: false,
-                        error: lintResult.errors[0] ?? 'edit-lint が変更を拒否しました'
+                        error: lintResult.errors[0] ?? 'edit-lint refused the change'
                     });
                     return;
                 }
@@ -7112,7 +7112,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
     protected async handleOverlayWriteBatch(widget: PreviewWidgetMarker, request: OverlayWriteBatchRequest): Promise<void> {
         try {
             const editUri = widget.akariPreviewEditUri;
-            if (!editUri) throw new Error('編集中の edit.json がありません');
+            if (!editUri) throw new Error('There is no edit.json open for editing');
             const originalText = await this.readText(editUri);
             const writes: PreviewItemWriteCommand[] = request.writes.map(write => ({
                 kind: 'overlay' as const, itemId: write.overlayId, patch: write.patch,
@@ -7120,9 +7120,9 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             }));
             const resolved = resolvePreviewItemWriteBatch(originalText, writes);
             const candidateText = resolved.candidateText;
-            if (candidateText === undefined) throw new Error('バッチの結果文書がありません');
+            if (candidateText === undefined) throw new Error('No batch result document');
             const lintResult = await this.previewService.lintEditCandidate({ editUri: editUri.toString(), candidateText });
-            if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+            if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
             this.recentWrites.set(editUri.toString(), Date.now());
             if (request.writes.some(write => Boolean(write.patch.transform))) {
                 await this.persistPreviewTransform(editUri, candidateText, writes);
@@ -7164,11 +7164,11 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         }
         for (const field of ['x', 'y', 'rotate'] as const) {
             if (field in patch && !Number.isFinite(patch[field])) {
-                return `transform.${field} は有限数値である必要があります。`;
+                return `transform.${field} must be a finite number.`;
             }
         }
         if ('scale' in patch && !(Number.isFinite(patch.scale) && (patch.scale as number) > 0)) {
-            return 'transform.scale は正の数である必要があります。';
+            return 'transform.scale must be a positive number.';
         }
         return undefined;
     }
@@ -7181,22 +7181,22 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         }
         for (const field of ['x', 'y'] as const) {
             if (!Number.isFinite(patch[field]) || patch[field] < 0 || patch[field] > 1) {
-                return `crop.${field} は 0 から 1 の範囲の有限数である必要があります。`;
+                return `crop.${field} must be a finite number from 0 to 1.`;
             }
         }
         for (const field of ['w', 'h'] as const) {
             if (!Number.isFinite(patch[field]) || patch[field] <= 0 || patch[field] > 1) {
-                return `crop.${field} は 0 より大きく 1 以下の有限数である必要があります。`;
+                return `crop.${field} must be greater than 0 and at most 1.`;
             }
         }
         if (patch.x + patch.w > 1 + 1e-9) {
-            return 'crop.x + crop.w は 1 以下である必要があります。';
+            return 'crop.x + crop.w must be at most 1.';
         }
         if (patch.y + patch.h > 1 + 1e-9) {
-            return 'crop.y + crop.h は 1 以下である必要があります。';
+            return 'crop.y + crop.h must be at most 1.';
         }
         if (patch.rotate !== undefined && (!Number.isFinite(patch.rotate) || patch.rotate < -45 || patch.rotate > 45)) {
-            return 'crop.rotate は -45 から 45 度の範囲である必要があります。';
+            return 'crop.rotate must be between -45 and 45 degrees.';
         }
         return undefined;
     }
@@ -7213,17 +7213,17 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         }
         const corners = patch.corners;
         if (!Array.isArray(corners) || corners.length !== 4) {
-            return 'perspective.corners は [TL,TR,BL,BR] の 4 要素配列である必要があります。';
+            return 'perspective.corners must be an array of 4 elements [TL,TR,BL,BR].';
         }
         const names = ['TL', 'TR', 'BL', 'BR'];
         for (let i = 0; i < 4; i += 1) {
             const corner = corners[i];
             if (!Array.isArray(corner) || corner.length !== 2) {
-                return `perspective.corners[${i}] (${names[i]}) は [x, y] の 2 要素配列である必要があります。`;
+                return `perspective.corners[${i}] (${names[i]}) must be a 2-element array [x, y].`;
             }
             const [x, y] = corner;
             if (!Number.isFinite(x) || x < 0 || x > 1 || !Number.isFinite(y) || y < 0 || y > 1) {
-                return `perspective.corners[${i}] (${names[i]}) は 0 から 1 の範囲の有限数である必要があります。`;
+                return `perspective.corners[${i}] (${names[i]}) must be a finite number from 0 to 1.`;
             }
         }
         const [tl, tr, bl, br] = corners;
@@ -7235,7 +7235,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             area2 += x1 * y2 - x2 * y1;
         }
         if (Math.abs(area2) < 1e-4) {
-            return 'perspective.corners は退化した四角形（面積がほぼ 0）であってはなりません。';
+            return 'perspective.corners must not be a degenerate quadrilateral (area near 0).';
         }
         return undefined;
     }
@@ -7251,7 +7251,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         };
         const editUri = widget.akariPreviewEditUri;
         if (!editUri) {
-            respond(false, '編集中の edit.json がありません');
+            respond(false, 'There is no edit.json open for editing');
             return;
         }
         const validationError = this.validateLayerTransformPatch(request.patch.transform)
@@ -7273,21 +7273,21 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 const committed = this.commandRegistry.getCommand('akari.annotations.commitPreviewTransform')
                     ? await this.commandRegistry.executeCommand('akari.annotations.commitPreviewTransform',
                         editUri.toString(), write) : false;
-                if (committed !== true) throw new Error('キャンバス内の写真を書き戻せませんでした');
+                if (committed !== true) throw new Error('Could not write the photo back into the canvas');
                 respond(true);
                 return;
             }
             const resolved = resolvePreviewItemWrite(originalText, write);
             const candidateText = resolved.candidateText;
             if (!candidateText) {
-                throw new Error('edit.json へ書き込む変更がありません');
+                throw new Error('No changes to write to edit.json');
             }
             const lintResult = await this.previewService.lintEditCandidate({
                 editUri: editUri.toString(),
                 candidateText
             });
             if (!lintResult.pass) {
-                respond(false, lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                respond(false, lintResult.errors[0] ?? 'edit-lint refused the change');
                 return;
             }
             this.markRecentWrite(editUri);
@@ -7312,7 +7312,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         };
         const editUri = widget.akariPreviewEditUri;
         if (!editUri) {
-            respond(false, '編集中の edit.json がありません');
+            respond(false, 'There is no edit.json open for editing');
             return;
         }
         const validationError = this.validateLayerTransformPatch(request.patch.transform)
@@ -7333,14 +7333,14 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             const resolved = resolvePreviewItemWrite(originalText, write);
             const candidateText = resolved.candidateText;
             if (!candidateText) {
-                throw new Error('edit.json へ書き込む変更がありません');
+                throw new Error('No changes to write to edit.json');
             }
             const lintResult = await this.previewService.lintEditCandidate({
                 editUri: editUri.toString(),
                 candidateText
             });
             if (!lintResult.pass) {
-                respond(false, lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                respond(false, lintResult.errors[0] ?? 'edit-lint refused the change');
                 return;
             }
             this.markRecentWrite(editUri);
@@ -7369,12 +7369,12 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
     // どちらも許容（schemas/captions.schema.json oneOf）ため両形を読む。
     protected captionWriteLabel(request: CaptionWriteRequest): string {
         const patch = request.patch;
-        if ('cueGeometryReset' in patch || 'cuePositionReset' in patch) return '字幕の位置を既定に戻す';
-        if ('toolStyle' in patch || 'run' in patch) return '字幕の見た目を変更';
-        if ('plateTransform' in patch) return patch.plateTransform.wrapWidthPct === undefined ? '字幕を拡縮・回転' : '文字の折り返し幅を変更';
-        if ('cuePosition' in patch || 'cuePositions' in patch || 'groupPosition' in patch) return '字幕を移動';
-        if ('text' in patch) return '字幕の文字を変更';
-        return '字幕の配置を変更';
+        if ('cueGeometryReset' in patch || 'cuePositionReset' in patch) return 'Reset caption position';
+        if ('toolStyle' in patch || 'run' in patch) return 'Change caption look';
+        if ('plateTransform' in patch) return patch.plateTransform.wrapWidthPct === undefined ? 'Scale and rotate captions' : 'Change text wrap width';
+        if ('cuePosition' in patch || 'cuePositions' in patch || 'groupPosition' in patch) return 'Move captions';
+        if ('text' in patch) return 'Change caption text';
+        return 'Change caption placement';
     }
 
     protected notifyCaptionWrite(
@@ -7409,13 +7409,13 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         };
         const captionsUri = widget.akariPreviewCaptionsUri;
         if (!captionsUri) {
-            respond(false, '字幕ファイル（captions.json）がありません');
+            respond(false, 'Caption file (captions.json) is missing');
             return;
         }
         if ('duplicate' in request.patch) {
             const editUri = widget.akariPreviewEditUri;
             try {
-                if (!editUri) throw new Error('編集中の edit.json がありません');
+                if (!editUri) throw new Error('There is no edit.json open for editing');
                 const committed = this.commandRegistry.getCommand('akari.annotations.commitPreviewTransform')
                     ? await this.commandRegistry.executeCommand('akari.annotations.commitPreviewTransform',
                         editUri.toString(), { kind: 'caption-duplicate', captionId: request.captionId,
@@ -7426,10 +7426,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                     const lintResult = await this.previewService.lintEditCandidate({
                         editUri: captionsUri.toString(), candidateText
                     });
-                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
                     this.markRecentWrite(captionsUri);
                     await this.fileService.writeFile(captionsUri, BinaryBuffer.fromString(candidateText));
-                    this.notifyCaptionWrite(widget, captionsUri, source, candidateText, '文字を複製');
+                    this.notifyCaptionWrite(widget, captionsUri, source, candidateText, 'Duplicate text');
                 }
                 this.refreshCaptionsAfterHistoryWrite(captionsUri.toString());
                 respond(true);
@@ -7445,7 +7445,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             if (!editUri || !position || patch.cuePosition?.captionId !== request.captionId
                 || !Number.isFinite(patch.wrapWidthPct) || patch.wrapWidthPct <= 0 || patch.wrapWidthPct > 100
                 || !Number.isFinite(position.position.x) || !Number.isFinite(position.position.y)) {
-                respond(false, '文字の幅または位置が不正です');
+                respond(false, 'Text width or position is invalid');
                 return;
             }
             try {
@@ -7470,9 +7470,9 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                             writtenText = candidateText;
                         }
                     });
-                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                    if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
                     if (writtenText !== undefined) {
-                        this.notifyCaptionWrite(widget, captionsUri, originalText, writtenText, '文字の折り返し幅を変更');
+                        this.notifyCaptionWrite(widget, captionsUri, originalText, writtenText, 'Change text wrap width');
                     }
                 }
                 this.refreshCaptionsAfterHistoryWrite(captionsUri.toString());
@@ -7486,7 +7486,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
             : 'groupZone' in request.patch ? request.patch.groupZone : undefined;
         if (typeof requestedZone === 'string'
             && !(CAPTION_ZONES as readonly string[]).includes(requestedZone)) {
-            respond(false, `不正な zone です: ${requestedZone}`);
+            respond(false, `Invalid zone: ${requestedZone}`);
             return;
         }
         try {
@@ -7581,7 +7581,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                                     zone: 'zone' in request.patch ? request.patch.zone : 'bottom'
                                 });
             if (!lintResult.pass) {
-                respond(false, lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+                respond(false, lintResult.errors[0] ?? 'edit-lint refused the change');
                 return;
             }
             this.queueCaptionsUpdate(widget);
@@ -7715,10 +7715,10 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                     writtenText = candidateText;
                 }
             });
-            if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint が変更を拒否しました');
+            if (!lintResult.pass) throw new Error(lintResult.errors[0] ?? 'edit-lint refused the change');
             this.queueCaptionsUpdate(widget);
             if (writtenText !== undefined) {
-                this.notifyCaptionWrite(widget, captionsUri, source, writtenText, '字幕の配置を変更');
+                this.notifyCaptionWrite(widget, captionsUri, source, writtenText, 'Change caption placement');
             }
         } catch (error) {
             this.messages.error(error instanceof Error ? error.message : String(error));
@@ -7763,24 +7763,24 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
         let videoUri = widget.akariPreviewVideoUri;
         if (request.videoUri) {
             if (!widget.akariPreviewFallbackSourceUris?.has(request.videoUri)) {
-                respond(false, '動画ソースがプレビューの宣言と一致しません');
+                respond(false, 'The video source does not match the preview declaration');
                 return;
             }
             videoUri = new URI(request.videoUri);
         }
         if (!videoUri) {
-            respond(false, '動画ソースが特定できません');
+            respond(false, 'Could not identify the video source');
             return;
         }
         const key = videoUri.toString();
         if (this.hevcFallbackAttempted.has(key)) {
-            respond(false, 'このソースは既にフォールバックを試行済みです');
+            respond(false, 'This source has already been tried with a fallback');
             return;
         }
         this.hevcFallbackAttempted.add(key);
         const [workspaceRoot] = await this.workspaceService.roots;
         if (!workspaceRoot) {
-            respond(false, 'ワークスペースが開かれていません');
+            respond(false, 'No workspace is open');
             return;
         }
         try {
@@ -7789,7 +7789,7 @@ export class AkariPreviewOpenHandler implements OpenHandler, FrontendApplication
                 projectRootUri: workspaceRoot.resource.toString()
             });
             if (result.status !== 'ready') {
-                respond(false, result.status === 'unavailable' ? result.reason : '変換対象ではありませんでした');
+                respond(false, result.status === 'unavailable' ? result.reason : 'Not eligible for conversion');
                 return;
             }
             this.hevcFallbackProxyUris.set(key, result.proxyUri);
@@ -8477,11 +8477,11 @@ ${previewSelectionHandlesStyle}
 </head>
 <body>
 <main class="workspace">
-  <section class="preview-pane" aria-label="動画プレビュー">
-    <nav data-akari-ui="preview-scope-breadcrumb" aria-label="プレビューの階層" hidden></nav>
+  <section class="preview-pane" aria-label="Video preview">
+    <nav data-akari-ui="preview-scope-breadcrumb" aria-label="Preview hierarchy" hidden></nav>
     <div id="preview-wrapper">${kind === 'raw' ? `<div class="akari-material-chip" id="material-chip"><span id="material-chip-name">${this.escapeHtml(videoUri.path.base)}</span><span id="material-chip-duration" hidden></span></div>` : ''}
       <div id="indicator-popup" class="zoom-popup transport-left" hidden></div>
-      <button id="indicator-toggle" class="icon-button transport-left" type="button" aria-label="プレビュー未対応の項目" title="プレビュー未対応の項目" aria-expanded="false" hidden>ⓘ</button>
+      <button id="indicator-toggle" class="icon-button transport-left" type="button" aria-label="Items the preview cannot show" title="Items the preview cannot show" aria-expanded="false" hidden>ⓘ</button>
       <div id="zoom-layer">
         <div id="preview-stage">
           <div id="preview-layers">
@@ -8495,83 +8495,83 @@ ${previewSelectionHandlesStyle}
               <div id="akari-gen-blur" hidden><img id="akari-gen-blur-image" alt=""></div>
               <div id="akari-gen-shimmer" hidden></div>
               <div id="akari-gen-icon" hidden>✦</div>
-              <div id="akari-gen-mask" hidden><span id="akari-gen-mask-label">編集領域</span></div>
+              <div id="akari-gen-mask" hidden><span id="akari-gen-mask-label">Edit region</span></div>
               <div id="akari-gen-tag" hidden></div>
-              <div id="akari-gen-pip" hidden><span id="akari-gen-pip-label">最後の絵</span><img id="akari-gen-pip-image" alt=""></div>
+              <div id="akari-gen-pip" hidden><span id="akari-gen-pip-label">Last frame</span><img id="akari-gen-pip-image" alt=""></div>
               <div id="akari-gen-band" hidden><span id="akari-gen-band-text"></span><span id="akari-gen-band-bar"><i id="akari-gen-band-fill"></i></span></div>
             </div>
           </div>
-          <div id="layer-select-box"><div class="akari-layer-handle akari-layer-handle-nw" data-akari-handle="nw"></div><div class="akari-layer-handle akari-layer-handle-ne" data-akari-handle="ne"></div><div class="akari-layer-handle akari-layer-handle-sw" data-akari-handle="sw"></div><div class="akari-layer-handle akari-layer-handle-se" data-akari-handle="se"></div><button type="button" class="akari-layer-handle akari-layer-handle-rotate" data-akari-handle="rotate" aria-label="回転" title="回転"></button><button type="button" class="akari-layer-handle akari-layer-handle-move" data-akari-handle="move" aria-label="移動" title="移動"></button><div class="akari-crop-edge akari-crop-edge-n akari-layer-handle akari-layer-handle-n" data-akari-crop-edge="n" role="button" aria-label="上へ伸ばす" title="上へ伸ばす"></div><div class="akari-crop-edge akari-crop-edge-e akari-layer-handle akari-layer-handle-e" data-akari-crop-edge="e" role="button" aria-label="右へ伸ばす" title="右へ伸ばす"></div><div class="akari-crop-edge akari-crop-edge-s akari-layer-handle akari-layer-handle-s" data-akari-crop-edge="s" role="button" aria-label="下へ伸ばす" title="下へ伸ばす"></div><div class="akari-crop-edge akari-crop-edge-w akari-layer-handle akari-layer-handle-w" data-akari-crop-edge="w" role="button" aria-label="左へ伸ばす" title="左へ伸ばす"></div></div>
+          <div id="layer-select-box"><div class="akari-layer-handle akari-layer-handle-nw" data-akari-handle="nw"></div><div class="akari-layer-handle akari-layer-handle-ne" data-akari-handle="ne"></div><div class="akari-layer-handle akari-layer-handle-sw" data-akari-handle="sw"></div><div class="akari-layer-handle akari-layer-handle-se" data-akari-handle="se"></div><button type="button" class="akari-layer-handle akari-layer-handle-rotate" data-akari-handle="rotate" aria-label="Rotate" title="Rotate"></button><button type="button" class="akari-layer-handle akari-layer-handle-move" data-akari-handle="move" aria-label="Move" title="Move"></button><div class="akari-crop-edge akari-crop-edge-n akari-layer-handle akari-layer-handle-n" data-akari-crop-edge="n" role="button" aria-label="Extend upward" title="Extend upward"></div><div class="akari-crop-edge akari-crop-edge-e akari-layer-handle akari-layer-handle-e" data-akari-crop-edge="e" role="button" aria-label="Extend right" title="Extend right"></div><div class="akari-crop-edge akari-crop-edge-s akari-layer-handle akari-layer-handle-s" data-akari-crop-edge="s" role="button" aria-label="Extend downward" title="Extend downward"></div><div class="akari-crop-edge akari-crop-edge-w akari-layer-handle akari-layer-handle-w" data-akari-crop-edge="w" role="button" aria-label="Extend left" title="Extend left"></div></div>
           <div id="layer-crop-box"><img id="photo-crop-ghost" alt=""><div class="akari-layer-crop-rect"><div class="akari-layer-crop-handle akari-layer-crop-handle-nw" data-akari-crop-handle="nw"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-n" data-akari-crop-handle="n"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-ne" data-akari-crop-handle="ne"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-e" data-akari-crop-handle="e"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-se" data-akari-crop-handle="se"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-s" data-akari-crop-handle="s"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-sw" data-akari-crop-handle="sw"></div><div class="akari-layer-crop-handle akari-layer-crop-handle-w" data-akari-crop-handle="w"></div></div></div>
-          <div id="photo-crop-controls"><label>縦横比 <select data-photo-crop-ratio><option value="free">自由</option><option value="original">元の比</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="5:4">5:4</option><option value="3:4">3:4</option><option value="4:3">4:3</option><option value="9:16">9:16</option><option value="16:9">16:9</option></select></label><label>回転 <input data-photo-crop-rotate type="number" min="-45" max="45" step="0.1" value="0">°</label><button type="button" data-photo-crop-auto>自動水平</button><button type="button" data-photo-crop-smart>スマート切り抜き</button><button type="button" disabled title="近日対応">拡張（近日）</button><span data-photo-crop-status aria-live="polite"></span><button type="button" data-photo-crop-done>確定</button><button type="button" data-photo-crop-cancel>取り消し</button></div>
-          <div id="layer-crop-toggle" title="クロップモード切替 (Esc で終了)">⛶</div>
-          <div id="layer-perspective-toggle" title="パース変形パネル">◈</div>
+          <div id="photo-crop-controls"><label>Aspect <select data-photo-crop-ratio><option value="free">Free</option><option value="original">Original</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="5:4">5:4</option><option value="3:4">3:4</option><option value="4:3">4:3</option><option value="9:16">9:16</option><option value="16:9">16:9</option></select></label><label>Rotate <input data-photo-crop-rotate type="number" min="-45" max="45" step="0.1" value="0">°</label><button type="button" data-photo-crop-auto>Auto level</button><button type="button" data-photo-crop-smart>Smart crop</button><button type="button" disabled title="Coming soon">Expand (soon)</button><span data-photo-crop-status aria-live="polite"></span><button type="button" data-photo-crop-done>Apply</button><button type="button" data-photo-crop-cancel>Cancel</button></div>
+          <div id="layer-crop-toggle" title="Toggle crop mode (Esc to exit)">⛶</div>
+          <div id="layer-perspective-toggle" title="Perspective panel">◈</div>
           <div id="layer-perspective-panel">
             <div class="akari-perspective-presets">
-              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="right">右奥</button>
-              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="left">左奥</button>
-              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="top">上奥</button>
-              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="bottom">下奥</button>
+              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="right">Far right</button>
+              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="left">Far left</button>
+              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="top">Far top</button>
+              <button type="button" class="akari-perspective-preset" data-akari-perspective-preset="bottom">Far bottom</button>
             </div>
             <div class="akari-perspective-angle-row">
-              <span>角度</span>
+              <span>Angle</span>
               <input type="range" min="0" max="75" step="1" value="30" data-akari-perspective-angle />
               <span data-akari-perspective-angle-value>30°</span>
             </div>
-            <button type="button" class="akari-perspective-clear" data-akari-perspective-clear>パースを解除</button>
+            <button type="button" class="akari-perspective-clear" data-akari-perspective-clear>Clear perspective</button>
           </div>
-          <div id="cut-select-box"><div class="akari-cut-handle akari-cut-handle-nw" data-akari-handle="nw"></div><div class="akari-cut-handle akari-cut-handle-ne" data-akari-handle="ne"></div><div class="akari-cut-handle akari-cut-handle-sw" data-akari-handle="sw"></div><div class="akari-cut-handle akari-cut-handle-se" data-akari-handle="se"></div><button type="button" class="akari-cut-handle akari-cut-handle-rotate" data-akari-handle="rotate" aria-label="回転" title="回転"></button><button type="button" class="akari-cut-handle akari-cut-handle-move" data-akari-handle="move" aria-label="移動" title="移動"></button><div class="akari-crop-edge akari-crop-edge-n" data-akari-crop-edge="n"></div><div class="akari-crop-edge akari-crop-edge-e" data-akari-crop-edge="e"></div><div class="akari-crop-edge akari-crop-edge-s" data-akari-crop-edge="s"></div><div class="akari-crop-edge akari-crop-edge-w" data-akari-crop-edge="w"></div></div>
+          <div id="cut-select-box"><div class="akari-cut-handle akari-cut-handle-nw" data-akari-handle="nw"></div><div class="akari-cut-handle akari-cut-handle-ne" data-akari-handle="ne"></div><div class="akari-cut-handle akari-cut-handle-sw" data-akari-handle="sw"></div><div class="akari-cut-handle akari-cut-handle-se" data-akari-handle="se"></div><button type="button" class="akari-cut-handle akari-cut-handle-rotate" data-akari-handle="rotate" aria-label="Rotate" title="Rotate"></button><button type="button" class="akari-cut-handle akari-cut-handle-move" data-akari-handle="move" aria-label="Move" title="Move"></button><div class="akari-crop-edge akari-crop-edge-n" data-akari-crop-edge="n"></div><div class="akari-crop-edge akari-crop-edge-e" data-akari-crop-edge="e"></div><div class="akari-crop-edge akari-crop-edge-s" data-akari-crop-edge="s"></div><div class="akari-crop-edge akari-crop-edge-w" data-akari-crop-edge="w"></div></div>
           <div id="caption-zone-highlight"></div>
           <div id="zone-hint-layer"></div>
-          <div id="caption-row-box"><span>折り返しの幅</span></div>
+          <div id="caption-row-box"><span>Wrap width</span></div>
           <div id="caption-select-box"><div class="akari-caption-select-tools">
-            <button type="button" data-caption-tool="group" aria-label="全字幕モード"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="3" rx="1"/><rect x="2" y="10" width="12" height="3" rx="1" opacity=".45"/></svg><span class="akari-caption-tool-tip">全字幕モード（Alt ドラッグでも操作）</span></button>
+            <button type="button" data-caption-tool="group" aria-label="All captions"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="3" rx="1"/><rect x="2" y="10" width="12" height="3" rx="1" opacity=".45"/></svg><span class="akari-caption-tool-tip">All captions (also Alt-drag)</span></button>
             <span class="akari-caption-tool-separator"></span>
-            <button type="button" data-caption-tool="snap" class="on" aria-label="吸着"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15-4-4 6.75-6.77a7.79 7.79 0 0 1 11 11L13 22l-4-4 6.39-6.36a2.14 2.14 0 0 0-3-3L6 15"/><path d="m5 8 4 4M12 15l4 4"/></svg><span class="akari-caption-tool-tip">吸着のオン・オフ</span></button>
-            <button type="button" data-caption-tool="clamp" aria-label="はみ出し防止"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9V7h2M17 9V7h-2M7 15v2h2M17 15v2h-2"/></svg><span class="akari-caption-tool-tip">はみ出し防止のオン・オフ</span></button>
+            <button type="button" data-caption-tool="snap" class="on" aria-label="Snap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15-4-4 6.75-6.77a7.79 7.79 0 0 1 11 11L13 22l-4-4 6.39-6.36a2.14 2.14 0 0 0-3-3L6 15"/><path d="m5 8 4 4M12 15l4 4"/></svg><span class="akari-caption-tool-tip">Toggle snapping</span></button>
+            <button type="button" data-caption-tool="clamp" aria-label="Keep inside"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9V7h2M17 9V7h-2M7 15v2h2M17 15v2h-2"/></svg><span class="akari-caption-tool-tip">Toggle keep-inside</span></button>
             <span class="akari-caption-tool-separator" data-caption-optional-separator></span>
-            <button type="button" data-caption-tool="bold" hidden aria-label="太字">B<span class="akari-caption-tool-tip">太字のオン・オフ</span></button>
-            <button type="button" data-caption-tool="color" hidden aria-label="色"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M7.1 2h1.8l4 10.5h-1.9l-1 2.8H6l-1 2.8H3.1L7.1 2zm-.5 6.2h2.8L8 4.4 6.6 8.2z"/></svg><span class="akari-caption-tool-tip">文字・縁取り・座布団の色</span></button>
-            <button type="button" data-caption-tool="bigger" data-akari-run-tool="bigger" hidden aria-label="大きく"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19 11 5l7 14M6.5 14h9M20 5v8m-4-4h8"/></svg><span class="akari-caption-tool-tip">選択文字を大きく</span></button>
-            <button type="button" data-caption-tool="smaller" data-akari-run-tool="smaller" hidden aria-label="小さく"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19 11 5l7 14M6.5 14h9M17 9h7"/></svg><span class="akari-caption-tool-tip">選択文字を小さく</span></button>
-            <button type="button" data-caption-tool="up" data-akari-run-tool="up" hidden aria-label="上へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4m-6 6 6-6 6 6M4 21h16"/></svg><span class="akari-caption-tool-tip">選択文字を上へ</span></button>
-            <button type="button" data-caption-tool="down" data-akari-run-tool="down" hidden aria-label="下へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m-6-6 6 6 6-6M4 3h16"/></svg><span class="akari-caption-tool-tip">選択文字を下へ</span></button>
-            <button type="button" data-caption-tool="rotate-run" data-akari-run-tool="rotate" hidden aria-label="回転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 1-3-6M20 3v6h-6"/></svg><span class="akari-caption-tool-tip">選択文字を 8° 回転</span></button>
-            <button type="button" data-caption-tool="spacing-run" data-akari-run-tool="spacing" hidden aria-label="字間"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5v14m16-14v14M7 12h10m-7-3-3 3 3 3m4-6 3 3-3 3"/></svg><span class="akari-caption-tool-tip">選択文字の字間を広げる</span></button>
-            <button type="button" data-caption-tool="run-style" data-akari-run-tool="style" hidden aria-label="スタイル"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/></svg><span class="akari-caption-tool-tip">選択文字にスタイルを当てる</span></button>
-            <button type="button" data-caption-tool="run-role" data-akari-run-tool="role" hidden aria-label="役割"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v16H5zM8 9h8m-8 4h6"/></svg><span class="akari-caption-tool-tip">選択文字の役割</span></button>
-            <button type="button" data-caption-tool="cushion" hidden aria-label="座布団"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="3" fill="currentColor" fill-opacity=".25"/><path d="M8 12h8"/></svg><span class="akari-caption-tool-tip">座布団を敷く・外す</span></button>
-            <button type="button" data-caption-tool="reset" aria-label="既定に戻す" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 6.5A5 5 0 1 1 3 9M3 3v3.5h3.5"/></svg><span class="akari-caption-tool-tip">位置と大きさを既定に戻す</span></button>
-            <button type="button" data-caption-tool="inspector" hidden aria-label="インスペクターを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="akari-caption-tool-tip">インスペクターを開く</span></button>
-            <button type="button" data-caption-tool="my-style-save" hidden data-akari-my-style-preview-save aria-label="マイスタイルに保存"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M4 17v3h16v-3"/></svg><span class="akari-caption-tool-tip">マイスタイルに保存</span></button>
-          </div><div data-akari-run-menu hidden></div><div data-caption-palette hidden><div class="akari-caption-palette-tabs"><button type="button" data-palette-tab="text" class="on">文字</button><button type="button" data-palette-tab="stroke">縁取り</button><button type="button" data-palette-tab="background">座布団</button></div><div class="akari-caption-palette-grid" data-palette-colors></div><div class="akari-caption-palette-label">最近使った色</div><div class="akari-caption-palette-grid" data-palette-recent></div><button type="button" data-palette-more>他の色…</button></div></div>
+            <button type="button" data-caption-tool="bold" hidden aria-label="Bold">B<span class="akari-caption-tool-tip">Toggle bold</span></button>
+            <button type="button" data-caption-tool="color" hidden aria-label="Color"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M7.1 2h1.8l4 10.5h-1.9l-1 2.8H6l-1 2.8H3.1L7.1 2zm-.5 6.2h2.8L8 4.4 6.6 8.2z"/></svg><span class="akari-caption-tool-tip">Text, outline, and plate color</span></button>
+            <button type="button" data-caption-tool="bigger" data-akari-run-tool="bigger" hidden aria-label="Larger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19 11 5l7 14M6.5 14h9M20 5v8m-4-4h8"/></svg><span class="akari-caption-tool-tip">Make the selection larger</span></button>
+            <button type="button" data-caption-tool="smaller" data-akari-run-tool="smaller" hidden aria-label="Smaller"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19 11 5l7 14M6.5 14h9M17 9h7"/></svg><span class="akari-caption-tool-tip">Make the selection smaller</span></button>
+            <button type="button" data-caption-tool="up" data-akari-run-tool="up" hidden aria-label="Up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4m-6 6 6-6 6 6M4 21h16"/></svg><span class="akari-caption-tool-tip">Move the selection up</span></button>
+            <button type="button" data-caption-tool="down" data-akari-run-tool="down" hidden aria-label="Down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m-6-6 6 6 6-6M4 3h16"/></svg><span class="akari-caption-tool-tip">Move the selection down</span></button>
+            <button type="button" data-caption-tool="rotate-run" data-akari-run-tool="rotate" hidden aria-label="Rotate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 1-3-6M20 3v6h-6"/></svg><span class="akari-caption-tool-tip">Rotate the selection 8°</span></button>
+            <button type="button" data-caption-tool="spacing-run" data-akari-run-tool="spacing" hidden aria-label="Tracking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5v14m16-14v14M7 12h10m-7-3-3 3 3 3m4-6 3 3-3 3"/></svg><span class="akari-caption-tool-tip">Increase selection letter spacing</span></button>
+            <button type="button" data-caption-tool="run-style" data-akari-run-tool="style" hidden aria-label="Style"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/></svg><span class="akari-caption-tool-tip">Apply a style to the selection</span></button>
+            <button type="button" data-caption-tool="run-role" data-akari-run-tool="role" hidden aria-label="Role"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v16H5zM8 9h8m-8 4h6"/></svg><span class="akari-caption-tool-tip">Selection role</span></button>
+            <button type="button" data-caption-tool="cushion" hidden aria-label="Background"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="3" fill="currentColor" fill-opacity=".25"/><path d="M8 12h8"/></svg><span class="akari-caption-tool-tip">Add or remove the background</span></button>
+            <button type="button" data-caption-tool="reset" aria-label="Reset" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 6.5A5 5 0 1 1 3 9M3 3v3.5h3.5"/></svg><span class="akari-caption-tool-tip">Reset position and size</span></button>
+            <button type="button" data-caption-tool="inspector" hidden aria-label="Open inspector"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="akari-caption-tool-tip">Open inspector</span></button>
+            <button type="button" data-caption-tool="my-style-save" hidden data-akari-my-style-preview-save aria-label="Save to My Style"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M4 17v3h16v-3"/></svg><span class="akari-caption-tool-tip">Save to My Style</span></button>
+          </div><div data-akari-run-menu hidden></div><div data-caption-palette hidden><div class="akari-caption-palette-tabs"><button type="button" data-palette-tab="text" class="on">Text</button><button type="button" data-palette-tab="stroke">Outline</button><button type="button" data-palette-tab="background">Background</button></div><div class="akari-caption-palette-grid" data-palette-colors></div><div class="akari-caption-palette-label">Recent colors</div><div class="akari-caption-palette-grid" data-palette-recent></div><button type="button" data-palette-more>Other colors...</button></div></div>
           <canvas id="pen-layer" aria-hidden="true"></canvas>
         </div>
       </div>
-      <button id="output-preview-link" class="output-preview-link" type="button"${model.relatedEditUri ? '' : ' hidden'}>合成は出力プレビューで確認（開く）</button>
+      <button id="output-preview-link" class="output-preview-link" type="button"${model.relatedEditUri ? '' : ' hidden'}>Check the composite in the output preview (open)</button>
       <div id="reload-surface" class="reload-surface">
-        <div id="reload-toast" class="reload-toast" hidden role="status">edit.json を再読込しました（一時停止中）</div>
+        <div id="reload-toast" class="reload-toast" hidden role="status">Reloaded edit.json (paused)</div>
         <div id="composite-error-banner" class="composite-error-banner" hidden role="status">
-          <strong>edit.json の合成情報を読めません — 素材のみ表示中</strong>
+          <strong>Could not read the edit.json composite. Showing footage only</strong>
           <span id="composite-error-detail"></span>
         </div>
         <div id="reload-error-card" class="reload-error-card" hidden role="alert" aria-live="assertive">
-          <strong>edit.json の再読込に失敗しました。プレビューは変更前の内容です。</strong>
+          <strong>Could not reload edit.json. The preview still shows the previous cut.</strong>
           <span id="reload-error-detail"></span>
-          <button id="reload-error-retry" type="button">再試行</button>
+          <button id="reload-error-retry" type="button">Retry</button>
         </div>
       </div>
       <div id="audio-notice" class="audio-notice" hidden role="status">
-        <span>音声が検出されていません。無音の素材か、音声形式がプレビュー非対応の可能性があります（書き出しには影響しません）。</span>
-        <button id="audio-notice-dismiss" type="button" aria-label="閉じる" title="閉じる">×</button>
+        <span>No audio detected. The footage may be silent, or the audio format cannot be previewed. Export is unchanged.</span>
+        <button id="audio-notice-dismiss" type="button" aria-label="Close" title="Close">×</button>
       </div>
       <div id="write-error-banner" class="write-error-banner" hidden role="alert" aria-live="assertive">
         <span id="write-error-message"></span>
-        <button id="write-error-dismiss" type="button" aria-label="閉じる" title="閉じる">×</button>
+        <button id="write-error-dismiss" type="button" aria-label="Close" title="Close">×</button>
       </div>
       <div id="preview-message" class="message-card" hidden role="status">
         <p id="preview-message-text">${UNSUPPORTED_FORMAT_MESSAGE}</p>
-        <button id="preview-message-reload" class="message-card-reload" type="button" hidden>再読み込み</button>
+        <button id="preview-message-reload" class="message-card-reload" type="button" hidden>Reload</button>
       </div>
     </div>
     <div id="zoom-minimap" hidden aria-hidden="true"><div id="zoom-minimap-viewport"></div></div>
@@ -8579,30 +8579,30 @@ ${previewSelectionHandlesStyle}
 </main>
 <div class="transport">
   <div class="transport-seek">
-    <input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="再生位置">
+    <input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="Playhead">
   </div>
   <div class="transport-controls">
     <div class="transport-left">
-      <button id="audio-meter-open" class="icon-button" type="button" aria-label="音声メーター" title="音声メーター"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2m2-4v8m3-12v16m3-13v10m3-7v4m3-2h2" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button id="audio-meter-open" class="icon-button" type="button" aria-label="Audio meter" title="Audio meter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2m2-4v8m3-12v16m3-13v10m3-7v4m3-2h2" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
       <span id="time-label">0:00 / 0:00</span>
       <span id="audio-status" class="audio-status" role="status" aria-live="polite" hidden></span>
     </div>
     <div class="transport-center">
-      <button id="skip-back" class="icon-button" type="button" aria-label="10秒戻る" title="10秒戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5V2L6.5 6 11 10V7a6 6 0 1 1-5.65 8H3.26A8 8 0 1 0 11 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
-      <button id="frame-back" class="icon-button" type="button" aria-label="1コマ戻る" title="1コマ戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM18 5v14l-9-7z"/></svg></button>
-      <button id="play-toggle" class="icon-button" type="button" aria-label="再生" title="再生" data-akari-onboarding-target="play-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
-      <button id="frame-forward" class="icon-button" type="button" aria-label="1コマ進む" title="1コマ進む"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM6 5v14l9-7z"/></svg></button>
-      <button id="skip-forward" class="icon-button" type="button" aria-label="10秒進む" title="10秒進む"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5V2l4.5 4-4.5 4V7a6 6 0 1 0 5.65 8h2.09A8 8 0 1 1 13 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
+      <button id="skip-back" class="icon-button" type="button" aria-label="Back 10 seconds" title="Back 10 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5V2L6.5 6 11 10V7a6 6 0 1 1-5.65 8H3.26A8 8 0 1 0 11 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
+      <button id="frame-back" class="icon-button" type="button" aria-label="Previous frame" title="Previous frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM18 5v14l-9-7z"/></svg></button>
+      <button id="play-toggle" class="icon-button" type="button" aria-label="Play" title="Play" data-akari-onboarding-target="play-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      <button id="frame-forward" class="icon-button" type="button" aria-label="Next frame" title="Next frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM6 5v14l9-7z"/></svg></button>
+      <button id="skip-forward" class="icon-button" type="button" aria-label="Forward 10 seconds" title="Forward 10 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5V2l4.5 4-4.5 4V7a6 6 0 1 0 5.65 8h2.09A8 8 0 1 1 13 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
     </div>
     <div class="transport-right">
-      <button id="akari-gen-capture-frame" class="icon-button" type="button" aria-label="今のコマを保存" title="今のコマを保存"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4l2-3h6l2 3h4v14H3Z" fill="none" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="4" fill="none" stroke-width="2"/></svg></button>
-      <button id="pen-toggle" class="icon-button" type="button" aria-label="ペン" title="ペン" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19.5 8.5a2.12 2.12 0 0 0-3-3zM14.8 7.2l2 2M4 16l4 4"/></svg></button>
-      <button id="caption-row-box-toggle" class="icon-button" type="button" aria-label="折り返しの幅を表示" title="折り返しの幅を表示" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg></button>
-      <button id="rate-toggle" class="icon-button rate-button" type="button" aria-label="再生速度" title="再生速度" aria-expanded="false" data-akari-ui="preview:rate">1×</button>
-      <button id="zoom-toggle" class="icon-button" type="button" aria-label="ズーム" title="ズーム" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke-width="2"/><path d="m15.5 15.5 5 5" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
-      <button id="fullscreen-toggle" class="icon-button" type="button" aria-label="全画面" title="全画面" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zm3 11h2v5h-5v-2h3zM9 18v2H4v-5h2v3z"/></svg></button>
+      <button id="akari-gen-capture-frame" class="icon-button" type="button" aria-label="Save this frame" title="Save this frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4l2-3h6l2 3h4v14H3Z" fill="none" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="4" fill="none" stroke-width="2"/></svg></button>
+      <button id="pen-toggle" class="icon-button" type="button" aria-label="Pen" title="Pen" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L19.5 8.5a2.12 2.12 0 0 0-3-3zM14.8 7.2l2 2M4 16l4 4"/></svg></button>
+      <button id="caption-row-box-toggle" class="icon-button" type="button" aria-label="Show wrap width" title="Show wrap width" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg></button>
+      <button id="rate-toggle" class="icon-button rate-button" type="button" aria-label="Playback speed" title="Playback speed" aria-expanded="false" data-akari-ui="preview:rate">1×</button>
+      <button id="zoom-toggle" class="icon-button" type="button" aria-label="Zoom" title="Zoom" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke-width="2"/><path d="m15.5 15.5 5 5" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button id="fullscreen-toggle" class="icon-button" type="button" aria-label="Full screen" title="Full screen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zm3 11h2v5h-5v-2h3zM9 18v2H4v-5h2v3z"/></svg></button>
       <div id="rate-popup" class="zoom-popup" hidden>
-        <div class="zoom-popup-header"><span>再生速度</span><span id="rate-value">1×</span></div>
+        <div class="zoom-popup-header"><span>Playback speed</span><span id="rate-value">1×</span></div>
         <div class="rate-presets">
           <button class="rate-preset" type="button" data-rate="0.5" data-akari-ui="preview:rate:0.5" aria-pressed="false">0.5×</button>
           <button class="rate-preset" type="button" data-rate="0.75" data-akari-ui="preview:rate:0.75" aria-pressed="false">0.75×</button>
@@ -8614,13 +8614,13 @@ ${previewSelectionHandlesStyle}
         </div>
       </div>
       <div id="zoom-popup" class="zoom-popup" hidden>
-        <div class="zoom-popup-header"><span>ズーム</span><span id="zoom-value">100%</span></div>
-        <input id="zoom-slider" type="range" min="0" max="1" step="0.001" aria-label="ズーム倍率" title="ダブルクリックで100%">
+        <div class="zoom-popup-header"><span>Zoom</span><span id="zoom-value">100%</span></div>
+        <input id="zoom-slider" type="range" min="0" max="1" step="0.001" aria-label="Zoom level" title="Double-click for 100%">
         <div class="zoom-presets">
-          <button class="zoom-preset" type="button" data-zoom="0.5" aria-label="50%にズーム" title="50%にズーム">50%</button>
-          <button class="zoom-preset" type="button" data-zoom="1" aria-label="100%にズーム" title="100%にズーム">100%</button>
-          <button class="zoom-preset" type="button" data-zoom="2" aria-label="200%にズーム" title="200%にズーム">200%</button>
-          <button class="zoom-preset" type="button" data-zoom="4" aria-label="400%にズーム" title="400%にズーム">400%</button>
+          <button class="zoom-preset" type="button" data-zoom="0.5" aria-label="Zoom to 50%" title="Zoom to 50%">50%</button>
+          <button class="zoom-preset" type="button" data-zoom="1" aria-label="Zoom to 100%" title="Zoom to 100%">100%</button>
+          <button class="zoom-preset" type="button" data-zoom="2" aria-label="Zoom to 200%" title="Zoom to 200%">200%</button>
+          <button class="zoom-preset" type="button" data-zoom="4" aria-label="Zoom to 400%" title="Zoom to 400%">400%</button>
         </div>
       </div>
     </div>
@@ -8703,7 +8703,7 @@ body { display: grid; place-items: center; padding: 32px; }
         };
         if (widget.akariPreviewFrameCaptureRequest) {
             send('akari-preview-capture-restore');
-            void this.messages.error('コマを保存できませんでした: 前のコマを保存中です');
+            void this.messages.error('Could not save the frame: Still saving the previous frame');
             return;
         }
         widget.akariPreviewFrameCaptureRequest = request.requestId;
@@ -8714,8 +8714,8 @@ body { display: grid; place-items: center; padding: 32px; }
         let savedPath: string | undefined;
         try {
             const editUri = widget.akariPreviewEditUri;
-            if (!editUri || !widget.akariPreviewSummary) throw new Error('出力プレビューでコマを保存してください');
-            if (!window.electronAkariPreview?.capturePreviewFrame) throw new Error('Electron の撮影機能が利用できません');
+            if (!editUri || !widget.akariPreviewSummary) throw new Error('Save the frame from the output preview');
+            if (!window.electronAkariPreview?.capturePreviewFrame) throw new Error('Electron capture is not available');
             const output = { ...widget.akariPreviewSummary.output };
             success = await runPreviewFrameCaptureAttempts({
                 max: 3,
@@ -8726,19 +8726,19 @@ body { display: grid; place-items: center; padding: 32px; }
                             if (message?.type === 'akari-preview-capture-ready' && message.requestId === request.requestId
                                 && message.pageId === pageId) resolve(message);
                         });
-                        timer = setTimeout(() => reject(new Error('撮影準備がタイムアウトしました')), 5000);
+                        timer = setTimeout(() => reject(new Error('Capture preparation timed out')), 5000);
                         send('akari-preview-capture-prepare');
                     });
                     clearTimeout(timer);
                     subscription.dispose();
                     if (ready.error) throw new Error(ready.error);
-                    if (widget.isDisposed || widget.akariPreviewPlaybackPageId !== pageId) throw new Error('プレビューが更新されました');
+                    if (widget.isDisposed || widget.akariPreviewPlaybackPageId !== pageId) throw new Error('Preview updated');
                     const frame = widget.node.querySelector('iframe.webview') as HTMLIFrameElement;
-                    if (!frame || !ready.rect || !ready.viewport || !ready.expectations || !Number.isFinite(ready.time)) throw new Error('撮影矩形を取得できません');
+                    if (!frame || !ready.rect || !ready.viewport || !ready.expectations || !Number.isFinite(ready.time)) throw new Error('Could not read the capture rectangle');
                     const outer = frame.getBoundingClientRect();
                     const sx = outer.width / frame.offsetWidth, sy = outer.height / frame.offsetHeight;
                     if (!(sx > 0 && sy > 0) || Math.abs(frame.clientWidth - ready.viewport.width) > 1
-                        || Math.abs(frame.clientHeight - ready.viewport.height) > 1) throw new Error('プレビューのサイズが変わりました。もう一度お試しください');
+                        || Math.abs(frame.clientHeight - ready.viewport.height) > 1) throw new Error('The preview size changed. Try again');
                     // Inner viewport -> outer iframe content -> main renderer CSS viewport.
                     const rect = { x: outer.x + (frame.clientLeft + ready.rect.x) * sx,
                         y: outer.y + (frame.clientTop + ready.rect.y) * sy,
@@ -8747,17 +8747,17 @@ body { display: grid; place-items: center; padding: 32px; }
                         y: outer.y + (frame.clientTop + ready.sentinel.y) * sy,
                         width: ready.sentinel.width * sx, height: ready.sentinel.height * sy } : undefined;
                     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > window.innerWidth
-                        || rect.y + rect.height > window.innerHeight) throw new Error('プレビューがウィンドウから切れています');
+                        || rect.y + rect.height > window.innerHeight) throw new Error('The preview is clipped by the window');
                     try {
                         const snapshot = await Promise.race([
                             window.electronAkariPreview.capturePreviewFrame({ rect, sentinel, output, expectations: ready.expectations }).then(value => {
                                 if (!acceptingCapture) {
                                     void window.electronAkariPreview.finishPreviewFrame(value.captureId, true).catch(() => undefined);
-                                    throw new Error('撮影がタイムアウトしました');
+                                    throw new Error('Capture timed out');
                                 }
                                 return value;
                             }),
-                            new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('撮影がタイムアウトしました')), 3000); })
+                            new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Capture timed out')), 3000); })
                         ]);
                         captureId = snapshot.captureId;
                     } finally {
@@ -8774,15 +8774,15 @@ body { display: grid; place-items: center; padding: 32px; }
                             });
                             timer = setTimeout(() => {
                                 restored.dispose();
-                                reject(new Error('撮影後の表示復元を確認できませんでした'));
+                                reject(new Error('Could not confirm the display was restored after capture'));
                             }, 1000);
                             send('akari-preview-capture-restore', { keepFrozen: true });
                         });
                     }
-                    if (widget.isDisposed || widget.akariPreviewPlaybackPageId !== pageId) throw new Error('プレビューが更新されました');
+                    if (widget.isDisposed || widget.akariPreviewPlaybackPageId !== pageId) throw new Error('Preview updated');
                     const captured = await window.electronAkariPreview.finishPreviewFrame(captureId);
                     captureId = undefined;
-                    if (!captured) throw new Error('撮影画像を取得できません');
+                    if (!captured) throw new Error('Could not read the captured image');
                     return { captured, time: ready.time! };
                 },
                 inspect: frame => {
@@ -8794,14 +8794,14 @@ body { display: grid; place-items: center; padding: 32px; }
                     const saved = await this.previewService.savePreviewFrame({ editUri: editUri.toString(), time, image: captured.image,
                         workspaceRoots: await this.currentWorkspaceRoots() });
                     savedPath = saved.path;
-                    void this.messages.info('コマを保存しました: ' + saved.path, { timeout: 3000 });
+                    void this.messages.info('Frame saved: ' + saved.path, { timeout: 3000 });
                     if (captured.reduced) void this.messages.info(
-                        '表示サイズが出力より小さいため、拡大せず ' + captured.width + '×' + captured.height + ' px で保存しました', { timeout: 3000 });
+                        'Saved at ' + captured.width + '×' + captured.height + ' px because the display is smaller than the output', { timeout: 3000 });
                 },
                 notify: message => { void this.messages.error(message); }
             });
         } catch (error) {
-            void this.messages.error('コマを保存できませんでした: ' + (error instanceof Error ? error.message : String(error)));
+            void this.messages.error('Could not save the frame: ' + (error instanceof Error ? error.message : String(error)));
         } finally {
             clearTimeout(timer);
             subscription?.dispose();
@@ -9186,7 +9186,7 @@ body { display: grid; place-items: center; padding: 32px; }
                             sidecars.entries.map(entry => ({ sourcePath: entry.sourcePath,
                                 meta: entry.meta as GenerationMetaV1 | null, binding: entry.binding })), Date.now());
                         if (generation?.meta?.kind !== 'audio') continue;
-                        audioFrames.push({ id: item.id ?? sourcePath, name: item.name ?? item.id ?? '音の空の枠',
+                        audioFrames.push({ id: item.id ?? sourcePath, name: item.name ?? item.id ?? 'Empty audio frame',
                             start: item.at! / fps, end: (item.at! + item.duration!) / fps,
                             sourcePath, meta: generation.meta, binding: generation.binding ?? null,
                             transform: null, crop: null, kind: 'audio' });

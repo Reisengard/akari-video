@@ -87,7 +87,7 @@ test('binding 不一致は orphan 状態になる', () => {
 
 test('orphan overlay は孤児タグだけを返す', () => {
   assert.deepEqual(describeOverlay('orphan', { status: 'done' }, 'ビート 1'), {
-    tag: '孤児 · ビート 1', band: null, shimmer: false, maskRect: null
+    tag: 'Orphaned · ビート 1', band: null, shimmer: false, maskRect: null
   });
 });
 

@@ -120,7 +120,7 @@ test('first capture leaks, second passes: save only the second, exactly once', a
     assert.deepEqual(await attempts([false, true]), { ok: true, calls: [0, 1], saved: [1], notified: [] });
 });
 test('three failures: never save and notify the exact retry message', async () => {
-    assert.deepEqual(await attempts([false, false, false]), { ok: false, calls: [0, 1, 2], saved: [], notified: ['コマを保存できませんでした。もう一度押してください'] });
+    assert.deepEqual(await attempts([false, false, false]), { ok: false, calls: [0, 1, 2], saved: [], notified: ['Could not save the frame. Press again'] });
 });
 test('normal capture: one attempt, one save', async () => {
     assert.deepEqual(await attempts([true]), { ok: true, calls: [0], saved: [0], notified: [] });
@@ -156,7 +156,7 @@ test('stale-frame retries save only the second frame, or never save after three 
         });
         assert.equal(attempts, results.length);
         assert.deepEqual(saved, results.length === 2 ? [1] : []);
-        assert.deepEqual(notified, results.length === 2 ? [] : ['コマを保存できませんでした。もう一度押してください']);
+        assert.deepEqual(notified, results.length === 2 ? [] : ['Could not save the frame. Press again']);
     }
 });
 

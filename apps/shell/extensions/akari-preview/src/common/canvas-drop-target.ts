@@ -31,12 +31,12 @@ export function canvasAtFrame(targets: readonly CanvasDropTarget[], at: number, 
 
 export function canvasDropLabel(targets: readonly CanvasDropTarget[], target: CanvasDropTarget): string {
     if (target.name.trim()) return target.name;
-    return `キャンバス ${[...targets].sort((a, b) => a.at - b.at || a.trackIndex - b.trackIndex)
+    return `Canvas ${[...targets].sort((a, b) => a.at - b.at || a.trackIndex - b.trackIndex)
         .findIndex(candidate => candidate.id === target.id) + 1}`;
 }
 
 export function canvasDropHint(targets: readonly CanvasDropTarget[], seconds: number, fps: number,
     outside = false): string {
     const target = canvasAtFrame(targets, Math.round(seconds * fps), outside);
-    return target ? `${canvasDropLabel(targets, target)} に入ります` : '';
+    return target ? `Goes into ${canvasDropLabel(targets, target)}` : '';
 }
