@@ -90,7 +90,7 @@ test("valid analysis + interpretation を渡すと report.html を生成する",
     assert.ok(!html.includes('id="section-arc"'), "section-arc は存在しない");
     assert.ok(!html.includes("解釈: 構成案"), "構成案セクションの見出しは表示されない");
     assert.ok(!html.includes("構成案エントリ"), "ヘッダー統計タイルから構成案エントリを除去済み");
-    assert.ok(html.includes("検出イベント数"), "ヘッダー統計タイルは事実層由来の代替（検出イベント数）を持つ");
+    assert.ok(html.includes("Events found"), "ヘッダー統計タイルは事実層由来の代替（検出イベント数）を持つ");
     assert.ok(html.includes('"title":"Opening"'), "arc はデータとして JSON ブロックに保持される");
 
     // 追加修正（司令塔検収）: 取材台帳の空状態文言が表示から消した「構成案」概念を
@@ -100,7 +100,7 @@ test("valid analysis + interpretation を渡すと report.html を生成する",
       "旧空状態文言（構成案を参照）は残っていない",
     );
     assert.ok(
-      html.includes("取材事項なし — 素材の文脈だけで根拠付きで筋が通りました"),
+      html.includes("No open questions. The footage context already supports the story."),
       "取材台帳の空状態文言は新文言に更新されている",
     );
   } finally {
@@ -122,7 +122,7 @@ test("validate-interpretation.mjs が REJECT する入力は明確なエラー�
     ]);
 
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /検証に失敗しました/);
+    assert.match(result.stderr, /validation failed/);
     assert.ok(!existsSync(outPath), "無効な入力では report.html を書き出さない");
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -145,7 +145,7 @@ test("--analysis で同じ ref を重複指定すると拒否する（位置対�
     ]);
 
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /重複して指定されています/);
+    assert.match(result.stderr, /listed more than once/);
     assert.ok(!existsSync(outPath));
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -226,8 +226,8 @@ test("複数素材: --analysis を取り違えて指定する（swap）とハー
     ]);
 
     assert.notEqual(result.status, 0, "取り違えはエラーで落ちる");
-    assert.match(result.stderr, /対応していません/);
-    assert.match(result.stderr, /取り違えの疑いがあります/);
+    assert.match(result.stderr, /does not match inputs\.analyses/);
+    assert.match(result.stderr, /may be swapped/);
     assert.ok(!existsSync(outPath), "取り違え検出時は report.html を書き出さない");
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -278,7 +278,7 @@ test("複数素材: 素の path 指定が inputs.analyses[].path のどれとも
     ]);
 
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /いずれとも一致しません/);
+    assert.match(result.stderr, /does not match any inputs\.analyses/);
     assert.ok(!existsSync(outPath));
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -299,7 +299,7 @@ test("assets[] の一部に対応する --analysis が無いと拒否する（�
     ]);
 
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /対応する --analysis が指定されていません: asset-b/);
+    assert.match(result.stderr, /have no --analysis: asset-b/);
     assert.ok(!existsSync(outPath));
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -346,7 +346,7 @@ test("template.html は素材の読み（role/summary/sections）を描画する
     templateSource.indexOf("function renderAssetReading"),
     templateSource.indexOf("function renderRelations"),
   );
-  assert.ok(factsSection.includes("素材の読み"), "節 3 に「素材の読み」の見出しがある");
+  assert.ok(factsSection.includes("Footage reading"), "節 3 に「素材の読み」の見出しがある");
   assert.match(factsSection, /interpAsset\.role\b/, "renderFacts が asset.role を参照する");
   assert.match(factsSection, /interpAsset\.summary\b/, "renderFacts が asset.summary を参照する");
   assert.match(factsSection, /interpAsset\.sections\b/, "renderFacts が asset.sections を参照する");
@@ -363,13 +363,13 @@ test("template.html の renderFacts が person_matte の object 形（quality / 
   assert.match(factsSection, /const personMatte = tracks\.person_matte\b/, "renderFacts が person_matte を参照する");
   assert.match(
     factsSection,
-    /personMatte\s*\?\s*"人物マット: あり"\s*:\s*"人物マット: なし"/,
+    /personMatte\s*\?\s*"Person matte: yes"\s*:\s*"Person matte: no"/,
     "person_matte の真偽で人物マットの有無を出し分ける",
   );
   assert.match(factsSection, /personMatte\.quality\b/, "renderFacts が quality を参照する");
   assert.match(factsSection, /personMatte\.mask_path\b/, "renderFacts が mask_path を参照する");
   assert.match(factsSection, /personMatte\.mask_format\b/, "renderFacts が mask_format を参照する");
-  assert.match(factsSection, /マスク併産: あり/, "mask_path があるときマスク併産ありを描画する");
+  assert.match(factsSection, /Mask sidecar: yes/, "mask_path があるときマスク併産ありを描画する");
 });
 
 function hasOwn(object, key) {
@@ -566,7 +566,7 @@ test("壊れた analysis.json を明確なエラーで拒否する", () => {
     ]);
 
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /構造検証に失敗しました/);
+    assert.match(result.stderr, /failed structural validation/);
     assert.ok(!existsSync(outPath));
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -804,7 +804,7 @@ test("block-id: id 衝突を人工的に作る入力はハードエラーで拒�
     ]);
 
     assert.notEqual(result.status, 0, "block-id 衝突はエラーで落ちる");
-    assert.match(result.stderr, /block-id.*衝突/);
+    assert.match(result.stderr, /block-id.*collision/);
     assert.match(result.stderr, /transcript-chapter:clip-01:0/);
     assert.ok(!existsSync(outPath), "衝突検出時は report.html を書き出さない");
   } finally {

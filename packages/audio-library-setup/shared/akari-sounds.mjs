@@ -49,7 +49,7 @@ export function zipAssetNames(variant) {
         // WAV は容量の都合で 3 分割（akari-sounds Release v0 のレイアウト）
         return ['akari-sounds-wav-1.zip', 'akari-sounds-wav-2.zip', 'akari-sounds-wav-3.zip'];
     }
-    throw new Error(`unknown variant: ${variant}（mp3 | wav）`);
+    throw new Error(`unknown variant: ${variant} (mp3 | wav)`);
 }
 
 /**
@@ -59,7 +59,7 @@ export function zipAssetNames(variant) {
  */
 export function planFromCatalog(catalog, { variant = 'mp3' } = {}) {
     if (!catalog || !Array.isArray(catalog.tracks)) {
-        throw new Error('akari-sounds catalog.json の形式が想定と違います（tracks 配列がない）');
+        throw new Error('akari-sounds catalog.json is not in the expected shape (no tracks array)');
     }
     const fileKey = variant === 'wav' ? 'file' : 'mp3';
     const byKind = new Map();

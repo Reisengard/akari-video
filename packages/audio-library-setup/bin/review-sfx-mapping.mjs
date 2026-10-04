@@ -45,13 +45,13 @@ function escapeHtml(value) {
 
 function renderCandidate(candidate, libraryRoot) {
   if (candidate.absent) {
-    return `<li class="cand missing"><code>${escapeHtml(candidate.id)}</code> — カタログに見当たらず</li>`;
+    return `<li class="cand missing"><code>${escapeHtml(candidate.id)}</code> — not in the catalog</li>`;
   }
   const players = candidate.takes.map((take) => {
     if (!take.mp3) return '';
     const localPath = audioReadPath(libraryRoot, `akari-sounds-${candidate.kind}`, take.mp3);
     if (!existsSync(localPath)) {
-      return `<span class="missing">未取得: ${escapeHtml(take.mp3)}</span>`;
+      return `<span class="missing">Not fetched: ${escapeHtml(take.mp3)}</span>`;
     }
     return `<audio controls preload="none" src="${escapeHtml(pathToFileURL(localPath).href)}"></audio>` +
       (take.duration_sec ? `<span class="dur">${escapeHtml(String(take.duration_sec))}s</span>` : '');
@@ -59,7 +59,7 @@ function renderCandidate(candidate, libraryRoot) {
   return `
     <li class="cand" data-id="${escapeHtml(candidate.id)}">
       <div class="cand-head"><code>${escapeHtml(candidate.id)}</code> ${escapeHtml(candidate.title)}
-        <select class="verdict"><option value="">未判定</option><option>合ってる</option><option>違う</option><option>保留</option></select>
+        <select class="verdict"><option value="">Unjudged</option><option>Matches</option><option>Wrong</option><option>Hold</option></select>
       </div>
       <div class="players">${players}</div>
     </li>`;
@@ -68,13 +68,13 @@ function renderCandidate(candidate, libraryRoot) {
 function renderMeaning(result, libraryRoot) {
   const candidates = result.first.map((c) => renderCandidate(c, libraryRoot)).join('\n');
   const externals = result.external.map((e) =>
-    `<li class="external">外部補完: <code>${escapeHtml(e.id)}</code> — ${escapeHtml(e.note)}` +
-    `${e.owned ? '（取得済み — 試聴はライブラリで）' : '（未取得）'}</li>`).join('\n');
+    `<li class="external">External fill-in: <code>${escapeHtml(e.id)}</code> — ${escapeHtml(e.note)}` +
+    `${e.owned ? '(fetched — preview it in the library)' : '(not fetched)'}</li>`).join('\n');
   return `
   <section class="meaning" data-meaning="${escapeHtml(result.meaning)}">
     <h2>${escapeHtml(result.meaning)}</h2>
     <ul>${candidates}${externals}</ul>
-    <label class="rownote">この意味へのメモ: <input class="note" placeholder="例: 2 番は弱すぎ・順位入れ替え希望"></label>
+    <label class="rownote">Note for this meaning: <input class="note" placeholder="Example: take 2 is too weak. Swap the order."></label>
   </section>`;
 }
 
@@ -88,7 +88,7 @@ async function main() {
   } else {
     const snapshotPath = audioReadPath(libraryRoot, 'akari-sounds-sfx', '.origin-catalog.json');
     if (!existsSync(snapshotPath)) {
-      throw new Error('AKARI Sounds が未導入です。先に `akari sounds` を実行してください（または --catalog）');
+      throw new Error('AKARI Sounds is not installed. Run `akari sounds` first (or pass --catalog).');
     }
     catalog = JSON.parse(await readFile(snapshotPath, 'utf8'));
   }
@@ -105,10 +105,10 @@ async function main() {
     .join('\n');
 
   const html = `<!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>意味 → 音 対応表レビュー（AKARI Sounds）</title>
+<title>Meaning-to-sound review (AKARI Sounds)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { color-scheme: light dark; }
@@ -130,10 +130,10 @@ async function main() {
 </style>
 </head>
 <body>
-<h1>意味 → 音 対応表レビュー</h1>
-<p>各「意味」の候補（優先順）を聴いて、合っているか判定してください。判定とメモは下の「判定を保存」で JSON になります（それをエージェントに渡すと対応表を改訂できます）。</p>
+<h1>Meaning-to-sound review</h1>
+<p>Listen to the candidates for each meaning, in priority order, and judge the match. Save judgment writes JSON. Hand that file to the agent to revise the map.</p>
 ${sections}
-<div id="bar"><span id="progress"></span><button id="export">判定を保存（JSON ダウンロード）</button></div>
+<div id="bar"><span id="progress"></span><button id="export">Save judgment (download JSON)</button></div>
 <script>
 function collect() {
   const out = {};
@@ -152,7 +152,7 @@ function collect() {
 function refresh() {
   const total = document.querySelectorAll('.cand[data-id]').length;
   const judged = [...document.querySelectorAll('.verdict')].filter((s) => s.value).length;
-  document.getElementById('progress').textContent = '判定 ' + judged + ' / ' + total;
+  document.getElementById('progress').textContent = 'Judged ' + judged + ' / ' + total;
 }
 document.addEventListener('change', refresh);
 refresh();
@@ -163,7 +163,7 @@ document.getElementById('export').onclick = () => {
   a.download = 'sfx-mapping-review.json';
   a.click();
 };
-// 同時再生を防ぐ（1 個再生したら他を止める）
+// One player at a time. Starting one pauses the others.
 document.addEventListener('play', (e) => {
   document.querySelectorAll('audio').forEach((el) => { if (el !== e.target) el.pause(); });
 }, true);
@@ -175,8 +175,8 @@ document.addEventListener('play', (e) => {
   await mkdir(path.dirname(options.out), { recursive: true });
   await writeFile(options.out, html);
   const audioCount = (html.match(/<audio /g) || []).length;
-  console.log(`Wrote ${options.out}（意味 ${MEANING_VOCABULARY.length} 行 / 試聴プレイヤー ${audioCount} 個）`);
-  console.log(`open '${options.out}' で開いて確認してください`);
+  console.log(`Wrote ${options.out} (${MEANING_VOCABULARY.length} meanings / ${audioCount} players)`);
+  console.log(`Open '${options.out}' and check it`);
 }
 
 main().catch((error) => {

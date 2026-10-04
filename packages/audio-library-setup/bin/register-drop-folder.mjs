@@ -41,13 +41,13 @@ function parseArguments(argv) {
     if (argv.includes('--help') || argv.includes('-h')) {
         console.log(`Usage: node bin/register-drop-folder.mjs --drop-dir <path> [--apply]
   [--library-root <path>] [--catalog-dir <path>] [--candidates <path>]
-  -h, --help  このヘルプを表示する`);
+  -h, --help  Show this help`);
         process.exit(0);
     }
     function valueAfter(index, option, example) {
         const value = argv[index + 1];
         if (value === undefined || value.startsWith('--')) {
-            console.error(`${option} には値が必要です（例: ${example}）`);
+            console.error(`${option} needs a value (example: ${example})`);
             process.exit(1);
         }
         return value;
@@ -174,18 +174,18 @@ async function buildPlan({ dropDir, catalogDir, flatCandidates }) {
                 ambiguous.push({ file: filename, candidates: candidateIds });
                 quarantined.push({
                     file: filename,
-                    reason: `複数の曲タイトルと正規化一致し一意に決定できない（候補: ${candidateIds.join(', ')}）`,
+                    reason: `More than one song title matches after normalization (candidates: ${candidateIds.join(', ')})`,
                 });
                 continue;
             }
-            quarantined.push({ file: filename, reason: '候補のファイル名パターンと一致しない（出典不明）' });
+            quarantined.push({ file: filename, reason: 'The file name does not match a candidate (unknown source)' });
             continue;
         }
         if (matches.length > 1) {
             ambiguous.push({ file: filename, candidates: matches.map((m) => m.id) });
             quarantined.push({
                 file: filename,
-                reason: `複数候補と一致し一意に決定できない（候補: ${matches.map((m) => m.id).join(', ')}）`,
+                reason: `More than one candidate matches (candidates: ${matches.map((m) => m.id).join(', ')})`,
             });
             continue;
         }
@@ -346,7 +346,7 @@ async function main() {
 
     if (!options.apply) {
         console.log(JSON.stringify(summary, null, 2));
-        console.error('(plan-only モード。実際にファイルを動かす・catalog へ書き込むには --apply を付けて再実行してください)');
+        console.error('(plan-only. Pass --apply to move files and write the catalog.)');
         return;
     }
 

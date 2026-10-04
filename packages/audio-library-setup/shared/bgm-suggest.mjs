@@ -149,7 +149,7 @@ function tempoBonus(requested, actual) {
 function assertVocabulary(values, vocabulary, label) {
   for (const value of values) {
     if (!vocabulary.includes(value)) {
-      throw new Error(`${label} の語彙に無い値: ${value}（使える値: ${vocabulary.join(' / ')}）`);
+      throw new Error(`${label} is not in the vocabulary: ${value} (allowed: ${vocabulary.join(' / ')})`);
     }
   }
 }
@@ -189,10 +189,10 @@ export const DECLARED_BONUS = 1;
  */
 export function suggestBgm(catalog, { tones, tempo = null, count = 5, declarations = null } = {}) {
   if (!catalog || !Array.isArray(catalog.tracks)) {
-    throw new Error('catalog.json の形式が想定と違います（tracks 配列がない）');
+    throw new Error('catalog.json is not in the expected shape (no tracks array)');
   }
   if (!Array.isArray(tones) || tones.length === 0) {
-    throw new Error(`tone を 1 つ以上指定してください（使える値: ${TONE_VOCABULARY.join(' / ')}）`);
+    throw new Error(`Pass at least one tone (allowed: ${TONE_VOCABULARY.join(' / ')})`);
   }
   assertVocabulary(tones, TONE_VOCABULARY, 'tone');
   if (tempo !== null) {

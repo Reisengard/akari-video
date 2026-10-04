@@ -45,7 +45,7 @@ function parseArguments(argv, env = process.env) {
   function valueAfter(index, option, example) {
     const value = argv[index + 1];
     if (value === undefined || value.startsWith('--')) {
-      console.error(`${option} には値が必要です（例: ${example}）`);
+      console.error(`${option} needs a value (example: ${example})`);
       process.exit(1);
     }
     return value;
@@ -63,7 +63,7 @@ function parseArguments(argv, env = process.env) {
     throw new Error(`Unknown option: ${arg}`);
   }
   if (!Number.isInteger(options.count) || options.count < 1) {
-    throw new Error('--count は 1 以上の整数で指定してください');
+    throw new Error('--count must be an integer of 1 or more');
   }
   return options;
 }
@@ -83,7 +83,7 @@ async function loadDeclarations(options, libraryRoot) {
   try {
     return { declarations: options.declarations ? JSON.parse(await readFile(resolved, 'utf8')) : readAudioDeclarations(libraryRoot), declarationsSource: resolved };
   } catch (error) {
-    throw new Error(`宣言データを読めません: ${resolved}（${error.message}）`);
+    throw new Error(`Could not read declaration data: ${resolved} (${error.message})`);
   }
 }
 
@@ -94,8 +94,8 @@ async function loadCatalog(options, libraryRoot) {
   const snapshotPath = audioReadPath(libraryRoot, BGM_PACK_ID, '.origin-catalog.json');
   if (!existsSync(snapshotPath)) {
     throw new Error(
-      `AKARI Sounds が未導入です（${snapshotPath} が見つかりません）。\n` +
-      '先に `akari sounds` で公式音源ライブラリを一括ダウンロードしてください。',
+      `AKARI Sounds is not installed (${snapshotPath} was not found).\n` +
+      'Run `akari sounds` first to download the official audio library.',
     );
   }
   return { catalog: JSON.parse(await readFile(snapshotPath, 'utf8')), source: snapshotPath };
@@ -112,28 +112,28 @@ function attachLocalPaths(suggestion, libraryRoot) {
 
 function formatHuman(result, { tones, tempo, source, declarationsSource }) {
   const lines = [];
-  lines.push(`BGM 候補（tone: ${tones.join('・')}${tempo ? ` / tempo: ${tempo}` : ''} / 出典: ${source}${declarationsSource ? ' + 宣言データ' : ''}）`);
+  lines.push(`BGM candidates (tone: ${tones.join(', ')}${tempo ? ` / tempo: ${tempo}` : ''} / source: ${source}${declarationsSource ? ' + declarations' : ''})`);
   if (result.suggestions.length === 0) {
-    lines.push('該当なし — tone の組み合わせを変えるか、tempo 指定を外してください。');
+    lines.push('No match. Change the tone combination, or drop the tempo filter.');
   }
   result.suggestions.forEach((s, index) => {
     const toneNote = Object.entries(s.matchedTones).map(([tone, w]) => `${tone}${w === 2 ? '◎' : '○'}`).join(' ');
     lines.push(`${index + 1}. ${s.id} — ${s.title}`);
-    lines.push(`   系統: ${s.family} / ${s.declaration ? '実測BPM' : '体感BPM'}: ${s.bpm ?? '不明'}（${s.tempoClass ?? '—'}） / 一致: ${toneNote} / スコア: ${s.score}${s.declaredScore ? '（耳検証済み +' + s.declaredScore + '）' : ''}`);
+    lines.push(`   Family: ${s.family} / ${s.declaration ? 'measured BPM' : 'felt BPM'}: ${s.bpm ?? 'unknown'} (${s.tempoClass ?? '—'}) / match: ${toneNote} / score: ${s.score}${s.declaredScore ? ' (ear-checked +' + s.declaredScore + ')' : ''}`);
     if (s.declaration) {
       const d = s.declaration;
       const secText = d.sections.map((x) => `${x.label} ${x.start_sec}-${x.end_sec}`).join(' / ');
-      lines.push(`   宣言: ${d.drop_in_sec !== null ? `サビ頭 ${d.drop_in_sec}s（audio.bgm.in に指定でサビから敷ける）` : 'サビ宣言なし'}${d.hit_points.length ? ` / キメ ${d.hit_points.length} 点` : ''}`);
-      if (secText) lines.push(`   構成: ${secText}`);
+      lines.push(`   Declaration: ${d.drop_in_sec !== null ? `chorus at ${d.drop_in_sec}s (set audio.bgm.in to start there)` : 'no chorus declared'}${d.hit_points.length ? ` / ${d.hit_points.length} hits` : ''}`);
+      if (secText) lines.push(`   Sections: ${secText}`);
     }
     for (const take of s.takes) {
-      lines.push(`   ${take.exists ? 'path' : '未取得'}: ${take.path ?? '(mp3 情報なし)'}${take.duration_sec ? `（${take.duration_sec}s）` : ''}`);
+      lines.push(`   ${take.exists ? 'path' : 'not fetched'}: ${take.path ?? '(no mp3 info)'}${take.duration_sec ? ` (${take.duration_sec}s)` : ''}`);
     }
   });
   if (result.unmappedIds.length > 0) {
-    lines.push(`注記: 対応表に無い系統のトラック ${result.unmappedIds.length} 件を候補から除外しました（${result.unmappedIds.slice(0, 5).join(', ')}${result.unmappedIds.length > 5 ? ' …' : ''}）。shared/bgm-suggest.mjs の FAMILY_TONE_RULES に行を足してください。`);
+    lines.push(`Note: excluded ${result.unmappedIds.length} tracks whose family is not in the map (${result.unmappedIds.slice(0, 5).join(', ')}${result.unmappedIds.length > 5 ? ' …' : ''}). Add a row to FAMILY_TONE_RULES in shared/bgm-suggest.mjs.`);
   }
-  lines.push('採用の決定は素材計画（Checkpoint 2）の承認で行ってください（これは候補の提示まで）。');
+  lines.push('Approve the choice at the footage plan (Checkpoint 2). This only lists candidates.');
   return lines.join('\n');
 }
 

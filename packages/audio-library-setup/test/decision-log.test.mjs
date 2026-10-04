@@ -143,7 +143,7 @@ test('CLI: decision-log の語彙外 tone / tempo は値を示して exit 1', as
       await writeFile(decisionPath, logWith(toneRow(json)));
       const result = runCli(root, ['--from-decision-log', decisionPath, '--catalog', catalogPath]);
       assert.equal(result.status, 1, `${name}: ${result.stderr}`);
-      assert.match(result.stderr, /語彙外/);
+      assert.match(result.stderr, /not in the vocabulary/);
       assert.ok(result.stderr.includes(invalid), `${name}: 語彙外の値 ${invalid} がエラーに無い`);
     }
   } finally {
@@ -160,9 +160,9 @@ test('CLI: 方針行なし / ファイル欠損 / 壊れた JSON は理由を示
     await writeFile(brokenPath, logWith(toneRow('{"tone":[}')));
 
     for (const [decisionPath, reason] of [
-      [noRowPath, /\(direction, tone\).*見つかりません/],
-      [path.join(root, 'missing.md'), /ファイルが見つかりません/],
-      [brokenPath, /JSON が壊れています/],
+      [noRowPath, /no \(direction, tone\) row/],
+      [path.join(root, 'missing.md'), /file was not found/],
+      [brokenPath, /broken tone JSON/],
     ]) {
       const result = runCli(root, ['--from-decision-log', decisionPath, '--catalog', catalogPath]);
       assert.equal(result.status, 1, result.stderr);

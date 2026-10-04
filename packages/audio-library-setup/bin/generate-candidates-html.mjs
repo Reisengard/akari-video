@@ -20,13 +20,13 @@ const repoRoot = path.resolve(here, '..', '..', '..');
 function parseArguments(argv) {
     if (argv.includes('--help') || argv.includes('-h')) {
         console.log(`Usage: node bin/generate-candidates-html.mjs [--candidates <path>] [--catalog-dir <path>] [--out <path>]
-  -h, --help  このヘルプを表示する`);
+  -h, --help  Show this help`);
         process.exit(0);
     }
     function valueAfter(index, option, example) {
         const value = argv[index + 1];
         if (value === undefined || value.startsWith('--')) {
-            console.error(`${option} には値が必要です（例: ${example}）`);
+            console.error(`${option} needs a value (example: ${example})`);
             process.exit(1);
         }
         return value;
@@ -62,24 +62,24 @@ function badge(text, kind) {
 function licenseBadges(item) {
     const parts = [];
     const attr = item.license?.attribution_required;
-    if (attr === true) parts.push(badge('要クレジット', 'warn'));
-    else if (attr === false) parts.push(badge('クレジット不要', 'ok'));
-    else parts.push(badge('クレジット要否: 個別確認', 'unknown'));
+    if (attr === true) parts.push(badge('Credit required', 'warn'));
+    else if (attr === false) parts.push(badge('No credit required', 'ok'));
+    else parts.push(badge('Credit: check each item', 'unknown'));
 
     const ai = item.license?.ai_training_allowed;
-    if (ai === true) parts.push(badge('AI学習可', 'ok'));
-    else if (ai === false) parts.push(badge('AI学習禁止', 'danger'));
-    else parts.push(badge('AI学習可否: 不明', 'unknown'));
+    if (ai === true) parts.push(badge('AI training allowed', 'ok'));
+    else if (ai === false) parts.push(badge('No AI training', 'danger'));
+    else parts.push(badge('AI training: unknown', 'unknown'));
 
     return parts.join(' ');
 }
 
 function confidenceBadge(item) {
     const map = {
-        confirmed_by_lane: ['本レーンで実在確認済み', 'ok'],
-        corrected_by_lane: ['本レーンで内容を修正済み', 'warn'],
-        confirmed_by_research: ['リサーチ時点で確認済み', 'ok'],
-        blocked_unverifiable: ['自動検証不能・要手動確認', 'danger'],
+        confirmed_by_lane: ['Confirmed in this lane', 'ok'],
+        corrected_by_lane: ['Corrected in this lane', 'warn'],
+        confirmed_by_research: ['Confirmed at research time', 'ok'],
+        blocked_unverifiable: ['Cannot verify automatically. Check it yourself.', 'danger'],
     };
     const [text, kind] = map[item.confidence] ?? [item.confidence, 'unknown'];
     return badge(text, kind);
@@ -87,10 +87,10 @@ function confidenceBadge(item) {
 
 function ownershipBadge(ownership) {
     if (ownership.status === 'exact') {
-        return badge(`既所有（catalog: ${ownership.matchedIds.join(', ')}）`, 'owned');
+        return badge(`Already owned (catalog: ${ownership.matchedIds.join(', ')})`, 'owned');
     }
     if (ownership.status === 'site') {
-        return badge(`同配布元から登録あり（catalog: ${ownership.matchedIds.join(', ')}）`, 'partial');
+        return badge(`Something from this distributor is registered (catalog: ${ownership.matchedIds.join(', ')})`, 'partial');
     }
     return '';
 }
@@ -100,7 +100,7 @@ function moodBadges(item) {
     const tempo = item.tempo ?? null;
     if (mood.length === 0 && !tempo) return '';
     const moodBadgesHtml = mood.map((m) => badge(m, 'mood')).join(' ');
-    const tempoBadge = tempo ? badge(`テンポ: ${tempo}`, 'tempo') : '';
+    const tempoBadge = tempo ? badge(`Tempo: ${tempo}`, 'tempo') : '';
     return `<div class="mood-row">${moodBadgesHtml} ${tempoBadge}</div>`;
 }
 
@@ -110,13 +110,13 @@ function renderSongs(item) {
     const rows = songs
         .map((song) => {
             const songMood = (song.mood ?? []).map((m) => badge(m, 'mood')).join(' ');
-            const songTempo = song.tempo ? badge(`テンポ: ${song.tempo}`, 'tempo') : '';
+            const songTempo = song.tempo ? badge(`Tempo: ${song.tempo}`, 'tempo') : '';
             return `<li>${escapeHtml(song.title_ja)} ${songMood} ${songTempo}</li>`;
         })
         .join('\n');
     return `
         <details class="songs">
-          <summary>収録曲 ${songs.length} 件</summary>
+          <summary>${songs.length} tracks</summary>
           <ul class="song-list">${rows}</ul>
         </details>`;
 }
@@ -138,11 +138,11 @@ function renderItem(item, ownership) {
         </div>
         ${moodBadges(item)}
         ${item.license?.note ? `<p class="note">${escapeHtml(item.license.note)}</p>` : ''}
-        ${item.credit_template ? `<p class="note credit-note">クレジット表記: ${escapeHtml(item.credit_template)}</p>` : ''}
-        ${item.verification?.result_note ? `<p class="note verify-note">検証メモ: ${escapeHtml(item.verification.result_note)}</p>` : ''}
+        ${item.credit_template ? `<p class="note credit-note">Credit line: ${escapeHtml(item.credit_template)}</p>` : ''}
+        ${item.verification?.result_note ? `<p class="note verify-note">Verification note: ${escapeHtml(item.verification.result_note)}</p>` : ''}
         ${renderSongs(item)}
         <a class="open-button" href="${escapeHtml(item.download_page_url)}" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>`;
 }
@@ -152,17 +152,17 @@ function renderFirstParty(firstParty) {
     const kinds = firstParty.kinds ?? {};
     const kindSummary = [
         kinds.bgm ? `BGM ${kinds.bgm}` : null,
-        kinds.sfx ? `効果音 ${kinds.sfx}` : null,
-        kinds.jingle ? `ジングル ${kinds.jingle}` : null,
+        kinds.sfx ? `Sound effects ${kinds.sfx}` : null,
+        kinds.jingle ? `Jingles ${kinds.jingle}` : null,
     ].filter(Boolean).join(' / ');
     return `
   <section class="first-party">
-    <h2>既定ソース: ${escapeHtml(firstParty.label ?? firstParty.id)}</h2>
+    <h2>Default source: ${escapeHtml(firstParty.label ?? firstParty.id)}</h2>
     <p>${escapeHtml(firstParty.note ?? '')}</p>
-    <p class="summary">${escapeHtml(kindSummary)}（計 ${escapeHtml(String(firstParty.track_count ?? '?'))} トラック / ${escapeHtml(String(firstParty.take_count ?? '?'))} テイク）</p>
-    <p class="summary">一括取得: <code>${escapeHtml(firstParty.bulk_fetch_command ?? '')}</code></p>
+    <p class="summary">${escapeHtml(kindSummary)} (${escapeHtml(String(firstParty.track_count ?? '?'))} tracks / ${escapeHtml(String(firstParty.take_count ?? '?'))} takes)</p>
+    <p class="summary">Bulk fetch: <code>${escapeHtml(firstParty.bulk_fetch_command ?? '')}</code></p>
     <a class="open-button" href="${escapeHtml(firstParty.release_page_url ?? '')}" target="_blank" rel="noopener noreferrer">
-      GitHub Release を開く ↗
+      Open the GitHub Release ↗
     </a>
   </section>`;
 }
@@ -186,10 +186,10 @@ function renderPage({ data, flat, ownershipMap, generatedAt }) {
     const categorySections = data.categories.map((category) => renderCategory(category, ownershipMap)).join('\n');
 
     return `<!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>音源セットアップ候補リスト（AKARI Video）</title>
+<title>Audio setup candidates (AKARI Video)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { color-scheme: light dark; }
@@ -243,22 +243,22 @@ function renderPage({ data, flat, ownershipMap, generatedAt }) {
 </style>
 </head>
 <body>
-  <h1>音源セットアップ候補リスト（BGM・SFX）</h1>
+  <h1>Audio setup candidates (BGM and sound effects)</h1>
   ${renderFirstParty(data.first_party)}
   <div class="hard-rule">
-    <strong>以下の外部候補は、AI はここから自動ダウンロードしません。</strong>
-    「ダウンロードページを開く」を押すと配布元の正規ページが新規タブで開きます。実際の保存はあなた自身が行ってください。
-    保存後はドロップフォルダへ置くと、次回のセットアップ実行時に自動で照合・登録されます。
-    （既定ソース AKARI Sounds だけは自社配布のため、上記の一括取得コマンドで直接ダウンロードできます）
+    <strong>The agent does not download these external candidates for you.</strong>
+    The "Open the download page" link opens the distributor's page in a new tab. You save the file yourself.
+    After you save it, put it in the drop folder. The next setup run matches and registers it.
+    (AKARI Sounds is the default source and is ours, so the bulk-fetch command above can download it directly.)
   </div>
   <p class="summary">
-    生成日時: ${escapeHtml(generatedAt)} ／ 候補カード ${flat.length} 件（${data.categories.length} カテゴリ、うち収録曲換算 ${totalUnits} 件）／
-    既所有（catalog 登録済み）: ${ownedCount} 件
+    Generated: ${escapeHtml(generatedAt)} / ${flat.length} candidate cards (${data.categories.length} categories, ${totalUnits} tracks) /
+    Already owned (in the catalog): ${ownedCount}
   </p>
   ${categorySections}
   <footer>
-    データソース: catalog/audio/candidates.json（内部リサーチ根拠: research/2026-07-22-free-sfx-bgm-sources.md）。
-    「既所有」判定は実行時点の catalog/audio/*/meta.json を動的に読んで計算しています（他レーンの登録が増えたら再生成してください）。
+    Source: catalog/audio/candidates.json (research note: research/2026-07-22-free-sfx-bgm-sources.md).
+    Already owned is computed from catalog/audio/*/meta.json at run time. Regenerate this page after another lane registers more.
   </footer>
 </body>
 </html>

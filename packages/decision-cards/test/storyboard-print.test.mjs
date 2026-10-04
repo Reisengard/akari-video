@@ -41,8 +41,8 @@ test("3 item の尺バー・字幕・3 種の生成バッジを自己完結 HTML
   assert.equal([...html.matchAll(/style="width:33\.333333%"/g)].length, 3);
   assert.match(html, /最初の字幕です/);
   assert.match(html, /badge-planned">planned/);
-  assert.match(html, /badge-video">生成/);
-  assert.match(html, /badge-still">静止画/);
+  assert.match(html, /badge-video">Video/);
+  assert.match(html, /badge-still">Still/);
   assert.equal([...html.matchAll(/src="data:image\/png;base64,/g)].length, 3);
   assert.doesNotMatch(html, /<(?:img|script|link)[^>]+(?:src|href)="https?:\/\//i);
 });
@@ -75,8 +75,8 @@ test("CLI --no-capture は manifest とプレースホルダー HTML を生成�
     const manifest = JSON.parse(readFileSync(path.join(temporaryDirectory, "storyboard.json"), "utf8"));
     assert.equal([...html.matchAll(/<div class="frame-placeholder"/g)].length, 3);
     assert.match(html, /badge-planned">planned/);
-    assert.match(html, /badge-video">生成/);
-    assert.match(html, /badge-still">静止画/);
+    assert.match(html, /badge-video">Video/);
+    assert.match(html, /badge-still">Still/);
     assert.equal(manifest.edit_sha256, digest(path.join(fixtureDirectory, "edit.json")));
     assert.deepEqual(manifest.times_s, [0.26666666666666666, 2.2666666666666666, 4.266666666666667]);
     assert.ok(!html.includes(fixtureDirectory));
@@ -137,7 +137,7 @@ for (const { name, itemId, meta, expected, badge } of [
     itemId: "ending",
     meta: { version: 1, kind: "still", status: "done", next: nextVideo },
     expected: { state: "done", kind: "still" },
-    badge: '<span class="badge badge-still">静止画</span>',
+    badge: '<span class="badge badge-still">Still</span>',
   },
   {
     name: "planned の文字カードに動画予定 next があっても planned のまま印刷する",
@@ -151,14 +151,14 @@ for (const { name, itemId, meta, expected, badge } of [
     itemId: "middle",
     meta: { version: 1, kind: "video", status: "generating", placeholder, job: { started_at: generatedAt, stale_after_s: 900 } },
     expected: { state: "generating", kind: "video" },
-    badge: '<span class="badge badge-generating">生成中</span>',
+    badge: '<span class="badge badge-generating">Generating</span>',
   },
   {
     name: "placeholder 付き generating の job が古ければ stale として印刷する",
     itemId: "middle",
     meta: { version: 1, kind: "video", status: "generating", placeholder, job: { started_at: "2026-09-13T12:00:00.000Z", stale_after_s: 900 } },
     expected: { state: "stale", kind: "video" },
-    badge: '<span class="badge badge-generating">生成中</span>',
+    badge: '<span class="badge badge-generating">Generating</span>',
   },
 ]) {
   test(name, () => {

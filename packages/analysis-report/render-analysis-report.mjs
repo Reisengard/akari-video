@@ -30,15 +30,15 @@ const BLOCKS_PLACEHOLDER = '{"__AKARI_ANALYSIS_REPORT_BLOCKS__": true}';
 
 function usage() {
   return [
-    "使い方:",
+    "Usage:",
     "  node render-analysis-report.mjs --analysis <ref>=<path> [--analysis <ref>=<path> ...] --interpretation <path> --out <report.html>",
     "",
-    "  --analysis の正式形は <ref>=<path>（ref は interpretation.assets[].ref を明示する）。",
-    "  素の <path> のみの指定も許容するが、inputs.analyses[].path と basename / suffix で",
-    "  一意に照合できる場合に限る（不一致・曖昧は即エラー。順序へのフォールバックはしない）。",
-    "  どちらの形でも、与えた path は当該 ref の inputs.analyses[].path と対応しているかを",
-    "  照合する（2026-07-22 A3.2 の取り違え実証を受けた FK クロスチェック）。",
-    "  interpretation.assets[] の全 ref に対応する --analysis が過不足なく必要。",
+    "  The canonical --analysis form is <ref>=<path> (ref is interpretation.assets[].ref).",
+    "  A bare <path> is allowed only when it matches exactly one inputs.analyses[].path",
+    "  by basename or suffix. A miss or an ambiguous match is an error. There is no order fallback.",
+    "  Either form also checks that the path belongs to that ref's inputs.analyses[].path",
+    "  (the 2026-07-22 A3.2 swap check).",
+    "  Every interpretation.assets[] ref needs exactly one --analysis.",
   ].join("\n");
 }
 
@@ -54,31 +54,31 @@ function parseArgs(argv) {
     }
     if (arg === "--analysis") {
       const value = argv[i + 1];
-      if (value === undefined) throw new Error("--analysis には値が必要です");
+      if (value === undefined) throw new Error("--analysis needs a value");
       analysisPaths.push(value);
       i += 1;
       continue;
     }
     if (arg === "--interpretation") {
       const value = argv[i + 1];
-      if (value === undefined) throw new Error("--interpretation には値が必要です");
+      if (value === undefined) throw new Error("--interpretation needs a value");
       interpretationPath = value;
       i += 1;
       continue;
     }
     if (arg === "--out") {
       const value = argv[i + 1];
-      if (value === undefined) throw new Error("--out には値が必要です");
+      if (value === undefined) throw new Error("--out needs a value");
       outPath = value;
       i += 1;
       continue;
     }
-    throw new Error(`未知の引数です: ${arg}`);
+    throw new Error(`Unknown argument: ${arg}`);
   }
 
-  if (analysisPaths.length === 0) throw new Error("--analysis を 1 件以上指定してください");
-  if (!interpretationPath) throw new Error("--interpretation は必須です");
-  if (!outPath) throw new Error("--out は必須です");
+  if (analysisPaths.length === 0) throw new Error("Pass at least one --analysis");
+  if (!interpretationPath) throw new Error("--interpretation is required");
+  if (!outPath) throw new Error("--out is required");
 
   return { help: false, analysisPaths, interpretationPath, outPath };
 }
@@ -101,10 +101,10 @@ function validatePersonMatteTrack(personMatte) {
   if (typeof personMatte === "string") {
     return isNonEmptyString(personMatte)
       ? null
-      : "tracks.person_matte は空でない string、null、または person matte object である必要があります";
+      : "tracks.person_matte must be a non-empty string, null, or a person matte object";
   }
   if (!isRecord(personMatte)) {
-    return "tracks.person_matte は空でない string、null、または person matte object である必要があります";
+    return "tracks.person_matte must be a non-empty string, null, or a person matte object";
   }
 
   const allowedFields = new Set([
@@ -118,14 +118,14 @@ function validatePersonMatteTrack(personMatte) {
   ]);
   const unknownFields = Object.keys(personMatte).filter((field) => !allowedFields.has(field));
   if (unknownFields.length > 0) {
-    return `tracks.person_matte に未定義の項目があります: ${unknownFields.join(", ")}`;
+    return `tracks.person_matte has unknown fields: ${unknownFields.join(", ")}`;
   }
   if (!isNonEmptyString(personMatte.path) || typeof personMatte.fps !== "number" || !(personMatte.fps > 0)) {
-    return "tracks.person_matte は path(空でない文字列)・fps(正数) を持つ object である必要があります";
+    return "tracks.person_matte must be an object with path (non-empty string) and fps (positive number)";
   }
   for (const field of ["quality", "mask_path", "mask_format", "generated_at", "tool"]) {
     if (hasOwn(personMatte, field) && !isNonEmptyString(personMatte[field])) {
-      return `tracks.person_matte.${field} は空でない文字列である必要があります`;
+      return `tracks.person_matte.${field} must be a non-empty string`;
     }
   }
   return null;
@@ -136,12 +136,12 @@ function readJson(path, label) {
   try {
     text = readFileSync(path, "utf8");
   } catch (error) {
-    fail(`${label} を読み込めません: ${path}\n${error.message}`);
+    fail(`Could not read ${label}: ${path}\n${error.message}`);
   }
   try {
     return JSON.parse(text);
   } catch (error) {
-    fail(`${label} が有効な JSON ではありません: ${path}\n${error.message}`);
+    fail(`${label} is not valid JSON: ${path}\n${error.message}`);
   }
   return undefined;
 }
@@ -151,21 +151,21 @@ function readJson(path, label) {
 function validateAnalysisStructure(analysis, label) {
   const errors = [];
   if (!isRecord(analysis)) {
-    errors.push("ルートは object である必要があります");
+    errors.push("the root must be an object");
     return errors;
   }
-  if (analysis.version !== 0) errors.push("version は 0 である必要があります");
-  if (!isNonEmptyString(analysis.source)) errors.push("source は空でない文字列である必要があります");
+  if (analysis.version !== 0) errors.push("version must be 0");
+  if (!isNonEmptyString(analysis.source)) errors.push("source must be a non-empty string");
   for (const field of ["transcript", "keyframes", "events"]) {
-    if (!Array.isArray(analysis[field])) errors.push(`${field} は配列である必要があります`);
+    if (!Array.isArray(analysis[field])) errors.push(`${field} must be an array`);
   }
   if (!isRecord(analysis.tracks)) {
-    errors.push("tracks は object である必要があります");
+    errors.push("tracks must be an object");
   } else {
-    if (!Array.isArray(analysis.tracks.speakers)) errors.push("tracks.speakers は配列である必要があります");
-    if (!Array.isArray(analysis.tracks.faces)) errors.push("tracks.faces は配列である必要があります");
+    if (!Array.isArray(analysis.tracks.speakers)) errors.push("tracks.speakers must be an array");
+    if (!Array.isArray(analysis.tracks.faces)) errors.push("tracks.faces must be an array");
     if (!hasOwn(analysis.tracks, "person_matte")) {
-      errors.push("tracks.person_matte は必須です");
+      errors.push("tracks.person_matte is required");
     } else {
       const personMatteError = validatePersonMatteTrack(analysis.tracks.person_matte);
       if (personMatteError) errors.push(personMatteError);
@@ -174,7 +174,7 @@ function validateAnalysisStructure(analysis, label) {
       if (!hasOwn(analysis.tracks, field)) continue;
       const pointer = analysis.tracks[field];
       if (!isRecord(pointer) || !isNonEmptyString(pointer.path) || !(Number(pointer.sample_fps) > 0)) {
-        errors.push(`tracks.${field} は path(空でない文字列)・sample_fps(正数) を持つ object である必要があります`);
+        errors.push(`tracks.${field} must be an object with path (non-empty string) and sample_fps (positive number)`);
         continue;
       }
       if (hasOwn(pointer, "features") && (
@@ -182,35 +182,35 @@ function validateAnalysisStructure(analysis, label) {
         || pointer.features.some((feature) => !isNonEmptyString(feature))
         || new Set(pointer.features).size !== pointer.features.length
       )) {
-        errors.push(`tracks.${field}.features は重複のない空でない文字列配列である必要があります`);
+        errors.push(`tracks.${field}.features must be an array of unique non-empty strings`);
       }
     }
   }
   for (const [index, kf] of (analysis.keyframes || []).entries()) {
     if (!isRecord(kf)) {
-      errors.push(`keyframes[${index}] は object である必要があります`);
+      errors.push(`keyframes[${index}] must be an object`);
       continue;
     }
-    if (typeof kf.t !== "number") errors.push(`keyframes[${index}].t は数値である必要があります`);
-    if (!isNonEmptyString(kf.path)) errors.push(`keyframes[${index}].path は空でない文字列である必要があります`);
-    if (!isNonEmptyString(kf.note)) errors.push(`keyframes[${index}].note は空でない文字列である必要があります`);
+    if (typeof kf.t !== "number") errors.push(`keyframes[${index}].t must be a number`);
+    if (!isNonEmptyString(kf.path)) errors.push(`keyframes[${index}].path must be a non-empty string`);
+    if (!isNonEmptyString(kf.note)) errors.push(`keyframes[${index}].note must be a non-empty string`);
   }
   for (const [index, seg] of (analysis.transcript || []).entries()) {
     if (!isRecord(seg) || typeof seg.start !== "number" || typeof seg.end !== "number" || !isNonEmptyString(seg.text)) {
-      errors.push(`transcript[${index}] は start/end(数値)・text(空でない文字列) を持つ object である必要があります`);
+      errors.push(`transcript[${index}] must be an object with start and end (numbers) and text (a non-empty string)`);
     }
   }
   for (const [index, event] of (analysis.events || []).entries()) {
     if (!isRecord(event) || !isNonEmptyString(event.type)) {
-      errors.push(`events[${index}] は type を持つ object である必要があります`);
+      errors.push(`events[${index}] must be an object with a type`);
       continue;
     }
     if (event.type === "chapter" && typeof event.t !== "number") {
-      errors.push(`events[${index}] (chapter) は t(数値) が必要です`);
+      errors.push(`events[${index}] (chapter) needs t (a number)`);
     }
     if (["trouble", "filler", "hook", "highlight"].includes(event.type)) {
       if (typeof event.start !== "number" || typeof event.end !== "number") {
-        errors.push(`events[${index}] (${event.type}) は start/end(数値) が必要です`);
+        errors.push(`events[${index}] (${event.type}) needs start and end (numbers)`);
       }
     }
   }
@@ -236,7 +236,7 @@ function toPosixRelative(fromDir, toPath) {
 
 class BlockIdCollisionError extends Error {
   constructor(duplicateIds) {
-    super(`block-id が文書内で衝突しています: ${duplicateIds.join(", ")}`);
+    super(`block-id collision in this document: ${duplicateIds.join(", ")}`);
     this.duplicateIds = duplicateIds;
   }
 }
@@ -389,14 +389,14 @@ function resolveBareAnalysisRef(rawPath, analysesEntries, interpretationDir) {
   }
   if (matchingRefs.size === 0) {
     fail(
-      `--analysis の path が inputs.analyses[].path のいずれとも一致しません` +
-        `（--analysis <ref>=<path> 形式で明示してください）: ${rawPath}`,
+      `--analysis path does not match any inputs.analyses[].path` +
+        ` (pass --analysis <ref>=<path>): ${rawPath}`,
     );
   }
   if (matchingRefs.size > 1) {
     fail(
-      `--analysis の path が inputs.analyses[].path に複数一致し一意に定まりません` +
-        `（--analysis <ref>=<path> 形式で明示してください）: ${rawPath}`,
+      `--analysis path matches more than one inputs.analyses[].path` +
+        ` (pass --analysis <ref>=<path>): ${rawPath}`,
     );
   }
   return [...matchingRefs][0];
@@ -423,10 +423,10 @@ function resolveAnalysisArgs(analysisArgs, interpretation, interpretationDir) {
       ref = analysisArg.slice(0, eqIndex);
       rawPath = analysisArg.slice(eqIndex + 1);
       if (!rawPath) {
-        fail(`--analysis の指定が不正です（ref=path の path が空です）: ${analysisArg}`);
+        fail(`--analysis is malformed (ref=path has an empty path): ${analysisArg}`);
       }
       if (!assetRefs.has(ref)) {
-        fail(`--analysis の ref が interpretation.assets[].ref に存在しません: ${ref}（${analysisArg}）`);
+        fail(`--analysis ref is not in interpretation.assets[].ref: ${ref} (${analysisArg})`);
       }
     } else {
       rawPath = analysisArg;
@@ -438,21 +438,21 @@ function resolveAnalysisArgs(analysisArgs, interpretation, interpretationDir) {
     const recordedEntry = analysesEntryByRef.get(ref);
     if (recordedEntry && !pathsCorrespond(rawPath, recordedEntry.path, interpretationDir)) {
       fail(
-        `--analysis の path が ref『${ref}』の inputs.analyses[].path` +
-          `（${recordedEntry.path}）と対応していません: ${rawPath}` +
-          "（取り違えの疑いがあります。--analysis <ref>=<path> の対応を再確認してください）",
+        `--analysis path for ref '${ref}' does not match inputs.analyses[].path` +
+          ` (${recordedEntry.path}): ${rawPath}` +
+          " (the pair may be swapped. Check --analysis <ref>=<path>)",
       );
     }
 
     if (pathByRef.has(ref)) {
-      fail(`--analysis に同じ ref が重複して指定されています: ${ref}`);
+      fail(`--analysis ref is listed more than once: ${ref}`);
     }
     pathByRef.set(ref, rawPath);
   }
 
   const missingRefs = [...assetRefs].filter((ref) => !pathByRef.has(ref));
   if (missingRefs.length > 0) {
-    fail(`assets[].ref に対応する --analysis が指定されていません: ${missingRefs.join(", ")}`);
+    fail(`These assets[].ref values have no --analysis: ${missingRefs.join(", ")}`);
   }
 
   return pathByRef;
@@ -476,7 +476,7 @@ function main() {
 
   const interpretationAbsolutePath = resolve(args.interpretationPath);
   if (!existsSync(interpretationAbsolutePath)) {
-    fail(`interpretation.json が見つかりません: ${interpretationAbsolutePath}`);
+    fail(`interpretation.json was not found: ${interpretationAbsolutePath}`);
   }
 
   // interpretation.json は SSOT である packages/schemas/bin/validate-interpretation.mjs で
@@ -486,7 +486,7 @@ function main() {
       stdio: "pipe",
     });
   } catch (error) {
-    console.error(`interpretation.json の検証に失敗しました（validate-interpretation.mjs）: ${interpretationAbsolutePath}`);
+    console.error(`interpretation.json validation failed (validate-interpretation.mjs): ${interpretationAbsolutePath}`);
     if (error.stdout) console.error(error.stdout.toString());
     if (error.stderr) console.error(error.stderr.toString());
     process.exit(1);
@@ -507,12 +507,12 @@ function main() {
     const analysisArg = pathByRef.get(interpAsset.ref);
     const analysisAbsolutePath = resolve(analysisArg);
     if (!existsSync(analysisAbsolutePath)) {
-      fail(`analysis.json が見つかりません: ${analysisAbsolutePath}`);
+      fail(`analysis.json was not found: ${analysisAbsolutePath}`);
     }
     const analysis = readJson(analysisAbsolutePath, "analysis.json");
     const errors = validateAnalysisStructure(analysis, analysisAbsolutePath);
     if (errors.length > 0) {
-      console.error(`analysis.json の構造検証に失敗しました: ${analysisAbsolutePath}`);
+      console.error(`analysis.json failed structural validation: ${analysisAbsolutePath}`);
       for (const message of errors) console.error(`- ${message}`);
       process.exit(1);
     }
@@ -559,7 +559,7 @@ function main() {
     blocksManifest = buildBlocksManifest(bundle);
   } catch (error) {
     if (error instanceof BlockIdCollisionError) {
-      fail(`block-id の導出に失敗しました: ${error.message}`);
+      fail(`block-id derivation failed: ${error.message}`);
     }
     throw error;
   }
@@ -569,10 +569,10 @@ function main() {
 
   const templateText = readFileSync(templatePath, "utf8");
   if (!templateText.includes(DATA_PLACEHOLDER)) {
-    fail(`template.html の埋め込み用プレースホルダーが見つかりません: ${templatePath}`);
+    fail(`template.html is missing the data placeholder: ${templatePath}`);
   }
   if (!templateText.includes(BLOCKS_PLACEHOLDER)) {
-    fail(`template.html の block-id マニフェスト埋め込み用プレースホルダーが見つかりません: ${templatePath}`);
+    fail(`template.html is missing the block-id manifest placeholder: ${templatePath}`);
   }
   const rendered = templateText
     .replace(DATA_PLACEHOLDER, serialized)

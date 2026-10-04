@@ -23,7 +23,7 @@ function resolvedFfmpegPath() {
 export function generateWaveformPreview(sourceAudioPath, destPngPath) {
     const ffmpegPath = resolvedFfmpegPath();
     if (!ffmpegPath) {
-        return { ok: false, reason: 'ffmpeg が見つからないため preview.png を生成できません' };
+        return { ok: false, reason: 'ffmpeg was not found, so preview.png cannot be generated' };
     }
     const result = spawnSync(ffmpegPath, [
         '-y',
@@ -33,7 +33,7 @@ export function generateWaveformPreview(sourceAudioPath, destPngPath) {
         destPngPath,
     ], { stdio: 'ignore' });
     if (result.status !== 0) {
-        return { ok: false, reason: `ffmpeg の実行に失敗しました（exit ${result.status}）。音声実体が壊れているか非対応形式の可能性` };
+        return { ok: false, reason: `ffmpeg failed (exit ${result.status}). The audio may be damaged or in an unsupported format.` };
     }
     return { ok: true };
 }

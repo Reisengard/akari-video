@@ -15,7 +15,7 @@
 
 /** timeline 秒 → BGM ファイル内の位置（秒）。 */
 export function trackPositionAt(timelineSec, { trackDuration, bgmIn = 0 }) {
-    if (!(trackDuration > 0)) throw new Error('trackDuration が必要です（秒）');
+    if (!(trackDuration > 0)) throw new Error('trackDuration is required (seconds)');
     const firstSpan = Math.max(0, trackDuration - bgmIn);
     if (timelineSec < firstSpan) return bgmIn + timelineSec;
     return (timelineSec - firstSpan) % trackDuration;
@@ -26,8 +26,8 @@ export function trackPositionAt(timelineSec, { trackDuration, bgmIn = 0 }) {
  * 返り値: [{ trackStart, trackEnd, timelineStart, loop }]（loop は 0 始まり）
  */
 export function loopSpans({ trackDuration, bgmIn = 0, timelineDuration }) {
-    if (!(trackDuration > 0)) throw new Error('trackDuration が必要です（秒）');
-    if (!(timelineDuration > 0)) throw new Error('timelineDuration が必要です（秒）');
+    if (!(trackDuration > 0)) throw new Error('trackDuration is required (seconds)');
+    if (!(timelineDuration > 0)) throw new Error('timelineDuration is required (seconds)');
     const spans = [];
     const firstSpan = Math.max(0, trackDuration - bgmIn);
     if (firstSpan > 0) {
@@ -61,7 +61,7 @@ function round3(value) {
 
 function requireFps(fps) {
     if (!(typeof fps === 'number' && Number.isFinite(fps) && fps > 0)) {
-        throw new Error('fps は正の数で指定してください');
+        throw new Error('fps must be a positive number');
     }
     return fps;
 }
@@ -86,7 +86,7 @@ function uniqueFrames(seconds, fps) {
  *   すべて timeline 秒。seams はループの継ぎ目（音が飛ぶ位置）。
  */
 export function musicGrid({ declaration, trackDuration, bgmIn = 0, timelineDuration, maxBeats = 20000 }) {
-    if (!declaration || typeof declaration !== 'object') throw new Error('declaration が必要です');
+    if (!declaration || typeof declaration !== 'object') throw new Error('declaration is required');
     const spans = loopSpans({ trackDuration, bgmIn, timelineDuration });
     const beats = [];
     const downbeats = [];

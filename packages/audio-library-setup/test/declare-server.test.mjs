@@ -88,10 +88,10 @@ test('validateDeclaration: 正しい宣言は問題なし / 壊れた値は理�
     assert.match(validateDeclaration({ ...good, bpm: 900 })[0], /bpm/);
     assert.match(validateDeclaration({ ...good, time_signature: '7/8' })[0], /time_signature/);
     assert.match(validateDeclaration({ ...good, sections: [{ label: 'chorus', start_sec: 0, end_sec: 1 }] })[0], /label/);
-    assert.match(validateDeclaration({ ...good, sections: [{ label: 'drop', start_sec: 5, end_sec: 5 }] })[0], /終わりが開始以下/);
-    assert.match(validateDeclaration(good, { duration: 10 }).join(' '), /長さを超えて/);
+    assert.match(validateDeclaration({ ...good, sections: [{ label: 'drop', start_sec: 5, end_sec: 5 }] })[0], /ends at or before it starts/);
+    assert.match(validateDeclaration(good, { duration: 10 }).join(' '), /past the end of the track/);
     assert.match(validateDeclaration({ ...good, hit_points: [-1] })[0], /hit_points/);
-    assert.deepEqual(validateDeclaration(null), ['宣言がオブジェクトではありません']);
+    assert.deepEqual(validateDeclaration(null), ['Declaration is not an object']);
 });
 
 test('normalizeDeclaration: 並べ替え・重複除去・出所の記録（パック由来を上書きしたら replaced_source）', () => {
@@ -154,7 +154,7 @@ test('POST /api/declaration: 壊れた宣言は 400 で理由を返し、ファ�
             assert.equal(res.status, 400);
             const body = await res.json();
             assert.equal(body.error, 'invalid_declaration');
-            assert.ok(body.problems.some((p) => p.includes('長さを超えて')));
+            assert.ok(body.problems.some((p) => p.includes('past the end of the track')));
             assert.deepEqual(await loadDeclarations(root), {}, '不正な保存でファイルを作らない');
         });
     });

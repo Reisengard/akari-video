@@ -237,7 +237,7 @@ test("新フィールド皆無の旧形式も生成でき、構造面は空面�
     assert.equal(count(html, /<template data-shot-detail-template=/g), 1);
     assert.match(html, /data-shot-placeholder/);
     assert.match(html, /data-structure-empty/);
-    assert.match(html, /構造情報なし/);
+    assert.match(html, /No structure/);
   });
 });
 
@@ -250,8 +250,8 @@ test("詳細ダイアログと注釈の貼り戻し契約を自己完結 HTML �
     assert.match(html, /data-copy-annotation/);
     assert.match(html, /data-annotation-output/);
     assert.match(html, /composeAnnotationText/);
-    assert.match(html, /plan-comments\.json（pass: structure, target_kind: shot）として1ファイルに上書き保存/);
-    assert.match(html, /処理後は plan-comments\.json を削除/);
+    assert.match(html, /plan-comments\.json file \(pass: structure, target_kind: shot\) and revise only the named shots/);
+    assert.match(html, /delete plan-comments\.json after you process it/);
     assert.doesNotMatch(html, /<(?:img|script|link)[^>]+(?:src|href)="https?:\/\//i);
   });
 });
@@ -267,12 +267,12 @@ test("注釈貼り戻しテキストは shot id と指摘逐語を保持する",
     ],
     overall: overallFeedback,
   });
-  assert.equal(output, `【絵コンテ注釈】3章の主軸とカットアウェイ
-- shot main-2「工程を説明する」: ${shotFeedback}
-- 全体: ${overallFeedback}
+  assert.equal(output, `[Storyboard note] 3章の主軸とカットアウェイ
+- shot main-2 "工程を説明する": ${shotFeedback}
+- Overall: ${overallFeedback}
 ---
-上の指摘を plan-comments.json（pass: structure, target_kind: shot）として1ファイルに上書き保存し、名指しされた shot だけ構成を改訂してください。
-target_id は各 shot id に対応する structure.shots[] の配列インデックスを文字列で設定し、処理後は plan-comments.json を削除してください。`);
+Save the notes above as one plan-comments.json file (pass: structure, target_kind: shot) and revise only the named shots.
+Set target_id to the structure.shots[] index of each shot id, as a string, and delete plan-comments.json after you process it.`);
 });
 
 test("実機 Chrome でコマ詳細と注釈逐語を照合し、3 枚の証跡を生成する", async (t) => {
@@ -333,9 +333,9 @@ test("実機 Chrome でコマ詳細と注釈逐語を照合し、3 枚の証跡�
     output.blur();
     return output.value;
   })()`);
-  assert.match(output, /^【絵コンテ注釈】3章の主軸とカットアウェイ/m);
+  assert.match(output, /^\[Storyboard note\] 3章の主軸とカットアウェイ/m);
   assert.match(output, new RegExp(`- shot main-1「完成形から始める」: ${feedback}`));
-  assert.match(output, new RegExp(`- 全体: ${overall}`));
+  assert.match(output, new RegExp(`- Overall: ${overall}`));
   assert.match(output, /plan-comments\.json（pass: structure, target_kind: shot）/);
   assert.match(output, /structure\.shots\[\] の配列インデックス/);
   screenshots.push(await screenshot(command, "03-annotation-output.png"));

@@ -43,8 +43,8 @@ for (const [name, option] of [
         for (const args of [[option], [option, '--json']]) {
             const result = runBin(name, args);
             assert.equal(result.status, 1, result.stderr);
-            assert.match(result.stderr, new RegExp(`${option} には値が必要です`));
-            assert.match(result.stderr, /（例: /);
+            assert.match(result.stderr, new RegExp(`${option} needs a value`));
+            assert.match(result.stderr, /\(example: /);
             assert.doesNotMatch(result.stderr, /\b(?:TypeError|Error:)\b|\n\s+at /);
         }
     });

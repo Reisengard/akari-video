@@ -13,13 +13,13 @@ const HOST = '127.0.0.1';
 function parseArguments(argv) {
     if (argv.includes('--help') || argv.includes('-h')) {
         console.log(`Usage: node bin/gallery-helper.mjs [--library-root <path>] [--port <N>]
-  -h, --help  このヘルプを表示する`);
+  -h, --help  Show this help`);
         process.exit(0);
     }
     function valueAfter(index, option, example) {
         const value = argv[index + 1];
         if (value === undefined || value.startsWith('--')) {
-            console.error(`${option} には値が必要です（例: ${example}）`);
+            console.error(`${option} needs a value (example: ${example})`);
             process.exit(1);
         }
         return value;

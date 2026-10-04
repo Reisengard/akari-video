@@ -46,14 +46,14 @@ export const MEANING_RULES = {
   '失敗・NG': {
     first: ['sfx-powerdown'],
     external: [
-      { id: 'pocket-se-fail-pack', note: '呆れ「チーン」・失敗「デデーン」（日本のお約束。要クレジット）' },
-      { id: 'maoudamashii-se-onepoint-category', note: 'ダメ出し「ブッブー」・ふざけた失敗音（要クレジット）' },
+      { id: 'pocket-se-fail-pack', note: 'A disappointed sting and a fail sting (a stock Japanese gag). Credit is required.' },
+      { id: 'maoudamashii-se-onepoint-category', note: 'A rejection buzzer and a comic fail. Credit is required.' },
     ],
   },
   '疑問の提示': {
     first: ['jingle-question-4s'],
     external: [
-      { id: 'dova-syndrome-hatena-mark-se', note: '「はてなマーク」ポップアップ音' },
+      { id: 'dova-syndrome-hatena-mark-se', note: 'A question-mark popup' },
     ],
   },
   '強調・登場': {
@@ -67,7 +67,7 @@ export const MEANING_RULES = {
   '衝撃の事実': {
     first: ['sfx-sub-drop-001', 'sfx-impact-boom-big', 'sfx-impact-echo', 'sfx-tape-stop-001'],
     external: [
-      { id: 'soundeffect-lab-ambient-life-pack', note: '和太鼓「ドーン」（和風のお約束）' },
+      { id: 'soundeffect-lab-ambient-life-pack', note: 'A taiko hit (a stock Japanese accent)' },
     ],
   },
   'キラッと見せる': {
@@ -77,14 +77,14 @@ export const MEANING_RULES = {
   'オチ・コミカル': {
     first: ['sfx-comedy-boing', 'sfx-record-scratch', 'sfx-comedy-slide-up', 'sfx-pop-fizz', 'sfx-slime-squish'],
     external: [
-      { id: 'pocket-se-fail-pack', note: '呆れ「チーン」（ズッコケの定番。要クレジット）' },
+      { id: 'pocket-se-fail-pack', note: 'A disappointed sting (a stock slip gag). Credit is required.' },
     ],
   },
   '拍手・祝福': {
     first: [],
     external: [
-      { id: 'soundeffect-lab-ambient-life-pack', note: '観客リアクション（拍手・歓声）' },
-      { id: 'soundeffect-lab-clapping-hands', note: '大勢で拍手 / ホール拍手（candidates 補完カード #27。未登録なら候補リストから取得）' },
+      { id: 'soundeffect-lab-ambient-life-pack', note: 'Audience reaction (applause and cheers)' },
+      { id: 'soundeffect-lab-clapping-hands', note: 'Crowd applause / hall applause (candidate card #27. Fetch it from the candidate list if it is not registered.)' },
     ],
   },
   'UI操作': {
@@ -102,10 +102,10 @@ export const MEANING_RULES = {
  */
 export function suggestSfx(catalog, { meaning, count = 5 } = {}) {
   if (!catalog || !Array.isArray(catalog.tracks)) {
-    throw new Error('catalog.json の形式が想定と違います（tracks 配列がない）');
+    throw new Error('catalog.json is not in the expected shape (no tracks array)');
   }
   if (!MEANING_VOCABULARY.includes(meaning)) {
-    throw new Error(`意味の語彙に無い値: ${meaning}（使える値: ${MEANING_VOCABULARY.join(' / ')}）`);
+    throw new Error(`Meaning is not in the vocabulary: ${meaning} (allowed: ${MEANING_VOCABULARY.join(' / ')})`);
   }
   const rule = MEANING_RULES[meaning];
   const byId = new Map(catalog.tracks.map((track) => [track.id, track]));

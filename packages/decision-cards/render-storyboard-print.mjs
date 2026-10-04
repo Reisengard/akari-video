@@ -22,13 +22,13 @@ export function renderStoryboardPrint({ edit, captions, frames = [], sidecars = 
   const totalFrames = items.reduce((maximum, item) => Math.max(maximum, item.at + item.duration), 0);
   const totalSeconds = totalFrames / fps;
   const generated = generatedAt instanceof Date ? generatedAt.toISOString() : String(generatedAt ?? "");
-  const reportTitle = String(title || "絵コンテ（印刷）");
+  const reportTitle = String(title || "Storyboard (print)");
   const frameByItem = new Map(frames.map((frame) => [frame.itemId, frame]));
   const captionList = normalizeCaptions(captions);
 
   const bars = items.map((item, index) => {
     const width = totalFrames > 0 ? item.duration / totalFrames * 100 : 0;
-    return `<div class="duration-segment segment-${(index % 5) + 1}" data-item-id="${escapeHtml(item.id)}" data-duration-frames="${item.duration}" style="width:${formatNumber(width)}%"><strong>${escapeHtml(itemName(item, index))}</strong><span>${formatSeconds(item.duration / fps)} 秒</span></div>`;
+    return `<div class="duration-segment segment-${(index % 5) + 1}" data-item-id="${escapeHtml(item.id)}" data-duration-frames="${item.duration}" style="width:${formatNumber(width)}%"><strong>${escapeHtml(itemName(item, index))}</strong><span>${formatSeconds(item.duration / fps)} s</span></div>`;
   }).join("");
 
   const cards = items.map((item, index) => {
@@ -39,17 +39,17 @@ export function renderStoryboardPrint({ edit, captions, frames = [], sidecars = 
     const overlapping = captionList.filter((caption) => caption.start < end && caption.end > start).slice(0, 2);
     const captionRows = overlapping.length
       ? overlapping.map((caption) => `<li>${escapeHtml(caption.text)}</li>`).join("")
-      : `<li class="caption-empty">字幕なし</li>`;
+      : `<li class="caption-empty">No captions</li>`;
     return `<article class="storyboard-card" data-storyboard-item="${escapeHtml(item.id)}">
-      <div class="frame">${image ? `<img src="${image}" alt="${escapeHtml(itemName(item, index))} の代表フレーム" />` : `<div class="frame-placeholder" aria-label="画像なし">NO CAPTURE</div>`}</div>
+      <div class="frame">${image ? `<img src="${image}" alt="Representative frame for ${escapeHtml(itemName(item, index))}" />` : `<div class="frame-placeholder" aria-label="No image">NO CAPTURE</div>`}</div>
       <div class="card-heading"><span class="card-number">#${index + 1}</span><h2>${escapeHtml(itemName(item, index))}</h2>${renderBadge(sidecars[item.id])}</div>
-      <p class="time-range"><time>${formatTime(start)}</time>〜<time>${formatTime(end)}</time></p>
+      <p class="time-range"><time>${formatTime(start)}</time>–<time>${formatTime(end)}</time></p>
       <ul class="captions">${captionRows}</ul>
     </article>`;
   }).join("\n");
 
   return `<!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -59,11 +59,11 @@ export function renderStoryboardPrint({ edit, captions, frames = [], sidecars = 
 </head>
 <body>
   <header><p class="eyebrow">AKARI VIDEO / L1 THROUGH MAP</p><h1>${escapeHtml(reportTitle)}</h1>
-    <dl><div><dt>合計尺</dt><dd>${formatTime(totalSeconds)}</dd></div><div><dt>コマ数</dt><dd>${items.length}</dd></div><div><dt>生成日時</dt><dd><time datetime="${escapeHtml(generated)}">${escapeHtml(generated)}</time></dd></div></dl>
+    <dl><div><dt>Total duration</dt><dd>${formatTime(totalSeconds)}</dd></div><div><dt>Frames</dt><dd>${items.length}</dd></div><div><dt>Generated</dt><dd><time datetime="${escapeHtml(generated)}">${escapeHtml(generated)}</time></dd></div></dl>
   </header>
   <main>
-    <section class="duration-map" aria-labelledby="duration-heading"><h2 id="duration-heading">尺バー</h2><div class="duration-bar">${bars}</div></section>
-    <section class="storyboard-grid" aria-label="絵コンテ">${cards}</section>
+    <section class="duration-map" aria-labelledby="duration-heading"><h2 id="duration-heading">Duration bar</h2><div class="duration-bar">${bars}</div></section>
+    <section class="storyboard-grid" aria-label="Storyboard">${cards}</section>
   </main>
 </body>
 </html>\n`;
@@ -71,7 +71,7 @@ export function renderStoryboardPrint({ edit, captions, frames = [], sidecars = 
 
 function editFps(edit) {
   const fps = Number(edit?.fps ?? edit?.output?.fps);
-  if (!(fps > 0)) throw new TypeError("edit.json の fps は正の数である必要があります");
+  if (!(fps > 0)) throw new TypeError("edit.json fps must be a positive number");
   return fps;
 }
 
@@ -113,10 +113,10 @@ function frameDataUri(frame) {
 function renderBadge(sidecar) {
   if (!sidecar || sidecar.state === "none" || sidecar.state === "orphan") return "";
   if (sidecar.state === "planned") return `<span class="badge badge-planned">planned</span>`;
-  if (sidecar.state === "generating" || sidecar.state === "stale") return `<span class="badge badge-generating">生成中</span>`;
-  if (sidecar.state === "failed") return `<span class="badge badge-failed">失敗</span>`;
-  if (sidecar.state === "done" && sidecar.kind === "still") return `<span class="badge badge-still">静止画</span>`;
-  if (sidecar.state === "done" && sidecar.kind === "video") return `<span class="badge badge-video">生成</span>`;
+  if (sidecar.state === "generating" || sidecar.state === "stale") return `<span class="badge badge-generating">Generating</span>`;
+  if (sidecar.state === "failed") return `<span class="badge badge-failed">Failed</span>`;
+  if (sidecar.state === "done" && sidecar.kind === "still") return `<span class="badge badge-still">Still</span>`;
+  if (sidecar.state === "done" && sidecar.kind === "video") return `<span class="badge badge-video">Video</span>`;
   return "";
 }
 
@@ -150,16 +150,16 @@ function parseArguments(argv) {
     if (argument === "--no-capture") options.noCapture = true;
     else if (argument === "--captures" || argument === "--out") {
       const value = argv[index + 1];
-      if (!value) throw new Error(`${argument} には値が必要です`);
+      if (!value) throw new Error(`${argument} needs a value`);
       if (argument === "--captures") options.captures = value;
       else options.out = value;
       index += 1;
-    } else if (argument.startsWith("--")) throw new Error(`未知の引数です: ${argument}`);
+    } else if (argument.startsWith("--")) throw new Error(`Unknown argument: ${argument}`);
     else if (!options.projectDir) options.projectDir = argument;
-    else throw new Error(`余分な引数です: ${argument}`);
+    else throw new Error(`Extra argument: ${argument}`);
   }
-  if (!options.projectDir) throw new Error("projectDir が必要です");
-  if (options.noCapture && options.captures) throw new Error("--captures と --no-capture は併用できません");
+  if (!options.projectDir) throw new Error("projectDir is required");
+  if (options.noCapture && options.captures) throw new Error("--captures and --no-capture cannot be used together");
   return options;
 }
 
@@ -186,7 +186,7 @@ export function readSidecars(projectRoot, edit, items, now) {
       const meta = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
       result[item.id] = { state: resolveGenerationState(meta, now), kind: meta.kind };
     } catch (error) {
-      if (error?.code !== "ENOENT") console.warn(`WARN: 生成サイドカーを読めません: ${path.relative(projectRoot, sidecarPath)}`);
+      if (error?.code !== "ENOENT") console.warn(`WARN: could not read the generation sidecar: ${path.relative(projectRoot, sidecarPath)}`);
     }
   }
   return result;
@@ -298,13 +298,13 @@ async function main(argv) {
     records = framesFromCaptureDirectory(framesDirectory, projectRoot);
   } else if (!parsed.noCapture) {
     const command = resolveCaptureCommand();
-    if (!command) console.warn("WARN: capture CLI が見つからないためプレースホルダーを使います");
+    if (!command) console.warn("WARN: capture CLI was not found, so a placeholder is used");
     else {
       try {
         const stdout = await runCapture(command, ["-p", projectRoot, "-t", ...times.map(formatNumber), "--full", "--out", framesDirectory]);
         records = parseFrameRecords(stdout).map((record) => ({ ...record, path: path.isAbsolute(record.path) ? record.path : path.resolve(projectRoot, record.path) }));
       } catch (error) {
-        console.warn(`WARN: capture に失敗したためプレースホルダーを使います: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`WARN: capture failed, so a placeholder is used: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }
