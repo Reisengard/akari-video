@@ -79,26 +79,26 @@ if (SERVE) {
             process.stdin.on('error', () => accepted ? stopProduct() : invalid());
             process.stdin.resume();
         });
-    } catch { console.error('標準入力の合言葉が不正です'); process.exit(2); }
+    } catch { console.error('The stdin token is invalid'); process.exit(2); }
     if (stopping) await new Promise(() => {});
     if (!DEV && (argv.includes('--file') || (argv.includes('--mode') && argv[argv.indexOf('--mode') + 1] !== 'flat'))) {
-        console.error('実験用の引数には AKARI_VIBE_DEV=1 が必要です'); process.exit(2);
+        console.error('AKARI_VIBE_DEV=1 is required for experimental arguments'); process.exit(2);
     }
 }
 const PORT = argv.includes('--port') ? Number(argv[argv.indexOf('--port')+1]) : 4747;
-if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) throw new Error('有効なポートを指定してください');
+if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) throw new Error('Specify a valid port');
 const COMPANION = SERVE || argv.includes('--companion');
 const COMPANION_PORT = SERVE ? 0 : argv.includes('--companion-port') ? Number(argv[argv.indexOf('--companion-port')+1]) : 4749;
 if (COMPANION && !SERVE && (!Number.isInteger(COMPANION_PORT) || COMPANION_PORT < 1024 || COMPANION_PORT > 65535
-    || [4747, 4748, 4750, 4761, PORT].includes(COMPANION_PORT))) throw new Error('--companion-port は予約済みでない 1024〜65535 の整数で指定してください');
+    || [4747, 4748, 4750, 4761, PORT].includes(COMPANION_PORT))) throw new Error('--companion-port must be an integer from 1024 to 65535 that is not reserved');
 const STALE_MS = argv.includes('--stale-ms') ? Number(argv[argv.indexOf('--stale-ms')+1]) : 5000;
-if (!Number.isSafeInteger(STALE_MS) || STALE_MS <= 0 || STALE_MS > 2147483647) throw new Error('--stale-ms は 1〜2147483647 の整数で指定してください');
+if (!Number.isSafeInteger(STALE_MS) || STALE_MS <= 0 || STALE_MS > 2147483647) throw new Error('--stale-ms must be an integer from 1 to 2147483647');
 const MODE = argv.includes('--mode') ? argv[argv.indexOf('--mode') + 1] : 'flat';
 if (!['flat', 'staged'].includes(MODE)) throw new Error(`Unknown mode: ${MODE}`);
 const USE_MIC = !argv.includes('--no-mic');
 const FILE = argv.includes('--file') ? argv[argv.indexOf('--file') + 1] : null; // 録音済み wav を実時間で流す（マイクなしの通し確認用）
 const EARLY_SEEK_ARG = argv.includes('--early-seek') ? argv[argv.indexOf('--early-seek') + 1] : 'on';
-if (!['on', 'off'].includes(EARLY_SEEK_ARG)) throw new Error('--early-seek は on または off で指定してください');
+if (!['on', 'off'].includes(EARLY_SEEK_ARG)) throw new Error('--early-seek must be on or off');
 let earlySeek = EARLY_SEEK_ARG === 'on';
 
 // 節約: 途中経過は (1) 軽い質問だけ (2) 初回即時・以後最短 600ms (3) 雑談と判断した文は 8 文字増えるまで呼ばない
@@ -139,7 +139,7 @@ const projectTracker = COMPANION ? new ProjectContextTracker({ onUpdate(state, m
     } else if (state.ready) {
         source = state.source; captionsSource = state.captionsSource; context = state.context;
     }
-    if (state.tooLarge) showBanner('文書が 8MB を超えているため声では編集できません');
+    if (state.tooLarge) showBanner('The document is over 8MB, so voice editing is unavailable');
     if (scheduler) send('snapshot', snapshot());
 } }) : null;
 const utterances = new Map();
@@ -191,7 +191,7 @@ const voice = { floor: 0.003, active: false, onsetAt: null, lastVoiceAt: null, f
 const sessionDirectory = SERVE ? process.env.AKARI_VIBE_LOG_DIR : process.env.AKARI_VOICE_SESSION_DIR || path.join(ROOT, 'sessions');
 if (sessionDirectory) fs.mkdirSync(sessionDirectory, { recursive: true });
 const sessionFile = sessionDirectory ? path.join(sessionDirectory, `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}.jsonl`) : null;
-if (sessionFile) console.log(`記録: ${path.relative(process.cwd(), sessionFile)}`);
+if (sessionFile) console.log(`Log: ${path.relative(process.cwd(), sessionFile)}`);
 const t0 = Date.now();
 const log = (o) => { if (sessionFile) fs.appendFileSync(sessionFile, JSON.stringify({ at: (Date.now() - t0) / 1000, ...o }) + '\n'); };
 
@@ -295,19 +295,19 @@ function changeBetween(beforeSource, beforeCaps, afterSource, afterCaps, preferr
     return fallback ?? (preferred ? { itemId: preferred, label: preferred, fields: [], origin, changedAt: Date.now() } : null);
 }
 function updateKnob(itemId, key, rawValue) {
-    if (!knobKeys.includes(key)) throw new Error('編集できないツマミです');
+    if (!knobKeys.includes(key)) throw new Error('This control cannot be edited');
     const edit = JSON.parse(source), current = knobView(source, captionsSource, itemId);
-    if (!current?.editable?.[key]) throw new Error('この対象では編集できないツマミです');
+    if (!current?.editable?.[key]) throw new Error('This target does not have that editable control');
     const located = editStore.locate(edit, current.rawId);
-    if (!located) throw new Error('対象が見つかりません');
+    if (!located) throw new Error('Target not found');
     const item = located.item, fps = edit.output?.fps ?? 30;
     if (key === 'text') item.source.params.text = String(rawValue);
     else if (key === 'color') {
-        const slot = colorSlot(item); if (!slot) throw new Error('色のツマミがありません');
+        const slot = colorSlot(item); if (!slot) throw new Error('There is no color control');
         item.source[slot[0]][slot[1]] = String(rawValue);
     } else {
         const value = Number(rawValue);
-        if (!Number.isFinite(value)) throw new Error('数値を入力してください');
+        if (!Number.isFinite(value)) throw new Error('Enter a number');
         if (key === 'start') item.at = Math.max(0, Math.round(value * fps));
         else if (key === 'duration') item.duration = Math.max(1, Math.round(value * fps));
         else if (key === 'opacity') item.opacity = Math.max(0, Math.min(1, value));
@@ -502,7 +502,7 @@ async function judge(item) {
     const stale = () => !listening || epoch !== listenEpoch || Date.now()-receivedAt >= STALE_MS || ((early || !final) && utterance?.closed && !item.promotedFinal);
     if (stale()) { log({type:'discard',operationId,reason:'stale-before-judge'}); return false; }
     if (COMPANION && (!projectTracker.state.ready || projectTracker.state.tooLarge)) {
-        showBanner(projectTracker.state.tooLarge ? '文書が 8MB を超えているため判断できません' : 'シェルのプロジェクト状態を待っています');
+        showBanner(projectTracker.state.tooLarge ? 'The document is over 8MB, so decisions are unavailable' : 'Waiting for the shell project state');
         send('snapshot', snapshot());
         return false;
     }
@@ -632,7 +632,7 @@ async function judge(item) {
                     task:reason=>task(utterance?.rawText??text,base.target??ctx.selection,reason),
                     log:message=>log({type:'error',operationId,message}),banner:showBanner,
                 });
-                if(!sent.ok) { applied=false; held={reason:'シェルへ編集を反映できませんでした'}; }
+                if(!sent.ok) { applied=false; held={reason:'Could not apply the edit to the shell'}; }
                 else {
                     local=sent.input.local;finishLocal(local);
                     const hashes=sent.result.value??{};
@@ -647,7 +647,7 @@ async function judge(item) {
                 }
             }
         }
-    }catch(e){applied=false;held={reason:`適用エラー: ${e.message}`};}
+    }catch(e){applied=false;held={reason:`Apply error: ${e.message}`};}
     const postShellEffects=planShellEffects({final,decision:d,executed:Boolean(intents.execute)&&applied,
         changedItemId:changedItemIdForEffects,shellCommands:shellCommandsForEffects,
         catalogOpen:libraryShellEffectsForPost.find(effect=>effect.catalogOpen)?.catalogOpen??null,
@@ -699,7 +699,7 @@ async function processScheduled(item) {
                 lastAsk = null; lastCandidates = record.beforeCandidates; lastExecuted = record.beforeLastExecuted;
                 ui = { ...record.beforeUi, revision: ui.revision+1 }; ctx = { ...ctx, ...record.beforeCtx };
                 redoStack = []; carry = null; range.seekFiredFor = null; range.flyFiredFor = null;
-                showBanner('言い直しを反映'); send('note', { utt: item.operationId, text: '言い直しを反映' });
+                showBanner('Applied the correction'); send('note', { utt: item.operationId, text: 'Applied the correction' });
             } else {
                 item.text = normalize(item.text).slice(record.executedText.length).replace(/^[。、 　]+/, '');
                 if (!item.text) return {};
@@ -848,7 +848,7 @@ async function startInput() {
         bin = path.join(os.tmpdir(), 'akari-voice-live-stt');
         const src = path.join(HERE, 'live-stt.swift');
         if (!fs.existsSync(bin) || !fs.existsSync(src) || fs.statSync(bin).mtimeMs < fs.statSync(src).mtimeMs) {
-            console.log('音声認識ヘルパーをビルド中…');
+            console.log('Building the speech recognition helper…');
             const args = ['-O', '-parse-as-library', '-swift-version', '5', src, '-o', bin,
                 '-Xlinker', '-sectcreate', '-Xlinker', '__TEXT', '-Xlinker', '__info_plist', '-Xlinker', path.join(HERE, 'Info.plist')];
             const status = SERVE ? await new Promise(resolve => {
@@ -867,7 +867,7 @@ async function startInput() {
         while ((i = buf.indexOf('\n')) >= 0) {
             const line = buf.slice(0, i); buf = buf.slice(i + 1);
             let m; try { m = JSON.parse(line); } catch { continue; }
-            if (m.type === 'ready') { micStatus = 'ready'; console.log('マイク準備完了（ja-JP）'); send('mic', { status: micStatus }); }
+            if (m.type === 'ready') { micStatus = 'ready'; console.log('Microphone ready (ja-JP)'); send('mic', { status: micStatus }); }
             else if (m.type === 'status') {
                 if (FILE && m.message === 'file-end' && inputFileEndedAt === null) {
                     inputFileEndedAt = Date.now();
@@ -875,7 +875,7 @@ async function startInput() {
                 }
                 console.log(m.message); send('mic', { status:m.message });
             } else if (m.type === 'error') {
-                micStatus = `error: ${m.message}`; console.error('マイク: ' + m.message); send('mic', { status:micStatus });
+                micStatus = `error: ${m.message}`; console.error('Microphone: ' + m.message); send('mic', { status:micStatus });
             } else if (m.type === 'level') onLevel(m.rms);
             else if (m.type === 'stt') onStt(m.text, m.final, m.t);
         }
@@ -987,7 +987,7 @@ export async function handleHttpRequest(req, res) {
     res.writeHead(404); res.end();
 }
 if (!SERVE) http.createServer(handleHttpRequest).listen(PORT, '127.0.0.1', () => {
-    console.log(`HUD: http://localhost:${PORT}   staleMs: ${STALE_MS}   earlySeek: ${earlySeek ? 'on' : 'off'}   記録: ${path.relative(process.cwd(), sessionFile)}   マイク: ${FILE ? `ファイル ${FILE}` : USE_MIC ? "ブラウザで『聞き取りを始める』を押す" : 'オフ（テキスト入力のみ）'}`);
+    console.log(`HUD: http://localhost:${PORT}   staleMs: ${STALE_MS}   earlySeek: ${earlySeek ? 'on' : 'off'}   Log: ${path.relative(process.cwd(), sessionFile)}   Microphone: ${FILE ? `file ${FILE}` : USE_MIC ? "click the mic button in the browser to start listening" : 'off (text input only)'}`);
 });
 if (COMPANION) {
     const token=SERVE ? serveToken : crypto.randomBytes(32).toString('hex');
