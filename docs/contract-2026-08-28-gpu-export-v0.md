@@ -1,222 +1,114 @@
-# GPU 直結書き出し v0 契約
+**English** | [Japanese](./contract-2026-08-28-gpu-export-v0.ja.md)
 
-## 1. 適用範囲
+# GPU direct export contract v0
 
-この契約は `render-cut --engine gpu` と `packages/gpu-export` が提供する第 2 の映像出口を定める。
-共有 frame-engine の完成 canvas を `VideoFrame(canvas)`、WebCodecs `VideoEncoder`、mp4box direct mux
-の順に渡す。raw RGBA/BGRA の読み戻し、renderer-to-main の raw frame pipe、CPU 色変換、映像の
-再エンコードは行わない。
+## 1. Scope
 
-評価は先頭から末尾まで 1 process、1 timeline、連番で行う。区間並列と複数 process 並列は v0 の
-決定論契約に含めない。エンコーダ投入は `encodeQueueSize` と有界 `queueDepth` で制御する。
+This contract defines the second picture exit, provided by `render-cut --engine gpu` and `packages/gpu-export`. It passes the shared frame-engine's finished canvas through `VideoFrame(canvas)`, the WebCodecs `VideoEncoder`, and mp4box direct mux, in that order. It does not read back raw RGBA or BGRA, it does not pipe a raw frame from the renderer to main, it does not convert color on the CPU, and it does not re-encode the picture.
 
-## 2. 適格性
+Evaluation runs from the start to the end in 1 process, 1 timeline, sequential frames. Span parallelism and multi-process parallelism are not part of the v0 determinism contract. Encoder submission is controlled by `encodeQueueSize` and a bounded `queueDepth`.
 
-適格性は宣言時に HTML 文字列、字幕 cue、編集宣言から機械判定する。結果は全件 receipt に残す。
-自由 HTML の判定は、`<!-- ... -->` の HTML コメントを除去した文字列に対して行う。コメント内の
-`data-akari-3d-scene`、タグ、URL、CSS 語彙は適格性へ影響させず、CSS コメントと
-`<script type="application/json">` の内容は従来どおり判定対象の文字列に残す。
+## 2. Eligibility
 
-| 分類 | 適格 | 意味 |
+Eligibility is judged mechanically at declaration time, from the HTML string, the caption cues, and the edit declaration. Every result stays on the receipt. Free HTML is judged on the string after HTML comments `<!-- ... -->` are removed. `data-akari-3d-scene`, tags, URLs, and CSS vocabulary inside a comment do not affect eligibility. The contents of a CSS comment and of `<script type="application/json">` stay in the string that is judged, as before.
+
+| Class | Eligible | Meaning |
 |---|---|---|
-| `same` | はい | 静的 HTML は起動時、対応済み字幕は unit の初回活性時に 1 回だけスプライト化する |
-| `three` | はい | JSON の宣言型 3D scene と描画先 canvas を持つ overlay。毎コマ Three.js canvas を更新し、登場表現は `three-scene-entrance-curve`、`three-scene-entrance-sampled`、または `three-scene-sampled-composite` で処理する |
-| `vgpu` | はい | pure な `data-akari-vgpu-scene` を WebGPU canvas に描き、毎コマスプライトへ転送する（[vgpu v0 契約](./contract-2026-09-06-vgpu-layer-v0.md)） |
-| `degraded` | いいえ | raster 自体は可能でも live DOM と同じ時間変化を保証できない |
-| `unsupported` | いいえ | v0 の表現範囲外であり、正しい完成画を生成できない |
+| `same` | yes | Static HTML is sprited once at launch. A supported caption is sprited once, when the unit first becomes active. |
+| `three` | yes | An overlay that has a declarative 3D scene in JSON and a canvas to draw into. The Three.js canvas is updated every frame. An entrance is handled by `three-scene-entrance-curve`, `three-scene-entrance-sampled`, or `three-scene-sampled-composite`. |
+| `vgpu` | yes | A pure `data-akari-vgpu-scene` is drawn to a WebGPU canvas and transferred to a sprite every frame ([vgpu v0 contract](./contract-2026-09-06-vgpu-layer-v0.md)). |
+| `degraded` | no | Raster itself is possible, but the same change over time as the live DOM cannot be guaranteed. |
+| `unsupported` | no | Outside the v0 expression range, and a correct finished picture cannot be produced. |
 
-自由 HTML は、絶対 URL、外部 font/image/background、runtime script、iframe/object/embed、canvas/video、
-CSS animation/transition/keyframes、filter/mask/clip-path 等を検出する。条件がない静的 HTML だけを
-`same` とする。例外として、検出条件が `three-or-canvas-runtime` だけで、
-`<script type="application/json" data-akari-3d-scene>` 宣言を属性順にかかわらずちょうど 1 個持ち、
-それ以外の script と video を持たない宣言型 3D は `three` とする。3D の描画先である canvas は許可する。
+Free HTML detects an absolute URL, an external font, image, or background, a runtime script, iframe, object, or embed, canvas or video, CSS animation, transition, or keyframes, and filter, mask, clip-path, and similar. Only static HTML with no such condition is `same`. The exception is a declarative 3D whose only detected condition is `three-or-canvas-runtime`, which has exactly one `<script type="application/json" data-akari-3d-scene>` declaration regardless of attribute order, and which has no other script and no video. That is `three`. The canvas that 3D draws into is allowed.
 
-`data-akari-slot` への文言注入（`source.params`。正本 `contract-2026-08-22-overlay-html-slots.md`）は、
-静的 HTML のスプライト化の直前と DOM 層の mount 時に、legacy の rasterize / プレビューの overlay-runtime と
-同じ `packages/overlay-runtime/src/slot-params.js` の `renderTextSlots` で適用する。params を持つ overlay が
-1 件でもあればページに同 runtime を inline し、receipt の manifest に `textSlotOverlayCount` を残す。
-params があるのに runtime が無い状態は既定文言を黙って焼かず fail-closed にする（2026-08-31・issue #32）。
+Text injection into `data-akari-slot` (`source.params`. Canonical `contract-2026-08-22-overlay-html-slots.md`) is applied, immediately before a static HTML is sprited and when the DOM layer mounts, by `renderTextSlots` in `packages/overlay-runtime/src/slot-params.js`, the same function the legacy rasterize path and the preview overlay-runtime use. If even one overlay has params, inline that runtime on the page, and leave `textSlotOverlayCount` on the receipt manifest. Params with no runtime is fail-closed. Do not silently bake the default wording (2026-08-31, issue #32).
 
-frame-engine のメイン時間軸（cuts）は静止画ソース（edit-store の `isStillImageSourcePath`）を
-`kind: 'image'` の base 層として描く（尺は `out - in`・ソース時刻なし・transform / crop / keyframes は動画 cut と
-同じ。正本 `contract-2026-08-12-still-image-cut-source-v0.md`。2026-08-31・issue #30）。2 本目以降の visual
-トラックの映像クリップは `at` / `track` を保持して絶対配置し、番号が大きいトラックが前面（v2 の `tracks[]` 配列順）。
-track 0 は従来どおり連結チェーン（freeze で伸び、トランジション重なりは宣言から再計算）のまま
-（2026-08-31・issue #31。それまでは GPU / OSR の runtime が導出 `at` / `track` を全 cut から外していたため、
-上段のクリップが直列に連結されて出力尺の外へ押し出され、PASS のまま絵が消えていた）。同じ規則を
-frame-engine へ cuts を渡す残り 2 面（preview-server の Web UI プレビュー・シェルのプレビュー）にも適用し、
-プレビューと書き出しが同じ絵を出す（preview parity。シェルは `renderTrack` の最小値を最下段とみなす）。
+The frame-engine main time axis (cuts) draws a still-image source (`isStillImageSourcePath` in edit-store) as a base layer of `kind: 'image'` (duration is `out - in`, there is no source time, and transform, crop, and keyframes match a video cut. Canonical `contract-2026-08-12-still-image-cut-source-v0.md`. 2026-08-31, issue #30). A video clip on the second visual track or later keeps `at` and `track` and is placed absolutely. A higher-numbered track is in front (v2 `tracks[]` array order). Track 0 stays the old joined chain (a freeze extends it, and a transition overlap is recomputed from the declaration) (2026-08-31, issue #31. Until then the GPU and OSR runtimes stripped the derived `at` and `track` from every cut, so an upper-track clip was joined in series, pushed outside the output duration, and the picture disappeared while the check still PASSed). Apply the same rule to the other two surfaces that pass cuts to frame-engine (the preview-server Web UI preview, and the shell preview), so preview and export draw the same picture (preview parity. The shell treats the minimum `renderTrack` as the bottom track).
 
-字幕は cue ごとに rasterize し、出現・loop・消失を解析的な opacity と中心基準 affine 変換で
-再現する。v2 では `words[]` を持つ karaoke、pop、reveal、reveal-word と `emphasis_words` も
-語矩形タイルとして GPU-native に合成する。次は引き続き `unsupported` とする。
+Captions are rasterized per cue. Appear, loop, and disappear are reproduced with an analytic opacity and a center-based affine transform. In v2, karaoke, pop, reveal, and reveal-word that have `words[]`, and `emphasis_words`, are also composited GPU-native as word-rectangle tiles. The following stay `unsupported`.
 
-- 同一 unit に karaoke の色補間と、pop / one-char-bang / one-char-jumble / size-pulse の幾何変形が混在するもの。
-- 語矩形タイルで再現できない縦書きの語単位字幕。
-- 未知の motion、および clip-path を使う push/typewriter/wipe/glitch。
-- `transform-origin: top center` を必要とする swing。
+- A unit that mixes karaoke color interpolation with a geometric deformation of pop, one-char-bang, one-char-jumble, or size-pulse.
+- A per-word vertical caption that a word-rectangle tile cannot reproduce.
+- An unknown motion, and push, typewriter, wipe, or glitch that uses clip-path.
+- swing, which needs `transform-origin: top center`.
 
-### 2.1 語単位字幕（v2）
+### 2.1 Per-word captions (v2)
 
-語単位字幕の意味論は `packages/render-cut/src/captions.mjs` が生成する DOM と CSS を正本とする。
-GPU 出口はその DOM を別実装で組み直さず、同じ DOM から `getClientRects()` で各語の矩形を採寸する。
-1 語が改行をまたいで複数矩形を返す場合は全矩形を保持する。縦長出力で style 無指定かつ
-`words[]` があり複数行になる cue は、正本と同じ行分割関数で reveal へ自動昇格する。
-採寸は独立した DOM root の挿入ごとに行い、全 variant の全測定値が 2 回連続で厳密一致するまで
-測り直す。上限は 32 回とし、収束しなければ `caption-measure-unstable` を理由コードと warning に残して
-fail-closed とする。HW で max 6、soft で max 7 だった実測に対する余裕として 32 回を採る。
-許容差、平均、丸めによって走間の揺らぎを隠さない。
+The semantics of a per-word caption are owned by the DOM and CSS that `packages/render-cut/src/captions.mjs` generates. The GPU exit does not rebuild that DOM in another implementation. It measures each word's rectangle with `getClientRects()` from the same DOM. If one word returns several rectangles because it crosses a line break, keep every rectangle. On a portrait output, a cue with no style specified, with `words[]`, that becomes multiple lines, is auto-promoted to reveal by the same line-break function as the canonical path. Measurement is done on each insertion of an independent DOM root, and it is measured again until every measured value of every variant matches exactly on two consecutive passes. The cap is 32. If it does not converge, leave `caption-measure-unstable` as the reason code and the warning, and fail closed. 32 is the margin against a measurement whose max was 6 on hardware and 7 on soft. Do not hide run-to-run jitter with a tolerance, an average, or rounding.
 
-| 対象 | 毎コマの状態 |
+| Target | State every frame |
 |---|---|
-| karaoke | 語の start まで基本色、start〜end は語全体の色を linear 補間、end 以後は highlight 色 |
-| pop | start から 0.2 秒、語矩形中心で `translateY(0→-0.08em→0)` と `scale(1→1.12→1)` |
-| reveal-word | start から 0.01 秒で opacity 0→1 |
-| reveal | 行群を 0/12/99.99/100% の opacity・translateY keyframe で順送りし、前群は終了時に消す |
-| one-char-bang / one-char-jumble | 文字ごとに opacity 0→1、scale 1.6→1。jumble の静的変形はラスタへ保持 |
-| size-pulse | 語矩形中心で scale 1→1.25→1 |
-| 色・太さ・縁取りだけの emphasis | 静的な基本ラスタへ焼き込み、毎コマの状態評価はしない |
+| karaoke | The base color until the word's start. From start to end, linear-interpolate the whole word's color. After end, the highlight color. |
+| pop | For 0.2 seconds from start, at the word-rectangle center, `translateY` from 0 to -0.08em and back to 0, and `scale` from 1 to 1.12 and back to 1. |
+| reveal-word | opacity 0 to 1 over 0.01 seconds from start. |
+| reveal | Advance line groups with opacity and translateY keyframes at 0, 12, 99.99, and 100 percent. The previous group disappears when it ends. |
+| one-char-bang / one-char-jumble | Per character, opacity 0 to 1 and scale 1.6 to 1. jumble's static deformation stays on the raster. |
+| size-pulse | At the word-rectangle center, scale 1 to 1.25 and back to 1. |
+| emphasis of color, weight, or stroke only | Baked into the static base raster. There is no per-frame state evaluation. |
 
-karaoke は左から右へのワイプではない。正本の keyframes は `color` の from/to だけなので、基本色と
-highlight 色の 2 ラスタを語タイル内で時間比率により mix する。CSS timing function は keyframe 区間ごとに
-適用し、pop と size-pulse の 0〜50% / 50〜100% をそれぞれ ease してから補間する。
+karaoke is not a wipe from left to right. The canonical keyframes are only `color` from and to, so mix the base-color raster and the highlight-color raster inside the word tile by the time ratio. A CSS timing function applies per keyframe span. Ease the 0 to 50 percent and 50 to 100 percent of pop and size-pulse, then interpolate.
 
-ラスタ単位を unit と呼ぶ。通常は cue 1 個、reveal は重なった `.akari-caption__reveal-group` 1 個を
-unit 1 個とする。unit ごとのラスタは最大 2 枚で、色モードは基本色 / highlight 色、幾何モードは
-プレート背景 / 透明背景の文字、状態なしは基本 1 枚だけを持つ。2 状態 DOM の全語矩形は各成分差
-0.01 px 以下であることを起動時に検査し、超過は fail-closed とする。ラスタは unit ごとに 1 回だけ作り、毎コマは
-行ストリップと語境界でフレームを隙間なく分割した整数タイルを配列順に合成する。3 枚目や毎コマ rasterize は行わない。
+A raster unit is called a unit. Normally one cue is one unit. reveal treats one overlapping `.akari-caption__reveal-group` as one unit. A unit has at most 2 rasters. The color mode is base color or highlight color. The geometry mode is plate background or text on a transparent background. No state means only the one base raster. At launch, check that every word rectangle of a 2-state DOM differs by at most 0.01 px on each component. Over the cap is fail-closed. Build the raster once per unit. Every frame composites integer tiles, split with no gaps by the line strip and the word boundary, in array order. There is no third raster, and no per-frame rasterize.
 
-ラスタ SVG はフレーム全面ではなく、出力幅を維持した字幕帯だけの `viewBox` を持つ。開始時刻順の
-連続する最大 8 unit、かつ全バンド高 4096 px 以下を 1 バッチとし、各 unit の 1〜2 状態を縦方向の
-バンドとして 1 枚の SVG に積み、デコードはバッチにつき 1 回だけ行う。variant CSS は
-`data-akari-band` ごとにスコープし、埋め込みフォントの `@font-face` は SVG 内に 1 本だけ置く。
-初めて必要になった unit のバッチをまとめて登録する一方、GPU texture は活性区間の終了時に unit ごとに
-解放し、バッチのために寿命を延ばさない。upload 後の切り出し用 CPU canvas とデコード画像も破棄する。
+The raster SVG is not the full frame. Its `viewBox` is only the caption band, keeping the output width. One batch is at most 8 consecutive units in start-time order, and a total band height of at most 4096 px. Stack each unit's 1 or 2 states as vertical bands in one SVG, and decode once per batch. Variant CSS is scoped per `data-akari-band`. An embedded font's `@font-face` appears once inside the SVG. Register the batch of a unit the first time it is needed. Release the GPU texture per unit when the active span ends. Do not extend its life for the batch. Discard the CPU canvas used to cut out after upload, and the decoded image, too.
 
-SVG の入力は data URL に固定する。Blob URL と同一オリジン HTTP URL は SVG 内フォントを含む canvas を
-汚染し、`getImageData` だけでなく `texImage2D(canvas)` も `SecurityError` になるため使用しない。
-フォント data URL は `encodeURIComponent` 済みの文字列を 1 度だけ作って再利用し、生の base64 を
-キャッシュしない。
+SVG input is fixed to a data URL. A Blob URL and a same-origin HTTP URL taint a canvas that contains an in-SVG font, so not only `getImageData` but also `texImage2D(canvas)` throws `SecurityError`. Do not use them. Build the font data URL's `encodeURIComponent` string once and reuse it. Do not cache raw base64.
 
-適格な cue は理由 `words-native` とし、receipt に `mode`（`sprite` / `words-native`）、style、unit 数、
-語数、ラスタ枚数、バンド数、タイル数と `captionLayoutMaxDeltaPx`、採寸試行の count / p50 / max、
-バッチ実測、字幕ラスタ合計時間を記録する。未知 style は
-`caption-style-unsupported:<value>`、色と幾何の混在は `words-native-color-and-geometry-mixed` とする。
+An eligible cue has reason `words-native`. The receipt records `mode` (`sprite` or `words-native`), style, unit count, word count, raster count, band count, tile count, `captionLayoutMaxDeltaPx`, the measurement attempt count, p50, and max, the batch measurement, and the caption raster total time. An unknown style is `caption-style-unsupported:<value>`. A mix of color and geometry is `words-native-color-and-geometry-mixed`.
 
-検収は style 5 種 × 各 5 時刻について GPU / OSR decode の画面下 1/4 MAD 1.0 以下、語境界の対比画像
-6 枚以内の目視、語状態評価と合成の追加コスト中央値 1 ms/コマ以下、hardware / software の指定 fixture
-2 走一致、製品経路の読み戻し 0 を要求する。性能 gate は cue ラスタ p50 500 ms 以下、karaoke 44 cue の
-akari-video-pv 18 ms/コマ以下、小 fixture（360 コマ・3 cue）の RSS peak 900 MB 以下とする。
+Acceptance requires, for 5 styles times 5 times each, a lower-quarter MAD of the GPU and OSR decode at most 1.0, a visual check of at most 6 word-boundary comparison images, a median added cost of word-state evaluation and composite at most 1 ms per frame, a 2-run match of the specified fixture on hardware and on software, and 0 readback on the product path. The performance gate is cue-raster p50 at most 500 ms, akari-video-pv with 44 karaoke cues at most 18 ms per frame, and a small fixture (360 frames, 3 cues) with RSS peak at most 900 MB.
 
-`--engine auto` は全 platform で全件適格なら `gpu`、不適格なら `osr` を選ぶ。明示
-`--engine gpu` と不適格の組み合わせは理由を全件表示して fail-closed とし、
-黙って OSR へ変更しない。GPU launcher が利用できない明示指定も fail-closed とする。
+`--engine auto` chooses `gpu` on every platform when every item is eligible, and `osr` when it is not. An explicit `--engine gpu` combined with ineligible items shows every reason and fails closed. It does not silently switch to OSR. An explicit request whose GPU launcher is unavailable also fails closed.
 
-## 3. 合成順と LUT
+## 3. Composite order and LUT
 
-frame-engine canvas は cuts、layers、transition、matte、LUT を評価する。最終 canvas では、その上へ
-静的 HTML、3D、字幕の順でスプライトを合成する。したがって LUT は映像 engine canvas 内だけに適用し、
-字幕・HTML・3D は LUT の外に置く。全 upload は `uploadPath = "direct"` を必須とし、fallback を検出した
-コマで書き出しを停止する。
+The frame-engine canvas evaluates cuts, layers, transition, matte, and LUT. On the final canvas, sprites composite above that in the order static HTML, 3D, then captions. The LUT therefore applies only inside the picture engine canvas. Captions, HTML, and 3D stay outside the LUT. Every upload requires `uploadPath = "direct"`. Stop the export on a frame where a fallback is detected.
 
-cuts と layers が同時に空のフレームは、出力解像度の黒 1 枚として合成する。その後の静的 HTML、3D、字幕の
-スプライト合成は通常どおりこの黒い frame-engine canvas の上へ重ねる。
+A frame whose cuts and layers are both empty composites as one black frame at the output resolution. The later sprite composite of static HTML, 3D, and captions still stacks on top of that black frame-engine canvas, as usual.
 
-3D は engine の時計から得た local seconds を `threeRuntime.render(container, t)` へ直接渡して駆動する。
-GPU 出口は overlay sheet の `__akariSeek` を使用しない。毎コマの DOM animation 同期と全 container の
-visibility 更新を 3D canvas の texture 更新へ持ち込まないためである。sheet の
-`__akariReady` は起動時に 1 回だけ待ち、各 scene が ready でない場合は overlay id と状態を示して
-fail-closed にする。active 区間は最終 compositor の draw へ積むかどうかで決める。
+3D is driven by passing the local seconds from the engine clock straight to `threeRuntime.render(container, t)`. The GPU exit does not use the overlay sheet's `__akariSeek`. Per-frame DOM animation sync and a visibility update of every container must not be pulled into the 3D canvas texture update. The sheet's `__akariReady` is awaited once at launch. If a scene is not ready, fail closed and name the overlay id and the state. Whether a span is active is decided by whether it is pushed onto the final compositor's draw.
 
-**2026-09-04 改訂（issue #53）**: video seek 待ちだけは例外とし、sheet が公開する `__akariSeekVideos(seconds)`
-（`__akariSeek` から切り出した video 部分・OSR と同一実装）を毎コマ、3D 描画の前に呼ぶ。3D 断片の動画テクスチャは
-`<video>` の提示フレームから上がるため、シーク → 提示確定 → 3D 描画 の順序が必要で（`3d.md`）、呼ばないと
-GPU 経路の動画テクスチャは起動時の 0 秒の絵に固定される。シートに `<video>` が無ければ呼ばない。
+**Revised 2026-09-04 (issue #53).** Only the video seek wait is an exception. Every frame, before the 3D draw, call `__akariSeekVideos(seconds)`, which the sheet publishes (the video part cut out of `__akariSeek`, the same implementation as OSR). A video texture in a 3D fragment comes from the presented frame of a `<video>`, so the order must be seek, then the presented frame is fixed, then the 3D draw (`3d.md`). Without the call, a video texture on the GPU path stays stuck on the picture at 0 seconds from launch. If the sheet has no `<video>`, do not call it.
 
-## 4. 読み戻しゼロ
+## 4. Zero readback
 
-製品実行経路は GPU frame surface を CPU へ読む API を使用しない。静的監査は
-`src/verify-readback.js` だけを除外して、WebGL/2D pixel read、`VideoFrame` の byte copy、bitmap 化、
-canvas の data/blob export が 0 件であることを要求する。エンコード済み H.264 byte 列の取り出しは
-raw frame 読み戻しではない。
+The product run path does not use an API that reads the GPU frame surface back to the CPU. The static audit, excluding only `src/verify-readback.js`, requires 0 WebGL or 2D pixel reads, 0 `VideoFrame` byte copies, 0 bitmap conversions, and 0 canvas data or blob exports. Taking out the encoded H.264 byte sequence is not a raw-frame readback.
 
-`AKARI_GPU_TRAP_READBACK=1` または `--trap-readback` は該当 API を throw 化し、呼び出し counter 0 の
-まま完走することを要求する。検証専用の生フレーム SHA 経路は別 module に隔離し、trap と同時には
-有効化できない。
+`AKARI_GPU_TRAP_READBACK=1` or `--trap-readback` makes those APIs throw, and requires a complete run with the call counter still 0. The verification-only raw-frame SHA path is isolated in another module, and it cannot be enabled at the same time as the trap.
 
-## 5. エンコード、mux、音声
+## 5. Encode, mux, and audio
 
-映像は H.264 High profile とし、level は解像度・fps・ビットレートを満たす最小値を H.264 Table A-1
-（MaxFS / MaxMBPS / MaxBR × 1.25）から導出する。下限は Level 4.0 で、1080p30 = `avc1.640028`（従来と
-バイト同一）、1080p60 = `avc1.64002a`、1440p30 = `avc1.640032`、4K30 = `avc1.640033`、4K60 = `avc1.640034`。
-`codec` オプションで明示の文字列に上書きできる（2026-09-01 改訂。固定 `avc1.640028` は Blink の
-`VerifyCodecSupportStatic` が MaxFS 8192 MB 超を拒否するため、1440p / 4K が HW / SW を問わず全 OS で
-`isConfigSupported=false` になっていた — 2026-08-29 調査 §5-4）。
-2 秒ごとの keyframe とし、製品は hardware preference、
-`--soft` は software preference を指定する。ビットレートは render-cut の quality プリセットにある
-GPU ビットレート値（mac では VideoToolbox 用の値と共用）を正本とし、**1080p（1920×1080）基準**で
-`high = 12 Mbps`、`standard = 8 Mbps`、`light = 5 Mbps` とする。出力ピクセル数が 1080p を超えるときは
-その比で増やし（4K = 4 倍で `high = 48 Mbps`、1440p ≈ 1.78 倍、100 kbps 単位に丸め）、基準未満は 1 倍に
-留める（2026-09-01 改訂。receipt の `bitrateSource` は `quality-preset-scaled`）。
-`--bitrate` の明示値は quality より優先し、スケールしない。`master` は VideoToolbox ビットレートを宣言しないため、
-GPU 出口では `--bitrate` が無ければ理由付きで fail-closed にする。
+The picture is H.264 High profile. The level is the smallest value that satisfies resolution, fps, and bitrate, derived from H.264 Table A-1 (MaxFS, MaxMBPS, and MaxBR times 1.25). The floor is Level 4.0. 1080p30 is `avc1.640028` (byte-identical to before). 1080p60 is `avc1.64002a`. 1440p30 is `avc1.640032`. 4K30 is `avc1.640033`. 4K60 is `avc1.640034`. A `codec` option can override to an explicit string (revised 2026-09-01. The fixed `avc1.640028` made Blink's `VerifyCodecSupportStatic` refuse MaxFS above 8192 MB, so 1440p and 4K were `isConfigSupported=false` on every OS, hardware and software. Investigation of 2026-08-29, §5-4). A keyframe every 2 seconds. The product specifies hardware preference. `--soft` specifies software preference. The bitrate is owned by the GPU bitrate value in render-cut's quality preset (on Mac, shared with the VideoToolbox value). **On a 1080p (1920 by 1080) basis,** `high = 12 Mbps`, `standard = 8 Mbps`, and `light = 5 Mbps`. When the output pixel count exceeds 1080p, scale by that ratio (4K is 4 times, so `high = 48 Mbps`. 1440p is about 1.78 times. Round to 100 kbps). Below the basis, stay at 1 times (revised 2026-09-01. The receipt `bitrateSource` is `quality-preset-scaled`). An explicit `--bitrate` beats quality, and it does not scale. `master` does not declare a VideoToolbox bitrate, so on the GPU exit, if `--bitrate` is absent, fail closed with a reason.
 
-エンコード済み Annex B sample を main process へ渡し、逐次 muxer が SPS/PPS または decoder config から
-avcC を作って `out.mp4` へ直接書き足す。映像の仮ファイルも追加の映像 process も作らない。
-MP4 の timescale は `frameRateRational(fps)` が返すレート分子、1 コマは同じ関数が返す分母ティックとし、
-track duration は `frames × frameTicks` にする。dts = cts とし、ctts は持たない。
-`frames` から計算した上界の `free` 箱を `ftyp` の直後に予約し、finish で moov をその先頭へ上書きして
-余りを `free` として残す。mdat は先頭から 64-bit largesize、サンプル位置は co64 で表し、本文を移動せず
-moov を mdat より前に置く。2026-09-01 改訂。#37（ffmpeg remux・2026-08-31〜09-01）を経てこの形へ移行した。
+Pass the encoded Annex B sample to the main process. The incremental muxer builds avcC from SPS/PPS or the decoder config and appends it directly to `out.mp4`. There is no temporary video file, and no extra video process. The MP4 timescale is the rate numerator that `frameRateRational(fps)` returns. One frame is the denominator ticks that the same function returns. The track duration is `frames * frameTicks`. dts equals cts. There is no ctts. Reserve a `free` box, sized to the upper bound computed from `frames`, immediately after `ftyp`. On finish, overwrite moov onto the head of that box and leave the remainder as `free`. mdat is 64-bit largesize from the start. Sample positions are co64. Do not move the body. Place moov before mdat. Revised 2026-09-01. This shape was reached through #37 (ffmpeg remux, 2026-08-31 to 2026-09-01).
 
-GPU 映像は video-only である。現行の正典 audio filtergraph が入力 0 の音声を読めるよう、元の cut 音声を
-copy し、音声がない場合は `frames / fps` 秒の無音 carrier を付ける。以後の mux は `-c:v copy` と
-`-t frames/fps` を必須とする。最終 MP4 の映像コマ数は要求値と厳密一致し、不一致は fail-closed とする。
-A/V 終端差は 1 コマ以内を要求する。
+GPU video is video-only. So that the current canonical audio filtergraph can read the audio of input 0, copy the original cut audio. If there is no audio, attach a silent carrier of `frames / fps` seconds. Later mux requires `-c:v copy` and `-t frames/fps`. The final MP4's video frame count matches the requested value exactly. A mismatch is fail-closed. The A/V end difference must be within 1 frame.
 
-2026-09-02 追記（issue #43）: 上記の無音 carrier は、**明示された音声ソース**に音声ストリームが
-無い場合だけ付ける。音声ソース未指定時は audio muxer を呼ばず、video-only 中間物を成果物へ copy して
-音声トラックのない「映像のみ」とする。この場合は音声 presence と A/V 終端差を検査対象にしない。
-低レベル CLI の `--audio <path>` は書き出し前に音声ストリームを probe し、無ければ carrier を作らず
-exit code 2 で中止する。edit.json の音声を混ぜる製品経路は §11 の `render-cut --engine gpu` である。
+Appended 2026-09-02 (issue #43). Attach the silent carrier above only when an **explicit audio source** has no audio stream. When no audio source is specified, do not call the audio muxer. Copy the video-only intermediate to the artifact, and the result is picture only, with no audio track. In that case, do not check audio presence or the A/V end difference. The low-level CLI `--audio <path>` probes for an audio stream before export. If there is none, do not build a carrier. Stop with exit code 2. The product path that mixes edit.json audio is §11, `render-cut --engine gpu`.
 
-## 6. 決定論とパリティ gate
+## 6. Determinism and the parity gate
 
-| mode | 必須条件 |
+| mode | Required condition |
 |---|---|
-| hardware | 指定 fixture を同一機で 2 走し、全コマ SHA-256 と MP4 SHA-256 が一致 |
-| software | 360 コマ fixture を 2 走し、エンコード前の生フレーム SHA-256 が 360/360 一致 |
-| software H.264 unsupported | `unsupported` を receipt に残し、生フレーム SHA だけを必須とする |
+| hardware | Two runs of the specified fixture on the same machine. Every frame's SHA-256 matches, and the MP4 SHA-256 matches. |
+| software | Two runs of a 360-frame fixture. The pre-encode raw-frame SHA-256 matches 360 of 360. |
+| software H.264 unsupported | Leave `unsupported` on the receipt. Only the raw-frame SHA is required. |
 
-software MP4 SHA はエンコーダが決定論的な場合だけ必須とし、それ以外は警告を伴う診断値とする。
-GPU と OSR の decode 比較は、engine-only 区間の per-frame MAD 1.0 以下、字幕 cue の代表 5 時刻の
-下半分 MAD 1.0 以下、3D 区間 MAD 1.0 以下を固定閾値とする。
+A software MP4 SHA is required only when the encoder is deterministic. Otherwise it is a diagnostic with a warning. The GPU versus OSR decode comparison uses fixed thresholds. per-frame MAD at most 1.0 on an engine-only span. Lower-half MAD at most 1.0 at 5 representative times of a caption cue. MAD at most 1.0 on a 3D span.
 
-**2026-09-04 追加（issue #53）— 2 経路で同じでなければならない 4 点**:
+**Added 2026-09-04 (issue #53). Four points that must be the same on both paths.**
 
-1. **overlay へ渡す時刻は `frameNumber / fps`**。µs へ丸めてはならない。overlay の `start` は必ず
-   `atFrames / fps` なので、丸めると比較が 1 ulp で反転し、カット境界の 1 コマだけ絵が食い違う。
-   この `seconds` は時間窓判定・CSS アニメ位相・item keyframes のフレーム番号すべてに流れる。
-2. **時間窓の外の container も毎コマ pause して `currentTime` を書く**。飛ばすと窓の外の断片の CSS アニメが
-   壁時計（書き出しは分単位）で走り切り、`animation-fill-mode: both/forwards` の最終姿勢に張り付いたまま
-   窓へ入ってくる = 同じ時刻でも直前に何を撮ったかで絵が変わる。OSR の `__akariSyncAnimations` は
-   active 判定を持たない。
-3. **DOM ステージのルートに `data-no-timeline`**。断片の規約は
-   `[data-akari-active] .x, [data-no-timeline] .x { animation: … }` の 2 アームで、OSR のシートは `#stage` に
-   これを持つ。GPU 側に無いと no-timeline アームだけで宣言した断片が GPU でのみ動かない。
-4. **静的スプライトは overlay の `transform` を落とさない**。`.akari-sprite-root` に OSR の
-   `.akari-overlay-container` と同じ `translate/scale/rotate` + `transform-origin: center` を宣言する
-   （`role: "background"` は両経路とも恒等固定）。
+1. **The time passed to an overlay is `frameNumber / fps`.** Do not round to microseconds. An overlay's `start` is always `atFrames / fps`, so rounding flips the comparison by 1 ulp, and only the one frame at a cut boundary disagrees. This `seconds` flows into the time-window test, the CSS animation phase, and the frame number of item keyframes.
+2. **A container outside the time window is also paused every frame, and `currentTime` is written.** If it is skipped, a fragment's CSS animation outside the window runs out on the wall clock (an export is on the order of minutes) and enters the window stuck on the final pose of `animation-fill-mode: both` or `forwards`. The same time then draws a different picture depending on what was captured just before. OSR's `__akariSyncAnimations` has no active test.
+3. **`data-no-timeline` on the DOM stage root.** A fragment's rule has two arms, `[data-akari-active] .x, [data-no-timeline] .x { animation: ... }`. The OSR sheet has this on `#stage`. If the GPU side lacks it, a fragment declared only on the no-timeline arm does not move on GPU alone.
+4. **A static sprite does not drop the overlay's `transform`.** Declare the same `translate`, `scale`, and `rotate`, plus `transform-origin: center`, on `.akari-sprite-root` as on OSR's `.akari-overlay-container` (`role: "background"` is fixed to identity on both paths).
 
-あわせて、manifest 生成時に overlay の `start` / `duration` が有限数でなければ fail-closed とする。
-既定値（`?? 0` / `?? duration`）を置くと、欠けたときに「OSR は絶対に出さない・GPU は全尺出す」という
-最悪の非対称になる（OSR は `formatNumber(undefined)` が `"NaN"` を書き、`seconds >= NaN` が常に偽になる）。
+Also, if an overlay's `start` or `duration` is not a finite number when the manifest is generated, fail closed. Putting a default (`?? 0` or `?? duration`) makes the worst asymmetry when the value is missing. OSR never shows it, and GPU shows it for the whole duration (OSR writes `"NaN"` from `formatNumber(undefined)`, and `seconds >= NaN` is always false).
 
-## 7. receipt
+## 7. Receipt
 
-`.akari/render.json` は `provenance.engine = "gpu"` と GPU receipt を持つ。GPU receipt は少なくとも
-次を記録する。
+`.akari/render.json` has `provenance.engine = "gpu"` and a GPU receipt. The GPU receipt records at least the following.
 
 ```json
 {
@@ -249,190 +141,91 @@ GPU と OSR の decode 比較は、engine-only 区間の per-frame MAD 1.0 以�
 }
 ```
 
-`audio.mode` は `copy`（明示ソースの音声を copy）、`silent-carrier`（明示ソースに音声が無く §5 の
-carrier を付与）、`none`（音声ソース未指定・映像のみ）のいずれかである。`source` は basename だけを
-記録し、絶対パスは残さない。`none` の `source` と `source_has_audio` はともに `null` とする。
+`audio.mode` is one of `copy` (copy the audio of an explicit source), `silent-carrier` (the explicit source has no audio, and the §5 carrier is attached), or `none` (no audio source was specified, picture only). `source` records only the basename. Do not keep an absolute path. For `none`, both `source` and `source_has_audio` are `null`.
 
-`gpu.eligibility[]` は overlay/caption/edit の id、4 分類、理由、検出条件を省略せず並べる。memory は
-OSR receipt と同じ warning/hard-stop 語彙を使う。`--engine osr` と `--engine gpu` は receipt 以外の
-最終成果物パス・命名と `.akari/render.json` の置き場を共有する。
+`gpu.eligibility[]` lists, without omission, the overlay, caption, or edit id, the 4-way class, the reason, and the detected conditions. memory uses the same warning and hard-stop vocabulary as the OSR receipt. `--engine osr` and `--engine gpu` share the final artifact path and naming, and the place of `.akari/render.json`, apart from the receipt.
 
-`gpu.platform` と `gpu.chromium` は Electron main process の実行環境、`gpu.renderer` は renderer process
-で `WEBGL_debug_renderer_info` から取得した vendor / renderer（取得不能なら `null`）を記録する。
-`gpu.encoder_support` は製品と同じ H.264 config の `hardwareAcceleration` だけを差し替えた
-`prefer-hardware` / `prefer-software` の対応可否を記録し、取得不能なら `null` とする。WebCodecs は
-実際に使われた encoder 実装を露出しないため、「hardware encoder が使われた」という主張は
-`encoder_support` と書き出し速度を組み合わせて裏取りする。
+`gpu.platform` and `gpu.chromium` are the Electron main process's runtime. `gpu.renderer` is the vendor and renderer taken from `WEBGL_debug_renderer_info` in the renderer process (`null` if it cannot be read). `gpu.encoder_support` records whether `prefer-hardware` and `prefer-software` are supported, with only `hardwareAcceleration` swapped on the same H.264 config as the product (`null` if it cannot be read). WebCodecs does not expose the encoder implementation that was actually used, so a claim that "the hardware encoder was used" is checked by combining `encoder_support` with the export speed.
 
-## 8. v0 / v2 の限界
+## 8. Limits of v0 and v2
 
-- 語矩形で表せない演出、色補間と幾何変形が同居する cue、縦書きの語単位字幕は glyph atlas 等の次段が必要。
-- 動的自由 HTML は OSR または事前ベイクが必要。
-- 全 platform で launcher tier 1 / 2 があれば `auto` で適格時に GPU、不適格時に OSR を使う。
-- 長尺の区間並列、複数 process 並列は非対応。
-- ~~インストール済みデスクトップアプリ経由（launcher tier 1）の GPU 書き出しは未配線~~ **2026-08-29 解消**: shell の `electron-entry.js` が `--akari-main packages/gpu-export/src/electron-main.mjs` を受け、`buildElectronArguments` が tier 1 にそれを渡す（osr 契約 §6）。`resolveGpuLauncher` の fail-closed（allowDesktop 既定 false）は v0.1.28 で解除。以下は v0.1.26〜v0.1.27 の記録: （v0.1.25 で判明）。shell の `--render` は OSR ランタイムしか読まず、`buildElectronArguments` は tier 2 にしか mainScript を渡さない。v0.1.26 から `resolveGpuLauncher` は tier 1 を候補から外す（fail-closed）: `auto` は OSR へ（provenance に `engine_fallback` と理由）、`--engine gpu` 明示は拒否。tier 1 の配線（shell contribution に GPU ランタイム選択を足す）は別票。
+- Staging that a word rectangle cannot express, a cue where color interpolation and a geometric deformation coexist, and a vertical per-word caption need a later stage such as a glyph atlas.
+- Dynamic free HTML needs OSR or a pre-bake.
+- On every platform, if launcher tier 1 or 2 is present, `auto` uses GPU when eligible and OSR when not.
+- Span parallelism and multi-process parallelism for a long duration are unsupported.
+- ~~GPU export through the installed desktop app (launcher tier 1) is unwired.~~ **Resolved 2026-08-29.** The shell's `electron-entry.js` accepts `--akari-main packages/gpu-export/src/electron-main.mjs`, and `buildElectronArguments` passes that to tier 1 (OSR contract §6). The fail-closed of `resolveGpuLauncher` (allowDesktop default false) was lifted in v0.1.28. The following is the record of v0.1.26 through v0.1.27 (found in v0.1.25). The shell's `--render` reads only the OSR runtime, and `buildElectronArguments` passes mainScript only to tier 2. From v0.1.26, `resolveGpuLauncher` drops tier 1 from the candidates (fail-closed). `auto` goes to OSR (provenance records `engine_fallback` and the reason). An explicit `--engine gpu` is refused. Wiring tier 1 (adding a GPU runtime choice to the shell contribution) is a separate ticket.
 
-## 8.1 プラットフォーム
+## 8.1 Platforms
 
 | platform | `--engine gpu` | `--engine auto` | launcher |
 |---|---|---|---|
-| macOS | 明示利用可 | 適格なら GPU、不適格なら OSR | tier 1 / 2（ただし tier 1 は現状未配線で fail-closed） |
-| Windows | 明示利用可 | 適格なら GPU、不適格なら OSR | tier 1 / 2（同上）。ハイブリッド GPU 機では子プロセス（tier 1 / 2 とも）が既定で iGPU に載り `prefer-hardware` が解像度に関係なく unsupported になる（2026-09-01 実測）ため、launcher が GPU 出口の launch で Windows のアプリ別 GPU 設定（HKCU `UserGpuPreferences`・`GpuPreference=2;`）を spawn 直前に一時上書きし終了後に復元する（`auto` は GPU 出口だけ・OSR 出口は `force` のみ・2026-09-02 改訂）（osr 契約 §6 / §11.7・`AKARI_EXPORT_GPU_PREFERENCE=auto|off|force` / `render-cut --gpu-preference`）。下の注記も参照 |
-| Linux | 明示利用可 | 適格なら GPU、不適格なら OSR | tier 1 / 2（同上） |
+| macOS | Explicit use is allowed | GPU when eligible, otherwise OSR | tier 1 or 2 (tier 1 is currently unwired and fail-closed) |
+| Windows | Explicit use is allowed | GPU when eligible, otherwise OSR | tier 1 or 2 (same as above). On a hybrid-GPU machine the child process (both tier 1 and tier 2) lands on the iGPU by default, and `prefer-hardware` is unsupported regardless of resolution (measured 2026-09-01). The launcher therefore temporarily overwrites the Windows per-app GPU setting (HKCU `UserGpuPreferences`, `GpuPreference=2;`) immediately before spawn on a GPU-exit launch, and restores it after exit (`auto` applies only to the GPU exit, and the OSR exit writes only under `force`, revised 2026-09-02) (OSR contract §6 and §11.7, `AKARI_EXPORT_GPU_PREFERENCE=auto\|off\|force`, `render-cut --gpu-preference`). See the note below. |
+| Linux | Explicit use is allowed | GPU when eligible, otherwise OSR | tier 1 or 2 (same as above) |
 
-**Windows の注記（2026-09-01 追記・2026-09-02 改訂）**: 一時上書きの判定表・順序・sidecar・記録は osr 契約 §11.7 裁定 1〜7 を正とする。`auto` の一時上書きは GPU 出口（`launchGpuExport` が `exit: "gpu"` を渡す launch）だけに適用し、OSR 出口は `force` のときだけ書く（裁定 1 改訂・根拠は §11.7）。receipt の `provenance.gpu_preference` に `exit` が載る。GPU 出口固有の追加は次の 3 点。
-(a) page-runtime の `WebCodecs H.264 config is unsupported` throw は `renderer` と `encoder_support` を error に添え（`gpuDiagnostics` プロパティ + メッセージ末尾の ` renderer=<UNMASKED_RENDERER>` と marker）、`electron-main.mjs` の failed run.json は `gpu.renderer` / `gpu.encoder_support` をそれで埋める（固定 `null` にしない）。
-(b) `exportWithGpu` の `attachGpuFailureContext` は run.json の `error` が同文を含むときだけ `error.message` を日本語 1 行（`describeHardwareEncoderFailure`・1 行・改行なし・末尾に `（原因: <元の英語エラー 1 行>）`）に置き換え、`error.originalMessage` に元を保持する。文面は run.json の `gpu.devices` を `summarizeGpuAdapters` で要約した `hybrid / active_is_high_performance` と、launcher の `gpuPreference.reason / applied` で分岐する: hybrid・iGPU・`user-preference-respected` → 省電力固定の説明 + `force` の案内 / hybrid・iGPU・`policy-off` → `auto` の案内 / hybrid・iGPU・`applied` → 書いたのに反映されない旨 + 設定アプリの案内 / dGPU なのに unsupported → ドライバ更新か `--engine osr` / hybrid でない → `--engine osr` / devices null → renderer 文字列だけで同旨 + `（GPU 情報は取得できませんでした）`。render-cut は `render-cut execution error: <この 1 行>` を stderr 最終行に出す。
-(c) hardware 不可のときの OSR 自動フォールバックは増やさない（§12.3 の fail-closed を維持）。
+**Windows note (appended 2026-09-01, revised 2026-09-02).** The judgment table, order, sidecar, and records of the temporary overwrite are owned by OSR contract §11.7, rulings 1 through 7. The `auto` temporary overwrite applies only to a GPU-exit launch (`launchGpuExport` passes `exit: "gpu"`). The OSR exit writes only under `force` (ruling 1 revised, basis in §11.7). The receipt `provenance.gpu_preference` carries `exit`. The GPU exit adds the following three points.
 
-npm Electron の tier 2 は `node_modules/electron/path.txt` を必須とする。値は win32 が
-`electron.exe`、darwin が `Electron.app/Contents/MacOS/Electron`、linux が `electron` である。
-インストール済みアプリの tier 1 を配布する場合は shell の `extraResources` に
-`packages/gpu-export` が同梱されていることを前提とする。ただし現行 tier 1 は
-`GPU_DESKTOP_TIER_UNWIRED_REASON` のとおり候補から外し、誤って OSR を GPU receipt として記録しない。
+(a) A page-runtime throw of `WebCodecs H.264 config is unsupported` attaches `renderer` and `encoder_support` to the error (a `gpuDiagnostics` property, plus ` renderer=<UNMASKED_RENDERER>` and a marker at the end of the message). The failed run.json of `electron-main.mjs` fills `gpu.renderer` and `gpu.encoder_support` from that. Do not leave the fixed `null`.
 
-## 9. v1 — HTML-in-Canvas DOM 層
+(b) `attachGpuFailureContext` of `exportWithGpu` replaces `error.message` with the one-line hardware-encoder failure text from `describeHardwareEncoderFailure` only when run.json `error` contains that same sentence. The replacement is one line, with no newline, and it ends by quoting the original one-line English error as the cause. The original is kept on `error.originalMessage`. The wording branches on `hybrid` and `active_is_high_performance`, summarized by `summarizeGpuAdapters` from run.json `gpu.devices`, and on the launcher's `gpuPreference.reason` and `applied`. Hybrid, iGPU, and `user-preference-respected` explains the power-saving lock and how to use `force`. Hybrid, iGPU, and `policy-off` explains how to use `auto`. Hybrid, iGPU, and `applied` says the value was written but did not take effect, and points at the Settings app. A dGPU that is still unsupported says to update the driver or use `--engine osr`. Not hybrid says `--engine osr`. devices null says the same point from the renderer string alone, and says the GPU info could not be obtained. render-cut prints `render-cut execution error: <this one line>` as the last stderr line. This is the one failure line that stays the localized sentence produced by `describeHardwareEncoderFailure`.
 
-v1 は、CSS animation、transition、`@keyframes`、Web Animations、`@property` で時間変化する自由 HTML を
-`dom` 分類として適格化する。書き出し時だけ動的に生成した `canvas[layoutsubtree]` の子へ DOM を mount し、
-エンジン時計で元の animation を pause・seek してから `drawElementImage` で透過 2D canvas へ転写する。
-その canvas は `SpriteCompositor.updateSprite` で直接 texture 化する。Three.js canvas は従来の別 texture の
-ままとし、DOM host へ入れない。
+(c) Do not add an automatic OSR fallback when hardware is unavailable (keep the §12.3 fail-closed).
 
-GPU 出口だけに `--enable-features=CanvasDrawElement`、`--disable-gpu-vsync`、
-`--disable-frame-rate-limit` を付け、`--force-device-scale-factor=1` を維持する。DOM ランは `overlays[]` の
-宣言順で連続する項目をまとめ、静的 HTML、3D、DOM ランを元の index 順に合成したあと、字幕を最後に載せる。
-すべて LUT の外である。
+npm Electron tier 2 requires `node_modules/electron/path.txt`. The value is `electron.exe` on win32, `Electron.app/Contents/MacOS/Electron` on darwin, and `electron` on linux. Distributing the installed-app tier 1 assumes `packages/gpu-export` is bundled in the shell's `extraResources`. The current tier 1 is still dropped from the candidates, as `GPU_DESKTOP_TIER_UNWIRED_REASON` says, so an OSR run is not recorded by mistake as a GPU receipt.
 
-CSS 3D は次の 3 群に分けて判定する。
+## 9. v1. HTML-in-Canvas DOM layer
 
-- 幾何（`perspective` / `perspective-origin` / `rotateX/Y/3d` / `matrix3d` / 非ゼロの
-  `translateZ/3d`）は `dom` 適格とする。2026-09-03 の 8 fixture × 5 時刻の実測では最大外接矩形内 MAD
-  0.5336（2D ノイズ床 0.1929、予算 1.0）だった。次の例外を維持する。
-  **例外（2026-08-31・issue #34）**: Z 成分がリテラル 0 の `translateZ(0)` / `translate3d(x, y, 0)` は
-  2D の `translate` と描画結果が同一（実測: 静的スプライトで全コマ YMAX=0）なので 3D として検出しない。
-  Z が 0 以外、引数の個数が違う、Z が `var()` / `calc()` 等でリテラルとして読めない場合は 3D 幾何として扱う。
-  引数の切り出しは括弧の入れ子を数えるので、`translate3d(var(--x), calc(1px + 2px), 0)` のように X / Y が
-  CSS 変数・calc 駆動でも Z のリテラル 0 を読める（オーバーレイ規約は調整値を CSS 変数に出すため自然に現れる形）。
-- `backface-visibility: hidden` を伴う CSS 3D は `css-3d-backface-hidden` として fail-closed を維持する。
-  2026-09-03 の 8 fixture × 5 時刻の実測では外接矩形内 MAD 13.4318、GPU にだけ現れる画素が最大
-  207,679 px であり、裏面除去は転写されなかった。
-- `transform-style: preserve-3d` は `dom` 適格とする。ただし GPU 経路の遮蔽順は DOM 順になる。
-  子孫の描画域が画面上で交差し、手前の要素が DOM 上で先に描かれる矛盾対を検出した場合は警告するが、
-  fail-closed にはしない。
+v1 makes free HTML whose time changes through CSS animation, transition, `@keyframes`, Web Animations, or `@property` eligible as class `dom`. Only at export, mount the DOM as a child of a dynamically created `canvas[layoutsubtree]`, pause and seek the original animation on the engine clock, then transfer it to a transparent 2D canvas with `drawElementImage`. That canvas becomes a texture directly through `SpriteCompositor.updateSprite`. A Three.js canvas stays a separate texture, as before, and is not placed in the DOM host.
 
-vgpu の理由語彙は `vgpu-scene-canvas-direct`、`vgpu-stateful-unsupported`、`vgpu-invalid-declaration`、`vgpu-condition:<条件をカンマ連結>`（[vgpu v0 契約](./contract-2026-09-06-vgpu-layer-v0.md)）。
-`vgpu-scene-stateful-direct` は妥当な `mode: "stateful"` 宣言を表し、状態を持つ WebGPU 効果を固定ステップ replay で canvas 直結する。
+Only the GPU exit adds `--enable-features=CanvasDrawElement`, `--disable-gpu-vsync`, and `--disable-frame-rate-limit`, and it keeps `--force-device-scale-factor=1`. A DOM run groups consecutive items of `overlays[]` in declaration order. Composite static HTML, 3D, and DOM runs in the original index order, then place captions last. All of them are outside the LUT.
 
-次の条件は fail-closed のまま `degraded` とし、receipt に overlay id、理由、検出条件を全件残す。
+CSS 3D is judged in the following three groups.
 
-- `iframe`、`object`、`embed` の埋め込み context。
-- `requestAnimationFrame`、`setTimeout`、`setInterval`、`Date.now`、`performance.now` で自走する時計。
-- `video`、`audio`、canvas/宣言型 3D 以外の runtime、JSON 以外の script。
-- 絶対 URL と外部 font/image/background resource。`background(-image)` の `url(` 走査は宣言の区切り
-  （`;` `}`）に加えて引用符とタグ境界（`"` `'` `<` `>`）で止め、`url(#id)` の同一文書内フラグメント参照は
-  外部扱いしない（2026-08-31・issue #33。それまでは末尾に `;` の無いインライン style から後続 SVG の
-  `fill="url(#id)"` まで走査が届いて誤検出していた）。
-- `drawElementImage` が利用できない実行環境、または device pixel ratio が 1 でない環境。
-- 宣言型 3D が composite 経路の入口条件（`three-or-canvas-runtime` / `animation-timing` /
-  `css-3d-transform` / `advanced-css`）を満たさない場合は `three-sampled-condition:<条件名を , 連結>` とし、
-  curve 解析の失敗理由を流用しない。CSS 3D 幾何は composite 経路で断片全体を転写するため適格とする。
-- root〜Three canvas の祖先チェーン上の `filter` / `clip-path` / `mask(-image)` / `backdrop-filter` /
-  `mix-blend-mode` に対する `three-sampled-chain-css:<プロパティ>` は、canvas だけを合成する方式 A（sampled）専用の
-  ガードとして走査側に保持する。方式 B（composite）はチェーン内外とも断片全体を転写するため `advanced-css` を通す。
-- composite 候補に `@property` がある場合は `three-composite-property` とする。overlay sheet の WAAPI clone と
-  DOM 層の素の CSS animation でカスタムプロパティ補間が割れる可能性があるため、実測までは fail-closed とする。
-- `transform-style: preserve-3d` を宣言する要素の要素の子に、Three canvas への祖先チェーン上の要素と
-  チェーン外の Z を持つ変形を宣言した要素が同居する場合は `three-composite-preserve-3d-siblings` とする。
-  静的に判定できない場合も同じ理由で degraded へ倒す（2026-09-04 実測: 外接矩形 MAD 5.0082。
-  OSR は z 深度で、GPU は DOM 順で重ねるため）。
+- Geometry (`perspective`, `perspective-origin`, `rotateX`, `rotateY`, `rotate3d`, `matrix3d`, and a non-zero `translateZ` or `translate3d`) is `dom` eligible. A measurement on 2026-09-03 of 8 fixtures times 5 times had a maximum MAD inside the bounding box of 0.5336 (the 2D noise floor is 0.1929, the budget is 1.0). Keep the following exception. **Exception (2026-08-31, issue #34).** `translateZ(0)` and `translate3d(x, y, 0)` whose Z component is the literal 0 are not detected as 3D, because the draw matches a 2D `translate` (measured: YMAX is 0 on every frame of a static sprite). If Z is not 0, if the argument count differs, or if Z cannot be read as a literal because it is `var()` or `calc()` or similar, treat it as 3D geometry. Argument extraction counts nested parentheses, so a literal Z of 0 can still be read when X or Y is driven by a CSS variable or calc, as in `translate3d(var(--x), calc(1px + 2px), 0)` (overlay rules naturally emit adjustment values as CSS variables).
+- CSS 3D that comes with `backface-visibility: hidden` stays fail-closed as `css-3d-backface-hidden`. A measurement on 2026-09-03 of 8 fixtures times 5 times had MAD 13.4318 inside the bounding box, and at most 207,679 px that appear only on the GPU. Back-face culling was not transferred.
+- `transform-style: preserve-3d` is `dom` eligible. The occlusion order on the GPU path becomes DOM order. If a contradictory pair is detected, where descendant draw regions cross on screen and the front element is drawn first in the DOM, warn. Do not fail closed.
 
-settle は mount 時に一度だけ決める。`canvas.requestPaint` がある Chromium では rAF 2 回の後に
-`requestPaint()` と `paint` event（上限 250 ms）を待つ。API がない Chromium では computed style、
-bounding rect、host height を同期読みして layout を確定し、直ちに転写する。採用 policy、API probe、
-DOM 層の固定・待機・転写・upload の p50/p95 は receipt の `gpu.domLayer` に記録する。
+The vgpu reason vocabulary is `vgpu-scene-canvas-direct`, `vgpu-stateful-unsupported`, `vgpu-invalid-declaration`, and `vgpu-condition:<conditions joined by commas>` ([vgpu v0 contract](./contract-2026-09-06-vgpu-layer-v0.md)). `vgpu-scene-stateful-direct` means a valid `mode: "stateful"` declaration. A stateful WebGPU effect goes direct to the canvas by fixed-step replay.
 
-`--verify-frames` では各 DOM ラン左上の 8×8 sentinel を frame number から決定論的に着色し、転写後
-texture の左上 4×4 が期待 RGB の ±8 に一致するかを毎コマ検査する。CSS `mod()` の自己検査に失敗した
-環境では JS channel 指定へ切り替え、その mode も記録する。pixel read は
-`src/verify-readback.js` に隔離した検証経路だけに許可し、製品経路の読み戻しゼロ契約は変えない。
+The following conditions stay fail-closed as `degraded`, and the receipt keeps every overlay id, reason, and detected condition.
 
-DOM 層の OSR decode 比較は、animation 開始時刻を含む代表 5 時刻で、(1) overlay 外接矩形内 MAD 1.0 以下、
-または (2) 構造一致（全画面 MAD 0.2 以下、かつ片側にだけ現れる画素の合計が外接矩形面積の 0.5% 以下）の
-いずれかを要求する。0.5% はアンチエイリアスの差が面積でなく周長に比例して増えることに基づく
-（実測: 二段 preserve-3d の構造一致例は片側 193〜273 px = 外接矩形の 0.136〜0.161% で、
-外接矩形の周長の約 17%。面が丸ごと出現する不合格例は片側 207,679 px で 3 桁離れている）。
-外接矩形の面積が 1,000 px 未満へ退化した時刻（例: 全面が真横を向いて消える瞬間）は (1) を使わず
-全画面 MAD 0.2 以下だけで判定する。`gpu.domLayer.preserve3dOrderConflicts` が非空の overlay は
-この比較の対象外とし、**警告が出ていること自体**を合格条件とする（下記の既知の限界を承知で通すため）。
-sentinel は全要求 frame 一致を必須とする。既知の限界は karaoke の word texture、
-自走時計、3D scene の DOM 入場 animation、OSR/legacy に残る `@property` animation の時刻不整合に加え、
-`preserve-3d` の子孫が交差すると遮蔽順が DOM 順になることである。検出器は Z 順との矛盾を警告し、receipt の
-`gpu.domLayer.preserve3dOrderConflicts` に残す。`backface-visibility: hidden` は転写されないため degraded とする。
+- An embedded context of `iframe`, `object`, or `embed`.
+- A clock that runs itself with `requestAnimationFrame`, `setTimeout`, `setInterval`, `Date.now`, or `performance.now`.
+- `video`, `audio`, a runtime other than canvas or declarative 3D, and a script other than JSON.
+- An absolute URL and an external font, image, or background resource. A scan of `url(` in `background` or `background-image` stops at a declaration separator (`;` and `}`) and also at a quote or a tag boundary (`"`, `'`, `<`, `>`). A same-document fragment reference `url(#id)` is not treated as external (2026-08-31, issue #33. Until then a scan from an inline style with no trailing `;` reached a later SVG `fill="url(#id)"` and false-detected it).
+- A runtime where `drawElementImage` is unavailable, or where the device pixel ratio is not 1.
+- If a declarative 3D does not meet an entry condition of the composite path (`three-or-canvas-runtime`, `animation-timing`, `css-3d-transform`, or `advanced-css`), the reason is `three-sampled-condition:<condition names joined by commas>`. Do not reuse a curve-parse failure reason. CSS 3D geometry is eligible, because the composite path transfers the whole fragment.
+- `three-sampled-chain-css:<property>`, for `filter`, `clip-path`, `mask` or `mask-image`, `backdrop-filter`, or `mix-blend-mode` on the ancestor chain from the root to the Three canvas, is kept on the scanner as a guard only for method A (sampled), which composites the canvas alone. Method B (composite) transfers the whole fragment, inside and outside the chain, so it lets `advanced-css` through.
+- If a composite candidate has `@property`, the reason is `three-composite-property`. Custom-property interpolation may split between the overlay sheet's WAAPI clone and the DOM layer's raw CSS animation, so stay fail-closed until it is measured.
+- If an element that declares `transform-style: preserve-3d` has, among its children, both an element on the ancestor chain to the Three canvas and an element outside the chain that declares a transform with Z, the reason is `three-composite-preserve-3d-siblings`. If it cannot be judged statically, fall to degraded for the same reason (measured 2026-09-04. Bounding-box MAD 5.0082. OSR stacks by z depth, and GPU stacks by DOM order).
 
-決定論には長尺時の既知の限界がある。短い書き出し（実測 450 / 678 / 900 コマ）は 2 走の全コマ SHA と
-MP4 SHA が一致した。一方、大きな文字を持つ DOM overlay を多数含む長い書き出し（実測 5400 コマ）では、
-1 つの overlay 区間に閉じた 180 コマ前後で文字の縁のアンチエイリアスが走ごとに変わり、全コマ SHA 一致が
-確率的に崩れた（MAD 0.0001〜0.0003、差分画素 11〜41 個）。sentinel は全走一致しており 1 コマ遅れではない。
-ラスタライズ関連の起動フラグでは解消しなかった。
+settle is decided once, at mount. On a Chromium that has `canvas.requestPaint`, after 2 rAF frames, wait for `requestPaint()` and a `paint` event (cap 250 ms). On a Chromium without the API, synchronously read computed style, the bounding rect, and the host height to fix the layout, then transfer immediately. The adopted policy, the API probe, and p50 and p95 of the DOM layer's freeze, wait, transfer, and upload are recorded on the receipt `gpu.domLayer`.
 
-**検収裁定（2026-08-29・司令塔）**: DOM 層を含む書き出しの HW 決定論 gate は「2 走の全コマ SHA 一致」ではなく
-**「全コマの per-frame MAD ≤ 0.001 かつ sentinel 全一致」を一致とみなす**。上記の文字縁アンチエイリアス差（最大 0.0003）は
-この範囲内であり不可視・1 コマ遅れでもないため受け入れる。DOM 層を含まない書き出し（エンジン層・静的スプライト・
-語単位字幕のみ）は従来どおり SHA 一致を要求する。
+Under `--verify-frames`, color the 8 by 8 sentinel at the top left of each DOM run deterministically from the frame number, and check every frame that the top-left 4 by 4 of the texture after transfer matches the expected RGB within plus or minus 8. An environment whose CSS `mod()` self-check fails switches to a JS channel specification, and that mode is recorded too. A pixel read is allowed only on the verification path isolated in `src/verify-readback.js`. The product path's zero-readback contract does not change.
 
-（2026-08-28 v1 時点の記述）字幕 cue はページ起動時に 1 枚ずつ SVG へ焼いており、30 cue の焼き込みが
-900 コマの書き出しに約 47 秒（約 52 ms/コマ相当）を上乗せした。字幕を含む短い書き出しでは GPU 出口が
-OSR より遅く、同じ題材から字幕を外した実測は GPU 19.2 ms/コマ、OSR 40.9 ms/コマだった。
+The DOM layer's OSR decode comparison, at 5 representative times including the animation start, requires either (1) MAD at most 1.0 inside the overlay bounding box, or (2) structural agreement (full-frame MAD at most 0.2, and the total of pixels that appear on only one side at most 0.5 percent of the bounding-box area). 0.5 percent is based on antialias difference growing with the perimeter, not the area (measured. A structural-agreement example of two-level preserve-3d is 193 to 273 px on one side, which is 0.136 to 0.161 percent of the bounding box, about 17 percent of the bounding-box perimeter. A failing example where a whole face appears is 207,679 px on one side, three orders away). A time whose bounding-box area has collapsed below 1,000 px (for example the instant a full face turns edge-on and disappears) does not use (1). Judge it only by full-frame MAD at most 0.2. An overlay whose `gpu.domLayer.preserve3dOrderConflicts` is non-empty is outside this comparison, and **the fact that a warning was emitted** is the pass condition (it is let through with the known limit below in mind). The sentinel must match on every requested frame. Known limits are the karaoke word texture, a self-running clock, a DOM entrance animation of a 3D scene, a time mismatch of `@property` animation that remains on OSR and legacy, and the occlusion order becoming DOM order when `preserve-3d` descendants cross. The detector warns on a contradiction with Z order and leaves it on the receipt `gpu.domLayer.preserve3dOrderConflicts`. `backface-visibility: hidden` is not transferred, so it is degraded.
 
-2026-08-29 の #120f で、土台以外のスプライトを種別ごとのインスタンス描画へまとめた。karaoke の
-`drawArrays` は字幕の本数によらず 1 コマ 2 回で一定となり、3 cue 同時と字幕なしの追加 GPU 時間は
-+23.4 ms/コマから +1.65 ms/コマへ縮小した。毎コマの字幕描画費用という限界は解消し、実素材
-`akari-video-pv`（5,999 コマ）では GPU / OSR 7.2〜8.2 倍へ到達した。
+Determinism has a known limit on a long duration. A short export (measured 450, 678, and 900 frames) matched all-frame SHA and MP4 SHA across 2 runs. A long export that includes many DOM overlays with large type (measured 5,400 frames) changed the antialias of a glyph edge per run, inside about 180 frames closed in one overlay span, and the all-frame SHA match broke probabilistically (MAD 0.0001 to 0.0003, 11 to 41 differing pixels). The sentinel matched on every run, so it is not one frame late. Rasterizer-related launch flags did not remove it.
 
-（2026-08-29 #120f 時点の記述）残る字幕差は毎コマの合成費用ではなく、cue 採寸と SVG ラスタの起動費用である。実素材 PV の字幕ありは
-150.7 秒（25.1 ms/コマ）、字幕なし対照は 88.0 秒（14.7 ms/コマ）で 1.71 倍だった。30 cue の
-`akari-project/dynamic` では字幕ラスタが約 47 秒から 9.95 秒へ短縮したが、30 秒級の短い題材では
-起動費用の比率が大きく、GPU / OSR は 1.07〜1.14 倍にとどまる。
+**Acceptance ruling (2026-08-29, control tower).** The hardware determinism gate for an export that includes a DOM layer is not "all-frame SHA matches across 2 runs". **Treat "per-frame MAD at most 0.001 on every frame, and the sentinel matches on every frame" as agreement.** The glyph-edge antialias difference above (at most 0.0003) is inside this range, it is invisible, and it is not one frame late, so it is accepted. An export with no DOM layer (engine layer, static sprites, and per-word captions only) still requires a SHA match.
 
-2026-08-30 の #120h では、実素材 `akari-video-pv`（5,999 コマ・44 cue・88 band / 6 batch）の
-receipt `gpu.captionStartup` をラッパーが 5 走実測した。#120f 時点で約 63 秒だった字幕の起動費用
-（SVG ラスタ 20.5〜21.3 秒 + cue 採寸 88 variant）は、`captionStartup.totalMs` 2.75〜5.01 秒と
-`captionRasterTotalMs` 5.90〜7.34 秒、合計 **8.7〜12.3 秒**になった。代表する 1 走の内訳は、
-フォントの base64 符号化 0.66 秒（符号化後 13.6 MB・走に 1 回だけ）、cue 採寸 1.54 秒
-（88 stable call / 176 pass / 264 variant・うちフォント待ち 0.75 秒・レイアウト 0.073 秒）、
-SVG ラスタ 5.90 秒（SVG 組み立て 0.046 秒、data URL 割り当て 0.52 秒、decode 2.80 秒、
-中間 sheet への描画 1.72 秒、band の blit 0.11 秒、テクスチャ登録 0.004 秒）である。
+(Text as of v1 on 2026-08-28.) Caption cues were baked one by one into SVG at page launch, and baking 30 cues added about 47 seconds to a 900-frame export (about 52 ms per frame). On a short export that includes captions, the GPU exit was slower than OSR. A measurement of the same subject with captions removed was GPU 19.2 ms per frame and OSR 40.9 ms per frame.
 
-frame loop 中の `stages.captionRasterBatch` は **0 回**で、6 バッチすべてが書き出し開始前に焼き終わる。
-frame loop の `stages.captions` は p50 0 ms / p95 0.1 ms である。採寸の使い回しは cue の内容
-（出力寸法・CSS 変数・cue の HTML・unit index・CSS 変種列）が完全に一致したときだけ効く。PV の
-44 cue は本文がすべて異なるため `reusedStableCalls` は 0 で、88 stable call は 88 distinct key の
-ままである。同じ本文を共有する 3 cue の fixture では、6 stable call のうち 4 が使い回され、
-distinct key は 2 へ落ちる。採寸が 32 回で収束しない unit は、その unit だけ sprite へ降格し、
-receipt の `gpu.captions[].mode = "sprite"` と warning に出して書き出しは完走する（fail-closed にしない）。
+In #120f on 2026-08-29, sprites other than the base were gathered into instanced drawing per kind. karaoke `drawArrays` became a constant 2 calls per frame, independent of the caption count, and the added GPU time of 3 cues at once versus no captions shrank from +23.4 ms per frame to +1.65 ms per frame. The limit of a per-frame caption draw cost is resolved. On the real footage `akari-video-pv` (5,999 frames) it reached 7.2 to 8.2 times GPU over OSR.
 
-速度の絶対値は 2026-08-30 の測定では取れていない。1 分 load < 20 の静かな窓を 40 分 × 3 回待っても
-来ず、観測した最小 load は 52 だった。PV は load 77〜421 の下で 250.6〜687.4 秒、同じ高負荷下の
-字幕なし対照は 220.4〜785.4 秒で、字幕ありとの差は走ごとの 3 倍以上の load 変動に埋もれ、対照より
-速い走もあった。したがって、静かな窓での「PV ≤ 110 秒」「dynamic ≥ 2×（OSR 比）」は未検証である。
-参考値として、高負荷下の `akari-project/dynamic` は GPU 71.1〜80.7 秒 / OSR 93.6〜97.8 秒
-（1.2〜1.3 倍）で、#120f 時点の 1.07〜1.14 倍からは改善している。RSS の上限は 531〜914 MB
-（1 GB 以内）、`--trap-readback` の読み戻しは 0 だった。
+(Text as of #120f on 2026-08-29.) The remaining caption difference is not the per-frame composite cost. It is the startup cost of cue measurement and SVG raster. The real-footage PV with captions was 150.7 seconds (25.1 ms per frame). The no-caption control was 88.0 seconds (14.7 ms per frame), 1.71 times. On `akari-project/dynamic` with 30 cues, the caption raster shortened from about 47 seconds to 9.95 seconds, but on a subject of about 30 seconds the startup-cost ratio is large, and GPU over OSR stays at 1.07 to 1.14 times.
 
-## 10. v3 — 宣言型 3D の登場表現
+In #120h on 2026-08-30, a wrapper measured receipt `gpu.captionStartup` of the real footage `akari-video-pv` (5,999 frames, 44 cues, 88 bands, 6 batches) across 5 runs. The caption startup cost that was about 63 seconds at #120f (SVG raster 20.5 to 21.3 seconds, plus cue measurement of 88 variants) became `captionStartup.totalMs` 2.75 to 5.01 seconds and `captionRasterTotalMs` 5.90 to 7.34 seconds, **8.7 to 12.3 seconds** in total. The breakdown of one representative run is font base64 encoding 0.66 seconds (13.6 MB after encoding, once per run), cue measurement 1.54 seconds (88 stable calls, 176 passes, 264 variants, of which 0.75 seconds is waiting for the font and 0.073 seconds is layout), and SVG raster 5.90 seconds (SVG assembly 0.046 seconds, data URL allocation 0.52 seconds, decode 2.80 seconds, draw to the intermediate sheet 1.72 seconds, band blit 0.11 seconds, texture registration 0.004 seconds).
 
-v3 は、宣言型 Three.js scene の HTML 部分にある CSS animation / transition / `@property` を GPU 経路で
-扱う。Three.js 自体は従来どおり engine clock の local seconds を
-`threeRuntime.render(container, t)` へ直接渡し、scene 内部の animation、動画 texture、ready 判定は
-変更しない。登場表現を従来の文法へ解析できる場合は理由 `three-scene-entrance-curve`、解析できない場合は
-計算済みスタイルを実測する理由 `three-scene-entrance-sampled` とする。解析不能だけを理由に fail-closed
-にはしない。CSS animation のない宣言型 3D は他の条件を持たない場合は理由 `three-scene-canvas-direct` のままとし、`advanced-css` や CSS 3D 幾何を伴う場合は composite 経路（`three-scene-sampled-composite`）で断片全体を転写する。
+`stages.captionRasterBatch` during the frame loop is **0 times**. All 6 batches finish baking before the export starts. The frame loop's `stages.captions` is p50 0 ms and p95 0.1 ms. Reuse of a measurement applies only when the cue contents match completely (output size, CSS variables, the cue HTML, the unit index, and the CSS variant sequence). The PV's 44 cues all have different body text, so `reusedStableCalls` is 0, and the 88 stable calls stay 88 distinct keys. On a 3-cue fixture that shares the same body text, 4 of 6 stable calls are reused, and the distinct keys fall to 2. A unit whose measurement does not converge in 32 tries is demoted to a sprite for that unit only. The receipt shows `gpu.captions[].mode = "sprite"` and a warning, and the export runs to completion (it does not fail closed).
 
-curve モードは従来どおり、対になった `[data-akari-active] .root, [data-no-timeline] .root` selector、
-1 本・2 endpoint の keyframe、既知の timing、非負 delay、iteration 1、normal direction、`both` または
-`forwards` fill、opacity と 2D translate / scale だけを解析する。overlay の `vars` と
-`transform.x / y / scale` を解決し、manifest の `entrance` に絶対値を置く。
+An absolute speed was not taken in the 2026-08-30 measurement. A quiet window of 1-minute load under 20 did not arrive across 3 waits of 40 minutes, and the minimum load observed was 52. Under load 77 to 421 the PV was 250.6 to 687.4 seconds. The no-caption control under the same high load was 220.4 to 785.4 seconds. The difference against the captioned run was buried in a load swing of more than 3 times per run, and some runs were faster than the control. Therefore "PV at most 110 seconds" and "dynamic at least 2 times (versus OSR)" in a quiet window are unverified. As a reference, `akari-project/dynamic` under high load was GPU 71.1 to 80.7 seconds and OSR 93.6 to 97.8 seconds (1.2 to 1.3 times), which improved from the 1.07 to 1.14 times at #120f. The RSS cap was 531 to 914 MB (within 1 GB). Readback under `--trap-readback` was 0.
+
+## 10. v3. Entrance of a declarative 3D
+
+v3 handles CSS animation, transition, and `@property` in the HTML part of a declarative Three.js scene, on the GPU path. Three.js itself still passes the engine clock's local seconds straight to `threeRuntime.render(container, t)`. Animation inside the scene, the video texture, and the ready check do not change. If the entrance can be parsed into the old grammar, the reason is `three-scene-entrance-curve`. If it cannot, the reason is `three-scene-entrance-sampled`, which measures the computed style. Do not fail closed only because it cannot be parsed. A declarative 3D with no CSS animation stays reason `three-scene-canvas-direct` when it has no other condition. When it comes with `advanced-css` or CSS 3D geometry, the composite path (`three-scene-sampled-composite`) transfers the whole fragment.
+
+curve mode, as before, parses a paired selector `[data-akari-active] .root, [data-no-timeline] .root`, one keyframe with 2 endpoints, a known timing, a non-negative delay, iteration 1, normal direction, `both` or `forwards` fill, and only opacity and a 2D translate or scale. Resolve the overlay's `vars` and `transform.x`, `y`, and `scale`, and put absolute values on the manifest `entrance`.
 
 ```json
 {
@@ -445,8 +238,7 @@ curve モードは従来どおり、対になった `[data-akari-active] .root, 
 }
 ```
 
-毎コマの意味論は次式を正本とする。delay 前は from、終了後は to とし、opacity / tx / ty / sx / sy の
-すべてへ同じ eased progress を線形補間で適用する。
+The per-frame semantics are owned by the following. Before the delay, use from. After the end, use to. Apply the same eased progress, by linear interpolation, to all of opacity, tx, ty, sx, and sy.
 
 ```text
 local    = seconds - overlay.start
@@ -455,150 +247,76 @@ eased    = timing == linear ? progress : cubicBezierAt(progress, x1, y1, x2, y2)
 value    = from + (to - from) * eased
 ```
 
-`cubicBezierAt` は frame-engine の既存 export を使用する。実素材 3 種を Chrome headless の
-`getComputedStyle` と delay 前・登場中 3 点・終了後の 5 時刻で突き合わせた実測差は、translate 最大
-0.00043 px、scale 最大 0.000001、opacity 0 だった。検収閾値は translate 0.5 px 以下、opacity 0.005
-以下、3D 登場区間の GPU / OSR 外接矩形内 MAD 1.0 以下とする。
+`cubicBezierAt` uses frame-engine's existing export. Three real subjects were matched against Chrome headless `getComputedStyle` at 5 times (before the delay, 3 points during the entrance, and after the end). The measured difference was at most 0.00043 px of translate, at most 0.000001 of scale, and 0 of opacity. The acceptance thresholds are translate at most 0.5 px, opacity at most 0.005, and MAD at most 1.0 inside the GPU and OSR bounding box on the 3D entrance span.
 
-sampled モードは overlay sheet が生成した paused WAAPI clone を使い、毎コマ、OSR と同じ合成時刻
-`seconds * 1000` を `currentTime` に設定する。`data-akari-active` を更新した後、overlay container から
-Three canvas までの各要素について計算済み opacity と transform を読み、transform-origin を含む 2D 行列を
-上から順に累積する。opacity は積を clamp する。サンプリングは engine clock の時刻だけの関数であり、
-壁時計や rAF の進行へ依存しない。
+sampled mode uses the paused WAAPI clone that the overlay sheet generated. Every frame, set `currentTime` to the same composite time as OSR, `seconds * 1000`. After updating `data-akari-active`, read the computed opacity and transform of each element from the overlay container to the Three canvas, and accumulate the 2D matrix, including transform-origin, from the top down. Opacity clamps the product. Sampling is a function of the engine-clock time only. It does not depend on the wall clock or on rAF advancing.
 
-`@property` を使う断片も `degraded` にはせず sampled として扱う。ただし書き出し用 sheet の WAAPI clone
-変換は登録済みカスタムプロパティの keyframe を引き継がないため、そのプロパティ自体は GPU / OSR の
-どちらでも補間されず初期値のまま描かれる。同じ keyframe に直接宣言した opacity / transform は補間され、
-両エンジンの結果も一致するためパリティは保たれる。カスタムプロパティ補間は sheet 側の別課題である。
+A fragment that uses `@property` is not `degraded`. It is treated as sampled. The export sheet's WAAPI clone conversion does not carry over a keyframe of a registered custom property, so that property itself is not interpolated on either GPU or OSR, and it is drawn at the initial value. opacity and transform declared directly on the same keyframe are interpolated, and the two engines agree, so parity holds. Custom-property interpolation is a separate sheet-side issue.
 
-累積行列が軸平行な translate / scale だけなら 3D canvas を従来の texture のまま使い、中心基準の
-sprite draw state へ変換する。回転またはせん断を含む一般 2D affine は、出力寸法の中間 canvas へ
-`setTransform(a,b,c,d,e,f)` で描いてから恒等 draw state で合成する。perspective、実 Z 成分、その他の
-3D 行列は方式 A では扱わず、方式 B の断片全体転写へ回す。
+If the accumulated matrix is only an axis-aligned translate or scale, keep the 3D canvas as the old texture and convert it to a center-based sprite draw state. A general 2D affine that includes rotation or shear is drawn to an intermediate canvas of the output size with `setTransform(a,b,c,d,e,f)`, then composited with the identity draw state. perspective, a real Z component, and any other 3D matrix are not handled by method A. They go to method B's whole-fragment transfer.
 
-sampled 方式 A の入口条件は `three-or-canvas-runtime` / `animation-timing` の 2 つで、対象は断片 root から
-Three canvas までの祖先チェーン（両端を含む）である。このチェーン上の任意の要素にある
-animation / transition は累積行列へ含める。Three canvas の CSS ボックスが出力全面と一致しない場合は、軸平行な
-行列でも中間 canvas 経路を使い、元の位置と寸法を保つ。
+The entry conditions of sampled method A are the two `three-or-canvas-runtime` and `animation-timing`. The target is the ancestor chain from the fragment root to the Three canvas, including both ends. An animation or transition on any element of this chain is included in the accumulated matrix. If the Three canvas CSS box does not match the full output, use the intermediate-canvas path even for an axis-aligned matrix, and keep the original position and size.
 
-方式 B（composite）は、方式 A で祖先チェーン内だけと証明できない断片、CSS 3D 幾何、または
-`advanced-css` を持つ断片を理由 `three-scene-sampled-composite` で処理する。Three.js は overlay sheet で従来どおり
-描画し、その Three canvas を DOM 層コピー側の同じ canvas 要素へ毎コマ `drawImage` で中継する。その後、paused WAAPI を
-合成時刻へ seek して断片 root 全体を `drawElementImage` する。DOM 層コピー側の `[data-akari-3d-fallback]` は
-`hidden` と `display:none !important` で隠す。断片内は canvas を含む DOM 順と z-index がそのまま効き、断片間は従来どおり
-track z、宣言 index の順で合成する。これにより祖先チェーン上の 3D 行列と、チェーン内外の `advanced-css` も転写される。
+Method B (composite) handles, with reason `three-scene-sampled-composite`, a fragment that method A cannot prove is ancestor-chain-only, a fragment with CSS 3D geometry, or a fragment with `advanced-css`. Three.js draws on the overlay sheet as before, and that Three canvas is relayed every frame with `drawImage` onto the same canvas element on the DOM-layer copy side. Then seek the paused WAAPI to the composite time and `drawElementImage` the whole fragment root. `[data-akari-3d-fallback]` on the DOM-layer copy side is hidden with `hidden` and `display:none !important`. Inside a fragment, DOM order including the canvas, and z-index, apply as they are. Between fragments, composite in track z, then declaration index, as before. A 3D matrix on the ancestor chain, and `advanced-css` inside and outside the chain, are therefore transferred.
 
-CSS 3D の判定は DOM 層と同じ 3 群を使う。`backface-visibility:hidden` と深度 transform の組み合わせだけは
-`css-3d-backface-hidden` で degraded を維持する。`transform-style:preserve-3d` の交差は composite として通し、
-検出した場合は stderr と receipt の `preserve3dOrderConflicts` へ警告を残す。それ以外の CSS 3D は通す。
-ただし `preserve-3d` 空間で兄弟同士（3D canvas と兄弟要素など）が z 深度で並び替わる断片は、GPU が DOM 順で描くため
-OSR と絵が変わる（2026-09-04 実測: 外接矩形 MAD 5.0082、OSR では z>0 の兄弟だけが canvas の前）。この型は
-`three-composite-preserve-3d-siblings` で fail-closed にし、警告なしで絵が変わる断片を通さない。DOM 層の
-`preserve3dOrderConflicts` 検出器を兄弟対まで広げれば再解禁できる（次ラウンド候補）。親子対は従来どおり、
-検出器の警告を receipt に残して通す（実測パリティ 0.6374）。
-composite 候補の `@property` は、overlay sheet と DOM 層で補間結果が割れる可能性があるため
-`three-composite-property` で fail-closed とする。方式 A の `three-sampled-chain-css:<プロパティ>` ガードは残すが、
-方式 B ではチェーン内外とも断片全体を描くため `advanced-css` を通す。その他の入口外条件は
-`three-sampled-condition:<条件名>` とし、curve 解析の失敗理由を流用しない。
+CSS 3D uses the same three groups as the DOM layer. Only the combination of `backface-visibility:hidden` and a depth transform stays degraded as `css-3d-backface-hidden`. A crossing of `transform-style:preserve-3d` is let through as composite, and when it is detected a warning is left on stderr and on the receipt `preserve3dOrderConflicts`. Other CSS 3D is let through. A fragment whose siblings reorder by z depth in `preserve-3d` space (a 3D canvas and a sibling element, for example) draws in DOM order on the GPU, so the picture differs from OSR (measured 2026-09-04. Bounding-box MAD 5.0082. On OSR only the sibling with z greater than 0 is in front of the canvas). This shape fails closed as `three-composite-preserve-3d-siblings`. Do not let a fragment whose picture changes through with no warning. Widening the DOM layer's `preserve3dOrderConflicts` detector to sibling pairs can reopen it (a candidate for the next round). A parent-child pair is let through as before, with the detector's warning left on the receipt (measured parity 0.6374). `@property` on a composite candidate may split the interpolation result between the overlay sheet and the DOM layer, so it fails closed as `three-composite-property`. Method A's `three-sampled-chain-css:<property>` guard stays, but method B draws the whole fragment inside and outside the chain, so it lets `advanced-css` through. Any other out-of-entry condition is `three-sampled-condition:<condition name>`. Do not reuse a curve-parse failure reason.
 
-manifest の各 3D sprite は `entranceMode: "curve" | "sampled" | "composite" | "none"` を持つ。run payload と receipt の
-`gpu.three.overlays[].entrance.mode` は `curve` / `sampled` / `composite` を記録し、`gpu.three.sampling` は sampled
-フレームの `count`、`p50`、`p95` ミリ秒を記録する。composite がある場合は `gpu.three.composite` に overlay 数、
-DOM 要素数、canvas 中継費用と DOM 層費用の p50/p95 を記録する。
+Each 3D sprite in the manifest has `entranceMode: "curve" | "sampled" | "composite" | "none"`. `gpu.three.overlays[].entrance.mode` on the run payload and the receipt records `curve`, `sampled`, or `composite`. `gpu.three.sampling` records `count`, `p50`, and `p95` milliseconds of sampled frames. When there is a composite, `gpu.three.composite` records the overlay count, the DOM element count, and p50 and p95 of the canvas relay cost and the DOM layer cost.
 
-## 11. v2 の cut 音声中間物（2026-08-29 追記）
+## 11. v2 cut-audio intermediates (appended 2026-08-29)
 
-GPU 経路の映像は `edit.sources` をページ側で直接読み、`cut.mp4` の映像を使用しない。そのため
-cut 段は `cut-audio.mp4`、尺延長が必要な場合は続けて `cut-audio-tail-padded.mp4` を生成し、
-音声ストリームだけを最終 mux へ渡す。両コマンドは `-vn` とし、映像のデコード・フィルタ・
-エンコードを行わない。音声の trim、速度、freeze 無音、transition、gap、AAC 48 kHz の意味論は
-従来の映像込み cut / tail-pad と同じである。legacy 経路は従来どおり映像込み中間物を使用する。
-音声入力は cut ごとに入力側シーク（`-ss` / `-t`）し、cut 頭 0.5 s の先読みガード（AAC の overlap-add 用）を設け、cut 段の費用を素材長に依存させない。
+GPU-path video reads `edit.sources` directly on the page and does not use the video of `cut.mp4`. The cut stage therefore generates `cut-audio.mp4`, and when the duration must be extended it then generates `cut-audio-tail-padded.mp4`, and passes only the audio stream to the final mux. Both commands use `-vn` and do not decode, filter, or encode video. The semantics of audio trim, speed, freeze silence, transition, gap, and AAC 48 kHz match the old cut and tail-pad that included video. The legacy path still uses intermediates that include video. Audio input seeks on the input side per cut (`-ss` / `-t`), sets a 0.5 s lookahead guard at the head of the cut (for AAC overlap-add), and does not make the cut-stage cost depend on the footage length.
 
-## 12. 採寸不安定の根治・実行時フォールバック・生フレーム dump（2026-08-30 追記）
+## 12. Root-fix of unstable measurement, runtime fallback, and raw-frame dump (appended 2026-08-30)
 
-### 12.1 事実（2026-08-30・capture-v2-engine レーンの実測と司令塔のコード確認）
+### 12.1 Facts (2026-08-30, measurement on the capture-v2-engine lane, and the control tower's code check)
 
-- 内部 fieldtest 案件（11 秒・1080p・字幕 **3 cue・`words[]` 無し・style 無指定**・HTML オーバーレイ 2・LUT）で、
-  §2.1 の採寸が **32 回で収束せず `caption-measure-unstable` で fail-closed** する。`6da9a353` 以前の main でも同じ地点で落ちる既存不良。
-  いちばん単純な字幕でも起こるため、原因は karaoke / pop の語矩形ではなく採寸の土台にある可能性が高い（未特定）
-- `render-cut.mjs` は `exportWithGpu` の**実行時失敗を捕捉しない**。`engine_fallback` が発火するのは launcher tier 3（Electron 不在）だけで、
-  page runtime が fail-closed すると書き出し全体が失敗する。`--engine auto` は事前の適格判定で gpu を選ぶが、採寸の収束は実行時にしか
-  分からないため、適格判定では弾けない
-- `akari capture --engine auto` は書き出しと同じ関数でエンジンを解決する（capture 契約 §9.2）ので、同じ案件で同じ地点で落ちる。
-  `--engine osr` 明示なら通る
-- gpu 書き出しには、エンコーダへ渡す直前のフレームを取り出す機構が無い（読み戻しゼロの設計 §4）。osr には `--dump-frames`
-  （`raw/frame-N.bgra`）があり、capture 契約 §9.3 の可逆比較は osr でだけ成立している
+- On an internal fieldtest job (11 seconds, 1080p, captions **3 cues, no `words[]`, no style specified**, 2 HTML overlays, a LUT), the §2.1 measurement **does not converge in 32 tries and fails closed with `caption-measure-unstable`**. main before `6da9a353` falls at the same point. It is an existing defect. It happens on the simplest caption, so the cause is likely in the measurement base, not in a karaoke or pop word rectangle (not identified yet).
+- `render-cut.mjs` **does not catch a runtime failure** of `exportWithGpu`. `engine_fallback` fires only for launcher tier 3 (Electron absent). If the page runtime fails closed, the whole export fails. `--engine auto` chooses gpu by the eligibility check ahead of time, but measurement convergence is known only at runtime, so the eligibility check cannot reject it.
+- `akari capture --engine auto` resolves the engine with the same function as export (capture contract §9.2), so the same job falls at the same point. An explicit `--engine osr` passes.
+- gpu export has no mechanism to take out the frame immediately before it is passed to the encoder (the zero-readback design, §4). osr has `--dump-frames` (`raw/frame-N.bgra`), and the lossless comparison of capture contract §9.3 holds only on osr.
 
-### 12.2 要求 A — 採寸不安定の原因特定と決定論化
+### 12.2 Requirement A. Identify the cause of unstable measurement, and make it deterministic
 
-- 収束しなかった試行について、**どの cue のどの値がどれだけ揺れたか**（variant / token / rect の差分）を run.json と receipt に残す
-  （現状は attempts の count / p50 / max だけ）。原因は推測で決めず、この差分と再現案件で特定する
-- 特定した原因に対して決定論化の手を入れる。**許容差・平均・丸めで揺らぎを隠さない**（§2.1 の原則は不変）。
-  候補は実測で選ぶ: レイアウト確定の待ち方（`getBoundingClientRect` 1 回で足りているか・rAF / フォント metrics の遅延）、
-  root の挿入位置・サイズの固定、DPR / zoom の固定、など
-- 根治できた範囲と、できなかった条件（あれば）を契約に追記できる形で報告する
+- For a try that did not converge, leave on run.json and the receipt **which value of which cue moved, and by how much** (the variant, token, and rect diff). Today only the attempt count, p50, and max are kept. Do not decide the cause by guessing. Identify it from this diff and a reproduction job.
+- Put a deterministic fix against the identified cause. **Do not hide jitter with a tolerance, an average, or rounding** (the §2.1 principle is unchanged). Pick the candidate by measurement. How to wait for layout to settle (whether one `getBoundingClientRect` is enough, and rAF or font-metrics delay), pinning the root's insert position and size, pinning DPR and zoom, and similar.
+- Report, in a form that can be appended to this contract, the range that was root-fixed and the conditions that were not (if any).
 
-### 12.3 要求 B — 実行時フォールバック（必須）
+### 12.3 Requirement B. Runtime fallback (required)
 
-- `--engine auto` で gpu の page runtime が **閉じた集合の理由コード**（v0 は `caption-measure-unstable` のみ）で fail-closed したとき、
-  render-cut は **osr で再実行**し、`provenance.engine_fallback = { from: "gpu", reason: "<reasonCode>" }` と gpu 側の失敗 run.json への
-  参照を receipt に残す。中間物は捨てて osr を最初から回す（部分再利用しない）
-- 明示 `--engine gpu` は従来どおり fail-closed（理由を表示して exit ≠ 0）。フォールバックは `auto` だけ
-- `akari capture --engine auto` も同じ関数・同じ理由コード集合でフォールバックし、`capture.json.engine.fallback` に記録する
-- フォールバック対象外の失敗（デコード不可・Electron クラッシュ等）は従来どおり失敗のまま。集合を広げるときは本契約に追記する
+- When `--engine auto` and the gpu page runtime fails closed with a **closed set of reason codes** (v0 is only `caption-measure-unstable`), render-cut **reruns on osr**, and the receipt keeps `provenance.engine_fallback = { from: "gpu", reason: "<reasonCode>" }` and a reference to the gpu side's failed run.json. Discard the intermediates and run osr from the start (do not reuse a part).
+- An explicit `--engine gpu` stays fail-closed (show the reason, exit not 0). Fallback is `auto` only.
+- `akari capture --engine auto` falls back with the same function and the same reason-code set, and records it on `capture.json.engine.fallback`.
+- A failure outside the fallback set (cannot decode, an Electron crash, and similar) stays a failure, as before. Widening the set is an append to this contract.
 
-### 12.4 要求 C — gpu 書き出しの生フレーム dump（検証専用）
+### 12.4 Requirement C. A raw-frame dump of gpu export (verification only)
 
-- `--dump-frames <n,...>` を gpu 書き出しに追加。エンコーダへ渡す直前の `finalCanvas` を読み戻して `raw/frame-N.rgba`（8bit・行順は
-  osr の dump と同じ規約で明記）に書く。osr の `--dump-frames` と引数・出力先の形を揃える
-- **フラグ無しの製品経路は読み戻しゼロを維持**（`assert-zero-readback` の静的監査と `--trap-readback` の両方が引き続き通ること）。
-  dump は `--verify-frames` と同じ検証専用の枠に置く
-- capture 契約 §9.3 の可逆比較を gpu でも成立させる: `capture --engine gpu -t N` の PNG ≡ `--dump-frames N` の raw（MAD 0）
+- Add `--dump-frames <n,...>` to gpu export. Read back the `finalCanvas` immediately before it is passed to the encoder, and write `raw/frame-N.rgba` (8-bit, row order stated in the same rule as the osr dump). Match the argument and the output-path shape of osr's `--dump-frames`.
+- **The product path with no flag keeps zero readback** (both the `assert-zero-readback` static audit and `--trap-readback` still pass). The dump sits in the same verification-only frame as `--verify-frames`.
+- Make the lossless comparison of capture contract §9.3 hold on gpu too. The PNG of `capture --engine gpu -t N` is identical to the raw of `--dump-frames N` (MAD 0).
 
-### 12.5 受け入れ
+### 12.5 Acceptance
 
-- fieldtest 案件（複製）で `render-cut --engine auto` が**完走**する。根治できていれば gpu で、できていなければ osr へのフォールバックで。
-  receipt にどちらだったかと理由が残る。`capture --engine auto -t 0 3 6` も同様に完走
-- 収束しなかった試行の差分ログが run.json / receipt に出る（フィクスチャで再現できなければ、揺らぎを注入したユニットテストで形を固定）
-- `--dump-frames` で取った raw と `capture --engine gpu` の PNG が bit 一致（MAD 0・3 フレーム）
-- フォールバックが発火しない既存フィクスチャの mp4 SHA は不変。`assert-zero-readback` PASS・`--trap-readback` 完走
-- 明示 `--engine gpu` の fail-closed 挙動と exit code は不変（テストで固定）
+- On a fieldtest job (a copy), `render-cut --engine auto` **runs to completion**. On gpu if it was root-fixed, and by fallback to osr if it was not. The receipt records which one, and the reason. `capture --engine auto -t 0 3 6` also runs to completion the same way.
+- The diff log of a try that did not converge appears on run.json and the receipt (if a fixture cannot reproduce it, fix the shape with a unit test that injects jitter).
+- The raw taken by `--dump-frames` and the PNG of `capture --engine gpu` match bit for bit (MAD 0, 3 frames).
+- The mp4 SHA of an existing fixture that does not fire the fallback is unchanged. `assert-zero-readback` PASSes. `--trap-readback` runs to completion.
+- The fail-closed behavior and the exit code of an explicit `--engine gpu` are unchanged (fixed by a test).
 
-### 12.6 実装レーンの実測による追記（2026-08-30・検収後）
+### 12.6 Append from the implementation lane's measurement (2026-08-30, after acceptance)
 
-- **原因（確定）**: `captions.mjs` の `.akari-caption__plate` に付く entrance fade（`akari-caption-fade 180ms ease-out`・
-  `translateY(0.18em → 0)` = 既定 38 px で 6.84 px）を、ラスタ側は `settleCss` で停止していたが**採寸 root には当てていなかった**
-  （`CAPTION_WORD_FREEZE_CSS` が止めるのは語単位の 6 セレクタのみ）。採寸は生きている transform を任意時点でサンプルしていたため、
-  `ease-out` 終端の 0〜0.5 px の残差が毎回違い、許容差ゼロの連続 2 回一致が 32 回でも成立しなかった。#120c r0 の「語矩形 y が
-  最大 1.71 px 揺れる」も同じ現象。差分ログの実測: 31 対すべて不一致・揺れたフィールドは `plate.y/bottom` `line[0].y/bottom` の 4 つだけ・
-  試行 1→2 で −6.33〜−6.43 px（= 0.18em）
-- **原則（§2.1 に追加）**: **採寸 root に適用する CSS は、ラスタ band に適用する CSS と同一集合でなければならない**
-  （採寸 = ラスタされる幾何、を構成上保証する）。実装は `measureCss = CAPTION_WORD_FREEZE_CSS + settleCss` で採寸・probe・両 variant を揃え、
-  静的テスト「caption measurement roots are frozen in the same settled state the raster uses」で固定。許容差・丸め・平均は入れていない
-- **根治の実測**: fieldtest 案件で `captionMeasureAttempts = {count 3, p50 2, max 2}`（理論下限）・diffs 0・`captionLayoutMaxDeltaPx` 0・
-  gpu 2 走 mp4 SHA 一致。§12.1 の「32 回で収束せず」は正確には**高確率で**（base では確率的に収束することもある）
-- **32 回の上限**は据え置く。根治後は 2 回で確定するため上限は実質保険。下げるなら揺らぎが残る条件を別途観測してから
-- **`--dump-frames` の形**: 行順は上から下で osr と同規約。チャネル順はエンジンが本来読み戻す形式のまま（gpu = RGBA `raw/frame-N.rgba` /
-  osr = BGRA `raw/frame-N.bgra`）で拡張子が表す。`--trap-readback` とは相互排他
-- **receipt / provenance のキー**: フォールバック時は `provenance.engine = "osr"`・`engine_fallback = { from: "gpu", reason }`・
-  **`provenance.gpu_failure_run`**（gpu 失敗 run.json のプロジェクト相対パス）。capture は `capture.json.engine.fallback` に同じ内容
-- **capture の parity ガード**: render-cut がフォールバックした receipt（`provenance.engine = "osr"`）に対し、capture 側の解決が `"gpu"` でも
-  `engine_fallback.from` が一致すれば parity として受ける（これが無いと capture がフォールバックに到達する前に落ちる。launcher tier 3 由来の
-  既存フォールバックにも同じ穴があり同時に塞いだ）
-- 判定は構造化された `error.reasonCode` だけを見る（メッセージ文字列一致では発火しない）
+- **Cause (confirmed).** The entrance fade on `.akari-caption__plate` in `captions.mjs` (`akari-caption-fade 180ms ease-out`, `translateY` from `0.18em` to 0, which is 6.84 px at the default 38 px) was stopped by `settleCss` on the raster side, but **was not applied to the measurement root** (`CAPTION_WORD_FREEZE_CSS` stops only the 6 per-word selectors). Measurement sampled a live transform at an arbitrary time, so the 0 to 0.5 px residual at the end of `ease-out` differed every time, and two consecutive exact matches at zero tolerance did not hold even in 32 tries. The "#120c r0 word-rectangle y swings by at most 1.71 px" is the same phenomenon. The diff-log measurement. All 31 pairs disagree. The fields that moved are only the four `plate.y`, `plate.bottom`, `line[0].y`, and `line[0].bottom`. From try 1 to try 2 the move is -6.33 to -6.43 px (which is 0.18em).
+- **Principle (added to §2.1).** **The CSS applied to the measurement root must be the same set as the CSS applied to the raster band** (measurement equals the geometry that is rasterized, guaranteed by construction). The implementation aligns measurement, probe, and both variants with `measureCss = CAPTION_WORD_FREEZE_CSS + settleCss`, and a static test fixes it ("caption measurement roots are frozen in the same settled state the raster uses"). No tolerance, rounding, or average was added.
+- **Root-fix measurement.** On the fieldtest job, `captionMeasureAttempts = {count 3, p50 2, max 2}` (the theoretical floor), diffs 0, `captionLayoutMaxDeltaPx` 0, and the gpu 2-run mp4 SHA matches. The "does not converge in 32 tries" of §12.1 is, precisely, **high probability** (on the base it can also converge probabilistically).
+- **The cap of 32 stays.** After the root-fix it settles in 2 tries, so the cap is effectively insurance. Lower it only after observing, separately, a condition where jitter remains.
+- **Shape of `--dump-frames`.** Row order is top to bottom, the same rule as osr. Channel order stays the form the engine reads back natively (gpu is RGBA `raw/frame-N.rgba`, osr is BGRA `raw/frame-N.bgra`), and the extension says which. It is mutually exclusive with `--trap-readback`.
+- **Receipt and provenance keys.** On fallback, `provenance.engine = "osr"`, `engine_fallback = { from: "gpu", reason }`, and **`provenance.gpu_failure_run`** (a project-relative path to the gpu failure run.json). capture puts the same contents on `capture.json.engine.fallback`.
+- **capture's parity guard.** Against a receipt that render-cut fell back (`provenance.engine = "osr"`), if the capture side resolved `"gpu"` but `engine_fallback.from` agrees, accept it as parity (without this, capture falls before it reaches the fallback. The existing fallback that comes from launcher tier 3 had the same hole, and it was closed at the same time).
+- The judgment looks only at the structured `error.reasonCode` (a message-string match does not fire it).
 
-### 12.7 §9（#120h の「降格して完走」）との関係 — 司令塔裁定（2026-08-30・r3 合流時）
+### 12.7 Relation to §9 (#120h "demote and run to completion"). Control-tower ruling (2026-08-30, at the r3 join)
 
-- **事実**: #120h（§9 追記）は採寸が収束しない unit を **sprite へ降格して書き出しを完走**させる（語アニメが落ちる・receipt の
-  `captionStartup.measure.degradedUnits` に計上）。§12.3 は「`auto` は osr へフォールバック / 明示 `gpu` は fail-closed」を要求する。
-  r3 の合流はこれを **「実測由来の不安定 = 降格（§9）/ 故障注入 `AKARI_GPU_CAPTION_MEASURE_FAULT` = `caption-measure-unstable` を伝播
-  → `auto` は osr フォールバック・明示 `gpu` は fail-closed（§12.3）」** に分けて両方を残した。注入は「復旧不能な採寸失敗の代役」であり、
-  降格経路を撃つスイッチではなくなった
-- **裁定（v0）**: この分離を**採る**。根治（§12.6）により実測由来の不安定は理論下限 2 回で収束しており、降格経路は保険。
-  降格が起きたときは warning と `degradedUnits` で**黙らずに**記録される（§2.1「揺らぎを隠さない」に反しない）
-- **次版の候補（別票 D・小）**: `auto` で `degradedUnits > 0` になった走は「近似で完走」より「osr で正確に完走」を選ぶべきかを裁定し、
-  採るなら降格を `FALLBACK_REASONS` 相当（例 `caption-measure-degraded`）として `auto` だけ osr へ回す。明示 `gpu` は降格 + warning のまま。
-  降格経路を実機で撃つための注入モード（例: 値の接尾辞で降格を選ぶ）も同票で
-- 採寸 settle の実装は #120h の **`.akari-measure-root` にスコープした `measureSettleCss`** に一本化（§12.6 の原則を満たし、ページ全体の
-  アニメは止めない）。`contentKey` で再利用される安定結果は `cssVariants` を鍵に含むため必ず settled 状態で測ったもの（実機確認済み）
+- **Fact.** #120h (the §9 append) **demotes a unit whose measurement does not converge to a sprite and runs the export to completion** (the word animation is dropped, and it is counted on receipt `captionStartup.measure.degradedUnits`). §12.3 requires "`auto` falls back to osr, and an explicit `gpu` fails closed". The r3 join kept both by splitting them into **instability that comes from measurement equals demotion (§9), and the fault injection `AKARI_GPU_CAPTION_MEASURE_FAULT` propagates `caption-measure-unstable`, so `auto` falls back to osr and an explicit `gpu` fails closed (§12.3)**. The injection is a stand-in for a measurement failure that cannot be recovered. It is no longer a switch that hits the demotion path.
+- **Ruling (v0).** **Take this split.** By the root-fix (§12.6), instability that comes from measurement converges in 2 tries, the theoretical floor, and the demotion path is insurance. When a demotion happens, a warning and `degradedUnits` record it **without staying silent** (this does not contradict §2.1 "do not hide jitter").
+- **A candidate for the next version (separate ticket D, small).** Rule whether a run that reaches `degradedUnits > 0` under `auto` should choose "run to completion accurately on osr" over "run to completion as an approximation". If that is taken, treat the demotion as something like `FALLBACK_REASONS` (for example `caption-measure-degraded`) and send only `auto` to osr. An explicit `gpu` stays demotion plus a warning. An injection mode that hits the demotion path on a real machine (for example a value suffix that selects demotion) is the same ticket.
+- The measurement settle implementation is unified on #120h's **`measureSettleCss` scoped to `.akari-measure-root`** (it meets the §12.6 principle, and it does not stop animation of the whole page). A stable result reused by `contentKey` includes `cssVariants` in the key, so it was always measured in the settled state (confirmed on a machine).

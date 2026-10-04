@@ -1,56 +1,46 @@
+**English** | [Japanese](./contract-2026-08-11-analysis-vision-tracks-v0.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-08-11
 updated: 2026-08-14
 ---
 
-# 分析トラック契約 v0 — Vision ランドマーク・トラック（face-landmarks / hand-pose / body-pose-3d / face-expression）と keyframes 消費
+# Analysis track contract v0. Vision landmark tracks (face-landmarks / hand-pose / body-pose-3d / face-expression) and keyframe consumption
 
-- 日付: 2026-08-11
-- 状態: **ドラフト**（v0 実装と同時に確定させる。実装で判明した齟齬は追記で解消）
-- 前提:
-  - `contract-2026-07-17-data-contract-versioning.md`（version 整数・追加のみ・寛容リーダーの三原則）
-  - `contract-2026-07-23-analysis-person-matte.md`（Swift サイドカーの流儀・analysis.json の tracks 契約・検証責務の分担）
-  - `contract-2026-07-25-project-structure-v0.md`（分析サイドカーの置き場 = `.akari/sidecars/`）
-  - `contract-2026-08-02-preview-parity.md`（render/Web/shell 3 面パリティの原則）
-- スコープ: 動画から抽出する**ランドマーク・トラック**（顔・手・3D ボディポーズ）のデータ契約、生成サイドカーの
-  入出力、消費（`layers[].keyframes` への変換）の責務分担、および MediaPipe 由来の頭部姿勢・
-  表情トラック。**新しいレンダー機構は作らない**
+- Date: 2026-08-11
+- Status: **draft** (settle it together with the v0 implementation. A mismatch found in the implementation is resolved by appending).
+- Depends on:
+  - `contract-2026-07-17-data-contract-versioning.md` (the three rules: integer version, additive only, tolerant reader)
+  - `contract-2026-07-23-analysis-person-matte.md` (Swift sidecar style, the analysis.json tracks contract, and how verification duties are split)
+  - `contract-2026-07-25-project-structure-v0.md` (analysis sidecars live under `.akari/sidecars/`)
+  - `contract-2026-08-02-preview-parity.md` (the render / Web / shell three-surface parity rule)
+- Scope: the data contract for **landmark tracks** extracted from video (face, hand, and 3D body pose), the generator sidecar's input and output, how consumption (conversion into `layers[].keyframes`) is split, and the MediaPipe head-pose and expression tracks. **Do not build a new render mechanism.**
 
-## 0. 設計原則
+## 0. Design principles
 
-1. **分析はプル駆動**。網羅的な事前分析はしない。エフェクトを使いたいときに、必要な種類の
-   トラックだけを生成してサイドカーにキャッシュする
-2. **分析は事実の記録、演出は消費側の仕事**。トラックには検出の生値（座標・信頼度）だけを入れ、
-   平滑化・間引き・演出パラメータ化は変換器（消費側）が行う。同じトラックから別演出を再生成できる
-3. **消費は既存機構への変換**。トラック → `edit.json` の `layers[].keyframes`
-   （transform / perspective）へ決定論変換する。レンダー・Web プレビュー・shell プレビューの
-   3 面パリティは既存の layers 機構がすでに担保しているため、**本契約の範囲で新しい
-   3 面実装は発生しない**（これが本契約の最重要設計判断）
-4. **プロバイダ中立**。トラック形式は「何で検出したか」に依存しない。v0 のプロバイダは
-   Apple Vision framework（macOS）のみだが、将来の別プロバイダ（例: MediaPipe）は
-   `provider` フィールドの値が変わるだけで同じ形式を吐く
-5. **宣言のない能力は存在しない**（avatar rendition / asset knobs と同じ哲学）。環境が
-   対応しない分析は `--check` が正直に不可を返す。推測実行しない
+1. **Analysis is pull-driven.** Do not analyze everything up front. When an effect is wanted, generate only the track kinds it needs and cache them in the sidecar.
+2. **Analysis records facts. Staging is the consumer's job.** A track holds only the raw detection (coordinates and confidence). Smoothing, thinning, and turning values into staging parameters belong to the converter (the consumer). Another staging can be regenerated from the same track.
+3. **Consumption is a conversion into an existing mechanism.** A track converts deterministically into `edit.json` `layers[].keyframes` (transform / perspective). Render, Web preview, and shell preview already share parity through the existing layers mechanism, so **this contract does not grow a new three-surface implementation** (this is the most important design choice in the contract).
+4. **Provider-neutral.** The track format does not depend on what detected it. The v0 provider is Apple Vision framework (macOS) only, but a future provider (for example MediaPipe) emits the same format and only the `provider` field value changes.
+5. **A capability that is not declared does not exist** (the same idea as avatar rendition and asset knobs). Analysis the environment cannot run makes `--check` return unavailable, honestly. Do not guess and run.
 
-## 1. analysis.json への追加（additive）
+## 1. Additions to analysis.json (additive)
 
-`tracks` に **optional キー** 3 つを追加する。`tracks.required`（speakers / faces /
-person_matte）には**入れない**（person_matte が必須なのは既存消費者の事情であり、新トラックは
-真に任意として追加する）。
+Add **3 optional keys** under `tracks`. Do **not** put them in `tracks.required` (speakers / faces / person_matte). person_matte is required because of an existing consumer. The new tracks are added as truly optional.
 
 ```jsonc
 "tracks": {
-  // ...既存キー...
-  "face_landmarks": {            // 任意。無ければ「未生成」
-    "path": "vision/face-landmarks.json",   // analysis.json のあるディレクトリ基準の相対パス
+  // ...existing keys...
+  "face_landmarks": {            // optional. Absent means "not generated yet".
+    "path": "vision/face-landmarks.json",   // relative to the directory that holds analysis.json
     "sample_fps": 24,
-    "provider": "apple-vision",             // 自由文字列（enum 強制しない）
+    "provider": "apple-vision",             // free string (do not force an enum)
     "tool": "vision-tracks.mjs v0",
     "generated_at": "2026-08-11T12:00:00Z"
   },
-  "hand_pose": { /* 同形 */ },
-  "body_pose_3d": {             // 任意。macOS 14+ の Vision 3D ボディポーズ
+  "hand_pose": { /* same shape */ },
+  "body_pose_3d": {             // optional. Vision 3D body pose on macOS 14+
     "path": "vision/body-pose-3d.json",
     "sample_fps": 24,
     "provider": "apple-vision",
@@ -60,8 +50,7 @@ person_matte）には**入れない**（person_matte が必須なのは既存消
 }
 ```
 
-2026-08-14 additive: 同じ optional pointer 形で `face_expression` を追加する。既存 3 キーと同様に
-`tracks.required` には入れず、未生成はキー無しで表す。
+Additive 2026-08-14. Add `face_expression` in the same optional pointer shape. As with the existing 3 keys, do not put it in `tracks.required`. Not generated yet means the key is absent.
 
 ```jsonc
 "face_expression": {
@@ -74,135 +63,111 @@ person_matte）には**入れない**（person_matte が必須なのは既存消
 }
 ```
 
-## 2. トラックファイル形式（vision-tracks v0）
+## 2. Track file format (vision-tracks v0)
 
-`path` が指す JSON ファイル。1 ファイル 1 種類（face-landmarks / hand-pose /
-body-pose-3d / face-expression は別ファイル）。
+The JSON file that `path` points at. One file, one kind (face-landmarks, hand-pose, body-pose-3d, and face-expression are separate files).
 
 ```jsonc
 {
   "version": 0,
   "kind": "face-landmarks",      // "face-landmarks" | "hand-pose" | "body-pose-3d"
-  "source": { "path": "../..(元動画への相対)", "duration": 12.5 },
+  "source": { "path": "../..(relative to the source video)", "duration": 12.5 },
   "sample_fps": 24,
   "provider": { "name": "apple-vision", "os": "macOS 15.5" },
   "samples": [
     { "t": 0.0, "detections": [ /* §2.1 / §2.2 */ ] },
-    { "t": 0.0417, "detections": [] }     // 検出ゼロのフレームも t を残す（欠測と非検出を区別）
+    { "t": 0.0417, "detections": [] }     // a frame with zero detections still keeps t (a gap is not the same as no detection)
   ]
 }
 ```
 
-- **画像座標系（最重要規約）**: face-landmarks / hand-pose と body-pose-3d の
-  `projection` はすべて **0〜1 正規化・左上原点**（動画ピクセル系と同じ向き）。
-  Vision framework は左下原点で返すため、**y 反転はサイドカーの責務**。消費側は変換しない
-- body-pose-3d の `position` だけは画像座標ではない。Vision が返すモデル座標
-  （root/hip 相対メートル）を変換せず保存する（§2.4）
-- `samples[].t` は元動画の秒（`in`/`out` と同じ時間軸）。サンプリングは `sample_fps` の等間隔
-- 生値主義: 平滑化・補間済みの値を入れない。信頼度（`conf`）を必ず併記する
+- **Image coordinate system (the most important rule).** face-landmarks, hand-pose, and the `projection` of body-pose-3d are all **normalized 0 to 1, origin at the top left** (the same orientation as video pixels). Vision framework returns a bottom-left origin, so **the y flip is the sidecar's job**. The consumer does not convert.
+- Only `position` of body-pose-3d is not an image coordinate. Store the model coordinates Vision returns (meters relative to root/hip) without converting them (§2.4).
+- `samples[].t` is seconds on the source video (the same time axis as `in` / `out`). Sampling is evenly spaced at `sample_fps`.
+- Raw values only. Do not store smoothed or interpolated values. Always record confidence (`conf`) beside them.
 
-### 2.1 face-landmarks の detection
+### 2.1 face-landmarks detection
 
 ```jsonc
 {
-  "box": [x, y, w, h],           // 顔矩形（正規化）
+  "box": [x, y, w, h],           // face rectangle (normalized)
   "conf": 0.98,
-  "landmarks": {                  // VNFaceLandmarks2D 由来。キーは snake_case
+  "landmarks": {                  // from VNFaceLandmarks2D. Keys are snake_case.
     "left_pupil": [x, y],
     "right_pupil": [x, y],
-    "left_eye": [[x,y], ...],     // 領域は点列
+    "left_eye": [[x,y], ...],     // a region is a point list
     "right_eye": [[x,y], ...],
     "outer_lips": [[x,y], ...],
     "inner_lips": [[x,y], ...]
-    // v0 で必須なのは上記 6 キー。他の VNFaceLandmarkRegion2D は任意で追加してよい（追加のみ）
+    // v0 requires the 6 keys above. Other VNFaceLandmarkRegion2D regions may be added (additive only).
   }
 }
 ```
 
-### 2.2 hand-pose の detection
+### 2.2 hand-pose detection
 
 ```jsonc
 {
   "chirality": "left",           // "left" | "right" | "unknown"
   "conf": 0.95,
-  "joints": {                     // VNHumanHandPoseObservation.JointName の snake_case
+  "joints": {                     // snake_case of VNHumanHandPoseObservation.JointName
     "thumb_tip": [x, y],
     "index_tip": [x, y]
-    // v0 で必須なのは thumb_tip / index_tip。他の 19 関節は任意で追加してよい（追加のみ）
-    // 信頼度が閾値未満の関節はキーごと省略する（捏造ゼロ — 無い関節は無い）
+    // v0 requires thumb_tip and index_tip. The other 19 joints may be added (additive only).
+    // A joint below the confidence threshold is omitted as a key (no invention. A missing joint is missing).
   }
 }
 ```
 
-### 2.3 形式の詳細（v0 実装時点で追記・2026-08-11）
+### 2.3 Format detail (appended at v0 implementation, 2026-08-11)
 
-実装（`vision-tracks-helper.swift` / `vision-tracks.mjs`）で判明した §2 の詳細化。原則・
-責務分担は変えない。
+Detail of §2 found in the implementation (`vision-tracks-helper.swift` / `vision-tracks.mjs`). Principles and the duty split do not change.
 
-- **座標のクランプ**: Vision framework は、遮蔽・フレーム端で切れた関節点を画像範囲の外へ
-  わずかに外挿することがある（v0 実装時の実測で `y = 1.0015984773635864` を観測）。
-  「すべて 0〜1 正規化」を字義通り
-  保証するため、サイドカー（Swift ヘルパー）は y 反転後の値を `[0, 1]` へ丸めてから出力する。
-  丸めは person-matte-helper のアルファ値クランプ（`min(max(value, 0), 255)`）と同じ防御であり、
-  捏造ではなく Vision 自身が返した値を契約の範囲へ収める処理である。
-- **顔ランドマークの検出単位での省略**: 手の関節はキー単位で省略できる（§2.2）が、顔は
-  6 領域（瞳 2・目 2・唇 2）がひとかたまりで計算される Vision の性質上、Swift ヘルパーは
-  ある顔検出の landmarks 計算が失敗した（Vision が `landmarks` を返さなかった）場合、
-  その検出を `detections` から**丸ごと**除く。box・conf だけを残す縮退形は作らない
-  （§2.1 の必須 6 キーが揃わない detection を出力に混ぜない）。実測（1 名がほぼ映り続ける
-  26.3 秒素材）ではこの除外は 0 件だった。
+- **Coordinate clamp.** Vision framework can extrapolate a joint that is occluded or cut by the frame edge slightly outside the image (measured during the v0 implementation as `y = 1.0015984773635864`). To guarantee "all normalized 0 to 1" literally, the sidecar (the Swift helper) rounds the value to `[0, 1]` after the y flip, then writes it. The rounding is the same defense as person-matte-helper's alpha clamp (`min(max(value, 0), 255)`). It is not invention. It brings a value Vision itself returned back inside the contract range.
+- **Omitting a face landmark at detection grain.** A hand joint may be omitted per key (§2.2). A face is different. Vision computes the 6 regions (2 pupils, 2 eyes, 2 lips) as one lump, so if landmark computation for a face detection fails (Vision did not return `landmarks`), the Swift helper drops that detection from `detections` **as a whole**. Do not keep a reduced shape of box and conf only (do not mix a detection into the output when the 6 required keys of §2.1 are incomplete). On a measured 26.3 second clip where one person stays mostly in frame, this exclusion was 0.
 
-### 2.4 body-pose-3d の detection（additive・2026-08-13）
+### 2.4 body-pose-3d detection (additive, 2026-08-13)
 
-`VNDetectHumanBodyPose3DRequest` revision 1 が返す 17 関節を保存する。API は macOS 14+
-限定である。トラックは分析の生値であり、平滑化・間引き・低信頼度除外を行わない。
+Store the 17 joints that `VNDetectHumanBodyPose3DRequest` revision 1 returns. The API is macOS 14+ only. The track is raw analysis. Do not smooth, thin, or drop low confidence.
 
 ```jsonc
 {
   "conf": 0.86,
   "joints": {
     "root": {
-      "position": [0.0, 0.0, 0.0],       // root/hip 相対メートル
-      "projection": [0.51, 0.63],        // 0〜1 正規化・左上原点
+      "position": [0.0, 0.0, 0.0],       // meters relative to root/hip
+      "projection": [0.51, 0.63],        // normalized 0 to 1, origin at the top left
       "conf": 0.86
     },
-    "right_hip": { /* 同形 */ },
-    "right_knee": { /* 同形 */ },
-    "right_ankle": { /* 同形 */ },
-    "left_hip": { /* 同形 */ },
-    "left_knee": { /* 同形 */ },
-    "left_ankle": { /* 同形 */ },
-    "spine": { /* 同形 */ },
-    "center_shoulder": { /* 同形 */ },
-    "center_head": { /* 同形 */ },
-    "top_head": { /* 同形 */ },
-    "left_shoulder": { /* 同形 */ },
-    "left_elbow": { /* 同形 */ },
-    "left_wrist": { /* 同形 */ },
-    "right_shoulder": { /* 同形 */ },
-    "right_elbow": { /* 同形 */ },
-    "right_wrist": { /* 同形 */ }
+    "right_hip": { /* same shape */ },
+    "right_knee": { /* same shape */ },
+    "right_ankle": { /* same shape */ },
+    "left_hip": { /* same shape */ },
+    "left_knee": { /* same shape */ },
+    "left_ankle": { /* same shape */ },
+    "spine": { /* same shape */ },
+    "center_shoulder": { /* same shape */ },
+    "center_head": { /* same shape */ },
+    "top_head": { /* same shape */ },
+    "left_shoulder": { /* same shape */ },
+    "left_elbow": { /* same shape */ },
+    "left_wrist": { /* same shape */ },
+    "right_shoulder": { /* same shape */ },
+    "right_elbow": { /* same shape */ },
+    "right_wrist": { /* same shape */ }
   }
 }
 ```
 
-- `position`: `VNHumanBodyRecognizedPoint3D.position` の平行移動成分 `[x,y,z]`。
-  Vision のモデル座標で root/hip 相対、単位はメートル。カメラ相対座標へ変換しない
-- `projection`: `VNHumanBodyPose3DObservation.pointInImage` が返す画像投影を y 反転し、
-  `[0,1]` へクランプした `[x,y]`
-- `conf`: Vision 3D API は関節別 confidence を公開しないため、apple-vision provider の v0 は
-  `VNHumanBodyPose3DObservation.confidence` を各関節へ複製する。これは関節別推定値ではなく、
-  観測全体 confidence の由来明示である。消費者の `min-confidence` はこの値を使う
-- 17 関節のいずれかを Vision から取得できない観測は detection ごと省略する。存在しない
-  関節を補間・捏造せず、`detections: []` のフレームは時刻 `t` とともに残す
-- pose-skeleton の v0 は各フレーム先頭の 1 人（`bodyIndex=0` 固定）のみを消費し、複数人には非対応
+- `position`. The translation component `[x, y, z]` of `VNHumanBodyRecognizedPoint3D.position`. Vision model coordinates, relative to root/hip, in meters. Do not convert to camera-relative coordinates.
+- `projection`. The image projection returned by `VNHumanBodyPose3DObservation.pointInImage`, y-flipped and clamped to `[0, 1]`, as `[x, y]`.
+- `conf`. The Vision 3D API does not publish per-joint confidence, so apple-vision provider v0 copies `VNHumanBodyPose3DObservation.confidence` onto every joint. This is not a per-joint estimate. It states that the value comes from the whole observation's confidence. A consumer's `min-confidence` uses this value.
+- An observation that cannot obtain any of the 17 joints from Vision is omitted as a whole detection. Do not interpolate or invent a missing joint. A frame with `detections: []` stays, together with time `t`.
+- pose-skeleton v0 consumes only the first person of each frame (`bodyIndex=0` fixed). It does not support multiple people.
 
-### 2.5 face-expression の detection（additive・2026-08-14）
+### 2.5 face-expression detection (additive, 2026-08-14)
 
-MediaPipe Face Landmarker が返す `facialTransformationMatrixes` と 52 blendshape category を、
-平滑化・補間せず保存する。1 ファイル 1 kind の `kind` は `face-expression`、analysis pointer は
-`tracks.face_expression`、既定ファイル名は `vision/face-expression.json` とする。顔が検出されない
-frame も `{ "t": ..., "detections": [] }` として残す。
+Store `facialTransformationMatrixes` and the 52 blendshape categories that MediaPipe Face Landmarker returns, without smoothing or interpolation. One file, one kind. `kind` is `face-expression`. The analysis pointer is `tracks.face_expression`. The default file name is `vision/face-expression.json`. A frame with no face detected still stays as `{ "t": ..., "detections": [] }`.
 
 ```jsonc
 {
@@ -215,63 +180,39 @@ frame も `{ "t": ..., "detections": [] }` として残す。
     "_neutral": 0.07,
     "eyeBlinkLeft": 0.01,
     "mouthSmileLeft": 0.64
-    // MediaPipe 固定 category 全 52 キー。各値は 0..1 の生 score
+    // All 52 fixed MediaPipe categories. Each value is a raw score in 0..1.
   },
   "conf": 0.64
 }
 ```
 
-- `head` は 4x4 row-major 同次変換の上左 3x3 を行正規化し、
-  `R = Rz(roll) * Ry(yaw) * Rx(pitch)` で分解した**ラジアン**。右手系の解釈は +X=画像右、
-  +Y=画像下、+Z=canonical face 前方で、yaw 正=画面右向き、pitch 正=上向き、
-  roll 正=時計回り。gimbal lock は `roll=0` に固定する
-- `blendshapes` は `_neutral` を含む MediaPipe の固定 52 category。キーは表現の生 score で、
-  並びだけ byte 安定のため名前順へ正規化する。値の平滑化・クランプ・感情ラベル化はしない
-- MediaPipe Web API は内部の face-presence score を結果へ公開しない。`conf` は捏造した定数ではなく、
-  同じ detection に返った 52 生 score の最大値を signal confidence として決定論的に記録する。
-  face detection confidence そのものではないため、消費者は検出有無と blendshape 個別値を主に使う
-- v0 は `numFaces=1`。複数人追跡・人物同一性の連結はしない
+- `head` is **radians**, from row-normalizing the top-left 3 by 3 of a 4 by 4 row-major homogeneous transform and decomposing `R = Rz(roll) * Ry(yaw) * Rx(pitch)`. The right-handed reading is +X = image right, +Y = image down, +Z = canonical face forward. Positive yaw faces screen right. Positive pitch looks up. Positive roll is clockwise. Gimbal lock is fixed at `roll=0`.
+- `blendshapes` is MediaPipe's fixed 52 categories, including `_neutral`. Keys are the raw scores of the expressions, and only the order is normalized to name order so the bytes stay stable. Do not smooth, clamp, or turn values into emotion labels.
+- The MediaPipe Web API does not publish its internal face-presence score on the result. `conf` is not an invented constant. It deterministically records the maximum of the 52 raw scores returned on the same detection, as a signal confidence. It is not face-detection confidence itself, so a consumer mainly uses presence versus absence and the individual blendshape values.
+- v0 uses `numFaces=1`. It does not track multiple people or join person identity.
 
-## 3. サイドカー（生成側）
+## 3. Sidecar (the generator)
 
-person-matte と同じ分離: **Swift ヘルパーはフレーム変換だけ、コンテナ・時刻・組み立ては
-ラッパー（.mjs）の責務**。
+The same split as person-matte. **The Swift helper only converts frames. The wrapper (`.mjs`) owns the container, the time, and the assembly.**
 
-- 置き場: `skills/analyze-footage/bin/vision-tracks/`
-  - `vision-tracks-helper.swift` — stdin から raw BGRA フレーム列、stdout へ **JSON Lines
-    （1 フレーム 1 行の検出結果）**。`swiftc -O` オンデマンドビルド・バイナリは `.gitignore`
-  - `vision-tracks.mjs` — `ffmpeg`（デコード・fps/幅統一）→ helper → トラックファイル組み立て →
-    `analysis.json` の tracks へ追記（原子的置換）。`--kinds face,hand,body-pose-3d` /
-    `--fps` / `--check`（macOS 14+ / swiftc / ffmpeg の可用性確認。macOS 14 未満は
-    capability 不足として理由付きで拒否）
-- 手順書: `skills/analyze-footage/vision-tracks.md`（person-matte.md と同格の任意工程）。
-  `SKILL.md` の実行順・ハードルールに配線する
-- 起動主体はエージェント（スキル手順に従い bash で直接叩く）。CLI サブコマンドにはしない
-  （判断を伴う工程はスキル、の境界裁定に従う）
+- Place: `skills/analyze-footage/bin/vision-tracks/`
+  - `vision-tracks-helper.swift`. Raw BGRA frames on stdin, **JSON Lines on stdout (one line of detections per frame)**. Built on demand with `swiftc -O`. The binary is gitignored.
+  - `vision-tracks.mjs`. `ffmpeg` (decode, and unify fps and width), then the helper, then assemble the track file, then append to `tracks` in `analysis.json` (atomic replace). `--kinds face,hand,body-pose-3d`, `--fps`, and `--check` (availability of macOS 14+, swiftc, and ffmpeg. Below macOS 14, refuse as a missing capability and give the reason).
+- Runbook: `skills/analyze-footage/vision-tracks.md` (an optional step at the same rank as person-matte.md). Wire it into the run order and hard rules of `SKILL.md`.
+- The agent starts it (the skill runbook calls it directly). It is not a CLI subcommand (a step that involves judgment stays a skill).
 
-### 3.1 face-expression の headless Chromium 生成器（additive・2026-08-14）
+### 3.1 Headless Chromium generator for face-expression (additive, 2026-08-14)
 
-`skills/analyze-footage/bin/face-expression/face-expression.mjs` は face-expression 専用の独立生成器。
-既存 Swift helper は変更せず、ffmpeg で 24 fps（`--fps` 変更可）・幅 1280 以下の PNG 列へ
-デコードし、Chrome for Testing + `puppeteer-core` のページ内で CPU/WASM 版 Face Landmarker を
-順に実行する。Chrome の探索順・起動引数・ページ処理後の結果吸い上げは avatar-vrm の既存
-headless 経路を踏襲する。
+`skills/analyze-footage/bin/face-expression/face-expression.mjs` is an independent generator only for face-expression. The existing Swift helper is unchanged. ffmpeg decodes to a PNG sequence at 24 fps (`--fps` can change it) and width at most 1280, then a Chrome for Testing plus `puppeteer-core` page runs the CPU/WASM Face Landmarker in order. Chrome search order, launch arguments, and pulling results after the page finishes follow the existing headless path of avatar-vrm.
 
-JS 版を選んだ理由は、`@mediapipe/tasks-vision` がブラウザ/WASM 専用である一方、製品には既に
-headless Chromium 経路があり、Python wheel や Swift helper という新しい実行系を増やさずに済むため。
-固定 Chrome・固定 WASM・CPU delegate・固定時刻入力により、同一環境では同じ行列分解と score 列を
-得られる。Python 版は arm64 wheel という別インストール面とバージョン解決を増やすため v0 では採らない。
+The JS build was chosen because `@mediapipe/tasks-vision` is browser and WASM only, the product already has a headless Chromium path, and this adds neither a Python wheel nor a Swift helper as a new runtime. A fixed Chrome, a fixed WASM, the CPU delegate, and a fixed time input yield the same matrix decomposition and score sequence in the same environment. The Python build adds another install surface (an arm64 wheel) and version resolution, so v0 does not take it.
 
-モデルはリポジトリへ置かず、初回だけ次を取得する。`AKARI_HOME` があればそれを優先し、既定は
-`~/.akari/models/mediapipe/face-landmarker/float16-1/face_landmarker.task`。既存ファイルも毎回
-SHA-256 検査し、不一致時は再取得で隠さず即エラーにする。新規取得は `.tmp-<pid>` へ書き、検証後に
-rename する。
+The model is not stored in the repository. Fetch it only on the first run. If `AKARI_HOME` is set, prefer it. The default is `~/.akari/models/mediapipe/face-landmarker/float16-1/face_landmarker.task`. An existing file is SHA-256 checked every time. On a mismatch, error immediately. Do not hide it by refetching over the file. A new fetch writes to `.tmp-<pid>`, then renames after verification.
 
 - URL: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`
 - SHA-256: `64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff`
 
-ブラウザ runtime はネットワーク変動を避けるため `@mediapipe/tasks-vision@0.10.17` の必要ファイルを
-無変換で vendor した。ライセンスは Apache-2.0。
+The browser runtime vendors the files it needs from `@mediapipe/tasks-vision@0.10.17` with no transform, so network variation stays out. The license is Apache-2.0.
 
 | artifact | SHA-256 |
 |---|---|
@@ -283,52 +224,39 @@ rename する。
 | `vision_wasm_nosimd_internal.wasm` | `f840f69d7229f89dedaed39c7ac7a52f0964a7cec02d6cb1ac9eff891db86dc2` |
 | `LICENSE.txt` | `b070d77bfb2c52a1dd6996de0ce5f64c49a0ca55c889b163a963ddf5cb001ee2` |
 
-> 注: `LICENSE.txt` のみ npm tarball には含まれず（tarball 展開で実測確認済み）、Apache-2.0 の定型全文を手動で添えたもの（出所は `vendor/.../README-AKARI.md` 参照）。他の行は全て tarball 由来の実ファイル。
+> Note. Only `LICENSE.txt` is absent from the npm tarball (confirmed by expanding the tarball). The stock Apache-2.0 full text was added by hand (see `vendor/.../README-AKARI.md` for the source). Every other row is a real file from the tarball.
 
-tarball は `tar -xzf` 後、上記 bundle/WASM だけをコピーし、esbuild 等の再ビルドは行っていない。
-tarball 自体の npm integrity は
-`sha512-CZWV/q6TTe8ta61cZXjfnnHsfWIdFhms03M9T7Cnd5y2mdpylJM0rF1qRq+wsQVRMLz1OYPVEBU9ph2Bx8cxrg==`。
+After `tar -xzf`, only the bundle and WASM files above are copied. There is no esbuild or other rebuild. The npm integrity of the tarball itself is `sha512-CZWV/q6TTe8ta61cZXjfnnHsfWIdFhms03M9T7Cnd5y2mdpylJM0rF1qRq+wsQVRMLz1OYPVEBU9ph2Bx8cxrg==`.
 
-## 4. 消費（変換器）
+## 4. Consumption (the converter)
 
-トラック → `edit.json` への反映は**決定論の変換器**が行う。v0 の消費者は 3 つ（別契約で
-実装しても本契約の §2 形式だけを入力にする）:
+A **deterministic converter** writes the track into `edit.json`. v0 has 3 consumers (another contract may implement them, and the only input is the §2 format of this contract).
 
-| 消費者 | 入力 | 出力 |
+| Consumer | Input | Output |
 |---|---|---|
-| eye-bar（目線黒帯） | face_landmarks（両瞳） | 黒帯レイヤー + `layers[].keyframes` の transform（x/y/rotate/scale） |
-| finger-frame（指フレーム） | hand_pose（両手の thumb_tip / index_tip = 4 点） | 対象レイヤーの `layers[].keyframes` の perspective（4 隅 corner-pin）+ 発動区間 |
-| pose-skeleton | body_pose_3d（17 関節の 2D `projection`） | アルファ付きスティックフィギュアを事前ベイクした `kind: "baked"` layer |
+| eye-bar (eye-line black bar) | face_landmarks (both pupils) | A black-bar layer plus `layers[].keyframes` transform (x/y/rotate/scale) |
+| finger-frame | hand_pose (thumb_tip and index_tip of both hands, 4 points) | `layers[].keyframes` perspective of the target layer (4-corner pin) plus the active span |
+| pose-skeleton | body_pose_3d (2D `projection` of the 17 joints) | A `kind: "baked"` layer of an alpha stick figure baked ahead of time |
 
-`face_expression` のアバター駆動への結線は次の消費側契約に委ねる。本契約では生成 SSOT までとし、
-既存の「あいうえお」口パクや avatar-vrm / avatar-drive を変更しない。
+Wiring `face_expression` into avatar drive is left to the next consumer contract. This contract stops at the generation source of truth. It does not change the existing five-vowel mouth shapes, avatar-vrm, or avatar-drive.
 
-- 平滑化（移動平均・One Euro 等）・キーフレーム間引き・欠測補間は**変換器の責務**。
-  パラメータは変換器の引数で決定論に
-- pose-skeleton は欠測と cut 境界で平滑化状態をリセットし、低 confidence 関節を含む骨を
-  非表示にする。欠測区間を hold せず、別 baked clip / layer へ分割する
-- pose-skeleton の v0 は `bodyIndex=0` 固定で各フレーム先頭の 1 人だけを対象とし、複数人には非対応
-- perspective keyframes の ffmpeg 側は既存の時間窓分割フォールバック
-  （`expandLayerForPerspectiveKeyframes`）に乗る。新しいレンダー経路は作らない
-- `cuts[].fx` は**使わない**（全画面ポスト効果の器。空間追跡系はレイヤー機構が正）
+- Smoothing (moving average, One Euro, and similar), keyframe thinning, and gap interpolation are **the converter's job**. Parameters are converter arguments, and they stay deterministic.
+- pose-skeleton resets smoothing state on a gap and on a cut boundary, and hides a bone that includes a low-confidence joint. It does not hold across a gap. It splits into another baked clip or layer.
+- pose-skeleton v0 targets only the first person of each frame, with `bodyIndex=0` fixed. It does not support multiple people.
+- The ffmpeg side of perspective keyframes rides the existing time-window split fallback (`expandLayerForPerspectiveKeyframes`). Do not build a new render path.
+- Do **not** use `cuts[].fx` (that seat is a full-frame post effect. Spatial tracking belongs to the layer mechanism).
 
-## 5. 検証責務
+## 5. Verification duties
 
-- `packages/schemas/bin/` に新しいバリデータ CLI は**作らない**（person-matte 契約 §7 の分担を
-  継続）。トラックファイルの JSON Schema は `skills/analyze-footage/references/
-  vision-tracks.schema.json` に置き、スキル手順の jsonschema 検証が担う
-- `analysis.schema.json` への tracks 4 キー追加は additive のみ
-- **`packages/analysis-report/render-analysis-report.mjs` の軽量チェックを同時に更新する**
-  （person_matte が残した「消費者の追随債務」を新トラックで繰り返さない）
-- verify は L0（該当 package / skill の `node --test`）。GUI を触らないため L1/L2 は対象外
-- face-expression は schema wiring、52 キー固定、同一行列の Euler 分解一致、モデル初回配置と
-  cached/downloaded 両方の SHA-256 不一致拒否を unit test する。実素材の検出率・CPU 時間・
-  実時間比は fieldtest 12 秒窓で別途記録し、値を捏造して本契約へ先書きしない
+- Do **not** add a new validator CLI under `packages/schemas/bin/` (continue the split in person-matte contract §7). The track-file JSON Schema lives at `skills/analyze-footage/references/vision-tracks.schema.json`, and the skill runbook's jsonschema check owns it.
+- Adding the 4 track keys to `analysis.schema.json` is additive only.
+- **Update the lightweight check in `packages/analysis-report/render-analysis-report.mjs` at the same time** (do not repeat the "consumer follow-up debt" that person_matte left, on the new tracks).
+- verify is L0 (`node --test` of the package or skill that applies). L1 and L2 are out of scope because the GUI is not touched.
+- face-expression unit-tests schema wiring, the fixed 52 keys, Euler decomposition agreement on the same matrix, and SHA-256 mismatch refusal for both a cached file and a downloaded file on first model placement. Detection rate, CPU time, and realtime ratio on real footage are recorded separately in a fieldtest 12 second window. Do not invent those values and write them into this contract ahead of the measurement.
 
-## 6. やらないこと（v0）
+## 6. Out of scope for v0
 
-- 感情・笑い・音声イベント分析（SoundAnalysis）— 別契約
-- 自動リフレーム（サリエンシー）・美的スコア — 別契約
-- クラウド実行・macOS 以外のプロバイダ実装（形式だけプロバイダ中立にしておく）
-- `edit.json` からトラックファイルを直接参照する仕組み（消費は変換器経由のみ。エフェクトが
-  分析に依存する形をスキーマに持ち込まない）
+- Emotion, laughter, and audio-event analysis (SoundAnalysis). Another contract.
+- Automatic reframing (saliency) and an aesthetic score. Another contract.
+- Cloud execution, and a provider implementation outside macOS (keep only the format provider-neutral).
+- A mechanism that makes `edit.json` reference a track file directly (consumption goes through the converter only. Do not bring "an effect depends on analysis" into the schema).

@@ -1,98 +1,63 @@
-# 画面 FX 小語彙 v0 契約（noise / particles / vignette / flare / color-overlay）
+**English** | [Japanese](./contract-2026-08-05-fx-v0.ja.md)
 
-> **廃止（2026-08-11）**: 本契約が定義した 5 id（noise / particles / vignette / flare /
-> color-overlay）はオーナー裁定「めちゃくちゃダサいのでやめたい」により製品面から全撤去した
-> （撤去の作業記録は非公開の内部記録で管理）。`presets/fx/index.jsonl` は
-> 0 件へ戻し、`packages/render-cut/src/fx.mjs` の `FX_BUILDERS` から 5 ビルダーを削除、
-> `packages/schemas/edit.schema.json` の `$defs/cutFx.properties.id` は enum を撤廃して
-> string へ緩和した（未登録 id は render 側が警告 + no-op で通す。ハードフェイルしない）。
-> `presets/fx/` の参照表・ディスパッチの器自体は残しており、将来の Vision 分析パス系レシピの
-> 受け皿として存続する。本書はファイル削除せず、以下を当時の技術仕様の歴史記録として残す。
+# Screen FX small vocabulary v0 (noise, particles, vignette, flare, color-overlay)
 
-- 日付: 2026-08-05
-- 状態: **draft**（実装と並走で approved 化）。本書は技術仕様のみ
-- 前提: `contract-2026-07-22-render-basics.md`（`output.look` LUT・`cuts[].transition_out` 等の
-  実装契約・検証の流儀の前例）、`contract-2026-07-17-data-contract-versioning.md`（三原則）
-- 大原則: **done = 出力ファイルに現れる**。全項目、実レンダリング出力の機械検証を受け入れ条件
-  とする（仕様先行・バックエンドの silent drop を許さない）
+> **Retired (2026-08-11).** The owner removed all five ids defined here (`noise`, `particles`, `vignette`, `flare`, `color-overlay`) from the product because they looked bad. The removal log is a private internal record. `presets/fx/index.jsonl` went back to 0 entries. The five builders were deleted from `FX_BUILDERS` in `packages/render-cut/src/fx.mjs`. `$defs/cutFx.properties.id` in `packages/schemas/edit.schema.json` dropped its enum and relaxed to string. An unregistered id warns and no-ops on the render side. It does not hard-fail. The `presets/fx/` reference table and the dispatch container remain, as a place for future recipes that come from the vision-analysis path. This file stays. The text below is the historical technical spec.
 
-## 0. スコープ宣言
+- Date: 2026-08-05
+- Status: **draft** (it becomes approved alongside the implementation). This document is the technical spec only.
+- Depends on `contract-2026-07-22-render-basics.md` (the implementation contract and verification style for `output.look` LUT, `cuts[].transition_out`, and related fields) and `contract-2026-07-17-data-contract-versioning.md` (three principles).
+- Rule: **done means it appears in the output file.** Every item takes machine verification of a real render as its acceptance condition. A spec that lands first, and a backend that silently drops the effect, do not count.
 
-本契約は**新規に実装した画面 FX 小語彙 5 個だけ**を対象とする。旧実装（参照実装リポ）にある
-FX 479 個の移植は行わない。479 個の移植は別途中止裁定が下っており、本契約はその裁定の再訪
-ではない — 需要（演出レシピが単体で成立する 4 種: ノイズ・粒子・ビネット・フレア）から見て
-必要な最小語彙だけを新規に書き起こしたものである。
+## 0. Scope statement
 
-## 1. スコープ（presets/fx/ 参照表 + 5 id）
+This contract covers **only the five screen FX that were newly implemented**. It does not port the 479 FX from the old reference-implementation repo. A separate ruling already stopped that port. This contract does not reopen that ruling. It writes down the smallest vocabulary the recipes need in order to stand alone: noise, particles, vignette, and flare.
 
-`presets/fx/`（`presets/luts/` と同じ参照表方式: `index.jsonl`）に 5 id を収める。LUT と違い
-実体ファイル（`.cube` 相当）は持たず、`id` は `packages/render-cut/src/fx.mjs` の
-`FX_BUILDERS` ディスパッチ表と 1:1 対応する（実装はコードそのもの）。
+## 1. Scope (`presets/fx/` reference table plus 5 ids)
 
-| id | 機能 | 実装経路 | ツマミ |
+`presets/fx/` holds the 5 ids in the same reference-table style as `presets/luts/`, using `index.jsonl`. Unlike a LUT, there is no asset file (nothing like `.cube`). Each `id` maps 1:1 to the `FX_BUILDERS` dispatch table in `packages/render-cut/src/fx.mjs`. The implementation is the code itself.
+
+| id | Behavior | Implementation path | Controls |
 |---|---|---|---|
-| `noise` | 映像ノイズ・劣化感 | ffmpeg `noise` フィルタ直結（`all_flags=u+t` で時間変化するノイズ） | `intensity` |
-| `particles` | 漂う粒子・ちり | procedural（黒キャンバス上に `geq` で複数の輝点を手続き描画し `screen` 合成） | `intensity` |
-| `vignette` | 周辺減光 | ffmpeg `vignette` フィルタ（`white` 指定時は `negate,vignette,negate` の反転トリック） | `intensity` / `params.color`（`black`\|`white`、既定 `black`） |
-| `flare` | 光のフレア・強調 | procedural（`particles` と同じ経路。輝点 1 個・大径・低速周回） | `intensity` |
-| `color-overlay` | 画面全体への色被せ（フェード赤・カラーマット黒相当を 1 id でカバー） | ffmpeg `color=` ソース + `blend` | `intensity` / `params.color`（必須） |
+| `noise` | Picture noise and a worn look | ffmpeg `noise` filter directly (`all_flags=u+t` makes the noise change over time) | `intensity` |
+| `particles` | Drifting particles and dust | Procedural. `geq` draws several bright points on a black canvas, then `screen` composites them | `intensity` |
+| `vignette` | Edge darkening | ffmpeg `vignette` filter. When `white` is set, the invert trick is `negate,vignette,negate` | `intensity` and `params.color` (`black` or `white`, default `black`) |
+| `flare` | Light flare and emphasis | Procedural, the same path as `particles`. One bright point, large radius, slow orbit | `intensity` |
+| `color-overlay` | A color laid over the whole frame (one id covers a red fade and a black color matte) | ffmpeg `color=` source plus `blend` | `intensity` and `params.color` (required) |
 
-プレビュー側の描画方式、強度ツマミ、近似差は
-[`contract-2026-08-02-preview-parity.md` §2.4.5](./contract-2026-08-02-preview-parity.md#245-画面-fxcutsfx2026-08-07-導入近似あり)
-を参照。
+Preview drawing, the intensity control, and the approximation gap are in [`contract-2026-08-02-preview-parity.md` §2.4.5](./contract-2026-08-02-preview-parity.md).
 
-## 2. edit.json 拡張（追記のみ）
+## 2. edit.json extension (append only)
 
 ```
 cuts[].fx: [{ id, intensity?, params? }]
 ```
 
-- `id`: 上表 5 値の enum（`packages/schemas/edit.schema.json` `$defs/cutFx`）
-- `intensity`: `number` `[0, 1]`。省略時 1（フル効果）。**0 は全 id 共通で恒等**
-  （FX 無し出力と画素等価。builder の実装に関わらず render 側が一律に no-op 化する）
-- `params.color`: `vignette` は `"black"` / `"white"`（既定 `black`）。`color-overlay` は
-  ffmpeg の color 表記（`"red"` / `"#ff0000"` / `"0xff0000"` 等）で **必須**
-  （色指定なしに意味を持たないため）。`noise` / `particles` / `flare` は `params` を使わない
-- 配列は**複数重ね掛け可・配列順 = 適用順**（`cuts[].transform` 等と同じ「cuts 単位の追加宣言」
-  という語彙上の扱い）
-- 既存フィールドの意味変更はしていない。`cuts[].fx` 省略時は今日と完全に同じ出力
-  （非回帰: `fx` を持つカットが 1 つも無い場合、フィルタグラフの文字列は変更前と byte-for-byte
-  一致する）
+- `id` is an enum of the five values in the table (`packages/schemas/edit.schema.json` `$defs/cutFx`).
+- `intensity` is a `number` in `[0, 1]`. The default is 1, full effect. **0 is identity for every id.** The pixels match an output with no FX. The render side no-ops uniformly, whatever the builder does.
+- `params.color` for `vignette` is `"black"` or `"white"` (default `black`). For `color-overlay` it is an ffmpeg color (`"red"`, `"#ff0000"`, `"0xff0000"`, and the same family) and it is **required**, because the effect has no meaning without a color. `noise`, `particles`, and `flare` do not use `params`.
+- The array **may stack**. Array order is application order. The vocabulary is the same "extra declaration on the cut" used by `cuts[].transform` and similar fields.
+- No existing field changes meaning. Omitting `cuts[].fx` produces the same output as before. Non-regression: if no cut has `fx`, the filter-graph string matches the previous string byte for byte.
 
-## 3. 実装
+## 3. Implementation
 
-- `packages/render-cut/src/fx.mjs`: 5 id のフィルタグラフビルダーと `appendCutFxChain`
-  （複数 fx の重ね掛けを配列順に連結し、`intensity<=0` を一律 `null`（恒等）にする共通処理）
-- `packages/render-cut/src/plan.mjs`: `cuts[].transform` と同じ「cut 単位の追加処理」として
-  3 つのカット結合経路（`buildCutCommand` / `buildMultiSourceCutCommand` /
-  `buildGapAwareCutCommand`）すべてに配線。`fx` を持つカットが 1 つでもあれば、その配列
-  全体が per-cut フル WxH フレーム経路（`transform` と同じ扱い）に載る
-- 決定論: `noise` の `all_seed` と `particles` / `flare` の輝点の動きは、カット位置・
-  fx スタック段・fx id から導いた固定ハッシュ/式のみで決まる。`Math.random` /
-  `Date.now` はレンダ経路のどこにも使わない
+- `packages/render-cut/src/fx.mjs` holds the filter-graph builders for the 5 ids and `appendCutFxChain`. The shared step chains stacked fx in array order and turns `intensity<=0` into `null` (identity) for every id.
+- `packages/render-cut/src/plan.mjs` wires fx as extra per-cut processing, the same class as `cuts[].transform`, on all three cut-join paths: `buildCutCommand`, `buildMultiSourceCutCommand`, and `buildGapAwareCutCommand`. If any cut has `fx`, that whole array rides the per-cut full W×H frame path, the same treatment as `transform`.
+- Determinism: `all_seed` for `noise`, and the motion of bright points for `particles` and `flare`, come only from a fixed hash or expression derived from the cut position, the fx stack index, and the fx id. The render path does not use `Math.random` or `Date.now`.
 
-## 4. 検証（受け入れ条件）
+## 4. Verification (acceptance)
 
-- L0: 既存 + 新規テストが緑（`node --test packages/render-cut/test/*.test.mjs`）・
-  `presets/fx/index.jsonl` が自己記述（id・kind・name・description・when_to_use・tags・
-  params・ai_usage・source を全エントリが持つ）かつ `fx.mjs` の `FX_IDS` /
-  `edit.schema.json` の `$defs/cutFx.properties.id.enum` と id 集合が完全一致・
-  `node --check` 全対象ファイル緑
-- L1: フィクスチャ動画の実レンダで FX ごとの特徴を実測（`packages/render-cut/test/cut-fx.test.mjs`）
-  - 全 id 共通: `intensity=0` で FX 無し出力と画素等価 / 同一 `edit.json` の 2 回レンダが
-    画素等価（決定論）
-  - `noise`: FX 有無の同一フレーム画素差分 > 0 かつフレーム間分散が増加
-  - `vignette`: 四隅の輝度の中心比が、黒指定（既定）で低下・白指定で上昇
-  - `color-overlay`: フレーム平均色の指定色までの距離が intensity に対して単調減少
-  - `particles` / `flare`: FX 有無の画素差分 > 0 かつ時間方向に変化がある（静止画でない）
-  - LUT との併用 1 ケース（白黒 LUT + noise）が render-cut CLI の実パイプラインを通して
-    破綻しない
+- L0. Existing and new tests are green (`node --test packages/render-cut/test/*.test.mjs`). `presets/fx/index.jsonl` is self-describing: every entry has id, kind, name, description, when_to_use, tags, params, ai_usage, and source. The id set matches `FX_IDS` in `fx.mjs` and `$defs/cutFx.properties.id.enum` in `edit.schema.json`. `node --check` is green for every target file.
+- L1. A real render of the fixture video measures each FX signature (`packages/render-cut/test/cut-fx.test.mjs`).
+  - Every id: `intensity=0` is pixel-equivalent to output with no FX. Two renders of the same `edit.json` are pixel-equivalent (determinism).
+  - `noise`: the pixel difference of the same frame with and without FX is greater than 0, and the variance between frames increases.
+  - `vignette`: the corner luminance relative to the center falls for black (the default) and rises for white.
+  - `color-overlay`: the distance from the frame's average color to the requested color decreases monotonically with intensity.
+  - `particles` and `flare`: the pixel difference with and without FX is greater than 0, and the picture changes over time. It is not a still.
+  - One combined case, a black-and-white LUT plus noise, goes through the real render-cut CLI pipeline without breaking.
 
-## 5. 除外・既知の残作業
+## 5. Excluded and known leftovers
 
-- `packages/edit-lint`（`packages/schemas/bin/validate-edit.mjs` とは別の、公開リポ内の
-  もう一つの edit.json 静的検証ツール）には本契約時点で `cuts[].fx` 専用の意味検証を追加して
-  いない。`additionalProperties` を拒否しない既存の緩さにより非破壊ではあるが、`transform` /
-  `transition_out` と同水準の検証（未知キー拒否・id enum 検証等）は未整備
-- `presets/INDEX.md`（親リポジトリの棚卸し索引）に `presets/fx/` へのリンクを追加していない
-- FX 479 個の移植は本契約の対象外のまま（§0 参照）
+- `packages/edit-lint` (the other static `edit.json` checker in the public repo, distinct from `packages/schemas/bin/validate-edit.mjs`) did not gain semantic checks specific to `cuts[].fx` in this contract. The existing looseness that does not reject `additionalProperties` keeps the file non-destructive, but checks at the level of `transform` and `transition_out` (unknown-key rejection, id enum checks, and the rest) are not in place.
+- `presets/INDEX.md` (the inventory index in the parent repo) does not link to `presets/fx/`.
+- Porting the 479 FX stays out of scope. See §0.

@@ -1,24 +1,26 @@
+**English** | [Japanese](./contract-2026-08-12-region-filter-layer-v0.ja.md)
+
 # Region filter layer v0
 
-## 1. 背景
+## 1. Background
 
-finger-frame の中心表現を、別映像の corner-pin 合成だけでなく、指で作った枠の内側だけベース映像自身のルックを切り替える表現へ拡張する。この用途では貼り込み素材を入力せず、ベース映像からフィルター済みの映像を作り、指定 region の内側だけへ戻す。
+Extend the central move of finger-frame. Besides corner-pin compositing of another picture, switch the look of the base picture itself, and only inside a frame made with the fingers. This use does not take a pasted footage input. It builds a filtered picture from the base picture and puts that picture back inside the given region only.
 
-本書は `edit.json` の additive な拡張である `layers[].kind: "filter"` の v0 契約を定める。
+This document is the v0 contract for the additive `edit.json` extension `layers[].kind: "filter"`.
 
-## 2. 意味論
+## 2. Semantics
 
-- `kind: "filter"` の layer は `src` を持たない。ベース映像以外の貼り込み入力を追加しない。
-- `filter` は region の内側にだけ適用し、region の外側はベース映像をそのまま保つ。
-- layer の発動時間窓は既存どおり `t` と `duration` で表す。
-- `opacity`、`track`、および `keyframes[].perspective` は既存 layer の共通フィールドを再利用する。
-- `src`、`chroma_key`、`blend`、`crop`、`transform` は `kind: "filter"` では使用できない。
+- A layer with `kind: "filter"` has no `src`. It does not add a paste input other than the base picture.
+- `filter` applies only inside the region. Outside the region, the base picture stays as it is.
+- The layer's active time window is still `t` and `duration`.
+- `opacity`, `track`, and `keyframes[].perspective` reuse the shared fields of an existing layer.
+- `src`, `chroma_key`, `blend`, `crop`, and `transform` cannot be used when `kind` is `"filter"`.
 
 ## 3. Region source v0
 
-v0 の region source は `perspective.corners` の quad である。表現、4 隅の順序、値域、退化四角形の制約は既存の `layerPerspective` をそのまま再利用する。`keyframes[].perspective` がある場合は既存の perspective keyframe 展開規約に従い、時間区間ごとの静的 quad として合成する。
+The v0 region source is the quad in `perspective.corners`. Representation, the order of the four corners, the value range, and the degenerate-quad constraint reuse the existing `layerPerspective` as they are. When `keyframes[].perspective` is present, follow the existing perspective keyframe expansion rule and composite each time span as a static quad.
 
-## 4. 凍結インターフェース
+## 4. Frozen interface
 
 ```jsonc
 {
@@ -27,8 +29,8 @@ v0 の region source は `perspective.corners` の quad である。表現、4 �
   "t": 12.0,
   "duration": 2.4,
   "filter": { "type": "invert" },
-  // または { "type": "lut", "id": "<presets/luts の id>", "intensity": 1.0 }
-  // または { "type": "saturation", "value": 1.6 }
+  // or { "type": "lut", "id": "<id from presets/luts>", "intensity": 1.0 }
+  // or { "type": "saturation", "value": 1.6 }
   "perspective": { "corners": [[0, 0], [1, 0], [0, 1], [1, 1]] },
   "keyframes": [
     {
@@ -40,7 +42,7 @@ v0 の region source は `perspective.corners` の quad である。表現、4 �
 }
 ```
 
-`filter` は次の closed union とする。
+`filter` is the following closed union.
 
 ```jsonc
 {
@@ -73,26 +75,26 @@ v0 の region source は `perspective.corners` の quad である。表現、4 �
 }
 ```
 
-LUT の `intensity` 省略時は `1` として描画する。
+When LUT `intensity` is omitted, draw it as `1`.
 
-## 5. 予約（今回のスコープ外）
+## 5. Reserved, out of scope this time
 
-- region source `mask`: ピクセル単位のマットを region として使用する予約。v0 では schema、CLI、renderer のいずれにも実装しない。
-- filter type `"pixelate"`: face-mosaic の将来の移行先として予約する。v0 の closed union には含めず、指定された場合は拒否する。
+- Region source `mask`. Reserved for using a per-pixel matte as the region. v0 implements it in none of the schema, the CLI, or the renderer.
+- Filter type `"pixelate"`. Reserved as a future home for face-mosaic. It is not in the v0 closed union. Reject it if it is specified.
 
-予約名は現在利用可能であることを意味しない。
+A reserved name does not mean the feature is available now.
 
-## 6. Additive 原則
+## 6. Additive principle
 
-この契約は既存の `kind: "baked"` / `kind: "video"` に対する additive な拡張である。既存 kind の必須フィールド、合成順、フィルターチェーン、examples / fixtures の妥当性と出力は変更しない。filter layer を含まない既存入力は従来とバイト等価に扱う。
+This contract is an additive extension of the existing `kind: "baked"` and `kind: "video"`. It does not change required fields, composite order, or filter chains of existing kinds, and it does not change the validity or output of examples and fixtures. An existing input that contains no filter layer stays byte-equivalent to the previous output.
 
-## 7. 実装対応
+## 7. Implementation map
 
-- `packages/render-cut/src/filter-mask.mjs` / `layers.mjs`: corner keyframes からフレーム単位の縮小 gray8 quad mask を生成し、ベース映像の split、ルック適用、拡大したマスクとの `maskedmerge` による region 内合成を行う。filter layer ごとにマスク動画用の `-i` を 1 本追加する。
-- `packages/akari-tools/bin/finger-frame.mjs`: `--kind filter --filter invert|lut:<id>|saturation:<value>` から、既存と同じ gesture window と corner keyframes を持つ layer を生成する。
+- `packages/render-cut/src/filter-mask.mjs` and `layers.mjs` build a per-frame scaled-down gray8 quad mask from the corner keyframes. They split the base picture, apply the look, and composite inside the region with `maskedmerge` against the enlarged mask. Each filter layer adds one `-i` for the mask video.
+- `packages/akari-tools/bin/finger-frame.mjs` generates a layer from `--kind filter --filter invert|lut:<id>|saturation:<value>`. The layer has the same gesture window and corner keyframes as before.
 
-## 8. 検証
+## 8. Verification
 
-L0 では schemas、akari-tools、render-cut の各 `node --test`、docs-sync、既存 baked / video の非回帰を確認する。ffmpeg コマンド生成テストは filter layer が追加 `-i` を作らず、3 種の filter と perspective keyframe 展開が決定論的なグラフを生成することを確認する。
+L0 checks `node --test` for schemas, akari-tools, and render-cut, plus docs-sync, plus non-regression of existing baked and video. The ffmpeg command-generation test checks that a filter layer does not create an extra `-i`, and that the three filters and the perspective keyframe expansion produce a deterministic graph.
 
-12 秒 window の実素材による invert / LUT の見た目、所要時間、入力数の実測は別途実施し、検証報告へ記録する。
+Measure the look, the elapsed time, and the input count of invert and LUT on 12 seconds of real footage separately, and record that in the verification report.

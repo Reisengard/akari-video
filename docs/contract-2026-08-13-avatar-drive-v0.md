@@ -1,26 +1,23 @@
+**English** | [Japanese](./contract-2026-08-13-avatar-drive-v0.ja.md)
+
 ---
 lifecycle: stable
 created: 2026-08-13
 updated: 2026-08-13
 ---
 
-# 2D アバター差分スプライト駆動契約 v0（avatar-drive）
+# 2D avatar difference-sprite drive contract v0 (avatar-drive)
 
-- 日付: 2026-08-13
-- 状態: **v0 実装済み**
-- 前提: `contract-2026-07-13-m1-m4.md`（`layers[]` と出力座標系）、
-  `contract-2026-07-22-prerender-rail-and-assets.md`（`kind: "baked"`）、
-  `contract-2026-07-26-avatar-registry-v0.md`（将来の rendition 解決先）
-- スコープ: 音声 RMS による口 3 状態と、決定論的な手続きまばたきを、アルファ付きの
-  小領域クリップへ事前ベイクする変換器。映像からの表情推定とレジストリ解決は含まない
+- Date: 2026-08-13
+- Status: **v0 implemented**
+- Depends on: `contract-2026-07-13-m1-m4.md` (`layers[]` and the output coordinate system), `contract-2026-07-22-prerender-rail-and-assets.md` (`kind: "baked"`), `contract-2026-07-26-avatar-registry-v0.md` (the future rendition resolution target)
+- Scope: a converter that pre-bakes a 3-state mouth from audio RMS, and a deterministic procedural blink, into a small alpha clip. Expression estimation from the picture, and registry resolution, are out of scope.
 
-## 1. 入出力と責務
+## 1. Input, output, and duties
 
-`packages/akari-tools/bin/avatar-drive.mjs <project> --sprites <dir>` は、`<project>/edit.json`
-と source 音声を読み、スプライト自身の解像度・edit.json の出力 fps のまま ProRes 4444 MOV を
-`.akari/cache/avatar-drive/avatar-drive.mov` へ生成する。フル出力フレームは焼かない。
+`packages/akari-tools/bin/avatar-drive.mjs <project> --sprites <dir>` reads `<project>/edit.json` and the source audio, and generates a ProRes 4444 MOV at the sprite's own resolution and at edit.json's output fps, to `.akari/cache/avatar-drive/avatar-drive.mov`. It does not bake a full output frame.
 
-stdout は常に 1 行 JSON で、成功時は次を含む。
+stdout is always one JSON line. On success it includes the following.
 
 ```jsonc
 {
@@ -45,20 +42,14 @@ stdout は常に 1 行 JSON で、成功時は次を含む。
 }
 ```
 
-- `drive.mouth[]` / `drive.eyes[]` の 1 要素は出力 1 フレームに対応する。
-- `--apply` は生成した layer を既存 `layers[]` の末尾へ 1 件だけ追記する。既存の全フィールドと
-  既存 layer の順序・値は不変で、同一 id が既にあれば上書きせず失敗する。
-- source 音声は cuts の順序、`in` / `out`、`speed` を反映したタイムライン音声である。v0 の
-  `source` と v1 の `sources[]` / `cuts[].src` を受け付ける。BGM・SFX・narration は駆動へ混ぜない。
-- `--position` は `right-bottom`（既定）、`left-bottom`、`right-top`、`left-top`、`center`、
-  または出力フレーム左上基準のアンカー座標 `x,y`。`--scale` は正の倍率（既定 `1`）。
-  名前付きプリセットは scale 後のスプライト外接矩形を margin の内側へ揃え、`sprite.json` の
-  anchor には依存しない。明示 `x,y` だけは、その座標へ sprite の anchor 点を固定する。
+- One element of `drive.mouth[]` and of `drive.eyes[]` is one output frame.
+- `--apply` appends exactly one generated layer at the end of the existing `layers[]`. Every existing field, and the order and values of existing layers, stay unchanged. If the same id already exists, do not overwrite. Fail.
+- Source audio is the timeline audio that reflects cut order, `in` and `out`, and `speed`. Accept v0 `source` and v1 `sources[]` / `cuts[].src`. Do not mix BGM, SFX, or narration into the drive.
+- `--position` is `right-bottom` (default), `left-bottom`, `right-top`, `left-top`, `center`, or an anchor coordinate `x,y` whose origin is the top left of the output frame. `--scale` is a positive factor (default `1`). A named preset aligns the sprite's bounding box after scale inside the margin, and does not depend on the anchor in `sprite.json`. Only an explicit `x,y` pins the sprite's anchor point to that coordinate.
 
-## 2. スプライトセット規約
+## 2. Sprite-set rules
 
-1 セットは 1 ディレクトリと、その直下の `sprite.json` で構成する。参照 PNG はすべて同じ
-透明キャンバスを共有し、`base` → 選択した `mouth` → 選択した `eyes` の順に合成する。
+One set is one directory and a `sprite.json` directly under it. Every referenced PNG shares the same transparent canvas. Composite in the order `base`, then the selected `mouth`, then the selected `eyes`.
 
 ```text
 avatar-sprites/
@@ -89,110 +80,84 @@ avatar-sprites/
 }
 ```
 
-| フィールド | 規約 |
+| Field | Rule |
 |---|---|
-| `version` | 整数 `0`。破壊的変更だけが bump の理由になる |
-| `size.width/height` | 2 以上の整数 px。全参照 PNG の実寸と一致する |
-| `anchor.x/y` | キャンバス左上を `(0,0)`、右下を `(1,1)` とする正規化座標。配置時にこの点を固定する |
-| `base` | 透過 PNG へのディレクトリ相対パス |
-| `mouth.closed/mid/open` | 口の 3 状態。透過 PNG へのディレクトリ相対パス |
-| `eyes.open/closed` | 目の 2 状態。透過 PNG へのディレクトリ相対パス |
+| `version` | The integer `0`. Only a breaking change is a reason to bump. |
+| `size.width/height` | An integer px of 2 or more. It matches the real size of every referenced PNG. |
+| `anchor.x/y` | Normalized coordinates with the canvas top left at `(0,0)` and the bottom right at `(1,1)`. Placement pins this point. |
+| `base` | A directory-relative path to a transparent PNG. |
+| `mouth.closed/mid/open` | The 3 mouth states. Directory-relative paths to transparent PNGs. |
+| `eyes.open/closed` | The 2 eye states. Directory-relative paths to transparent PNGs. |
 
-絶対パス、`..` によるディレクトリ外参照、PNG 以外、欠落ファイル、寸法不一致は拒否する。
-未知フィールドと `mouth` / `eyes` の追加キーは無視する寛容リーダーとし、笑顔・眉・衣装・追加口形など
-将来の差分を **additive に追加できる**。既存の必須キーの意味変更や、追加差分を理由とする
-`version` bump は行わない。
+Refuse an absolute path, a `..` reference outside the directory, anything other than PNG, a missing file, and a size mismatch. Unknown fields, and extra keys under `mouth` or `eyes`, are ignored by a tolerant reader, so a future difference such as a smile, brows, a costume, or an extra mouth shape **can be added**. Do not change the meaning of an existing required key, and do not bump `version` because an extra difference was added.
 
-## 3. 駆動プロファイル v0
+## 3. Drive profile v0
 
-ffmpeg が cuts 適用後の source 音声を mono float PCM（4,800 Hz）へ復号し、出力フレームごとの
-RMS を抽出する。RMS にアタック／リリース平滑をかけ、2 閾値とヒステリシスで
-`closed` / `mid` / `open` を決定する。
+ffmpeg decodes the source audio after cuts to mono float PCM (4,800 Hz) and extracts the RMS of each output frame. Smooth the RMS with attack and release, and decide `closed`, `mid`, or `open` with two thresholds and hysteresis.
 
-| ツマミ | CLI | 既定値 | 意味 |
+| Knob | CLI | Default | Meaning |
 |---|---|---:|---|
-| mid 閾値 | `--mid-threshold` | `0.025` | closed ↔ mid の中心 RMS |
-| open 閾値 | `--open-threshold` | `0.075` | mid ↔ open の中心 RMS |
-| ヒステリシス | `--hysteresis` | `0.008` | 各閾値の on/off 差（中心の前後半分） |
-| アタック | `--attack-ms` | `35` | RMS 上昇時の時定数 ms |
-| リリース | `--release-ms` | `120` | RMS 下降時の時定数 ms |
-| まばたき周期 | `--blink-period` | `4.2` | 平均開始間隔 s |
-| 周期揺らぎ | `--blink-jitter` | `1.2` | 開始間隔へ加える一様揺らぎ ±s |
-| 閉眼時間 | `--blink-duration` | `0.12` | 1 回の閉眼時間 s |
+| mid threshold | `--mid-threshold` | `0.025` | The center RMS between closed and mid |
+| open threshold | `--open-threshold` | `0.075` | The center RMS between mid and open |
+| hysteresis | `--hysteresis` | `0.008` | The on/off gap of each threshold (half before and half after the center) |
+| attack | `--attack-ms` | `35` | Time constant in ms when RMS rises |
+| release | `--release-ms` | `120` | Time constant in ms when RMS falls |
+| blink period | `--blink-period` | `4.2` | Mean start interval in seconds |
+| period jitter | `--blink-jitter` | `1.2` | Uniform jitter added to the start interval, plus or minus seconds |
+| closed-eye time | `--blink-duration` | `0.12` | One closed-eye duration in seconds |
 
-`mid < open`、ヒステリシスが 2 閾値の間隔未満、全時間値が正であることを検証する。
-まばたきの疑似乱数 seed は、正規化した edit.json、sprite.json、駆動プロファイルから SHA-256 で
-導出する。壁時計、OS の乱数、ファイル mtime は使わない。同一入力・同一ツマミ・同一 ffmpeg 出力なら、
-口状態列、まばたき列、ベイク映像、stdout の layer JSON は決定論的である。
+Verify that `mid < open`, that hysteresis is less than the gap between the two thresholds, and that every time value is positive. The blink pseudo-random seed is derived with SHA-256 from the normalized edit.json, sprite.json, and drive profile. Do not use the wall clock, the OS random source, or a file mtime. The same input, the same knobs, and the same ffmpeg output make the mouth-state sequence, the blink sequence, the baked picture, and the stdout layer JSON deterministic.
 
-## 4. 予約節（v0 では実装しない）
+## 4. Reserved sections (not implemented in v0)
 
-### 4.1 ビセム駆動
+### 4.1 Viseme drive
 
-whisper の単語／音素アライメントから viseme を選ぶ経路を将来追加する。追加時も v0 の
-`mouth.closed/mid/open` は必須のフォールバックとして残し、詳細な口形キーを additive に足す。
+A future path selects a viseme from whisper word or phoneme alignment. When it is added, v0 `mouth.closed/mid/open` stays as the required fallback, and detailed mouth-shape keys are added.
 
-v1 の母音駆動は transcript の単語区間をモーラ数で均等割りする粗い版である。forced-alignment
-（MFA、または日本語特化の Julius + OpenJTalk）で音素境界を得る精緻版は、引き続き予約とする。
+The v1 vowel drive is a coarse version that splits a transcript word span evenly by mora count. A precise version that gets phoneme boundaries from forced alignment (MFA, or Japanese-specific Julius plus OpenJTalk) stays reserved.
 
-### 4.2 映像駆動表情
+### 4.2 Picture-driven expression
 
-MediaPipe Face Landmarker の 52 blendshape から目・眉・口・頬の表情差分を選ぶ経路は次版で扱う。
-本 v0 は映像を表情入力にせず、音声 RMS と手続きまばたきだけを使う。
+A path that selects eye, brow, mouth, and cheek differences from the 52 blendshapes of MediaPipe Face Landmarker is for a later version. This v0 does not use the picture as expression input. It uses only audio RMS and the procedural blink.
 
-### 4.3 アバター・レジストリ連携
+### 4.3 Avatar registry connection
 
-`contract-2026-07-26-avatar-registry-v0.md` が「将来契約」として予約する演出エンジン連携へ、
-rendition の lipsync 能力とスプライトセット参照を接続する予定である。**本 v0 は avatar.json / 
-rendition.json の検索・解決を実装しない。** 入力は `--sprites <dir>` の直接指定だけとする。
+The plan is to connect a rendition's lipsync capability and a sprite-set reference to the staging-engine connection that `contract-2026-07-26-avatar-registry-v0.md` reserves as a "future contract". **This v0 does not implement search or resolution of avatar.json or rendition.json.** The only input is a direct `--sprites <dir>`.
 
-## 5. 検証規律
+## 5. Verification rules
 
-1. 同じ RMS 列を 2 回変換し、ヒステリシスとアタック／リリースを含む口状態列が一致する。
-2. 同じ seed・尺・fps から生成したまばたき列が一致し、異なる seed で列が変わる。
-3. sprite.json の必須キー、参照境界、PNG 実寸を全数検証する。未知の追加差分は受理する。
-4. `--apply` 前後の JSON を比較し、`layers[]` 末尾以外が不変であることを確認する。
-5. 実音声の発話区間で `mid` / `open`、無音区間で `closed`、全尺内で `eyes: closed` が現れる。
-6. ベイク MOV のアルファをフレーム画素で測り、スプライト外周が `alpha=0` であることを確認する。
+1. Convert the same RMS sequence twice, and the mouth-state sequence matches, including hysteresis and attack and release.
+2. A blink sequence generated from the same seed, duration, and fps matches, and a different seed changes the sequence.
+3. Verify every required key of sprite.json, the reference boundary, and the real PNG size. An unknown extra difference is accepted.
+4. Compare the JSON before and after `--apply`, and confirm that everything except the end of `layers[]` is unchanged.
+5. On real audio, `mid` or `open` appears in a speech span, `closed` appears in a silent span, and `eyes: closed` appears somewhere in the full duration.
+6. Measure the baked MOV's alpha in frame pixels, and confirm the sprite's outer edge is `alpha=0`.
 
-## 6. v1 追記（2026-08-14）: 母音 6 状態駆動
+## 6. v1 append (2026-08-14). Six-state vowel drive
 
-v1 は、v0 の音量 3 状態を既定・フォールバックとして保ったまま、transcript から
-`closed` / `a` / `i` / `u` / `e` / `o` を選ぶ経路を additive に追加する。
+v1 keeps v0's 3 volume states as the default and the fallback, and additively adds a path that picks `closed`, `a`, `i`, `u`, `e`, or `o` from the transcript.
 
-| `drive.mouth[]` | VRM 1.0 Expression Preset | PSDToolKit の口差分 |
+| `drive.mouth[]` | VRM 1.0 expression preset | PSDToolKit mouth difference |
 |---|---|---|
-| `closed` | `neutral` | `ん` |
-| `a` | `aa` | `あ` |
-| `i` | `ih` | `い` |
-| `u` | `ou` | `う` |
-| `e` | `ee` | `え` |
-| `o` | `oh` | `お` |
+| `closed` | `neutral` | hiragana n (U+3093) |
+| `a` | `aa` | hiragana a (U+3042) |
+| `i` | `ih` | hiragana i (U+3044) |
+| `u` | `ou` | hiragana u (U+3046) |
+| `e` | `ee` | hiragana e (U+3048) |
+| `o` | `oh` | hiragana o (U+304A) |
 
-`--mouth-mode <volume|vowel>` の既定値は `volume` である。`volume` は従来どおり
-`closed` / `mid` / `open` を出し、引数を省略した v0 と出力を変えない。`vowel` は
-`--transcript <path>` を必須とし、`drive.mouth[]` には上表の 6 値だけを出す。このモードの
-sprite.json は従来必須の `mouth.closed/mid/open` に加えて `mouth.a/i/u/e/o` の PNG をすべて持つ。
+The default of `--mouth-mode <volume|vowel>` is `volume`. `volume` still emits `closed`, `mid`, and `open`, and omitting the argument does not change the v0 output. `vowel` requires `--transcript <path>`, and `drive.mouth[]` emits only the 6 values in the table above. A sprite.json in this mode has every `mouth.a/i/u/e/o` PNG in addition to the previously required `mouth.closed/mid/open`.
 
-transcript の時刻単位は秒で、各単語は `{ "text": "...", "start": 0.12, "end": 0.34 }` とする。
-次の 2 形式を受理し、全単語を `start` 昇順へ正規化する。
+Transcript times are in seconds. Each word is `{ "text": "...", "start": 0.12, "end": 0.34 }`. Accept the following two forms, and normalize every word to ascending `start`.
 
-1. captions 資産形式: caption レコード配列、または `{ "captions": [...] }`。各 caption の
-   `words[]` をフラット化し、`words` が無いか空の caption は無視する。
-2. 最小形式: トップレベルの `[{ "text": "...", "start": 0.12, "end": 0.34 }, ...]`。
+1. The captions asset form. An array of caption records, or `{ "captions": [...] }`. Flatten each caption's `words[]`. A caption whose `words` are missing or empty is ignored.
+2. The minimal form. A top-level `[{ "text": "...", "start": 0.12, "end": 0.34 }, ...]`.
 
-かなだけの語は左からモーラへ分割する。拗音と小書き母音は前のかなと 1 モーラにまとめて小書き側の
-母音を採用し、促音 `っ/ッ` と撥音 `ん/ン` は `closed`、長音 `ー` は直前モーラの母音を継続する。
-先頭の長音は `closed` とする。未知のかな、漢字・数字・記号を含む語は母音情報なしとして音量へ
-フォールバックする。ASCII ローマ字だけの語も簡易分割するが、これはベストエフォートであり、
-曖昧な子音クラスタや一般的でない綴りを完全には扱わない。かな経路を正規の入力とする。
+A kana-only word is split into morae from the left. A youon and a small written vowel join the previous kana into one mora, and the vowel of the small written side is used. The sokuon (U+3063 and U+30C3) and the hatsuon (U+3093 and U+30F3) are `closed`. The choonpu (U+30FC) continues the vowel of the previous mora. A choonpu at the start is `closed`. A word that contains unknown kana, or a kanji, a digit, or a symbol, has no vowel information and falls back to volume. An ASCII-romaji-only word is also split coarsely. That split is best effort, and it does not fully handle an ambiguous consonant cluster or an uncommon spelling. The kana path is the regular input.
 
-各フレームの時刻 `f / fps` が単語区間 `[start, end)` に入るとき、その区間をモーラ数で均等割りして
-口形を選ぶ。その後、v0 の RMS 状態列と AND ゲートする。RMS が `closed` なら transcript に関係なく
-`closed` を優先する。RMS が `mid` / `open` の発話中で母音が得られればその口形を使い、単語間の
-ギャップや未対応語で母音が不明なら `a` へ縮退する。
+When a frame time `f / fps` falls in a word span `[start, end)`, split that span evenly by mora count and pick the mouth shape. Then AND-gate it with the v0 RMS state sequence. If RMS is `closed`, `closed` wins regardless of the transcript. If RMS is `mid` or `open` during speech and a vowel was obtained, use that mouth shape. If the vowel is unknown because of a gap between words or an unsupported word, fall back to `a`.
 
-vowel モードの stdout 例では、1 要素が従来と同じく出力 1 フレームに対応する。
+In a vowel-mode stdout example, one element is still one output frame, as before.
 
 ```jsonc
 {
@@ -204,47 +169,31 @@ vowel モードの stdout 例では、1 要素が従来と同じく出力 1 フ�
 }
 ```
 
-## v0.2 追記（2026-08-14）: face-expression 駆動
+## v0.2 append (2026-08-14). face-expression drive
 
-`--expression-track <path>` は `kind:"face-expression"` のトラックを直接、または
-`tracks.face_expression.path` を持つ analysis.json を受け付ける。pointer は analysis.json、
-`source.path` はトラック自身を基準に解決する。未指定時は v0/v1 と同じ手続きまばたきと stdout を
-byte 単位で維持する。指定時だけ `drive.fps`、`drive.head[]`、`drive.emotion[]` を additive に加え、
-`drive.eyes[]` を blendshape 駆動へ切り替える。sprite ベイクは head/emotion を描画へ使わず、従来の
-mouth/eyes 合成だけを行う。
+`--expression-track <path>` accepts a track of `kind:"face-expression"` directly, or an analysis.json that has `tracks.face_expression.path`. A pointer resolves against analysis.json. `source.path` resolves against the track itself. When omitted, the procedural blink and stdout stay byte-identical to v0 and v1. Only when it is set are `drive.fps`, `drive.head[]`, and `drive.emotion[]` added, and `drive.eyes[]` switches to blendshape drive. The sprite bake does not use head or emotion for drawing. It composites only mouth and eyes, as before.
 
-### v0.2.1 時刻写像と head
+### v0.2.1 Time mapping and head
 
-出力 frame `f` のタイムライン時刻 `f / output.fps` を、宣言順に隙間なく連結した既存
-`timeline.cuts[]` の区間へ置き、該当 cut の source 時刻を
-`cut.in + (timelineTime - cutTimelineStart) * cut.speed` とする。track sample は source 時刻へ
-最近傍再サンプルする。複数 source の場合はトラックの `source.path` と同じ cut だけを駆動し、
-他 source の frame は head=`null`、eyes=`open`、emotion=`neutral` とする。
+Place the timeline time `f / output.fps` of output frame `f` into the span of the existing `timeline.cuts[]`, joined with no gaps in declaration order. The source time of that cut is `cut.in + (timelineTime - cutTimelineStart) * cut.speed`. A track sample is nearest-neighbor resampled onto the source time. With multiple sources, drive only the cut whose path matches the track's `source.path`. A frame of another source is head `null`, eyes `open`, and emotion `neutral`.
 
-track の head は yaw/pitch/roll の radian だが、`avatar-vrm` の drive 受け口へ直接渡せるよう
-`drive.head[]` は degree に変換する。符号は反転しない。検出無し sample は head だけ直前の有効値を
-保持し、先頭から一度も検出されていなければ `null` とする。`--head-smoothing <frames>` は
-出力 frame 上の中央移動平均窓で、既定 `5`、`0` または `1` は平滑化なし。窓内の `null` は除外する。
+The track's head is yaw, pitch, and roll in radians. `drive.head[]` converts them to degrees so they can be passed straight to the `avatar-vrm` drive seat. The sign is not flipped. A sample with no detection holds only the head at the previous valid value. If nothing has been detected from the start, it is `null`. `--head-smoothing <frames>` is a centered moving-average window on output frames. The default is `5`. `0` or `1` means no smoothing. A `null` inside the window is excluded.
 
-### v0.2.2 blink 遮蔽ゲート
+### v0.2.2 Blink occlusion gate
 
-再サンプル前の元 track sample 上で、次をすべて満たす連続 run だけを `eyes:"closed"` とする。
+On the original track samples, before resampling, only a contiguous run that meets all of the following is `eyes:"closed"`.
 
-| パラメータ | 値 |
+| Parameter | Value |
 |---|---:|
-| 左右それぞれの閉眼閾値 | `eyeBlinkLeft >= 0.30` かつ `eyeBlinkRight >= 0.30` |
-| 左右対称閾値 | `abs(left - right) <= 0.12` |
-| 最小持続 | 連続 2 sample |
+| Closed-eye threshold on each side | `eyeBlinkLeft >= 0.30` and `eyeBlinkRight >= 0.30` |
+| Left-right symmetry threshold | `abs(left - right) <= 0.12` |
+| Minimum duration | 2 contiguous samples |
 
-実測の本物 blink（19.125〜19.208 秒、ピーク `0.5853 / 0.5544`）は採用する。一方、手指が顔を
-遮った 10.3〜10.5 秒の偽スパイクは、一部 frame が振幅閾値を越えても左右差が run を分断するため
-棄却する。hand-pose 近接ゲートは実装せず、この左右対称 + 持続ゲートを契約とする。
+A measured real blink (19.125 to 19.208 seconds, peak `0.5853 / 0.5544`) is accepted. A false spike at 10.3 to 10.5 seconds, where a finger occluded the face, is rejected, because even when some frames cross the amplitude threshold the left-right difference splits the run. A hand-pose proximity gate is not implemented. This left-right symmetry plus duration gate is the contract.
 
-### v0.2.3 emotion 写像
+### v0.2.3 Emotion mapping
 
-各 score は表中 blendshape の算術平均。`enter=0.45`、`exit=0.30` のヒステリシスを使い、enter を
-越えた候補の最高 score を選ぶ。同点時の優先順は `happy > sad > angry > surprised`。enter 候補が
-無い間は現在値が exit 未満になるまで保持し、その後 `neutral` へ戻す。検出無しは `neutral`。
+Each score is the arithmetic mean of the blendshapes in the table. Use hysteresis of `enter=0.45` and `exit=0.30`, and pick the highest score among candidates that crossed enter. On a tie the priority is `happy > sad > angry > surprised`. While there is no enter candidate, hold the current value until it falls below exit, then return to `neutral`. No detection is `neutral`.
 
 | emotion | blendshape |
 |---|---|
@@ -252,71 +201,48 @@ track の head は yaw/pitch/roll の radian だが、`avatar-vrm` の drive 受
 | `sad` | `mouthFrownLeft`, `mouthFrownRight` |
 | `angry` | `browDownLeft`, `browDownRight` |
 | `surprised` | `browOuterUpLeft`, `browOuterUpRight`, `jawOpen` |
-| `neutral` | 上記の active 状態なし |
+| `neutral` | none of the active states above |
 
-同じ track、cuts、fps、平滑化窓から作る head/eyes/emotion は決定論的であり、壁時計や乱数を
-参照しない。
+head, eyes, and emotion built from the same track, cuts, fps, and smoothing window are deterministic. They do not read the wall clock or a random source.
 
-## v1.1 追記（2026-08-14）: PNGTuber モーション
+## v1.1 append (2026-08-14). PNGTuber motion
 
-sprite ベイクへ、呼吸・発話バウンス・発話 onset ごとの微傾きを additive に追加する。
-`--motion-intensity <0..1>` の既定値は `0.5`。`--no-motion` は intensity `0` の別名であり、
-`--motion-intensity` との同時指定は曖昧さを避けるため拒否する。intensity `0` では全 frame が
-`scaleX=scaleY=1, tx=ty=rotateDeg=0` の厳密な恒等変換となり、アフィン変換とキャンバス拡張を
-一切通らない従来の raw RGBA → ProRes 経路を使う。
+Add breath, a speech bounce, and a small tilt per speech onset to the sprite bake. The default of `--motion-intensity <0..1>` is `0.5`. `--no-motion` is another name for intensity `0`, and specifying it together with `--motion-intensity` is refused, to avoid ambiguity. At intensity `0`, every frame is the exact identity `scaleX=scaleY=1, tx=ty=rotateDeg=0`, and the path is the old raw RGBA to ProRes path that does not go through an affine transform or a canvas expansion at all.
 
-frame `f`、`t=f/fps`、intensity `I` とする。入力ハッシュから得た位相 `p0,p1` により、呼吸波を
-次で定める。
+Let frame be `f`, `t=f/fps`, and intensity be `I`. Phases `p0` and `p1` come from the input hash, and the breath wave is the following.
 
 ```text
-breath(t) = (sin(2π·0.25·t+p0) + 0.20·sin(2π·0.50·t+p1)) / 1.20
+breath(t) = (sin(2 * pi * 0.25 * t + p0) + 0.20 * sin(2 * pi * 0.50 * t + p1)) / 1.20
 ```
 
-発話中は `mouth != "closed"` と判定する。発話 envelope `E` は target `1`（発話）/ `0`（無発話）
-へ指数平滑し、時定数は attack `0.06 s`、release `0.12 s`。発話 onset frame `o` から
-`pulse=(1-cos(2π·3.0·(f-o)/fps))/2`、`talk=E·(0.35+0.65·pulse)` とする。最終変換は次のとおり。
+Speech is `mouth != "closed"`. The speech envelope `E` is exponentially smoothed toward target `1` (speech) or `0` (not speech). The time constants are attack `0.06 s` and release `0.12 s`. From speech onset frame `o`, `pulse=(1-cos(2 * pi * 3.0 * (f-o)/fps))/2`, and `talk=E * (0.35+0.65 * pulse)`. The final transform is the following.
 
 ```text
 scaleX = 1
-scaleY = 1 + I·(0.008·breath + 0.028·talk)
+scaleY = 1 + I * (0.008 * breath + 0.028 * talk)
 tx = 0
-ty = -spriteHeight·I·(0.0015·breath + 0.009·talk)
+ty = -spriteHeight * I * (0.0015 * breath + 0.009 * talk)
 ```
 
-微傾きは closed → 発話への各 onset で入力 seed の PRNG から符号と大きさを引き、target を
-`±3.2°·U(0.55,1.0)` とする。現在角度は target へ時定数 `0.28 s` の指数平滑で近づく。
-`--expression-track` 併用時、該当 frame の `drive.head` が non-null なら手続き角度を使わず、
-`rotateDeg=I·head.roll` とする。head が null の frame だけ手続き角度へ戻る。アフィン変換は拡張
-キャンバス中心を基準に scale → rotate → translate の順で適用し、RGBA は premultiplied alpha の
-bilinear 補間後に straight alpha へ戻す。
+The small tilt draws a sign and a magnitude from the input seed's PRNG at each onset from closed to speech, and the target is plus or minus `3.2 degrees * U(0.55,1.0)`. The current angle approaches the target by exponential smoothing with time constant `0.28 s`. When `--expression-track` is also set, if that frame's `drive.head` is non-null, do not use the procedural angle. Use `rotateDeg=I * head.roll`. Only a frame whose head is null returns to the procedural angle. The affine transform is applied around the center of the expanded canvas, in the order scale, then rotate, then translate. RGBA is bilinear-interpolated as premultiplied alpha, then returned to straight alpha.
 
-キャンバスの四辺には全 frame で同じ整数 margin `M` を加える。各 frame の
-`θ=abs(rotateDeg)·π/180`、`hx=width·scaleX/2`、`hy=height·scaleY/2` に対し、
+Add the same integer margin `M` to all four sides of the canvas, on every frame. For each frame, `theta=abs(rotateDeg) * pi/180`, `hx=width * scaleX/2`, and `hy=height * scaleY/2`.
 
 ```text
-ex = abs(cos θ)·hx + abs(sin θ)·hy + abs(tx)
-ey = abs(sin θ)·hx + abs(cos θ)·hy + abs(ty)
+ex = abs(cos theta) * hx + abs(sin theta) * hy + abs(tx)
+ey = abs(sin theta) * hx + abs(cos theta) * hy + abs(ty)
 M = ceil(max_all_frames(ex-width/2, ey-height/2) + 2px)
 ```
 
-とする。末尾の `2px` は bilinear sampling support である。出力寸法は
-`(width+2M) × (height+2M)`。layer 配置には sprite.json の元寸法ではなくこの実ベイク寸法を使い、
-明示座標用 anchor も `(M + anchor·元寸法) / 実ベイク寸法` へ写像する。
+The trailing `2px` is the bilinear sampling support. The output size is `(width+2M)` by `(height+2M)`. Layer placement uses this real baked size, not the original size in sprite.json. An anchor for an explicit coordinate is also mapped to `(M + anchor * original size) / real baked size`.
 
-モーション seed は正規化済み edit.json、sprite.json、駆動 profile と固定識別子
-`avatar-drive-motion-v1.1` を stable stringify した SHA-256 から導出する。位相、onset の傾き、
-フレーム変換、補間、margin は壁時計・OS 乱数・mtime を参照しない。同一入力、同一 CLI 値、同一
-ffmpeg 実装なら stdout と MOV は byte 単位で決定論的である。
+The motion seed is derived from the SHA-256 of a stable stringify of the normalized edit.json, sprite.json, drive profile, and the fixed identifier `avatar-drive-motion-v1.1`. Phase, onset tilt, the frame transform, interpolation, and margin do not read the wall clock, the OS random source, or mtime. The same input, the same CLI values, and the same ffmpeg implementation make stdout and the MOV byte-deterministic.
 
-既定が motion on (`0.5`) になったため、v1.1 の既定出力は従来よりキャンバスが大きく、画素も
-アフィン補間後の値へ変わる後方非互換点がある。従来と同じ寸法・画素・ProRes 呼び出しを必要とする
-場合は `--no-motion`（または `--motion-intensity 0`）を指定する。
+Because the default became motion on (`0.5`), the v1.1 default output has a backward-incompatible point. The canvas is larger than before, and the pixels are the values after affine interpolation. When the old size, pixels, and ProRes call are required, specify `--no-motion` (or `--motion-intensity 0`).
 
-## v2 追記（2026-08-14）: 多層パーツツリーと 2D 物理
+## v2 append (2026-08-14). A multi-layer part tree and 2D physics
 
-v2 は `sprite.json` を置き換えない。`--sprites <dir>` の直下に `sprite.json` があれば従来形式として
-一切同じ経路で読み、無い場合だけ `parts.json` v2 を読む。両方がある場合も `sprite.json` を優先する。
-したがって既存セットの manifest、状態列、RGBA 合成、ProRes 呼び出し、stdout は変更しない。
+v2 does not replace `sprite.json`. If `sprite.json` exists directly under `--sprites <dir>`, read it as the old form on exactly the same path. Read `parts.json` v2 only when it is absent. If both exist, `sprite.json` wins. An existing set's manifest, state sequence, RGBA composite, ProRes call, and stdout therefore do not change.
 
 ### v2.1 parts.json
 
@@ -362,143 +288,113 @@ v2 は `sprite.json` を置き換えない。`--sprites <dir>` の直下に `spr
 }
 ```
 
-| フィールド | 規約 |
+| Field | Rule |
 |---|---|
-| `version` | 整数 `2` |
-| `size`, `anchor` | v0 と同じ出力キャンバス px と正規化アンカー |
-| `parts[].id` | セット内で一意な ASCII 識別子 |
-| `image` | セット内の PNG への相対パス。パーツごとに異なる実寸を許す |
-| `parent` | 親 id。ルートは `null`。複数ルートを許すが循環・欠落親は拒否する |
-| `offset` | 親の `origin` から当該パーツの `origin` までの px。ルートではキャンバス左上基準 |
-| `origin` | 当該 PNG 左上基準の回転・拡縮原点 px |
-| `z` | 小さい値から描く。等値は `parts[]` 宣言順 |
-| `states` | `"always"`、または `mouth` / `eyes` / `emotion` ごとの許可値配列 |
-| `physics` | 省略可。下節の `wobble` / `follow` / `rotationalDrag` / `talkBounce` |
+| `version` | The integer `2` |
+| `size`, `anchor` | The same output-canvas px and normalized anchor as v0 |
+| `parts[].id` | An ASCII identifier, unique inside the set |
+| `image` | A relative path to a PNG inside the set. Each part may have a different real size. |
+| `parent` | A parent id. A root is `null`. Multiple roots are allowed. A cycle or a missing parent is refused. |
+| `offset` | px from the parent's `origin` to this part's `origin`. On a root, the origin is the canvas top left. |
+| `origin` | The rotate and scale origin in px, relative to this PNG's top left. |
+| `z` | Draw from the smaller value. Equal values follow `parts[]` declaration order. |
+| `states` | `"always"`, or an array of allowed values per `mouth`, `eyes`, or `emotion` |
+| `physics` | Optional. `wobble`, `follow`, `rotationalDrag`, and `talkBounce` from the next section |
 
-`states` に複数の駆動列があれば AND、同じ配列内の値は OR とする。口は
-`closed/mid/open/a/i/u/e/o`、目は `open/closed`、emotion は v0.2 の語彙をそのまま使う。
-たとえば `{mouth:["a","mid","open"],emotion:["happy"]}` は happy かつ該当口形の frame だけ
-表示する。母音モードでは、セット全体の `states.mouth` に `closed/a/i/u/e/o` が存在することを
-開始前に検査する。
+If `states` has several drive sequences, they AND. Values inside the same array OR. Mouth is `closed/mid/open/a/i/u/e/o`. Eyes are `open/closed`. Emotion uses the v0.2 vocabulary as it is. For example `{mouth:["a","mid","open"],emotion:["happy"]}` shows only a frame that is happy and has one of those mouth shapes. In vowel mode, check before start that the whole set's `states.mouth` contains `closed/a/i/u/e/o`.
 
-変換は親先行で評価する。行列を列ベクトルへ左から適用するとき、パーツ `p` の pivot 行列は
-`Pp = Pparent · T(offset + wobble) · R(rotationalDrag)`、画像行列は
-`Ip = Pp · T(-origin)` である。ルートの `Pparent` はキャンバス中心を原点とする v1.1 motion 行列で、
-`--no-motion` 時は恒等行列とする。これにより既存の呼吸・発話バウンス・微傾きは別の全画面後処理に
-せず、ルートパーツへ一度だけ適用される。描画は全パーツを `z` 順に straight-alpha over 合成し、
-サンプリングは premultiplied-alpha bilinear とする。
+Evaluate parents first. When a matrix is applied to a column vector from the left, part `p`'s pivot matrix is `Pp = Pparent * T(offset + wobble) * R(rotationalDrag)`, and the image matrix is `Ip = Pp * T(-origin)`. A root's `Pparent` is the v1.1 motion matrix whose origin is the canvas center. Under `--no-motion` it is the identity. Breath, speech bounce, and the small tilt are therefore applied once to the root part, not as a separate full-frame post process. Drawing composites every part in `z` order with straight-alpha over. Sampling is premultiplied-alpha bilinear.
 
-### v2.2 物理語彙と決定論
+### v2.2 Physics vocabulary and determinism
 
-frame `f`、`t=f/fps`、固定ステップ `dt=1/fps` とする。壁時計、可変 delta、OS 乱数を使わない。
-phase を省略した wobble だけは、正規化済み入力から得た motion seed と part id と軸名を SHA-256
-へ入れ、その先頭 32 bit を `[0,2π)` へ写像する。
+Let frame be `f`, `t=f/fps`, and the fixed step `dt=1/fps`. Do not use the wall clock, a variable delta, or the OS random source. Only a wobble that omits phase puts the motion seed from the normalized input, the part id, and the axis name into SHA-256, and maps the first 32 bits onto `[0, 2*pi)`.
 
-**wobble** は軸ごとの閉形式サイン波である。
+**wobble** is a closed-form sine per axis.
 
 ```text
-wobbleAxis(t) = amplitude · sin(2π · frequency · t + phase)
+wobbleAxis(t) = amplitude * sin(2 * pi * frequency * t + phase)
 ```
 
-`amplitude` は px、`frequency` は Hz、`phase` は rad。x/y は独立で、未指定軸は 0 px とする。
+`amplitude` is px. `frequency` is Hz. `phase` is radians. x and y are independent. An unspecified axis is 0 px.
 
-**follow** は親が示す現在 frame の target pivot を、パーツが保持する world 座標へ lerp する。
-`drag >= 1` で、frame 0 は target へ初期化し、以後は次式とする。`drag=1` は遅れなしである。
+**follow** lerps the target pivot that the parent shows on the current frame into the world coordinate the part holds. `drag >= 1`. Frame 0 initializes to the target. After that the formula is the following. `drag=1` has no lag.
 
 ```text
 followed[f] = followed[f-1] + (target[f] - followed[f-1]) / drag
 ```
 
-**rotationalDrag** は target と followed の world x 差を角度へ変換し、角度自体を lerp する。
+**rotationalDrag** converts the world-x difference of target and followed into an angle, and lerps the angle itself.
 
 ```text
-targetDeg[f] = clamp((targetX[f] - followedX[f]) · strength, minDeg, maxDeg)
-angle[f] = angle[f-1] + (targetDeg[f] - angle[f-1]) · lerp
+targetDeg[f] = clamp((targetX[f] - followedX[f]) * strength, minDeg, maxDeg)
+angle[f] = angle[f-1] + (targetDeg[f] - angle[f-1]) * lerp
 ```
 
-`strength` は degree/px、`minDeg/maxDeg` の既定は `-180/180`、`lerp` の既定は `0.25`。
+`strength` is degrees per px. The default of `minDeg/maxDeg` is `-180/180`. The default of `lerp` is `0.25`.
 
-**talkBounce** は closed から発話へ変わった frame で上向き初速を入れる固定 dt の放物運動である。
+**talkBounce** is a parabola on a fixed dt that injects an upward initial velocity on the frame that changes from closed to speech.
 
 ```text
 onset: velocityY = -velocity
-velocityY[f] = velocityY[f-1] + gravity · dt
-bounceY[f] = bounceY[f-1] + velocityY[f] · dt
+velocityY[f] = velocityY[f-1] + gravity * dt
+bounceY[f] = bounceY[f-1] + velocityY[f] * dt
 ```
 
-`bounceY` が 0 を越えたら 0 にクランプして停止し、反発はしない。値の単位は `velocity=px/s`、
-`gravity=px/s²`。v1.1 の標準発話バウンスはルート motion として既に存在するため、通常の v2 セットは
-ルートへ `talkBounce` を重ねない。この語彙は Plus import が明示的に値を持つ場合、または個別パーツを
-発話 onset で跳ねさせる場合の受け口である。
+If `bounceY` crosses 0, clamp it to 0 and stop. There is no bounce-back. The units are `velocity=px/s` and `gravity=px/s^2`. The v1.1 standard speech bounce already exists as root motion, so an ordinary v2 set does not stack `talkBounce` on the root. This vocabulary is the seat for when a Plus import has an explicit value, or when an individual part should bounce on a speech onset.
 
-同じ parts.json、PNG、駆動列、fps、profile、CLI 値、ffmpeg 実装なら、物理列、RGBA frame、MOV、
-stdout は byte 単位で一致する。stdout の `stats.follow_lag_frames` は follow 対象ごとに、target と
-followed の変動が大きい軸を選んで相互相関が最大になる 0〜2 秒の非負 lag を実測した frame 数である。
+The same parts.json, PNGs, drive sequence, fps, profile, CLI values, and ffmpeg implementation make the physics sequence, RGBA frames, the MOV, and stdout match byte for byte. stdout `stats.follow_lag_frames` is, for each follow target, the non-negative lag of 0 to 2 seconds at which the cross-correlation is maximum, measured in frames, on the axis where target and followed vary the most.
 
-### v2.3 PNGTuber Plus 語彙対応
+### v2.3 PNGTuber Plus vocabulary map
 
-PNGTuber Plus 1.4.5（Unlicense）の保存・実行コードを仕様の一次資料として読み、コードは流用せず
-次の語彙を独自実装した。
+The save and runtime code of PNGTuber Plus 1.4.5 (Unlicense) was read as the primary source of the spec. The code was not reused. The following vocabulary was implemented independently.
 
-| PNGTuber Plus `.save` / 挙動 | parts.json v2 | 変換 |
+| PNGTuber Plus `.save` or behavior | parts.json v2 | Conversion |
 |---|---|---|
-| `identification` | `id` | 文字列化しセット内一意にする |
-| `parentId` | `parent` | identification 参照を id 参照へ変換。null は維持 |
-| `pos`, `offset` | `offset`, `origin` | Plus の pivot を解決して親原点相対 px へ正規化 |
-| `zindex` | `z` | 数値を維持。等値は import 宣言順 |
-| `xAmp/xFrq`, `yAmp/yFrq` | `physics.wobble` | `amplitude=Amp`、Plus の rad/frame を `frequency=Frq·fps/(2π)` へ換算 |
-| `drag` | `physics.follow.drag` | Plus の `lerp(...,1/dragSpeed)` と同じ係数。0/無効は `drag=1` |
-| `rotDrag`, `rLimitMin/Max` | `physics.rotationalDrag` | world 追従差 → degree/px とクランプへ正規化、角度 lerp は `0.25` |
-| global `bounce`, `gravity` | `physics.talkBounce` | import 厳密再現時は Plus 固定 `dt=0.0166` の sample を出力 fps へ再サンプルする |
-| `showTalk`, `showBlink` | `states.mouth/eyes` | Plus の speaking/blink 表を AKARI の明示状態集合へ展開 |
-| `stretchAmount` | 予約 | v2 は受理しない。将来の part scale drag として追加予定 |
-| `clipped`, costume, flipbook, toggle | 予約 | import 時に黙って捨てず unsupported として報告する |
+| `identification` | `id` | Stringify it and make it unique inside the set |
+| `parentId` | `parent` | Convert an identification reference to an id reference. null stays |
+| `pos`, `offset` | `offset`, `origin` | Resolve the Plus pivot and normalize to px relative to the parent origin |
+| `zindex` | `z` | Keep the number. Equal values follow import declaration order |
+| `xAmp/xFrq`, `yAmp/yFrq` | `physics.wobble` | `amplitude=Amp`. Convert Plus rad/frame to `frequency=Frq * fps / (2*pi)` |
+| `drag` | `physics.follow.drag` | The same coefficient as Plus `lerp(...,1/dragSpeed)`. 0 or disabled is `drag=1` |
+| `rotDrag`, `rLimitMin/Max` | `physics.rotationalDrag` | Normalize the world follow difference to degrees per px and a clamp. The angle lerp is `0.25` |
+| global `bounce`, `gravity` | `physics.talkBounce` | For an exact import reproduction, resample Plus's fixed `dt=0.0166` samples onto the output fps |
+| `showTalk`, `showBlink` | `states.mouth/eyes` | Expand Plus's speaking and blink table into AKARI's explicit state set |
+| `stretchAmount` | reserved | v2 does not accept it. Planned as a future part scale drag |
+| `clipped`, costume, flipbook, toggle | reserved | Do not drop them silently on import. Report them as unsupported |
 
-### v2.4 import 予約
+### v2.4 Import reserved
 
-`.save` importer 自体は本版に含めない。将来 importer は埋め込み `imageData` を優先可能な PNG として
-抽出し、`path` は入力ファイル基準かつ境界内に解決できる場合だけ使う。整数辞書順を宣言順として
-parent tree と z を移し、上表の物理値と showTalk/showBlink を変換する。未対応フィールドは
-`unsupported[]`、変換で近似した値は `approximated[]` に必ず列挙し、モデル画像の利用権はユーザーが
-持ち込んだ範囲に限定する。export、配布モデルの収集・同梱は別契約とする。
+The `.save` importer itself is not in this version. A future importer extracts embedded `imageData` as a PNG when that is possible, and uses `path` only when it resolves inside the boundary relative to the input file. Integer dictionary order is the declaration order. It moves the parent tree and z, and converts the physics values and showTalk and showBlink in the table above. Unsupported fields are always listed in `unsupported[]`. A value the conversion approximated is always listed in `approximated[]`. The right to use a model image is limited to what the user brought in. Export, and collecting or bundling distributed models, are another contract.
 
-### v2.5 検証追加
+### v2.5 Extra verification
 
-1. parent が宣言上は子より後でも親先行で解決し、循環・欠落親を拒否する。
-2. `z` 昇順・同値宣言順を固定し、親子変換後の基準点を数値で照合する。
-3. mouth/eyes/emotion の状態ごとに表示パーツが一意に切り替わる。
-4. wobble の閉形式値と固定 dt の follow/rotational drag/talk bounce を同入力 2 回で一致させる。
-5. 12 秒 say fixture で 3 髪房すべての `follow_lag_frames > 0` を測り、MOV SHA を 2 回一致させる。
-6. 既存 sprite.json のテスト fixture と `--no-motion` 経路は従来の寸法・画素・stdout を維持する。
+1. Even when a parent is declared after its child, resolve parents first, and refuse a cycle or a missing parent.
+2. Fix `z` ascending, and declaration order on equal values, and check the reference point after the parent-child transform numerically.
+3. The visible parts switch uniquely per mouth, eyes, and emotion state.
+4. The closed-form wobble value, and follow, rotational drag, and talk bounce on a fixed dt, match across two runs of the same input.
+5. On a 12 second say fixture, measure `follow_lag_frames > 0` for all 3 hair tufts, and match the MOV SHA across two runs.
+6. An existing sprite.json test fixture and the `--no-motion` path keep the old size, pixels, and stdout.
 
-## v2.6 追記（2026-08-14）: 口状態切替のクロスフェード遷移
+## v2.6 append (2026-08-14). Crossfade when the mouth state changes
 
-`--mouth-transition <frames>` は、口状態が変わる境界からクロスフェードする frame 数 `N` を指定する。
-既定値は `2`。`0` は従来どおりの瞬間切替であり、遷移計算とブレンドを一切通らない。
+`--mouth-transition <frames>` sets the frame count `N` of the crossfade from the boundary where the mouth state changes. The default is `2`. `0` is the old instant switch, and it does not go through the transition math or the blend at all.
 
-| 値 | 口状態切替 |
+| Value | Mouth-state change |
 |---:|---|
-| `0` | 境界 frame から新状態を直接描画する |
-| `N > 0` | 境界 frame から `N` frame を前状態と新状態のクロスフェードにする |
+| `0` | Draw the new state directly from the boundary frame |
+| `N > 0` | From the boundary frame, `N` frames are a crossfade of the previous state and the new state |
 
-境界 frame からのオフセットを `p=0..N-1` とし、配列末尾を越える frame は生成しない。ブレンド係数は
-次式で固定する。遷移中に次の口状態境界が現れた場合は、後の境界を優先する。
+Let the offset from the boundary frame be `p=0..N-1`. Do not generate a frame past the end of the array. The blend factor is fixed by the following. If the next mouth-state boundary appears during the transition, the later boundary wins.
 
 ```text
 t = (p + 1) / (N + 1)
-output = previous · (1 - t) + current · t
+output = previous * (1 - t) + current * t
 ```
 
-これは「前状態 α=`(1-t)` + 新状態 α=`t`」の単純合成であり、RGBA の各チャンネルを直接 lerp して
-最寄りの整数へ丸める。アルファ加重の over 合成ではない。
+This is a plain composite of "previous state alpha `(1-t)` plus new state alpha `t`". Lerp each RGBA channel directly and round to the nearest integer. It is not an alpha-weighted over composite.
 
-この遷移は sprite.json v1 経路と parts.json v2 経路の両方へ適用する。v1 は同じ目状態で合成した
-前後の口 variant をブレンドしてから v1.1 のアフィン変換を適用する。v2 は現在 frame の物理・行列・
-`z`・宣言順をそのまま使い、口状態に依存する visibility だけを前状態と新状態へ振り替えた 2 frame を
-描画してブレンドする。したがって口以外のパーツ、物理、モーションは遷移の影響を受けない。
+This transition applies to both the sprite.json v1 path and the parts.json v2 path. v1 blends the previous and next mouth variants that were composited with the same eye state, then applies the v1.1 affine transform. v2 keeps the current frame's physics, matrices, `z`, and declaration order, and draws and blends two frames that differ only in the mouth-dependent visibility, swapped to the previous state and the new state. Parts other than the mouth, physics, and motion are therefore unaffected by the transition.
 
-係数、境界走査、チャンネル補間は乱数・壁時計を使わない。同じ入力、同じ CLI 値、同じ ffmpeg 実装なら
-stdout と MOV は byte 単位で決定論的に一致する。
+The factor, the boundary scan, and the channel interpolation do not use a random source or the wall clock. The same input, the same CLI values, and the same ffmpeg implementation make stdout and the MOV match byte for byte, deterministically.
 
-既定が非ゼロ (`2`) になったため、v2.6 の既定出力は口状態境界の画素が従来から変わる後方非互換点が
-ある。従来と同じ瞬間切替、画素、MOV を必要とする場合は `--mouth-transition 0` を指定する。
+Because the default became non-zero (`2`), the v2.6 default output has a backward-incompatible point. Pixels at a mouth-state boundary differ from before. When the old instant switch, pixels, and MOV are required, specify `--mouth-transition 0`.

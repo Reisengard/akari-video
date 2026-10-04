@@ -1,171 +1,127 @@
-# creator-root-v1（作業場）契約
+**English** | [Japanese](./contract-2026-08-02-creator-root-v1.ja.md)
 
-ライブラリの置き場は既定で作業場の `library/`。作業場が無いときは従来の `~/.akari/assets/` を使う。
-`akari-assets list`（または `akari assets list`）の先頭行で実際の置き場を確認する。
-以下の `<ライブラリの置き場>` はその表示先を指し、音源はその下の `audio/` に入る。
+# creator-root-v1 (workspace) contract
 
-- 日付: 2026-08-02
-- 状態: **v1 ドラフト・要オーナーレビュー**（設計方針はオーナー承認済み 2026-08-02。
-  判断根拠・出典調査は非公開の内部記録で管理する）
-- 前提: `contract-2026-07-25-project-structure-v0.md`（プロジェクト**内部**の置き場所規約。
-  本契約はその**上の階層**を定めるもので、プロジェクト内部には一切触れない）、
-  `contract-2026-07-25-memory-connection-v0.md`（§7 で同契約 §2 の保留裁定に回答する）、
-  `contract-2026-07-17-data-contract-versioning.md`（版管理三原則の正本）
-- スコープ: プロジェクト（動画 1 本）より上の階層 = **作業場（CreatorRoot）**の構造・所有権・
-  誕生（初回起動動線）・可搬性・OS 別配置・既存プロジェクトの取り込み。
-  **非スコープ**: チャンネル設計インタビューの中身（design.md の生成工程）、外部エージェントからの
-  呼び出し規格（door）、テキスト出口への拡張 — いずれも将来の別契約（§10）
+The library lives in the workspace `library/` by default. When there is no workspace, use the previous `~/.akari/assets/`. Confirm the real location on the first line of `akari-assets list` (or `akari assets list`). `<library location>` below means that reported place. Audio goes in `audio/` under it.
 
-## 0. 位置づけ — 一言で言い切る
+- Date: 2026-08-02
+- Status: **v1 draft. Needs owner review.** The design direction was approved by the owner on 2026-08-02. The decision basis and the source research stay in a private internal record.
+- Depends on `contract-2026-07-25-project-structure-v0.md` (the placement rules **inside** a project. This contract defines the **layer above** that, and does not touch the inside of a project), `contract-2026-07-25-memory-connection-v0.md` (§7 answers the deferred ruling in §2 of that contract), and `contract-2026-07-17-data-contract-versioning.md` (the canonical three principles of versioning).
+- Scope: the layer above a project (one video). Structure, ownership, birth (the first-run flow), portability, per-OS placement, and intake of an existing project for the **workspace (CreatorRoot)**.
+- Out of scope: the contents of the channel-design interview (the process that generates design.md), the call shape from an external agent (door), and extension to a text outlet. Each of those is a future separate contract (§10).
 
-プロジェクトの上に「**作業場**」という階層を 1 つだけ新設する。作業場はクリエイター 1 人の
-データ（プロジェクト・素材・設定・記憶）のすべてを収める**可視のフォルダ 1 個**であり、
-アプリ本体ともマシン設定とも分離される。アプリは更新で丸ごと入れ替わってよいが、
-作業場は**決して壊してはならない**。
+## 0. Place in the system
 
-## 1. 用語（固定）
+Add exactly one layer above a project, the **workspace**. The workspace is **one visible folder** that holds all of one creator's data: projects, footage, settings, and memory. It is separate from the app itself and from machine settings. An update may replace the whole app. The workspace **must never be destroyed**.
 
-| 用語 | 意味 |
+## 1. Terms (fixed)
+
+| Term | Meaning |
 |---|---|
-| **作業場**（UI 用語）= **CreatorRoot**（設計用語） | クリエイター 1 人のデータ全体を収めるルートフォルダ。1 クリエイター = 1 作業場 |
-| 孤児プロジェクト | 作業場の外で生まれたプロジェクト。**新規に作らないことが不変条件**（§6） |
-| 養子縁組 | 既存の孤児プロジェクトを作業場の `videos/` へ移動して取り込むこと（§8） |
-| お試しモード | 作業場なしのプロジェクト単体運用。動作は保証するが root 前提機能は無効（§9） |
+| **Workspace** (UI term) = **CreatorRoot** (design term) | The root folder that holds all of one creator's data. One creator means one workspace. |
+| Orphan project | A project born outside a workspace. **The invariant is that new ones are not created** (§6). |
+| Adoption | Move an existing orphan project into the workspace `videos/` and take it in (§8). |
+| Trial mode | Run a project alone, with no workspace. Behavior is guaranteed, but features that assume a root are off (§9). |
 
-## 2. 3 つの場所 — アプリとデータの分離
+## 2. Three places. Separate the app from the data
 
-AKARI Video がマシン上に持ってよい場所は次の 3 つ**だけ**である:
+AKARI Video may occupy only the following **three** places on a machine.
 
-| 場所 | macOS | Windows | 触る者 | 更新時 |
+| Place | macOS | Windows | Who touches it | On update |
 |---|---|---|---|---|
-| アプリ本体（エンジン + 同梱物） | `/Applications/` 等 | `%LOCALAPPDATA%\Programs\` 等 | 誰も編集しない | 丸ごと入れ替え |
-| マシン状態・設定 | `~/.akari/`（`AKARI_HOME` で上書き可）内に資格情報 `credentials.env` も置く | 同左（`%USERPROFILE%` 起点） | アプリのみ | 保持 |
-| **作業場** | 既定 `~/Akari/`（2026-08-08 改訂。旧既定 `~/AkariVideo/` — §11 参照） | 既定 `%USERPROFILE%\Akari\` | 人間 + エージェント（§4 の所有権に従う） | **壊さない**（migration のみ） |
+| The app itself (engine and bundled files) | `/Applications/` and the same family | `%LOCALAPPDATA%\Programs\` and the same family | Nobody edits it | Replace the whole thing |
+| Machine state and settings | Inside `~/.akari/` (`AKARI_HOME` may override it). `credentials.env` lives here too | Same, rooted at `%USERPROFILE%` | The app only | Keep |
+| **Workspace** | Default `~/Akari/` (revised 2026-08-08. The old default was `~/AkariVideo/`. See §11) | Default `%USERPROFILE%\Akari\` | A person and an agent, under the ownership in §4 | **Do not destroy it** (migration only) |
 
-- マシン状態は `~/.akari/` に揃える（更新キャッシュ・接続マーカー・
-  可搬 Node runtime・資格情報 `credentials.env` 等）。新たな隠し場所を増やさない
-- 原則: マシン状態には**ユーザーの内容物（作品・素材・記憶）を置かない**。
-  旧音源ライブラリの例外は 2026-09-21 の移行で回収した。素材は作業場 `library/` へ移し、
-  マシン設定の `library-location.json` に置き場を固定する（作業場なし・同期フォルダは移さない）。
+- Line machine state up under `~/.akari/` (update cache, connection markers, the portable Node runtime, `credentials.env`, and the rest). Do not add a new hidden place.
+- Rule: machine state does **not hold the user's contents** (works, footage, memory). The exception of the old audio library was recovered by the migration on 2026-09-21. Footage moved to the workspace `library/`, and `library-location.json` in machine settings pins the location. A machine with no workspace, and a sync folder, are not moved.
+- **Secrets (API keys and tokens) live only in machine settings.** The workspace is visible, backed up, and a sync target, so do not mix secrets into it.
+- Three Windows implementation notes. (a) Do not put the default workspace under Documents. OneDrive Known Folder Move would pull video footage in. The default is directly under home in order to avoid that. (b) `.akari/` is visible in Explorer even as a dot name, so set the hidden attribute. (c) The 260-character path limit. Keep project names and channel names short. Do not assume long paths.
+- Keep an install path for the app that does not need administrator rights (the existing install.sh and the bundled shell).
 
-- **secrets（API キー・トークン類）はマシン設定にのみ置く**。作業場は可視・バックアップ・
-  同期対象なので、secrets を混ぜてはならない
-- Windows 実装注意 3 点: (a) 作業場の既定を「ドキュメント」配下にしない（OneDrive の
-  Known Folder Move に動画素材が吸われる。ホーム直下が既定なのはこの回避のため）
-  (b) `.akari/` はドット名でも Explorer で可視のため hidden 属性を付与する
-  (c) パス長 260 制限 — プロジェクト名・チャンネル名は短く保つ（long path 前提にしない）
-- アプリ本体は管理者権限なしで導入できる経路を維持する（既存の install.sh / shell 同梱方式）
-
-## 3. 作業場の正準構造（`creator-root/v1`）
+## 3. Canonical workspace layout (`creator-root/v1`)
 
 ```
-<作業場>/
-├── akari.md                       # 憲法（規約・好み）。初回はスタブ生成
-├── CLAUDE.md                      # 橋渡し（akari.md / design.md へ誘導）。初回はスタブ生成
-├── AGENTS.md                      # 橋渡し（akari.md / design.md へ誘導）。初回はスタブ生成
+<workspace>/
+├── akari.md                       # Constitution (rules and preferences). First run generates a stub.
+├── CLAUDE.md                      # Bridge. Points at akari.md and design.md. First run generates a stub.
+├── AGENTS.md                      # Bridge. Points at akari.md and design.md. First run generates a stub.
 ├── channels/
 │   └── <channel>/
-│       ├── .akari/memory/word-book.json # 任意。チャンネル単語帳（word book v0 契約）
-│       ├── design.md              # チャンネル設計書（任意。生成工程は非スコープ）
+│       ├── .akari/memory/word-book.json # Optional. Channel word book (word book v0 contract).
+│       ├── design.md              # Channel design doc (optional. The generation process is out of scope).
 │       └── videos/
-│           └── <project>/         # 動画プロジェクト（内部は project-structure-v0 のまま）
-├── library/                       # 作業場共有の素材（プロジェクト非依存）
-├── inbox/                         # 人間の投げ込み口（撮りっぱなし・メモ）
+│           └── <project>/         # A video project. The inside stays project-structure-v0.
+├── library/                       # Footage shared by the workspace (not tied to one project).
+├── inbox/                         # The person's drop inlet (untrimmed shots and notes).
 └── .akari/
-    ├── root.json                  # 作業場マニフェスト（版数・チャンネル一覧・生成日）
-    ├── connections.json           # provider・モデル・コスト承認ポリシーの作業場既定
-    ├── memory/                    # スタイル学習・記憶（memory-connection の既定接続先 §7、word-book.json）
-    └── cache/                     # 再生成可能物
+    ├── root.json                  # Workspace manifest (version, channel list, creation date).
+    ├── connections.json           # Workspace defaults for provider, model, and cost-approval policy.
+    ├── memory/                    # Style learning and memory (the default memory-connection target in §7, plus word-book.json).
+    └── cache/                     # Regenerable files.
 ```
 
-- `CLAUDE.md` と `AGENTS.md` は Schema 層ではなく単なる橋渡し文書であり、`akari.md` の内容を複製しない。
-- `root.json` は `{"schema": "creator-root/v1", ...}` を必須キーとする。
-  **このファイルの存在 = そのフォルダが作業場である**の判定に使う（マーカー兼マニフェスト）
-- 構造の変更は versioning 三原則に従い `creator-root/v2` として改訂する。アプリは自分の
-  対応版より新しい作業場を**壊さず読み取り拒否**する（前方互換を装わない）
-- `<channel>` はチャンネル未設計の初期状態では既定名 1 個（例: `my-channel/`）を自動生成する。
-  design.md が空でも工場は既定値で動く
+- `CLAUDE.md` and `AGENTS.md` are not the Schema layer. They are bridge documents only. They do not copy the contents of `akari.md`.
+- `root.json` requires the key `{"schema": "creator-root/v1", ...}`. **The file's presence means that folder is a workspace.** It is both the marker and the manifest.
+- A layout change follows the three versioning principles and ships as `creator-root/v2`. If a workspace is newer than the version the app supports, the app **refuses to read it and does not destroy it**. Do not pretend at forward compatibility.
+- When no channel has been designed yet, generate one default name automatically (for example `my-channel/`). The factory runs on defaults even if design.md is empty.
 
-## 4. 所有権 4 層（誰が書いてよいか）
+## 4. Four ownership layers (who may write)
 
-| 層 | 実体 | 起草 | 確定 | 規律 |
+| Layer | Artifact | Drafts | Confirms | Rule |
 |---|---|---|---|---|
-| Schema | `akari.md`・`design.md` | エージェント（対話起草） | **人間の承認** | 承認なしに書き換えない |
-| Wiki | 企画書・レポート・索引 | エージェント | エージェント | 維持・更新してよい |
-| Raw | `inbox/`・プロジェクト内 `assets/` | 人間 | 人間 | **アプリ・エージェントは書き込まない**（取り込み UI 経由の複製は可） |
-| Generated | `.akari/` 全域 | 機械 | 機械 | 再生成可能に保つ。人間の手編集を前提にしない |
+| Schema | `akari.md`, `design.md` | The agent (drafted in dialogue) | **Human approval** | Do not rewrite without approval |
+| Wiki | Plans, reports, indexes | The agent | The agent | May maintain and update |
+| Raw | `inbox/`, and `assets/` inside a project | A person | A person | **The app and the agent do not write** (a copy through the import UI is allowed) |
+| Generated | All of `.akari/` | The machine | The machine | Keep it regenerable. Do not assume a hand edit |
 
-## 5. 誕生 — 初回起動動線
+## 5. Birth. The first-run flow
 
-作業場は**アプリが作る**。ユーザーが手でフォルダを掘る動線を作ってはならない。
+**The app creates the workspace.** Do not build a flow where the user digs the folder by hand.
 
-1. **接続** — LLM へのログイン / キー設定（保存先はマシン設定）。
-   外部エージェント経由の利用（door・将来契約）ではこのステップをスキップできる設計とする
-2. **場所** — 「作業場をどこに作りますか」1 問のみ。既定 `~/Akari/`（2026-08-08 改訂。§11）
-3. **生成** — §3 の構造を生成（akari.md はスタブ・design.md は無し）。
-   **生成完了の時点で動画制作を開始できる**こと（インタビュー等の追加ステップを挟まない）
+1. **Connection.** Log in to the LLM, or set a key. The save location is machine settings. Use through an external agent (door, a future contract) may skip this step.
+2. **Place.** Ask only one question: "Where should the workspace be created?" The default is `~/Akari/` (revised 2026-08-08. See §11).
+3. **Generate.** Generate the layout in §3. `akari.md` is a stub. There is no design.md. **Video making can start at the moment generation finishes.** Do not insert an extra step such as an interview.
 
-- ②③は体験上 1 ステップ（確認 → 生成）。3 ステップ全体で数分以内・入力は場所の確認のみ
-- 既存の作業場が見つかった場合（`root.json` 検出）は生成をスキップして開く。
-  複数見つかった場合は選択させ、最後に開いた作業場をマシン設定に記録する
+- Steps 2 and 3 are one step in the experience (confirm, then generate). The whole three steps take a few minutes. The only input is confirming the place.
+- If an existing workspace is found (`root.json` detected), skip generation and open it. If several are found, ask the person to choose, and record the last opened workspace in machine settings.
 
-## 6. 不変条件（実装がどう変わっても守る）
+## 6. Invariants (hold no matter how the implementation changes)
 
-1. **孤児プロジェクトを作らない**: アプリ・スキルが新規プロジェクトを作るとき、宛先は必ず
-   開いている作業場の `channels/<channel>/videos/` とする
-2. **Raw 不変**: `inbox/` とプロジェクト内 `assets/` にアプリ・エージェントが書き込まない
-3. **secrets 不混入**: 作業場のどのファイルにも認証情報を書かない
-4. **可搬性**: 作業場はフォルダ 1 個で自己完結し、丸ごと移動・コピーで別マシンでも開ける。
-   作業場内のファイルに**作業場外への絶対パスを正本として書かない**
-   （書く場合は Generated 層のキャッシュ扱い = 消えても再生成できること。
-   例外は §7 の外部接続宣言 — これは「外部参照の明示的宣言」でありキャッシュではない）
-5. **更新で壊さない**: アプリ更新は作業場に migration 以外の書き込みをしない。
-   migration は版数（`root.json`）を見て明示的にのみ走る
+1. **Do not create an orphan project.** When the app or a skill creates a new project, the destination is always `channels/<channel>/videos/` of the open workspace.
+2. **Raw is unchanged.** The app and the agent do not write into `inbox/` or into `assets/` inside a project.
+3. **No secrets mixed in.** Do not write credentials into any file in the workspace.
+4. **Portability.** A workspace is self-contained as one folder. Move or copy the whole folder and it opens on another machine. Do not write an absolute path that points outside the workspace as the canonical value inside a workspace file. If such a path is written, treat it as Generated-layer cache, so deleting it still allows regeneration. The exception is the external-connection declaration in §7. That is an explicit declaration of an external reference, not cache.
+5. **An update does not destroy it.** An app update writes nothing into the workspace except a migration. A migration runs only explicitly, after reading the version in `root.json`.
 
-## 7. memory-connection v0 の保留裁定への回答
+## 7. Answer to the deferred ruling in memory-connection v0
 
-`contract-2026-07-25-memory-connection-v0.md` §2 は「プロジェクト外の永続置き場所の
-基底ディレクトリ（`~/.akari-video/` か `~/.akari/` か）」を保留していた。本契約で次のとおり
-裁定し、同契約 §2 のこの保留項目を**置換**する:
+`contract-2026-07-25-memory-connection-v0.md` §2 deferred the base directory for a persistent place outside a project (`~/.akari-video/` or `~/.akari/`). This contract rules as follows, and **replaces** that deferred item in §2 of that contract.
 
-- **ユーザーの内容物（memory・スタイル学習の実体）は隠しディレクトリに置かない**。
-  既定の置き場は作業場の `.akari/memory/` とする
-- 保留されていた「基底ディレクトリはどちらか」への回答は「**どちらでもない**」:
-  ユーザー内容物の基底は作業場であり、隠し側（`~/.akari/` = 既存のマシン状態置き場）には
-  マシン状態のみを置く。`~/.akari-video/` は新設しない
-- 接続宣言（`connections.json`）の仕組みは不変。外部パス（自分の wiki 等）への接続宣言は
-  引き続き可能で、**既定値だけ**が「外部パス」から「自作業場の `.akari/memory/`」に変わる
+- **Do not put the user's contents** (the memory and style-learning artifacts) **in a hidden directory**. The default place is the workspace `.akari/memory/`.
+- The answer to "which base directory" is **neither**. The base for user contents is the workspace. The hidden side (`~/.akari/`, the existing place for machine state) holds machine state only. Do not create `~/.akari-video/`.
+- The connection-declaration mechanism (`connections.json`) is unchanged. A declaration that points at an external path, such as one's own wiki, is still allowed. **Only the default** changes, from "an external path" to "this workspace's `.akari/memory/`".
 
-## 8. 養子縁組 — 既存プロジェクトの取り込み
+## 8. Adoption. Taking in an existing project
 
-- プロジェクトは project-structure-v0 により自己完結しているため、取り込みは
-  **フォルダ移動のみ・変換なし**とする（コピーではなく移動を既定とし、元位置に残さない）
-- 取り込み時にアプリが行ってよいのは: (a) 宛先 `channels/<channel>/videos/` への移動
-  (b) `root.json` のプロジェクト一覧更新 (c) 破損検査（プロジェクトのマーカー確認 —
-  ランチャーの scaffold 済み判定と同じ基準）— の 3 つだけ。プロジェクト内部のファイルには触れない
-- 取り込み動線は CLI / GUI どちらからも可能にする（実装形は非スコープ）
+- A project is self-contained under project-structure-v0, so intake is **a folder move only, with no conversion**. The default is a move, not a copy. Do not leave the original in place.
+- At intake the app may do only three things. (a) Move into the destination `channels/<channel>/videos/`. (b) Update the project list in `root.json`. (c) A damage check (confirm the project marker, the same criterion as the launcher's scaffolded check). It does not touch files inside the project.
+- The intake flow must be possible from both CLI and GUI. The implementation shape is out of scope.
 
-## 9. お試しモード（作業場なし運用）
+## 9. Trial mode (running with no workspace)
 
-- 作業場が無い状態でのプロジェクト単体運用は**引き続き動作を保証する**
-  （既存ユーザー・一時利用・検証用途）
-- ただし作業場前提の機能（横断ダッシュボード・スタイル学習の既定保存・作業場 library）は
-  無効でよい。アプリはお試しモード時に作業場の作成を**案内してよいが強制しない**
-- お試しモードで作られたプロジェクトが将来の養子縁組（§8）で取り込めることを保証する
+- Running a project alone, with no workspace, **still has its behavior guaranteed**. That covers an existing user, a temporary use, and verification.
+- Features that assume a workspace may be off. That includes a cross-project dashboard, the default save for style learning, and the workspace library. In trial mode the app **may offer** to create a workspace. It does not force it.
+- A project created in trial mode must still be adoptable later (§8).
 
-## 10. スコープ外（将来の別契約）
+## 10. Out of scope (future separate contracts)
 
-- チャンネル設計インタビュー（design.md の生成・更新工程）の製品機能化
-- 外部エージェントからの呼び出し規格（door）: CLI / headless / 1 ターン実行の口
-- テキスト出口への拡張（`persona/` / `outlets/` — creator-root/v2 候補）
-- Windows インストーラの同等実装
-- 作業場ダッシュボード UI の詳細（home 動線の実装契約側で扱う）
+- Turning the channel-design interview (the process that generates and updates design.md) into a product feature.
+- The call shape from an external agent (door): a CLI, headless, or one-turn execution mouth.
+- Extension to a text outlet (`persona/`, `outlets/`. A candidate for creator-root/v2).
+- An equivalent Windows installer.
+- Detail of the workspace dashboard UI (handled on the implementation-contract side of the home flow).
 
-## 11. 改訂履歴
+## 11. Revision history
 
-- **2026-08-08（タスク workspace-default-akari）**: §2・§5 の新規作業場の既定パスを
-  `~/AkariVideo/`（Windows: `%USERPROFILE%\AkariVideo\`）から `~/Akari/`
-  （Windows: `%USERPROFILE%\Akari\`）へ改訂。理由: 命名裁定（傘 = AkariLabs / 製品 = AKARI
-  <能力> / データの家 = `~/Akari`）との整合。作業場の同定はフォルダ名でなく `root.json` の
-  存在 + `~/.akari/creator-root.json` ポインタなので、既存の `~/AkariVideo` 作業場は
-  無改造のまま動作する（§3・§6-1 不変）。
+- **2026-08-08 (task workspace-default-akari).** §2 and §5 change the default path of a new workspace from `~/AkariVideo/` (Windows: `%USERPROFILE%\AkariVideo\`) to `~/Akari/` (Windows: `%USERPROFILE%\Akari\`). Reason: match the naming ruling. The umbrella is AkariLabs, the product is AKARI plus a capability, and the home of the data is `~/Akari`. A workspace is identified by the presence of `root.json` plus the `~/.akari/creator-root.json` pointer, not by the folder name, so an existing `~/AkariVideo` workspace keeps working with no change. §3 and §6 item 1 stay invariants.

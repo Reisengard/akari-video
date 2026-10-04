@@ -1,68 +1,52 @@
+**English** | [Japanese](./contract-2026-08-23-stroke-persistence.ja.md)
+
 ---
 lifecycle: implemented
 created: 2026-08-23
 updated: 2026-09-12
 ---
 
-# 注釈ストローク永続表示契約
+# Persistent annotation strokes
 
-- 日付: 2026-08-23
-- 状態: **実装済み**
-- 前提: `contract-2026-08-11-review-session-ui-events.md`、
-  `contract-2026-07-20-review-json-v1-annotation-model.md`
-- スコープ: Theia shell の出力プレビュー、review session の `strokes.json` 読み出し、
-  compile-review-session と address-review の追跡導線
+- Date: 2026-08-23
+- Status: **implemented**
+- Depends on `contract-2026-08-11-review-session-ui-events.md` and `contract-2026-07-20-review-json-v1-annotation-model.md`
+- Scope: the output preview in the Theia shell, reading `strokes.json` for a review session, and the trace path through compile-review-session and address-review
 
-## 1. セッション中の表示
+## 1. Display during a session
 
-- pen / rect は従来どおり正規化座標（プレビューフレーム左上を `(0, 0)`、右下を `(1, 1)`）で
-  記録する。表示時に現在の content rect へ写像し直すため、ウィンドウのリサイズと出力比率の
-  変更で座標は変わらない。
-- pointerup 後は従来のグロー・きらめき・600 ms フェードをそのまま再生し、その後段の静的
-  ビットマップへ同じ正規化図形を残す。新しい録音セッションの開始時に前セッションの表示を
-  クリアし、録音終了では消さない。※ 2026-09-12 改訂（§1.1）
-- 描線 canvas は非描画モードで `pointer-events: none` とする。ペンまたは四角モードのドラッグ中
-  だけ既存どおり入力面になる。
-- 注釈パネルの「描線を表示」チェックは既定 ON。OFF は残留描線と明示的に再表示した描線を隠し、
-  データを削除しない。ON に戻すと保持した正規化座標から即時再描画する。
+- pen and rect are still recorded in normalized coordinates. The top left of the preview frame is `(0, 0)` and the bottom right is `(1, 1)`. On display, map them onto the current content rect. A window resize or a change of output aspect does not change the stored coordinates.
+- After pointerup, play the existing glow, sparkle, and 600 ms fade, then leave the same normalized shape on the static bitmap that follows. Starting a new recording session clears the previous session's display. Ending a recording does not clear it. Revised 2026-09-12. See §1.1.
+- The stroke canvas uses `pointer-events: none` while it is not drawing. It becomes the input surface, as before, only during a drag in pen or rect mode.
+- The annotation panel checkbox "Show strokes" defaults to on. Off hides leftover strokes and strokes that were shown again on purpose. It does not delete data. Turning it back on redraws immediately from the stored normalized coordinates.
 
-### 1.1 表示の寿命（2026-09-12 追記）
+### 1.1 Display lifetime (added 2026-09-12)
 
-- 描線はプレイヘッド近傍表示とする。録音中は `recT - recTEnd`、録音外の再表示では
-  `|playheadT - frame.timelineT|` を距離として、直近または近傍の複数描線だけを表示する。
-- 表示規則の単一正本は `PEN_TUNING.visibleWindowSec`（既定 8 秒）と
-  `PEN_TUNING.fadeOutMs`（既定 1500 ms）である。時間窓内は不透明とし、窓を超えた描線は
-  `fadeOutMs` をかけて薄れて非表示になる。
-- `fadeOutMs` は表示寿命のための値であり、pointerup 直後のきらめきと描き味を担う既存の
-  `fadeDurationMs`（600 ms）とは別物である。
-- 録音停止時は画面上の表示プールをクリアするが、記録側の `strokes.json` は変更しない。
-  録音済みセッションの描線は再表示できるため、手動のクリアボタンは設けない。
+- Strokes display near the playhead. While recording, the distance is `recT - recTEnd`. When showing strokes again outside recording, the distance is `|playheadT - frame.timelineT|`. Show only the nearest stroke, or the nearby strokes.
+- The single source for the display rule is `PEN_TUNING.visibleWindowSec` (default 8 seconds) and `PEN_TUNING.fadeOutMs` (default 1500 ms). Inside the time window the stroke is opaque. A stroke past the window fades over `fadeOutMs` and then hides.
+- `fadeOutMs` is the display lifetime. It is not `fadeDurationMs` (600 ms), which still owns the sparkle and the drawing feel immediately after pointerup.
+- Stopping a recording clears the on-screen display pool. It does not change the recorded `strokes.json`. Strokes from a finished session can be shown again, so there is no manual clear button.
 
-## 2. 既存セッションの読み出しと再表示
+## 2. Read and show an existing session again
 
-`readReviewSessionStrokes({projectRootUri, sessionId})` は
-`review/sessions/<sessionId>/strokes.json` を読み、次を返す。
+`readReviewSessionStrokes({projectRootUri, sessionId})` reads `review/sessions/<sessionId>/strokes.json` and returns the following.
 
 ```jsonc
 {
   "sessionId": "s-0001",
-  "strokes": [/* pen / rect。frame と recTStart/recTEnd を保持 */],
+  "strokes": [/* pen or rect. Keeps frame and recTStart/recTEnd */],
   "warnings": []
 }
 ```
 
-- `strokes.json` 欠落は `strokes: []` として正常終了する。
-- 配列ルート、または `version: 1` でない `{strokes:[]}` は旧形式として寛容に読む。
-- JSON 破損、未知要素、値域外要素は描線単位で除外して warning に残す。セッション一覧と他の
-  描線を巻き込んで失敗させない。
-- 注釈パネルの各録音済みセッションにある「描線」から再表示できる。表示メッセージには
-  `target.tab`（edit URI）と先頭ストロークの `target.recT` を添え、`frame.sourceT/cutIndex` で
-  プレビューを同じフレームへシークする。
+- A missing `strokes.json` finishes normally as `strokes: []`.
+- An array root, or a `{strokes:[]}` whose `version` is not 1, is read leniently as an old shape.
+- Broken JSON, an unknown element, or an element outside the value range is dropped per stroke and kept as a warning. Do not fail the session list or the other strokes along with it.
+- Each recorded session in the annotation panel can show strokes again from "Stroke". The display message includes `target.tab` (the edit URI) and the first stroke's `target.recT`. Seek the preview to the same frame with `frame.sourceT` and `cutIndex`.
 
-## 3. compile 後の原本参照
+## 3. Source reference after compile
 
-review.json の data `version` は 0 のまま据え置く。compile-review-session はペアになった pen / rect
-へ、既存フィールドを変えず次の任意フィールドを追加する。
+The data `version` of review.json stays at 0. compile-review-session adds the following optional field to a paired pen or rect. It does not change existing fields.
 
 ```jsonc
 "strokeRefs": [{
@@ -72,16 +56,12 @@ review.json の data `version` は 0 のまま据え置く。compile-review-sess
 }]
 ```
 
-- `strokeRefs` は `null`、省略、または 1 件以上の配列。欠落は従来データとして正常である。
-- pen は従来どおり最大 100 点の `strokes[].points` も埋め込み、`strokeRefs` から無加工の原本へ
-  戻れる。rect は従来どおり `targetKind:"region"` + `region.box` を埋め込み、同じ `strokeRefs`
-  から `strokes.json` 内の rect 原本へ戻れる。
-- address-review の一覧は `strokeRefs` を
-  `review/sessions/<sessionId>/strokes.json#<strokeId>` として表示する。
+- `strokeRefs` is `null`, omitted, or an array of one or more items. A missing value is valid old data.
+- pen still also embeds `strokes[].points`, at most 100 points, so `strokeRefs` can return to the unprocessed source. rect still embeds `targetKind:"region"` plus `region.box`, and the same `strokeRefs` can return to the rect source inside `strokes.json`.
+- The address-review list shows `strokeRefs` as `review/sessions/<sessionId>/strokes.json#<strokeId>`.
 
-## 4. 互換性
+## 4. Compatibility
 
-- 追加フィールドのみを使い、既存フィールドの削除・意味変更・data version bump は行わない。
-- 読み手は未知フィールドを保持し、任意フィールドの欠落を旧データとして扱い、既知より大きい
-  data version を推測変換しない。
-- `packages/preview-server` は本契約の対象外であり、WebUI の表示挙動は変更しない。
+- Use added fields only. Do not delete an existing field, change its meaning, or bump the data version.
+- A reader keeps unknown fields, treats a missing optional field as old data, and does not guess-convert a data version higher than one it knows.
+- `packages/preview-server` is out of scope. Do not change WebUI display behavior.
