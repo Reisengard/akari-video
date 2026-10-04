@@ -1,8 +1,8 @@
-{"id":"teal_orange","kind":"look","name":"ティール＆オレンジ","description":"映画的 補色コントラスト","when_to_use":"映画的 補色コントラストを加えたいとき"}
-{"id":"golden_hour","kind":"look","name":"ゴールデンアワー","description":"黄金時間帯の温かみ","when_to_use":"黄金時間帯の温かみを加えたいとき"}
-{"id":"filmic_fade","kind":"look","name":"フィルミックフェード","description":"フィルム質感のフェード","when_to_use":"フィルム質感のフェードを加えたいとき"}
-{"id":"clean_punch","kind":"look","name":"クリーンパンチ","description":"シャープなコントラスト","when_to_use":"シャープなコントラストを加えたいとき"}
-{"id":"bleach","kind":"look","name":"ブリーチバイパス","description":"漂白バイパス・高コントラスト低彩度","when_to_use":"漂白バイパス・高コントラスト低彩度を加えたいとき"}
-{"id":"noir_soft","kind":"look","name":"ソフトノワール","description":"ソフトモノクロ","when_to_use":"ソフトモノクロを加えたいとき"}
-{"id":"cool_matte","kind":"look","name":"クールマット","description":"クールなマット","when_to_use":"クールなマットを加えたいとき"}
-{"id":"vivid_summer","kind":"look","name":"ビビッドサマー","description":"彩度高め・夏らしい","when_to_use":"彩度高め・夏らしいを加えたいとき"}
+{"id":"teal_orange","kind":"look","name":"Teal and orange","description":"Cinematic complementary contrast","when_to_use":"When you want cinematic complementary contrast"}
+{"id":"golden_hour","kind":"look","name":"Golden hour","description":"The warmth of golden hour","when_to_use":"When you want the warmth of golden hour"}
+{"id":"filmic_fade","kind":"look","name":"Filmic fade","description":"A fade with film texture","when_to_use":"When you want a fade with film texture"}
+{"id":"clean_punch","kind":"look","name":"Clean punch","description":"Sharp contrast","when_to_use":"When you want sharp contrast"}
+{"id":"bleach","kind":"look","name":"Bleach bypass","description":"Bleach bypass, high contrast and low saturation","when_to_use":"When you want bleach bypass, high contrast and low saturation"}
+{"id":"noir_soft","kind":"look","name":"Soft noir","description":"Soft monochrome","when_to_use":"When you want soft monochrome"}
+{"id":"cool_matte","kind":"look","name":"Cool matte","description":"A cool matte finish","when_to_use":"When you want a cool matte finish"}
+{"id":"vivid_summer","kind":"look","name":"Vivid summer","description":"Higher saturation, a summer look","when_to_use":"When you want higher saturation and a summer look"}

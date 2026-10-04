@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-interview",
-  "name": "インタビュー字幕",
+  "name": "Interview captions",
   "category": "subtitle",
-  "sample_text": "「そう思いました」",
+  "sample_text": "\"That's what I thought\"",
   "style": {
     "size_px": 56,
     "weight": 700,

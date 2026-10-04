@@ -50,16 +50,16 @@ export function generateIndexText() {
   }
 
   const caps = [
-    ['none', 'なし', true],
-    ['triangle', '三角', true],
-    ['chevron', '矢印', false],
-    ['bar', '止め', false],
-    ['square', '四角', true],
-    ['circle', '丸', true],
-    ['diamond', 'ひし形', true],
-    ['square', '中抜き四角', false],
-    ['circle', '中抜き丸', false],
-    ['diamond', '中抜きひし形', false],
+    ['none', 'None', true],
+    ['triangle', 'Triangle', true],
+    ['chevron', 'Arrow', false],
+    ['bar', 'Bar', false],
+    ['square', 'Square', true],
+    ['circle', 'Circle', true],
+    ['diamond', 'Diamond', true],
+    ['square', 'Open square', false],
+    ['circle', 'Open circle', false],
+    ['diamond', 'Open diamond', false],
   ];
   const capCodes = ['none', 'tri', 'open', 'bar', 'sq', 'circ', 'dia', 'sqo', 'circo', 'diao'];
   const pairs = [
@@ -86,7 +86,7 @@ export function generateIndexText() {
       records.push({
         id: `line-${dash}-${start}-${end}`,
         category: 'line',
-        name: `${{ solid: '実線', dash: '破線', dot: '点線' }[dash]}・${a[1]}・${b[1]}`,
+        name: `${{ solid: 'Solid', dash: 'Dashed', dot: 'Dotted' }[dash]}, ${a[1]}, ${b[1]}`,
         vb: [100, 20],
         d: 'M0 10L100 10',
         kind: 'line',
@@ -127,10 +127,10 @@ export function generateIndexText() {
       defaults: { ...bubbleDefaults, ...params },
     });
   };
-  bubble('ellipse', '楕円', {});
-  bubble('round', '角丸', { style: 'rounded', tailAngle: 200, tailLength: 40, tailWidth: 28 });
-  bubble('narration', 'ナレーション', { style: 'rect', tail: 'none' });
-  bubble('shout', '叫び', {
+  bubble('ellipse', 'Ellipse', {});
+  bubble('round', 'Rounded', { style: 'rounded', tailAngle: 200, tailLength: 40, tailWidth: 28 });
+  bubble('narration', 'Narration', { style: 'rect', tail: 'none' });
+  bubble('shout', 'Shout', {
     style: 'jagged',
     count: 22,
     depth: 42,
@@ -140,8 +140,8 @@ export function generateIndexText() {
     tailLength: 40,
     tailWidth: 26,
   });
-  bubble('burst', '爆発', { style: 'burst', count: 15, depth: 62, jitter: 70, seed: 7, tail: 'none' });
-  bubble('cloud', 'もくもく', {
+  bubble('burst', 'Burst', { style: 'burst', count: 15, depth: 62, jitter: 70, seed: 7, tail: 'none' });
+  bubble('cloud', 'Billowing', {
     style: 'cloud',
     count: 11,
     depth: 45,
@@ -152,7 +152,7 @@ export function generateIndexText() {
     tailLength: 50,
     tailWidth: 40,
   });
-  bubble('tremble', '震え', {
+  bubble('tremble', 'Tremble', {
     style: 'wobble',
     count: 36,
     depth: 35,
@@ -163,15 +163,15 @@ export function generateIndexText() {
     tailWidth: 28,
     tailCurve: -30,
   });
-  bubble('whisper', 'ひそひそ', {
+  bubble('whisper', 'Whisper', {
     dash: 'dash',
     tailAngle: 150,
     tailLength: 40,
     tailWidth: 22,
     tailCurve: 30,
   });
-  bubble('upright', 'しっぽ右上', { tailAngle: 45, tailLength: 45, tailWidth: 30, tailCurve: 20 });
-  bubble('spiky-soft', 'ギザ少なめ', {
+  bubble('upright', 'Tail up right', { tailAngle: 45, tailLength: 45, tailWidth: 30, tailCurve: 20 });
+  bubble('spiky-soft', 'Soft spikes', {
     style: 'jagged',
     count: 13,
     depth: 30,
@@ -181,8 +181,8 @@ export function generateIndexText() {
     tailLength: 40,
     tailWidth: 28,
   });
-  bubble('thought', '考え中', { tail: 'dots', tailAngle: 200, tailLength: 50, tailWidth: 35 });
-  bubble('rect-tail', '四角としっぽ', { style: 'rect', tailAngle: 195, tailLength: 42, tailWidth: 26 });
+  bubble('thought', 'Thinking', { tail: 'dots', tailAngle: 200, tailLength: 50, tailWidth: 35 });
+  bubble('rect-tail', 'Square with tail', { style: 'rect', tailAngle: 195, tailLength: 42, tailWidth: 26 });
 
   if (new Set(records.map((r) => r.id)).size !== records.length) throw new Error('duplicate shape ID');
   return records.map((row) => JSON.stringify(row)).join('\n') + '\n';

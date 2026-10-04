@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "variety-candy-pink",
-  "name": "バラエティ 桃の袋文字",
+  "name": "Variety, pink outlined letters",
   "category": "decorative",
-  "sample_text": "大成功！",
+  "sample_text": "Big success!",
   "style": {
     "size_px": 90,
     "weight": 800,

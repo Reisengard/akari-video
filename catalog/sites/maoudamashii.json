@@ -1,6 +1,6 @@
 {
   "id": "maoudamashii",
-  "name": "魔王魂",
+  "name": "MaouDamashii",
   "tab": "audio",
   "entry_url": "https://maou.audio/",
   "hosts": [
@@ -9,7 +9,7 @@
   "download_hosts": [],
   "price": "free",
   "terms": {
-    "summary_ja": "商用利用無料。「音楽：魔王魂」の表示が必須（BGM・効果音への置換可）。単品再配布・AI学習は禁止。",
+    "summary_ja": "Free for commercial use. The credit \"音楽：魔王魂\" is required (you may write BGM or sound effects in place of 音楽). Redistribution of the files alone and AI training are forbidden.",
     "source_url": "https://maou.audio/rule/",
     "checked_at": "2026-09-21"
   },

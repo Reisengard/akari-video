@@ -1,9 +1,9 @@
 {
   "id": "freesound-inspectorj-pencil-writing",
   "category": "audio",
-  "title": "Freesound 鉛筆で書く音（InspectorJ）",
-  "description": "鉛筆で紙に書く音を至近距離でマイクが追従して収録したリアルな筆記音（尺12.7秒）。H1 Zoomレコーダーで2016年11月1日に収録。（収録数: 1点）",
-  "when_to_use": "手書き/筆記シーンの実写的な筆記音、ノート/手紙を書く描写のリアリズムを足したいとき",
+  "title": "Freesound pencil writing (InspectorJ)",
+  "description": "A realistic writing sound of pencil on paper, with the mic following at close range (12.7 seconds). Recorded on 2016-11-01 with an H1 Zoom recorder. (Count: 1)",
+  "when_to_use": "When a handwritten or writing scene needs a realistic writing sound, such as a notebook or a letter",
   "tags": [
     "sfx",
     "writing",

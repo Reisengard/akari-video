@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "narration-caption",
-  "name": "ナレーション字幕",
+  "name": "Narration captions",
   "category": "subtitle",
-  "sample_text": "この街には、まだ誰も知らない物語がある。",
+  "sample_text": "This city still holds a story nobody knows.",
   "style": {
     "font_family": "'Noto Serif JP', serif",
     "size_px": 28,

@@ -1,5 +1,5 @@
 {
   "id": "EN-21",
   "glob": "{catalog/**,presets/**,assets/INDEX.md,assets/**/INDEX.md,.claude-plugin/marketplace.json}",
-  "max": 40478
+  "max": 29213
 }

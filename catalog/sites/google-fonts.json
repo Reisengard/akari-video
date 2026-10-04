@@ -14,7 +14,7 @@
   ],
   "price": "free",
   "terms": {
-    "summary_ja": "商用利用可。多くはSIL Open Font License。個々のフォントのライセンスに従う。クレジット不要。公式APIによる直接取得は別審査のため行わない。",
+    "summary_ja": "Commercial use allowed. Most are under the SIL Open Font License. Follow each font's license. No credit required. Direct fetch through the official API is a separate review, so this catalog does not do it.",
     "source_url": "https://fonts.google.com/faq",
     "checked_at": "2026-09-21"
   },

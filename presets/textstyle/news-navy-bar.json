@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "news-navy-bar",
-  "name": "ニュース 紺の解説帯",
+  "name": "News, navy explainer bar",
   "category": "subtitle",
-  "sample_text": "ポイントを解説",
+  "sample_text": "Key points explained",
   "style": {
     "size_px": 58,
     "weight": 800,

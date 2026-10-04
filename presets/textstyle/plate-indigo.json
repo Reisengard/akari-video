@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "plate-indigo",
-  "name": "座布団 藍紫角丸",
+  "name": "Plate, indigo rounded",
   "category": "subtitle",
-  "sample_text": "大事なお知らせ",
+  "sample_text": "Important notice",
   "style": {
     "size_px": 64,
     "weight": 700,

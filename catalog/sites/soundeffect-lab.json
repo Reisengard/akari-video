@@ -1,6 +1,6 @@
 {
   "id": "soundeffect-lab",
-  "name": "効果音ラボ",
+  "name": "Sound Effect Lab",
   "tab": "audio",
   "entry_url": "https://soundeffect-lab.info/",
   "hosts": [
@@ -9,7 +9,7 @@
   "download_hosts": [],
   "price": "free",
   "terms": {
-    "summary_ja": "商用利用無料。クレジット不要。素材の再配布・音声ファイルへの直リンク・AI学習は禁止。AKARIの既定素材に同梱しない。おすすめはカテゴリページ。",
+    "summary_ja": "Free for commercial use. No credit required. Redistribution, hotlinking the audio file, and AI training are forbidden. Do not bundle it in AKARI's default assets. The category page is the recommended link.",
     "source_url": "https://soundeffect-lab.info/agreement/",
     "checked_at": "2026-09-21"
   },

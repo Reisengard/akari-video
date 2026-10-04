@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "vertical-impact-white",
-  "name": "縦動画 白の大見出し",
+  "name": "Vertical, large white title",
   "category": "title",
-  "sample_text": "これ知ってる？",
+  "sample_text": "Did you know this?",
   "style": {
     "size_px": 126,
     "weight": 900,

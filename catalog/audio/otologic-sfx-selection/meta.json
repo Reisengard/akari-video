@@ -1,9 +1,9 @@
 {
   "id": "otologic-sfx-selection",
   "category": "audio",
-  "title": "OtoLogic 定番SFXセレクション",
-  "description": "2026-08-23 SFX 見直し聴き比べでオーナー採用した OtoLogic 定番 12 点。（収録数: 12点）",
-  "when_to_use": "緊迫の上昇スウィープ（警告音サイレン04）/ 速いカットの風切り（スイング06）/ 成功キラキラ（ベルアクセント14）/ ポップクリック 2 種（オノマトペ弾ける04・PCマウス01）/ テロップ出現の低め木質タップ（打楽器アクセント04）/ 明るいソフトクリック（PCマウス04）/ 軽いタップ（カスタネット02）/ 単発ウッドブロック（ウッドブロック01）/ キラキラ強調（ベルアクセント16）/ 控えめキラリン（ベルアクセント10）/ シーン切り替えの木琴グリッサンド（木琴06）",
+  "title": "OtoLogic standard SFX selection",
+  "description": "Twelve standard OtoLogic effects the owner kept in the 2026-08-23 SFX listen-through. (Count: 12)",
+  "when_to_use": "A tense rising sweep (warning siren 04) / a whoosh for a fast cut (swing 06) / a success sparkle (bell accent 14) / two pop clicks (onomatopoeia pop 04, PC mouse 01) / a low woody tap for a caption (percussion accent 04) / a bright soft click (PC mouse 04) / a light tap (castanet 02) / a single wood block (wood block 01) / a sparkle emphasis (bell accent 16) / a quiet sparkle (bell accent 10) / a xylophone glissando for a scene change (xylophone 06)",
   "tags": [
     "chime",
     "click",

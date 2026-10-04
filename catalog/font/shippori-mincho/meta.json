@@ -2,8 +2,8 @@
   "id": "shippori-mincho",
   "category": "font",
   "title": "Shippori Mincho",
-  "description": "ディスプレイ寄りの日本語明朝体。文芸・シネマ・和風の演出に向く representativeな明朝トーン。 実体（Regular）は本リポの assets/font/shippori-mincho/ に同梱済み（2026-08-03 追加。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "シネマ調・和風・感情的な決め台詞のテロップ",
+  "description": "A Japanese mincho that leans display. A representative mincho tone for literary, cinematic, and Japanese-style scenes. The Regular binary is already bundled at assets/font/shippori-mincho/ in this repo (added 2026-08-03. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "Captions for a cinematic, Japanese-style, or emotional decisive line",
   "tags": [
     "font",
     "japanese",

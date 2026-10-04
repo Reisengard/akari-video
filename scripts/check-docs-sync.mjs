@@ -29,7 +29,7 @@ const numberChecks = [
   { file: 'docs/README.ja.md', patterns: [/(\d+) のエージェント側スキル/] },
   { file: 'docs/skills.md', patterns: [/split into \*\*(\d+) skills\*\*/] },
   { file: 'docs/skills.ja.md', patterns: [/\*\*(\d+) のスキル\*\*/] },
-  { file: '.claude-plugin/marketplace.json', patterns: [/編集スキル一式（(\d+) 本）/] },
+  { file: '.claude-plugin/marketplace.json', patterns: [/editing skills \((\d+)\)/] },
 ];
 
 for (const { file, patterns } of numberChecks) {

@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "emphasis-red",
-  "name": "強調",
+  "name": "Emphasis",
   "category": "emphasis",
-  "sample_text": "ここ重要！",
+  "sample_text": "This matters!",
   "style": {
     "size_px": 92,
     "weight": 700,

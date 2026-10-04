@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "news-red-bar",
-  "name": "ニュース 淡赤の速報帯",
+  "name": "News, pale-red breaking bar",
   "category": "subtitle",
-  "sample_text": "速報が入りました",
+  "sample_text": "Breaking news just in",
   "style": {
     "size_px": 60,
     "weight": 800,

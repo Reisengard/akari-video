@@ -1,12 +1,12 @@
 {
   "id": "modern-smartphone",
   "category": "scene3d",
-  "title": "現代的なスマートフォン 3D モデル（縁なしスクリーン）",
-  "description": "縁なし（edge-to-edge）スクリーンを持つ現代的なスマートフォンの高精細 3D モデル（4K テクスチャ、Base Color / Metallic / Roughness / Mixed AO / Normal / Height）。画面差し込みのモックアップ用途に使える",
-  "when_to_use": "アプリ紹介・UI 解説・プロダクトデモで、実機に画面を映し込んだモックアップ映像を作るとき",
+  "title": "Modern smartphone 3D model (edge-to-edge screen)",
+  "description": "A high-detail 3D model of a modern smartphone with an edge-to-edge screen (4K textures: Base Color, Metallic, Roughness, Mixed AO, Normal, Height). Usable as a mockup that composites a picture into the screen",
+  "when_to_use": "When an app intro, a UI explainer, or a product demo needs a mockup with a picture composited onto a real device",
   "tags": ["product-demo", "smartphone", "mockup", "screen-insert", "ui", "hero-shot", "16:9"],
   "knobs": [
-    { "cssVar": "--rotate-y", "type": "slider", "min": -45, "max": 45, "unit": "deg", "group": "pose", "label": "水平回転" }
+    { "cssVar": "--rotate-y", "type": "slider", "min": -45, "max": 45, "unit": "deg", "group": "pose", "label": "Horizontal rotation" }
   ],
   "ai_usage": "取得後に fragment化 / ベイクレシピ化する際は、画面（フロントパネル全体。edge-to-edgeのため単一の平面）を独立 UV 島として再展開し、Emission 等の差し替え可能な画面用マテリアルを新設してよい。ボディ側のジオメトリ・PBR テクスチャ（傷・質感等）は改変しない。付属の .mtl にはテクスチャ参照が無いため、ファイル名規約（Mat_Base_Color 等）から手動でマテリアルノードを組む必要がある",
   "requires": ["three.js", "gltf"],

@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "vertical-impact-cyan",
-  "name": "縦動画 水色の大見出し",
+  "name": "Vertical, large cyan title",
   "category": "title",
-  "sample_text": "見逃さないで",
+  "sample_text": "Don't miss this",
   "style": {
     "size_px": 125,
     "weight": 900,

@@ -2,8 +2,8 @@
   "id": "zen-maru-gothic",
   "category": "font",
   "title": "Zen Maru Gothic",
-  "description": "やわらかい印象の丸ゴシック。M PLUS Rounded 1c より落ち着いた骨格で、やさしい・ほっこり系のトーンに向く。 実体（Regular・Bold の 2 ウェイト）は本リポの assets/font/zen-maru-gothic/ に同梱済み（2026-08-03 追加。catalog 側は索引のまま・下記 source は取得元記録）。",
-  "when_to_use": "キッズ・ライフスタイル・やさしい解説のテロップ/字幕",
+  "description": "A rounded gothic with a soft impression. A calmer skeleton than M PLUS Rounded 1c, for a gentle tone. The binaries (Regular and Bold) are already bundled at assets/font/zen-maru-gothic/ in this repo (added 2026-08-03. The catalog side stays an index, and source below is the fetch record).",
+  "when_to_use": "Captions for kids, lifestyle, and a gentle explainer",
   "tags": [
     "font",
     "japanese",

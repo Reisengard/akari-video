@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-white-hairline",
-  "name": "白字幕 細縁",
+  "name": "White captions, thin edge",
   "category": "subtitle",
-  "sample_text": "声が聞こえる",
+  "sample_text": "I can hear a voice",
   "style": {
     "size_px": 52,
     "weight": 500,

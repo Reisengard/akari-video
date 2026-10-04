@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-soft-band",
-  "name": "字幕 半透明の帯",
+  "name": "Captions, translucent band",
   "category": "subtitle",
-  "sample_text": "ゆっくり話します",
+  "sample_text": "Speaking slowly",
   "style": {
     "size_px": 52,
     "weight": 500,

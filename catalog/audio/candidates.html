@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>音源セットアップ候補リスト（AKARI Video）</title>
+<title>Audio setup candidates (AKARI Video)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { color-scheme: light dark; }
@@ -56,50 +56,50 @@
 </style>
 </head>
 <body>
-  <h1>音源セットアップ候補リスト（BGM・SFX）</h1>
+  <h1>Audio setup candidates (BGM and sound effects)</h1>
   
   <section class="first-party">
-    <h2>既定ソース: AKARI Sounds</h2>
-    <p>自社（first-party）音源ライブラリ。全トラック AI 生成（Suno 有料プラン）・生成記録公開・商用可・クレジット不要。BGM とジングルの既定はここ。効果音もまずここを見て、無い系統だけ下の外部候補を使う。first-party のため第三者サイト向けの一括取得禁止ルールは適用されない（skills/setup-audio-library/first-party.md 参照）</p>
-    <p class="summary">BGM 99 / 効果音 77 / ジングル 12（計 188 トラック / 200 テイク）</p>
-    <p class="summary">一括取得: <code>node packages/audio-library-setup/bin/fetch-akari-sounds.mjs</code></p>
+    <h2>Default source: AKARI Sounds</h2>
+    <p>The in-house (first-party) sound library. Every track is AI-generated (Suno paid plan), the generation record is public, commercial use is allowed, and credit is not required. BGM and jingles default to this library. Look here for sound effects first, and use an external candidate below only for a family this library does not have. Because it is first-party, the ban on bulk fetch from a third-party site does not apply (see skills/setup-audio-library/first-party.md)</p>
+    <p class="summary">BGM 99 / Sound effects 77 / Jingles 12 (188 tracks / 200 takes)</p>
+    <p class="summary">Bulk fetch: <code>node packages/audio-library-setup/bin/fetch-akari-sounds.mjs</code></p>
     <a class="open-button" href="https://github.com/AkariLabs/akari-sounds/releases/tag/v0" target="_blank" rel="noopener noreferrer">
-      GitHub Release を開く ↗
+      Open the GitHub Release ↗
     </a>
   </section>
   <div class="hard-rule">
-    <strong>以下の外部候補は、AI はここから自動ダウンロードしません。</strong>
-    「ダウンロードページを開く」を押すと配布元の正規ページが新規タブで開きます。実際の保存はあなた自身が行ってください。
-    保存後はドロップフォルダへ置くと、次回のセットアップ実行時に自動で照合・登録されます。
-    （既定ソース AKARI Sounds だけは自社配布のため、上記の一括取得コマンドで直接ダウンロードできます）
+    <strong>The agent does not download these external candidates for you.</strong>
+    The "Open the download page" link opens the distributor's page in a new tab. You save the file yourself.
+    After you save it, put it in the drop folder. The next setup run matches and registers it.
+    (AKARI Sounds is the default source and is ours, so the bulk-fetch command above can download it directly.)
   </div>
   <p class="summary">
-    生成日時: 2026-08-03T00:53:17.672Z ／ 候補カード 13 件（3 カテゴリ、うち収録曲換算 13 件）／
-    既所有（catalog 登録済み）: 2 件
+    Generated: 2026-10-04T14:38:11.753Z / 13 candidate cards (3 categories, 13 tracks) /
+    Already owned (in the catalog): 2
   </p>
   
     <section class="category">
-      <h2>ヒット/ドン（impact / hit）</h2>
+      <h2>Impact hit</h2>
       <ul class="candidate-list">
         
       <li class="candidate owned">
         <div class="candidate-head">
           <span class="rank">#7</span>
           <span class="site">効果音ラボ</span>
-          <span class="title">ドーン（和太鼓・ビブラスラップ一斉）</span>
-          <span class="badge badge-owned">既所有（catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-ui-signal-pack）</span>
+          <span class="title">Doon (taiko and vibraslap together)</span>
+          <span class="badge badge-owned">Already owned (catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-scene-transition, soundeffect-lab-ui-signal-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">本レーンで実在確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed in this lane</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">同上</p>
+        <p class="note">Same as above</p>
         
-        <p class="note verify-note">検証メモ: doon1.mp3 実在確認</p>
+        <p class="note verify-note">Verification note: Confirmed doon1.mp3 is on the page</p>
         
         <a class="open-button" href="https://soundeffect-lab.info/sound/anime/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -107,20 +107,20 @@
         <div class="candidate-head">
           <span class="rank">#8</span>
           <span class="site">効果音ラボ</span>
-          <span class="title">戦闘 カテゴリ（打撃・衝撃音）</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-ui-signal-pack）</span>
+          <span class="title">Battle category (strikes and impacts)</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-scene-transition, soundeffect-lab-ui-signal-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">商用利用無料・クレジット任意・AI学習利用禁止</p>
+        <p class="note">Free for commercial use, credit optional, AI training forbidden</p>
         
         
         
         <a class="open-button" href="https://soundeffect-lab.info/sound/battle/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -128,47 +128,47 @@
         <div class="candidate-head">
           <span class="rank">#11</span>
           <span class="site">Springin&#39; Sound Stock</span>
-          <span class="title">バトル系効果音（ゲーム制作特化）</span>
+          <span class="title">Battle sound effects (aimed at game production)</span>
           
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">登録不要・クレジット任意。素材集約動画・Content ID登録は禁止</p>
+        <p class="note">No signup, credit optional. Compilation videos and Content ID registration are forbidden</p>
         
         
         
         <a class="open-button" href="https://www.springin.org/sound-stock/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
       </ul>
     </section>
 
     <section class="category">
-      <h2>拍手（applause）</h2>
+      <h2>Applause</h2>
       <ul class="candidate-list">
         
       <li class="candidate">
         <div class="candidate-head">
           <span class="rank">#27</span>
           <span class="site">効果音ラボ</span>
-          <span class="title">大勢で拍手 / スタジアムの拍手 / 小さなホールでの拍手</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-ui-signal-pack）</span>
+          <span class="title">A crowd applauding / stadium applause / applause in a small hall</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-scene-transition, soundeffect-lab-ui-signal-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-warn">本レーンで内容を修正済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-warn">Corrected in this lane</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">生活[3]カテゴリ</p>
+        <p class="note">Daily life [3] category</p>
         
-        <p class="note verify-note">検証メモ: clapping-hands1.mp3（パチパチ）・stadium-clapping-hands1.mp3（スポーツの試合）・hall-clapping-hands1.mp3（少人数）を実在確認</p>
+        <p class="note verify-note">Verification note: Confirmed clapping-hands1.mp3 (handclaps), stadium-clapping-hands1.mp3 (a sports match), and hall-clapping-hands1.mp3 (a small crowd)</p>
         
         <a class="open-button" href="https://soundeffect-lab.info/sound/various/various3.html" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -176,20 +176,20 @@
         <div class="candidate-head">
           <span class="rank">#28</span>
           <span class="site">効果音ラボ</span>
-          <span class="title">歓声と拍手（大盛り上がり/中盛り上がり）</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-ui-signal-pack）</span>
+          <span class="title">Cheers and applause (a big peak / a medium peak)</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-scene-transition, soundeffect-lab-ui-signal-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-warn">本レーンで内容を修正済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-warn">Corrected in this lane</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">声素材-大人数カテゴリ</p>
+        <p class="note">Voice material, large crowd category</p>
         
-        <p class="note verify-note">検証メモ: people-performance-cheer1（大盛り上がり）・cheer2（中盛り上がり）・people-stadium-applause1（スタジアムの拍手）を実在確認</p>
+        <p class="note verify-note">Verification note: Confirmed people-performance-cheer1 (a big peak), cheer2 (a medium peak), and people-stadium-applause1 (stadium applause)</p>
         
         <a class="open-button" href="https://soundeffect-lab.info/sound/voice/people.html" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -197,12 +197,12 @@
         <div class="candidate-head">
           <span class="rank">#29</span>
           <span class="site">Pixabay</span>
-          <span class="title">効果音検索 &quot;applause&quot;</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: corporate-upbeat-bgm, cozy-lofi-bgm）</span>
+          <span class="title">Sound-effect search &quot;applause&quot;</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: corporate-upbeat-bgm, cozy-lofi-bgm)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-ok">AI学習可</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-ok">AI training allowed</span>
         </div>
         
         <p class="note">Pixabay Content License</p>
@@ -210,7 +210,7 @@
         
         
         <a class="open-button" href="https://pixabay.com/sound-effects/search/applause/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -218,20 +218,20 @@
         <div class="candidate-head">
           <span class="rank">#30</span>
           <span class="site">Freesound</span>
-          <span class="title">タグ検索 &quot;applause crowd&quot;</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: camera-shutter, freesound-inspectorj-pencil-writing, whoosh-transition）</span>
+          <span class="title">Tag search &quot;applause crowd&quot;</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: camera-shutter, freesound-inspectorj-pencil-writing, whoosh-transition)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-unknown">クレジット要否: 個別確認</span> <span class="badge badge-unknown">AI学習可否: 不明</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-unknown">Credit: check each item</span> <span class="badge badge-unknown">AI training: unknown</span>
         </div>
         
-        <p class="note">音源ごとに異なる</p>
+        <p class="note">Differs per source</p>
         
         
         
         <a class="open-button" href="https://freesound.org/search/?q=applause+crowd" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -239,47 +239,47 @@
         <div class="candidate-head">
           <span class="rank">#31</span>
           <span class="site">DOVA-SYNDROME</span>
-          <span class="title">効果音検索（拍手・歓声系ワード指定）</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: dova-syndrome-cheerleaders-bgm, dova-syndrome-hatena-mark-se, dova-syndrome-user-manual）</span>
+          <span class="title">Sound-effect search (applause and cheer keywords)</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: dova-syndrome-cheerleaders-bgm, dova-syndrome-hatena-mark-se, dova-syndrome-user-manual)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">同上</p>
+        <p class="note">Same as above</p>
         
         
         
         <a class="open-button" href="https://dova-s.jp/se/search" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
       </ul>
     </section>
 
     <section class="category">
-      <h2>失敗音（fail / buzzer）</h2>
+      <h2>Fail buzzer</h2>
       <ul class="candidate-list">
         
       <li class="candidate owned">
         <div class="candidate-head">
           <span class="rank">#37</span>
           <span class="site">効果音ラボ</span>
-          <span class="title">エラー音「ブブー」（ビープ音カテゴリ内の1点。独立した「失敗音セット」ではない点に注意）</span>
-          <span class="badge badge-owned">既所有（catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-ui-signal-pack）</span>
+          <span class="title">The error buzz (one item inside the beep category. It is not a standalone fail-sound set)</span>
+          <span class="badge badge-owned">Already owned (catalog: soundeffect-lab-ambient-life-pack, soundeffect-lab-anime-direction-pack, soundeffect-lab-scene-transition, soundeffect-lab-ui-signal-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-warn">本レーンで内容を修正済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-warn">Corrected in this lane</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">ボタン・システム音カテゴリ内「エラー音」</p>
+        <p class="note">Error sound inside the button and system category</p>
         
-        <p class="note verify-note">検証メモ: 専用の「失敗音」セットは無いため、代替として #38（ポケットサウンド「失敗」タグ）を優先候補として案内する</p>
+        <p class="note verify-note">Verification note: There is no dedicated fail-sound set, so #38 (the Pocket Sound fail tag) is the preferred substitute</p>
         
         <a class="open-button" href="https://soundeffect-lab.info/sound/button/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -287,20 +287,20 @@
         <div class="candidate-head">
           <span class="rank">#38</span>
           <span class="site">ポケットサウンド</span>
-          <span class="title">「失敗」タグ一覧</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: pocket-se-fail-pack）</span>
+          <span class="title">Fail tag list</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: pocket-se-fail-pack)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">本レーンで実在確認済み</span>
-          <span class="badge badge-warn">要クレジット</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed in this lane</span>
+          <span class="badge badge-warn">Credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">商用無料・加工OK。作品利用時はクレジット表記またはリンク必須（例: 効果音：ポケットサウンド – https://pocket-se.info/）。直リンク・二次配布・転売禁止。有償プランでクレジット免除あり</p>
+        <p class="note">Free for commercial use, changes allowed. A work must show credit or a link (example: Sound effects: Pocket Sound - https://pocket-se.info/). Hotlinking, redistribution, and resale are forbidden. A paid plan can waive the credit</p>
         
-        <p class="note verify-note">検証メモ: 10件以上（ページネーションあり、サイト全体で2367点）。「クイズ不正解・誤答音」「ゲームオーバー」「失敗『デデーン』」等を確認。本カテゴリの本命候補として#37より優先推奨／2026-07-31 pass2: /rules/ を直接確認しクレジット要件を訂正（旧 attribution_required: false は誤り）</p>
+        <p class="note verify-note">Verification note: More than 10 items (paginated, 2367 on the whole site). Confirmed a quiz-wrong sting, a game over, and a fail stab, among others. Prefer this over #37 as the main candidate in the category. 2026-07-31 pass 2: /rules/ was fetched directly and the credit requirement was corrected (the old attribution_required: false was wrong)</p>
         
         <a class="open-button" href="https://pocket-se.info/archives/tag/%E5%A4%B1%E6%95%97/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -308,12 +308,12 @@
         <div class="candidate-head">
           <span class="rank">#39</span>
           <span class="site">Pixabay</span>
-          <span class="title">効果音検索 &quot;fail buzzer&quot;</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: corporate-upbeat-bgm, cozy-lofi-bgm）</span>
+          <span class="title">Sound-effect search &quot;fail buzzer&quot;</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: corporate-upbeat-bgm, cozy-lofi-bgm)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-ok">AI学習可</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-ok">AI training allowed</span>
         </div>
         
         <p class="note">Pixabay Content License</p>
@@ -321,7 +321,7 @@
         
         
         <a class="open-button" href="https://pixabay.com/sound-effects/search/fail/" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -329,20 +329,20 @@
         <div class="candidate-head">
           <span class="rank">#40</span>
           <span class="site">Freesound</span>
-          <span class="title">タグ検索 &quot;fail wrong buzzer&quot;</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: camera-shutter, freesound-inspectorj-pencil-writing, whoosh-transition）</span>
+          <span class="title">Tag search &quot;fail wrong buzzer&quot;</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: camera-shutter, freesound-inspectorj-pencil-writing, whoosh-transition)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-unknown">クレジット要否: 個別確認</span> <span class="badge badge-unknown">AI学習可否: 不明</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-unknown">Credit: check each item</span> <span class="badge badge-unknown">AI training: unknown</span>
         </div>
         
-        <p class="note">音源ごとに異なる</p>
+        <p class="note">Differs per source</p>
         
         
         
         <a class="open-button" href="https://freesound.org/search/?q=fail+wrong+buzzer" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
 
@@ -350,27 +350,27 @@
         <div class="candidate-head">
           <span class="rank">#41</span>
           <span class="site">DOVA-SYNDROME</span>
-          <span class="title">効果音検索（失敗・ブー系ワード指定）</span>
-          <span class="badge badge-partial">同配布元から登録あり（catalog: dova-syndrome-cheerleaders-bgm, dova-syndrome-hatena-mark-se, dova-syndrome-user-manual）</span>
+          <span class="title">Sound-effect search (fail and buzzer keywords)</span>
+          <span class="badge badge-partial">Something from this distributor is registered (catalog: dova-syndrome-cheerleaders-bgm, dova-syndrome-hatena-mark-se, dova-syndrome-user-manual)</span>
         </div>
         <div class="candidate-meta">
-          <span class="badge badge-ok">リサーチ時点で確認済み</span>
-          <span class="badge badge-ok">クレジット不要</span> <span class="badge badge-danger">AI学習禁止</span>
+          <span class="badge badge-ok">Confirmed at research time</span>
+          <span class="badge badge-ok">No credit required</span> <span class="badge badge-danger">No AI training</span>
         </div>
         
-        <p class="note">同上</p>
+        <p class="note">Same as above</p>
         
         
         
         <a class="open-button" href="https://dova-s.jp/se/search" target="_blank" rel="noopener noreferrer">
-          ダウンロードページを開く ↗
+          Open the download page ↗
         </a>
       </li>
       </ul>
     </section>
   <footer>
-    データソース: catalog/audio/candidates.json（内部リサーチ根拠: research/2026-07-22-free-sfx-bgm-sources.md）。
-    「既所有」判定は実行時点の catalog/audio/*/meta.json を動的に読んで計算しています（他レーンの登録が増えたら再生成してください）。
+    Source: catalog/audio/candidates.json (research note: research/2026-07-22-free-sfx-bgm-sources.md).
+    Already owned is computed from catalog/audio/*/meta.json at run time. Regenerate this page after another lane registers more.
   </footer>
 </body>
 </html>

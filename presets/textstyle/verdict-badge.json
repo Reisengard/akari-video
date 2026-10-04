@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "verdict-badge",
-  "name": "判定バッジ",
+  "name": "Verdict badge",
   "category": "emphasis",
-  "sample_text": "買い！",
+  "sample_text": "Buy it!",
   "style": {
     "size_px": 80,
     "weight": 400,

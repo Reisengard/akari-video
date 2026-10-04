@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "plate-cream",
-  "name": "座布団 生成り",
+  "name": "Plate, cream",
   "category": "title",
-  "sample_text": "今日のまとめ",
+  "sample_text": "Today's summary",
   "style": {
     "size_px": 72,
     "weight": 500,

@@ -60,8 +60,8 @@ test('LUT labels compose bundled and project options and round trip values', () 
   assert.equal(options.length, 12);
   assert.deepEqual(options[0], { label: 'None', value: null });
   assert.deepEqual(options.at(-1), { label: 'My.CUBE (project)', value: 'assets/luts/My.CUBE' });
-  assert.equal(lutOptionLabel('natural'), 'ナチュラル');
-  assert.equal(lutOptionLabel('mono'), 'モノクロ');
+  assert.equal(lutOptionLabel('natural'), 'Natural');
+  assert.equal(lutOptionLabel('mono'), 'Monochrome');
   assert.equal(lutOptionLabel('unknown'), 'unknown');
   assert.equal(lutOptionLabel(undefined), 'None');
   assert.equal(updateInspectorAdjust({ lut: { lut: 'natural', intensity: 0.4 } }, 'adjust.lut.lut', options.at(-1).value).lut.intensity, 0.4);

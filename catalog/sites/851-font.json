@@ -1,6 +1,6 @@
 {
   "id": "851-font",
-  "name": "851 フォント",
+  "name": "851 Font",
   "tab": "font",
   "entry_url": "https://pm85122.onamae.jp/851fontTerm.html",
   "hosts": [
@@ -9,7 +9,7 @@
   "download_hosts": [],
   "price": "free",
   "terms": {
-    "summary_ja": "商用・非商用利用可。クレジット不要。改造・再配布可。フォント単品の無断販売は禁止。",
+    "summary_ja": "Commercial and non-commercial use allowed. No credit required. Changes and redistribution allowed. Selling the font file alone without permission is forbidden.",
     "source_url": "https://pm85122.onamae.jp/851fontTerm.html",
     "checked_at": "2026-09-21"
   },

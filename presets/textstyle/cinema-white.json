@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "cinema-white",
-  "name": "映画 白い余白",
+  "name": "Cinema, white space",
   "category": "title",
-  "sample_text": "静かな時間",
+  "sample_text": "Quiet Hours",
   "style": {
     "size_px": 68,
     "weight": 300,

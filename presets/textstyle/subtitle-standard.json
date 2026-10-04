@@ -2,9 +2,9 @@
   "format": "akari-textstyle",
   "version": "0.1",
   "id": "subtitle-standard",
-  "name": "標準字幕",
+  "name": "Standard captions",
   "category": "subtitle",
-  "sample_text": "読みやすい標準字幕",
+  "sample_text": "Readable standard captions",
   "style": {
     "size_px": 56,
     "weight": 700,
