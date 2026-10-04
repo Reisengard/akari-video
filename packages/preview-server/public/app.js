@@ -464,12 +464,12 @@ function updateAudioStatus() {
   const supply = frameEngineEnabled ? frameEnginePreview?.audioDebug().supply : null;
   let message = '';
   if (supply?.phase === 'degraded') {
-    message = `一部の音声を再生できません: ${supply.failed.join(', ')}`;
+    message = `Cannot play some audio: ${supply.failed.join(', ')}`;
   } else if (supply?.gate?.holding) {
-    message = `音声を待っています（${(supply.gate.heldMs / 1000).toFixed(1)} 秒）`;
+    message = `Waiting for audio (${(supply.gate.heldMs / 1000).toFixed(1)} s)`;
   } else if (supply?.phase === 'preparing') {
     const ready = supply.ready.filter(key => supply.required.includes(key)).length;
-    message = `音声を準備中 ${ready}/${supply.required.length}`;
+    message = `Preparing audio ${ready}/${supply.required.length}`;
   }
   if (audioStatus.textContent !== message) audioStatus.textContent = message;
   audioStatus.hidden = !message;
@@ -898,7 +898,7 @@ function setupLayers() {
 
 function noteVideoFxFailure(effects) {
   if (effects?.look) videoFxFailedIndicators.add('LUT');
-  if (effects?.chromaKey) videoFxFailedIndicators.add('クロマキー');
+  if (effects?.chromaKey) videoFxFailedIndicators.add('Chroma key');
   if (!indicatorPopup.hidden) renderIndicators();
 }
 
@@ -1434,7 +1434,7 @@ const layerCropHandleElements = CROP_HANDLE_DIRS.map(dir => {
 });
 const layerCropToggle = document.createElement('div');
 layerCropToggle.id = 'layer-crop-toggle';
-layerCropToggle.title = 'クロップモード切替 (Esc で終了)';
+layerCropToggle.title = 'Toggle crop mode (Esc to exit)';
 layerCropToggle.textContent = '⛶';
 layerCropToggle.setAttribute('data-akari-interaction', '1');
 layerCropToggle.style.cssText = 'position:absolute;display:none;width:22px;height:22px;box-sizing:border-box;border-radius:4px;border:1px solid #4da3ff;background:rgba(20,20,20,0.85);color:#cfe6ff;font-size:13px;line-height:20px;text-align:center;cursor:pointer;pointer-events:auto;user-select:none;z-index:1002;';
@@ -1657,7 +1657,7 @@ let perspectivePanelOpen = false;
 let activePerspectivePreset = null;
 const layerPerspectiveToggle = document.createElement('div');
 layerPerspectiveToggle.id = 'layer-perspective-toggle';
-layerPerspectiveToggle.title = 'パース変形パネル';
+layerPerspectiveToggle.title = 'Perspective panel';
 layerPerspectiveToggle.textContent = '◈';
 layerPerspectiveToggle.setAttribute('data-akari-interaction', '1');
 layerPerspectiveToggle.style.cssText = 'position:absolute;display:none;width:22px;height:22px;box-sizing:border-box;border-radius:4px;border:1px solid #4da3ff;background:rgba(20,20,20,0.85);color:#cfe6ff;font-size:13px;line-height:20px;text-align:center;cursor:pointer;pointer-events:auto;user-select:none;z-index:1002;';
@@ -1668,7 +1668,7 @@ layerPerspectivePanel.setAttribute('data-akari-interaction', '1');
 layerPerspectivePanel.style.cssText = 'position:absolute;display:none;flex-direction:column;gap:6px;padding:8px;width:168px;box-sizing:border-box;border-radius:6px;border:1px solid #4da3ff;background:rgba(20,20,20,0.92);color:#cfe6ff;font-size:11px;pointer-events:auto;user-select:none;z-index:1003;';
 const perspectivePresetsRow = document.createElement('div');
 perspectivePresetsRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:4px;';
-const PERSPECTIVE_PRESETS = [['right', '右奥'], ['left', '左奥'], ['top', '上奥'], ['bottom', '下奥']];
+const PERSPECTIVE_PRESETS = [['right', 'Back right'], ['left', 'Back left'], ['top', 'Back up'], ['bottom', 'Back down']];
 const layerPerspectivePresetButtons = PERSPECTIVE_PRESETS.map(([preset, label]) => {
   const button = document.createElement('button');
   button.type = 'button';
@@ -1681,7 +1681,7 @@ const layerPerspectivePresetButtons = PERSPECTIVE_PRESETS.map(([preset, label]) 
 const perspectiveAngleRow = document.createElement('div');
 perspectiveAngleRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
 const perspectiveAngleLabel = document.createElement('span');
-perspectiveAngleLabel.textContent = '角度';
+perspectiveAngleLabel.textContent = 'Angle';
 const layerPerspectiveAngleInput = document.createElement('input');
 layerPerspectiveAngleInput.type = 'range';
 layerPerspectiveAngleInput.min = '0';
@@ -1694,7 +1694,7 @@ layerPerspectiveAngleValueEl.textContent = '30°';
 perspectiveAngleRow.append(perspectiveAngleLabel, layerPerspectiveAngleInput, layerPerspectiveAngleValueEl);
 const layerPerspectiveClearButton = document.createElement('button');
 layerPerspectiveClearButton.type = 'button';
-layerPerspectiveClearButton.textContent = 'パースを解除';
+layerPerspectiveClearButton.textContent = 'Clear perspective';
 layerPerspectiveClearButton.style.cssText = 'align-self:flex-end;border:none;background:none;color:#ff8a8a;font-size:11px;cursor:pointer;padding:2px 4px;';
 layerPerspectivePanel.append(perspectivePresetsRow, perspectiveAngleRow, layerPerspectiveClearButton);
 
@@ -1844,10 +1844,10 @@ function layerEffectiveScale() {
 
 async function layerWriteViaPut(layerId, patch) {
   const res = await fetch('/api/summary');
-  if (!res.ok) throw new Error(`edit.json を読めません: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Cannot read edit.json: HTTP ${res.status}`);
   const edit = await res.json();
   const layer = (edit.layers || []).find(l => String(l.id) === String(layerId));
-  if (!layer) throw new Error(`素材が見つかりません: ${layerId}`);
+  if (!layer) throw new Error(`Footage not found: ${layerId}`);
   if (patch.transform) layer.transform = { ...layer.transform, ...patch.transform };
   if (patch.crop) layer.crop = { ...patch.crop };
   if (patch.perspective !== undefined) {
@@ -1866,7 +1866,7 @@ async function layerWriteViaPut(layerId, patch) {
       const body = await put.json();
       if (body?.findings?.length) detail = body.findings[0].message || detail;
     } catch {}
-    throw new Error(`書き戻しに失敗しました: ${detail}`);
+    throw new Error(`Save failed: ${detail}`);
   }
 }
 
@@ -2807,8 +2807,8 @@ function play() {
   if (frameEngineEnabled) {
     playToggle.innerHTML = pauseIcon;
     updateAudioStatus();
-    playToggle.setAttribute('aria-label', '一時停止');
-    playToggle.title = '一時停止';
+    playToggle.setAttribute('aria-label', 'Pause');
+    playToggle.title = 'Pause';
     requestAnimationFrame(playbackLoop);
     return;
   }
@@ -2827,8 +2827,8 @@ function play() {
   if (!onStillImage) video.play();
   for (const lv of layerVideos) if (lv.visible && !lv.isFilter) lv.el.play();
   playToggle.innerHTML = pauseIcon;
-  playToggle.setAttribute('aria-label', '一時停止');
-  playToggle.title = '一時停止';
+  playToggle.setAttribute('aria-label', 'Pause');
+  playToggle.title = 'Pause';
   requestAnimationFrame(playbackLoop);
 }
 
@@ -2862,8 +2862,8 @@ function pause() {
     finishPausingPlayback();
   }
   playToggle.innerHTML = playIcon;
-  playToggle.setAttribute('aria-label', '再生');
-  playToggle.title = '再生';
+  playToggle.setAttribute('aria-label', 'Play');
+  playToggle.title = 'Play';
 }
 
 let lastWallMs = 0;
@@ -3076,7 +3076,7 @@ function updateStatusBar() {
   if (!el) return;
   const seg = getActiveSegment(outputTime);
   const parts = [fm(outputTime)];
-  if (seg && !seg.isGap && seg.index >= 0) parts.push(`カット #${seg.index + 1}`);
+  if (seg && !seg.isGap && seg.index >= 0) parts.push(`Cut #${seg.index + 1}`);
   if (zoom !== 1) parts.push(`${Math.round(zoom * 100)}%`);
   el.textContent = parts.join(' · ');
   const bar = el.parentElement;
@@ -3121,9 +3121,9 @@ async function editSaveErrorMessage(res) {
       const shown = errors.length ? errors : body.findings;
       return shown.map((f) => f.message || f.check).filter(Boolean).join(' / ');
     }
-    return body.error || `保存に失敗しました (HTTP ${res.status})`;
+    return body.error || `Save failed (HTTP ${res.status})`;
   } catch {
-    return `保存に失敗しました (HTTP ${res.status})`;
+    return `Save failed (HTTP ${res.status})`;
   }
 }
 
@@ -3280,12 +3280,12 @@ document.addEventListener('pointerdown', (e) => {
 
 function renderCutInfoContent(seg) {
   if (seg.isGap) {
-    cutInfoContent.innerHTML = '<div style="margin-bottom:8px"><b>ギャップ</b><br><span style="color:#888">' + seg.durationSec.toFixed(2) + 's</span></div>';
+    cutInfoContent.innerHTML = '<div style="margin-bottom:8px"><b>Gap</b><br><span style="color:#888">' + seg.durationSec.toFixed(2) + 's</span></div>';
     return;
   }
   const cut = summary?.cuts?.[seg.index];
-  if (!cut) { cutInfoContent.innerHTML = '<div>不明なカット</div>'; return; }
-  const srcName = cut.src ? cut.src.split('/').pop() : 'メイン';
+  if (!cut) { cutInfoContent.innerHTML = '<div>Unknown cut</div>'; return; }
+  const srcName = cut.src ? cut.src.split('/').pop() : 'Main';
   const inVal = seg.inSec.toFixed(2);
   const outVal = seg.outSec.toFixed(2);
   const speedVal = seg.speed.toFixed(2);
@@ -3293,35 +3293,35 @@ function renderCutInfoContent(seg) {
   const toDur = cut.transition_out?.duration !== undefined ? cut.transition_out.duration.toFixed(2) : '';
   const atVal = cut.at !== undefined ? String(cut.at) : '';
   cutInfoContent.innerHTML = `
-    <div style="margin-bottom:6px"><b>カット #${seg.index + 1}</b> <span style="color:#888">${esc(srcName)}</span></div>
+    <div style="margin-bottom:6px"><b>Cut #${seg.index + 1}</b> <span style="color:#888">${esc(srcName)}</span></div>
     <div style="display:flex;gap:8px;margin-bottom:6px">
       <label style="flex:1;color:#888;font-size:11px">IN <input id="cut-inp-in" type="number" step="0.01" value="${inVal}" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
       <label style="flex:1;color:#888;font-size:11px">OUT <input id="cut-inp-out" type="number" step="0.01" value="${outVal}" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:4px">
-      <label style="flex:1;color:#888;font-size:11px">速度 <input id="cut-inp-speed" type="number" step="0.01" min="0.01" value="${speedVal}" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
-      <label style="flex:0;color:#888;font-size:11px">絶対位置 <input id="cut-inp-at" type="number" step="0.01" value="${atVal}" placeholder="" style="width:80px;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
+      <label style="flex:1;color:#888;font-size:11px">Speed <input id="cut-inp-speed" type="number" step="0.01" min="0.01" value="${speedVal}" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
+      <label style="flex:0;color:#888;font-size:11px">Position <input id="cut-inp-at" type="number" step="0.01" value="${atVal}" placeholder="" style="width:80px;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px"></label>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:6px">
-      <label style="flex:1;color:#888;font-size:11px">OUT トランジション
+      <label style="flex:1;color:#888;font-size:11px">OUT transition
         <select id="cut-inp-to-type" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px">
-          <option value="">なし</option>
+          <option value="">None</option>
           <option value="dissolve"${toType==='dissolve'?' selected':''}>dissolve</option>
           <option value="fade-black"${toType==='fade-black'?' selected':''}>fade-black</option>
           <option value="fade-white"${toType==='fade-white'?' selected':''}>fade-white</option>
           <option value="reveal-down"${toType==='reveal-down'?' selected':''}>reveal-down</option>
           <option value="reveal-up"${toType==='reveal-up'?' selected':''}>reveal-up</option>
      </select>
-        <input id="cut-inp-to-dur" type="number" step="0.01" min="0" value="${toDur}" placeholder="秒" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px;margin-top:2px">
+        <input id="cut-inp-to-dur" type="number" step="0.01" min="0" value="${toDur}" placeholder="sec" style="width:100%;background:#303030;color:#fff;border:1px solid #505050;border-radius:3px;padding:2px 4px;font-size:12px;margin-top:2px">
       </label>
     </div>
     <div style="display:flex;gap:6px">
-      <button id="cut-apply-btn" style="flex:1;background:#4da3ff;color:#fff;border:none;border-radius:3px;padding:4px 8px;cursor:pointer;font-size:12px">適用</button>
-      <button id="cut-close-btn" style="flex:0;background:#505050;color:#fff;border:none;border-radius:3px;padding:4px 8px;cursor:pointer;font-size:12px">閉じる</button>
+      <button id="cut-apply-btn" style="flex:1;background:#4da3ff;color:#fff;border:none;border-radius:3px;padding:4px 8px;cursor:pointer;font-size:12px">Apply</button>
+      <button id="cut-close-btn" style="flex:0;background:#505050;color:#fff;border:none;border-radius:3px;padding:4px 8px;cursor:pointer;font-size:12px">Close</button>
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;border-top:1px solid #505050;padding-top:6px">
-      <button id="cut-add-before-btn" style="flex:1;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">＋前に追加</button>
-      <button id="cut-add-after-btn" style="flex:1;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">＋後に追加</button>
+      <button id="cut-add-before-btn" style="flex:1;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">+ Add before</button>
+      <button id="cut-add-after-btn" style="flex:1;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">+ Add after</button>
       <button id="cut-move-up-btn" style="flex:0;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">▲</button>
       <button id="cut-move-down-btn" style="flex:0;background:#303030;color:#aaa;border:1px solid #505050;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">▼</button>
       <button id="cut-delete-btn" style="flex:0;background:#6b2020;color:#fff;border:1px solid #8b3030;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:11px">✕</button>
@@ -3383,7 +3383,7 @@ async function refreshedCutIndex(index) {
   await reloadSummary();
   const relocated = relocateCutIndex(previousCuts, index, summary?.cuts);
   if (relocated >= 0) return relocated;
-  showMessage('他の場所で編集されたため中断しました。表示を更新したので、やり直してください。');
+  showMessage('Stopped because the edit changed elsewhere. The view was refreshed. Try again.');
   requestSoftReload();
   return -1;
 }
@@ -3430,7 +3430,7 @@ async function addCutAt(index, where) {
     ? findFreeSourceRange(cuts, ref.in, -1)
     : findFreeSourceRange(cuts, ref.out, 1);
   if (!newCut) {
-    showMessage('追加できる空き区間が素材内にありません。');
+    showMessage('No free range is left in the footage.');
     return;
   }
   const idx = where === 'before' ? index : index + 1;
@@ -3510,7 +3510,7 @@ seek.addEventListener('input', () => {
 // 飛ばすのは最も普通の操作なので、位置を変えるたびに毎回開いてしまっていた（実機報告 2026-08-07）。
 // 単クリック = 移動だけ / ダブルクリック = そのカットの情報、と分ける。
 // （seek-visual は pointer-events:none でクリックを受けられないため range 側で受ける）
-seek.title = 'ドラッグ / クリックで移動・ダブルクリックでカット情報';
+seek.title = 'Drag or click to move. Double-click for cut info.';
 seek.addEventListener('dblclick', () => { showCutInfoAt(Number(seek.value)); });
 // カット境界へジャンプ（P2-2: 旧実装は区間内の t をそのまま返す恒等関数だった）
 function snapToCut(t, dir) {
@@ -3642,17 +3642,17 @@ indicatorBtn.addEventListener('click', () => {
 });
 function renderIndicators() {
   const declared = Array.isArray(summary?.indicators) ? summary.indicators : [];
-  const approximation = frameEngineEnabled ? ['プレビューは近似・最終音声は書き出しで確認'] : [];
+  const approximation = frameEngineEnabled ? ['Preview is approximate. Confirm the final audio in Export'] : [];
   const adjustApproximation = !frameEngineEnabled && [
     ...(summary?.cuts ?? []),
     ...(summary?.layers ?? []),
     ...(summary?.filters ?? []),
   ].some(item => computeAdjustCssVisual(item?.adjust)?.hasApproximation === true)
-    ? ['色調整は近似表示'] : [];
+    ? ['Color adjustment is approximate'] : [];
   const clipLutReplacement = !frameEngineEnabled && summary?.videoFx?.look
     && (summary?.cuts ?? []).some(cut =>
       typeof summary?.adjustLutCubeTexts?.[String(cut?.id)] === 'string')
-    ? ['clip LUT はグローバル LUT を置換'] : [];
+    ? ['Clip LUT replaces the global LUT'] : [];
   const ind = [...new Set([
     ...declared,
     ...videoFxFailedIndicators,
@@ -3661,7 +3661,7 @@ function renderIndicators() {
     ...clipLutReplacement,
   ])];
   if (!Array.isArray(ind) || !ind.length) {
-    indicatorPopup.innerHTML = '<div class="indicator-item"><span class="val">指標なし</span></div>';
+    indicatorPopup.innerHTML = '<div class="indicator-item"><span class="val">No indicators</span></div>';
     return;
   }
   indicatorPopup.innerHTML = ind.map(i => `<div class="indicator-item"><span class="key">${esc(i)}</span></div>`).join('');
@@ -3764,7 +3764,7 @@ function loadRuntimeScript(src) {
     const el = document.createElement('script');
     el.src = src; el.async = false;
     el.onload = resolve;
-    el.onerror = () => { runtimeScriptLoads.delete(src); el.remove(); reject(new Error(`${src} を読み込めませんでした`)); };
+    el.onerror = () => { runtimeScriptLoads.delete(src); el.remove(); reject(new Error(`${src} could not be loaded`)); };
     document.head.appendChild(el);
   }));
   return runtimeScriptLoads.get(src);
@@ -4190,16 +4190,16 @@ function updateSelectionHint() {
   const id = el?.dataset?.overlayId ?? null;
   if (id === lastSelectionShown) return;
   lastSelectionShown = id;
-  if (!id) { showHint('編集モード: 素材をクリックで選択', 0); return; }
+  if (!id) { showHint('Edit mode: click footage to select it', 0); return; }
   const ov = (summary?.overlays || []).find(o => String(o.id) === String(id));
-  const range = ov ? `${fmtRange(ov.start)}〜${fmtRange(ov.start + ov.duration)}` : '範囲不明';
-  const whole = ov && ov.duration >= totalDuration * 0.9 ? '（動画ほぼ全編に敷かれています）' : '';
+  const range = ov ? `${fmtRange(ov.start)}-${fmtRange(ov.start + ov.duration)}` : 'Unknown range';
+  const whole = ov && ov.duration >= totalDuration * 0.9 ? ' (covers almost the whole video)' : '';
   // 背景（role==="background"）は動かせないので「0 キーで位置を戻す」は意味を持たない。
   // 代わりに「動かせない」ことと Delete での差し替え動線を伝える。
   const trailer = ov?.role === 'background'
-    ? '（背景・移動不可）・ Delete キーで削除'
-    : '・ 0 キーで位置を戻す ・ Delete キーで削除';
-  showHint(`選択中: ${id} ・ ${range}${whole}${trailer}`, 0);
+    ? ' (background, cannot move). Press Delete to remove'
+    : '. Press 0 to reset the position. Press Delete to remove';
+  showHint(`Selected: ${id} · ${range}${whole}${trailer}`, 0);
 }
 
 // 選択中の素材を「作者が書いた位置」へ厳密に戻す。
@@ -4208,12 +4208,12 @@ function updateSelectionHint() {
 async function resetSelectedOverlayTransform() {
   const el = document.querySelector('[data-akari-interaction-selected]');
   const id = el?.dataset?.overlayId;
-  if (!id) { showHint('位置を戻す素材が選択されていません（編集モードで選んでください）'); return; }
+  if (!id) { showHint('No footage is selected to reset. Choose it in edit mode.'); return; }
   try {
     await overlayWriteViaPut('edit.json', id, { transform: null });
-    showHint(`${id} の位置を作者の位置へ戻しました`);
+    showHint(`${id} position reset to the authored position`);
   } catch (e) {
-    showHint(`位置を戻せませんでした: ${e.message}`, 6000);
+    showHint(`Could not reset the position: ${e.message}`, 6000);
   }
 }
 
@@ -4225,22 +4225,22 @@ async function resetSelectedOverlayTransform() {
 async function deleteSelectedOverlay() {
   const el = document.querySelector('[data-akari-interaction-selected]');
   const id = el?.dataset?.overlayId;
-  if (!id) { showHint('削除する素材が選択されていません（編集モードで選んでください）'); return; }
+  if (!id) { showHint('No footage is selected to delete. Choose it in edit mode.'); return; }
   try {
     await deleteOverlayViaPut(id);
-    showHint(`${id} を削除しました`);
+    showHint(`${id} deleted`);
   } catch (e) {
-    showHint(`削除できませんでした: ${e.message}`, 6000);
+    showHint(`Could not delete: ${e.message}`, 6000);
   }
 }
 
 async function deleteOverlayViaPut(overlayId) {
   const res = await fetch('/api/summary');
-  if (!res.ok) throw new Error(`edit.json を読めません: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Cannot read edit.json: HTTP ${res.status}`);
   const edit = await res.json();
   const before = (edit.overlays || []).length;
   edit.overlays = (edit.overlays || []).filter(o => String(o.id) !== String(overlayId));
-  if (edit.overlays.length === before) throw new Error(`オーバーレイが見つかりません: ${overlayId}`);
+  if (edit.overlays.length === before) throw new Error(`Overlay not found: ${overlayId}`);
   const put = await fetch('/api/edit.json', {
     method: 'PUT',
     headers: { 'content-type': 'application/json', 'x-akari-preview-projection': '1' },
@@ -4252,7 +4252,7 @@ async function deleteOverlayViaPut(overlayId) {
       const body = await put.json();
       if (body?.findings?.length) detail = body.findings[0].message || detail;
     } catch {}
-    throw new Error(`削除の書き戻しに失敗しました: ${detail}`);
+    throw new Error(`Could not save the delete: ${detail}`);
   }
 }
 
@@ -4272,15 +4272,15 @@ async function overlayWriteViaPut(editPath, overlayId, patch) {
         const body = await put.json();
         if (body?.error) detail = body.error;
       } catch {}
-      throw new Error(`断片の書き戻しに失敗しました: ${detail}`);
+      throw new Error(`Could not save the fragment: ${detail}`);
     }
   }
   if (Object.keys(rest).length === 0) return;
   const res = await fetch('/api/summary');
-  if (!res.ok) throw new Error(`edit.json を読めません: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Cannot read edit.json: HTTP ${res.status}`);
   const edit = await res.json();
   const ov = (edit.overlays || []).find(o => String(o.id) === String(overlayId));
-  if (!ov) throw new Error(`オーバーレイが見つかりません: ${overlayId}`);
+  if (!ov) throw new Error(`Overlay not found: ${overlayId}`);
   for (const [key, value] of Object.entries(rest)) {
     // null は「そのキーごと消す」。作者が書いた位置は「transform が無い状態」なので、
     // 消すことが目分量ではない厳密な復元になる（「位置を戻す」の土台）
@@ -4300,7 +4300,7 @@ async function overlayWriteViaPut(editPath, overlayId, patch) {
       const body = await put.json();
       if (body?.findings?.length) detail = body.findings[0].message || detail;
     } catch {}
-    throw new Error(`書き戻しに失敗しました: ${detail}`);
+    throw new Error(`Save failed: ${detail}`);
   }
 }
 
@@ -4692,7 +4692,7 @@ function showMessage(text) {
   if (text) {
     previewMessage.hidden = false;
     previewMessageText.textContent = text;
-    previewMessage.title = 'クリックで閉じる';
+    previewMessage.title = 'Click to close';
     previewMessage.style.cursor = 'pointer';
   } else {
     previewMessage.hidden = true;
@@ -4757,10 +4757,10 @@ reviewRecordBtn.addEventListener('click', async () => {
     reviewRecorder = new MediaRecorder(reviewStream, { mimeType: 'audio/webm;codecs=opus' });
   } catch {
     reviewStream = null; reviewRecorder = null;
-    showMessage('マイクへのアクセスを許可してください');
+    showMessage('Allow microphone access');
     return;
   }
-  showMessage('レビュー録音中…');
+  showMessage('Review recording…');
   const startedAt = new Date().toISOString();
   try {
     const r = await fetch('/api/review/start', {
@@ -4773,7 +4773,7 @@ reviewRecordBtn.addEventListener('click', async () => {
   } catch (e) {
     reviewStream.getTracks().forEach(t => t.stop());
     reviewStream = null; reviewRecorder = null;
-    showMessage('セッション開始に失敗: ' + e.message);
+    showMessage('Could not start the session: ' + e.message);
     return;
   }
   reviewRecStart = performance.now();
@@ -4797,7 +4797,7 @@ reviewRecordBtn.addEventListener('click', async () => {
       await sendReviewEvents();
       await sendReviewEnd();
     } catch (e) {
-      showMessage('録音の保存に失敗: ' + e.message);
+      showMessage('Could not save the recording: ' + e.message);
     }
     reviewStream.getTracks().forEach(t => t.stop());
     reviewStream = null; reviewRecorder = null;
@@ -4854,7 +4854,7 @@ function logReviewEvent(type, extra) {
 // --- Output preview ---
 const outputBtn = document.getElementById('output-preview-btn');
 if (isOutputMode) {
-  document.title = 'AKARI Video Preview (出力)';
+  document.title = 'AKARI Video Preview (output)';
   outputBtn.hidden = true;
   reviewRecordBtn.hidden = true;
 } else {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -127,7 +127,7 @@ input[type=range] { width: 100%; }
 </head>
 <body>
 <main class="workspace">
-  <section class="preview-pane" aria-label="動画プレビュー">
+  <section class="preview-pane" aria-label="Video preview">
     <div id="status-bar" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;display:flex;gap:12px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 10px;font-size:11px;color:#ccc;font-variant-numeric:tabular-nums;opacity:0;transition:opacity 0.3s"><span id="status-info"></span></div>
     <div id="preview-wrapper">
       <div id="zoom-layer">
@@ -142,7 +142,7 @@ input[type=range] { width: 100%; }
       </div>
       <div id="cut-fx-controls" data-akari-interaction="1" hidden></div>
       <div id="edit-hint" style="position:absolute;bottom:8px;left:8px;z-index:25;max-width:calc(100% - 16px);padding:4px 9px;border-radius:4px;background:rgba(0,0,0,0.72);color:#ddd;font-size:11px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity 0.2s" hidden></div>
-      <div id="loading-indicator" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center;display:none"><div style="width:32px;height:32px;border:3px solid #505050;border-top-color:#4da3ff;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 8px"></div><div style="color:#888;font-size:12px">読み込み中...</div></div>
+      <div id="loading-indicator" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center;display:none"><div style="width:32px;height:32px;border:3px solid #505050;border-top-color:#4da3ff;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 8px"></div><div style="color:#888;font-size:12px">Loading...</div></div>
       <div id="preview-message" class="message-card" hidden role="status">
         <p id="preview-message-text"></p>
       </div>
@@ -155,7 +155,7 @@ input[type=range] { width: 100%; }
     <div class="waveform-track">
       <span class="waveform-track-label">Video</span>
       <div class="waveform-track-visual">
-        <canvas id="waveform-canvas" aria-label="音声波形"></canvas>
+        <canvas id="waveform-canvas" aria-label="Audio waveform"></canvas>
         <div class="transport-waveform-playhead" aria-hidden="true"></div>
       </div>
     </div>
@@ -183,38 +183,38 @@ input[type=range] { width: 100%; }
   </div>
   <div class="transport-seek" style="position:relative">
     <div id="seek-visual" style="position:absolute;inset:0;display:flex;pointer-events:none;border-radius:3px;overflow:hidden;opacity:0.35"></div>
-    <input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="再生位置">
+    <input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="Playhead">
     <div id="cut-info-popup" class="popup" style="left:0;right:auto;width:280px" hidden>
-      <div class="popup-header"><span>カット情報</span></div>
+      <div class="popup-header"><span>Cut info</span></div>
       <div id="cut-info-content" style="font-size:12px;color:#ccc;line-height:1.6"></div>
     </div>
   </div>
   <div class="transport-controls">
     <div class="transport-left">
-      <button id="waveform-toggle" class="icon-button" type="button" aria-label="波形" title="波形" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2m2-4v8m3-12v16m3-13v10m3-7v4m3-2h2" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button id="waveform-toggle" class="icon-button" type="button" aria-label="Waveform" title="Waveform" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2m2-4v8m3-12v16m3-13v10m3-7v4m3-2h2" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
       <span id="time-label">0:00 / 0:00</span>
-      <button id="edit-toggle" class="icon-button" type="button" aria-label="編集" title="編集" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.0 1.0 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      <button id="indicator-toggle" class="icon-button" type="button" aria-label="指標" title="指標" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></button>
+      <button id="edit-toggle" class="icon-button" type="button" aria-label="Edit" title="Edit" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.0 1.0 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+      <button id="indicator-toggle" class="icon-button" type="button" aria-label="Indicators" title="Indicators" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></button>
       <div id="indicator-popup" class="indicator-popup" hidden></div>
       <span id="audio-status" class="audio-status" role="status" aria-live="polite" hidden></span>
     </div>
     <div class="transport-center">
-      <button id="skip-back" class="icon-button" type="button" aria-label="10秒戻る" title="10秒戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5V2L6.5 6 11 10V7a6 6 0 1 1-5.65 8H3.26A8 8 0 1 0 11 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
-      <button id="frame-back" class="icon-button" type="button" aria-label="1コマ戻る" title="1コマ戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM18 5v14l-9-7z"/></svg></button>
-      <button id="play-toggle" class="icon-button" type="button" aria-label="再生" title="再生"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
-      <button id="frame-forward" class="icon-button" type="button" aria-label="1コマ進む" title="1コマ進む"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM6 5v14l9-7z"/></svg></button>
-      <button id="skip-forward" class="icon-button" type="button" aria-label="10秒進む" title="10秒進む"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5V2l4.5 4-4.5 4V7a6 6 0 1 0 5.65 8h2.09A8 8 0 1 1 13 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
+      <button id="skip-back" class="icon-button" type="button" aria-label="Back 10 seconds" title="Back 10 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5V2L6.5 6 11 10V7a6 6 0 1 1-5.65 8H3.26A8 8 0 1 0 11 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
+      <button id="frame-back" class="icon-button" type="button" aria-label="Previous frame" title="Previous frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM18 5v14l-9-7z"/></svg></button>
+      <button id="play-toggle" class="icon-button" type="button" aria-label="Play" title="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      <button id="frame-forward" class="icon-button" type="button" aria-label="Next frame" title="Next frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM6 5v14l9-7z"/></svg></button>
+      <button id="skip-forward" class="icon-button" type="button" aria-label="Forward 10 seconds" title="Forward 10 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5V2l4.5 4-4.5 4V7a6 6 0 1 0 5.65 8h2.09A8 8 0 1 1 13 5Z"/><text x="8" y="17" fill="currentColor" stroke="none" font-size="7" font-family="system-ui,sans-serif" font-weight="700">10</text></svg></button>
     </div>
     <div class="transport-right">
-      <button id="zoom-toggle" class="icon-button" type="button" aria-label="ズーム" title="ズーム" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke-width="2"/><path d="m15.5 15.5 5 5" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
-      <button id="fullscreen-toggle" class="icon-button" type="button" aria-label="全画面" title="全画面" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zm3 11h2v5h-5v-2h3zM9 18v2H4v-5h2v3z"/></svg></button>
-      <button id="pen-toggle" class="icon-button" type="button" aria-label="ペン" title="ペン" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.0 1.0 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      <button id="output-preview-btn" class="icon-button" type="button" aria-label="出力プレビュー" title="出力プレビュー" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 5h2v5h-2z"/></svg></button>
-      <button id="review-record-btn" class="icon-button" type="button" aria-label="レビュー録音" title="レビュー録音" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg></button>
+      <button id="zoom-toggle" class="icon-button" type="button" aria-label="Zoom" title="Zoom" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke-width="2"/><path d="m15.5 15.5 5 5" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button id="fullscreen-toggle" class="icon-button" type="button" aria-label="Full screen" title="Full screen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3zm11-5h5v5h-2V6h-3zm3 11h2v5h-5v-2h3zM9 18v2H4v-5h2v3z"/></svg></button>
+      <button id="pen-toggle" class="icon-button" type="button" aria-label="Pen" title="Pen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.0 1.0 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+      <button id="output-preview-btn" class="icon-button" type="button" aria-label="Output preview" title="Output preview" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 5h2v5h-2z"/></svg></button>
+      <button id="review-record-btn" class="icon-button" type="button" aria-label="Review recording" title="Review recording" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg></button>
       <span id="review-timer" style="display:none;color:#ff4444;font-size:12px;font-variant-numeric:tabular-nums;min-width:70px;text-align:center">0:00</span>
       <div id="zoom-popup" class="popup" hidden>
-        <div class="popup-header"><span>ズーム</span><span id="zoom-value">100%</span></div>
-        <input id="zoom-slider" type="range" min="0" max="1" step="0.001" aria-label="ズーム倍率">
+        <div class="popup-header"><span>Zoom</span><span id="zoom-value">100%</span></div>
+        <input id="zoom-slider" type="range" min="0" max="1" step="0.001" aria-label="Zoom level">
         <div class="zoom-presets">
           <button class="zoom-preset" type="button" data-zoom="0.5">50%</button>
           <button class="zoom-preset" type="button" data-zoom="1">100%</button>
@@ -222,17 +222,17 @@ input[type=range] { width: 100%; }
           <button class="zoom-preset" type="button" data-zoom="4">400%</button>
         </div>
         <hr class="vgpu-scale-divider">
-        <div class="popup-header">WebGPU プレビュー解像度</div>
-        <div class="zoom-presets vgpu-scale-presets" title="辺あたり。書き出しは常に等倍">
-          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="1" aria-pressed="false" title="辺あたり。書き出しは常に等倍">1</button>
-          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="0.5" aria-pressed="true" title="辺あたり。書き出しは常に等倍">1/2</button>
-          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="0.25" aria-pressed="false" title="辺あたり。書き出しは常に等倍">1/4</button>
+        <div class="popup-header">WebGPU preview resolution</div>
+        <div class="zoom-presets vgpu-scale-presets" title="Per side. Export stays at full scale">
+          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="1" aria-pressed="false" title="Per side. Export stays at full scale">1</button>
+          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="0.5" aria-pressed="true" title="Per side. Export stays at full scale">1/2</button>
+          <button class="zoom-preset vgpu-scale-preset" type="button" data-vgpu-scale="0.25" aria-pressed="false" title="Per side. Export stays at full scale">1/4</button>
         </div>
       </div>
     </div>
   </div>
 </div>
-<div id="shortcut-help" hidden><div id="shortcut-help-inner"><h2>⌨ キーボードショートカット</h2><table><tr><td>Space</td><td>再生/一時停止</td></tr><tr><td>← →</td><td>1フレーム戻る/進む</td></tr><tr><td>↑ ↓</td><td>10秒戻る/進む</td></tr><tr><td>, .</td><td>前/次のカット境界へ</td></tr><tr><td>Home / End</td><td>先頭/末尾へ</td></tr><tr><td>?</td><td>このヘルプを表示/非表示</td></tr><tr><td>Escape</td><td>選択解除 / ポップアップを閉じる</td></tr><tr><td>0</td><td>選択中の素材の位置を戻す（作者の位置へ）</td></tr><tr><td>Delete / Backspace</td><td>選択中の素材を削除</td></tr><tr><td>ダブルクリック</td><td>シークバー: カット情報を開く</td></tr></table><div class="close-hint">もう一度 ? を押して閉じる</div></div></div>
+<div id="shortcut-help" hidden><div id="shortcut-help-inner"><h2>⌨ Keyboard shortcuts</h2><table><tr><td>Space</td><td>Play/Pause</td></tr><tr><td>← →</td><td>Back/forward 1 frame</td></tr><tr><td>↑ ↓</td><td>Back/forward 10 seconds</td></tr><tr><td>, .</td><td>Previous/next cut boundary</td></tr><tr><td>Home / End</td><td>Go to start/end</td></tr><tr><td>?</td><td>Show or hide this help</td></tr><tr><td>Escape</td><td>Deselect or close popups</td></tr><tr><td>0</td><td>Reset the selected footage to the authored position</td></tr><tr><td>Delete / Backspace</td><td>Delete the selected footage</td></tr><tr><td>Double-click</td><td>Seek bar: open cut info</td></tr></table><div class="close-hint">Press ? again to close</div></div></div>
 <!-- オーバーレイ操作は packages/overlay-runtime/src/interaction.js（単一正本・スナップ最新版）の
      esbuild バンドル。旧 391 行フォーク（overlay-interaction.js）は Phase 2-4 で廃棄 -->
 <!-- テキスト分割（data-akari-split）。budoux → text-split の順で読む。

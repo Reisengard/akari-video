@@ -87,7 +87,7 @@ export function projectPreviewEdit(source, temporaryDirectory, projectRoot = pat
       })()
     : undefined;
   const indicators = [];
-  if (edit.audio?.master) indicators.push('音声マスター処理');
+  if (edit.audio?.master) indicators.push('Audio master processing');
 
   let look;
   const rawLook = edit.output?.look;
@@ -110,7 +110,7 @@ export function projectPreviewEdit(source, temporaryDirectory, projectRoot = pat
     try {
       sourceVideoFx[declared.id] = projectSourceChromaKey(declared.chroma_key, projectRoot);
     } catch {
-      indicators.push('クロマキー');
+      indicators.push('Chroma key');
       console.warn('[preview] chroma background could not be resolved; continuing without the video FX rail');
     }
   }
@@ -151,7 +151,7 @@ export function projectPreviewEdit(source, temporaryDirectory, projectRoot = pat
       try {
         projected.html = fs.readFileSync(resolveDeclaredProjectInput(projectRoot, htmlPath, `overlay:${overlay.id}`), 'utf8');
       } catch {
-        fragmentWarnings.push(`overlay:${overlay.id} fragment ${htmlPath} が見つからない`);
+        fragmentWarnings.push(`overlay:${overlay.id} fragment ${htmlPath} was not found`);
         return projected;
       }
     }
@@ -159,14 +159,14 @@ export function projectPreviewEdit(source, temporaryDirectory, projectRoot = pat
       try {
         resolveDeclaredProjectInput(projectRoot, reference.path, `overlay:${overlay.id}:fragment-asset`);
       } catch (error) {
-        const context = `overlay:${overlay.id} fragment ${htmlPath} の参照 "${reference.raw}"`;
+        const context = `overlay:${overlay.id} fragment ${htmlPath} reference "${reference.raw}"`;
         fragmentWarnings.push(error.message.endsWith('escapes the project root')
           ? `${context}: escapes the project root`
-          : `${context} が見つからない。${describeFragmentAssetHint({ projectRoot, htmlPath, ...reference })}`);
+          : `${context} was not found. ${describeFragmentAssetHint({ projectRoot, htmlPath, ...reference })}`);
       }
     }
     for (const reference of extractAbsoluteFragmentAssetReferences(projected.html, htmlPath)) {
-      fragmentWarnings.push(`overlay:${overlay.id} fragment ${htmlPath} の参照 "${reference.raw}": 断片からの相対パスで書く`);
+      fragmentWarnings.push(`overlay:${overlay.id} fragment ${htmlPath} reference "${reference.raw}": write a path relative to the fragment`);
     }
     projected.html = rewriteFragmentAssetUrls(projected.html, { htmlPath, urlPrefix: '/' });
     return projected;
@@ -263,7 +263,7 @@ export function migratePreviewCompatibility(source) {
   };
   const result = migrateEditToV2(compatible, { hasCaptions: Array.isArray(compatible.captions) });
   if (!result.ok) {
-    throw new Error(`WebUI の編集を v2 へ反映できません: ${result.blockers.join(' / ')}`);
+    throw new Error(`Cannot apply the Web UI edit to v2: ${result.blockers.join(' / ')}`);
   }
   return result.doc;
 }

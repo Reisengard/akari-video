@@ -275,7 +275,7 @@ test('failed proxies preserve the failure notice and stale proxy completions are
       assert.deepEqual(harness.notices, []);
     } else {
       assert.equal(resolution.choices.get('a').reason, 'auto-proxy-failed');
-      assert.equal(harness.notices.at(-1), 'プロキシを生成できませんでした（a）');
+      assert.equal(harness.notices.at(-1), 'Could not generate a proxy (a)');
     }
   }
 });

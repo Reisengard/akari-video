@@ -35637,7 +35637,7 @@ function autoProxyPath(url) {
 async function requestAutoProxy(candidate, ui, isCurrent) {
   if (!isCurrent()) return null;
   const path = autoProxyPath(candidate.originalUrl);
-  ui.showNotice(`\u30D7\u30ED\u30AD\u30B7\u751F\u6210\u4E2D\u2026\uFF08${candidate.id}\uFF09`);
+  ui.showNotice(`Generating a proxy (${candidate.id})`);
   try {
     const start = await fetch("/api/auto-proxy", {
       method: "POST",
@@ -35706,8 +35706,8 @@ async function resolveSourceChoices(candidates, context) {
     if (!context.isCurrent()) return;
     const failed = failedProxies.values().next().value;
     const pending = pendingProxies.values().next().value;
-    if (failed) context.ui.showNotice(`\u30D7\u30ED\u30AD\u30B7\u3092\u751F\u6210\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\uFF08${failed}\uFF09`);
-    else if (pending) context.ui.showNotice(`\u30D7\u30ED\u30AD\u30B7\u751F\u6210\u4E2D\u2026\uFF08${pending}\uFF09`);
+    if (failed) context.ui.showNotice(`Could not generate a proxy (${failed})`);
+    else if (pending) context.ui.showNotice(`Generating a proxy (${pending})`);
     else context.ui.clearNotice();
   };
   const withLogicalSize = (candidate, choice, size = candidate.logicalSize) => {
@@ -36070,7 +36070,7 @@ var FrameEngineRuntime = class {
       onWarning: (message) => this.showError(message, false),
       onSoftwareFallbackDenied: (support) => {
         if (!(choice?.support?.hw || choice?.support?.any)) {
-          this.ui.showNotice(`\u30BD\u30D5\u30C8\u30A6\u30A7\u30A2\u30C7\u30B3\u30FC\u30C9\u975E\u5BFE\u5FDC: ${support.codec}`);
+          this.ui.showNotice(`Software decode is not supported: ${support.codec}`);
         }
       }
     });

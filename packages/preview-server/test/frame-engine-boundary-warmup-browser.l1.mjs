@@ -242,10 +242,10 @@ test('adaptive scheduler warms every cut/layer boundary and preserves random see
     }), playbackBoundaries);
 
     const playToggle = page.locator('#play-toggle');
-    if (await playToggle.getAttribute('aria-label') === '一時停止') {
+    if (await playToggle.getAttribute('aria-label') === 'Pause') {
       await playToggle.click();
     }
-    await page.waitForFunction(() => document.querySelector('#play-toggle')?.getAttribute('aria-label') === '再生');
+    await page.waitForFunction(() => document.querySelector('#play-toggle')?.getAttribute('aria-label') === 'Play');
 
     const seekOnce = async seconds => {
       try {

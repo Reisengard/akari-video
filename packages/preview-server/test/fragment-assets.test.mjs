@@ -95,7 +95,7 @@ test('missing references remain visible in summary and reach frameEngine warning
   assert.deepEqual(summary.frameEngine.skipped, []);
   const fragmentWarnings = summary.frameEngine.warnings.filter(warning => warning.startsWith('overlay:'));
   assert.deepEqual(fragmentWarnings, [
-    `overlay:logo fragment ${htmlPath} の参照 "../assets/logo.png" が見つからない。断片ファイル基準では \`overlays/assets/logo.png\` を指しています。project の \`assets/logo.png\` を指すなら \`../../assets/logo.png\` に直してください`,
+    `overlay:logo fragment ${htmlPath} reference "../assets/logo.png" was not found. 断片ファイル基準では \`overlays/assets/logo.png\` を指しています。project の \`assets/logo.png\` を指すなら \`../../assets/logo.png\` に直してください`,
   ]);
   for (const warning of fragmentWarnings) {
     assert.doesNotMatch(warning, /ENOENT|lstat/u);
@@ -104,11 +104,11 @@ test('missing references remain visible in summary and reach frameEngine warning
   await writeFile(path.join(project, htmlPath), '<div><img src="../../../outside.png"></div>');
   const escaped = await (await fetch(`${base}/api/summary`)).json();
   assert.deepEqual(escaped.frameEngine.warnings.filter(warning => warning.startsWith('overlay:')), [
-    `overlay:logo fragment ${htmlPath} の参照 "../../../outside.png": escapes the project root`,
+    `overlay:logo fragment ${htmlPath} reference "../../../outside.png": escapes the project root`,
   ]);
   await rm(path.join(project, htmlPath));
   const missingFragment = await (await fetch(`${base}/api/summary`)).json();
-  assert.deepEqual(missingFragment.frameEngine.warnings.filter(warning => warning.startsWith('overlay:')), [`overlay:logo fragment ${htmlPath} が見つからない`]);
+  assert.deepEqual(missingFragment.frameEngine.warnings.filter(warning => warning.startsWith('overlay:')), [`overlay:logo fragment ${htmlPath} was not found`]);
 });
 
 test('projection preserves htmlPath for compatibility migration', async t => {

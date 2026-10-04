@@ -120,7 +120,7 @@ export function prepareFrameEngineAudioSummary(readData, deps) {
     const durationSec = kind === 'bgm' ? undefined : kind === 'speech'
       ? target.durationSec ?? (options.outSec - options.inSec) / options.speed
       : options.outSec === undefined ? undefined : options.outSec - options.inSec;
-    const item = { kind, id, ...(kind === 'speech-item' ? { label: '本編音声（分離）' } : {}), key: result.key ?? null, state, at,
+    const item = { kind, id, ...(kind === 'speech-item' ? { label: 'Program audio (separated)' } : {}), key: result.key ?? null, state, at,
       ...(durationSec !== undefined ? { durationSec } : {}) };
     items.push(item);
     priority.push({ ...item, sourcePath: options.sourcePath });

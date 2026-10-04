@@ -55,7 +55,7 @@ function mediaDimensions(path) {
       const probe = document.createElement('video');
       probe.preload = 'metadata';
       probe.muted = true;
-      const timer = setTimeout(() => finish(new Error('メタデータが時間内に読めませんでした')), METADATA_TIMEOUT_MS);
+      const timer = setTimeout(() => finish(new Error('Metadata was not read in time')), METADATA_TIMEOUT_MS);
       function finish(error) {
         clearTimeout(timer);
         probe.onloadedmetadata = null;
@@ -63,11 +63,11 @@ function mediaDimensions(path) {
         const size = { width: Number(probe.videoWidth) || 0, height: Number(probe.videoHeight) || 0 };
         probe.removeAttribute('src');
         probe.load();
-        if (error || !size.width || !size.height) reject(error || new Error('寸法が読めませんでした'));
+        if (error || !size.width || !size.height) reject(error || new Error('Could not read the dimensions'));
         else resolve(size);
       }
       probe.onloadedmetadata = () => finish();
-      probe.onerror = () => finish(new Error('メタデータを読めませんでした'));
+      probe.onerror = () => finish(new Error('Could not read the metadata'));
       probe.src = url;
     });
     dimensionsByUrl.set(url, pending);

@@ -631,9 +631,9 @@ const router = {
       // クライアント側の undo はリロードで消えるため、保証はここに置く。
       let snapshot = null;
       try {
-        snapshot = await snapshotHistory({ projectDir: projectRoot, label: 'Web プレビューで編集' });
+        snapshot = await snapshotHistory({ projectDir: projectRoot, label: 'Edited in the web preview' });
       } catch (historyError) {
-        console.error('[history] 退避に失敗しました', historyError.message);
+        console.error('[history] Could not save a snapshot', historyError.message);
       }
       markSelfWrite();
       if (req.headers['x-akari-preview-projection'] === '1') {
@@ -749,23 +749,23 @@ const router = {
       return respond(res, 400, { error: 'Invalid JSON: ' + e.message });
     }
     const { id, html } = parsed ?? {};
-    if (typeof id !== 'string' || !id) return respond(res, 400, { error: 'id が必要です' });
-    if (typeof html !== 'string' || !html.trim()) return respond(res, 400, { error: 'html が必要です' });
+    if (typeof id !== 'string' || !id) return respond(res, 400, { error: 'id is required' });
+    if (typeof html !== 'string' || !html.trim()) return respond(res, 400, { error: 'html is required' });
     const edit = readPreviewEdit(path.join(projectRoot, 'edit.json'));
     if (edit.error) return respondPreviewReadError(res, edit.error);
     const overlay = (edit.data.overlays || []).find(o => String(o?.id) === id);
-    if (!overlay) return respond(res, 404, { error: `オーバーレイが見つかりません: ${id}` });
+    if (!overlay) return respond(res, 404, { error: `Overlay not found: ${id}` });
     // The preview projection replaces html with rewritten markup; htmlPath retains the authored file reference.
     const htmlPath = overlay.htmlPath ?? (typeof overlay.html === 'string' && !overlay.html.trimStart().startsWith('<') ? overlay.html : null);
     if (typeof htmlPath !== 'string' || !htmlPath) {
-      return respond(res, 422, { error: `overlays[].html がファイル参照ではありません: ${id}` });
+      return respond(res, 422, { error: `overlays[].html is not a file reference: ${id}` });
     }
     const target = resolveSafe(projectRoot, htmlPath);
-    if (!target) return respond(res, 422, { error: 'プロジェクト外への書き込みは拒否しました' });
+    if (!target) return respond(res, 422, { error: 'Refused a write outside the project' });
     try {
       if (!fs.statSync(target).isFile()) throw new Error('not a file');
     } catch {
-      return respond(res, 422, { error: `断片ファイルがありません: ${htmlPath}` });
+      return respond(res, 422, { error: `Fragment file is missing: ${htmlPath}` });
     }
     let source;
     let candidate;
