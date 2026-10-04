@@ -59,13 +59,13 @@ export async function collectLicenseFindings(edit, resolveSource) {
     const detail = { asset: key, name, credit: axes.attributionRequired === true ? await creditFor(dir, meta) : '' };
     const path = `edit.json#sources.${source.id}`;
     if (axes.commercial === 'prohibited') findings.push({
-      severity: 'warning', check: 'license.non-commercial', message: `${name}: 商用利用できない素材です`, path, details: detail,
+      severity: 'warning', check: 'license.non-commercial', message: `${name}: this footage is not licensed for commercial use.`, path, details: detail,
     });
     if (axes.commercial === 'unknown') findings.push({
-      severity: 'info', check: 'license.unknown', message: `${name}: ライセンスが分かりません`, path, details: detail,
+      severity: 'info', check: 'license.unknown', message: `${name}: the license is unknown.`, path, details: detail,
     });
     if (axes.attributionRequired === true) findings.push({
-      severity: 'info', check: 'license.attribution', message: `${name}: 帰属表示が必要です`, path, details: detail,
+      severity: 'info', check: 'license.attribution', message: `${name}: attribution is required.`, path, details: detail,
     });
   }
   return findings;

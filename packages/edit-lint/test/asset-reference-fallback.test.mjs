@@ -119,7 +119,7 @@ test("edit-lint resolves a declared library file and identifies an unfetched ref
     const missing = await lintProject(projectRoot, options);
     const finding = missing.findings.find((candidate) => candidate.check === "references.files");
     assert.ok(finding, JSON.stringify(missing.findings, null, 2));
-    assert.match(finding.message, /共有ライブラリ参照（未取得）/u);
+    assert.match(finding.message, /shared library reference, not fetched/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -141,5 +141,5 @@ test('edit-lint uses both roots while migrating and identifies an unfetched refe
     assert.equal((await lintProject(project,options)).findings.some(x=>x.check==='references.files'),false,phase);
   }
   await rm(next);
-  assert.match((await lintProject(project,options)).findings.find(x=>x.check==='references.files').message,/共有ライブラリ参照（未取得）/);
+  assert.match((await lintProject(project,options)).findings.find(x=>x.check==='references.files').message,/shared library reference, not fetched/);
 });

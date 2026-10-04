@@ -296,7 +296,7 @@ for (const sourcePath of ['../outside.mp4', path.join(os.tmpdir(), 'outside.mp4'
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
     assert.throws(
       () => readGenerationMeta({ projectRoot: root, sourcePath, now: NOW }),
-      /projectRoot 外/,
+      /outside projectRoot/,
     );
   });
 }

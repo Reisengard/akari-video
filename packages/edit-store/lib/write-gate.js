@@ -59,7 +59,7 @@ const LINK_UNSUPPORTED_CODES = new Set([
 /** ディレクトリをリンクできなかったことを示す内部シグナル（素材の実体コピーは選ばない）。 */
 class ShadowLinkUnavailable extends Error {
     constructor(entryPath, cause) {
-        super(`影プロジェクトへ ${entryPath} をリンクできませんでした（${cause.code ?? cause.message}）`);
+        super(`Could not link ${entryPath} into the shadow project (${cause.code ?? cause.message})`);
         this.name = 'ShadowLinkUnavailable';
     }
 }
@@ -154,14 +154,14 @@ function warnShadowUnavailableOnce(error) {
         return;
     }
     shadowUnavailableWarned = true;
-    console.warn('[edit-store] 影プロジェクトを作れないため、実ディスクを読む lint check を省いて'
-        + '候補のメモリ検証だけで保存しています。', error.message);
+    console.warn('[edit-store] A shadow project could not be created, so the lint check that reads the real disk was skipped. '
+        + 'Saving from in-memory validation of the candidate only.', error.message);
 }
 function candidateSegments(relativePath) {
     const segments = relativePath.split('/');
     if (relativePath.length === 0 || relativePath.startsWith('/') || relativePath.includes('\\')
         || segments.some(segment => segment.length === 0 || segment === '.' || segment === '..')) {
-        throw new Error(`候補パスはプロジェクト相対の安全な / 区切りで指定してください: ${relativePath}`);
+        throw new Error(`Specify the candidate path as a safe project-relative path with / separators: ${relativePath}`);
     }
     return segments;
 }
@@ -173,7 +173,7 @@ async function materializeShadowDirectory(shadowRoot, directory, hooks) {
         const stat = await fs_1.promises.lstat(directory);
         if (!stat.isSymbolicLink()) {
             if (!stat.isDirectory())
-                throw new Error(`候補の親パスがディレクトリではありません: ${directory}`);
+                throw new Error(`The candidate parent path is not a directory: ${directory}`);
             return;
         }
         const source = await fs_1.promises.realpath(directory);
@@ -193,7 +193,7 @@ async function materializeShadowDirectory(shadowRoot, directory, hooks) {
 async function assertLintPasses(projectRoot, candidates) {
     const result = await lintProjectCandidates(projectRoot, candidates);
     if (!result.pass) {
-        throw new Error(result.errors[0] ?? 'edit-lint が変更を拒否しました');
+        throw new Error(result.errors[0] ?? 'edit-lint rejected the change.');
     }
 }
 let defaultSavedByAppVersion;
@@ -241,7 +241,7 @@ async function writeProjectFilesGuarded(projectRoot, candidates, options = {}) {
                 options.onDidWrite(destination, text);
             }
             catch (error) {
-                console.warn('[edit-store] onDidWrite の通知に失敗しました（保存は完了しています）。', error);
+                console.warn('[edit-store] The onDidWrite notice failed. The save itself finished.', error);
             }
         }
     }
@@ -265,8 +265,8 @@ function assertNoCamelCaseTransitionOut(content) {
         return Object.values(value).some(visit);
     };
     if (visit(parsed)) {
-        throw new Error('transitionOut は Web UI 旧版が書いた綴りです。正しい transition_out へ直すか、'
-            + 'Web UI で開き直して保存してください。');
+        throw new Error('transitionOut is the spelling an older Web UI wrote. Correct it to transition_out, or '
+            + 'open it again in the Web UI and save.');
     }
 }
 /**
@@ -291,7 +291,7 @@ function scheduleProjectLint(projectRoot, options = {}) {
             .then(() => (options.lintRunner ?? runEditLint)(key));
         lintRunChains.set(key, currentRun);
         void currentRun.then(result => lintRevisions.get(key) === revision ? options.onLintResult?.(result) : undefined, error => {
-            console.warn('[edit-store] 保存後 edit-lint の実行に失敗しました（保存は維持します）。', error);
+            console.warn('[edit-store] edit-lint failed after the save. The save is kept.', error);
         }).finally(() => {
             if (lintRunChains.get(key) === currentRun) {
                 lintRunChains.delete(key);
@@ -355,7 +355,7 @@ async function runEditLint(projectRoot, inputOverrides, writeReports = true) {
     catch (error) {
         return {
             pass: false,
-            errors: [`edit-lint を実行できませんでした: ${error instanceof Error ? error.message : String(error)}`],
+            errors: [`edit-lint could not be run: ${error instanceof Error ? error.message : String(error)}`],
             findings: [{
                     severity: 'error',
                     check: 'edit-lint.execution',
@@ -415,7 +415,7 @@ function warnEditLintUnavailableOnce(error) {
         return;
     }
     editLintUnavailableWarned = true;
-    console.warn('[edit-store] edit-lint が見つからないため、検証なしで保存しています。', error instanceof Error ? error.message : error);
+    console.warn('[edit-store] edit-lint was not found, so this save skips validation.', error instanceof Error ? error.message : error);
 }
 function isFile(candidate) {
     try {

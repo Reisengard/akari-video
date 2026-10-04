@@ -7,7 +7,7 @@ import test from "node:test";
 import { lintProject } from "../src/edit-lint.mjs";
 
 const check = "decision-log.predict-missing";
-const message = "decision-log.md に機械の予測行（決定者 machine:director）がありません。提案つき / そのままモードでは、入れた物 1 件ごとに予測 1 行を追記してください（判子は一回 契約 §10）（decision-log.md が見つかりません）";
+const message = "decision-log.md has no machine prediction row (decider machine:director). In With suggestions or As is mode, append one prediction row for each inserted item (one stamp, contract section 10). (decision-log.md was not found)";
 
 async function lint({ status = "submitted", autonomy = "checkpoint", itemCount = 1, decisionLog } = {}) {
   const root = await mkdtemp(join(tmpdir(), "decision-log-predict-"));

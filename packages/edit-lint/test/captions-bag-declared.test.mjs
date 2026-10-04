@@ -72,5 +72,5 @@ test("a captions bag is declared, content is deprecated, and missing declaration
   const warning = undeclared.findings.find(finding => finding.check === "v2.captions-track-undeclared");
   assert.equal(warning?.severity, "warning");
   assert.match(warning.message, /"kind": "captions"/u);
-  assert.match(warning.message, /\{ "id": "captions", "name": "字幕", "at": 0, "duration": <出力尺>, "source": \{ "kind": "captions", "path": "captions\.json" \}, "items": \[\] \}/u);
+  assert.match(warning.message, /\{ "id": "captions", "name": "Captions", "at": 0, "duration": <output duration>, "source": \{ "kind": "captions", "path": "captions\.json" \}, "items": \[\] \}/u);
 });

@@ -58,8 +58,8 @@ test('v2 migrate は content を captions 袋へ正規化し、関連 JSON を c
     assert.equal('blockers' in proposal, false, proposal.blockers?.join('\n'));
     assert.equal(proposal.version, 2);
     assert.deepEqual(proposal.changes.map(change => change.note), [
-      'content → captions 袋グループ',
-      '正規直列化（書式のみ）',
+      'content → captions container group',
+      'Canonical serialization (formatting only)',
     ]);
     const normalized = JSON.parse(proposal.nextText);
     const captionTrack = normalized.tracks.find(track => track.id === 'captions');
@@ -315,7 +315,7 @@ test('legacy audio entry の未知キーは category ごとの allow-list で拒
     doc.audio = audio;
     const result = migrateEditToV2(doc);
     assert.equal(result.ok, false);
-    assert.match(result.blockers.join('\n'), /未知フィールド/);
+    assert.match(result.blockers.join('\n'), /unknown field/);
   }
 });
 
@@ -324,9 +324,9 @@ test('migrate は camelCase transitionOut を旧 Web UI 由来として具体的
   doc.cuts[0].transitionOut = { type: 'dissolve', duration: 0.5 };
   const result = migrateEditToV2(doc);
   assert.equal(result.ok, false);
-  assert.match(result.blockers.join('\n'), /Web UI 旧版が書いた綴り/);
+  assert.match(result.blockers.join('\n'), /the spelling an older Web UI wrote/);
   assert.match(result.blockers.join('\n'), /transition_out/);
-  assert.match(result.blockers.join('\n'), /開き直して保存/);
+  assert.match(result.blockers.join('\n'), /open the project in the Web UI and save/);
 });
 
 test('narration の script / reading / provenance を credit あり・なしとも損失なく v2 item へ移す', () => {
@@ -440,7 +440,7 @@ test('凍結方針: 未知フィールド・非整数 fps・不正な filter は
   assert.match(migrateEditToV2(unknown).blockers.join('\n'), /direction/);
   const fractional = base();
   fractional.output.fps = 29.97;
-  assert.match(migrateEditToV2(fractional).blockers.join('\n'), /整数/);
+  assert.match(migrateEditToV2(fractional).blockers.join('\n'), /integer/);
   const layer = { ...base(), layers: [{ id: 'x', t: 0, duration: 1, kind: 'filter', filter: {} }] };
   assert.match(migrateEditToV2(layer).blockers.join('\n'), /filter\.type.*invert\/lut\/saturation/s);
 });
@@ -470,7 +470,7 @@ test('kind filter に src が在る legacy layer は理由付き blocker で止�
   doc.layers = [{ id: 'filter', t: 0, duration: 1, kind: 'filter', src: 'main.mp4', filter: { type: 'invert' } }];
   const result = migrateEditToV2(doc);
   assert.equal(result.ok, false);
-  assert.match(result.blockers.join('\n'), /kind filter は src を持てません/);
+  assert.match(result.blockers.join('\n'), /kind filter cannot have src/);
 });
 
 test('media 系 layer に直付けされた filter は等価表現が無いため理由付き blocker で止まる', () => {
@@ -482,7 +482,7 @@ test('media 系 layer に直付けされた filter は等価表現が無いた�
     }];
     const result = migrateEditToV2(doc);
     assert.equal(result.ok, false);
-    assert.match(result.blockers.join('\n'), /layers\[0\]\.filter（映像レイヤー直付きの filter）は v2 に等価表現が無いため変換できません/);
+    assert.match(result.blockers.join('\n'), /layers\[0\]\.filter, a filter attached directly to a picture layer, has no v2 equivalent and cannot be converted/);
   }
 });
 
@@ -517,11 +517,11 @@ test('リール同形 fixture の映像レイヤー直付き filter は silent l
 
     const migrated = migrateEditToV2(JSON.parse(beforeEdit));
     assert.equal(migrated.ok, false);
-    assert.match(migrated.blockers.join('\n'), /layers\[0\]\.filter（映像レイヤー直付きの filter）は v2 に等価表現が無いため変換できません/);
+    assert.match(migrated.blockers.join('\n'), /layers\[0\]\.filter, a filter attached directly to a picture layer, has no v2 equivalent and cannot be converted/);
 
     const proposal = planMigration(root, editPath, beforeEdit, { now: new Date('2026-08-23T01:02:03.000Z') });
     assert.equal('blockers' in proposal, true);
-    assert.match(proposal.blockers.join('\n'), /layers\[0\]\.filter（映像レイヤー直付きの filter）は v2 に等価表現が無いため変換できません/);
+    assert.match(proposal.blockers.join('\n'), /layers\[0\]\.filter, a filter attached directly to a picture layer, has no v2 equivalent and cannot be converted/);
     assert.equal(await readFile(editPath, 'utf8'), beforeEdit, '提案時点では edit.json を変更しない');
     assert.equal(await readFile(captionsPath, 'utf8'), beforeCaptions, '提案時点では captions.json を変更しない');
   } finally {
@@ -573,9 +573,9 @@ test('emphasis_words は captions.json 不在・配列ルート・既存席を�
   doc.emphasis_words = [{ id: 'e-0001', t_start: 0.1, t_end: 0.2, word: '最高', emotion: 'joy' }];
   const beforeEdit = `${JSON.stringify(doc, null, 2)}\n`;
   const cases = [
-    { captions: undefined, reason: /移送先 captions\.json がありません/ },
-    { captions: '[]\n', reason: /captions\.json が配列ルート/ },
-    { captions: '{"captions":[],"emphasis_words":[]}\n', reason: /emphasis_words が既に存在/ },
+    { captions: undefined, reason: /The captions\.json that emphasis_words moves into does not exist/ },
+    { captions: '[]\n', reason: /is rooted at an array/ },
+    { captions: '{"captions":[],"emphasis_words":[]}\n', reason: /captions\.json already has emphasis_words/ },
   ];
   for (const item of cases) {
     const root = await mkdtemp(join(tmpdir(), 'akari-migrate-emphasis-block-'));
@@ -633,7 +633,7 @@ test('v2 は再変換せず、reader 往復も差分ゼロ', () => {
   assert.deepEqual(planMigration('/tmp', '/tmp/edit.json', text), {
     ok: false,
     version: 2,
-    blockers: ['edit.json はすでに version 2 です。再変換は行いません。'],
+    blockers: ['edit.json is already version 2. It will not be converted again.'],
   });
   assert.deepEqual(readEditV2(text), readEditV2(`${JSON.stringify(JSON.parse(text), null, 2)}\n`));
 });

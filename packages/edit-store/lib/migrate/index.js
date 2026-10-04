@@ -65,26 +65,26 @@ function captionsHaveRenderableCues(root) {
 function migrateEditToV2(raw, options = {}) {
     const version = detectEditVersion(raw);
     if (version === 2) {
-        return { ok: false, version, blockers: ['edit.json はすでに version 2 です。再変換は行いません。'] };
+        return { ok: false, version, blockers: ['edit.json is already version 2. It will not be converted again.'] };
     }
     if (version !== 0 && version !== 1) {
-        return { ok: false, version: version ?? -1, blockers: ['edit.json.version が 0 または 1 ではありません。'] };
+        return { ok: false, version: version ?? -1, blockers: ['edit.json.version is not 0 or 1.'] };
     }
     if (!isRecord(raw)) {
-        return { ok: false, version, blockers: ['edit.json のルートが object ではありません。'] };
+        return { ok: false, version, blockers: ['The edit.json root is not an object.'] };
     }
     const blockers = [];
     rejectUnknownKeys(raw, TOP_KEYS, 'edit.json', blockers);
     if (hasOwn(raw, 'tracks')) {
-        blockers.push('edit.json.tracks（旧 trackState）は v2 へ一意に変換できません。');
+        blockers.push('edit.json.tracks (legacy trackState) cannot be converted to v2 uniquely.');
     }
     const output = isRecord(raw.output) ? raw.output : undefined;
     const fps = output?.fps;
     if (!output || !positive(output.width) || !positive(output.height)) {
-        blockers.push('edit.json.output.width / height に 0 より大きい数が必要です。');
+        blockers.push('edit.json.output.width and height must be numbers greater than 0.');
     }
     if (!Number.isInteger(fps) || fps <= 0) {
-        blockers.push('edit.json.output.fps は 1 以上の整数でなければ v2 へ変換できません。');
+        blockers.push('edit.json.output.fps must be an integer of 1 or greater before conversion to v2.');
     }
     if (blockers.length > 0)
         return { ok: false, version, blockers };
@@ -92,7 +92,7 @@ function migrateEditToV2(raw, options = {}) {
     const sources = [];
     if (version === 0) {
         if (!isRecord(raw.source) || !nonEmpty(raw.source.path)) {
-            blockers.push('version 0 の edit.json.source.path がありません。');
+            blockers.push('version 0 edit.json.source.path is missing.');
         }
         else {
             sources.push({
@@ -103,17 +103,17 @@ function migrateEditToV2(raw, options = {}) {
         }
     }
     else if (!Array.isArray(raw.sources) || raw.sources.length === 0) {
-        blockers.push('version 1 の edit.json.sources[] がありません。');
+        blockers.push('version 1 edit.json.sources[] is missing.');
     }
     else {
         const ids = new Set();
         raw.sources.forEach((source, index) => {
             if (!isRecord(source) || !nonEmpty(source.id) || !nonEmpty(source.path)) {
-                blockers.push(`edit.json.sources[${index}] の id / path が不正です。`);
+                blockers.push(`edit.json.sources[${index}] id / path is invalid.`);
                 return;
             }
             if (ids.has(source.id))
-                blockers.push(`edit.json.sources[].id が重複しています: ${source.id}`);
+                blockers.push(`Duplicate edit.json.sources[].id: ${source.id}`);
             ids.add(source.id);
             sources.push({
                 id: source.id, path: source.path,
@@ -133,17 +133,17 @@ function migrateEditToV2(raw, options = {}) {
     const previousCutByTrack = new Map();
     cuts.forEach((value, index) => {
         if (!isRecord(value)) {
-            blockers.push(`edit.json.cuts[${index}] が object ではありません。`);
+            blockers.push(`edit.json.cuts[${index}] is not an object.`);
             return;
         }
         rejectUnknownKeys(value, CUT_KEYS, `edit.json.cuts[${index}]`, blockers);
         const src = version === 0 ? 'main' : value.src;
         if (!nonEmpty(src) || !sourceIds.has(src)) {
-            blockers.push(`edit.json.cuts[${index}].src が sources[] を参照していません。`);
+            blockers.push(`edit.json.cuts[${index}].src does not reference sources[].`);
             return;
         }
         if (!nonNegative(value.in) || !positive(value.out) || value.out <= value.in) {
-            blockers.push(`edit.json.cuts[${index}] は 0 <= in < out を満たしません。`);
+            blockers.push(`edit.json.cuts[${index}] does not satisfy 0 <= in < out.`);
             return;
         }
         const track = trackOf(value.track);
@@ -176,12 +176,12 @@ function migrateEditToV2(raw, options = {}) {
     const overlays = arrayOrEmpty(raw.overlays, 'edit.json.overlays', blockers);
     overlays.forEach((value, index) => {
         if (!isRecord(value)) {
-            blockers.push(`edit.json.overlays[${index}] が object ではありません。`);
+            blockers.push(`edit.json.overlays[${index}] is not an object.`);
             return;
         }
         rejectUnknownKeys(value, OVERLAY_KEYS, `edit.json.overlays[${index}]`, blockers);
         if (!nonEmpty(value.html) || !nonNegative(value.start) || !positive(value.duration)) {
-            blockers.push(`edit.json.overlays[${index}] の html / start / duration が不正です。`);
+            blockers.push(`edit.json.overlays[${index}] html / start / duration is invalid.`);
             return;
         }
         pending.push({
@@ -198,20 +198,20 @@ function migrateEditToV2(raw, options = {}) {
     let layerSourceSerial = 1;
     layers.forEach((value, index) => {
         if (!isRecord(value)) {
-            blockers.push(`edit.json.layers[${index}] が object ではありません。`);
+            blockers.push(`edit.json.layers[${index}] is not an object.`);
             return;
         }
         rejectUnknownKeys(value, LAYER_KEYS, `edit.json.layers[${index}]`, blockers);
         if (!['video', 'image', 'baked', 'filter'].includes(String(value.kind))) {
-            blockers.push(`edit.json.layers[${index}].kind は video / image / baked / filter のいずれかである必要があります。`);
+            blockers.push(`edit.json.layers[${index}].kind must be video, image, baked, or filter.`);
             return;
         }
         if (value.kind !== 'filter' && hasOwn(value, 'filter')) {
-            blockers.push(`edit.json.layers[${index}].filter（映像レイヤー直付きの filter）は v2 に等価表現が無いため変換できません。`);
+            blockers.push(`edit.json.layers[${index}].filter, a filter attached directly to a picture layer, has no v2 equivalent and cannot be converted.`);
             return;
         }
         if (!nonNegative(value.t) || !positive(value.duration)) {
-            blockers.push(`edit.json.layers[${index}] の t / duration が不正です。`);
+            blockers.push(`edit.json.layers[${index}] t / duration is invalid.`);
             return;
         }
         let source;
@@ -219,22 +219,22 @@ function migrateEditToV2(raw, options = {}) {
         if (value.kind === 'filter') {
             const forbidden = ['src', 'in', 'speed', 'chroma_key', 'blend', 'crop', 'transform', 'mask'].filter(key => hasOwn(value, key));
             if (forbidden.length > 0) {
-                blockers.push(`edit.json.layers[${index}] の kind filter は ${forbidden.join(' / ')} を持てません。`);
+                blockers.push(`edit.json.layers[${index}]: kind filter cannot have ${forbidden.join(' / ')}.`);
                 return;
             }
             source = { kind: 'filter', filter: clone(value.filter) };
         }
         else if (!nonEmpty(value.src)) {
-            blockers.push(`edit.json.layers[${index}].src が不正です。`);
+            blockers.push(`edit.json.layers[${index}].src is invalid.`);
             return;
         }
         else if (value.kind === 'baked' && nonEmpty(value.preset)) {
             if (hasOwn(value, 'in') || hasOwn(value, 'speed')) {
-                blockers.push(`edit.json.layers[${index}] の in / speed は baked telop へ変換できません。`);
+                blockers.push(`edit.json.layers[${index}] in / speed cannot be converted to a baked telop.`);
                 return;
             }
             if (hasOwn(value, 'mask')) {
-                blockers.push(`edit.json.layers[${index}].mask は baked telop へ変換できません。`);
+                blockers.push(`edit.json.layers[${index}].mask cannot be converted to a baked telop.`);
                 return;
             }
             source = {
@@ -245,7 +245,7 @@ function migrateEditToV2(raw, options = {}) {
         else {
             if ((hasOwn(value, 'in') && !nonNegative(value.in))
                 || (hasOwn(value, 'speed') && !positive(value.speed))) {
-                blockers.push(`edit.json.layers[${index}] の in / speed が不正です。`);
+                blockers.push(`edit.json.layers[${index}] in / speed is invalid.`);
                 return;
             }
             const sourceIn = hasOwn(value, 'in') ? value.in : 0;
@@ -265,12 +265,12 @@ function migrateEditToV2(raw, options = {}) {
             };
             if (hasOwn(value, 'mask')) {
                 if (!nonEmpty(value.mask)) {
-                    blockers.push(`edit.json.layers[${index}].mask が不正です。`);
+                    blockers.push(`edit.json.layers[${index}].mask is invalid.`);
                     return;
                 }
                 mask = sourceIdByPath.get(value.mask);
                 if (!mask) {
-                    blockers.push(`edit.json.layers[${index}].mask が sources[].path を参照していません: ${value.mask}`);
+                    blockers.push(`edit.json.layers[${index}].mask does not reference sources[].path: ${value.mask}`);
                     return;
                 }
             }
@@ -278,7 +278,7 @@ function migrateEditToV2(raw, options = {}) {
         const keyframes = Array.isArray(value.keyframes)
             ? value.keyframes.map((entry, keyframeIndex) => {
                 if (!isRecord(entry) || !nonNegative(entry.t)) {
-                    blockers.push(`edit.json.layers[${index}].keyframes[${keyframeIndex}].t が不正です。`);
+                    blockers.push(`edit.json.layers[${index}].keyframes[${keyframeIndex}].t is invalid.`);
                     return { t: 0 };
                 }
                 return { ...clone(entry), t: Math.round(entry.t * frameRate) };
@@ -296,12 +296,12 @@ function migrateEditToV2(raw, options = {}) {
     });
     const audio = isRecord(raw.audio) ? raw.audio : undefined;
     if (raw.audio !== undefined && !audio) {
-        blockers.push('edit.json.audio が object ではありません。');
+        blockers.push('edit.json.audio is not an object.');
     }
     if (audio?.duck_keys !== undefined && (!Array.isArray(audio.duck_keys)
         || audio.duck_keys.some(key => key !== 'narration' && key !== 'speech')
         || new Set(audio.duck_keys).size !== audio.duck_keys.length)) {
-        blockers.push('edit.json.audio.duck_keys は narration / speech の重複しない配列である必要があります。');
+        blockers.push('edit.json.audio.duck_keys must be an array of distinct narration or speech ids.');
     }
     const audioTrackRefs = legacyAudioTrackRefs(audio);
     let audioSourceSerial = 1;
@@ -322,7 +322,7 @@ function migrateEditToV2(raw, options = {}) {
     sfx.forEach((value, index) => {
         const itemPath = `edit.json.audio.sfx[${index}]`;
         if (!isRecord(value)) {
-            blockers.push(`${itemPath} が object ではありません。`);
+            blockers.push(`${itemPath} is not an object.`);
             return;
         }
         rejectUnknownKeys(value, SFX_KEYS, itemPath, blockers);
@@ -334,7 +334,7 @@ function migrateEditToV2(raw, options = {}) {
             || (value.fade_out !== undefined && !nonNegative(value.fade_out))
             || !validAudioClipFxDeclaration(value)
             || !validAudioEnvelopeDeclaration(value)) {
-            blockers.push(`${itemPath} の path / t / in / out / gain_db / fade_in / fade_out が不正です。`);
+            blockers.push(`${itemPath} path / t / in / out / gain_db / fade_in / fade_out is invalid.`);
             return;
         }
         const source = {
@@ -362,7 +362,7 @@ function migrateEditToV2(raw, options = {}) {
     narration.forEach((value, index) => {
         const itemPath = `edit.json.audio.narration[${index}]`;
         if (!isRecord(value)) {
-            blockers.push(`${itemPath} が object ではありません。`);
+            blockers.push(`${itemPath} is not an object.`);
             return;
         }
         rejectUnknownKeys(value, NARRATION_KEYS, itemPath, blockers);
@@ -375,7 +375,7 @@ function migrateEditToV2(raw, options = {}) {
             || !validAudioClipFxDeclaration(value)
             || !validAudioEnvelopeDeclaration(value)
             || !validNarrationProvenance(value.provenance)) {
-            blockers.push(`${itemPath} の path / t / in / out / gain_db / script / reading / provenance が不正です。`);
+            blockers.push(`${itemPath} path / t / in / out / gain_db / script / reading / provenance is invalid.`);
             return;
         }
         const item = {
@@ -406,7 +406,7 @@ function migrateEditToV2(raw, options = {}) {
     if (audio?.bgm !== undefined && audio.bgm !== null) {
         const value = audio.bgm;
         if (!isRecord(value)) {
-            blockers.push('edit.json.audio.bgm が object ではありません。');
+            blockers.push('edit.json.audio.bgm is not an object.');
         }
         else {
             rejectUnknownKeys(value, BGM_KEYS, 'edit.json.audio.bgm', blockers);
@@ -417,10 +417,10 @@ function migrateEditToV2(raw, options = {}) {
                 || (value.gain_db !== undefined && !gainDb(value.gain_db))
                 || !validAudioClipFxDeclaration(value)
                 || !validAudioEnvelopeDeclaration(value)) {
-                blockers.push('edit.json.audio.bgm の path / in / fadeIn / fadeOut / gain_db / ducking が不正です。');
+                blockers.push('edit.json.audio.bgm path / in / fadeIn / fadeOut / gain_db / ducking is invalid.');
             }
             else if (usedItemIds.has('bgm')) {
-                blockers.push('audio.bgm の固定 item id "bgm" が他の item id と重複します。');
+                blockers.push('The fixed audio.bgm item id "bgm" duplicates another item id.');
             }
             else {
                 usedItemIds.add('bgm');
@@ -459,7 +459,7 @@ function migrateEditToV2(raw, options = {}) {
     // timeline が壊れていてアイテムに対応する行が無い場合は黙って落とさない。
     for (const entry of pending) {
         if (!trackDefs.some(def => def.kind === entry.kind && (def.ref ?? 0) === entry.ref)) {
-            blockers.push(`timeline.tracks に ${entry.kind} ref=${entry.ref} の行がありません。`);
+            blockers.push(`timeline.tracks has no row for ${entry.kind} ref=${entry.ref}.`);
         }
     }
     if (blockers.length > 0)
@@ -477,30 +477,30 @@ function migrateEditToV2(raw, options = {}) {
         ...(raw.thumbnail !== undefined ? { thumbnail: clone(raw.thumbnail) } : {})
     };
     const changes = [
-        { path: 'version', note: 'edit.json version 0/1 を version 2 へ更新' },
-        { path: 'cuts/overlays/layers', note: 'tracks[].items[] と source.kind へ移し、出力時刻を整数フレームに確定' },
-        { path: 'timeline.tracks', note: '(種別, ref) の visual 行の相対順を保ち、audio 行を用途別の ref へ分離して先頭へ移行' }
+        { path: 'version', note: 'Update edit.json version 0/1 to version 2' },
+        { path: 'cuts/overlays/layers', note: 'Move onto tracks[].items[] and source.kind, and lock output time to integer frames.' },
+        { path: 'timeline.tracks', note: 'Keep the relative order of visual rows by (kind, ref), and move audio rows to purpose-specific refs at the front.' }
     ];
     if (raw.audio !== undefined)
         changes.push({
             path: 'audio',
-            note: 'BGM・ナレーション・SE を tracks[].items[] へ移し、出力側 at/duration は整数フレーム、素材側 in/out/fade/bgm.in は秒のまま維持'
+            note: 'Move BGM, narration, and sound effects onto tracks[].items[]. Keep output at/duration as integer frames, and keep footage in/out/fade/bgm.in in seconds.'
         });
     if (raw.emphasis_words !== undefined)
         changes.push({
             path: 'emphasis_words',
-            note: 'edit.json v2 から除外し、captions.json のトップレベル emphasis_words[] へ移送'
+            note: 'Drop it from edit.json v2 and move it to top-level emphasis_words[] in captions.json.'
         });
     if (raw.thumbnail !== undefined)
-        changes.push({ path: 'thumbnail', note: 'サムネイル参照を変更せず持ち越し' });
+        changes.push({ path: 'thumbnail', note: 'Keep the thumbnail reference unchanged' });
     if (hasCaptions && !timelineDeclaresCaptions(raw.timeline))
         changes.push({
             path: 'tracks[]',
-            note: '字幕トラック宣言（captions.json 参照）を tracks[] 末尾（最上段）へ合成'
+            note: 'Compose the caption track declaration (captions.json) at the end of tracks[], the top layer.'
         });
     if (pending.reduce((sum, entry) => sum + tracks.filter(track => 'items' in track
         && track.items.some(item => item === entry.item)).length, 0) !== pending.length) {
-        return { ok: false, version, blockers: ['変換後の tracks[] が pending item を一意に保持していません。'] };
+        return { ok: false, version, blockers: ['The converted tracks[] do not hold each pending item exactly once.'] };
     }
     try {
         (0, edit_v2_1.readEditV2)(doc);
@@ -509,7 +509,7 @@ function migrateEditToV2(raw, options = {}) {
         return {
             ok: false,
             version,
-            blockers: [`変換後の v2 が自己検証に失敗しました（変換器のバグの可能性があります。不正な v2 は書き出しません）: ${messageOf(error)}`]
+            blockers: [`The converted v2 failed its own check. This may be a converter bug. Invalid v2 is not written: ${messageOf(error)}`]
         };
     }
     return { ok: true, version, doc, changes, warnings: [] };
@@ -520,7 +520,7 @@ function planMigration(projectRoot, editPath, text, options = {}) {
         raw = JSON.parse(text);
     }
     catch (error) {
-        return { ok: false, version: -1, blockers: [`edit.json を JSON として読めません: ${messageOf(error)}`] };
+        return { ok: false, version: -1, blockers: [`edit.json is not valid JSON: ${messageOf(error)}`] };
     }
     // annotations の書き込み経路も projectRoot 付きで planMigration を呼ぶため、ここでの解決だけで
     // CLI と同じ cue 判定が適用され、呼び出し元への追加配線は要らない。
@@ -537,13 +537,13 @@ function planMigration(projectRoot, editPath, text, options = {}) {
         if (!Array.isArray(raw.emphasis_words)) {
             return {
                 ok: false, version: migrated.version,
-                blockers: ['edit.json.emphasis_words が配列ではないため captions.json へ移送できません。']
+                blockers: ['edit.json.emphasis_words is not an array, so it cannot move into captions.json.']
             };
         }
         if (!(0, node_fs_1.existsSync)(captionsPath)) {
             return {
                 ok: false, version: migrated.version,
-                blockers: ['emphasis_words の移送先 captions.json がありません。既存の captions.json を object ルートで用意してから再実行してください。']
+                blockers: ['The captions.json that emphasis_words moves into does not exist. Add a captions.json rooted at an object, then run this again.']
             };
         }
         let captionsPreviousText;
@@ -555,25 +555,25 @@ function planMigration(projectRoot, editPath, text, options = {}) {
         catch (error) {
             return {
                 ok: false, version: migrated.version,
-                blockers: [`emphasis_words の移送先 captions.json を読めません: ${messageOf(error)}`]
+                blockers: [`Cannot read the captions.json that emphasis_words moves into: ${messageOf(error)}`]
             };
         }
         if (Array.isArray(captionsRoot)) {
             return {
                 ok: false, version: migrated.version,
-                blockers: ['emphasis_words の移送先 captions.json が配列ルートです。トップレベル emphasis_words[] を持てる object ルートへ移してから再実行してください。']
+                blockers: ['The captions.json that emphasis_words moves into is rooted at an array. Change it to an object that can hold top-level emphasis_words[], then run this again.']
             };
         }
         if (!isRecord(captionsRoot)) {
             return {
                 ok: false, version: migrated.version,
-                blockers: ['emphasis_words の移送先 captions.json のルートが object ではありません。']
+                blockers: ['The captions.json that emphasis_words moves into is not rooted at an object.']
             };
         }
         if (hasOwn(captionsRoot, 'emphasis_words')) {
             return {
                 ok: false, version: migrated.version,
-                blockers: ['captions.json に emphasis_words が既に存在するため、二重移送を防ぐため変換を中止します。']
+                blockers: ['captions.json already has emphasis_words, so conversion stops to avoid moving them twice.']
             };
         }
         captions = {
@@ -636,15 +636,15 @@ function planV2Normalization(projectRoot, editPath, previousText, options = {}) 
         raw = JSON.parse(previousText);
     }
     catch (error) {
-        return { ok: false, version: -1, blockers: [`edit.json を JSON として読めません: ${messageOf(error)}`] };
+        return { ok: false, version: -1, blockers: [`edit.json is not valid JSON: ${messageOf(error)}`] };
     }
     if (detectEditVersion(raw) !== 2) {
-        return { ok: false, version: detectEditVersion(raw) ?? -1, blockers: ['edit.json.version が 2 ではありません。'] };
+        return { ok: false, version: detectEditVersion(raw) ?? -1, blockers: ['edit.json.version is not 2.'] };
     }
     const resolvedProjectRoot = (0, path_1.resolve)(projectRoot);
     const resolvedEditPath = (0, path_1.resolve)(editPath);
     if (!isRecord(raw) || !Array.isArray(raw.tracks)) {
-        return { ok: false, version: 2, blockers: ['version 2 の edit.json.tracks[] がありません。'] };
+        return { ok: false, version: 2, blockers: ['version 2 edit.json.tracks[] is missing.'] };
     }
     const normalized = clone(raw);
     const tracks = normalized.tracks;
@@ -688,7 +688,7 @@ function planV2Normalization(projectRoot, editPath, previousText, options = {}) 
         return {
             ok: false,
             version: 2,
-            blockers: [`正規化後の v2 が自己検証に失敗しました: ${messageOf(error)}`]
+            blockers: [`The normalized v2 failed its own check: ${messageOf(error)}`]
         };
     }
     const nextText = (0, canonical_1.serializeEdit)(normalized);
@@ -709,7 +709,7 @@ function planV2Normalization(projectRoot, editPath, previousText, options = {}) 
             }
         }
         catch (error) {
-            return { ok: false, version: 2, blockers: [`captions.json を正規化できません: ${messageOf(error)}`] };
+            return { ok: false, version: 2, blockers: [`Cannot normalize captions.json: ${messageOf(error)}`] };
         }
     }
     const motion = [];
@@ -731,7 +731,7 @@ function planV2Normalization(projectRoot, editPath, previousText, options = {}) 
             }
         }
         catch (error) {
-            return { ok: false, version: 2, blockers: [`motion/*.json を正規化できません: ${messageOf(error)}`] };
+            return { ok: false, version: 2, blockers: [`Cannot normalize motion/*.json: ${messageOf(error)}`] };
         }
     }
     if (!convertedContent && nextText === previousText && captions === undefined && motion.length === 0) {
@@ -751,8 +751,8 @@ function planV2Normalization(projectRoot, editPath, previousText, options = {}) 
         filePath: resolvedEditPath,
         version: 2,
         changes: [
-            ...(convertedContent ? [{ path: 'tracks[].content', note: 'content → captions 袋グループ' }] : []),
-            { path: 'edit.json / captions.json / motion/*.json', note: '正規直列化（書式のみ）' }
+            ...(convertedContent ? [{ path: 'tracks[].content', note: 'content → captions container group' }] : []),
+            { path: 'edit.json / captions.json / motion/*.json', note: 'Canonical serialization (formatting only)' }
         ],
         warnings: [],
         nextText,
@@ -773,13 +773,13 @@ function planGeometryNormalization(projectRoot, editPath, previousText, options)
         raw = JSON.parse(previousText);
     }
     catch (error) {
-        return { ok: false, version: -1, blockers: [`edit.json を JSON として読めません: ${messageOf(error)}`] };
+        return { ok: false, version: -1, blockers: [`edit.json is not valid JSON: ${messageOf(error)}`] };
     }
     const version = detectEditVersion(raw);
     if (version !== 2) {
         return {
             ok: false, version: version ?? -1,
-            blockers: ['edit.json.version が 2 ではありません。先に `akari migrate` で version 2 へ変換してください。']
+            blockers: ['edit.json.version is not 2. Convert to version 2 with `akari migrate` first.']
         };
     }
     const resolvedProjectRoot = (0, path_1.resolve)(projectRoot);
@@ -803,7 +803,7 @@ function planGeometryNormalization(projectRoot, editPath, previousText, options)
     catch (error) {
         return {
             ok: false, version: 2,
-            blockers: [`移行後の v2 が自己検証に失敗しました: ${messageOf(error)}`]
+            blockers: [`The migrated v2 failed its own check: ${messageOf(error)}`]
         };
     }
     return {
@@ -812,9 +812,9 @@ function planGeometryNormalization(projectRoot, editPath, previousText, options)
         changes: [
             ...result.changes.map(change => ({
                 path: `tracks[].items[id=${change.itemId}].transform.scale`,
-                note: `${change.before} → ${change.after}（素材 ${change.sourceId} · fit ${change.fit}）`
+                note: `${change.before} → ${change.after} (footage ${change.sourceId} · fit ${change.fit})`
             })),
-            { path: 'output.geometry', note: '実寸基準マーカー "source" を付与' }
+            { path: 'output.geometry', note: 'Set the source-sized marker "source"' }
         ],
         geometry: result.changes,
         warnings: [],
@@ -836,18 +836,18 @@ function collectItemIds(items, usedIds) {
 function readTrackDefs(timeline, pending, audioRefs, hasCaptions, blockers) {
     if (timeline !== undefined) {
         if (!isRecord(timeline) || !Array.isArray(timeline.tracks)) {
-            blockers.push('edit.json.timeline.tracks が配列ではありません。');
+            blockers.push('edit.json.timeline.tracks is not an array.');
             return [];
         }
         const ids = new Set();
         const declared = timeline.tracks.flatMap((value, index) => {
             if (!isRecord(value) || !nonEmpty(value.id)
                 || !['cuts', 'layers', 'overlays', 'captions', 'audio'].includes(String(value.kind))) {
-                blockers.push(`edit.json.timeline.tracks[${index}] の id / kind が不正です。`);
+                blockers.push(`edit.json.timeline.tracks[${index}] id / kind is invalid.`);
                 return [];
             }
             if (ids.has(value.id))
-                blockers.push(`timeline.tracks[].id が重複しています: ${value.id}`);
+                blockers.push(`Duplicate timeline.tracks[].id: ${value.id}`);
             ids.add(value.id);
             return [{
                     id: value.id,
@@ -887,7 +887,7 @@ function orderedTrackDefs(declared, audioRefs, hasCaptions, blockers) {
     }
     const visual = declared.filter(def => def.kind !== 'audio');
     if (hasCaptions && declared.length === 0 && !visual.some(def => def.kind === 'captions')) {
-        blockers.push('内部エラー: captions track を導出できませんでした。');
+        blockers.push('Internal error: the captions track could not be derived.');
     }
     return [...audio, ...visual];
 }
@@ -933,7 +933,7 @@ function arrayOrEmpty(value, path, blockers) {
     if (value === undefined)
         return [];
     if (!Array.isArray(value)) {
-        blockers.push(`${path} が配列ではありません。`);
+        blockers.push(`${path} is not an array.`);
         return [];
     }
     return value;
@@ -972,10 +972,10 @@ function rejectUnknownKeys(value, allowed, path, blockers) {
         if (allowed.has(key))
             continue;
         if (key === 'transitionOut') {
-            blockers.push(`${path}.transitionOut は Web UI 旧版が書いた綴りです。正しい transition_out へ直すか、Web UI で開き直して保存してください。`);
+            blockers.push(`${path}.transitionOut is the spelling an older Web UI wrote. Correct it to transition_out, or open the project in the Web UI and save.`);
         }
         else {
-            blockers.push(`${path}.${key} は凍結変換器が対応しない未知フィールドです。`);
+            blockers.push(`${path}.${key} is an unknown field the frozen converter does not handle.`);
         }
     }
 }

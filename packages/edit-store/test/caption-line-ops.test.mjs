@@ -52,8 +52,8 @@ test('replaceCaptionLine preserves one-line JSON framing and untouched bytes', (
 
 test('replaceCaptionLine uses transcript error messages', () => {
   const source = sourceOf(caption('c-0001', 'before'));
-  assert.throws(() => replaceCaptionLine(source, '', 'after'), /字幕の識別情報がありません。/);
-  assert.throws(() => replaceCaptionLine(source, 'missing', 'after'), /字幕 missing が字幕データにありません。/);
+  assert.throws(() => replaceCaptionLine(source, '', 'after'), /The caption has no id\./);
+  assert.throws(() => replaceCaptionLine(source, 'missing', 'after'), /Caption missing is not in the caption data\./);
   assert.throws(() => replaceCaptionLine(sourceOf(caption('c-0001', 'a'), caption('c-0001', 'b')),
-    'c-0001', 'after'), /字幕 c-0001 が字幕データに複数あります。/);
+    'c-0001', 'after'), /Caption c-0001 appears more than once in the caption data\./);
 });

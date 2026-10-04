@@ -26,7 +26,7 @@ for (const nested of [false, true]) {
         else {
           assert.equal(errors.length, 1);
           assert.equal(errors[0].check, 'telop.retired');
-          assert.match(errors[0].message, /退役.*HTML.*Lab/);
+          assert.match(errors[0].message, /retired.*HTML.*Lab/);
           assert.match(errors[0].path, nested ? /items\[0\]\.items\[0\]\.source$/ : /items\[0\]\.source$/);
         }
       } finally {

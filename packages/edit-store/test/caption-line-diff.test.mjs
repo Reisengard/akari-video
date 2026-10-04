@@ -137,7 +137,7 @@ test('決定論: 同じ入力を何度渡しても同じ操作列になる', () 
 test('baseline と字幕データの件数が食い違う入力は拒否する', () => {
   assert.throws(
     () => diffCaptionLines(['A', 'B'], ['A'], THREE),
-    /字幕の行数と字幕データの件数が一致しません。/
+    /The caption line count does not match the caption data\./
   );
 });
 

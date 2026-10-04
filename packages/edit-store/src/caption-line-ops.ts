@@ -2,7 +2,7 @@ import { applyCaptionTextEdit, type CaptionTextEditRecord } from './caption-word
 
 export function replaceCaptionLine(source: string, captionId: string, text: string): string {
     if (!captionId) {
-        throw new Error('字幕の識別情報がありません。');
+        throw new Error('The caption has no id.');
     }
     const lines = source.match(/.*(?:\r\n|\n|$)/g)?.filter(line => line.length > 0) ?? [];
     let matches = 0;
@@ -15,7 +15,7 @@ export function replaceCaptionLine(source: string, captionId: string, text: stri
         const openIndex = line.indexOf('{');
         const closeIndex = line.lastIndexOf('}');
         if (openIndex < 0 || closeIndex < openIndex) {
-            throw new Error(`字幕 ${captionId} の1行形式を確認できません。`);
+            throw new Error(`Caption ${captionId} is not a single-line record.`);
         }
         const record = JSON.parse(line.slice(openIndex, closeIndex + 1)) as CaptionTextEditRecord;
         const updated = applyCaptionTextEdit(record, text).record;
@@ -24,8 +24,8 @@ export function replaceCaptionLine(source: string, captionId: string, text: stri
     }).join('');
     if (matches !== 1) {
         throw new Error(matches === 0
-            ? `字幕 ${captionId} が字幕データにありません。`
-            : `字幕 ${captionId} が字幕データに複数あります。`);
+            ? `Caption ${captionId} is not in the caption data.`
+            : `Caption ${captionId} appears more than once in the caption data.`);
     }
     return updated;
 }

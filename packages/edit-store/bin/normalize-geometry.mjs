@@ -22,15 +22,15 @@ const migrate = require("../lib/migrate/index.js");
 const writeGate = require("../lib/write-gate.js");
 
 const USAGE = [
-  "使い方: normalize-geometry <projectDir> [--dry-run] [--revert <backup>]",
+  "Usage: normalize-geometry <projectDir> [--dry-run] [--revert <backup>]",
   "",
-  "  edit.json（version 2）の映像 item を実寸基準へ移行します。",
-  "  今 fit 基準で描かれている cut の transform.scale に fit を一度だけ焼き込み、",
-  "  output.geometry: \"source\" を立てます（見た目は変わりません）。",
+  "  Migrate version 2 edit.json visual items onto source-sized geometry.",
+  "  Bake the current fit scale into transform.scale once for cuts drawn in fit mode,",
+  "  and set output.geometry: \"source\". The picture does not change.",
   "",
-  "  --dry-run           変更内容を表で出すだけで書き込みません",
-  "  --revert <backup>   .akari/backup/ の退避ファイルから edit.json を戻します",
-  "  --help, -h          このヘルプ",
+  "  --dry-run           Print the change table and do not write",
+  "  --revert <backup>   Restore edit.json from a file under .akari/backup/",
+  "  --help, -h          Show this help",
 ].join("\n");
 
 export function parseArguments(argv) {
@@ -46,22 +46,22 @@ export function parseArguments(argv) {
       revert = argv[index + 1];
       index += 1;
       if (typeof revert !== "string" || revert.length === 0) {
-        return { ok: false, message: "--revert には退避ファイルのパスが要ります。" };
+        return { ok: false, message: "--revert needs the backup file path." };
       }
     } else if (value.startsWith("-")) {
-      return { ok: false, message: `未知のオプションです: ${value}` };
+      return { ok: false, message: `Unknown option: ${value}` };
     } else positional.push(value);
   }
   if (help) return { ok: true, help: true };
   if (positional.length !== 1) {
-    return { ok: false, message: "プロジェクトディレクトリを 1 つ指定してください。" };
+    return { ok: false, message: "Specify one project directory." };
   }
   return { ok: true, help: false, projectRoot: path.resolve(positional[0]), dryRun, revert };
 }
 
 /** dry-run の表。列は itemId / source / fit / scale before → after。 */
 export function formatChangeTable(changes) {
-  if (changes.length === 0) return ["変更なし（すべての素材が出力と同寸か、対象がありません）"];
+  if (changes.length === 0) return ["No changes. Every footage item already matches the output size, or there is nothing to migrate."];
   const header = ["itemId", "source", "fit", "scale before", "scale after"];
   const rows = changes.map((change) => [
     change.itemId,
@@ -100,12 +100,12 @@ async function runRevert(projectRoot, backup, log, error) {
   try {
     backupText = await readFile(backupPath, "utf8");
   } catch (cause) {
-    error(`退避ファイルを読めません: ${backupPath} (${messageOf(cause)})`);
+    error(`Cannot read the backup file: ${backupPath} (${messageOf(cause)})`);
     return 2;
   }
   const currentText = await readFile(editPath, "utf8");
   if (currentText === backupText) {
-    log("edit.json は既に退避ファイルと同一です。");
+    log("edit.json already matches the backup file.");
     return 0;
   }
   await migrate.revertMigration({
@@ -117,7 +117,7 @@ async function runRevert(projectRoot, backup, log, error) {
     previousText: backupText,
     backupPath,
   });
-  log(`edit.json を ${backupPath} の内容へ戻しました。`);
+  log(`Restored edit.json from ${backupPath}.`);
   return 0;
 }
 
@@ -142,14 +142,14 @@ export async function run(argv, io = {}) {
   try {
     text = await readFile(editPath, "utf8");
   } catch (cause) {
-    error(`edit.json を読めません: ${editPath} (${messageOf(cause)})`);
+    error(`Cannot read edit.json: ${editPath} (${messageOf(cause)})`);
     return 2;
   }
   let edit;
   try {
     edit = JSON.parse(text);
   } catch (cause) {
-    error(`edit.json を JSON として読めません: ${messageOf(cause)}`);
+    error(`edit.json is not valid JSON: ${messageOf(cause)}`);
     return 2;
   }
   const dimensions = await collectDimensions(projectRoot, edit);
@@ -157,30 +157,30 @@ export async function run(argv, io = {}) {
     dimensionsOf: (sourceId) => dimensions.get(sourceId),
   });
   if (proposal.ok === false) {
-    error("このプロジェクトは移行できません。");
+    error("This project cannot be migrated.");
     for (const blocker of proposal.blockers) error(`- ${blocker}`);
     return 2;
   }
   if (proposal.noop === true) {
-    log("既に実寸基準（output.geometry: \"source\"）です。移行の必要はありません。");
+    log("Already source-sized (output.geometry: \"source\"). No migration is needed.");
     return 0;
   }
-  log(`移行対象: ${proposal.filePath}`);
+  log(`Migration target: ${proposal.filePath}`);
   for (const line of formatChangeTable(proposal.geometry)) log(line);
-  log(`output.geometry: "source" を立てます（blockers 0）。`);
+  log(`Will set output.geometry: "source" (blockers 0).`);
   if (parsed.dryRun) {
-    log("--dry-run のため、ファイルは変更しません。");
+    log("--dry-run, so no file was changed.");
     return 0;
   }
   const gate = await writeGate.lintProjectCandidatesOnDisk(projectRoot, { "edit.json": proposal.nextText });
   if (!gate.pass) {
-    error("edit-lint が移行後の edit.json を拒否しました。");
+    error("edit-lint rejected the migrated edit.json.");
     for (const message of gate.errors) error(`- ${message}`);
     return 1;
   }
   await migrate.applyMigration(proposal);
-  log(`移行しました。元ファイル: ${proposal.backupPath}`);
-  log(`元に戻すには: normalize-geometry ${projectRoot} --revert ${proposal.backupPath}`);
+  log(`Migrated. Original file: ${proposal.backupPath}`);
+  log(`To restore: normalize-geometry ${projectRoot} --revert ${proposal.backupPath}`);
   return 0;
 }
 

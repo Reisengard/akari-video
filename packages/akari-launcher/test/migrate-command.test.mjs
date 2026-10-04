@@ -94,7 +94,7 @@ test('字幕トラック合成は通常出力の 1 行と --json の changes[] �
       migrate, log: line => lines.push(line), error: () => {},
     });
     assert.equal(plain.exitCode, 0);
-    assert.equal(lines.filter(line => /tracks\[\].*字幕トラック宣言/u.test(line)).length, 1);
+    assert.equal(lines.filter(line => /tracks\[\].*(?:字幕トラック宣言|caption track declaration)/u.test(line)).length, 1);
 
     const jsonLines = [];
     const json = await runMigrateCommand([item.root, '--dry-run', '--json'], {

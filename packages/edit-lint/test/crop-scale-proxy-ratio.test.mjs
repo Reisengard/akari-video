@@ -41,8 +41,8 @@ test("回避策期間の値（crop 付き cut の scale = 原本/プロキシ比
   assert.equal(findings[0].path, "edit.json#tracks[1].items[0].transform.scale");
   // 「なぜ疑わしいか」と「どう直すか」の両方が読み取れること。
   assert.match(findings[0].message, /3840x2160 ÷ 1920x1080 = 2/u);
-  assert.match(findings[0].message, /回避策の値/u);
-  assert.match(findings[0].message, /原本基準（通常 1）へ戻して/u);
+  assert.match(findings[0].message, /workaround value/u);
+  assert.match(findings[0].message, /back to the original basis \(usually 1\)/u);
 });
 
 test("同じ素材・同じ scale の item は 1 件へまとめ、素材が違えば別件で出す", () => {
@@ -65,8 +65,8 @@ test("同じ素材・同じ scale の item は 1 件へまとめ、素材が違�
     "edit.json#tracks[1].items[0].transform.scale",
     "edit.json#tracks[0].items[0].transform.scale",
   ]);
-  assert.match(findings[0].message, /素材 zoom の crop を持つ item 95 件/u);
-  assert.match(findings[1].message, /素材 naka の crop を持つ item 1 件/u);
+  assert.match(findings[0].message, /on 95 cropped item\(s\) of footage zoom/u);
+  assert.match(findings[1].message, /on 1 cropped item\(s\) of footage naka/u);
 });
 
 test("浮動小数の丸め差は同じ値として拾う（原本 ÷ プロキシをそのまま書いた値）", () => {

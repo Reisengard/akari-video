@@ -96,33 +96,33 @@ function scaleOf(transform) {
  */
 function normalizeGeometry(raw, dimensionsOf) {
     if (!isPlainRecord(raw)) {
-        return { blockers: ['edit.json のルートが object ではありません。'] };
+        return { blockers: ['The edit.json root is not an object.'] };
     }
     if (raw.version !== 2) {
-        return { blockers: ['edit.json.version が 2 ではありません。'] };
+        return { blockers: ['edit.json.version is not 2.'] };
     }
     const doc = structuredClone(raw);
     const output = doc.output;
     if (!isPlainRecord(output)) {
-        return { blockers: ['edit.json.output がありません。'] };
+        return { blockers: ['edit.json.output is missing.'] };
     }
     if (output.geometry === exports.GEOMETRY_SOURCE) {
         return { edit: doc, changes: [] };
     }
     if (output.geometry !== undefined) {
-        return { blockers: [`未知の output.geometry です: ${JSON.stringify(output.geometry)}`] };
+        return { blockers: [`Unknown output.geometry: ${JSON.stringify(output.geometry)}`] };
     }
     const outputWidth = finitePositive(output.width);
     const outputHeight = finitePositive(output.height);
     if (outputWidth === undefined || outputHeight === undefined) {
-        return { blockers: ['edit.json.output.width / height が正の数ではありません。'] };
+        return { blockers: ['edit.json.output.width / height is not a positive number.'] };
     }
     let internal;
     try {
         internal = (0, internal_model_1.readInternalEdit)(doc);
     }
     catch (error) {
-        return { blockers: [`edit.json を読めません: ${error instanceof Error ? error.message : String(error)}`] };
+        return { blockers: [`Cannot read edit.json: ${error instanceof Error ? error.message : String(error)}`] };
     }
     const candidates = collectFitBasisCandidates(internal);
     const fitOf = new Map();
@@ -134,7 +134,7 @@ function normalizeGeometry(raw, dimensionsOf) {
         const width = finitePositive(dimensions?.width);
         const height = finitePositive(dimensions?.height);
         if (width === undefined || height === undefined) {
-            const message = `素材 ${candidate.sourceId} の寸法を取得できないため移行できません。`;
+            const message = `Cannot migrate because the size of footage ${candidate.sourceId} is unavailable.`;
             if (!blockers.includes(message))
                 blockers.push(message);
             continue;

@@ -55,7 +55,7 @@ test("html overlays + sfx だけの構成は導出尺で timeline 検査する",
     const derived = result.findings.filter((finding) => finding.check === "timeline.duration-derived");
     assert.equal(derived.length, 1, JSON.stringify(result.findings, null, 2));
     assert.equal(derived[0].severity, "info");
-    assert.match(derived[0].message, /6 秒/u);
+    assert.match(derived[0].message, /6 seconds/u);
   });
 });
 

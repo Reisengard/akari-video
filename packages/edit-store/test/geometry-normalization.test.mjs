@@ -195,7 +195,7 @@ test('寸法が取れない素材があると blockers を返し、マーカー�
     dimensions({ main: { width: 3840, height: 2160 } }),
   );
   assert.ok('blockers' in result);
-  assert.deepEqual(result.blockers, ['素材 pip の寸法を取得できないため移行できません。']);
+  assert.deepEqual(result.blockers, ['Cannot migrate because the size of footage pip is unavailable.']);
 });
 
 test('既に output.geometry: "source" なら noop', () => {
@@ -214,13 +214,13 @@ test('未知の output.geometry は黙って上書きせず blockers で止ま�
     dimensions({ main: { width: 3840, height: 2160 } }),
   );
   assert.ok('blockers' in result);
-  assert.match(result.blockers[0], /未知の output\.geometry/u);
+  assert.match(result.blockers[0], /Unknown output\.geometry/u);
 });
 
 test('version 2 以外は移行しない', () => {
   const result = normalizeGeometry({ version: 1, output: { width: 1920, height: 1080, fps: 30 } }, () => undefined);
   assert.ok('blockers' in result);
-  assert.deepEqual(result.blockers, ['edit.json.version が 2 ではありません。']);
+  assert.deepEqual(result.blockers, ['edit.json.version is not 2.']);
 });
 
 test('collectFitBasisCandidates は projectLegacyEdit の cuts 投影と同じ集合を数える', () => {

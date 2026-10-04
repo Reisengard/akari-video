@@ -47,7 +47,7 @@ export function diffCaptionLines(
     captions: readonly { id: string }[]
 ): CaptionLineOp[] {
     if (baseline.length !== captions.length) {
-        throw new Error('字幕の行数と字幕データの件数が一致しません。');
+        throw new Error('The caption line count does not match the caption data.');
     }
     let prefix = 0;
     while (prefix < baseline.length && prefix < next.length && baseline[prefix] === next[prefix]) {

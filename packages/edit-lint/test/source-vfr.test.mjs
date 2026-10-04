@@ -52,7 +52,7 @@ test("source.vfr warns from a referenced source sidecar and adds the optional dr
     const warnings = result.findings.filter((finding) => finding.check === "source.vfr");
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0].severity, "warning");
-    assert.equal(warnings[0].message, "この素材は可変フレームレートです（ぶれ 5 回・最大 1.7 ms）。最近傍で写像しています。固定フレームレートに変換すると音ズレを防げます（任意）");
+    assert.equal(warnings[0].message, "This footage is variable frame rate (5 jitter events, max 1.7 ms). Mapping uses the nearest frame. Converting to a constant frame rate avoids audio drift (optional)");
     assert.equal(warnings[0].path, "edit.json#sources[0].path");
 
     const withMedia = await lintProject(root, {

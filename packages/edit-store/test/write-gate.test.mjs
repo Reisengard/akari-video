@@ -64,7 +64,7 @@ test('write-gate は legacy / v2 の camelCase transitionOut を保存前に拒�
     ]) {
       await assert.rejects(
         writeProjectFilesGuarded(root, { 'edit.json': JSON.stringify(candidate) }),
-        /Web UI 旧版.*transition_out.*開き直して保存/
+        /older Web UI.*transition_out.*open it again in the Web UI and save/
       );
       assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'edit.json'), 'utf8')), { version: 0 });
     }
@@ -370,7 +370,7 @@ test('ディレクトリもリンクできない環境では素材をコピー�
       onShadowEntry: (name, strategy) => strategies.push(`${name}:${strategy}`),
       onShadowUnavailable: reason => { unavailable = reason; }
     });
-    assert.match(String(unavailable), /リンクできませんでした/);
+    assert.match(String(unavailable), /Could not link/);
     // 素材ディレクトリは 1 件もコピーしない（assets/ が何十 GB になり得るため）。
     assert.deepEqual(strategies.filter(entry => /^(assets|overlays|motion):/u.test(entry)), []);
     // 退避先は既存のメモリ差し替え検証そのもの。実ディスクを読む check は落ちるが保存は止めない。
