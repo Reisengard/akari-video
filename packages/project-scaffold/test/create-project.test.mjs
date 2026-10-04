@@ -51,14 +51,14 @@ test("bare template: scaffold generates a draft .akari/intake.json and a CLAUDE.
     assert.match(claudeMd, /submitted/);
     assert.match(claudeMd, /draft/);
     assert.match(claudeMd, /checkpoint/);
-    assert.match(claudeMd, /`tasks` は決められた 5 つの id だけ/);
-    assert.match(claudeMd, /`duration_s` か `keep_length: true` のどちらか片方/);
-    assert.match(claudeMd, /`submitted` にする前に lint で確認/);
+    assert.match(claudeMd, /use only the five defined ids for `tasks`/);
+    assert.match(claudeMd, /either `duration_s` or `keep_length: true`/);
+    assert.match(claudeMd, /Check with lint before you set `status` to `submitted`/);
 
     const agentsMd = await readFile(join(destination, "AGENTS.md"), "utf8");
-    assert.match(agentsMd, /`tasks` は決められた 5 つの id だけ/);
-    assert.match(agentsMd, /`duration_s` か `keep_length: true` のどちらか片方/);
-    assert.match(agentsMd, /`submitted` にする前に lint で確認/);
+    assert.match(agentsMd, /use only the five defined ids for `tasks`/);
+    assert.match(agentsMd, /either `duration_s` or `keep_length: true`/);
+    assert.match(agentsMd, /Check with lint before you set `status` to `submitted`/);
 
     assert.ok(report.fallback.writtenFiles.includes(".akari/intake.json"));
     assert.ok(report.fallback.writtenFiles.includes("CLAUDE.md"));
@@ -143,14 +143,14 @@ test("git が利用できなくてもプロジェクト作成を完了し、レ�
       assert.ok((await stat(join(destination, ".akari"))).isDirectory());
       assert.ok((await stat(join(destination, "CLAUDE.md"))).isFile());
       assert.equal(report.git.action, "skipped");
-      assert.match(report.git.reason, /git が利用できないためスキップ/);
+      assert.match(report.git.reason, /Skipped because git is not available/);
       assert.match(report.git.reason, /xcode-select: note: No developer tools were found/);
 
       const reportHtml = await readFile(
         join(destination, ".akari", "reports", "create-project-report.html"),
         "utf8"
       );
-      assert.match(reportHtml, /git が利用できないためスキップ/);
+      assert.match(reportHtml, /Skipped because git is not available/);
       assert.match(reportHtml, /xcode-select: note: No developer tools were found/);
     } finally {
       if (originalPath === undefined) {

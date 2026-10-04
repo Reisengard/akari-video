@@ -15,42 +15,42 @@ const execFileAsync = promisify(execFile);
 export { PROJECT_GITIGNORE };
 
 const FALLBACK_CLAUDE_GUIDANCE = [
-    '# AKARI Video プロジェクト',
+    '# AKARI Video project',
     '',
-    '- `assets/` は元動画と音声を置く素材の場所です。原本は書き換えたり削除したりしません。',
-    '- `planning/` は企画やレポート、`exports/` は完成した動画を置く場所です。',
-    '- `.akari/sidecars/` は分析結果、`.akari/events/` は作業の節目の記録を置く場所です。',
-    '- 節目の記録は 1 件ずつ新しく追加し、すでにある記録は変更しません。',
-    '- 編集スキルは `.claude/skills/` にあり、`/analyze-footage` などの素の名前で使えます。',
-    '- Codex や Cursor など他の AI エージェント用の入り口が `.agents/skills/`、`.cursor/skills/`、`.codex/skills/` にあります（中身は `.claude/skills/` へのリンク）。',
-    '- `.akari/intake.json` の `status` が `submitted` なら、そこに書かれた `tasks` / `target` / `autonomy` に従って進めます。`autonomy` が `checkpoint`（既定）なら、企画の承認や書き出し前などの要所で必ず人に確認します。`status` が `draft` のときは進め方がまだ決まっていないので、フォームや対話で確定させてから作業を始めます。',
-    '- 進め方を `.akari/intake.json` に書くときは、`tasks` は決められた 5 つの id だけを使い、`target` は `duration_s` か `keep_length: true` のどちらか片方にします。`status` を `submitted` にする前に lint で確認します。',
-    '- 利用者へは日本語で、内部の仕組みではなく「変更履歴」「企画メモ」「素材」などの言葉で説明します。',
+    '- `assets/` holds the footage: source video and audio. Do not rewrite or delete the originals.',
+    '- `planning/` holds plans and reports, and `exports/` holds finished videos.',
+    '- `.akari/sidecars/` holds analysis results, and `.akari/events/` holds the record of milestones in the work.',
+    '- Add each milestone record as a new one. Do not change a record that already exists.',
+    '- The editing skills are in `.claude/skills/` and are used by their plain names, such as `/analyze-footage`.',
+    '- Entry points for other AI agents such as Codex and Cursor are in `.agents/skills/`, `.cursor/skills/`, and `.codex/skills/` (they are links to `.claude/skills/`).',
+    '- When `status` in `.akari/intake.json` is `submitted`, follow the `tasks` / `target` / `autonomy` written there. When `autonomy` is `checkpoint` (the default), always check with the user at key points such as plan approval and before export. When `status` is `draft`, how to proceed is not settled yet, so settle it through the form or in conversation before you start work.',
+    '- When you write how to proceed into `.akari/intake.json`, use only the five defined ids for `tasks`, and set `target` to either `duration_s` or `keep_length: true`, never both. Check with lint before you set `status` to `submitted`.',
+    '- Explain things to the user in the user\'s language, with words such as "version history", "planning notes", and "footage", not the names of internal mechanisms.',
     '',
-    'このファイルはあなたのプロジェクトのものです。自由に書き換えて構いません。',
+    'This file belongs to your project. Rewrite it freely.',
     ''
 ].join('\n');
 
 const FALLBACK_AGENT_GUIDANCE = [
-    '# AKARI Video プロジェクトの進め方',
+    '# How to work in an AKARI Video project',
     '',
-    '`assets/` の原本を保ち、成果物は `planning/` と `exports/`、分析結果と節目の記録は `.akari/` に置く。',
-    '節目の記録は `.akari/events/` に 1 件ずつ追加し、すでにある記録は変更しない。',
+    'Keep the originals in `assets/`. Put deliverables in `planning/` and `exports/`, and analysis results and milestone records in `.akari/`.',
+    'Add milestone records to `.akari/events/` one at a time. Do not change a record that already exists.',
     '',
-    'スキルは `/analyze-footage`、`/edit-plan`、`/overlay-authoring`、`/setup-library`、',
-    '`/harvest-asset`、`/bake-3d` の素の名前で使う。手順を直接読む場合は',
-    '`.claude/skills/<スキル名>/SKILL.md` を開く。',
-    'Codex / Cursor 等のハーネスでは `.agents/skills/` / `.cursor/skills/` / `.codex/skills/`（`.claude/skills/` への',
-    'symlink）から同じスキルが自動発見される。',
+    'Use the skills by their plain names: `/analyze-footage`, `/edit-plan`, `/overlay-authoring`, `/setup-library`,',
+    '`/harvest-asset`, and `/bake-3d`. To read the steps directly, open',
+    '`.claude/skills/<skill name>/SKILL.md`.',
+    'In harnesses such as Codex and Cursor, the same skills are discovered automatically from `.agents/skills/` / `.cursor/skills/` / `.codex/skills/`',
+    '(symlinks to `.claude/skills/`).',
     '',
-    '`.akari/intake.json` の `status` が `submitted` なら `tasks` / `target` / `autonomy` に従って進める。',
-    '`autonomy: checkpoint`（既定）なら企画承認・書き出し前などの要所で人に確認する。',
-    '`status: draft` なら進め方が未確定のため、フォームまたは対話で確定させてから進める。',
-    '進め方を `.akari/intake.json` に書くときは、`tasks` は決められた 5 つの id だけを使い、`target` は `duration_s` か `keep_length: true` のどちらか片方にする。',
-    '`status` を `submitted` にする前に lint で確認する。',
+    'When `status` in `.akari/intake.json` is `submitted`, follow its `tasks` / `target` / `autonomy`.',
+    'With `autonomy: checkpoint` (the default), check with the user at key points such as plan approval and before export.',
+    'With `status: draft`, how to proceed is not settled yet, so settle it through the form or in conversation before you proceed.',
+    'When you write how to proceed into `.akari/intake.json`, use only the five defined ids for `tasks`, and set `target` to either `duration_s` or `keep_length: true`, never both.',
+    'Check with lint before you set `status` to `submitted`.',
     '',
-    '利用者へは日本語で、内部の仕組みではなく役割が伝わる言葉を使う。',
-    'この案内はこのプロジェクトのものです。自由に書き換えて構いません。',
+    'Explain things to the user in the user\'s language, with words that convey the role, not the names of internal mechanisms.',
+    'This guide belongs to this project. Rewrite it freely.',
     ''
 ].join('\n');
 
@@ -82,9 +82,9 @@ const FALLBACK_INTAKE = {
 const FALLBACK_WORKFLOW = {
     version: 1,
     roles: [
-        { path: 'assets', label: '素材', kind: 'assets' },
-        { path: 'planning', label: '企画', kind: 'planning' },
-        { path: 'exports', label: '書き出し', kind: 'exports' }
+        { path: 'assets', label: 'Footage', kind: 'assets' },
+        { path: 'planning', label: 'Planning', kind: 'planning' },
+        { path: 'exports', label: 'Export', kind: 'exports' }
     ],
     tree: {
         hidden: ['.claude', '.agents', '.codex', '.cursor', '.opencode', '.devin', '.akari', 'CLAUDE.md', 'AGENTS.md', '.gitignore', '.gitkeep'],
@@ -386,7 +386,7 @@ export async function installSkillAdapters(destinationDir, options = {}) {
         for (const name of kitSkillNames) {
             const relativeName = `${adapter}/skills/${name}`;
             if (skillNames.includes(name)) {
-                warnings.push(`${relativeName}: 純正スキルを優先し、同名の拡張キットスキルをスキップしました`);
+                warnings.push(`${relativeName}: kept the built-in skill and skipped the extension kit skill with the same name`);
                 continue;
             }
             try {
@@ -441,7 +441,7 @@ export async function checkGitBoundary(destinationDir) {
     return { eligibility: 'inside-parent-repository', parentRoot };
 }
 
-export async function commitInitialProject(destinationDir, message = 'プロジェクトを作成') {
+export async function commitInitialProject(destinationDir, message = 'Create project') {
     await runGit(destinationDir, ['init']);
     await runGit(destinationDir, ['add', '-A', '--', '.']);
     const { stdout } = await runGit(destinationDir, ['status', '--porcelain']);
@@ -462,7 +462,7 @@ function firstErrorLine(error) {
         : error instanceof Error
             ? error.message
             : String(error);
-    return detail.split(/\r?\n/, 1)[0].trim() || '不明なエラー';
+    return detail.split(/\r?\n/, 1)[0].trim() || 'unknown error';
 }
 
 function escapeHtml(value) {
@@ -474,7 +474,7 @@ function escapeHtml(value) {
         .replaceAll("'", '&#39;');
 }
 
-function renderList(items, emptyText = 'なし') {
+function renderList(items, emptyText = 'None') {
     if (items.length === 0) {
         return `<p>${escapeHtml(emptyText)}</p>`;
     }
@@ -483,11 +483,11 @@ function renderList(items, emptyText = 'なし') {
 
 export function renderReportHtml(report) {
     return `<!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AKARI Video プロジェクト作成結果</title>
+  <title>AKARI Video project creation report</title>
   <style>
     :root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; }
     body { max-width: 960px; margin: 0 auto; padding: 2rem; }
@@ -501,34 +501,34 @@ export function renderReportHtml(report) {
 </head>
 <body>
   <main>
-    <h1>AKARI Video プロジェクト作成結果</h1>
+    <h1>AKARI Video project creation report</h1>
     <dl>
-      <dt>作成日時</dt><dd>${escapeHtml(report.createdAt)}</dd>
-      <dt>作成先</dt><dd><code>${escapeHtml(report.destination)}</code></dd>
-      <dt>使用した雛形</dt><dd><code>${escapeHtml(report.templateDir)}</code></dd>
+      <dt>Created</dt><dd>${escapeHtml(report.createdAt)}</dd>
+      <dt>Destination</dt><dd><code>${escapeHtml(report.destination)}</code></dd>
+      <dt>Template used</dt><dd><code>${escapeHtml(report.templateDir)}</code></dd>
     </dl>
     <section>
-      <h2>コピーしたファイル（${escapeHtml(report.copy.copiedFiles.length)} 件）</h2>
+      <h2>Copied files (${escapeHtml(report.copy.copiedFiles.length)})</h2>
       ${renderList(report.copy.copiedFiles)}
     </section>
     <section>
-      <h2>フォールバック補完されたファイル（${escapeHtml(report.fallback.writtenFiles.length)} 件）</h2>
+      <h2>Files filled in from the built-in fallback (${escapeHtml(report.fallback.writtenFiles.length)})</h2>
       ${renderList(report.fallback.writtenFiles)}
     </section>
     <section>
-      <h2>スキップしたシンボリックリンク（${escapeHtml(report.copy.skippedSymlinks.length)} 件）</h2>
+      <h2>Skipped symbolic links (${escapeHtml(report.copy.skippedSymlinks.length)})</h2>
       ${renderList(report.copy.skippedSymlinks)}
     </section>
     <section>
-      <h2>雛形バージョン</h2>
-      <p>${report.skillsVersion === null ? '記録なし' : `<code>${escapeHtml(report.skillsVersion)}</code>`}</p>
+      <h2>Template version</h2>
+      <p>${report.skillsVersion === null ? 'Not recorded' : `<code>${escapeHtml(report.skillsVersion)}</code>`}</p>
     </section>
     <section>
-      <h2>git 初期化の結果</h2>
+      <h2>Git setup</h2>
       <dl>
-        <dt>実施</dt><dd>${report.git.action === 'initialized-and-committed' ? '実施' : 'スキップ'}</dd>
-        <dt>判定</dt><dd>${escapeHtml(report.git.eligibility)}</dd>
-        <dt>理由</dt><dd>${escapeHtml(report.git.reason)}</dd>
+        <dt>Result</dt><dd>${report.git.action === 'initialized-and-committed' ? 'Done' : 'Skipped'}</dd>
+        <dt>Repository check</dt><dd>${escapeHtml(report.git.eligibility)}</dd>
+        <dt>Reason</dt><dd>${escapeHtml(report.git.reason)}</dd>
       </dl>
     </section>
   </main>
@@ -558,17 +558,17 @@ export async function createProject(destinationDir, templateDir, options = {}) {
         try {
             await commitInitialProject(destination);
             action = 'initialized-and-committed';
-            reason = 'git 初期化して単一コミットを作成';
+            reason = 'Initialized git and created a single commit';
         } catch (error) {
             action = 'skipped';
-            reason = `git が利用できないためスキップ — 後からプロジェクトを開くと自動で git 化されます（${firstErrorLine(error)}）`;
+            reason = `Skipped because git is not available. The project is put under git automatically the next time it is opened (${firstErrorLine(error)})`;
         }
     } else if (boundary.eligibility === 'own-root') {
         action = 'skipped';
-        reason = 'このフォルダは既に git リポジトリのため git init を skip';
+        reason = 'Skipped git init because this folder is already a git repository';
     } else {
         action = 'skipped';
-        reason = `親リポジトリ ${boundary.parentRoot} の内側のため git init を skip`;
+        reason = `Skipped git init because this folder is inside the parent repository ${boundary.parentRoot}`;
     }
 
     const report = {

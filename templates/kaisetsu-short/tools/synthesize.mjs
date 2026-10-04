@@ -53,7 +53,7 @@ async function synthesizeBeat({ base, speaker, text, id, narrationDir }) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.projectDir) {
-    console.error("使い方: node tools/synthesize.mjs <projectDir> [--only <beatId>] [--speaker <id>]");
+    console.error("Usage: node tools/synthesize.mjs <projectDir> [--only <beatId>] [--speaker <id>]");
     process.exit(1);
   }
   const projectDir = path.resolve(opts.projectDir);
@@ -65,12 +65,12 @@ async function main() {
   const base = `http://${opts.host}:${opts.port}`;
 
   const beats = opts.only ? script.beats.filter((b) => b.id === opts.only) : script.beats;
-  if (!beats.length) throw new Error(`ビートが見つからない（--only=${opts.only}）`);
+  if (!beats.length) throw new Error(`No beat found (--only=${opts.only})`);
 
   // VOICEVOX 起動確認
   const versionRes = await fetch(`${base}/version`).catch(() => null);
   if (!versionRes || !versionRes.ok) {
-    throw new Error(`VOICEVOX エンジンに接続できない（${base}）。ヘッドレス起動してから再実行すること。`);
+    throw new Error(`Cannot connect to the VOICEVOX engine (${base}). Start it headless, then run this again.`);
   }
   console.log(`[synthesize] VOICEVOX engine OK at ${base}, speaker=${speaker}, beats=${beats.length}`);
 

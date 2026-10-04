@@ -74,7 +74,7 @@ function resolveBlock(block, sentences) {
     case "tier-ladder":
       out.rows = block.rows.map((r) => {
         if (!["small", "medium", "large", "highlight"].includes(r.variant)) {
-          throw new Error(`tier-ladder row.variant は small/medium/large/highlight のいずれか必要（受け取った値: ${r.variant}）`);
+          throw new Error(`tier-ladder row.variant must be one of small/medium/large/highlight (got: ${r.variant})`);
         }
         return {
           variant: r.variant,
@@ -104,7 +104,7 @@ function resolveBlock(block, sentences) {
       out.desc = block.desc;
       break;
     default:
-      throw new Error(`未知の diagram block type: ${block.type}`);
+      throw new Error(`Unknown diagram block type: ${block.type}`);
   }
   return out;
 }

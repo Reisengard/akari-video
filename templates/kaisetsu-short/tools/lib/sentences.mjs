@@ -68,7 +68,7 @@ export function resolveSentences(moras, text, beatStart, beatEnd, postPhonemeLen
     const pause = pauses[pauseIdx];
     if (!pause) {
       throw new Error(
-        `文境界 ${i} に対応する pause_mora が見つからない（pauseIdx=${pauseIdx}, 検出ポーズ数=${pauses.length}）。台本の句読点と VOICEVOX 出力のポーズ数が一致していない可能性がある。`,
+        `No pause_mora found for sentence boundary ${i} (pauseIdx=${pauseIdx}, pauses detected=${pauses.length}). The punctuation in the script may not match the number of pauses in the VOICEVOX output.`,
       );
     }
     t0s.push(beatStart + pause.moraStart + pause.dur);

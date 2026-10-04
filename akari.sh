@@ -37,7 +37,7 @@ find_monorepo() {
 INSTALL_ONE_LINER='curl -fsSL https://raw.githubusercontent.com/AkariLabs/akari-video/main/install.sh | bash'
 
 show_setup_guide() {
-  warn "セットアップするには次を実行してください: $INSTALL_ONE_LINER"
+  warn "To set it up, run: $INSTALL_ONE_LINER"
 }
 
 run_self_heal_installer() {
@@ -51,7 +51,7 @@ run_self_heal_installer() {
 
 self_heal_and_reexec() {
   if [[ -n "${AKARI_SELF_HEAL_ATTEMPTED:-}" ]]; then
-    err "セットアップを試みましたが、まだ利用できる状態になっていません。お手数ですが上記コマンドを手動で実行するか、サポートにご相談ください。"
+    err "Setup ran, but AKARI Video is still not ready to use. Please run the command above by hand, or contact support."
     show_setup_guide
     exit 1
   fi
@@ -70,7 +70,7 @@ self_heal_and_reexec() {
   exec 3<>/dev/tty && tty_ok=0 || tty_ok=$?
   exec 2>&4 4>&-
   if [[ "$tty_ok" -eq 0 ]]; then
-    read -rp "AKARI Video 本体がこのパソコンにまだ入っていません。いまセットアップしますか？（数分かかります） [Y/n] " answer <&3 || answer=n
+    read -rp "AKARI Video is not installed on this computer yet. Set it up now? (takes a few minutes) [Y/n] " answer <&3 || answer=n
     exec 3<&-
   fi
 
@@ -79,15 +79,15 @@ self_heal_and_reexec() {
     exit 1
   fi
 
-  info "セットアップしています…（数分かかります）"
+  info "Setting up... (takes a few minutes)"
   export AKARI_SELF_HEAL_ATTEMPTED=1
   if ! run_self_heal_installer; then
-    err "セットアップに失敗しました。"
+    err "Setup failed."
     show_setup_guide
     exit 1
   fi
 
-  info "セットアップが完了しました。続行します…"
+  info "Setup is complete. Continuing..."
   # macOS 標準の bash（3.2 系）は `set -u` 下で空配列の `"${arr[@]}"` 展開を
   # unbound variable として落とす（bash 4.4 で修正された既知の非互換）。
   # 配列が空かどうかで exec の引数展開自体を分岐して回避する。
@@ -182,7 +182,7 @@ cmd_preview() {
   echo -e "  ${BOLD}Project:${NC} $PROJECT"
   echo -e "  ${BOLD}URL:${NC}     http://localhost:$PORT"
   echo ""
-  echo -e "  ${MUTED}Ctrl+C で停止${NC}"
+  echo -e "  ${MUTED}Press Ctrl+C to stop${NC}"
   echo ""
 
   "$NODE_BIN" "$MONOREPO/packages/preview-server/src/server.mjs" "$PROJECT" --port "$PORT" &
@@ -211,7 +211,7 @@ case "$1" in
     echo "Usage: $SCRIPT_NAME [command] [options...]"
     echo ""
     echo "Commands:"
-    echo "  (no args)             Launch AI agent (Claude Code優先)"
+    echo "  (no args)             Launch AI agent (Claude Code first)"
     echo "  --preview, -pv        Start preview server"
     echo "  store connect         Connect your account (free starter pack + purchased assets)"
     echo "  sounds                Download official sound library (AKARI Sounds, free)"
@@ -224,15 +224,15 @@ case "$1" in
     echo "Typical workflow:"
     echo "  1. mkdir ~/my-first-video && cd ~/my-first-video"
     echo "  2. $SCRIPT_NAME                        # AI agent (project auto-created)"
-    echo "  3. $SCRIPT_NAME --preview               # Preview server (別の端末で)"
-    echo "  4. $SCRIPT_NAME store connect           # 無料の素材パックを使えるようにする"
-    echo "  5. $SCRIPT_NAME update                  # 更新を確認する"
+    echo "  3. $SCRIPT_NAME --preview               # Preview server (in another terminal)"
+    echo "  4. $SCRIPT_NAME store connect           # Make the free asset pack available"
+    echo "  5. $SCRIPT_NAME update                  # Check for updates"
     echo ""
     echo "Examples:"
-    echo "  $SCRIPT_NAME                           # Claude Code起動"
+    echo "  $SCRIPT_NAME                           # Launch Claude Code"
     echo "  $SCRIPT_NAME --preview                 # Preview (current dir)"
     echo "  $SCRIPT_NAME --preview ~/my-project 3000"
-    echo "  $SCRIPT_NAME store connect             # 無料の素材パックを使えるようにする"
+    echo "  $SCRIPT_NAME store connect             # Make the free asset pack available"
     echo "  $SCRIPT_NAME update"
     echo "  $SCRIPT_NAME -y                        # Claude Code + auto-confirm"
     echo "  $SCRIPT_NAME --opencode -y             # opencode + auto-confirm"

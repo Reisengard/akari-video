@@ -24,7 +24,7 @@ export function resolveAnchor(anchor, sentences) {
   const { sentence, offset = 0 } = anchor;
   const s = sentences[sentence];
   if (!s) {
-    throw new Error(`sentence anchor index ${sentence} が範囲外（文数=${sentences.length}）`);
+    throw new Error(`sentence anchor index ${sentence} is out of range (sentences=${sentences.length})`);
   }
   return round3(s.t0 + offset);
 }

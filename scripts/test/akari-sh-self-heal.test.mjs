@@ -140,7 +140,7 @@ test('app 無し + 非対話（tty 無し）: プロンプトを出さず案内 
     assert.equal(result.status, 1, `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     const combined = result.stdout + result.stderr;
     assert.ok(
-      !combined.includes('いまセットアップしますか'),
+      !combined.includes('Set it up now?'),
       '非対話では同意プロンプト自体が出てはいけない'
     );
     assert.ok(combined.includes('install.sh'), '案内 1 行にインストールコマンドが含まれること');
@@ -165,7 +165,7 @@ test('app 無し + 対話 n: 案内 1 行 + exit 1（インストーラは呼ば
     });
 
     assert.equal(result.status, 1, `stdout+stderr:\n${result.stdout}`);
-    assert.ok(result.stdout.includes('いまセットアップしますか'), '対話時は同意プロンプトが出ること');
+    assert.ok(result.stdout.includes('Set it up now?'), '対話時は同意プロンプトが出ること');
     assert.ok(result.stdout.includes('install.sh'), '案内 1 行にインストールコマンドが含まれること');
     assert.ok(!existsSync(installerMarker), 'n と答えたらインストーラは呼ばれない');
     assertNoJargon(result.stdout);

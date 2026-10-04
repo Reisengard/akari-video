@@ -31,7 +31,7 @@ export async function loadPuppeteer() {
   if (envPkg) {
     const resolved = path.resolve(envPkg);
     if (!existsSync(resolved)) {
-      throw new Error(`KAISETSU_PUPPETEER_PKG が指すファイルが存在しない: ${resolved}`);
+      throw new Error(`The file KAISETSU_PUPPETEER_PKG points to does not exist: ${resolved}`);
     }
     return createRequire(resolved)("puppeteer");
   }
@@ -42,12 +42,11 @@ export async function loadPuppeteer() {
   }
 
   throw new Error(
-    "puppeteer が見つからない。次のいずれかで解決してください:\n" +
-    "  (1) 環境変数 KAISETSU_PUPPETEER_PKG に puppeteer がインストール済みの " +
-    "package.json への絶対パスを設定する\n" +
-    "  (2) このテンプレート（" + __dirname + " 配下）より上位のディレクトリに " +
-    "node_modules/puppeteer をインストールする\n" +
-    "（パッケージの新規インストールは本テンプレートの境界規則で禁止 — 既存インストール先を指定すること）",
+    "puppeteer was not found. Fix it in one of these ways:\n" +
+    "  (1) Set the environment variable KAISETSU_PUPPETEER_PKG to the absolute path of a " +
+    "package.json whose install already has puppeteer\n" +
+    "  (2) Install node_modules/puppeteer in a directory above this template (" + __dirname + ")\n" +
+    "(This template does not install packages itself. Point it at an existing install.)",
   );
 }
 

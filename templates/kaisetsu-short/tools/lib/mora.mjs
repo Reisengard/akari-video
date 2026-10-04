@@ -48,7 +48,7 @@ export const VOWEL_TO_MOUTH_STATE = {
 
 export function mouthStateForVowel(vowel) {
   const st = VOWEL_TO_MOUTH_STATE[vowel];
-  if (!st) throw new Error(`未知の母音種別: ${vowel}（VOWEL_TO_MOUTH_STATE に追加が必要）`);
+  if (!st) throw new Error(`Unknown vowel type: ${vowel} (add it to VOWEL_TO_MOUTH_STATE)`);
   return st;
 }
 
