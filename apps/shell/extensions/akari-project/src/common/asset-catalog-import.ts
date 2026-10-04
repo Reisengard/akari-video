@@ -78,10 +78,10 @@ async function importAsset(
         const items = await dependencies.getCatalogItems();
         const item = items.find(candidate => candidate.id === assetId);
         if (!item) {
-            return failure('not-found', 'カタログに指定された素材が見つかりません。');
+            return failure('not-found', 'The asset specified in the catalog could not be found.');
         }
         if (!isSafePathSegment(item.category) || !isSafePathSegment(item.id)) {
-            return failure('failed', '素材の配置先を決定できませんでした。');
+            return failure('failed', 'Could not determine the destination for the asset.');
         }
 
         const dir = `assets/${item.category}/${item.id}`;
@@ -99,12 +99,12 @@ async function importAsset(
         // resolver の composeState() は取得済みを先に判定し、未購入だけを locked にする。
         // RPC は resolver のエラーコードを返さないため、文言ではなくこの状態を根拠にする。
         if (item.state === 'locked') {
-            return failure('locked', 'この素材は購入後に利用できます。');
+            return failure('locked', 'This asset is available after purchase.');
         }
 
         const outcome = await dependencies.resolveAsset(item.id, projectRoot);
         if (outcome.success === false) {
-            return failure('failed', '素材を取り込めませんでした。');
+            return failure('failed', 'Could not import the asset.');
         }
         return {
             ok: true,
@@ -115,7 +115,7 @@ async function importAsset(
             alreadyPresent: false
         };
     } catch {
-        return failure('failed', '素材を取り込めませんでした。');
+        return failure('failed', 'Could not import the asset.');
     }
 }
 
@@ -125,7 +125,7 @@ export function createAssetCatalogImporter(dependencies: AssetCatalogImportDepen
     return request => {
         const projectRoot = dependencies.getWorkspaceRoot();
         if (!projectRoot) {
-            return Promise.resolve(failure('no-project', '先にプロジェクトを開いてください。'));
+            return Promise.resolve(failure('no-project', 'Open a project first.'));
         }
         const assetId = typeof request?.assetId === 'string' ? request.assetId : '';
         const key = `${projectRoot}\0${assetId}`;

@@ -40,7 +40,7 @@ export class AssetSiteWidget extends ReactWidget {
     @postConstruct()
     protected init(): void {
         this.id = AssetSiteWidget.ID;
-        this.title.label = '素材サイト'; this.title.closable = true;
+        this.title.label = 'Asset website'; this.title.closable = true;
         this.node.style.height = '100%';
         this.unsubscribe = window.electronAkariProject.assetSite.onEvent(event => this.receive(event));
         this.ticker = setInterval(() => void this.updateBounds(), 120);
@@ -72,9 +72,9 @@ export class AssetSiteWidget extends ReactWidget {
     private receive(event: AssetSiteEvent): void {
         if (event.type === 'navigated' && event.url) this.address = event.url;
         if (event.type === 'received' && event.paths?.length) this.pending = {
-            paths: event.paths, name: event.name ?? '素材', sourceUrl: event.url ?? this.address
+            paths: event.paths, name: event.name ?? 'Footage', sourceUrl: event.url ?? this.address
         };
-        if (event.type === 'error') this.messages.error(event.message ?? '受け取りに失敗しました');
+        if (event.type === 'error') this.messages.error(event.message ?? 'Could not receive file');
         this.update();
     }
 
@@ -93,44 +93,44 @@ export class AssetSiteWidget extends ReactWidget {
             await (await this.widgets.getWidget<AkariRoleBucketsWidget>(AkariRoleBucketsWidget.ID))?.siteImportCompleted(result);
             await window.electronAkariProject.assetSite.discard(this.pending.paths);
             this.pending = undefined;
-        } catch (error) { this.messages.error(`ライブラリに入れられませんでした: ${String(error)}`); }
+        } catch (error) { this.messages.error(`Could not add to the library: ${String(error)}`); }
         finally { this.busy = false; this.update(); }
     }
 
     protected override render(): React.ReactNode {
         const listing = this.listing;
-        if (!listing) return <div>素材サイトを開いています…</div>;
+        if (!listing) return <div>Opening asset website…</div>;
         return <div data-akari-asset-site className='akari-asset-site-browser'
             style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0,
                 containerType: 'inline-size' }}>
             <style>{layoutCss}</style>
             <header style={{ padding: '8px 12px', borderBottom: '1px solid var(--theia-panel-border)' }}>
-                <strong>{listing.site.name}</strong> {listing.site.price === 'subscription' && <span>サブスク</span>}
-                <div>このサイトの中だけ移動できます</div>
-                {this.agentOpened && <div>エージェントがこのページを開きました</div>}
+                <strong>{listing.site.name}</strong> {listing.site.price === 'subscription' && <span>Subscription</span>}
+                <div>You can navigate within this website only</div>
+                {this.agentOpened && <div>The agent opened this page</div>}
                 <output data-akari-site-address style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{this.address}</output>
                 <small title={listing.site.terms.source_url} style={{ display: 'block', maxHeight: 32, overflow: 'hidden' }}>{listing.site.terms.summary_ja}</small>
             </header>
             <div className='akari-site-body'>
                 <div ref={node => { this.host = node ?? undefined; }} data-akari-site-surface className='akari-site-surface' />
                 <aside className='akari-site-recommendations'>
-                    <strong>AKARI のおすすめ</strong>
+                    <strong>AKARI recommendations</strong>
                     {listing.recommendations.length ? listing.recommendations.map(item =>
                         <div key={item.id} style={{ marginTop: 10 }}><div>{item.title}</div>
                             <button style={{ display: 'block', width: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}
-                                onClick={() => void this.recommend(item)}>ページを開いて光らせる</button>
+                                onClick={() => void this.recommend(item)}>Open page and highlight</button>
                             <button style={{ display: 'block', width: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}
                                 onClick={() => void this.commands.executeCommand(PARTNER_INJECT_PROMPT_COMMAND_ID,
-                                composeSiteAgentPrompt(listing.site, `おすすめ「${item.title}」を探して`))}>エージェントに頼む</button></div>)
-                        : <p>このサイトのおすすめは未登録です</p>}
+                                composeSiteAgentPrompt(listing.site, `Find the recommendation “${item.title}”`))}>Ask the agent</button></div>)
+                        : <p>No recommendations registered for this website</p>}
                 </aside>
             </div>
             {this.pending && <footer data-akari-site-received style={{ padding: 8, borderTop: '1px solid var(--theia-panel-border)',
                 display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, minWidth: 0 }}>
-                <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{this.pending.name} を受け取りました —</span>
-                <button disabled={this.busy} onClick={() => void this.importPending()}>ライブラリに入れる</button>
+                <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{this.pending.name}  received —</span>
+                <button disabled={this.busy} onClick={() => void this.importPending()}>Add to library</button>
                 <button disabled={this.busy} onClick={() => { if (this.pending) void window.electronAkariProject.assetSite.discard(this.pending.paths);
-                    this.pending = undefined; this.update(); }}>捨てる</button>
+                    this.pending = undefined; this.update(); }}>Discard</button>
             </footer>}
         </div>;
     }

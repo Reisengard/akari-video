@@ -7,11 +7,11 @@ import { CatalogItemMeta } from './catalog-reader';
  * （id・category・title・source.url・license.spdx・when_to_use）だけをここに持つ。
  */
 
-const CATALOG_TARGET_KIND = 'カタログ素材';
+const CATALOG_TARGET_KIND = 'Catalog footage';
 
 const CATALOG_IMPORT_REQUEST =
-    'この素材をカタログの参照情報から取得し、ライセンス表記を確認の上プロジェクトへ配置してください' +
-    '（setup-library 系スキルの手順に従う）';
+    'Retrieve this footage from its catalog references, verify the license, and place it in the project' +
+    ' (follow the setup-library skill)';
 
 /** 「取り込む」= 固定パケット。要素: id・category・title・source.url（あれば）・license.spdx（あれば）。 */
 export function composeCatalogImportPrompt(item: CatalogItemMeta): string {
@@ -23,10 +23,10 @@ export function composeCatalogAskAgentPrompt(item: CatalogItemMeta, request: str
     return composeAgentContextPacket(CATALOG_TARGET_KIND, catalogDescriptorFields(item, true), request);
 }
 
-const CATALOG_PACK_TARGET_KIND = 'カタログ素材パック';
+const CATALOG_PACK_TARGET_KIND = 'Catalog footage pack';
 const CATALOG_PACK_IMPORT_REQUEST =
-    'このパックの未取得の無料素材をまとめて取得し、ライセンス表記を確認の上プロジェクトへ配置してください' +
-    '（setup-library 系スキルの手順に従う）';
+    'Retrieve all unacquired free footage in this pack, verify the licenses, and place it in the project' +
+    ' (follow the setup-library skill)';
 
 /** パック「まとめて取り込む」の列挙対象 1 件（CatalogItemMeta の必須 3 フィールドだけで足りる）。 */
 export interface CatalogPackImportItem {
@@ -43,9 +43,9 @@ export interface CatalogPackImportItem {
  * 結果は必ず collapseToSingleLine で 1 行に畳み込む。
  */
 export function composeCatalogPackImportPrompt(packTitle: string, items: readonly CatalogPackImportItem[]): string {
-    const list = items.map(item => `${item.id}（${item.category}・${item.title}）`).join('、');
-    const summary = `${packTitle} — 対象 ${items.length} 件: ${list}`;
-    return collapseToSingleLine(`【${CATALOG_PACK_TARGET_KIND}】${summary}について: ${CATALOG_PACK_IMPORT_REQUEST}`);
+    const list = items.map(item => `${item.id}（${item.category} · ${item.title}）`).join('、');
+    const summary = `${packTitle} — ${items.length} items: ${list}`;
+    return collapseToSingleLine(`【${CATALOG_PACK_TARGET_KIND}】${summary}: ${CATALOG_PACK_IMPORT_REQUEST}`);
 }
 
 function catalogDescriptorFields(item: CatalogItemMeta, includeWhenToUse: boolean): AgentContextField[] {
@@ -61,7 +61,7 @@ function catalogDescriptorFields(item: CatalogItemMeta, includeWhenToUse: boolea
         fields.push({ label: 'license:', value: item.license.spdx });
     }
     if (includeWhenToUse && item.when_to_use) {
-        fields.push({ label: '用途:', value: firstSentence(item.when_to_use) });
+        fields.push({ label: 'Use:', value: firstSentence(item.when_to_use) });
     }
     return fields;
 }

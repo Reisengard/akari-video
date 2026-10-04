@@ -29,9 +29,9 @@ export function withSkillAdapterHidden(hidden: string[]): string[] {
 const DEFAULT_WORKFLOW: AkariWorkflow = {
     version: 1,
     roles: [
-        { path: 'assets', label: '素材', kind: 'assets' },
-        { path: 'planning', label: '企画', kind: 'planning' },
-        { path: 'exports', label: '書き出し', kind: 'exports' }
+        { path: 'assets', label: 'Footage', kind: 'assets' },
+        { path: 'planning', label: 'Planning', kind: 'planning' },
+        { path: 'exports', label: 'Export', kind: 'exports' }
     ],
     tree: {
         hidden: ['.claude', '.agents', '.codex', '.cursor', '.opencode', '.devin', '.akari', 'CLAUDE.md', 'AGENTS.md', '.gitignore', '.gitkeep'],

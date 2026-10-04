@@ -22,7 +22,7 @@ async function fixture(t) {
     await writeFile(join(root, 'edit.json'), JSON.stringify({ version: 2, sources: [{ id: 'voice', path: 'assets/voice.wav' }] }));
     return { root, service: new Service() };
 }
-test('発話配列の長さで状態を判定し、実行中を優先して二重起動を拒否する', async t => {
+test('determines state from utterance count and prioritizes running state to reject duplicate starts', async t => {
     const { root, service } = await fixture(t);
     const query = { projectRoot: root, relativePaths: ['assets/voice.wav'] };
     const state = async () => (await service.transcriptStates(query))['assets/voice.wav'];
@@ -38,13 +38,13 @@ test('発話配列の長さで状態を判定し、実行中を優先して二�
     const running = service.transcribeMaterial({ projectRoot: root, relativePath: 'assets/voice.wav' });
     while (!service.calls.length) await new Promise(resolve => setTimeout(resolve, 5));
     assert.equal(await state(), 'running');
-    await assert.rejects(service.transcribeMaterial({ projectRoot: root, relativePath: 'assets/voice.wav' }), /実行中/);
+    await assert.rejects(service.transcribeMaterial({ projectRoot: root, relativePath: 'assets/voice.wav' }), /being transcribed/);
     release();
     await running;
     assert.equal(await state(), 'done');
     assert.equal((await readdir(join(root, '.akari/events'))).length, 2);
 });
-test('連続実行では素材処理の後に字幕を生成し、素材 ID と上書き指定を渡す', async t => {
+test('sequential execution generates Captions after Footage processing and passes Footage ID and overwrite flag', async t => {
     const { root, service } = await fixture(t);
     assert.deepEqual(await service.buildCaptions({ projectRoot: root, source: 'voice', force: true, transcribeFirst: true }), { captions: 2 });
     assert.deepEqual(service.calls.map(call => [call.script, call.args]), [
@@ -53,7 +53,7 @@ test('連続実行では素材処理の後に字幕を生成し、素材 ID と�
     ]);
     assert.equal(service.calls[0].cwd, service.calls[1].cwd);
 });
-test('素材処理に失敗すると字幕生成を停止して実行中状態を解除する', async t => {
+test('Footage processing failure stops Captions generation and clears running state', async t => {
     const { root, service } = await fixture(t);
     service.runNodeScript = async () => ({ code: 1, stdout: '', stderr: 'media failed' });
     await assert.rejects(service.buildCaptions({ projectRoot: root, transcribeFirst: true }), /media failed/);

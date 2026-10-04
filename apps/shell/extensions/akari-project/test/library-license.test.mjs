@@ -6,7 +6,7 @@ import {
 
 const axes = (spdx, scope, attributionRequired) => deriveLibraryLicenseAxes({ spdx, scope, attributionRequired });
 
-test('既存の meta.json に実在する SPDX × scope の組み合わせを 2 軸へ写す', () => {
+test('maps existing meta.json SPDX × scope combinations to two axes', () => {
     // catalog/ と置き場の meta.json に実在する license の全パターン（2026-09-25 時点）。
     const rows = [
         ['OFL-1.1', 'commercial-ok', false, 'allowed', false],
@@ -32,7 +32,7 @@ test('既存の meta.json に実在する SPDX × scope の組み合わせを 2 
     }
 });
 
-test('語彙化後の scope（commercial-ok / non-commercial / attribution / unknown）も読む', () => {
+test('reads normalized scope values (commercial-ok / non-commercial / attribution / unknown)', () => {
     assert.deepEqual(axes(undefined, 'commercial-ok'), { commercial: 'allowed', attributionRequired: null });
     assert.deepEqual(axes(undefined, 'non-commercial'), { commercial: 'prohibited', attributionRequired: null });
     assert.deepEqual(axes(undefined, 'attribution'), { commercial: 'allowed', attributionRequired: true });
@@ -40,7 +40,7 @@ test('語彙化後の scope（commercial-ok / non-commercial / attribution / unk
     assert.deepEqual(axes(undefined, 'attribution', false), { commercial: 'allowed', attributionRequired: true });
 });
 
-test('scope が無い・知らない値のときは SPDX から読み、非営利の SPDX は scope より優先する', () => {
+test('missing or unknown scope falls back to SPDX; non-commercial SPDX overrides scope', () => {
     assert.deepEqual(axes('CC0-1.0'), { commercial: 'allowed', attributionRequired: false });
     assert.deepEqual(axes('CC-BY-4.0'), { commercial: 'allowed', attributionRequired: true });
     assert.deepEqual(axes('CC-BY-SA-4.0'), { commercial: 'allowed', attributionRequired: true });
@@ -53,7 +53,7 @@ test('scope が無い・知らない値のときは SPDX から読み、非営�
     assert.deepEqual(axes('  ', ' '), { commercial: 'unknown', attributionRequired: null });
 });
 
-test('ライセンスの窓の種類は 5 つ（標準 / CC0 / Lab のプレミアム / CC BY / CC BY-NC）+ 自分の + その他', () => {
+test('five license dialog types (Standard / CC0 / Lab premium / CC BY / CC BY-NC) plus Own and Other', () => {
     const base = { origin: 'resolver', price: 0 };
     assert.equal(libraryLicenseKind({ ...base, licenseSpdx: 'LicenseRef-AKARI-Assets-v0' }), 'premium');
     assert.equal(libraryLicenseKind({ ...base, price: 2980, licenseSpdx: 'CC0-1.0' }), 'premium');
@@ -67,14 +67,14 @@ test('ライセンスの窓の種類は 5 つ（標準 / CC0 / Lab のプレミ�
     assert.equal(libraryLicenseKind({ origin: 'local', distribution: 'paid', licenseSpdx: 'LicenseRef-proprietary', licenseScope: 'paid-license-required' }), 'other');
 });
 
-test('窓の中身: できる / できない / 注意の箇条・帰属表示ならクレジットをコピー・詳しくはこちらの行き先', () => {
+test('dialog contents: Allowed / Not allowed / Notes bullets, attribution credit copy, and Learn more destination', () => {
     const by = libraryLicenseSheet({ origin: 'resolver', licenseSpdx: 'CC-BY-4.0', licenseScope: 'commercial-ok', licenseAttributionRequired: true });
     assert.equal(by.kind, 'by');
     assert.equal(by.credit, true);
     assert.ok(by.items.some(item => item.mark === 'warn'));
     assert.equal(by.moreUrl, 'https://creativecommons.org/licenses/by/4.0/deed.ja');
     const nc = libraryLicenseSheet({ origin: 'resolver', licenseSpdx: 'CC-BY-NC-4.0' });
-    assert.equal(nc.title, '商用では使えません');
+    assert.equal(nc.title, 'Commercial use is not allowed');
     assert.ok(nc.items.some(item => item.mark === 'ng'));
     assert.equal(nc.moreUrl, 'https://creativecommons.org/licenses/by-nc/4.0/deed.ja');
     const premium = libraryLicenseSheet({ origin: 'resolver', price: 2980, licenseSpdx: 'LicenseRef-AKARI-Assets-v0' });
@@ -87,21 +87,21 @@ test('窓の中身: できる / できない / 注意の箇条・帰属表示な
     const other = libraryLicenseSheet({ origin: 'resolver', sourceKind: 'site', licenseSpdx: 'LicenseRef-MusMus-Free', licenseScope: 'commercial-ok', licenseAttributionRequired: true });
     assert.equal(other.kind, 'other');
     assert.equal(other.credit, true);
-    assert.equal(other.title, 'クレジットを書けば使えます');
+    assert.equal(other.title, 'Available with credit');
     const unknown = libraryLicenseSheet({ origin: 'local', licenseSpdx: 'LicenseRef-proprietary', licenseScope: 'paid-license-required' });
-    assert.equal(unknown.title, '使い方を確かめてください');
+    assert.equal(unknown.title, 'Check the terms of use');
     for (const sheet of [by, nc, premium, cc0, other, unknown]) {
         for (const item of sheet.items) assert.doesNotMatch(item.text, /AI|group/);
     }
 });
 
-test('ライセンス名とクレジットの 1 行', () => {
-    assert.equal(libraryLicenseDisplayName('CC-BY-4.0'), 'CC BY 4.0（帰属表示）');
-    assert.equal(libraryLicenseDisplayName('CC-BY-NC-SA-4.0'), 'CC BY-NC-SA 4.0（非営利）');
-    assert.equal(libraryLicenseDisplayName('CC0-1.0'), 'CC0（パブリックドメイン）');
-    assert.equal(libraryLicenseDisplayName(undefined), 'ライセンスの記載なし');
+test('license name and one-line credit', () => {
+    assert.equal(libraryLicenseDisplayName('CC-BY-4.0'), 'CC BY 4.0(Attribution)');
+    assert.equal(libraryLicenseDisplayName('CC-BY-NC-SA-4.0'), 'CC BY-NC-SA 4.0(Noncommercial)');
+    assert.equal(libraryLicenseDisplayName('CC0-1.0'), 'CC0 (public domain)');
+    assert.equal(libraryLicenseDisplayName(undefined), 'No license specified');
     assert.equal(libraryLicenseMoreUrl('MIT'), 'https://spdx.org/licenses/MIT.html');
     assert.equal(libraryLicenseMoreUrl('LicenseRef-x'), undefined);
-    assert.equal(libraryCreditLine({ title: '曲', creditText: 'Music: A (CC BY 4.0)' }), 'Music: A (CC BY 4.0)');
-    assert.equal(libraryCreditLine({ title: '曲', author: 'A', licenseSpdx: 'CC-BY-4.0' }), '曲 / A (CC-BY-4.0)');
+    assert.equal(libraryCreditLine({ title: 'Track', creditText: 'Music: A (CC BY 4.0)' }), 'Music: A (CC BY 4.0)');
+    assert.equal(libraryCreditLine({ title: 'Track', author: 'A', licenseSpdx: 'CC-BY-4.0' }), 'Track / A (CC-BY-4.0)');
 });

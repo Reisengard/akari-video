@@ -31,8 +31,8 @@ test('all edit variants appear after canonical edit and before other data', () =
     assert.equal(editVariantDataFileLabel('edit.json'), undefined);
     assert.equal(editVariantDataFileLabel('captions.json'), undefined);
     assert.equal(editVariantDataFileLabel('review.json'), undefined);
-    assert.equal(editVariantDataFileLabel('edit.v20.json'), '編集データ（v20）');
-    assert.equal(editVariantDataFileLabel('edit.timeline-2.json'), '編集データ（timeline-2）');
+    assert.equal(editVariantDataFileLabel('edit.v20.json'), 'Edit data (v20)');
+    assert.equal(editVariantDataFileLabel('edit.timeline-2.json'), 'Edit data (timeline-2)');
     assert.equal(dataFileIcon('edit.v20.json'), dataFileIcon('edit.json'));
 });
 const source = ts.createSourceFile('widget.tsx', readFileSync(new URL('../src/browser/akari-role-buckets-widget.tsx', import.meta.url), 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -95,8 +95,8 @@ test('fixed data labels come from PROJECT_DATA_FILES, while the helper labels on
     const instance = new Harness();
     instance.host = { workflow: { relativePath: uri => uri.path.base }, projectDataFiles };
     const entry = name => instance.buildOutputEntry({}, { resource: { path: { base: name } }, mtime: 1, size: 1 }, 'data');
-    assert.equal((await entry('edit.json')).title, '編集データ');
-    assert.equal((await entry('captions.json')).title, '字幕データ');
-    assert.equal((await entry('review.json')).title, 'レビュー・指摘');
-    assert.equal((await entry('edit.v20.json')).title, '編集データ（v20）');
+    assert.equal((await entry('edit.json')).title, 'Edit data');
+    assert.equal((await entry('captions.json')).title, 'Captions data');
+    assert.equal((await entry('review.json')).title, 'Reviews and feedback');
+    assert.equal((await entry('edit.v20.json')).title, 'Edit data (v20)');
 });

@@ -24,7 +24,7 @@ test('library textstyle specimen reflects the v1 gradient and stroke', async () 
     assert.equal(style.fontWeight, 800);
 });
 
-test('LUT とトランジションの同梱見本へ安全な相対パスを作る', async () => {
+test('creates safe relative paths to bundled LUT and transition examples', async () => {
     const luts = (await readdir(join(repo, 'presets/luts'), { withFileTypes: true })).filter(entry => entry.isDirectory() && entry.name !== 'test');
     const transitions = (await readdir(join(repo, 'presets/transitions'), { withFileTypes: true })).filter(entry => entry.isDirectory());
     assert.equal(luts.length, 10);
@@ -38,10 +38,10 @@ test('LUT とトランジションの同梱見本へ安全な相対パスを作�
     assert.equal(fontPreviewPath('../bad'), undefined);
 });
 
-test('フォントを選択中の文字だけへ当てる計画は、他の文字装飾を保つ', () => {
+test('applying a font only to selected text preserves other text decorations', () => {
     const item = { id: 'noto-sans-jp', category: 'font', title: 'Noto Sans JP' };
-    assert.deepEqual(planFontApply(item, null), { ok: false, message: '先に文字を選んでください。' });
-    assert.deepEqual(planFontApply(item, { kind: 'cut', id: 'cut-1' }), { ok: false, message: '先に文字を選んでください。' });
+    assert.deepEqual(planFontApply(item, null), { ok: false, message: 'Select text first.' });
+    assert.deepEqual(planFontApply(item, { kind: 'cut', id: 'cut-1' }), { ok: false, message: 'Select text first.' });
     const plan = planFontApply(item, { kind: 'caption', id: 'c-1' }, { color: '#ff0000', size_px: 56 });
     assert.equal(plan.ok, true);
     assert.deepEqual(plan.detail.ids, ['c-1']);
@@ -49,7 +49,7 @@ test('フォントを選択中の文字だけへ当てる計画は、他の文�
         { color: '#ff0000', size_px: 56, font_family: 'Noto Sans JP' });
 });
 
-test('字幕の配列と captions 包みから、プリセットと文字固有の見た目を合成する', () => {
+test('combines preset and per-text appearance from captions arrays and captions wrappers', () => {
     const presets = [{ id: 'news', style: { color: '#fff', size_px: 56, weight: 700 } }];
     const row = { id: 'c-1', style_preset: 'news', text_style: { color: '#f00' } };
     for (const source of [JSON.stringify([row]), JSON.stringify({ captions: [row] })]) {
@@ -59,7 +59,7 @@ test('字幕の配列と captions 包みから、プリセットと文字固有�
     }
 });
 
-test('マイスタイルと動きカードが使うキーフレームは方向・尺・out を一意に決める', () => {
+test('My styles and motion card keyframes uniquely determine direction, duration, and out', () => {
     const slide = textAnimationSampleKeyframes('slide-left', 'in', 18, 0.4);
     assert.deepEqual(slide.keyframes, [
         { opacity: 0, transform: 'translateX(18px)' }, { opacity: 1, transform: 'none' }
@@ -71,13 +71,13 @@ test('マイスタイルと動きカードが使うキーフレームは方向�
     assert.equal(textAnimationSampleKeyframes('other', 'in', 999, 99).durationMs, 1800);
 });
 
-test('フォント一覧用の 32 件は各 id の preview.png を指せる', () => {
+test('all 32 font list entries point to their ID-specific preview.png', () => {
     const ids = Array.from({ length: 32 }, (_, index) => `font-${index + 1}`);
     assert.equal(new Set(ids.map(fontPreviewPath)).size, 32);
     assert.ok(ids.every(id => fontPreviewPath(id) === `catalog/font/${id}/preview.png`));
 });
 
-test('手元のフォント索引と見本の実数を記録する', async t => {
+test('records actual local font index and sample counts', async t => {
     const root = join(repo, 'catalog/font');
     const entries = (await readdir(root, { withFileTypes: true })).filter(entry => entry.isDirectory());
     const meta = []; const previews = [];
@@ -90,15 +90,15 @@ test('手元のフォント索引と見本の実数を記録する', async t => 
     t.diagnostic(`font meta=${meta.length}, preview.png=${previews.length}`);
 });
 
-test('画面語はイラストで、データキー stamps は維持する', async () => {
-    assert.equal(LIBRARY_GROUPS.flatMap(group => group.categories).find(category => category.key === 'stamps')?.label, 'イラスト');
-    assert.equal(LIBRARY_PRIMARY_TILES.find(tile => tile.key === 'stamps')?.label, 'イラスト');
+test('UI calls them Illustrations while preserving the stamps data key', async () => {
+    assert.equal(LIBRARY_GROUPS.flatMap(group => group.categories).find(category => category.key === 'stamps')?.label, 'Illustrations');
+    assert.equal(LIBRARY_PRIMARY_TILES.find(tile => tile.key === 'stamps')?.label, 'Illustrations');
     const src = join(repo, 'apps/shell/extensions/akari-project/src');
     async function scan(dir) {
         for (const entry of await readdir(dir, { withFileTypes: true })) {
             const path = join(dir, entry.name);
             if (entry.isDirectory()) await scan(path);
-            else if (/\.tsx?$/.test(entry.name)) assert.equal((await readFile(path, 'utf8')).includes('スタンプ'), false, entry.name);
+            else if (/\.tsx?$/.test(entry.name)) assert.equal((await readFile(path, 'utf8')).includes('Stamps'), false, entry.name);
         }
     }
     await scan(src);

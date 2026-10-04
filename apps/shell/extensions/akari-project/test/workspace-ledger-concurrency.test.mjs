@@ -42,7 +42,7 @@ async function raceTwoWindows(server, { a, b }) {
     await Promise.all([server.setMostRecentlyUsedWorkspace(a), server.setMostRecentlyUsedWorkspace(b)]);
 }
 
-test('(a) 既定の台帳は同時書き込みで開いているプロジェクトの行を落とす（回帰の出所）', async t => {
+test('(a) default registry loses open project entries during concurrent writes (regression source)', async t => {
     const data = await fixture(t);
     const server = serverFor(DefaultWorkspaceServer, data);
     await raceTwoWindows(server, data);
@@ -50,32 +50,32 @@ test('(a) 既定の台帳は同時書き込みで開いているプロジェク�
     const raw = await readFile(data.ledger, 'utf8');
     const recentRoots = parseJsonc(raw).recentRoots ?? [];
     // 既定実装は read-modify-write に排他が無いので、開いている 2 本のどちらかが必ず消える。
-    assert.ok(!recentRoots.includes(data.a) || !recentRoots.includes(data.b), `既定実装で両方残った: ${raw}`);
+    assert.ok(!recentRoots.includes(data.a) || !recentRoots.includes(data.b), `default implementation retained both: ${raw}`);
 });
 
-test('(b) 差し替え後は同時書き込みでも開いている root が台帳から消えない', async t => {
+test('(b) replacement keeps open roots in registry during concurrent writes', async t => {
     const data = await fixture(t);
     const server = serverFor(AkariWorkspaceServer, data);
     await raceTwoWindows(server, data);
     const recentRoots = await server.getRecentWorkspaces();
-    assert.ok(recentRoots.includes(data.a), `a が台帳から消えた: ${JSON.stringify(recentRoots)}`);
-    assert.ok(recentRoots.includes(data.b), `b が台帳から消えた: ${JSON.stringify(recentRoots)}`);
+    assert.ok(recentRoots.includes(data.a), `a disappeared from registry: ${JSON.stringify(recentRoots)}`);
+    assert.ok(recentRoots.includes(data.b), `b disappeared from registry: ${JSON.stringify(recentRoots)}`);
 });
 
-test('(c) 差し替え後の台帳は常に JSON として完全（末尾に前の内容が残らない）', async t => {
+test('(c) replacement registry always contains complete JSON without stale trailing content', async t => {
     const data = await fixture(t);
     const server = serverFor(AkariWorkspaceServer, data);
     for (let round = 0; round < 20; round += 1) {
         await Promise.all([server.setMostRecentlyUsedWorkspace(data.a), server.setMostRecentlyUsedWorkspace(data.b)]);
         const raw = await readFile(data.ledger, 'utf8');
         // JSON.parse は jsonc-parser と違い末尾のゴミを見逃さない。
-        assert.doesNotThrow(() => JSON.parse(raw), `台帳が壊れた (round ${round}): ${JSON.stringify(raw)}`);
+        assert.doesNotThrow(() => JSON.parse(raw), `registry corrupted (round ${round}): ${JSON.stringify(raw)}`);
     }
     // 原子的置換の一時ファイルを置き去りにしない。
     assert.deepEqual((await readdir(data.config)).filter(name => name.endsWith('.tmp')), []);
 });
 
-test('(d) ワークスペースを閉じても（空文字）台帳の履歴は落ちない', async t => {
+test('(d) closing a workspace (empty string) preserves registry history', async t => {
     const data = await fixture(t);
     const server = serverFor(AkariWorkspaceServer, data);
     await server.setMostRecentlyUsedWorkspace(data.a);
@@ -85,7 +85,7 @@ test('(d) ワークスペースを閉じても（空文字）台帳の履歴は�
     assert.deepEqual(JSON.parse(await readFile(data.ledger, 'utf8')).recentRoots, [data.a]);
 });
 
-test('(e) 明示的に消したワークスペースは台帳から消えたままになる', async t => {
+test('(e) explicitly removed workspaces stay removed from registry', async t => {
     const data = await fixture(t);
     const server = serverFor(AkariWorkspaceServer, data);
     await server.setMostRecentlyUsedWorkspace(data.a);

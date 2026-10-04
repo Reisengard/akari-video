@@ -23,7 +23,7 @@ const React = { createElement: (type, props, ...children) => ({ type, props: pro
 const Base = class { onBeforeDetach() {} onCloseRequest() {} onAfterHide() {} };
 const Handler = new Function('React', 'canPlaceLibraryAsset', 'Base', 'URI', 'generationPickSelectionChanged', 'rankSwapCandidates',
     `${code}; return Handler;`)(React, canPlaceLibraryAsset, Base, URI, generationPickSelectionChanged, rankSwapCandidates);
-const request = multi => ({ slot: 'reference_images', label: '参照', multi, accepts: ['image'] });
+const request = multi => ({ slot: 'reference_images', label: 'Reference', multi, accepts: ['image'] });
 const candidate = { path: 'assets/a.png', kind: 'image' };
 function fixture() {
     const handler = new Handler();
@@ -65,7 +65,7 @@ test('actual band buttons cancel and complete; badges and count use controller s
     assert.deepEqual(await result, { status: 'cancelled' });
     result = handler.pickInto(request(true));
     handler.generationPickCardProps(candidate).onClickCapture(event());
-    assert.deepEqual(handler.renderGenerationPickBadge(candidate).children, ['@画像1']);
+    assert.deepEqual(handler.renderGenerationPickBadge(candidate).children, ['@Image1']);
     band = descendants(handler.renderGenerationPickBand());
     const complete = band.find(el => el.props.className === 'akari-gen-pick-complete');
     assert.ok(complete.children.includes(1));
@@ -141,7 +141,7 @@ test('contribution registers the shared ID and activates the widget before calli
     for (const developerMode of [false, true]) {
         const contribution = new Contribution(), calls = [];
         const widget = { id: 'akari-role-buckets-widget', title: {}, isAttached: false,
-            pickInto: async req => { calls.push('pick'); assert.equal(req.label, '参照'); return { status: 'cancelled' }; } };
+            pickInto: async req => { calls.push('pick'); assert.equal(req.label, 'Reference'); return { status: 'cancelled' }; } };
         contribution.widgetManager = { getOrCreateWidget: async id => { assert.equal(id, widget.id); return widget; } };
         contribution.modeService = { developerMode };
         contribution.shell = { addWidget: (_widget, options) => { assert.equal(options.area, developerMode ? 'main' : 'left'); },

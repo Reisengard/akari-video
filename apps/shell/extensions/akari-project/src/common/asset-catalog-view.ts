@@ -171,8 +171,8 @@ export function deriveCatalogEmptyStateKind(
 export type CatalogResolverNoticeKind = 'unauthorized' | 'error';
 
 export const CATALOG_ENTITLEMENTS_UNAUTHORIZED_MESSAGE =
-    'AKARI アカウントの接続が解除されています — ホームから再接続してください';
-export const CATALOG_ENTITLEMENTS_ERROR_MESSAGE = 'アカウント素材の取得に失敗';
+    'Your AKARI account is disconnected — reconnect from Home';
+export const CATALOG_ENTITLEMENTS_ERROR_MESSAGE = 'Failed to retrieve account assets';
 
 /**
  * カタログ上部の案内行を決める共通分岐。認証失効だけは再試行ではなく再接続案内、
@@ -214,7 +214,7 @@ export function assetStateBadgeText(item: Pick<AssetCatalogViewItem, 'state' | '
     if (item.state === 'cached') {
         return '✓';
     }
-    return (item.price ?? 0) > 0 ? '✓ 購入済み' : '☁';
+    return (item.price ?? 0) > 0 ? '✓ Purchased' : '☁';
 }
 
 /** assetStateBadgeText と対になる、カードのツールチップ用の長め文言。 */
@@ -223,12 +223,12 @@ export function assetStateBadgeTitle(item: Pick<AssetCatalogViewItem, 'state' | 
         return undefined;
     }
     if (item.state === 'locked') {
-        return `¥${(item.price ?? 0).toLocaleString()} 未購入`;
+        return `¥${(item.price ?? 0).toLocaleString()} Not purchased`;
     }
     if (item.state === 'cached') {
-        return '取得済み';
+        return 'Downloaded';
     }
-    return (item.price ?? 0) > 0 ? '購入済み（未取得）' : '未取得';
+    return (item.price ?? 0) > 0 ? 'Purchased (not downloaded)' : 'Not downloaded';
 }
 
 // --- locked カードの購入案内（価格 + ストア URL） --------------------------------------------
@@ -249,8 +249,8 @@ export function catalogPurchaseActionText(
 ): { label: string; title: string } {
     const amount = `¥${(price ?? 0).toLocaleString()}`;
     return {
-        label: viewMode === 'list' ? `${amount} で購入` : amount,
-        title: `${amount} で購入 — AKARI Video Lab を開く（${productUrl}）`
+        label: viewMode === 'list' ? `${amount} to purchase` : amount,
+        title: `${amount} to purchase — Open AKARI Video Lab(${productUrl})`
     };
 }
 
@@ -300,10 +300,10 @@ export function deriveAssetDistribution(input: AssetDistributionInput): AssetDis
  */
 export function assetDistributionBadgeText(distribution: AssetDistribution | undefined, sourceAcquisition?: string): string | undefined {
     switch (distribution) {
-        case 'bundled': return '✓ 同梱済み';
-        case 'subscription': return 'サブスク';
-        case 'paid': return '¥ 各自入手';
-        case 'free': return sourceAcquisition === 'login' ? '☁ 無料 DL（要登録）' : '☁ 無料 DL';
+        case 'bundled': return '✓ Bundled';
+        case 'subscription': return 'Subscription';
+        case 'paid': return '¥ Obtain separately';
+        case 'free': return sourceAcquisition === 'login' ? '☁ Free download (registration required)' : '☁ Free download';
         default: return undefined;
     }
 }
@@ -393,10 +393,10 @@ export function summarizeCatalogPackDistribution(items: readonly Pick<AssetCatal
 }
 
 const PACK_BREAKDOWN_LABEL: Record<'bundled' | 'free' | 'paid' | 'subscription', string> = {
-    bundled: '同梱',
-    free: '無料 DL',
-    paid: '¥ 各自入手',
-    subscription: 'サブスク'
+    bundled: 'Bundled',
+    free: 'Free download',
+    paid: '¥ Obtain separately',
+    subscription: 'Subscription'
 };
 
 /**
@@ -408,5 +408,5 @@ export function formatCatalogPackBreakdown(breakdown: CatalogPackBreakdown): str
     const parts = (['bundled', 'free', 'paid', 'subscription'] as const)
         .filter(key => breakdown[key] > 0)
         .map(key => `${PACK_BREAKDOWN_LABEL[key]} ${breakdown[key]}`);
-    return parts.length ? `${breakdown.total} 件 — ${parts.join(' / ')}` : `${breakdown.total} 件`;
+    return parts.length ? `${breakdown.total} items — ${parts.join(' / ')}` : `${breakdown.total} items`;
 }

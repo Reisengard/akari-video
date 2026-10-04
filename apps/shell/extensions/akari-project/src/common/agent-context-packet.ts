@@ -24,12 +24,12 @@ export function composeAgentContextPacket(
     request: string
 ): string {
     if (fields.length === 0) {
-        throw new Error('composeAgentContextPacket: fields は最低 1 件必要です');
+        throw new Error('composeAgentContextPacket: at least one field is required');
     }
     const [primary, ...rest] = fields;
-    const detail = rest.map(renderField).join('・');
+    const detail = rest.map(renderField).join(' · ');
     const suffix = detail ? `（${detail}）` : '';
-    return `【${targetKind}】${renderField(primary)}${suffix}について: ${collapseToSingleLine(request)}`;
+    return `【${targetKind}】${renderField(primary)}${suffix}: ${collapseToSingleLine(request)}`;
 }
 
 function renderField(field: AgentContextField): string {
@@ -51,10 +51,10 @@ export interface MaterialAgentContext {
     analysisRelativePath?: string;
 }
 
-const MATERIAL_TARGET_KIND = '素材';
-const DURATION_UNKNOWN_LABEL = '尺不明';
-const ANALYZED_LABEL = '分析済み';
-const NOT_ANALYZED_LABEL = '未分析';
+const MATERIAL_TARGET_KIND = 'Footage';
+const DURATION_UNKNOWN_LABEL = 'Duration unknown';
+const ANALYZED_LABEL = 'Analyzed';
+const NOT_ANALYZED_LABEL = 'Not analyzed';
 
 /**
  * 素材カード「エージェントに頼む」の v0 唯一の呼び出し元。必須要素:
@@ -65,7 +65,7 @@ export function composeMaterialAskAgentPrompt(context: MaterialAgentContext, req
     const fields: AgentContextField[] = [
         { value: context.relativePath },
         context.analyzed
-            ? { label: '尺', value: formatDurationBadge(context.durationSeconds ?? 0) }
+            ? { label: 'Duration', value: formatDurationBadge(context.durationSeconds ?? 0) }
             : { value: DURATION_UNKNOWN_LABEL },
         { value: context.analyzed ? ANALYZED_LABEL : NOT_ANALYZED_LABEL }
     ];
@@ -81,7 +81,7 @@ export interface OutputAgentContext {
     relativePath: string;
 }
 
-const OUTPUT_TARGET_KIND = '書き出し済みの成果物';
+const OUTPUT_TARGET_KIND = 'Exported output';
 
 /**
  * 「できたもの」書き出し行（export）の「エージェントに頼む」の唯一の呼び出し元

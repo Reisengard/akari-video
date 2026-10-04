@@ -24,9 +24,9 @@ import { normalizeEntitledProducts } from '../lib/node/akari-project-service.js'
 // カタログ面「1 ビュー」の純関数群（マージ・resolver 生アイテムの正規化・状態バッジ文言）。
 // backend の getAssetCatalogView() / loadResolverCatalogItems() が使う本体をここで単体テストする。
 
-test('toResolverAssetCatalogViewItem: 必須フィールドの正規化（tags 既定 []・price 既定 0）', () => {
+test('toResolverAssetCatalogViewItem: normalizes required fields (tags defaults to [], price to 0)', () => {
     const item = toResolverAssetCatalogViewItem(
-        { id: 'br-typing-laptop', category: 'still', title: 'ノートPCをタイピングする手元', state: 'available' },
+        { id: 'br-typing-laptop', category: 'still', title: 'Hands typing on a laptop', state: 'available' },
         undefined
     );
     assert.deepEqual(item, {
@@ -34,7 +34,7 @@ test('toResolverAssetCatalogViewItem: 必須フィールドの正規化（tags �
         key: 'still/br-typing-laptop',
         id: 'br-typing-laptop',
         category: 'still',
-        title: 'ノートPCをタイピングする手元',
+        title: 'Hands typing on a laptop',
         tags: [],
         sourceKind: undefined,
         folder: undefined,
@@ -51,26 +51,26 @@ test('toResolverAssetCatalogViewItem: 必須フィールドの正規化（tags �
     });
 });
 
-test('catalogCardUiEventTarget: still カタログカードの target と label を返す', () => {
+test('catalogCardUiEventTarget: returns target and label for a still catalog card', () => {
     assert.deepEqual(
-        catalogCardUiEventTarget({ key: 'still/br-typing-laptop', title: 'ノートPCをタイピングする手元' }),
-        { target: 'asset:still/br-typing-laptop', label: 'ノートPCをタイピングする手元' }
+        catalogCardUiEventTarget({ key: 'still/br-typing-laptop', title: 'Hands typing on a laptop' }),
+        { target: 'asset:still/br-typing-laptop', label: 'Hands typing on a laptop' }
     );
 });
 
-test('catalogCardUiEventTarget: audio カタログカードの target と label を返す', () => {
+test('catalogCardUiEventTarget: returns target and label for an audio catalog card', () => {
     assert.deepEqual(
         catalogCardUiEventTarget({ key: 'audio/bgm-beatslide-124-001', title: 'Boots On Concrete' }),
         { target: 'asset:audio/bgm-beatslide-124-001', label: 'Boots On Concrete' }
     );
 });
 
-test('toResolverAssetCatalogViewItem: license.spdx / provenance.prompt / previewUrl を引き継ぐ', () => {
+test('toResolverAssetCatalogViewItem: preserves license.spdx / provenance.prompt / previewUrl', () => {
     const item = toResolverAssetCatalogViewItem(
         {
             id: 'bg-asteroid-belt',
             category: 'still',
-            title: '小惑星帯背景',
+            title: 'Asteroid belt background',
             tags: ['background', 'space'],
             license: { spdx: 'CC0-1.0' },
             price: 0,
@@ -86,7 +86,7 @@ test('toResolverAssetCatalogViewItem: license.spdx / provenance.prompt / preview
     assert.deepEqual(item.tags, ['background', 'space']);
 });
 
-test('toResolverAssetCatalogViewItem: mediaUrl（audio カテゴリの試聴 URL）を引き継ぐ', () => {
+test('toResolverAssetCatalogViewItem: preserves mediaUrl (audio category preview URL)', () => {
     const item = toResolverAssetCatalogViewItem(
         { id: 'bgm-beatslide-124-001', category: 'audio', title: 'Boots On Concrete', price: 0, state: 'available' },
         'https://raw.githubusercontent.com/AkariLabs/akari-sounds/v0/previews/bgm-beatslide-124-001.jpeg',
@@ -97,47 +97,47 @@ test('toResolverAssetCatalogViewItem: mediaUrl（audio カテゴリの試聴 URL
     assert.notEqual(item.mediaUrl, item.previewUrl);
 });
 
-test('toResolverAssetCatalogViewItem: locked 項目は price をそのまま持つ', () => {
+test('toResolverAssetCatalogViewItem: locked items preserve price', () => {
     const item = toResolverAssetCatalogViewItem(
-        { id: 'phone-pro-titanium', category: 'scene3d', title: 'スマートフォン 3D モデル', price: 1200, state: 'locked' },
+        { id: 'phone-pro-titanium', category: 'scene3d', title: 'Smartphone 3D model', price: 1200, state: 'locked' },
         undefined
     );
     assert.equal(item.price, 1200);
     assert.equal(item.state, 'locked');
 });
 
-test('mergeAssetCatalogViews: ローカルのみ・resolver のみをどちらも含む', () => {
-    const local = [{ origin: 'local', key: 'audio/maoudamashii-se-system-category', id: 'maoudamashii-se-system-category', category: 'audio', title: '魔王魂 システム', tags: [] }];
-    const resolver = [{ origin: 'resolver', key: 'still/br-coffee-pour', id: 'br-coffee-pour', category: 'still', title: 'コーヒーを注ぐ', tags: [], price: 0, state: 'available' }];
+test('mergeAssetCatalogViews: includes both local-only and resolver-only items', () => {
+    const local = [{ origin: 'local', key: 'audio/maoudamashii-se-system-category', id: 'maoudamashii-se-system-category', category: 'audio', title: 'MaouDamashii System', tags: [] }];
+    const resolver = [{ origin: 'resolver', key: 'still/br-coffee-pour', id: 'br-coffee-pour', category: 'still', title: 'Pouring coffee', tags: [], price: 0, state: 'available' }];
     const merged = mergeAssetCatalogViews(local, resolver);
     assert.equal(merged.length, 2);
     assert.ok(merged.some(item => item.key === 'audio/maoudamashii-se-system-category' && item.origin === 'local'));
     assert.ok(merged.some(item => item.key === 'still/br-coffee-pour' && item.origin === 'resolver'));
 });
 
-test('mergeAssetCatalogViews: id 重複（同じ category/id）は resolver 側が勝つ', () => {
-    const local = [{ origin: 'local', key: 'still/br-typing-laptop', id: 'br-typing-laptop', category: 'still', title: 'ローカル版タイトル', tags: [] }];
-    const resolver = [{ origin: 'resolver', key: 'still/br-typing-laptop', id: 'br-typing-laptop', category: 'still', title: 'resolver 版タイトル', tags: [], price: 0, state: 'cached' }];
+test('mergeAssetCatalogViews: resolver wins duplicate IDs (same category/id)', () => {
+    const local = [{ origin: 'local', key: 'still/br-typing-laptop', id: 'br-typing-laptop', category: 'still', title: 'Local title', tags: [] }];
+    const resolver = [{ origin: 'resolver', key: 'still/br-typing-laptop', id: 'br-typing-laptop', category: 'still', title: 'Resolver title', tags: [], price: 0, state: 'cached' }];
     const merged = mergeAssetCatalogViews(local, resolver);
     assert.equal(merged.length, 1);
     assert.equal(merged[0].origin, 'resolver');
-    assert.equal(merged[0].title, 'resolver 版タイトル');
+    assert.equal(merged[0].title, 'Resolver title');
 });
 
-test('mergeAssetCatalogViews: タイトルの五十音順にソートされる', () => {
+test('mergeAssetCatalogViews: sorted alphabetically by title', () => {
     const resolver = [
-        { origin: 'resolver', key: 'still/b', id: 'b', category: 'still', title: 'わかめ', tags: [], price: 0, state: 'available' },
-        { origin: 'resolver', key: 'still/a', id: 'a', category: 'still', title: 'あさひ', tags: [], price: 0, state: 'available' }
+        { origin: 'resolver', key: 'still/b', id: 'b', category: 'still', title: 'Wakame', tags: [], price: 0, state: 'available' },
+        { origin: 'resolver', key: 'still/a', id: 'a', category: 'still', title: 'Asahi', tags: [], price: 0, state: 'available' }
     ];
     const merged = mergeAssetCatalogViews([], resolver);
     assert.deepEqual(merged.map(item => item.id), ['a', 'b']);
 });
 
-test('mergeAssetCatalogViews: 両方空なら空配列（例外なし）', () => {
+test('mergeAssetCatalogViews: both empty returns an empty array (no exception)', () => {
     assert.deepEqual(mergeAssetCatalogViews([], []), []);
 });
 
-test('normalizeEntitledProducts: 3 欄を正規化し id が文字列でない行を捨てる', () => {
+test('normalizeEntitledProducts: normalizes three fields and discards rows with non-string IDs', () => {
     assert.deepEqual(normalizeEntitledProducts([
         { id: 'world-kit', kind: 'kit', currentVersion: 4 },
         { id: 'legacy-kit', kind: 1, currentVersion: '3' },
@@ -149,53 +149,53 @@ test('normalizeEntitledProducts: 3 欄を正規化し id が文字列でない�
     assert.deepEqual(normalizeEntitledProducts({}), []);
 });
 
-test('assetStateBadgeText: cached は ✓', () => {
+test('assetStateBadgeText: cached shows a check mark', () => {
     assert.equal(assetStateBadgeText({ state: 'cached' }), '✓');
 });
 
-test('assetStateBadgeText: available は ☁', () => {
+test('assetStateBadgeText: available shows a cloud', () => {
     assert.equal(assetStateBadgeText({ state: 'available' }), '☁');
 });
 
-test('assetStateBadgeText: locked は円マーク + 3 桁区切りの価格', () => {
+test('assetStateBadgeText: locked shows yen and a grouped price', () => {
     assert.equal(assetStateBadgeText({ state: 'locked', price: 1200 }), '¥1,200');
 });
 
-test('assetStateBadgeText: locked かつ price 未指定は ¥0', () => {
+test('assetStateBadgeText: locked without a price shows ¥0', () => {
     assert.equal(assetStateBadgeText({ state: 'locked' }), '¥0');
 });
 
-test('assetStateBadgeText: state 未指定（origin=local）は undefined', () => {
+test('assetStateBadgeText: missing state (local origin) returns undefined', () => {
     assert.equal(assetStateBadgeText({}), undefined);
 });
 
-test('assetStateBadgeText: available かつ price > 0（購入済み・未取得）は「✓ 購入済み」', () => {
-    assert.equal(assetStateBadgeText({ state: 'available', price: 2980 }), '✓ 購入済み');
+test('assetStateBadgeText: available with a positive price shows purchased', () => {
+    assert.equal(assetStateBadgeText({ state: 'available', price: 2980 }), '✓ Purchased');
 });
 
-test('assetStateBadgeText: available かつ price 未指定/0 は無料扱いで ☁ のまま', () => {
+test('assetStateBadgeText: available without a price remains free', () => {
     assert.equal(assetStateBadgeText({ state: 'available', price: 0 }), '☁');
     assert.equal(assetStateBadgeText({ state: 'available' }), '☁');
 });
 
-test('assetStateBadgeTitle: 4 状態それぞれの長め文言', () => {
-    assert.equal(assetStateBadgeTitle({ state: 'cached' }), '取得済み');
-    assert.equal(assetStateBadgeTitle({ state: 'available' }), '未取得');
-    assert.equal(assetStateBadgeTitle({ state: 'available', price: 2980 }), '購入済み（未取得）');
-    assert.equal(assetStateBadgeTitle({ state: 'locked', price: 1200 }), '¥1,200 未購入');
+test('assetStateBadgeTitle: descriptions for all four states', () => {
+    assert.equal(assetStateBadgeTitle({ state: 'cached' }), 'Downloaded');
+    assert.equal(assetStateBadgeTitle({ state: 'available' }), 'Not downloaded');
+    assert.equal(assetStateBadgeTitle({ state: 'available', price: 2980 }), 'Purchased (not downloaded)');
+    assert.equal(assetStateBadgeTitle({ state: 'locked', price: 1200 }), '¥1,200 Not purchased');
     assert.equal(assetStateBadgeTitle({}), undefined);
 });
 
-test('deriveStoreLabBaseUrl: url 未指定は本番既定 https://akari.video/lab', () => {
+test('deriveStoreLabBaseUrl: missing URL defaults to https://akari.video/lab', () => {
     assert.equal(deriveStoreLabBaseUrl(undefined), 'https://akari.video/lab');
 });
 
-test('deriveStoreLabBaseUrl: store-credentials.json の url（.../api/store）から .../lab を導く', () => {
+test('deriveStoreLabBaseUrl: derives the Lab URL from store-credentials.json', () => {
     assert.equal(deriveStoreLabBaseUrl('https://akari.video/api/store'), 'https://akari.video/lab');
     assert.equal(deriveStoreLabBaseUrl('http://localhost:8788/api/store'), 'http://localhost:8788/lab');
 });
 
-test('storeProductUrl: 商品ページ URL（asset.html?id=<id>）を組み立てる', () => {
+test('storeProductUrl: constructs asset.html?id=<id>', () => {
     assert.equal(
         storeProductUrl('http://localhost:8788/api/store', 'phone-pro-titanium'),
         'http://localhost:8788/lab/asset.html?id=phone-pro-titanium'
@@ -206,25 +206,25 @@ test('storeProductUrl: 商品ページ URL（asset.html?id=<id>）を組み立�
     );
 });
 
-test('catalogPurchaseActionText: カードは額面のみ、リストは「で購入」まで表示する', () => {
+test('catalogPurchaseActionText: cards show price; lists show the purchase action', () => {
     const url = 'https://akari.video/lab/asset.html?id=paid-asset';
     assert.deepEqual(catalogPurchaseActionText(2980, 'grid', url), {
         label: '¥2,980',
-        title: `¥2,980 で購入 — AKARI Video Lab を開く（${url}）`
+        title: `¥2,980 to purchase — Open AKARI Video Lab(${url})`
     });
     assert.deepEqual(catalogPurchaseActionText(2980, 'list', url), {
-        label: '¥2,980 で購入',
-        title: `¥2,980 で購入 — AKARI Video Lab を開く（${url}）`
+        label: '¥2,980 to purchase',
+        title: `¥2,980 to purchase — Open AKARI Video Lab(${url})`
     });
 });
 
-test('catalogPurchaseActionText: price 未指定は ¥0 として一貫して表示する', () => {
+test('catalogPurchaseActionText: missing price consistently shows ¥0', () => {
     const url = 'https://example.com/asset';
     assert.equal(catalogPurchaseActionText(undefined, 'grid', url).label, '¥0');
-    assert.match(catalogPurchaseActionText(undefined, 'list', url).title, /^¥0 で購入 — AKARI Video Lab を開く/);
+    assert.match(catalogPurchaseActionText(undefined, 'list', url).title, /^¥0 to purchase — Open AKARI Video Lab/);
 });
 
-test('selectResolverAudioFileRef: audio カテゴリで url 型の音声ファイルを選ぶ', () => {
+test('selectResolverAudioFileRef: selects a URL audio file in the audio category', () => {
     const ref = selectResolverAudioFileRef({
         category: 'audio',
         files: [{ name: 'bgm-beatslide-124-001.mp3', url: 'https://github.com/AkariLabs/akari-sounds/releases/download/v0/bgm-beatslide-124-001.mp3' }]
@@ -232,7 +232,7 @@ test('selectResolverAudioFileRef: audio カテゴリで url 型の音声ファ�
     assert.equal(ref, 'https://github.com/AkariLabs/akari-sounds/releases/download/v0/bgm-beatslide-124-001.mp3');
 });
 
-test('selectResolverAudioFileRef: audio カテゴリで key 型の音声ファイルを選ぶ（base 相対キーのまま返す）', () => {
+test('selectResolverAudioFileRef: returns an audio key relative to base', () => {
     const ref = selectResolverAudioFileRef({
         category: 'audio',
         files: [{ name: 'se-click.wav', key: 'audio/se-click/v1/se-click.wav' }]
@@ -240,7 +240,7 @@ test('selectResolverAudioFileRef: audio カテゴリで key 型の音声ファ�
     assert.equal(ref, 'audio/se-click/v1/se-click.wav');
 });
 
-test('selectResolverAudioFileRef: 複数ファイルのうち音声拡張子に一致する先頭の 1 件を選ぶ', () => {
+test('selectResolverAudioFileRef: selects the first file with an audio extension', () => {
     const ref = selectResolverAudioFileRef({
         category: 'audio',
         files: [
@@ -252,7 +252,7 @@ test('selectResolverAudioFileRef: 複数ファイルのうち音声拡張子に�
     assert.equal(ref, 'https://example.com/bgm-a.m4a');
 });
 
-test('selectResolverAudioFileRef: audio カテゴリ以外は files[] があっても常に undefined（still の preview 混同防止）', () => {
+test('selectResolverAudioFileRef: ignores files outside the audio category', () => {
     const ref = selectResolverAudioFileRef({
         category: 'still',
         files: [{ name: 'photo.mp3', url: 'https://example.com/photo.mp3' }]
@@ -260,7 +260,7 @@ test('selectResolverAudioFileRef: audio カテゴリ以外は files[] があっ�
     assert.equal(ref, undefined);
 });
 
-test('selectResolverAudioFileRef: files[] が無い / 空 / 音声拡張子に一致しない場合は undefined', () => {
+test('selectResolverAudioFileRef: missing or non-audio files return undefined', () => {
     assert.equal(selectResolverAudioFileRef({ category: 'audio' }), undefined);
     assert.equal(selectResolverAudioFileRef({ category: 'audio', files: [] }), undefined);
     assert.equal(selectResolverAudioFileRef({ category: 'audio', files: [{ name: 'not-audio.txt', url: 'https://example.com/not-audio.txt' }] }), undefined);
@@ -270,7 +270,7 @@ test('selectResolverAudioFileRef: files[] が無い / 空 / 音声拡張子に�
 // 優先順位（installed > paid-license-required > remote）の実データ確認: catalog/font/
 // 851-chikara-dzuyoku（free）・vdl-v7-mincho（paid）・ab-kirigirisu（subscription）。
 
-test('deriveAssetDistribution: installed は他条件に関わらず bundled が最優先', () => {
+test('deriveAssetDistribution: installed always takes bundled priority', () => {
     const distribution = deriveAssetDistribution({
         installed: true,
         licenseScope: 'paid-license-required',
@@ -280,7 +280,7 @@ test('deriveAssetDistribution: installed は他条件に関わらず bundled が
     assert.equal(distribution, 'bundled');
 });
 
-test('deriveAssetDistribution: paid-license-required かつ subscription タグ無し — paid', () => {
+test('deriveAssetDistribution: paid license without a subscription tag is paid', () => {
     const distribution = deriveAssetDistribution({
         installed: false,
         licenseScope: 'paid-license-required',
@@ -290,7 +290,7 @@ test('deriveAssetDistribution: paid-license-required かつ subscription タグ�
     assert.equal(distribution, 'paid');
 });
 
-test('deriveAssetDistribution: paid-license-required かつ subscription タグあり — subscription', () => {
+test('deriveAssetDistribution: paid license with a subscription tag is subscription', () => {
     const distribution = deriveAssetDistribution({
         installed: false,
         licenseScope: 'paid-license-required',
@@ -300,7 +300,7 @@ test('deriveAssetDistribution: paid-license-required かつ subscription タグ�
     assert.equal(distribution, 'subscription');
 });
 
-test('deriveAssetDistribution: paid-license-required でなく remote:true — free', () => {
+test('deriveAssetDistribution: remote without a paid license is free', () => {
     const distribution = deriveAssetDistribution({
         installed: false,
         licenseScope: 'commercial-ok',
@@ -310,67 +310,67 @@ test('deriveAssetDistribution: paid-license-required でなく remote:true — f
     assert.equal(distribution, 'free');
 });
 
-test('deriveAssetDistribution: installed でも remote でも paid-license でもない — undefined（バッジ無し）', () => {
+test('deriveAssetDistribution: no distribution returns undefined', () => {
     assert.equal(deriveAssetDistribution({ installed: false, licenseScope: 'commercial-ok', remote: false }), undefined);
     assert.equal(deriveAssetDistribution({ installed: false }), undefined);
 });
 
-test('deriveAssetDistribution: tags 未指定でも例外にならない（paid 側の subscription 判定）', () => {
+test('deriveAssetDistribution: missing tags do not throw', () => {
     assert.equal(deriveAssetDistribution({ installed: false, licenseScope: 'paid-license-required' }), 'paid');
 });
 
-test('assetDistributionBadgeText: bundled は「✓ 同梱済み」', () => {
-    assert.equal(assetDistributionBadgeText('bundled'), '✓ 同梱済み');
+test('assetDistributionBadgeText: bundled shows bundled', () => {
+    assert.equal(assetDistributionBadgeText('bundled'), '✓ Bundled');
 });
 
-test('assetDistributionBadgeText: subscription は「サブスク」', () => {
-    assert.equal(assetDistributionBadgeText('subscription'), 'サブスク');
+test('assetDistributionBadgeText: subscription shows subscription', () => {
+    assert.equal(assetDistributionBadgeText('subscription'), 'Subscription');
 });
 
-test('assetDistributionBadgeText: paid は「¥ 各自入手」', () => {
-    assert.equal(assetDistributionBadgeText('paid'), '¥ 各自入手');
+test('assetDistributionBadgeText: paid shows separate purchase', () => {
+    assert.equal(assetDistributionBadgeText('paid'), '¥ Obtain separately');
 });
 
-test('assetDistributionBadgeText: free かつ acquisition 未指定/direct は「☁ 無料 DL」', () => {
-    assert.equal(assetDistributionBadgeText('free'), '☁ 無料 DL');
-    assert.equal(assetDistributionBadgeText('free', 'direct'), '☁ 無料 DL');
+test('assetDistributionBadgeText: free direct downloads show free download', () => {
+    assert.equal(assetDistributionBadgeText('free'), '☁ Free download');
+    assert.equal(assetDistributionBadgeText('free', 'direct'), '☁ Free download');
 });
 
-test('assetDistributionBadgeText: free かつ acquisition="login" は「☁ 無料 DL（要登録）」', () => {
-    assert.equal(assetDistributionBadgeText('free', 'login'), '☁ 無料 DL（要登録）');
+test('assetDistributionBadgeText: free login downloads show registration required', () => {
+    assert.equal(assetDistributionBadgeText('free', 'login'), '☁ Free download (registration required)');
 });
 
-test('assetDistributionBadgeText: distribution 未指定は undefined（バッジを出さない）', () => {
+test('assetDistributionBadgeText: missing distribution hides the badge', () => {
     assert.equal(assetDistributionBadgeText(undefined), undefined);
 });
 
 // --- パック棚: catalogItemPackIds / groupCatalogItemsByPack / summarizeCatalogPackDistribution /
 // formatCatalogPackBreakdown（task.md §3） ------------------------------------------------------
 
-test('catalogItemPackIds: pack: プレフィックスのタグから id を抽出する', () => {
+test('catalogItemPackIds: extracts IDs from pack: tags', () => {
     assert.deepEqual(catalogItemPackIds({ tags: ['font', 'pack:font25-2026-08', 'handwriting'] }), ['font25-2026-08']);
 });
 
-test('catalogItemPackIds: pack: タグが無ければ空配列', () => {
+test('catalogItemPackIds: no pack: tags returns an empty array', () => {
     assert.deepEqual(catalogItemPackIds({ tags: ['font', 'handwriting'] }), []);
     assert.deepEqual(catalogItemPackIds({}), []);
 });
 
-test('catalogItemPackIds: 複数の pack: タグを全件抽出する', () => {
+test('catalogItemPackIds: extracts every pack: tag', () => {
     assert.deepEqual(catalogItemPackIds({ tags: ['pack:a', 'pack:b'] }), ['a', 'b']);
 });
 
-const PACKS = [{ id: 'font25-2026-08', category: 'font', title: 'テロップ向け必須フォント 25 選', summary: '棚卸し済み 25 書体' }];
+const PACKS = [{ id: 'font25-2026-08', category: 'font', title: '25 essential fonts for Captions', summary: '25 reviewed typefaces' }];
 
 function fontItem(id, title, tags, extra) {
     return { origin: 'local', key: `font/${id}`, id, category: 'font', title, tags, ...extra };
 }
 
-test('groupCatalogItemsByPack: pack タグを持つ項目をグループ化し、無関係な項目は ungrouped に残す', () => {
+test('groupCatalogItemsByPack: groups tagged items and retains unrelated items', () => {
     const items = [
-        fontItem('a', 'A書体', ['pack:font25-2026-08']),
-        fontItem('b', 'B書体', ['pack:font25-2026-08']),
-        fontItem('c', 'C書体', ['font'])
+        fontItem('a', 'Typeface A', ['pack:font25-2026-08']),
+        fontItem('b', 'Typeface B', ['pack:font25-2026-08']),
+        fontItem('c', 'Typeface C', ['font'])
     ];
     const { groups, ungrouped } = groupCatalogItemsByPack(items, PACKS);
     assert.equal(groups.length, 1);
@@ -379,41 +379,41 @@ test('groupCatalogItemsByPack: pack タグを持つ項目をグループ化し�
     assert.deepEqual(ungrouped.map(item => item.id), ['c']);
 });
 
-test('groupCatalogItemsByPack: packs.json に無い pack id を指すタグは ungrouped 側に落ちる（壊れタグで落ちない）', () => {
-    const items = [fontItem('x', 'X書体', ['pack:unknown-pack'])];
+test('groupCatalogItemsByPack: unknown pack IDs remain ungrouped', () => {
+    const items = [fontItem('x', 'Typeface X', ['pack:unknown-pack'])];
     const { groups, ungrouped } = groupCatalogItemsByPack(items, PACKS);
     assert.equal(groups.length, 0);
     assert.deepEqual(ungrouped.map(item => item.id), ['x']);
 });
 
-test('groupCatalogItemsByPack: 該当アイテムが 1 件も無い pack はセクション自体を作らない', () => {
+test('groupCatalogItemsByPack: empty packs do not create sections', () => {
     const { groups } = groupCatalogItemsByPack([], PACKS);
     assert.deepEqual(groups, []);
 });
 
-test('groupCatalogItemsByPack: 複数 pack タグを持つ項目は各セクションに重複して現れ、ungrouped には入らない', () => {
+test('groupCatalogItemsByPack: multiple tags put an item in every matching pack', () => {
     const packs = [
-        { id: 'p1', category: 'font', title: 'パック1' },
-        { id: 'p2', category: 'font', title: 'パック2' }
+        { id: 'p1', category: 'font', title: 'Pack 1' },
+        { id: 'p2', category: 'font', title: 'Pack 2' }
     ];
-    const items = [fontItem('shared', '共用書体', ['pack:p1', 'pack:p2'])];
+    const items = [fontItem('shared', 'Shared typeface', ['pack:p1', 'pack:p2'])];
     const { groups, ungrouped } = groupCatalogItemsByPack(items, packs);
     assert.equal(groups.length, 2);
     assert.ok(groups.every(group => group.items.some(item => item.id === 'shared')));
     assert.deepEqual(ungrouped, []);
 });
 
-test('groupCatalogItemsByPack: グループの並び順は packs.json の順序に従う', () => {
+test('groupCatalogItemsByPack: groups follow packs.json order', () => {
     const packs = [
-        { id: 'p1', category: 'font', title: 'パック1' },
-        { id: 'p2', category: 'font', title: 'パック2' }
+        { id: 'p1', category: 'font', title: 'Pack 1' },
+        { id: 'p2', category: 'font', title: 'Pack 2' }
     ];
     const items = [fontItem('b', 'B', ['pack:p2']), fontItem('a', 'A', ['pack:p1'])];
     const { groups } = groupCatalogItemsByPack(items, packs);
     assert.deepEqual(groups.map(group => group.pack.id), ['p1', 'p2']);
 });
 
-test('summarizeCatalogPackDistribution: distribution ごとの内訳 + total を集計する', () => {
+test('summarizeCatalogPackDistribution: counts distribution and total', () => {
     const items = [
         { distribution: 'bundled' },
         { distribution: 'bundled' },
@@ -427,57 +427,57 @@ test('summarizeCatalogPackDistribution: distribution ごとの内訳 + total を
     });
 });
 
-test('formatCatalogPackBreakdown: 0 件の分類は出さない（task.md 例の形に一致）', () => {
+test('formatCatalogPackBreakdown: omits zero-count categories', () => {
     const breakdown = { total: 23, bundled: 9, free: 14, paid: 0, subscription: 0 };
-    assert.equal(formatCatalogPackBreakdown(breakdown), '23 件 — 同梱 9 / 無料 DL 14');
+    assert.equal(formatCatalogPackBreakdown(breakdown), '23 items — Bundled 9 / Free download 14');
 });
 
-test('formatCatalogPackBreakdown: 全分類 0 件なら内訳を出さず件数だけ', () => {
-    assert.equal(formatCatalogPackBreakdown({ total: 0, bundled: 0, free: 0, paid: 0, subscription: 0 }), '0 件');
+test('formatCatalogPackBreakdown: all-zero categories show only the count', () => {
+    assert.equal(formatCatalogPackBreakdown({ total: 0, bundled: 0, free: 0, paid: 0, subscription: 0 }), '0 items');
 });
 
 // カタログ面の空状態分岐（catalog-account-first-ux task.md §1/§2）。
 // resolver 失敗 / resolver 成功だが 0 件 / 件数ありの 3 パターンをここで単体テストする
 // （L0 受け入れ条件「空状態分岐の単体テスト追加」の実体）。
 
-test('deriveCatalogEmptyStateKind: 件数 > 0 は resolver の状態に関わらず items', () => {
+test('deriveCatalogEmptyStateKind: positive count means items regardless of resolver state', () => {
     assert.equal(deriveCatalogEmptyStateKind(1, 'ok'), 'items');
     assert.equal(deriveCatalogEmptyStateKind(3, 'failed'), 'items');
 });
 
-test('deriveCatalogEmptyStateKind: 0 件 + resolver 失敗 → resolver-failed（オフライン初回等の正直表示）', () => {
+test('deriveCatalogEmptyStateKind: no items and resolver failure means resolver-failed', () => {
     assert.equal(deriveCatalogEmptyStateKind(0, 'failed'), 'resolver-failed');
 });
 
-test('deriveCatalogEmptyStateKind: 0 件 + resolver 成功 → empty（通常起きない素直な空状態）', () => {
+test('deriveCatalogEmptyStateKind: no items and resolver success means empty', () => {
     assert.equal(deriveCatalogEmptyStateKind(0, 'ok'), 'empty');
 });
 
-test('deriveCatalogResolverNotice: unauthorized は再接続案内で再試行ボタン無し', () => {
+test('deriveCatalogResolverNotice: unauthorized requests reconnection without retry', () => {
     assert.deepEqual(deriveCatalogResolverNotice('ok', 'unauthorized'), {
         kind: 'unauthorized',
-        message: 'AKARI アカウントの接続が解除されています — ホームから再接続してください',
+        message: 'Your AKARI account is disconnected — reconnect from Home',
         retry: false
     });
 });
 
-test('deriveCatalogResolverNotice: entitlements error は従来の取得失敗 + 再試行', () => {
+test('deriveCatalogResolverNotice: entitlement error offers retry', () => {
     assert.deepEqual(deriveCatalogResolverNotice('ok', 'error'), {
         kind: 'error',
-        message: 'アカウント素材の取得に失敗',
+        message: 'Failed to retrieve account assets',
         retry: true
     });
 });
 
-test('deriveCatalogResolverNotice: ok / no_credentials は案内行を出さない', () => {
+test('deriveCatalogResolverNotice: ok and no_credentials omit the notice', () => {
     assert.equal(deriveCatalogResolverNotice('ok', 'ok'), undefined);
     assert.equal(deriveCatalogResolverNotice('ok', 'no_credentials'), undefined);
 });
 
-test('deriveCatalogResolverNotice: resolver 全体の失敗は従来の取得失敗 + 再試行', () => {
+test('deriveCatalogResolverNotice: resolver failure offers retry', () => {
     assert.deepEqual(deriveCatalogResolverNotice('failed', 'error'), {
         kind: 'error',
-        message: 'アカウント素材の取得に失敗',
+        message: 'Failed to retrieve account assets',
         retry: true
     });
 });

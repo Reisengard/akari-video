@@ -78,13 +78,13 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
                 'akari.developerMode': {
                     type: 'boolean',
                     default: false,
-                    description: 'すべてのプロジェクトファイルと詳細情報を表示します。'
+                    description: 'Show all project files and detailed information.'
                 },
                 'akari.catalog.root': {
                     type: 'string',
                     default: '',
-                    description: 'カタログタブが読むディレクトリ（catalog/ 相当）。' +
-                        '未設定のときはリポ開発配置の catalog/ を自動検出します。'
+                    description: 'Directory read by the catalog tab (equivalent to catalog/).' +
+                        'When unset, automatically detects catalog/ in the repository development layout.'
                 }
             }
         }

@@ -32,14 +32,14 @@ async function fixture(t, edit) {
     const directory = join(root, '.akari/sidecars/assets/voice.wav.analysis');
     await mkdir(join(directory, 'transcripts'), { recursive: true });
     const cuts = { version: 1, generated_at: 'fixed', basis: 'whisper-cpp', rules: { silence_keep_sec: .5 },
-        candidates: [{ id: 'c-1', kind: 'filler', start: 2, end: 3, text: 'えー', on: true, default_on: true, reason: 'filler', timing: 'estimated' },
+        candidates: [{ id: 'c-1', kind: 'filler', start: 2, end: 3, text: 'Um', on: true, default_on: true, reason: 'filler', timing: 'estimated' },
             { id: 'c-2', kind: 'silence', start: 5, end: 6, text: null, on: false, default_on: false, reason: 'silence' }],
         hand_edited: [{ candidate: 'c-2', line: 3 }] };
     await writeFile(join(directory, 'cuts.json'), JSON.stringify(cuts));
     await writeFile(join(root, 'edit.json'), JSON.stringify(edit ?? { version: 1, output: { width: 1920, height: 1080, fps: 30 },
         sources: [{ id: 'voice', path: 'assets/voice.wav', proxy: null }, { id: 'other', path: 'assets/other.wav', proxy: null }],
         cuts: [{ src: 'voice', in: 0, out: 10 }, { src: 'other', in: 0, out: 10, speed: 2 }] }));
-    await writeFile(join(root, 'captions.json'), ' {"captions": [{"text":"人の台本"}]}\r\n');
+    await writeFile(join(root, 'captions.json'), ' {"captions": [{"text":"Human script"}]}\r\n');
     return { root, directory, service: new Service(), cuts, request: { projectRoot: root, relativePath: 'assets/voice.wav' } };
 }
 async function until(condition) { for (let i = 0; i < 500; i++) { if (await condition()) return; await new Promise(resolve => setTimeout(resolve, 5)); } throw new Error('timeout'); }
@@ -67,7 +67,7 @@ test('two backends start concurrently, publish each completion, then diff and cu
 test('unapproved cloud engine fails alone and local engine continues; no cloud spawn', async t => {
     const { service, request, root } = await fixture(t);
     const running = service.transcribeMaterial({ ...request, compareSet: ['whisper-cpp', 'cloud:scribe'], autoCuts: true });
-    const rejected = assert.rejects(running, /承認/);
+    const rejected = assert.rejects(running, /approved/);
     await until(() => service.releases.has('whisper-cpp')); service.releases.get('whisper-cpp')(); await rejected;
     assert.equal(service.calls.some(call => call.args.includes('cloud:scribe')), false);
     assert.equal(service.calls.some(call => call.args[0] === 'transcribe-cuts'), true);
@@ -79,7 +79,7 @@ test('selection changes only on; concurrent selection RPCs retain both changes',
     const actual = JSON.parse(await readFile(join(directory, 'cuts.json'), 'utf8'));
     cuts.candidates[0].on = false; cuts.candidates[1].on = true;
     assert.deepEqual(actual, cuts);
-    await assert.rejects(service.writeCutsSelection({ ...request, on: { 'c-1': 1 } }), /真偽値/);
+    await assert.rejects(service.writeCutsSelection({ ...request, on: { 'c-1': 1 } }), /boolean/);
 });
 test('apply adds cut boundaries, retains other sources, preserves captions bytes and is idempotent', async t => {
     const { service, request, root } = await fixture(t);
@@ -122,7 +122,7 @@ test('sidecar symlinks outside project are refused', async t => {
     const outside = await mkdtemp(join(tmpdir(), 'outside-cuts-')); t.after(() => rm(outside, { recursive: true, force: true }));
     await writeFile(join(outside, 'cuts.json'), '{}'); await rm(join(directory, 'cuts.json'));
     await symlink(join(outside, 'cuts.json'), join(directory, 'cuts.json'));
-    await assert.rejects(service.writeCutsSelection({ ...request, on: {} }), /プロジェクト外/);
+    await assert.rejects(service.writeCutsSelection({ ...request, on: {} }), /outside the project/);
 });
 test('buildCaptions forwards session options without changing caption CLI arguments', async t => {
     const { service, root } = await fixture(t);

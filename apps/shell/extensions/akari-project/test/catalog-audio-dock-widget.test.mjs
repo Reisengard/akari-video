@@ -9,7 +9,7 @@ const widget = source.statements.find(node => ts.isClassDeclaration(node) && nod
 assert.ok(widget);
 const method = name => {
     const member = widget.members.find(node => node.name?.getText(source) === name);
-    assert.ok(member, `${name} が存在する`);
+    assert.ok(member, `${name} exists`);
     return member.getText(source);
 };
 const react = { createElement: (type, props, ...children) => ({ type, props: { ...props, children } }) };
@@ -45,33 +45,33 @@ function fixture() {
     return { handler, calls };
 }
 
-test('カテゴリ・パックの一覧外に、下端固定の試聴ドックを描画する', () => {
+test('renders a fixed preview dock outside category and pack lists', () => {
     for (const name of ['renderCatalogBody', 'renderLibraryPackBody']) {
         assert.doesNotMatch(method(name), /renderCatalogAudio(?:Bar|Dock)\s*\(/);
     }
     const { handler } = fixture();
-    const item = { key: 'audio/bgm', title: '曲名', mediaUrl: 'sample.mp3' };
+    const item = { key: 'audio/bgm', title: 'Track title', mediaUrl: 'sample.mp3' };
     handler.toggleCatalogAudio(item);
     const tree = handler.renderMaterialsPane();
     const scroll = walk(tree, node => node.props?.style?.overflowY === 'auto');
     const dock = walk(tree, node => node.props?.['data-akari-catalog-audio-dock'] !== undefined);
     assert.ok(scroll && dock);
-    assert.equal(walk(scroll, node => node === dock), undefined, 'ドックは一覧スクロール領域の外');
+    assert.equal(walk(scroll, node => node === dock), undefined, 'the dock is outside the scrolling list');
     assert.equal(dock.props.style.position, 'absolute');
     assert.equal(dock.props.style.bottom, '8px');
     assert.equal(scroll.props.style.paddingBottom, '56px');
-    assert.equal(walk(dock, node => node.props?.['data-akari-catalog-audio-bar-stop'] !== undefined)?.props.children[0], '停止');
+    assert.equal(walk(dock, node => node.props?.['data-akari-catalog-audio-bar-stop'] !== undefined)?.props.children[0], 'Stop');
     let stopped = false;
     dock.props.onClick({ stopPropagation: () => { stopped = true; } });
-    assert.equal(stopped, true, 'ドック内クリックは一覧の面外クリックへ伝えない');
+    assert.equal(stopped, true, 'clicks inside the dock do not dismiss the list');
     assert.match(text, /animation: akari-catalog-audio-dock-enter 180ms/);
     assert.match(text, /prefers-reduced-motion: reduce/);
 });
 
-test('再クリック・停止・× で再生状態を閉じ、別カードなら共有プレイヤーを切り替える', () => {
+test('click again, stop, or close ends playback; another card switches the shared player', () => {
     const { handler, calls } = fixture();
-    const first = { key: 'audio/first', title: '最初', mediaUrl: 'first.mp3' };
-    const second = { key: 'audio/second', title: '次', mediaUrl: 'second.mp3' };
+    const first = { key: 'audio/first', title: 'First', mediaUrl: 'first.mp3' };
+    const second = { key: 'audio/second', title: 'Next', mediaUrl: 'second.mp3' };
     handler.toggleCatalogAudio(first);
     assert.equal(handler.playingCatalogAudioKey, first.key);
     handler.toggleCatalogAudio(first);
@@ -95,9 +95,9 @@ test('再クリック・停止・× で再生状態を閉じ、別カードな�
     assert.ok(calls.pause >= 4);
 });
 
-test('候補棚では試聴を止め、ドックを表示しない', () => {
+test('candidate shelves stop playback and hide the dock', () => {
     const { handler } = fixture();
-    handler.toggleCatalogAudio({ key: 'audio/a', title: '曲', mediaUrl: 'a.mp3' });
+    handler.toggleCatalogAudio({ key: 'audio/a', title: 'Track', mediaUrl: 'a.mp3' });
     handler.materialSwap = { request: {} };
     assert.equal(walk(handler.renderMaterialsPane(), node => node.props?.['data-akari-catalog-audio-dock'] !== undefined), undefined);
     assert.match(method('openMaterialSwap'), /if \(this\.playingCatalogAudioKey\) this\.stopCatalogAudio\(\);[\s\S]*this\.materialSwap\s*=/);

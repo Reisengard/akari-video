@@ -119,21 +119,21 @@ export interface LibraryLicenseSheet {
     moreUrl?: string;
 }
 
-const REDISTRIBUTE_NG = '素材そのものを単体で再販売・再配布したり、自作と名乗ったりはしないでください。';
-const TRADEMARK_NG = 'この素材を含むデザインは商標（ロゴ）として登録できません。';
-const CREDIT_WARN = '動画の概要欄などに、作者名とライセンスを書いてください（「クレジットをコピー」で出せます）。';
+const REDISTRIBUTE_NG = 'Do not resell or redistribute the asset on its own or claim it as your own work.';
+const TRADEMARK_NG = 'Designs containing this asset cannot be registered as trademarks (logos).';
+const CREDIT_WARN = 'Include the creator name and license in the video description or elsewhere (use Copy credits to get the text).';
 
 /** SPDX を人が読む名前へ。知らない識別子はそのまま出す。 */
 export function libraryLicenseDisplayName(spdx: string | undefined): string {
     const id = spdx?.trim();
-    if (!id) return 'ライセンスの記載なし';
-    if (id === 'CC0-1.0') return 'CC0（パブリックドメイン）';
-    if (id === LAB_PREMIUM_SPDX) return `AKARI Video Lab 素材ライセンス（${id}）`;
-    if (id === 'LicenseRef-user-owned') return '自分で追加した素材';
+    if (!id) return 'No license specified';
+    if (id === 'CC0-1.0') return 'CC0 (public domain)';
+    if (id === LAB_PREMIUM_SPDX) return `AKARI Video Lab asset license (${id})`;
+    if (id === 'LicenseRef-user-owned') return 'Asset you added';
     const cc = /^CC-BY((?:-(?:NC|SA|ND))*)-(\d\.\d)$/i.exec(id);
     if (cc) {
         const parts = cc[1].toUpperCase();
-        const note = parts.includes('NC') ? '（非営利）' : '（帰属表示）';
+        const note = parts.includes('NC') ? '(Noncommercial)' : '(Attribution)';
         return `CC BY${parts} ${cc[2]}${note}`;
     }
     if (id === 'OFL-1.1') return 'SIL Open Font License 1.1';
@@ -158,54 +158,54 @@ export function libraryLicenseSheet(item: LibraryLicenseKindInput): LibraryLicen
     const name = libraryLicenseDisplayName(spdx);
     switch (kind) {
         case 'builtin':
-            return { kind, name: spdx ? name : 'AKARI Video の標準素材', title: 'ライセンスがシンプルに',
-                lead: 'AKARI Video を使うすべての人が、無料で使えます。', credit: false, moreUrl,
+            return { kind, name: spdx ? name : 'Standard AKARI Video assets', title: 'Simple licensing',
+                lead: 'Anyone using AKARI Video can use these assets for free.', credit: false, moreUrl,
                 items: [
-                    { mark: 'ok', text: 'AKARI Video で作る動画の中で、個人用にも商用にも安心して使えます。' },
-                    { mark: 'ok', text: 'SNS・広告・収益化した動画に使えます。' },
+                    { mark: 'ok', text: 'Use them in videos made with AKARI Video for personal or commercial purposes.' },
+                    { mark: 'ok', text: 'Use them in social media, ads, and monetized videos.' },
                     { mark: 'ng', text: REDISTRIBUTE_NG },
                     { mark: 'ng', text: TRADEMARK_NG }
                 ] };
         case 'cc0':
-            return { kind, name, title: '自由に使えます', lead: '権利が放棄された素材です。誰でも無料で使えます。',
+            return { kind, name, title: 'Free to use', lead: 'Rights to these assets have been waived. Anyone can use them for free.',
                 credit: false, moreUrl,
                 items: [
-                    { mark: 'ok', text: '個人・商用どちらの動画にも使えます。クレジットも不要です。' },
-                    { mark: 'ok', text: '加工・切り抜き・色の変更も自由です。' },
-                    { mark: 'warn', text: '人物や商標が写っている場合は、その権利に注意してください。' }
+                    { mark: 'ok', text: 'Use them in personal or commercial videos. No credit is required.' },
+                    { mark: 'ok', text: 'You may edit, crop, and change the colors freely.' },
+                    { mark: 'warn', text: 'If people or trademarks appear, be mindful of their rights.' }
                 ] };
         case 'premium':
-            return { kind, name: libraryLicenseDisplayName(LAB_PREMIUM_SPDX), title: 'Lab のプレミアム素材',
-                lead: 'Lab で購入した人（またはこの素材を含むパスを持っている人）が使えます。', credit: false,
+            return { kind, name: libraryLicenseDisplayName(LAB_PREMIUM_SPDX), title: 'Premium Lab assets',
+                lead: 'Available to people who purchased the asset in Lab or hold a pass that includes it.', credit: false,
                 items: [
-                    { mark: 'ok', text: 'AKARI Video で作る動画の中で、個人用にも商用にも使えます。' },
-                    { mark: 'ok', text: '収益化・広告・案件の動画にも使えます。' },
-                    { mark: 'ng', text: '素材そのものの単体での再配布・再販売・ほかの素材集への再収録はできません。' },
+                    { mark: 'ok', text: 'Use them in personal or commercial videos made with AKARI Video.' },
+                    { mark: 'ok', text: 'Use them in monetized videos, ads, and client work.' },
+                    { mark: 'ng', text: 'You may not redistribute or resell the asset on its own or include it in other asset collections.' },
                     { mark: 'ng', text: TRADEMARK_NG }
                 ] };
         case 'by':
-            return { kind, name, title: 'クレジットを書けば使えます',
-                lead: '作者の名前（帰属表示）を載せれば、商用にも使えます。', credit: true, moreUrl,
+            return { kind, name, title: 'Available with credit',
+                lead: 'Commercial use is allowed when you credit the creator (attribution).', credit: true, moreUrl,
                 items: [
-                    { mark: 'ok', text: '個人・商用どちらの動画にも使えます。' },
+                    { mark: 'ok', text: 'Use them in personal or commercial videos.' },
                     { mark: 'warn', text: CREDIT_WARN },
-                    { mark: 'ok', text: '加工もできます（加工したことも書くと親切です）。' }
+                    { mark: 'ok', text: 'You may edit them (indicating that you made changes is helpful).' }
                 ] };
         case 'nc':
-            return { kind, name, title: '商用では使えません', lead: '営利目的でない動画にだけ使えます。',
+            return { kind, name, title: 'Commercial use is not allowed', lead: 'Use only in noncommercial videos.',
                 credit: true, moreUrl,
                 items: [
-                    { mark: 'ok', text: '趣味・学校・非営利の動画には使えます（クレジットは必要）。' },
-                    { mark: 'ng', text: '収益化した動画・広告・案件・商品の販売には使えません。' },
-                    { mark: 'warn', text: '書き出しのとき、この素材が入っていると注意が出ます。' }
+                    { mark: 'ok', text: 'Use in hobby, school, and nonprofit videos is allowed (credit required).' },
+                    { mark: 'ng', text: 'Do not use in monetized videos, ads, client work, or products for sale.' },
+                    { mark: 'warn', text: 'A warning appears during export if this asset is included.' }
                 ] };
         case 'own':
-            return { kind, name, title: '自分で追加した素材',
-                lead: 'ライブラリに自分で入れた素材です。使える範囲は、入手したときの条件に従います。',
+            return { kind, name, title: 'Asset you added',
+                lead: 'You added this asset to the library. Its use is governed by the terms under which you obtained it.',
                 credit: axes.attributionRequired === true, moreUrl,
                 items: [
-                    { mark: 'ok', text: '自分で撮った・作った素材なら、自由に使えます。' },
-                    { mark: 'warn', text: '素材サイトから入れたものは、そのサイトの利用規約を確かめてください。' },
+                    { mark: 'ok', text: 'You may freely use assets you filmed or created yourself.' },
+                    { mark: 'warn', text: 'For assets from websites, check the terms of use on the source website.' },
                     ...(axes.attributionRequired === true ? [{ mark: 'warn' as const, text: CREDIT_WARN }] : [])
                 ] };
         default:
@@ -218,20 +218,20 @@ function otherLicenseSheet(name: string, axes: LibraryLicenseAxes, moreUrl: stri
     let title: string;
     let lead: string;
     if (axes.commercial === 'prohibited') {
-        title = '商用では使えません';
-        lead = '営利目的でない動画にだけ使えます。';
-        items.push({ mark: 'ng', text: '収益化した動画・広告・案件・商品の販売には使えません。' });
+        title = 'Commercial use is not allowed';
+        lead = 'Use only in noncommercial videos.';
+        items.push({ mark: 'ng', text: 'Do not use in monetized videos, ads, client work, or products for sale.' });
     } else if (axes.commercial === 'allowed') {
-        title = axes.attributionRequired ? 'クレジットを書けば使えます' : '商用でも使えます';
-        lead = '配布元の条件の範囲で、個人・商用どちらの動画にも使えます。';
-        items.push({ mark: 'ok', text: '個人・商用どちらの動画にも使えます。' });
+        title = axes.attributionRequired ? 'Available with credit' : 'Commercial use allowed';
+        lead = 'Use in personal or commercial videos within the source terms.';
+        items.push({ mark: 'ok', text: 'Use them in personal or commercial videos.' });
     } else {
-        title = '使い方を確かめてください';
-        lead = 'この素材の商用利用の可否は、ライブラリの情報からは分かりません。';
-        items.push({ mark: 'warn', text: '収益化する動画に使う前に、配布元の利用規約を確かめてください。' });
+        title = 'Check the terms of use';
+        lead = 'The library information does not indicate whether commercial use of this asset is allowed.';
+        items.push({ mark: 'warn', text: 'Check the source terms of use before including it in a monetized video.' });
     }
     if (axes.attributionRequired === true) items.push({ mark: 'warn', text: CREDIT_WARN });
-    else if (axes.attributionRequired === false) items.push({ mark: 'ok', text: 'クレジットの表記は不要です。' });
+    else if (axes.attributionRequired === false) items.push({ mark: 'ok', text: 'No credit is required.' });
     items.push({ mark: 'ng', text: REDISTRIBUTE_NG });
     return { kind: 'other', name, title, lead, items, credit: axes.attributionRequired === true, moreUrl };
 }

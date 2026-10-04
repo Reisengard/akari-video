@@ -35,7 +35,7 @@ class GitlessProjectService extends AkariProjectServiceImpl {
     }
 }
 
-test('createProject: git 初期化失敗を警告に留めて watchProject へ進む', async () => {
+test('createProject: warns on git initialization failure and proceeds to watchProject', async () => {
     const root = await mkdtemp(join(tmpdir(), 'akari-project-gitless-test-'));
     const service = new GitlessProjectService();
     const originalWarn = console.warn;

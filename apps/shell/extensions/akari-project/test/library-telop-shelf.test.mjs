@@ -6,7 +6,7 @@ import { catalogItemsWithoutShelvedTelops, isTelopAsset, textTelopItems } from '
 import { isPremiumLocked } from '../lib/common/library-filter.js';
 import { storeProductUrl } from '../lib/common/asset-catalog-view.js';
 
-test('テロップ棚は overlay のタグまたは telop- ID だけを選ぶ', () => {
+test('title card shelf selects only overlay tags or telop- IDs', () => {
     const items = [
         { category: 'overlay', id: 'telop-rich-one', tags: [], key: 'overlay/telop-rich-one' },
         { category: 'overlay', id: 'caption-plate', tags: ['telop'], key: 'overlay/caption-plate' },
@@ -26,7 +26,7 @@ test('overlay category excludes telops but search can find them', () => {
     assert.deepEqual(catalogItemsWithoutShelvedTelops([telop, frame], 'all', ''), [telop, frame]);
 });
 
-test('パックの Lab 導線は素材 id でなく product_id を開く', () => {
+test('pack Lab entry opens product_id rather than asset ID', () => {
     const raw = readFileSync(new URL('../src/browser/akari-role-buckets-widget.tsx', import.meta.url), 'utf8');
     const ast = ts.createSourceFile('widget.tsx', raw, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const widget = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AkariRoleBucketsWidget');
@@ -42,7 +42,7 @@ test('パックの Lab 導線は素材 id でなく product_id を開く', () =>
     assert.doesNotMatch(urls[0], /telop-fixture/);
 });
 
-test('テキスト棚の有料テロップは王冠 1 つで、押すと促しのシートだけを出す', () => {
+test('paid title cards on the text shelf show one crown and only open the prompt sheet on click', () => {
     const raw = readFileSync(new URL('../src/browser/akari-role-buckets-widget.tsx', import.meta.url), 'utf8');
     const ast = ts.createSourceFile('widget.tsx', raw, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const widget = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AkariRoleBucketsWidget');
@@ -54,7 +54,7 @@ test('テキスト棚の有料テロップは王冠 1 つで、押すと促し�
         'textTelopItems', `${code}\nreturn Shelf;`)(React, 'text-page', 'card', 'font-row', textTelopItems);
     const shelf = new Shelf();
     const locked = { origin: 'resolver', category: 'overlay', id: 'telop-fixture', key: 'overlay/telop-fixture',
-        title: '有料テロップ', tags: ['telop'], state: 'locked', price: 1980 };
+        title: 'Paid title card', tags: ['telop'], state: 'locked', price: 1980 };
     const free = { ...locked, id: 'telop-free', key: 'overlay/telop-free', state: 'available', price: 0 };
     const calls = [];
     shelf.ensureLibraryStyleFonts = () => {};

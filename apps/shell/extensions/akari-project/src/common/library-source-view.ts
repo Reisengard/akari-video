@@ -7,8 +7,8 @@ import { PresetShowcase } from './preset-showcase';
 
 export type LibrarySourceFilter = 'all' | 'own' | 'site' | 'lab';
 export const LIBRARY_SOURCE_FILTERS = [
-    { key: 'all', label: '全部' }, { key: 'own', label: '自分の' },
-    { key: 'site', label: '素材サイト' }, { key: 'lab', label: 'Lab' }
+    { key: 'all', label: 'All' }, { key: 'own', label: 'Mine' },
+    { key: 'site', label: 'Asset website' }, { key: 'lab', label: 'Lab' }
 ] as const;
 
 /** resolver の分類は再判定しない。リポ同梱の外部索引だけ site として補う。 */

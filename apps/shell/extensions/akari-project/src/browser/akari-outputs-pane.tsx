@@ -39,10 +39,10 @@ export interface OutputEntry {
 
 /** 下段のグループ見出しと表示順。中身が空のグループは見出しごと描画しない。 */
 const OUTPUT_GROUPS: ReadonlyArray<{ readonly kind: OutputEntryKind; readonly label: string }> = [
-    { kind: 'data', label: '編集データ' },
-    { kind: 'plan', label: '企画・メモ' },
-    { kind: 'export', label: '書き出し' },
-    { kind: 'report', label: 'レポート' }
+    { kind: 'data', label: 'Edit data' },
+    { kind: 'plan', label: 'Planning and notes' },
+    { kind: 'export', label: 'Export' },
+    { kind: 'report', label: 'Reports' }
 ];
 
 export interface OutputsPaneHost {
@@ -395,11 +395,11 @@ export class AkariOutputsPane {
                     justifyContent: 'space-between',
                     padding: '8px 10px 4px'
                 }}>
-                    <span style={{ fontSize: '0.78em', fontWeight: 700, letterSpacing: '0.04em', opacity: 0.75 }}>できたもの</span>
+                    <span style={{ fontSize: '0.78em', fontWeight: 700, letterSpacing: '0.04em', opacity: 0.75 }}>Outputs</span>
                     <button
                         type='button'
-                        title='できたものを更新'
-                        aria-label='できたものを更新'
+                        title='Refresh outputs'
+                        aria-label='Refresh outputs'
                         data-akari-outputs-refresh
                         onClick={() => void this.loadOutputs()}
                         style={{
@@ -424,13 +424,13 @@ export class AkariOutputsPane {
 
     protected renderOutputsBody(): React.ReactNode {
         if (!this.host.workflow.workspaceRoot) {
-            return <p style={{ opacity: 0.7, padding: '16px' }}>プロジェクトを開いてください。</p>;
+            return <p style={{ opacity: 0.7, padding: '16px' }}>Open a project.</p>;
         }
         if (this.outputsLoading && !this.outputsLoadedOnce) {
-            return <p style={{ opacity: 0.7, padding: '16px' }}>読み込み中…</p>;
+            return <p style={{ opacity: 0.7, padding: '16px' }}>Loading…</p>;
         }
         if (!this.outputs.length) {
-            return <p style={{ opacity: 0.7, padding: '16px' }}>まだありません — 編集したり書き出したりするとここに並びます</p>;
+            return <p style={{ opacity: 0.7, padding: '16px' }}>Nothing here yet — your edits and exports will appear here</p>;
         }
         return (
             <div
@@ -597,7 +597,7 @@ export class AkariOutputsPane {
      */
     protected async askAgentAboutOutput(entry: OutputEntry): Promise<void> {
         const request = await this.host.quickInputService.input({
-            placeHolder: 'このファイルについて何を頼みますか'
+            placeHolder: 'What would you like to ask about this file?'
         });
         if (!request || !request.trim()) {
             return;

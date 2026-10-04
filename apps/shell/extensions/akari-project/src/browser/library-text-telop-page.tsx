@@ -12,16 +12,16 @@ export function LibraryTextTelopPage(props: { onBack(): void; onPlace(): void; t
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                 <button type='button' data-akari-library-back onClick={props.onBack}
                     style={{ padding: 0, border: 'none', background: 'transparent', color: 'var(--theia-textLink-foreground)',
-                        cursor: 'pointer', fontSize: '0.8em' }}>← ライブラリ</button>
-                <strong style={{ fontSize: '0.86em' }}>テキスト</strong>
+                        cursor: 'pointer', fontSize: '0.8em' }}>← Library</button>
+                <strong style={{ fontSize: '0.86em' }}>Text</strong>
             </div>
             <button type='button' data-akari-library-place-text onClick={props.onPlace}
                 style={{ width: '100%', margin: '10px 0 9px', padding: '7px 8px', cursor: 'pointer',
                     borderRadius: `${AKARI_RADIUS.panel}px`, border: AKARI_BORDER.ghost,
                     background: AKARI_SURFACE.raised, color: AKARI_INK, textAlign: 'left', fontWeight: 700 }}>
-                ＋ 文字を置く
+                ＋ Place text
             </button>
-            <div role='tablist' aria-label='テキストの種類' data-akari-caption-panel-switch={props.tab}
+            <div role='tablist' aria-label='Text type' data-akari-caption-panel-switch={props.tab}
                 style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '3px',
                     borderRadius: '8px', background: AKARI_SURFACE.elevated, border: AKARI_BORDER.edge }}>
                 <span aria-hidden='true' style={{ position: 'absolute', top: '3px', bottom: '3px', left: '3px',
@@ -34,21 +34,21 @@ export function LibraryTextTelopPage(props: { onBack(): void; onPlace(): void; t
                     style={{ position: 'relative', border: 0, background: 'transparent', padding: '7px 4px',
                         color: props.tab === tab ? 'var(--akari-accent)' : AKARI_INK,
                         fontWeight: props.tab === tab ? 700 : 400, cursor: 'pointer', fontSize: '12px' }}>
-                    {tab === 'style' ? 'スタイル' : tab === 'font' ? 'フォント' : 'テロップ'}
+                    {tab === 'style' ? 'Style' : tab === 'font' ? 'Fonts' : 'On-screen text'}
                 </button>)}
             </div>
         </div>
         {props.tab === 'style' ? <div role='tabpanel' data-akari-text-look-section='style'>
-            <ShelfHeading label='テキストスタイル' hint='置く / かける' />
+            <ShelfHeading label='Text style' hint='Place / Apply' />
             <div style={GRID}>{props.styles}</div>
             {props.myStyles}
-            <ShelfHeading label='テキストアニメ' hint='かける・ホバーで再生' />
+            <ShelfHeading label='Text animation' hint='Apply · Hover to play' />
             <div style={GRID}>{props.motions}</div>
         </div> : props.tab === 'font' ? <div role='tabpanel' data-akari-text-look-section='font'>
-            <ShelfHeading label='フォント' hint='置く / かける' />
+            <ShelfHeading label='Fonts' hint='Place / Apply' />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '8px 10px 12px' }}>{props.fonts}</div>
         </div> : <div role='tabpanel' data-akari-text-look-section='telop'>
-            <ShelfHeading label='テロップ' hint='置く / ドラッグ' />
+            <ShelfHeading label='On-screen text' hint='Place / Drag' />
             <div style={GRID}>{props.telops}</div>
         </div>}
     </div>;

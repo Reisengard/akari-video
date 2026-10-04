@@ -53,7 +53,7 @@ function entry(overrides = {}) {
     unorganized: false, ...overrides };
 }
 
-test('カードクリックは detail を通知し、中央で開き、選択枠を付ける', () => {
+test('card clicks notify detail, open centrally, and show selection outline', () => {
   const { instance, opened } = fixture();
   const row = entry();
   const card = instance.renderMaterialCard(row);
@@ -69,7 +69,7 @@ test('カードクリックは detail を通知し、中央で開き、選択枠
   assert.equal(instance.renderMaterialCard(entry({ relativePath: 'assets/other.mp4' })).props.style.border, 'ghost-border');
 });
 
-test('missing カードは通知も中央で開く動作もない', () => {
+test('missing cards neither notify nor open centrally', () => {
   const { instance, opened } = fixture();
   const card = instance.renderMaterialCard(entry({ missing: true }));
   card.props.onClickCapture({ target: {} });
@@ -79,33 +79,33 @@ test('missing カードは通知も中央で開く動作もない', () => {
   assert.equal(instance.selectedMaterialPath, undefined);
 });
 
-test('素材グループに主メディアがあれば、そのファイルのパスと種類を通知する', () => {
+test('Footage groups with primary media notify its file path and kind', () => {
   const { instance, opened } = fixture();
   const row = entry({
     uri: { toString: () => 'file:///project/assets/interview', path: { base: 'interview' } },
     relativePath: 'assets/interview', mediaRelativePath: 'assets/interview/main.wav',
-    assetGroup: { category: 'audio' }, name: '取材音声'
+    assetGroup: { category: 'audio' }, name: 'Interview audio'
   });
   const card = instance.renderMaterialCard(row);
   card.props.onClickCapture({ target: {} });
   card.props.onClick();
   assert.deepEqual(events[0].detail, { projectRoot: 'file:///project',
-    relativePath: 'assets/interview/main.wav', kind: 'audio', name: '取材音声' });
+    relativePath: 'assets/interview/main.wav', kind: 'audio', name: 'Interview audio' });
   assert.deepEqual(opened, ['file:///project/assets/interview']);
   assert.equal(instance.renderMaterialCard(row).props.style.border, 'accent-border');
 });
 
-test('素材グループに主メディアがなければディレクトリを other として通知する', () => {
+test('Footage groups without primary media notify their directory as other', () => {
   const { instance, opened } = fixture();
   const row = entry({
     uri: { toString: () => 'file:///project/assets/interview', path: { base: 'interview' } },
-    relativePath: 'assets/interview', assetGroup: { category: 'audio' }, name: '取材音声'
+    relativePath: 'assets/interview', assetGroup: { category: 'audio' }, name: 'Interview audio'
   });
   const card = instance.renderMaterialCard(row);
   card.props.onClickCapture({ target: {} });
   card.props.onClick();
   assert.deepEqual(events[0].detail, { projectRoot: 'file:///project',
-    relativePath: 'assets/interview', kind: 'other', name: '取材音声' });
+    relativePath: 'assets/interview', kind: 'other', name: 'Interview audio' });
   assert.deepEqual(opened, ['file:///project/assets/interview']);
   assert.equal(instance.renderMaterialCard(row).props.style.border, 'accent-border');
 });

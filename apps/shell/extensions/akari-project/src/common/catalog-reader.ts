@@ -75,13 +75,13 @@ interface CatalogCategoryChipDefinition {
 
 /** raw category の audio だけを、元の位置で BGM → 音声クリップの 2 チップへ展開する。 */
 const CATALOG_CATEGORY_CHIP_DEFINITIONS: readonly CatalogCategoryChipDefinition[] = [
-    { category: 'overlay', label: 'オーバーレイ' },
-    { category: 'still', label: '静止画' },
+    { category: 'overlay', label: 'Overlay' },
+    { category: 'still', label: 'Still image' },
     { category: 'scene3d', label: '3D' },
     { category: CATALOG_AUDIO_BGM_CATEGORY, label: 'BGM' },
-    { category: CATALOG_AUDIO_SFX_CATEGORY, label: '音声クリップ' },
-    { category: 'broll', label: 'Bロール' },
-    { category: 'font', label: 'フォント' }
+    { category: CATALOG_AUDIO_SFX_CATEGORY, label: 'Audio clip' },
+    { category: 'broll', label: 'B-roll' },
+    { category: 'font', label: 'Fonts' }
 ];
 
 export interface CatalogCategoryChip {

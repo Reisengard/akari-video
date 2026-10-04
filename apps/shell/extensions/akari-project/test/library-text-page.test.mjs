@@ -24,7 +24,7 @@ function nodes(tree, predicate) {
     return [...(predicate(tree) ? [tree] : []), ...(tree.children ?? []).flatMap(child => nodes(child, predicate))];
 }
 
-test('テキストページはスタイルとフォントだけを切り替え、アニメをスタイル棚に置く', () => {
+test('text page switches only styles and fonts; animation appears on the style shelf', () => {
     const calls = [];
     const props = { onBack: () => calls.push('back'), onPlace: () => calls.push('place'),
         onTabChange: tab => calls.push(tab), styles: 'style-cards', myStyles: 'my-styles',
@@ -45,7 +45,7 @@ test('テキストページはスタイルとフォントだけを切り替え�
     assert.equal(calls.at(-1), 'back');
 });
 
-test('フォントは1行1書体で、名前は重複せず、元カードの押下とドラッグを使う', () => {
+test('fonts use one typeface per row with unique names and original card click and drag handlers', () => {
     const calls = [];
     const handlers = {
         favorite: false,
@@ -63,10 +63,10 @@ test('フォントは1行1書体で、名前は重複せず、元カードの押
     assert.equal(row.props.draggable, true);
     assert.equal(nodes(row, node => node.props['data-akari-font-name']).length, 1);
     assert.equal(nodes(row, node => node.props['data-akari-font-english']).length, 1);
-    assert.equal(nodes(row, node => node.type === 'img').length, 0, '登録済みの面を使う');
+    assert.equal(nodes(row, node => node.type === 'img').length, 0, 'uses registered views');
     assert.equal(nodes(row, node => node.props['data-akari-font-name'])[0].props.style.fontFamily,
         '"AKARI Noto Sans JP", sans-serif');
-    assert.equal(row.props.style.flexDirection, 'row', '登録済みの面は横並び');
+    assert.equal(row.props.style.flexDirection, 'row', 'registered views are side by side');
     for (const attribute of ['data-akari-font-name', 'data-akari-font-english']) {
         const text = nodes(row, node => node.props[attribute])[0];
         assert.equal(text.props.style.whiteSpace, 'nowrap');
@@ -77,8 +77,8 @@ test('フォントは1行1書体で、名前は重複せず、元カードの押
     assert.deepEqual(calls, ['apply', 'drag-start', 'drag-end', 'menu', 'info']);
 
     const remote = LibraryTextFontRow({ item: { id: '851-chikara-dzuyoku', key: 'font/851-chikara-dzuyoku',
-        title: '851チカラヅヨク', previewUrl: 'preview.png' }, card });
-    assert.equal(remote.props.style.flexDirection, 'column', 'プレビュー行は縦積み');
+        title: '851 Chikara Dzuyoku', previewUrl: 'preview.png' }, card });
+    assert.equal(remote.props.style.flexDirection, 'column', 'preview rows stack vertically');
     const remoteName = nodes(remote, node => node.props['data-akari-font-name'])[0];
     assert.equal(remoteName.props.style.whiteSpace, 'nowrap');
     assert.equal(remoteName.props.style.textOverflow, 'ellipsis');
@@ -87,16 +87,16 @@ test('フォントは1行1書体で、名前は重複せず、元カードの押
     assert.equal(preview.props.style.height, '44px');
     assert.equal(preview.children[0].props.style.objectPosition, 'left center');
     const stacked = remote.children[0];
-    assert.equal(stacked.children[1], preview, '画像は名前の後に来る');
+    assert.equal(stacked.children[1], preview, 'image follows the name');
     assert.equal(nodes(stacked.children[0], node => node === remoteName).length, 1);
-    assert.equal(nodes(remote, node => node.type === 'img').length, 1, '未取得書体は既存プレビューを使う');
-    assert.equal(nodes(remote, node => node.props['data-akari-font-english']).length, 0, '同じ名前を二度出さない');
+    assert.equal(nodes(remote, node => node.type === 'img').length, 1, 'undownloaded fonts use existing previews');
+    assert.equal(nodes(remote, node => node.props['data-akari-font-english']).length, 0, 'does not show the same name twice');
 
     const english = LibraryTextFontRow({ item: { id: 'ab-kirigirisu', key: 'font/ab-kirigirisu',
-        title: 'AB-kirigirisu（ABキリギリス）', previewUrl: 'preview.png' }, card });
+        title: 'AB-kirigirisu（Mist）', previewUrl: 'preview.png' }, card });
     const englishName = nodes(english, node => node.props['data-akari-font-english'])[0];
     assert.equal(englishName.props.style.whiteSpace, 'nowrap');
     assert.equal(englishName.props.style.textOverflow, 'ellipsis');
-    const withoutPreview = LibraryTextFontRow({ item: { id: 'other', key: 'font/other', title: 'その他' }, card });
-    assert.equal(nodes(withoutPreview, node => node.type === 'small' && node.children.includes('見本は取得後')).length, 1);
+    const withoutPreview = LibraryTextFontRow({ item: { id: 'other', key: 'font/other', title: 'Other' }, card });
+    assert.equal(nodes(withoutPreview, node => node.type === 'small' && node.children.includes('Samples available after download')).length, 1);
 });

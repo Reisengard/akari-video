@@ -98,10 +98,10 @@ export function parseMyStyle(value: unknown): MyStyle {
         || value.price !== null || !Array.isArray(value.requires)
         || !record(value.provenance) || !Array.isArray(value.tags)
         || value.tags.some(tag => typeof tag !== 'string')) {
-        throw new Error('スタイルの保存形を確認できません。');
+        throw new Error('Could not determine the saved style format.');
     }
     const style = value as unknown as MyStyle;
-    if (hasAbsolutePath(style)) throw new Error('スタイルに絶対パスは保存できません。');
+    if (hasAbsolutePath(style)) throw new Error('Absolute paths cannot be saved in styles.');
     const parts: Array<{ kind: string; [key: string]: unknown }> = style.parts.map(part => part.kind === 'look'
         ? { ...part, scope: part.scope ?? 'caption', mode: part.mode ?? 'modify',
             text_style: portableLook(part.text_style) }
@@ -115,29 +115,29 @@ export function parseMyStyle(value: unknown): MyStyle {
                 || Object.entries(part.animation).some(([slot, animation]) =>
                     !['in', 'loop', 'out'].includes(slot) || !record(animation)
                     || typeof animation.id !== 'string' || !animation.id.trim())) {
-                throw new Error('動きの保存形を確認できません。');
+                throw new Error('Could not determine the saved motion format.');
             }
         }
         if (part.kind !== 'look') continue;
         const look = part.text_style as Record<string, unknown>;
         const height = look.reference_height_px;
         if (!Number.isInteger(height) || (height as number) < 1) {
-            throw new Error('見た目には出力の基準高さが必要です。');
+            throw new Error('Appearance requires a reference output height.');
         }
         for (const [key, entry] of Object.entries(look)) {
             if (record(entry)) {
                 if ((key === 'shadow' || key === 'glow') && typeof entry.color !== 'string') {
-                    throw new Error('見た目の効果色が不正です。');
+                    throw new Error('Invalid appearance effect color.');
                 }
                 for (const [field, nested] of Object.entries(entry)) {
                     if (STRING_LOOK_FIELDS.has(field) ? typeof nested !== 'string'
                         : typeof nested !== 'number' || !Number.isFinite(nested)) {
-                        throw new Error('見た目の値が不正です。');
+                        throw new Error('Invalid appearance value.');
                     }
                 }
             } else if (key !== 'reference_height_px' && (STRING_LOOK_FIELDS.has(key)
                 ? typeof entry !== 'string' : typeof entry !== 'number' || !Number.isFinite(entry))) {
-                throw new Error('見た目の値が不正です。');
+                throw new Error('Invalid appearance value.');
             }
         }
     }
@@ -179,7 +179,7 @@ function isApplicablePart(part: { kind: string; mode?: unknown }): boolean {
 }
 
 const PART_LABELS: Readonly<Record<string, string>> = {
-    look: '見た目', motion: '動き', sfx: '効果音', fx: '画面効果', decor: '装飾', camera: 'カメラ'
+    look: 'Appearance', motion: 'Motion', sfx: 'Sound effects', fx: 'Visual effects', decor: 'Decoration', camera: 'Camera'
 };
 
 export function myStylePartLabel(kind: string): string {

@@ -69,7 +69,7 @@ export class StoreConnectionFlowController {
         } catch (error) {
             if (this.phase === 'idle') {
                 this.phase = 'error';
-                this.error = `接続状態を確認できませんでした: ${this.errorMessage(error)}`;
+                this.error = `Could not check connection status: ${this.errorMessage(error)}`;
             }
         } finally {
             this.connectionLoading = false;
@@ -94,7 +94,7 @@ export class StoreConnectionFlowController {
                 return;
             }
             this.phase = 'error';
-            this.error = `接続を開始できませんでした: ${this.errorMessage(error)}`;
+            this.error = `Could not start connection: ${this.errorMessage(error)}`;
             this.emitChange();
             return;
         }
@@ -114,7 +114,7 @@ export class StoreConnectionFlowController {
             this.hooks.openVerificationUrl(outcome.verificationUrl);
         } catch (error) {
             this.phase = 'error';
-            this.error = `承認ページを開けませんでした: ${this.errorMessage(error)}`;
+            this.error = `Could not open the authorization page: ${this.errorMessage(error)}`;
             this.emitChange();
             return;
         }
@@ -171,7 +171,7 @@ export class StoreConnectionFlowController {
                 return;
             }
             this.phase = 'error';
-            this.error = `接続を確認できませんでした: ${this.errorMessage(error)}`;
+            this.error = `Could not verify the connection: ${this.errorMessage(error)}`;
             this.emitChange();
             return;
         }
@@ -206,7 +206,7 @@ export class StoreConnectionFlowController {
     private expire(): void {
         this.stopPolling();
         this.phase = 'expired';
-        this.error = '確認コードの有効期限が切れました。';
+        this.error = 'The verification code has expired.';
         this.userCode = undefined;
         this.deviceStart = undefined;
         this.emitChange();

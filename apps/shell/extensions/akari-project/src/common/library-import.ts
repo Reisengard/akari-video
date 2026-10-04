@@ -21,9 +21,9 @@ export interface LibraryImportResult {
     failures: { path?: string; reason: string }[];
 }
 export const LIBRARY_IMPORT_KINDS: { kind: LibraryImportKind; label: string; icon: string }[] = [
-    { kind: 'sfx', label: '効果音', icon: '♫' }, { kind: 'bgm', label: 'BGM', icon: '♪' },
-    { kind: 'font', label: 'フォント', icon: 'Aa' }, { kind: 'broll', label: '映像', icon: '▣' },
-    { kind: 'still', label: '画像', icon: '▧' }, { kind: 'scene3d', label: '3D', icon: '◇' }
+    { kind: 'sfx', label: 'Sound effects', icon: '♫' }, { kind: 'bgm', label: 'BGM', icon: '♪' },
+    { kind: 'font', label: 'Fonts', icon: 'Aa' }, { kind: 'broll', label: 'Footage', icon: '▣' },
+    { kind: 'still', label: 'Image', icon: '▧' }, { kind: 'scene3d', label: '3D', icon: '◇' }
 ];
 export function libraryImportGroups(plan: LibraryImportPlan): { kind: LibraryImportKind; label: string; icon: string; items: LibraryImportItem[] }[] {
     return LIBRARY_IMPORT_KINDS.map(group => ({ ...group, items: plan.items.filter(item => !item.ambiguous && item.kind === group.kind) }))

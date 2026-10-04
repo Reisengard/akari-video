@@ -40,7 +40,7 @@ async function fixture(t, { reference = true } = {}) {
     return { root, library, libraryFile, service: new Service() };
 }
 
-test('materialTarget: 共有ライブラリ参照を解決し、宣言パスと projectRoot を保つ', async t => {
+test('materialTarget: resolves shared Library references and preserves declared path and projectRoot', async t => {
     const f = await fixture(t);
     const target = await f.service.materialTarget(f.root, DECLARED);
     assert.equal(target.root, f.root);
@@ -49,26 +49,26 @@ test('materialTarget: 共有ライブラリ参照を解決し、宣言パスと 
     assert.equal(target.actualPath, await realpath(f.libraryFile));
 });
 
-test('materialTarget: 台帳に無い参照素材は生の ENOENT を出さず日本語エラーで失敗する', async t => {
+test('materialTarget: references missing from registry fail with a friendly English error rather than raw ENOENT', async t => {
     const f = await fixture(t, { reference: false });
     await assert.rejects(f.service.materialTarget(f.root, DECLARED), error => {
-        assert.equal(error.message, `素材の実体が見つかりません（共有ライブラリにも未取得です）: ${DECLARED}`);
+        assert.equal(error.message, `Asset file not found (not downloaded to the shared library either): ${DECLARED}`);
         assert.doesNotMatch(error.message, /ENOENT/);
         return true;
     });
 });
 
-test('materialTarget: 台帳にあるが library に実体が無い参照も日本語エラーで失敗する', async t => {
+test('materialTarget: registered references missing physical Library files fail with an English error', async t => {
     const f = await fixture(t);
     await rm(f.libraryFile);
     await assert.rejects(f.service.materialTarget(f.root, DECLARED), error => {
-        assert.match(error.message, /共有ライブラリにも未取得です/);
+        assert.match(error.message, /not downloaded to the shared library either/);
         assert.doesNotMatch(error.message, /ENOENT/);
         return true;
     });
 });
 
-test('materialTarget: プロジェクト内に実体があるときの既存挙動を変えない', async t => {
+test('materialTarget: preserves existing behavior for physical project files', async t => {
     const f = await fixture(t);
     await mkdir(join(f.root, 'assets/broll/talkinghead-desk-ja-01'), { recursive: true });
     await writeFile(join(f.root, DECLARED), 'local');
@@ -78,12 +78,12 @@ test('materialTarget: プロジェクト内に実体があるときの既存挙�
     assert.equal(target.actualPath, undefined);
 });
 
-test('materialTarget: プロジェクト外へ出るパスは拒否する', async t => {
+test('materialTarget: rejects paths outside the project', async t => {
     const f = await fixture(t);
-    await assert.rejects(f.service.materialTarget(f.root, '../outside.mp4'), /プロジェクト内/);
+    await assert.rejects(f.service.materialTarget(f.root, '../outside.mp4'), /within the project/);
 });
 
-test('transcribeMaterial: 参照素材でも CLI へ宣言パスとプロジェクト根を渡す', async t => {
+test('transcribeMaterial: passes declared path and project root to CLI for referenced Footage too', async t => {
     const f = await fixture(t);
     const calls = [];
     f.service.runNodeScript = async (_script, args, cwd) => {

@@ -6,65 +6,65 @@ function ids(target, isOSX, context) {
     return buildMaterialContextMenuItems(target, isOSX, context).map(item => item.id);
 }
 
-test('material（macOS）: open/reveal/copy-file/copy-path/rename/delete/ask-agent の順', () => {
+test('material (macOS): open/reveal/copy-file/copy-path/rename/delete/ask-agent order', () => {
     assert.deepEqual(ids('material', true), [
         'open', 'reveal', 'copy-file', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('material（非 macOS）: copy-file が出ない', () => {
+test('material (non-macOS): no copy-file', () => {
     assert.deepEqual(ids('material', false), [
         'open', 'reveal', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('assetGroup（meta.json ディレクトリ）は material と同じ target を使い、同じ項目集合になる', () => {
+test('assetGroup (meta.json directory) uses the same target and menu items as material', () => {
     // buildAssetGroupEntry は MaterialCardEntry.assetGroup を持つが、メニュー項目の
     // 組み立てでは通常素材と同じ 'material' ターゲットを渡す（widget 側の設計）。
     assert.deepEqual(ids('material', true), ids('material', true));
     assert.deepEqual(buildMaterialContextMenuItems('material', true).map(item => item.id).includes('rename'), true);
 });
 
-test('unorganized（macOS）: material の項目 + move-to-assets が末尾', () => {
+test('unorganized (macOS): material items plus move-to-assets last', () => {
     assert.deepEqual(ids('unorganized', true), [
         'open', 'reveal', 'copy-file', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent', 'move-to-assets'
     ]);
 });
 
-test('unorganized（非 macOS）: copy-file が出ず move-to-assets は残る', () => {
+test('unorganized (non-macOS): no copy-file, retains move-to-assets', () => {
     assert.deepEqual(ids('unorganized', false), [
         'open', 'reveal', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent', 'move-to-assets'
     ]);
 });
 
-test('export（macOS）: material と同じ破壊操作セット（move-to-assets は無し）', () => {
+test('export (macOS): same destructive actions as material without move-to-assets', () => {
     assert.deepEqual(ids('export', true), [
         'open', 'reveal', 'copy-file', 'copy-path', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('export（非 macOS）: copy-file が出ない', () => {
+test('export (non-macOS): no copy-file', () => {
     assert.deepEqual(ids('export', false), [
         'open', 'reveal', 'copy-path', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
 for (const target of ['data', 'plan', 'report']) {
-    test(`${target}（macOS）: 開く系のみ（rename/delete/ask-agent/move-to-assets 無し）`, () => {
+    test(`${target} (macOS): opening actions only; no rename/delete/ask-agent/move-to-assets`, () => {
         assert.deepEqual(ids(target, true), ['open', 'reveal', 'copy-file', 'copy-path']);
     });
 
-    test(`${target}（非 macOS）: copy-file も無い`, () => {
+    test(`${target} (non-macOS): also no copy-file`, () => {
         assert.deepEqual(ids(target, false), ['open', 'reveal', 'copy-path']);
     });
 }
 
-test('delete 項目は danger: true を持つ（破壊操作の可視化）', () => {
+test('delete items have danger: true to indicate destructive actions', () => {
     const deleteItem = buildMaterialContextMenuItems('material', true).find(item => item.id === 'delete');
     assert.equal(deleteItem?.danger, true);
 });
 
-test('data/plan/report には danger 項目自体が存在しない', () => {
+test('data/plan/report have no danger items', () => {
     for (const target of ['data', 'plan', 'report']) {
         const dangerItems = buildMaterialContextMenuItems(target, true).filter(item => item.danger);
         assert.deepEqual(dangerItems, []);
@@ -73,49 +73,49 @@ test('data/plan/report には danger 項目自体が存在しない', () => {
 
 // --- task 2026-08-10-material-menu-r2: add-to-timeline / show-info ---
 
-test('material × video（macOS）: add-to-timeline と show-info が追加される（並び順込み）', () => {
+test('material × video (macOS): adds add-to-timeline and show-info in order', () => {
     assert.deepEqual(ids('material', true, { materialKind: 'video' }), [
         'open', 'add-to-timeline', 'reveal', 'copy-file', 'copy-path', 'show-info', 'transcribe', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('material × audio（非 macOS）: add-to-timeline と show-info が追加される（copy-file は無し）', () => {
+test('material × audio (non-macOS): adds add-to-timeline and show-info without copy-file', () => {
     assert.deepEqual(ids('material', false, { materialKind: 'audio' }), [
         'open', 'add-to-timeline', 'reveal', 'copy-path', 'show-info', 'transcribe', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('material × image: add-to-timeline と show-info が追加される（task 2026-08-10-material-dnd-timeline で解禁）', () => {
+test('material × image: adds add-to-timeline and show-info (enabled by task 2026-08-10-material-dnd-timeline)', () => {
     assert.deepEqual(ids('material', true, { materialKind: 'image' }), [
         'open', 'add-to-timeline', 'reveal', 'copy-file', 'copy-path', 'show-info', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('material × other: add-to-timeline は出ず、show-info だけ出る', () => {
+test('material × other: only show-info, no add-to-timeline', () => {
     assert.deepEqual(ids('material', true, { materialKind: 'other' }), [
         'open', 'reveal', 'copy-file', 'copy-path', 'show-info', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('unorganized: context ありでも add-to-timeline/show-info はどちらも出ない', () => {
+test('unorganized: no add-to-timeline/show-info even with context', () => {
     assert.deepEqual(ids('unorganized', true, { materialKind: 'video' }), [
         'open', 'reveal', 'copy-file', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent', 'move-to-assets'
     ]);
 });
 
-test('export: context ありでも add-to-timeline/show-info はどちらも出ない', () => {
+test('export: no add-to-timeline/show-info even with context', () => {
     assert.deepEqual(ids('export', true, { materialKind: 'video' }), [
         'open', 'reveal', 'copy-file', 'copy-path', 'rename', 'delete', 'ask-agent'
     ]);
 });
 
-test('data: context ありでも add-to-timeline/show-info はどちらも出ない', () => {
+test('data: no add-to-timeline/show-info even with context', () => {
     assert.deepEqual(ids('data', true, { materialKind: 'video' }), [
         'open', 'reveal', 'copy-file', 'copy-path'
     ]);
 });
 
-test('context 省略時は前タスクと完全に同じ項目列（後方互換）', () => {
+test('omitting context preserves previous menu items exactly for backward compatibility', () => {
     assert.deepEqual(ids('material', true), [
         'open', 'reveal', 'copy-file', 'copy-path', 'store-library', 'rename', 'delete', 'ask-agent'
     ]);
@@ -128,23 +128,23 @@ test('context 省略時は前タスクと完全に同じ項目列（後方互換
 });
 
 
-test('動画・音声では素材情報の直後に文字起こしを表示する', () => {
+test('video and audio show Transcription immediately after Footage info', () => {
     for (const materialKind of ['video', 'audio']) {
         const items = buildMaterialContextMenuItems('material', true, { materialKind });
-        assert.deepEqual(items[items.findIndex(item => item.id === 'show-info') + 1], { id: 'transcribe', label: '文字起こし' });
+        assert.deepEqual(items[items.findIndex(item => item.id === 'show-info') + 1], { id: 'transcribe', label: 'Transcription' });
     }
 });
-test('画像・その他では文字起こしを表示しない', () => {
+test('images and other files do not show Transcription', () => {
     for (const materialKind of ['image', 'other']) assert.ok(!ids('material', true, { materialKind }).includes('transcribe'));
 });
-test('文字起こしを追加しても両プラットフォームの既存メニュー順を維持する', () => {
+test('adding Transcription preserves existing menu order on both platforms', () => {
     for (const isOSX of [true, false]) {
         const before = ids('material', isOSX, { materialKind: 'image' });
         assert.deepEqual(ids('material', isOSX, { materialKind: 'video' }).filter(id => id !== 'transcribe'), before);
     }
 });
 
-test('グループカードは主メディアのタイムライン追加だけを増やし、文字起こしを出さない', () => {
+test('group cards add only primary media to timeline and do not show Transcription', () => {
     for (const isOSX of [true, false]) {
         const before = ids('material', isOSX, { materialKind: 'other', assetGroup: true });
         for (const materialKind of ['video', 'audio', 'image']) {

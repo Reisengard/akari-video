@@ -4,7 +4,7 @@ import { GenerationPickController, GENERATION_PICK_INTO_COMMAND_ID, GENERATION_P
     generationPickSelectionChanged, normalizeGenerationPickRequest,
     normalizeGenerationPickPath, generationPickBadge } from '../lib/common/generation-pick.js';
 
-const request = (options = {}) => ({ slot: 'first_frame', label: '最初の絵', accepts: ['image'], multi: false, ...options });
+const request = (options = {}) => ({ slot: 'first_frame', label: 'First frame', accepts: ['image'], multi: false, ...options });
 const image = name => ({ path: `assets/${name}.png`, kind: 'image' });
 const library = { key: 'still/sample', kind: 'image' };
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
@@ -33,16 +33,16 @@ test('single: one click resolves picked and exits the mode', async () => {
 test('multi: toggle, ordered badges, max and complete', async () => {
     const controller = new GenerationPickController(async () => undefined);
     const result = controller.start(request({ multi: true, max: 2, selected: ['assets/a.png'] }));
-    assert.equal(controller.badge(image('a')), '@画像1');
+    assert.equal(controller.badge(image('a')), '@Image1');
     await controller.pick(image('b'));
-    assert.equal(controller.badge(image('b')), '@画像2');
-    assert.match(controller.disabledReason(image('c')), /上限/);
+    assert.equal(controller.badge(image('b')), '@Image2');
+    assert.match(controller.disabledReason(image('c')), /limit/);
     await controller.pick(image('c'));
     assert.deepEqual(controller.paths, ['assets/a.png', 'assets/b.png']);
     await controller.pick(image('a'));
-    assert.equal(controller.badge(image('b')), '@画像1');
+    assert.equal(controller.badge(image('b')), '@Image1');
     await controller.pick(image('a'));
-    assert.equal(controller.badge(image('a')), '@画像2');
+    assert.equal(controller.badge(image('a')), '@Image2');
     controller.complete();
     assert.deepEqual(await result, { status: 'picked', paths: ['assets/b.png', 'assets/a.png'] });
     assert.equal(controller.request, undefined);
@@ -50,10 +50,10 @@ test('multi: toggle, ordered badges, max and complete', async () => {
 
 test('mixed media ordinal labels are numbered within each kind', () => {
     const paths = ['assets/a.png', 'assets/a.mp4', 'assets/b.png', 'assets/a.wav'];
-    assert.deepEqual(paths.map(path => generationPickBadge(paths, path)), ['@画像1', '@動画1', '@画像2', '@音声1']);
+    assert.deepEqual(paths.map(path => generationPickBadge(paths, path)), ['@Image1', '@Video1', '@Image2', '@Audio1']);
 });
 
-for (const trigger of ['Esc', 'やめる', 'panel close']) {
+for (const trigger of ['Esc', 'Cancel', 'panel close']) {
     test(`${trigger}: cancel resolves without paths`, async () => {
         const controller = new GenerationPickController(async () => undefined);
         const result = controller.start(request({ multi: true, selected: ['assets/a.png'] }));
@@ -68,7 +68,7 @@ test('accepts and unavailable candidates cannot resolve or invoke the service', 
     const controller = new GenerationPickController(() => assert.fail('disabled library must not resolve'));
     const result = controller.start(request());
     for (const candidate of [{ path: 'assets/clip.mp4', kind: 'video' }, { ...library, kind: 'audio' },
-        { ...library, unavailableReason: '未購入' }, { path: '/outside.png', kind: 'image' }]) {
+        { ...library, unavailableReason: 'Not purchased' }, { path: '/outside.png', kind: 'image' }]) {
         assert.ok(controller.disabledReason(candidate));
         await controller.pick(candidate);
         assert.ok(controller.request);
@@ -81,7 +81,7 @@ test('accepts and unavailable candidates cannot resolve or invoke the service', 
 test('second start cancels the previous request and owns subsequent picks', async () => {
     const controller = new GenerationPickController(async () => undefined);
     const first = controller.start(request());
-    const second = controller.start(request({ label: '最後の絵', slot: 'last_frame' }));
+    const second = controller.start(request({ label: 'Last frame', slot: 'last_frame' }));
     assert.deepEqual(await first, { status: 'cancelled' });
     await controller.pick(image('b'));
     assert.deepEqual(await second, { status: 'picked', paths: ['assets/b.png'] });
@@ -112,7 +112,7 @@ test('pending acquisition blocks duplicate clicks and completion; resolved path 
     work.resolve({ relativePath: 'assets/library.png', kind: 'image' });
     await pick;
     assert.equal(controller.pendingKey, undefined);
-    assert.equal(controller.badge(library), '@画像1');
+    assert.equal(controller.badge(library), '@Image1');
     await controller.pick(library);
     assert.deepEqual(controller.paths, []);
     await controller.pick(library);

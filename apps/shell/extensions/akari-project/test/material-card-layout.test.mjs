@@ -4,15 +4,15 @@ import { materialCardLayout } from '../lib/common/material-card-layout.js';
 
 const cases = [
     ['HTML', { kind: 'other', name: 'title.html' }, 'HTML'],
-    ['video', { kind: 'video', name: 'clip.mp4' }, '動画'],
-    ['image', { kind: 'image', name: 'photo.png' }, '画像'],
-    ['audio', { kind: 'audio', name: 'sound.wav' }, '音声'],
+    ['video', { kind: 'video', name: 'clip.mp4' }, 'Video'],
+    ['image', { kind: 'image', name: 'photo.png' }, 'Image'],
+    ['audio', { kind: 'audio', name: 'sound.wav' }, 'Audio'],
     ['font', { kind: 'other', name: 'specimen.html', assetGroupCategory: 'font' }, 'font'],
-    ['分類無し', { kind: 'other', assetGroupCategory: '' }, '素材']
+    ['Uncategorized', { kind: 'other', assetGroupCategory: '' }, 'Footage']
 ];
 
 for (const [label, entry, kindLabel] of cases) {
-    test(`materialCardLayout: ${label} は共通の正方形カード`, () => {
+    test(`materialCardLayout: ${label} uses the shared square card`, () => {
         const layout = materialCardLayout(entry);
         assert.equal(layout.aspectRatio, '1 / 1');
         assert.equal(layout.gridColumn, undefined);

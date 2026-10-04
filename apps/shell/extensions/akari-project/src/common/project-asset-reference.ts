@@ -11,7 +11,7 @@ export function assetResolveOutcome(result: {
     }
     const projectAssetPath = result.projectAssetPath ?? result.projectDir;
     if (result.success && projectAssetPath) return { success: true, projectAssetPath };
-    return { success: false, error: result.error ?? '素材の配置結果を確認できませんでした' };
+    return { success: false, error: result.error ?? 'Could not verify the asset placement result' };
 }
 
 export function referencePresentation(reference: ProjectAssetReference, knownLab = false): {
@@ -28,8 +28,8 @@ export function referencePresentation(reference: ProjectAssetReference, knownLab
     const external = reference.tags?.some(tag => tag === 'origin:own' || tag === 'origin:site');
     const lab = !external && (reference.sourceKind === 'lab' || knownLab);
     return { relativePath: `assets/${reference.category}/${reference.id}`, missing,
-        badge: missing ? '見つかりません' : '参照', lab,
-        recovery: lab ? 'もう一度取得' : '入れ直してください' };
+        badge: missing ? 'Not found' : 'Reference', lab,
+        recovery: lab ? 'Download again' : 'Please add it again' };
 }
 
 export function restrictedReferenceCount(references: readonly ProjectAssetReference[]): number {

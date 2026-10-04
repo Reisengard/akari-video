@@ -25,5 +25,5 @@ export function dataFileIcon(name: string): string {
 }
 
 export function editVariantDataFileLabel(name: string): string | undefined {
-    return name !== 'edit.json' && isEditDataFileName(name) ? `編集データ（${name.slice(5, -5)}）` : undefined;
+    return name !== 'edit.json' && isEditDataFileName(name) ? `Edit data (${name.slice(5, -5)})` : undefined;
 }

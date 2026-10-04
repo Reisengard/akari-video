@@ -38,24 +38,24 @@ export const SHAPE_SHELF_RECENT_ROW_LIMIT = 12;
 export const SHAPE_SHELF_ROW_LIMIT = 14;
 
 export const SHAPE_SHELF_CATEGORY_LABELS: Readonly<Record<string, string>> = {
-    [SHAPE_SHELF_RECENT_KEY]: '最近使用した項目',
-    line: 'ライン',
-    basic: '基本の図形',
-    polygon: '多角形',
-    star: 'スター',
-    arrow: '矢印',
-    flow: 'フローチャート',
-    bubble: '吹き出し',
-    cloud: '雲',
-    heart: 'ハート',
-    banner: '横断幕・垂れ幕',
-    drop: '雫',
-    gear: '歯車',
-    asterisk: '四角い星・アスタリスク',
-    organic: '有機的',
-    wave: '波線',
-    abstract: '抽象的',
-    manga: '漫画の吹き出し'
+    [SHAPE_SHELF_RECENT_KEY]: 'Recently used',
+    line: 'Lines',
+    basic: 'Basic shapes',
+    polygon: 'Polygons',
+    star: 'Stars',
+    arrow: 'Arrows',
+    flow: 'Flowcharts',
+    bubble: 'Speech bubbles',
+    cloud: 'Clouds',
+    heart: 'Hearts',
+    banner: 'Banners',
+    drop: 'Drops',
+    gear: 'Gears',
+    asterisk: 'Square stars and asterisks',
+    organic: 'Organic',
+    wave: 'Wavy lines',
+    abstract: 'Abstract',
+    manga: 'Comic speech bubbles'
 };
 
 /** 棚の「ライン」行に出す 15 本（線種 3 × よく使う端の組）。全 45 本は「すべて表示」。 */

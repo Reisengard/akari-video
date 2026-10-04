@@ -18,13 +18,13 @@ const names = ['LIST_MY_STYLES_COMMAND_ID', 'NEW_AKARI_PROJECT', 'SHOW_AKARI_CHA
 const Contribution = new Function(...names, `${compiled}; return Contribution;`)(
     'akari.library.listMyStyles', ...names.slice(1).map(id => ({ id })));
 
-test('内部コマンドは引数なしで棚の最小形だけを返す', async () => {
+test('internal command returns only minimal shelf data without arguments', async () => {
     const contribution = new Contribution();
     let calls = 0;
     contribution.projectService = { listMyStyles: async (...args) => {
         assert.deepEqual(args, []);
         calls++;
-        return [{ id: 'favorite', name: 'お気に入り', uid: 'private-uid',
+        return [{ id: 'favorite', name: 'Favorites', uid: 'private-uid',
             parts: [{ kind: 'look', text_style: { color: '#ff0000' }, scope: 'caption' },
                 { kind: 'motion', scope: 'caption' }] }];
     } };
@@ -32,7 +32,7 @@ test('内部コマンドは引数なしで棚の最小形だけを返す', async
     contribution.registerCommands({ registerCommand: (command, handler) => handlers.set(command.id, { command, handler }) });
     const { command, handler } = handlers.get('akari.library.listMyStyles');
     assert.deepEqual(command, { id: 'akari.library.listMyStyles' });
-    assert.deepEqual(await handler.execute(), [{ id: 'favorite', name: 'お気に入り', parts: [
+    assert.deepEqual(await handler.execute(), [{ id: 'favorite', name: 'Favorites', parts: [
         { kind: 'look', text_style: { color: '#ff0000' } }, { kind: 'motion' }
     ] }]);
     assert.equal(calls, 1);

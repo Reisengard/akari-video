@@ -23,7 +23,7 @@ function style(node, name) {
     return object.properties.find(prop => prop.name?.getText(source) === name)?.initializer.getText(source);
 }
 
-test('つながったトラックに、transform だけで移動するつまみを1個置く', () => {
+test('connected track has one thumb that moves only with transform', () => {
     assert.equal(style(track, 'position'), "'relative'");
     assert.equal(style(track, 'gap'), '0');
     assert.equal(style(track, 'padding'), "'2px'");
@@ -41,7 +41,7 @@ test('つながったトラックに、transform だけで移動するつまみ�
     assert.equal(style(thumb[0], 'transition'), "'var(--akari-panel-segment-transition, none)'");
 });
 
-test('既存属性・クリック・ラベルを保持し、透明ボタンとフォーカスリングを使う', () => {
+test('preserves attributes, clicks, and labels and uses transparent buttons and focus rings', () => {
     assert.equal(value(tab, 'aria-selected'), '{active}');
     assert.equal(value(tab, 'data-akari-panel-segment'), '{item.view}');
     assert.equal(value(tab, 'data-akari-open-catalog'), "{item.view === 'catalog' ? 'true' : undefined}");
@@ -57,11 +57,11 @@ test('既存属性・クリック・ラベルを保持し、透明ボタンと�
     assert.equal(value(tab, 'tabIndex'), '{active ? 0 : -1}');
     assert.match(value(tab, 'onFocus'), /matches\(':focus-visible'\)/);
     assert.match(value(tab, 'onFocus'), /2px solid.*AKARI_LINE.accent/);
-    assert.match(controls.getText(source), /label: 'プロジェクト'/);
-    assert.match(controls.getText(source), /label: 'ライブラリ'/);
+    assert.match(controls.getText(source), /label: 'Project'/);
+    assert.match(controls.getText(source), /label: 'Library'/);
 });
 
-test('左右キーは隣の面を選び、対応するボタンへフォーカスを移す', () => {
+test('arrow keys select adjacent views and focus the corresponding button', () => {
     const expression = attribute(track, 'onKeyDown').expression.getText(source);
     const code = ts.transpileModule(`const handler = ${expression};`, { compilerOptions: { target: ts.ScriptTarget.ES2021 } }).outputText;
     for (const key of ['ArrowLeft', 'ArrowRight']) {
@@ -77,10 +77,10 @@ test('左右キーは隣の面を選び、対応するボタンへフォーカ�
         }
     }
     const handler = new Function(`${code}\nreturn handler;`).call({});
-    handler({ key: 'Tab', preventDefault: () => assert.fail('Tab は標準動作を保持する') });
+    handler({ key: 'Tab', preventDefault: () => assert.fail('Tab preserves standard behavior') });
 });
 
-test('初回・再生成は遷移なし、描画後のみ280ms、reduced-motion は即時反映', () => {
+test('initial render and recreation have no transition; subsequent renders use 280ms; reduced-motion updates immediately', () => {
     assert.equal(value(track, 'ref'), '{this.mountPanelSegmentTrack}');
     const frames = new Map(), listeners = new Set();
     let sequence = 0;
@@ -120,18 +120,18 @@ test('初回・再生成は遷移なし、描画後のみ280ms、reduced-motion 
     assert.equal(listeners.size, 0);
     handler.mountPanelSegmentTrack(node);
     step(); step();
-    assert.equal(transition(), 'none', 'reduced-motion は初期設定でも尊重する');
+    assert.equal(transition(), 'none', 'respects reduced-motion during initialization');
     handler.mountPanelSegmentTrack(null);
     media.matches = false;
     handler.mountPanelSegmentTrack(node);
-    assert.equal(transition(), 'none', '再生成でも初回フレームは遷移なし');
+    assert.equal(transition(), 'none', 'recreated views also have no transition on first frame');
     step();
     handler.mountPanelSegmentTrack(null);
-    assert.equal(frames.size, 0, '描画待ちのまま破棄してもコールバックを残さない');
+    assert.equal(frames.size, 0, 'disposal during pending render leaves no callbacks');
     assert.equal(listeners.size, 0);
 });
 
-test('寸法変化では遷移を止めて2フレーム後に戻し、dispose で observer と待機を解除する', () => {
+test('resizing stops transitions and restores them after two frames; dispose removes observer and pending waits', () => {
     const frames = new Map();
     const observers = [];
     let sequence = 0;
@@ -167,31 +167,31 @@ test('寸法変化では遷移を止めて2フレーム後に戻し、dispose �
     const resize = width => observer.callback([{ target: node, contentRect: { width, height: width ? 28 : 0 } }]);
     for (const width of [0, 164, 260]) {
         resize(width);
-        assert.equal(transition(), 'none', `幅 ${width} への変更は即座に停止`);
+        assert.equal(transition(), 'none', `Changing width to ${width} stops immediately`);
         assert.equal(properties.get('--akari-panel-label-transition'), 'none');
         step();
-        assert.equal(transition(), 'none', '1フレーム後はまだ停止');
+        assert.equal(transition(), 'none', 'still stopped after one frame');
         step();
-        assert.equal(transition(), motion, '2フレーム後に復帰');
+        assert.equal(transition(), motion, 'resumes after two frames');
     }
     resize(280);
     step();
     resize(300);
-    assert.equal(frames.size, 1, '連続リサイズは古い復帰待ちを取り消す');
+    assert.equal(frames.size, 1, 'consecutive resizing cancels previous resume waits');
     step();
-    assert.equal(transition(), 'none', '最後の寸法変化から2フレーム待つ');
+    assert.equal(transition(), 'none', 'waits two frames after the last size change');
     step();
     assert.equal(transition(), motion);
     media.matches = true;
     resize(320);
     step(); step();
-    assert.equal(transition(), 'none', 'reduced-motion なら寸法変更後も遷移しない');
+    assert.equal(transition(), 'none', 'reduced-motion prevents transitions after resizing too');
     media.matches = false;
     resize(340);
     step();
     handler.mountPanelSegmentTrack(null);
     assert.equal(observer.disconnected, true);
-    assert.equal(frames.size, 0, 'dispose で2フレーム目の待機も取り消す');
+    assert.equal(frames.size, 0, 'dispose also cancels the second frame wait');
     step();
-    assert.equal(transition(), 'none', '破棄後に遷移を再開しない');
+    assert.equal(transition(), 'none', 'does not resume transitions after disposal');
 });

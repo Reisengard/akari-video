@@ -16,7 +16,7 @@ import {
 // 「素材だけ → edit.json で編集済み → 書き出し済み」の 3 段のうち、
 // 「どの動画の・どの時刻を抜くか」を決める部分だけをここで固定する。
 
-test('selectRenderedOutputPath: artifacts[].path を最優先で返す', () => {
+test('selectRenderedOutputPath: artifacts[].path has highest priority', () => {
     const state = {
         artifacts: [{ path: 'exports/final.mp4', sha256: 'abc' }],
         plan: { output: 'exports/planned.mp4' }
@@ -24,57 +24,57 @@ test('selectRenderedOutputPath: artifacts[].path を最優先で返す', () => {
     assert.equal(selectRenderedOutputPath(state), 'exports/final.mp4');
 });
 
-test('selectRenderedOutputPath: artifacts が空なら plan.output へ落ちる', () => {
+test('selectRenderedOutputPath: empty artifacts falls back to plan.output', () => {
     assert.equal(selectRenderedOutputPath({ artifacts: [], plan: { output: 'exports/planned.mp4' } }), 'exports/planned.mp4');
 });
 
-test('selectRenderedOutputPath: 何も無ければ undefined（呼び出し側が次の段へ落ちる）', () => {
+test('selectRenderedOutputPath: nothing returns undefined for caller fallback', () => {
     assert.equal(selectRenderedOutputPath(undefined), undefined);
     assert.equal(selectRenderedOutputPath({}), undefined);
     assert.equal(selectRenderedOutputPath({ artifacts: [{ path: '' }], plan: { output: 42 } }), undefined);
 });
 
-test('readContactSheetTimestamps: 数値だけを昇順で拾い、壊れた値は捨てる', () => {
+test('readContactSheetTimestamps: returns only numbers sorted ascending and drops invalid values', () => {
     const state = { contact_sheet: { timestamps_seconds: [12.5, 'x', 0, null, 3.25, NaN, -1] } };
     assert.deepEqual(readContactSheetTimestamps(state), [0, 3.25, 12.5]);
     assert.deepEqual(readContactSheetTimestamps({}), []);
     assert.deepEqual(readContactSheetTimestamps({ contact_sheet: { timestamps_seconds: 'nope' } }), []);
 });
 
-test('readPlannedDurationSeconds: 正の数だけを尺として認める', () => {
+test('readPlannedDurationSeconds: accepts only positive duration numbers', () => {
     assert.equal(readPlannedDurationSeconds({ plan: { predicted_duration_seconds: 100.9 } }), 100.9);
     assert.equal(readPlannedDurationSeconds({ plan: { predicted_duration_seconds: 0 } }), undefined);
     assert.equal(readPlannedDurationSeconds({}), undefined);
 });
 
-test('deriveProjectCardTimestamps: contact sheet の代表時刻を最優先で使う', () => {
+test('deriveProjectCardTimestamps: prioritizes representative contact sheet timestamps', () => {
     const timestamps = deriveProjectCardTimestamps({ contactSheetTimestamps: [2, 5, 9], durationSeconds: 100 });
     assert.deepEqual(timestamps, [2, 5, 9]);
 });
 
-test('deriveProjectCardTimestamps: contact sheet が多すぎれば端を残して等間隔に間引く', () => {
+test('deriveProjectCardTimestamps: oversize contact sheets downsample evenly while retaining endpoints', () => {
     const timestamps = deriveProjectCardTimestamps({ contactSheetTimestamps: [1, 2, 3, 4, 5, 6, 7, 8, 9], count: 5 });
     assert.equal(timestamps.length, 5);
     assert.equal(timestamps[0], 1);
     assert.equal(timestamps[timestamps.length - 1], 9);
 });
 
-test('deriveProjectCardTimestamps: 冒頭 0 秒（黒コマになりがち）は他に候補があれば落とす', () => {
+test('deriveProjectCardTimestamps: drops 0-second opening frames when other candidates exist', () => {
     assert.deepEqual(deriveProjectCardTimestamps({ contactSheetTimestamps: [0, 4, 8] }), [4, 8]);
     // 唯一の候補なら残す（絵が 1 枚も無くなるほうが悪い）。
     assert.deepEqual(deriveProjectCardTimestamps({ contactSheetTimestamps: [0] }), [0]);
 });
 
-test('deriveProjectCardTimestamps: contact sheet が無ければ尺を等分割する（冒頭と末尾を避ける）', () => {
+test('deriveProjectCardTimestamps: without contact sheet divides duration evenly, avoiding start and end', () => {
     const timestamps = deriveProjectCardTimestamps({ durationSeconds: 60, count: 5 });
     assert.deepEqual(timestamps, [10, 20, 30, 40, 50]);
 });
 
-test('deriveProjectCardTimestamps: 尺も分からなければ 1 枚だけ（1.0 秒地点）', () => {
+test('deriveProjectCardTimestamps: unknown duration returns one frame at 1.0 seconds', () => {
     assert.deepEqual(deriveProjectCardTimestamps({}), [1]);
 });
 
-test('deriveEditTimelineSamples: v1（sources[] + cuts[].src）で組んだ順・組んだ範囲の絵になる', () => {
+test('deriveEditTimelineSamples: v1 (sources[] + cuts[].src) reflects edited order and ranges', () => {
     const edit = {
         version: 1,
         sources: [
@@ -97,7 +97,7 @@ test('deriveEditTimelineSamples: v1（sources[] + cuts[].src）で組んだ順�
     assert.ok(Math.abs(samples[4].sourceSeconds - 3.333) < 0.01);
 });
 
-test('deriveEditTimelineSamples: v0（トップレベル source・cuts に src 無し）も引ける', () => {
+test('deriveEditTimelineSamples: supports v0 (top-level source and cuts without src)', () => {
     const edit = {
         version: 0,
         source: { path: 'source/recording.mp4' },
@@ -110,7 +110,7 @@ test('deriveEditTimelineSamples: v0（トップレベル source・cuts に src �
     assert.deepEqual(samples.map(sample => sample.sourceSeconds), [125, 150, 175]);
 });
 
-test('deriveEditTimelineSamples: speed は元動画側の進みに効く', () => {
+test('deriveEditTimelineSamples: speed affects source video progression', () => {
     const edit = {
         version: 0,
         source: { path: 'a.mp4' },
@@ -121,7 +121,7 @@ test('deriveEditTimelineSamples: speed は元動画側の進みに効く', () =>
     assert.deepEqual(samples, [{ sourcePath: 'a.mp4', sourceSeconds: 20 }]);
 });
 
-test('deriveEditTimelineSamples: track が上のカットが重なりに勝つ', () => {
+test('deriveEditTimelineSamples: higher-track cuts win overlaps', () => {
     const edit = {
         version: 1,
         sources: [{ id: 'bg', path: 'bg.mp4' }, { id: 'pip', path: 'pip.mp4' }],
@@ -134,7 +134,7 @@ test('deriveEditTimelineSamples: track が上のカットが重なりに勝つ',
     assert.equal(samples[0].sourcePath, 'pip.mp4');
 });
 
-test('deriveEditTimelineSamples: freeze の停止尺だけ後続カットの位置が後ろへずれる', () => {
+test('deriveEditTimelineSamples: freeze duration shifts subsequent cuts later', () => {
     const edit = {
         version: 1,
         sources: [{ id: 'a', path: 'a.mp4' }, { id: 'b', path: 'b.mp4' }],
@@ -148,18 +148,18 @@ test('deriveEditTimelineSamples: freeze の停止尺だけ後続カットの位�
     assert.equal(samples[0].sourcePath, 'a.mp4');
 });
 
-test('deriveEditTimelineSamples: カットが無い（素材を入れただけ）なら空 = 次の段へ落ちる', () => {
+test('deriveEditTimelineSamples: no cuts (imported Footage only) returns empty for next fallback', () => {
     assert.deepEqual(deriveEditTimelineSamples({ version: 1, sources: [], cuts: [] }, 5), []);
     assert.deepEqual(deriveEditTimelineSamples(undefined, 5), []);
     assert.deepEqual(deriveEditTimelineSamples({ version: 1, cuts: [{ in: 0, out: 0 }] }, 5), []);
 });
 
-test('deriveEditTimelineSamples: ソース参照が解けないカットは黙って落とす', () => {
+test('deriveEditTimelineSamples: silently drops cuts with unresolved source references', () => {
     const edit = { version: 1, sources: [{ id: 'a', path: 'a.mp4' }], cuts: [{ src: 'missing', in: 0, out: 10 }] };
     assert.deepEqual(deriveEditTimelineSamples(edit, 3), []);
 });
 
-test('コマのファイル名と相対パスは 1 始まりの連番で往復する', () => {
+test('frame filenames and relative paths round-trip as one-based sequences', () => {
     assert.equal(projectCardFrameFileName(0), 'frame-1.jpg');
     assert.equal(projectCardFrameRelativePath('abc123', 0), `${PROJECT_CARD_CACHE_DIRECTORY}/abc123/frame-1.jpg`);
     assert.equal(parseProjectCardFrameIndex('frame-1.jpg'), 0);
@@ -171,7 +171,7 @@ test('コマのファイル名と相対パスは 1 始まりの連番で往復�
 
 // v2（tracks[].items[]）— 2026-09-26 オーナー報告「動画が入っているのにサムネイルが出ない」。
 // 原因はここが v1 の cuts[] しか読めず、v2 のプロジェクトが常に空を返していたこと。
-test('deriveEditTimelineSamples: v2 は出力フレーム / 素材秒の別軸を正しく読む', () => {
+test('deriveEditTimelineSamples: v2 correctly reads separate output-frame and source-second axes', () => {
     const edit = {
         version: 2,
         output: { width: 1920, height: 1080, fps: 30 },
@@ -188,7 +188,7 @@ test('deriveEditTimelineSamples: v2 は出力フレーム / 素材秒の別軸�
     assert.deepEqual(samples.map(sample => sample.sourceSeconds), [6.267, 12.533, 18.8, 25.067, 31.333]);
 });
 
-test('deriveEditTimelineSamples: v2 は tracks の配列順（下から上）で上のトラックが勝つ', () => {
+test('deriveEditTimelineSamples: v2 tracks array order is bottom to top, with higher tracks winning', () => {
     const edit = {
         version: 2,
         output: { fps: 30 },
@@ -201,7 +201,7 @@ test('deriveEditTimelineSamples: v2 は tracks の配列順（下から上）で
     assert.equal(deriveEditTimelineSamples(edit, 1)[0].sourcePath, 'assets/over.mp4');
 });
 
-test('deriveEditTimelineSamples: v2 は hidden・audio lane・焼けない source を採らない', () => {
+test('deriveEditTimelineSamples: v2 excludes hidden tracks, audio lanes, and unrenderable sources', () => {
     const base = (items, lane = 'visual') => ({
         version: 2, output: { fps: 30 },
         sources: [{ id: 'src-1', path: 'assets/clip.mp4' }],
@@ -219,7 +219,7 @@ test('deriveEditTimelineSamples: v2 は hidden・audio lane・焼けない sourc
     ]), 1), []);
 });
 
-test('deriveEditTimelineSamples: v2 の group は子の at を親相対として降りる', () => {
+test('deriveEditTimelineSamples: v2 groups interpret child at relative to the parent', () => {
     const edit = {
         version: 2, output: { fps: 30 },
         sources: [{ id: 'src-1', path: 'assets/clip.mp4' }],

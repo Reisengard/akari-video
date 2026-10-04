@@ -36,7 +36,7 @@ function elements(html) {
 }
 for (const [file, expected, name] of [
   ['direct.html', 0, 'chime01.mp3'], ['button-text.html', 0, 'chime01.mp3'],
-  ['japanese.html', 0, '和音.wav'], ['missing.html', -1, 'chime01.mp3'],
+  ['japanese.html', 0, 'café.wav'], ['missing.html', -1, 'chime01.mp3'],
   ['duplicate.html', 0, 'chime01.mp3']
 ]) test(`highlight fixture ${file}`, async () => {
   const html = await readFile(new URL(`fixtures/asset-sites/${file}`, import.meta.url), 'utf8');
@@ -67,27 +67,27 @@ test('zip extraction checks total size and path escape', async () => {
     await writeFile(file, zip('sound.wav'));
     assert.deepEqual((await extractSiteZip(file, output)).map(v => v.endsWith('sound.wav')), [true]);
     await writeFile(file, zip('../escape.wav'));
-    await assert.rejects(() => extractSiteZip(file, output), /パス/);
+    await assert.rejects(() => extractSiteZip(file, output), /path/);
     await writeFile(file, zip('large.wav', SITE_ZIP_MAX_BYTES + 1));
-    await assert.rejects(() => extractSiteZip(file, output), /上限/);
+    await assert.rejects(() => extractSiteZip(file, output), /limit/);
     const tooMany = zip('sound.wav'); tooMany.writeUInt16LE(501, tooMany.length - 12);
     await writeFile(file, tooMany);
-    await assert.rejects(() => extractSiteZip(file, output), /件数/);
+    await assert.rejects(() => extractSiteZip(file, output), /too many entries/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
 test('site import carries provenance, credit and subscription', () => {
-  const site = { id: 'sample', price: 'subscription', terms: { summary_ja: '条件' },
+  const site = { id: 'sample', price: 'subscription', terms: { summary_ja: 'Criteria' },
     attribution: { required: true, text: 'Sample' } };
   assert.deepEqual(siteImportMetadata(site, 'https://example.com/item'), {
-    origin: 'site', site: 'sample', sourceUrl: 'https://example.com/item', licenseAtSource: '条件',
+    origin: 'site', site: 'sample', sourceUrl: 'https://example.com/item', licenseAtSource: 'Criteria',
     subscription: true, credit: 'Sample'
   });
 });
 
 test('agent packet stops at opening and highlighting', () => {
-  const prompt = composeSiteAgentPrompt({ id: 'sample', tab: 'audio', name: 'Sample', entry_url: 'https://example.com/' }, '明るい音');
-  assert.match(prompt, /AKARI Lab と手持ち/);
-  assert.match(prompt, /ダウンロードは利用者が押す/);
-  assert.doesNotMatch(prompt, /取得し、ライセンス表記を確認/);
+  const prompt = composeSiteAgentPrompt({ id: 'sample', tab: 'audio', name: 'Sample', entry_url: 'https://example.com/' }, 'Bright audio');
+  assert.match(prompt, /AKARI Lab and existing assets/);
+  assert.match(prompt, /The user clicks to download/);
+  assert.doesNotMatch(prompt, /Retrieve.*verify the license/);
 });

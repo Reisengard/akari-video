@@ -5,12 +5,12 @@ import { assetGroupOpenTarget } from '../lib/common/asset-group-open-target.js';
 const files = (...names) => names.map(name => ({ name, isDirectory: false }));
 
 for (const category of ['overlay', 'still']) {
-    test(`${category}: 断片を見本画像より優先する`, () => {
+    test(`${category}: prefers the fragment to the preview image`, () => {
         assert.equal(assetGroupOpenTarget(files('preview.png', 'meta.json', 'fragment.html'), category), 'fragment.html');
     });
 }
 
-test('font: 大小を問わず書体を名前昇順で選び、入力を変更しない', () => {
+test('font: picks typefaces by name without changing the input', () => {
     const children = files('z.ttf', 'B.OTF', 'a.woff2', 'preview.png', 'meta.json');
     const before = structuredClone(children);
     assert.equal(assetGroupOpenTarget(children, 'font'), 'B.OTF');
@@ -20,14 +20,14 @@ test('font: 大小を問わず書体を名前昇順で選び、入力を変更�
     }
 });
 
-test('audio / 種別なし: 従来どおり見本画像、メタデータの順で選ぶ', () => {
+test('audio or no kind: picks preview image then metadata', () => {
     for (const category of ['audio', '', undefined, 'unknown']) {
         assert.equal(assetGroupOpenTarget(files('fragment.html', 'a.ttf', 'preview.png', 'meta.json'), category), 'preview.png');
         assert.equal(assetGroupOpenTarget(files('meta.json'), category), 'meta.json');
     }
 });
 
-test('断片・書体なし: 見本画像、メタデータ、undefined へフォールバックする', () => {
+test('no fragment or font: falls back to preview, metadata, undefined', () => {
     for (const category of ['overlay', 'still', 'font']) {
         assert.equal(assetGroupOpenTarget(files('preview.png', 'meta.json'), category), 'preview.png');
         assert.equal(assetGroupOpenTarget(files('meta.json'), category), 'meta.json');
@@ -35,7 +35,7 @@ test('断片・書体なし: 見本画像、メタデータ、undefined へフ�
     }
 });
 
-test('同名のディレクトリはクリック先に選ばない', () => {
+test('directories with the same name are not click targets', () => {
     const directories = ['fragment.html', 'a.ttf', 'preview.png', 'meta.json'].map(name => ({ name, isDirectory: true }));
     for (const category of ['overlay', 'still', 'font', 'audio']) {
         assert.equal(assetGroupOpenTarget(directories, category), undefined);
