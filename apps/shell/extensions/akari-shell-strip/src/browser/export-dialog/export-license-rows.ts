@@ -10,9 +10,9 @@ export interface LicenseRow {
 }
 
 const CHECKS: readonly [LicenseRowKind, QuickExportLicenseFinding['check'], string][] = [
-    ['non-commercial', 'license.non-commercial', '商用利用できない素材が'],
-    ['unknown', 'license.unknown', 'ライセンスが分からない素材が'],
-    ['attribution', 'license.attribution', '帰属表示が必要な素材が']
+    ['non-commercial', 'license.non-commercial', 'Footage restricted from commercial use:'],
+    ['unknown', 'license.unknown', 'Footage with unknown licenses:'],
+    ['attribution', 'license.attribution', 'Footage requiring attribution:']
 ];
 
 export function buildLicenseRows(findings: readonly QuickExportLicenseFinding[]): readonly LicenseRow[] {
@@ -20,11 +20,11 @@ export function buildLicenseRows(findings: readonly QuickExportLicenseFinding[])
         const entries = findings.filter(finding => finding.check === check);
         if (!entries.length) return [];
         const names = entries.map(entry => entry.details.name);
-        const extra = names.length > 3 ? `、ほか ${names.length - 3} 件` : '';
+        const extra = names.length > 3 ? `, plus ${names.length - 3} more` : '';
         return [{
             kind,
-            label: `${prefix} ${names.length} 件`,
-            preview: `${names.slice(0, 3).join('、')}${extra}`,
+            label: `${prefix} ${names.length}`,
+            preview: `${names.slice(0, 3).join(', ')}${extra}`,
             names,
             credits: [...new Set(entries.map(entry => entry.details.credit).filter(Boolean))]
         }];

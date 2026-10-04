@@ -102,7 +102,7 @@ async function runTimers(fixture) {
   }
 }
 
-test('選択・再生位置・パネルを light 状態へ反映する', async () => {
+test('Reflect selection, playhead, and panels in light state', async () => {
   const f = fixture();
   f.collector.start();
   await waitFor(() => f.light.length > 0 && f.docs.length > 0);
@@ -128,7 +128,7 @@ test('選択・再生位置・パネルを light 状態へ反映する', async (
   f.collector.stop();
 });
 
-test('文書ハッシュが変わったときだけ docs を送り大きい本文を省く', async () => {
+test('Send docs only when hashes change and omit large bodies', async () => {
   const f = fixture();
   f.collector.start();
   await waitFor(() => f.docs.length === 1);
@@ -150,7 +150,7 @@ test('文書ハッシュが変わったときだけ docs を送り大きい本�
   f.collector.stop();
 });
 
-test('docs と snapshot にプロジェクト内の相対パスを載せる', async () => {
+test('Include project-relative paths in docs and snapshots', async () => {
   const f = fixture();
   f.collector.start();
   await waitFor(() => f.docs.length === 1);
@@ -169,7 +169,7 @@ test('docs と snapshot にプロジェクト内の相対パスを載せる', as
   nested.collector.stop();
 });
 
-test('プロジェクト外の文書パスでは location を省く', async () => {
+test('Omit location for documents outside the project', async () => {
   const f = fixture({
     projectLocation: {
       projectSessionId: 'session-1',
@@ -185,7 +185,7 @@ test('プロジェクト外の文書パスでは location を省く', async () =
   f.collector.stop();
 });
 
-test('Windows パスを大文字小文字と区切りの違いを含めて相対化する', async () => {
+test('Relativize Windows paths across case and separator differences', async () => {
   const f = fixture({
     projectLocation: {
       projectSessionId: 'session-1',
@@ -204,7 +204,7 @@ test('Windows パスを大文字小文字と区切りの違いを含めて相対
   f.collector.stop();
 });
 
-test('プロジェクト切り替えで新しい location の docs を送り直す', async () => {
+test('Resend docs with new locations on project switch', async () => {
   const f = fixture();
   f.collector.start();
   await waitFor(() => f.docs.length === 1);
@@ -230,7 +230,7 @@ test('プロジェクト切り替えで新しい location の docs を送り直�
   f.collector.stop();
 });
 
-test('つなぎ直したら、ハッシュが変わっていなくても docs を送り直す', async () => {
+test('Resend docs after reconnect even when hashes are unchanged', async () => {
   const f = fixture();
   f.collector.start();
   await waitFor(() => f.docs.length === 1);

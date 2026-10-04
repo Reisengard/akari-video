@@ -14,7 +14,7 @@ export class AkariExportDialog extends ReactDialog<void> {
     readonly onDidChangeVisibility: Event<boolean> = this.visibilityEmitter.event;
 
     constructor(protected readonly session: AkariExportSessionService) {
-        super({ title: '書き出し', maxWidth: 880 });
+        super({ title: 'Export', maxWidth: 880 });
         this.addClass('akari-export-dialog-host');
         this.node.setAttribute('data-akari-onboarding-target', 'export-dialog');
         ensureExportDialogStyle();
@@ -51,18 +51,18 @@ export class AkariExportDialog extends ReactDialog<void> {
                     ? 'lint-failed'
                     : 'setup';
         const subtitle = view === 'running'
-            ? `${snapshot.outputName} · 閉じても続きます`
+            ? `${snapshot.outputName} · Continues after closing`
             : view === 'done'
                 ? status.artifactPath ?? snapshot.outputName
                 : view === 'lint-failed'
-                    ? `lint で ${status.lintIssueCount ?? 0} 件`
-                    : `${snapshot.projectLabel || 'このプロジェクト'} · edit.json の出力設定`;
+                    ? `Lint found ${status.lintIssueCount ?? 0} items`
+                    : `${snapshot.projectLabel || 'This project'} · Output settings from edit.json`;
         return (
             <div className='popup' role='dialog' aria-modal='true' aria-labelledby='akari-export-dialog-title'>
                 <div className='ph'>
-                    <div><div className='ttl' id='akari-export-dialog-title'>{view === 'done' ? '書き出し完了' : '書き出し'}</div><div className='sub'>{subtitle}</div></div>
-                    {running && <span className='pill'><span className='dot blink' />書き出し中 · {status.progressPercent ?? 0}%</span>}
-                    <button type='button' className='x' aria-label='閉じる' onClick={() => this.close()}>×</button>
+                    <div><div className='ttl' id='akari-export-dialog-title'>{view === 'done' ? 'Export complete' : 'Export'}</div><div className='sub'>{subtitle}</div></div>
+                    {running && <span className='pill'><span className='dot blink' />Exporting · {status.progressPercent ?? 0}%</span>}
+                    <button type='button' className='x' aria-label='Close' onClick={() => this.close()}>×</button>
                 </div>
                 {view === 'running' && <ExportRunningView session={this.session} snapshot={snapshot} close={() => this.close()} />}
                 {view === 'done' && <ExportDoneView session={this.session} snapshot={snapshot} close={() => this.close()} />}

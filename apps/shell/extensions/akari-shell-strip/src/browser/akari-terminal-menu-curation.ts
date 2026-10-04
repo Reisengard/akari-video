@@ -26,7 +26,7 @@ export class AkariTerminalMenuCuration implements FrontendApplicationContributio
             if (!this.terminalMenuItem) {
                 this.terminalMenuItem = this.menus.registerMenuAction(CommonMenus.FILE_NEW, {
                     commandId: TerminalCommands.NEW.id,
-                    label: '新しいターミナル',
+                    label: 'New Terminal',
                     order: 'z_terminal'
                 });
                 console.info('[akari-shell-strip] developer terminal menu item shown:', TerminalCommands.NEW.id);

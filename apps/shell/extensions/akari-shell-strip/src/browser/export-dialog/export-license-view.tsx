@@ -29,12 +29,12 @@ function LicenseLine(props: {
         <div className='license-main'>
             <button type='button' className='license-toggle' data-akari-license-toggle
                 aria-expanded={open} onClick={() => setOpen(value => !value)}>
-                {props.label}（{props.preview}）
+                {props.label}({props.preview})
             </button>
             {props.kind === 'attribution' && props.credits.length > 0 &&
                 <button type='button' className='license-copy' data-akari-license-copy-credit
                     onClick={() => void copyCredits()}>
-                    {copied ? 'コピーしました' : 'クレジットをコピー'}
+                    {copied ? 'Copied' : 'Copy credits'}
                 </button>}
         </div>
         {open && <ul data-akari-license-names>{props.names.map((name, index) => <li key={`${name}-${index}`}>{name}</li>)}</ul>}

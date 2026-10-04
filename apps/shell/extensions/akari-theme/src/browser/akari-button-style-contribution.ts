@@ -25,7 +25,6 @@ import { FrontendApplicationContribution } from '@theia/core/lib/browser';
 // 2026-07-30: 直値をやめ、akari-css-variable-force-contribution.ts が
 // テーマ追従で書き込む --akari-* 変数を参照する（ライトモード対応）。
 // フォールバック値はダークパレット（変数が書かれる前の一瞬のため）。
-const CSS = `
 /* シェル root は v0.1.41 / 4b5878a1 で color-scheme: dark を導入した
    （未チェックのネイティブフォームが白箱になる問題の修正。root の指定は残す）。
    Theia の node_modules/@theia/plugin-ext/src/main/browser/webview/pre/index.html
@@ -34,6 +33,23 @@ const CSS = `
    不透明なキャンバスを描く。root の dark 継承による不一致が不透明な白の原因。
    WebviewWidget.doShow（lib/main/browser/webview/webview.js）が className = webview
    で作る外側 iframe だけ light に一致させ、キャンバスを透明に戻す。 */
+/* Theia 既定の border-radius は 2px。カード言語（spec §3 のボタン段 = 6px）から
+   外れており、明示指定を忘れた箇所にだけ 2px が漏れる — 実測ではメニューの
+   一覧行がそれだった。個別に足して回るのではなく、既定そのものを段へ寄せる。
+   個別に 8px 等を指定している箇所（一覧行など）はそちらが優先される。 */
+/* 進捗バー（theia-progress-bar）も同じ理由で progressBar.background が
+   反映されないため上書きする。 */
+/* ネイティブフォームコントロール（チェックボックス・ラジオ・range）は
+   Theia の色トークンを経由せず、ブラウザの accent-color 既定（青系）に
+   依存している。LP モックと同じ方針（accent-color: var(--accent) 相当）で上書き。 */
+/* フォーカスリング。focusBorder が反映されないケースの保険。 */
+/* Theia の :focus:not(iframe) は widget の root にも四角い outline を付ける。
+   ホームの onActivateRequest は root（tabIndex=-1）へ focus() するため、
+   カードの overflow:hidden + 角丸でその枠が切れる。コンテナ自身だけ抑制し、
+   子の操作部品・操作用 ARIA role・編集可能要素のリングはそのまま残す。
+   :focus-visible だけでなく、クリック後のプログラム的 focus も対象にする。 */
+const CSS = `
+
 iframe.webview { color-scheme: light; }
 
 .theia-button {
@@ -41,10 +57,7 @@ iframe.webview { color-scheme: light; }
     color: var(--akari-bg, #0a0a0a) !important;
 }
 
-/* Theia 既定の border-radius は 2px。カード言語（spec §3 のボタン段 = 6px）から
-   外れており、明示指定を忘れた箇所にだけ 2px が漏れる — 実測ではメニューの
-   一覧行がそれだった。個別に足して回るのではなく、既定そのものを段へ寄せる。
-   個別に 8px 等を指定している箇所（一覧行など）はそちらが優先される。 */
+
 .theia-button {
     border-radius: 6px;
 }
@@ -59,31 +72,24 @@ iframe.webview { color-scheme: light; }
     background-color: var(--akari-elevated, #1a1a1a) !important;
 }
 
-/* 進捗バー（theia-progress-bar）も同じ理由で progressBar.background が
-   反映されないため上書きする。 */
+
 .theia-progress-bar {
     background-color: var(--akari-accent, #f97316) !important;
 }
 
-/* ネイティブフォームコントロール（チェックボックス・ラジオ・range）は
-   Theia の色トークンを経由せず、ブラウザの accent-color 既定（青系）に
-   依存している。LP モックと同じ方針（accent-color: var(--accent) 相当）で上書き。 */
+
 input[type="checkbox"],
 input[type="radio"],
 input[type="range"] {
     accent-color: var(--akari-accent, #f97316) !important;
 }
 
-/* フォーカスリング。focusBorder が反映されないケースの保険。 */
+
 :focus-visible {
     outline-color: var(--akari-accent-light, #fb923c) !important;
 }
 
-/* Theia の :focus:not(iframe) は widget の root にも四角い outline を付ける。
-   ホームの onActivateRequest は root（tabIndex=-1）へ focus() するため、
-   カードの overflow:hidden + 角丸でその枠が切れる。コンテナ自身だけ抑制し、
-   子の操作部品・操作用 ARIA role・編集可能要素のリングはそのまま残す。
-   :focus-visible だけでなく、クリック後のプログラム的 focus も対象にする。 */
+
 #theia-app-shell .lm-Widget:is(:not([role]), [role="tabpanel"], [role="region"], [role="group"]):not(button):not(input):not(select):not(textarea):not(a[href]):not([contenteditable]:not([contenteditable="false"])):focus {
     outline: none !important;
 }

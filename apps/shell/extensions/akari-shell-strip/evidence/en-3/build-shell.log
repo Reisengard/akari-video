@@ -1,0 +1,92 @@
+
+> @akari-video/shell@1.0.1 prebuild
+> npm run preflight && node resources/scripts/ensure-file-deps-linked.mjs
+
+
+> @akari-video/shell@1.0.1 preflight
+> node scripts/ensure-no-nested-extension-deps.mjs && node scripts/ensure-electron-dist.mjs
+
+[ensure-electron-dist] OK — node_modules\electron\dist は electron 39.8.7 で完成済み（何もしません）
+
+> @akari-video/shell@1.0.1 build
+> npm run build:ext && node -e "const{spawnSync}=require('child_process');if(spawnSync('swiftc',['--version']).status===0){const r=spawnSync(process.execPath,['resources/scripts/build-photo-mask-helper.mjs'],{stdio:'inherit'});if(r.status!==0)console.warn('背景を消す補助を作れませんでした。開発ビルドを続けます。')}" && theia build --mode production
+
+
+> @akari-video/shell@1.0.1 build:ext
+> tsc -b extensions/akari-theme extensions/akari-preview extensions/akari-annotations extensions/akari-project extensions/akari-shell-strip extensions/akari-partner extensions/akari-surfaces extensions/akari-world-view extensions/akari-tabs extensions/akari-transcript extensions/akari-companion
+
+Found cached ffmpeg library.
+Successfully replaced "Z:\AI\Projects\akari-video\apps\shell\node_modules\electron\dist\ffmpeg.dll".
+Error: Cannot find module '../build/Debug/ffmpeg.node'
+Require stack:
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\lib\theia.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\bin\theia.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1500:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1116:12)
+    at Module._load (node:internal/modules/cjs/loader:1285:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1600:12)
+    at require (node:internal/modules/helpers:153:16)
+    at _loadFfmpegNativeAddon (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js:33:20)
+    at Object.getFfmpegCodecs (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js:84:12)
+    at Object.checkFfmpeg (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\check-ffmpeg.js:24:27)
+    at ApplicationPackageManager.prepareElectron (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:194:22)
+    at async ApplicationPackageManager.prepare (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:68:13)
+    at async ApplicationPackageManager.generate (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:73:13)
+    at async ApplicationPackageManager.build (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:94:9)
+    at async Object.handler (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\lib\theia.js:147:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\ffmpeg\\lib\\ffmpeg.js',
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\ffmpeg\\lib\\index.js',
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\application-manager\\lib\\application-package-manager.js',
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\application-manager\\lib\\index.js',
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\cli\\lib\\theia.js',
+    'Z:\\AI\\Projects\\akari-video\\apps\\shell\\node_modules\\@theia\\cli\\bin\\theia.js'
+  ]
+}
+Uncaught Exception:  Error: Cannot find module '../build/Debug/ffmpeg.node'
+Require stack:
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\lib\theia.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\bin\theia.js
+Error: Cannot find module '../build/Debug/ffmpeg.node'
+Require stack:
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\index.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\lib\theia.js
+- Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\bin\theia.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1500:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1116:12)
+    at Module._load (node:internal/modules/cjs/loader:1285:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1600:12)
+    at require (node:internal/modules/helpers:153:16)
+    at _loadFfmpegNativeAddon (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js:33:20)
+    at Object.getFfmpegCodecs (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\ffmpeg.js:84:12)
+    at Object.checkFfmpeg (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\ffmpeg\lib\check-ffmpeg.js:24:27)
+    at ApplicationPackageManager.prepareElectron (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:194:22)
+    at async ApplicationPackageManager.prepare (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:68:13)
+    at async ApplicationPackageManager.generate (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:73:13)
+    at async ApplicationPackageManager.build (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\application-manager\lib\application-package-manager.js:94:9)
+    at async Object.handler (Z:\AI\Projects\akari-video\apps\shell\node_modules\@theia\cli\lib\theia.js:147:13)
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path Z:\AI\Projects\akari-video\apps\shell
+npm error workspace @akari-video/shell@1.0.1
+npm error location Z:\AI\Projects\akari-video\apps\shell
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c npm run build:ext && node -e "const{spawnSync}=require('child_process');if(spawnSync('swiftc',['--version']).status===0){const r=spawnSync(process.execPath,['resources/scripts/build-photo-mask-helper.mjs'],{stdio:'inherit'});if(r.status!==0)console.warn('背景を消す補助を作れませんでした。開発ビルドを続けます。')}" && theia build --mode production

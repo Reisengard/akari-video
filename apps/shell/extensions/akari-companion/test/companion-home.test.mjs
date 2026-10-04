@@ -8,12 +8,12 @@ import {
   resolveAkariHomeDir
 } from '../lib/node/companion-home.js';
 
-test('AKARI_HOME と既定ホームから設定パスを解決する', () => {
+test('Resolve configuration paths from AKARI_HOME and default home', () => {
   assert.equal(resolveAkariHomeDir({ AKARI_HOME: '/custom' }, '/home'), '/custom');
   assert.equal(resolveAkariHomeDir({}, '/home'), join('/home', '.akari'));
 });
 
-test('権限 600 の正しい設定だけを読む', async () => {
+test('Read only valid configuration with mode 600', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'akari-companion-home-'));
   const file = join(dir, 'companion.json');
   try {
@@ -27,7 +27,7 @@ test('権限 600 の正しい設定だけを読む', async () => {
   }
 });
 
-test('壊れた JSON と port/token の型違いを拒む', async () => {
+test('Reject malformed JSON and port/token type mismatches', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'akari-companion-home-'));
   const file = join(dir, 'companion.json');
   try {

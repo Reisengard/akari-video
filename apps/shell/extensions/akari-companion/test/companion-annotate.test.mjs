@@ -24,7 +24,7 @@ function fixture(overrides = {}) {
 
 const base = { projectSessionId: 'session-1', text: 'note', sourceT: 1 };
 
-test('現在の review/root と external 印で注釈を作る', async () => {
+test('Create annotations using current review/root and external flag', async () => {
   const { calls, deps } = fixture();
   const result = await applyCompanionAnnotation(base, deps);
   assert.deepEqual(result, { ok: true, value: { annotationId: 'a-0001' } });
@@ -35,26 +35,26 @@ test('現在の review/root と external 印で注釈を作る', async () => {
   assert.equal(calls[0].target, null);
 });
 
-test('session 不一致では作らない', async () => {
+test('Do not create on session mismatch', async () => {
   const { calls, deps } = fixture({ currentProjectSessionId: () => 'other' });
   assert.equal((await applyCompanionAnnotation(base, deps)).error, 'stale-session');
   assert.equal(calls.length, 0);
 });
 
-test('空文字と 2001 字を拒む', async () => {
+test('Reject empty text and 2001 characters', async () => {
   const { deps } = fixture();
   assert.equal((await applyCompanionAnnotation({ ...base, text: '' }, deps)).error, 'invalid-args');
   assert.equal((await applyCompanionAnnotation({ ...base, text: 'x'.repeat(2001) }, deps)).error, 'invalid-args');
 });
 
-test('sourceT null は文書・画像ターゲットだけに許す', async () => {
+test('Allow sourceT null only for document and image targets', async () => {
   const { calls, deps } = fixture();
   assert.equal((await applyCompanionAnnotation({ ...base, sourceT: null, target: 'cut:c-1' }, deps)).error, 'invalid-args');
   assert.equal((await applyCompanionAnnotation({ ...base, sourceT: null, target: 'doc:README.md#intro' }, deps)).ok, true);
   assert.equal(calls.length, 1);
 });
 
-test('範囲・文字列境界・例外を検査する', async () => {
+test('Check range, string bounds, and exceptions', async () => {
   const { deps } = fixture();
   assert.equal((await applyCompanionAnnotation({ ...base, sourceRange: [2, 1] }, deps)).error, 'invalid-args');
   assert.equal((await applyCompanionAnnotation({ ...base, src: 'x'.repeat(513) }, deps)).error, 'invalid-args');

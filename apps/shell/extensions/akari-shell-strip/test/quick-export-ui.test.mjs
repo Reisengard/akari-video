@@ -6,7 +6,7 @@ import {
     shouldShowRenderJsonProgress
 } from '../lib/common/quick-export-ui.js';
 
-test('shouldShowRenderJsonProgress: quick export phase ごとの真理値表', () => {
+test('shouldShowRenderJsonProgress truth table for quick export phases', () => {
     const cases = [
         [undefined, true],
         ['idle', true],
@@ -22,7 +22,7 @@ test('shouldShowRenderJsonProgress: quick export phase ごとの真理値表', (
     }
 });
 
-test('quickExportErrorNotification: lint-failed は severity 件数とレポート案内を通知する', () => {
+test('quickExportErrorNotification reports severity counts and report guidance', () => {
     const status = {
         phase: 'lint-failed',
         logTail: '',
@@ -33,11 +33,11 @@ test('quickExportErrorNotification: lint-failed は severity 件数とレポー�
     };
     assert.equal(
         quickExportErrorNotification(status, false),
-        'lint NG（エラー 1 件・警告 1 件）のため書き出しを中断しました。lint レポートを開いて確認できます。'
+        'Lint failed (Errors: 1 · Warnings: 1): export stopped. Open the lint report for details.'
     );
 });
 
-test('quickExportErrorNotification: 既知 check は日本語要約と従来の英語詳細を通知する', () => {
+test('quickExportErrorNotification preserves English diagnostic details for known checks', () => {
     const status = {
         phase: 'lint-failed',
         logTail: '',
@@ -52,13 +52,12 @@ test('quickExportErrorNotification: 既知 check は日本語要約と従来の�
     };
     assert.equal(
         quickExportErrorNotification(status, false),
-        'このトランジションは PiP または複数トラックの合成では書き出せません。' +
-            'トランジションを削除するか、映像を単一のトラックへ戻してください。 ' +
-            '詳細: [cuts.track-transition-unsupported] gap-aware track engine cannot represent xfade'
+        'Lint failed (Errors: 1 · Warnings: 0): export stopped. Check the log. ' +
+            'Details: [cuts.track-transition-unsupported] gap-aware track engine cannot represent xfade'
     );
 });
 
-test('quickExportErrorNotification: 辞書に無い check は従来表示へフォールバックする', () => {
+test('quickExportErrorNotification handles unknown checks with counts and details', () => {
     const status = {
         phase: 'lint-failed',
         logTail: '',
@@ -74,11 +73,12 @@ test('quickExportErrorNotification: 辞書に無い check は従来表示へフ�
     };
     assert.equal(
         quickExportErrorNotification(status, false),
-        'lint NG（エラー 1 件・警告 0 件）のため書き出しを中断しました。lint レポートを開いて確認できます。'
+        'Lint failed (Errors: 1 · Warnings: 0): export stopped. Open the lint report for details. ' +
+            'Details: [future.unknown] original english detail'
     );
 });
 
-test('quickExportErrorNotification: 通知済みなら lint-failed を多重通知しない', () => {
+test('quickExportErrorNotification does not repeat lint-failed notifications', () => {
     const status = {
         phase: 'lint-failed',
         logTail: '',
@@ -89,16 +89,16 @@ test('quickExportErrorNotification: 通知済みなら lint-failed を多重通�
     assert.equal(quickExportErrorNotification(status, true), undefined);
 });
 
-test('quickExportErrorNotification: failed の既存通知と非終端 phase を維持する', () => {
+test('quickExportErrorNotification preserves failed notifications and nonterminal phases', () => {
     assert.equal(
-        quickExportErrorNotification({ phase: 'failed', logTail: '', failureSummary: 'CLI が見つかりません' }, false),
-        '書き出しに失敗しました: CLI が見つかりません'
+        quickExportErrorNotification({ phase: 'failed', logTail: '', failureSummary: 'CLI not found' }, false),
+        'Export failed: CLI not found'
     );
     assert.equal(quickExportErrorNotification({ phase: 'rendering', logTail: '' }, false), undefined);
     assert.equal(quickExportErrorNotification({ phase: 'done', logTail: '' }, false), undefined);
 });
 
-test('quickExportStageLabel: 固定 5 工程を日本語へ変換し undefined は維持する', () => {
+test('quickExportStageLabel translates the five stages to English and preserves undefined', () => {
     assert.deepEqual([
         quickExportStageLabel('prepare'),
         quickExportStageLabel('audio-cut'),
@@ -107,11 +107,11 @@ test('quickExportStageLabel: 固定 5 工程を日本語へ変換し undefined �
         quickExportStageLabel('verify'),
         quickExportStageLabel(undefined)
     ], [
-        '準備',
-        '音を切り出す',
-        '映像を描いて圧縮する',
-        '音と合わせて仕上げる',
-        '確認',
+        'Preparing',
+        'Extracting audio',
+        'Rendering and encoding video',
+        'Mixing audio',
+        'Verifying',
         undefined
     ]);
 });

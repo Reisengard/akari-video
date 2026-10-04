@@ -43,11 +43,11 @@ export interface SkillEntry {
 // 既存コードにも同じ「文字列 id だけ知っている」パターンがある）。
 const HOME_WIDGET_ID = 'akari-home-widget';
 
-const EDIT_JSON_MISSING_TOOLTIP = 'edit.json がまだありません。編集を進めてから書き出してください。';
+const EDIT_JSON_MISSING_TOOLTIP = 'No edit.json yet. Create an edit before exporting.';
 /** ブラウザプレビュー（preview-server）の状態ポーリング間隔（裁定 1-f: 1,000 ms）。 */
 const PREVIEW_SERVER_POLL_INTERVAL_MS = 1000;
-const PREVIEW_EDIT_JSON_MISSING_TOOLTIP = 'edit.json がまだありません。編集を進めてからプレビューしてください。';
-const PREVIEW_WORKSPACE_MISSING_TOOLTIP = 'プロジェクトを開くとブラウザプレビューを起動できます。';
+const PREVIEW_EDIT_JSON_MISSING_TOOLTIP = 'No edit.json yet. Create an edit before previewing.';
+const PREVIEW_WORKSPACE_MISSING_TOOLTIP = 'Open a project to start Browser Preview.';
 /**
  * アクティビティバー5番目のアイコン「メニュー」。
  *
@@ -109,8 +109,8 @@ export class AkariMenuWidget extends ReactWidget {
     protected init(): void {
         this.id = AkariMenuWidget.ID;
         this.node.setAttribute('data-akari-onboarding-target', 'menu-panel');
-        this.title.label = 'メニュー';
-        this.title.caption = 'メニュー';
+        this.title.label = 'Menu';
+        this.title.caption = 'Menu';
         this.title.iconClass = 'codicon codicon-menu';
         this.title.closable = false;
         this.toDispose.push(this.workspace.onWorkspaceChanged(() => {
@@ -165,7 +165,7 @@ export class AkariMenuWidget extends ReactWidget {
         }
         return {
             id: 'akari.menu.browserPreview',
-            label: starting ? '起動中…' : 'ブラウザプレビュー',
+            label: starting ? 'Starting…' : 'Browser Preview',
             icon: 'codicon codicon-globe',
             disabled: !this.workspaceOpened || !this.editJsonExists || starting || this.previewServerBusy,
             title,
@@ -254,7 +254,7 @@ export class AkariMenuWidget extends ReactWidget {
         const root = roots[0]?.resource;
         if (!root) {
             this.skills = [];
-            this.skillsNotice = 'プロジェクトを開くと、使えるスキルがここに並びます。';
+            this.skillsNotice = 'Open a project to see its available skills here.';
             this.update();
             return;
         }
@@ -263,7 +263,7 @@ export class AkariMenuWidget extends ReactWidget {
             stat = await this.files.resolve(root.resolve('.claude/skills'));
         } catch {
             this.skills = [];
-            this.skillsNotice = 'このプロジェクトにはスキルがまだありません。';
+            this.skillsNotice = 'This project has no skills yet.';
             this.update();
             return;
         }
@@ -282,7 +282,7 @@ export class AkariMenuWidget extends ReactWidget {
         }
         parsed.sort((left, right) => left.name.localeCompare(right.name));
         this.skills = parsed;
-        this.skillsNotice = parsed.length === 0 ? 'このプロジェクトにはスキルがまだありません。' : '';
+        this.skillsNotice = parsed.length === 0 ? 'This project has no skills yet.' : '';
         this.update();
     }
 
@@ -391,13 +391,13 @@ export class AkariMenuWidget extends ReactWidget {
             const roots = await this.workspace.roots;
             const root = roots[0]?.resource;
             if (!root) {
-                void this.messages.error('プロジェクトが開かれていないため整理できません');
+                void this.messages.error('Open a project before cleaning up');
                 return;
             }
             const inspected = await this.projectClean.inspect(root.toString());
             const inspection = inspected.inspection;
             if (!inspected.ok || !inspection) {
-                void this.messages.error(inspected.reason ?? 'プロジェクトを調べられませんでした');
+                void this.messages.error(inspected.reason ?? 'Could not inspect the project');
                 return;
             }
             if (inspection.disposable.length === 0) {
@@ -405,22 +405,22 @@ export class AkariMenuWidget extends ReactWidget {
                 return;
             }
             const confirmed = await new ConfirmDialog({
-                title: '不要なデータを整理',
+                title: 'Clean up unused data',
                 msg: this.buildCleanConfirmation(inspection),
-                ok: `${formatBytes(inspection.disposableBytes)} を削除`,
-                cancel: 'キャンセル'
+                ok: `${formatBytes(inspection.disposableBytes)} to delete`,
+                cancel: 'Cancel'
             }).open();
             if (!confirmed) {
                 return;
             }
             const result = await this.projectClean.clean(root.toString());
             if (result.cleaned) {
-                void this.messages.info(`不要なデータ ${formatBytes(result.bytes)}（${result.count} 件）を削除しました`);
+                void this.messages.info(`Unused data: ${formatBytes(result.bytes)}(${result.count} items) deleted`);
             } else {
-                void this.messages.error(result.reason ?? '整理できませんでした');
+                void this.messages.error(result.reason ?? 'Could not clean up');
             }
         } catch (error) {
-            void this.messages.error(describeUnexpectedQuickExportFailure(error, '整理できませんでした'));
+            void this.messages.error(describeUnexpectedQuickExportFailure(error, 'Could not clean up'));
         } finally {
             this.cleaningProject = false;
             this.update();
@@ -435,11 +435,11 @@ export class AkariMenuWidget extends ReactWidget {
     protected describeNothingToClean(inspection: ProjectCleanInspection): string {
         const held = inspection.undecided.filter(entry => entry.heldReason);
         if (held.length === 0) {
-            return '削除できる不要なデータはありませんでした';
+            return 'No unused data to delete';
         }
-        return `いま削除できる不要なデータはありません（${held.length} 件 ${formatBytes(
+        return `No unused data can be deleted now (${ held.length} items ${formatBytes(
             held.reduce((sum, entry) => sum + entry.bytes, 0)
-        )} は「${held[0].heldReason}」として保留中です）`;
+        )} held as "${held[0].heldReason}")`;
     }
 
     /** 確認ダイアログの本文。消す対象を必ず名指しする（総量だけで承認を取らない）。 */
@@ -447,14 +447,14 @@ export class AkariMenuWidget extends ReactWidget {
         const node = document.createElement('div');
         const lead = document.createElement('p');
         lead.style.margin = '0 0 8px';
-        lead.textContent = `次の ${inspection.disposable.length} 件（合計 ${formatBytes(inspection.disposableBytes)}）を削除します。原本・書き出し済みの動画・検証の証跡は削除しません。`;
+        lead.textContent = `The following ${inspection.disposable.length} items (total ${formatBytes(inspection.disposableBytes)}) will be deleted. Originals, exported videos, and verification evidence will be kept.`;
         node.appendChild(lead);
 
         const list = document.createElement('ul');
         list.style.cssText = 'margin:0;padding-left:18px;max-height:240px;overflow:auto;font-size:0.9em';
         for (const entry of inspection.disposable) {
             const item = document.createElement('li');
-            item.textContent = `${entry.path} — ${formatBytes(entry.bytes)}（${entry.reason}）`;
+            item.textContent = `${entry.path} — ${formatBytes(entry.bytes)}(${entry.reason})`;
             list.appendChild(item);
         }
         node.appendChild(list);
@@ -463,7 +463,7 @@ export class AkariMenuWidget extends ReactWidget {
         if (held.length > 0) {
             const note = document.createElement('p');
             note.style.cssText = 'margin:8px 0 0;opacity:0.75;font-size:0.9em';
-            note.textContent = `${held.length} 件（${formatBytes(held.reduce((sum, entry) => sum + entry.bytes, 0))}）は「${held[0].heldReason}」のため今回は残します。`;
+            note.textContent = `${held.length} items (${formatBytes(held.reduce((sum, entry) => sum + entry.bytes, 0))}) are being kept because "${held[0].heldReason}".`;
             node.appendChild(note);
         }
         return node;
@@ -496,7 +496,7 @@ export class AkariMenuWidget extends ReactWidget {
             this.applyPreviewServerStatus({
                 phase: 'failed',
                 logTail: '',
-                failureSummary: describeUnexpectedQuickExportFailure(error, 'プロジェクトルートを取得できませんでした')
+                failureSummary: describeUnexpectedQuickExportFailure(error, 'Could not get the project root')
             });
             return;
         }
@@ -505,7 +505,7 @@ export class AkariMenuWidget extends ReactWidget {
             this.applyPreviewServerStatus({
                 phase: 'failed',
                 logTail: '',
-                failureSummary: 'プロジェクトルートを取得できないため、ブラウザプレビューを起動できませんでした'
+                failureSummary: 'Could not start Browser Preview because the project root is unavailable'
             });
             return;
         }
@@ -520,7 +520,7 @@ export class AkariMenuWidget extends ReactWidget {
             status = {
                 phase: 'failed',
                 logTail: '',
-                failureSummary: describeUnexpectedQuickExportFailure(error, 'プレビューサーバーに接続できませんでした')
+                failureSummary: describeUnexpectedQuickExportFailure(error, 'Could not connect to the preview server')
             };
         }
         this.previewServerBusy = false;
@@ -543,7 +543,7 @@ export class AkariMenuWidget extends ReactWidget {
             status = {
                 phase: 'failed',
                 logTail: '',
-                failureSummary: describeUnexpectedQuickExportFailure(error, 'プレビューサーバーを停止できませんでした')
+                failureSummary: describeUnexpectedQuickExportFailure(error, 'Could not stop the preview server')
             };
         }
         this.previewServerBusy = false;
@@ -628,7 +628,7 @@ export class AkariMenuWidget extends ReactWidget {
     protected async copyPreviewServerUrl(url: string): Promise<void> {
         try {
             await navigator.clipboard.writeText(url);
-            void this.messages.info('URL をコピーしました');
+            void this.messages.info('URL copied');
         } catch (error) {
             console.warn('[akari-shell-strip] clipboard write failed:', error);
         }
@@ -646,14 +646,14 @@ export class AkariMenuWidget extends ReactWidget {
                 style={{ marginTop: '10px', border: '1px solid var(--theia-widget-border)', borderRadius: '6px', padding: '8px 10px' }}
             >
                 {status.phase === 'starting' && (
-                    <div style={{ fontSize: '0.85em' }}>プレビューサーバーを起動しています…</div>
+                    <div style={{ fontSize: '0.85em' }}>Starting the preview server…</div>
                 )}
                 {status.phase === 'running' && status.url && (
                     <>
                         <div style={{ fontSize: '0.85em' }}>
                             <code
                                 data-akari-preview-server-url={status.url}
-                                title='クリックで URL をコピー'
+                                title='Click to copy URL'
                                 style={{ cursor: 'pointer', userSelect: 'all' }}
                                 onClick={() => void this.copyPreviewServerUrl(status.url!)}
                             >{status.url}</code>
@@ -665,7 +665,7 @@ export class AkariMenuWidget extends ReactWidget {
                                 title={buildPreviewOpenUrl(status.url, 'latest')}
                                 onClick={() => this.openPreviewInBrowser('latest')}
                             >
-                                最新版で開く
+                                Open latest version
                             </button>
                             <button
                                 className='theia-button secondary'
@@ -673,7 +673,7 @@ export class AkariMenuWidget extends ReactWidget {
                                 title={buildPreviewOpenUrl(status.url, 'legacy')}
                                 onClick={() => this.openPreviewInBrowser('legacy')}
                             >
-                                従来版で開く（frameEngine=0）
+                                Open legacy version (frameEngine=0)
                             </button>
                             <button
                                 className='theia-button secondary'
@@ -681,14 +681,14 @@ export class AkariMenuWidget extends ReactWidget {
                                 disabled={this.previewServerBusy}
                                 onClick={() => void this.stopPreviewServer()}
                             >
-                                停止
+                                Stop
                             </button>
                         </div>
                     </>
                 )}
                 {status.phase === 'failed' && (
                     <>
-                        <div style={{ fontSize: '0.85em' }}>ブラウザプレビューを起動できませんでした</div>
+                        <div style={{ fontSize: '0.85em' }}>Could not start Browser Preview</div>
                         {status.failureSummary && (
                             <pre style={{
                                 fontSize: '0.8em', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
@@ -701,7 +701,7 @@ export class AkariMenuWidget extends ReactWidget {
                             disabled={this.previewServerBusy}
                             onClick={() => void this.startPreviewServer()}
                         >
-                            再試行
+                            Retry
                         </button>
                     </>
                 )}
@@ -716,13 +716,13 @@ export class AkariMenuWidget extends ReactWidget {
         const percent = status.progressPercent ?? 0;
         const stage = quickExportStageLabel(status.progressStage);
         const label = running
-            ? `${stage ?? (status.phase === 'linting' ? 'lint 確認中' : '準備')} · ${percent}%`
+            ? `${stage ?? (status.phase === 'linting' ? 'Checking lint' : 'Preparing')} · ${percent}%`
             : status.phase === 'done'
-                ? '書き出し完了'
-                : status.phase === 'lint-failed' ? 'lint NG' : '書き出し失敗';
+                ? 'Export complete'
+                : status.phase === 'lint-failed' ? 'Lint failed' : 'Export failed';
         return (
             <section style={{ marginBottom: '22px' }}>
-                <h3 style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>書き出し</h3>
+                <h3 style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>Export</h3>
                 <button
                     className='theia-button secondary'
                     data-akari-onboarding-target='export-button'
@@ -732,11 +732,11 @@ export class AkariMenuWidget extends ReactWidget {
                     onClick={() => void this.openExportDialog()}
                 >
                     <span className='codicon codicon-desktop-download' aria-hidden='true' />
-                    <span>書き出し…</span>
+                    <span>Export…</span>
                 </button>
                 {this.selectedEditName !== 'edit.json' && (
                     <p style={{ opacity: 0.75, fontSize: '0.85em', margin: '6px 0 0' }}>
-                        書き出し対象: {this.selectedEditName}。別タイムラインは現在書き出せません。edit.json のタブに戻すと書き出せます。
+                        Export target: {this.selectedEditName}. Exporting another timeline is currently unsupported. Return to the edit.json tab to export.
                     </p>
                 )}
                 {!this.editJsonExists && (
@@ -746,7 +746,7 @@ export class AkariMenuWidget extends ReactWidget {
                     <div data-akari-export-mini-status={status.phase} style={{ marginTop: '8px', border: '1px solid var(--theia-widget-border)', borderRadius: '6px', padding: '7px 9px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82em' }}>
                             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                            <button className='theia-button secondary' style={{ marginLeft: 'auto', padding: '2px 7px', fontSize: '0.82em' }} onClick={() => void this.openExportDialog()}>開く</button>
+                            <button className='theia-button secondary' style={{ marginLeft: 'auto', padding: '2px 7px', fontSize: '0.82em' }} onClick={() => void this.openExportDialog()}>Open</button>
                         </div>
                         {running && (
                             <div style={{ height: '4px', borderRadius: '2px', background: 'var(--akari-elevated, rgba(128,128,128,0.25))', overflow: 'hidden', marginTop: '5px' }}>
@@ -759,11 +759,11 @@ export class AkariMenuWidget extends ReactWidget {
                     className='theia-button secondary'
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start', padding: '8px 10px', width: '100%', marginTop: '8px' }}
                     disabled={!this.workspaceOpened || this.cleaningProject}
-                    title='書き出しの一時ファイルや再生成できるキャッシュを、一覧で確認してから削除します'
+                    title='Review and delete export temporary files and regenerable caches'
                     onClick={() => void this.cleanProjectData()}
                 >
                     <span className={`codicon ${this.cleaningProject ? 'codicon-loading codicon-modifier-spin' : 'codicon-trash'}`} aria-hidden='true' />
-                    <span>{this.cleaningProject ? '調べています…' : '不要なデータを整理…'}</span>
+                    <span>{this.cleaningProject ? 'Inspecting…' : 'Clean up unused data…'}</span>
                 </button>
             </section>
         );
@@ -773,7 +773,7 @@ export class AkariMenuWidget extends ReactWidget {
         return (
             <div style={{ padding: '14px', overflow: 'auto', height: '100%', boxSizing: 'border-box' }}>
                 <section data-akari-menu-section='open' style={{ marginBottom: '22px' }}>
-                    <h3 data-akari-menu-section-heading style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>ひらく</h3>
+                    <h3 data-akari-menu-section-heading style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>Open</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {this.actions.map(action => (
                             <button
@@ -793,12 +793,12 @@ export class AkariMenuWidget extends ReactWidget {
                 </section>
                 {this.renderExportSection()}
                 <section data-akari-menu-section='skills'>
-                    <h3 data-akari-menu-section-heading style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>やらせる（スキル）</h3>
+                    <h3 data-akari-menu-section-heading style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>Run skills</h3>
                     {this.skillsNotice && <p style={{ opacity: 0.7, margin: '0 0 8px' }}>{this.skillsNotice}</p>}
                     {this.skills.length > 0 && (
                         <>
                             <p style={{ opacity: 0.6, fontSize: '0.85em', margin: '0 0 10px' }}>
-                                パートナーペインでスキル名を伝えると実行を依頼できます。
+                                Ask the Partner to run a skill by name.
                             </p>
                             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {this.skills.map(skill => (

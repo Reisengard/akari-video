@@ -9,29 +9,29 @@ const RESOURCES_PATH = '/Applications/AKARI Video.app/Contents/Resources';
 // 開発起動（npm start / Electron 直起動）での __dirname。
 const DEV_DIRNAME = '/repo/apps/shell/lib/backend';
 
-test('packagedCliCandidates: resourcesPath 基点が最優先', () => {
+test('packagedCliCandidates prioritizes resourcesPath', () => {
     const candidates = packagedCliCandidates('render-cut', 'render-cut.mjs', PACKAGED_DIRNAME, RESOURCES_PATH);
     assert.equal(candidates[0], resolve(RESOURCES_PATH, 'packages/render-cut/bin/render-cut.mjs'));
 });
 
-test('packagedCliCandidates: resourcesPath が無くても祖先探索で Resources 配下に当たる', () => {
+test('packagedCliCandidates finds Resources through ancestors without resourcesPath', () => {
     // process.resourcesPath が使えない経路でも壊れないことの保証（多重防御）。
     const candidates = packagedCliCandidates('render-cut', 'render-cut.mjs', PACKAGED_DIRNAME);
     assert.ok(
         candidates.includes(resolve(RESOURCES_PATH, 'packages/render-cut/bin/render-cut.mjs')),
-        `Resources 基点の候補が祖先探索に含まれていない: ${candidates.join(', ')}`
+        `Resources candidate missing from ancestor search: ${candidates.join(', ')}`
     );
 });
 
-test('packagedCliCandidates: 開発配置ではリポルート直下の packages/ に当たる', () => {
+test('packagedCliCandidates finds root packages in development layouts', () => {
     const candidates = packagedCliCandidates('edit-lint', 'edit-lint.mjs', DEV_DIRNAME);
     assert.ok(
-        candidates.includes('/repo/packages/edit-lint/bin/edit-lint.mjs'),
-        `リポルート基点の候補が無い: ${candidates.join(', ')}`
+        candidates.includes(resolve('/repo/packages/edit-lint/bin/edit-lint.mjs')),
+        `Repository root candidate missing: ${candidates.join(', ')}`
     );
 });
 
-test('packagedCliCandidates: process.cwd() に依存しない（cwd を変えても結果が一致する）', () => {
+test('packagedCliCandidates does not depend on process.cwd()', () => {
     // 受け入れ条件「探索パスが process.cwd() に依存しなくなっている」の機械化。
     // 旧実装は cwd 起点の候補を 2 件持っており、パッケージ版（cwd = `/`）では
     // どちらも `/packages/...` に潰れて当たらなかった。
@@ -47,30 +47,30 @@ test('packagedCliCandidates: process.cwd() に依存しない（cwd を変えて
     }
 });
 
-test('packagedCliCandidates: 後方互換の兄弟配置候補を末尾に持つ', () => {
+test('packagedCliCandidates keeps legacy sibling candidates at the end', () => {
     const candidates = packagedCliCandidates('render-cut', 'render-cut.mjs', PACKAGED_DIRNAME, RESOURCES_PATH);
     assert.equal(candidates.at(-1), resolve(PACKAGED_DIRNAME, '../render-cut/bin/render-cut.mjs'));
 });
 
-test('packagedCliCandidates: 候補は重複しない', () => {
+test('packagedCliCandidates contains no duplicates', () => {
     const candidates = packagedCliCandidates('render-cut', 'render-cut.mjs', PACKAGED_DIRNAME, RESOURCES_PATH);
     assert.equal(new Set(candidates).size, candidates.length);
 });
 
-test('packagedPackageEntryCandidates: preview-server の src/ 入口も resourcesPath 基点が最優先', () => {
+test('packagedPackageEntryCandidates prioritizes resourcesPath for preview-server src entry', () => {
     const candidates = packagedPackageEntryCandidates('preview-server', 'src/server.mjs', PACKAGED_DIRNAME, RESOURCES_PATH);
     assert.equal(candidates[0], resolve(RESOURCES_PATH, 'packages/preview-server/src/server.mjs'));
 });
 
-test('packagedPackageEntryCandidates: resourcesPath 無しでも祖先探索で Resources 配下に当たる', () => {
+test('packagedPackageEntryCandidates finds Resources through ancestors without resourcesPath', () => {
     const candidates = packagedPackageEntryCandidates('preview-server', 'src/server.mjs', PACKAGED_DIRNAME);
     assert.ok(
         candidates.includes(resolve(RESOURCES_PATH, 'packages/preview-server/src/server.mjs')),
-        `Resources 基点の候補が祖先探索に含まれていない: ${candidates.join(', ')}`
+        `Resources candidate missing from ancestor search: ${candidates.join(', ')}`
     );
 });
 
-test('packagedCliCandidates: 委譲後も既存期待配列がバイト同一（委譲前の実装と同じ並び）', () => {
+test('packagedCliCandidates delegation preserves the exact prior array order', () => {
     // 委譲前実装のインライン展開: resourcesPath 基点 → 祖先探索（深さ 10）→ 兄弟配置、を dedupe。
     const relativePath = 'packages/render-cut/bin/render-cut.mjs';
     const expected = [resolve(RESOURCES_PATH, relativePath)];
@@ -90,7 +90,7 @@ test('packagedCliCandidates: 委譲後も既存期待配列がバイト同一（
     );
 });
 
-test('bundledMediaBinCandidate: Resources/media-bin を指す', () => {
+test('bundledMediaBinCandidate points to Resources/media-bin', () => {
     assert.equal(
         bundledMediaBinCandidate('ffmpeg', RESOURCES_PATH, 'darwin'),
         resolve(RESOURCES_PATH, 'media-bin/ffmpeg')
@@ -101,6 +101,6 @@ test('bundledMediaBinCandidate: Resources/media-bin を指す', () => {
     );
 });
 
-test('bundledMediaBinCandidate: 開発起動（resourcesPath 未設定）では undefined', () => {
+test('bundledMediaBinCandidate is undefined in development without resourcesPath', () => {
     assert.equal(bundledMediaBinCandidate('ffmpeg', undefined, 'darwin'), undefined);
 });

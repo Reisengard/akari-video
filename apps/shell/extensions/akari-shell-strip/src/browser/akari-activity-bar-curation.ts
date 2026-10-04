@@ -76,9 +76,9 @@ interface LeftPanelInternals {
 // akari-settings-opener は AkariSettingsContribution.onStart、
 // akari-menu-widget は AkariMenuContribution.onStart で追加される自前 widget。
 const ALLOWLIST: CurationEntry[] = [
-    { id: EXPLORER_VIEW_CONTAINER_ID, label: '素材' },
+    { id: EXPLORER_VIEW_CONTAINER_ID, label: 'Footage' },
     { id: ROLE_BUCKETS_WIDGET_ID, label: null },
-    { id: 'search-view-container', label: '検索' },
+    { id: 'search-view-container', label: 'Search' },
     { id: 'akari-settings-opener', label: null },
     { id: MENU_WIDGET_ID, label: null }
 ];

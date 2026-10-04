@@ -25,9 +25,9 @@ export class WorldCliRunner {
 
     async overview(projectRoot: string): Promise<WorldOverviewDocument> {
         const key = `overview:${projectRoot}`;
-        if (this.children.has(key)) return { html: '', error: 'ワールド俯瞰を生成中です。' };
+        if (this.children.has(key)) return { html: '', error: 'World overview is being generated.' };
         const cli = await this.resolveCli();
-        if (!cli) return { html: '', error: 'akari world CLI が見つかりません。' };
+        if (!cli) return { html: '', error: 'akari world CLI not found.' };
         return new Promise(resolvePromise => {
             let stdout = '', stderr = '', child: ChildProcess, settled = false;
             const finish = (result: WorldOverviewDocument): void => {
@@ -47,24 +47,24 @@ export class WorldCliRunner {
             child.once('close', async code => {
                 const lines = stdout.trim().split(/\r?\n/u).filter(Boolean);
                 const line = lines[lines.length - 1];
-                if (!line) { finish({ html: '', error: stderr.trim() || `akari world overview が結果を返しませんでした（exit ${code ?? '不明'}）` }); return; }
+                if (!line) { finish({ html: '', error: stderr.trim() || `akari world overview returned no result (exit ${code ?? 'Unknown'})` }); return; }
                 try {
                     const result = JSON.parse(line) as { output?: unknown; fallback?: boolean; atlas?: boolean };
-                    if (typeof result.output !== 'string') throw new Error('output がありません');
+                    if (typeof result.output !== 'string') throw new Error('Missing output');
                     finish({ html: await fs.readFile(result.output, 'utf8'), fallback: result.fallback, atlas: result.atlas });
-                } catch (error) { finish({ html: '', error: `akari world overview の結果を解釈できません: ${error instanceof Error ? error.message : String(error)}` }); }
+                } catch (error) { finish({ html: '', error: `Could not parse akari world overview result: ${error instanceof Error ? error.message : String(error)}` }); }
             });
         });
     }
 
     async moveStop(projectRoot: string, stopId: string, c: number[]): Promise<WorldStopMoveResult> {
-        if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(stopId)) return { ok: false, code: 'ARG', reason: '停留所 id が不正です。' };
+        if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(stopId)) return { ok: false, code: 'ARG', reason: 'Invalid stop ID.' };
         if (!Array.isArray(c) || c.length < 2 || c.length > 3 || !c.every(value => typeof value === 'number' && Number.isFinite(value))) {
-            return { ok: false, code: 'ARG', reason: 'c は 2〜3 要素の有限数配列である必要があります。' };
+            return { ok: false, code: 'ARG', reason: 'c must be an array of 2 or 3 finite numbers.' };
         }
-        if (this.children.has(stopId)) return { ok: false, code: 'BUSY', reason: `停留所 ${stopId} は移動処理中です。` };
+        if (this.children.has(stopId)) return { ok: false, code: 'BUSY', reason: `Stop ${stopId} is being moved.` };
         const cli = await this.resolveCli();
-        if (!cli) return { ok: false, code: 'CLI', reason: 'akari world CLI が見つかりません。' };
+        if (!cli) return { ok: false, code: 'CLI', reason: 'akari world CLI not found.' };
         return new Promise(resolvePromise => {
             let stdout = '';
             let stderr = '';
@@ -92,13 +92,13 @@ export class WorldCliRunner {
             child.once('close', code => {
                 const lines = stdout.trim().split(/\r?\n/u).filter(Boolean);
                 const line = lines[lines.length - 1];
-                if (!line) { finish({ ok: false, code: 'OUTPUT', reason: stderr.trim() || `akari world move-stop が結果を返しませんでした（exit ${code ?? '不明'}）` }); return; }
+                if (!line) { finish({ ok: false, code: 'OUTPUT', reason: stderr.trim() || `akari world move-stop returned no result (exit ${code ?? 'Unknown'})` }); return; }
                 try {
                     const result = JSON.parse(line) as WorldStopMoveResult;
-                    if (!result || typeof result.ok !== 'boolean') throw new Error('ok がありません');
+                    if (!result || typeof result.ok !== 'boolean') throw new Error('Missing ok');
                     finish(result);
                 } catch (error) {
-                    finish({ ok: false, code: 'OUTPUT', reason: `akari world move-stop の結果を解釈できません: ${error instanceof Error ? error.message : String(error)}` });
+                    finish({ ok: false, code: 'OUTPUT', reason: `Could not parse akari world move-stop result: ${error instanceof Error ? error.message : String(error)}` });
                 }
             });
         });

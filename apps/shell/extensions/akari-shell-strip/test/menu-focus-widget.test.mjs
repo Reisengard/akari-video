@@ -21,13 +21,13 @@ for (const name of ['focusSection', 'listSkills']) {
 
 test('render marks the sections, headings and skill rows', () => {
     const render = method('render').getText(ast);
-    assert.match(render, /<section data-akari-menu-section='open'[^>]*>\s*<h3 data-akari-menu-section-heading[^>]*>ひらく<\/h3>/);
-    assert.match(render, /<section data-akari-menu-section='skills'>\s*<h3 data-akari-menu-section-heading[^>]*>やらせる（スキル）<\/h3>/);
+    assert.match(render, /<section data-akari-menu-section='open'[^>]*>\s*<h3 data-akari-menu-section-heading[^>]*>Open<\/h3>/);
+    assert.match(render, /<section data-akari-menu-section='skills'>\s*<h3 data-akari-menu-section-heading[^>]*>Run skills<\/h3>/);
     assert.match(render, /<li key=\{skill.name\} data-akari-menu-skill=\{skill.name\}/);
 });
 
 test('widget keeps external focus separate from partner actions', () => {
-    const forbidden = new RegExp(['inject', 'Prompt'].join('') + '|\u983c\u3080');
+    const forbidden = new RegExp(['inject', 'Prompt'].join(''));
     assert.doesNotMatch(source, forbidden);
     assert.doesNotMatch(source, /from\s+['"][^'"]*akari-partner/);
     assert.ok(!declaration.members.some(node => node.name?.getText(ast) === 'requestSkill'));
@@ -45,13 +45,13 @@ const baselineExportSection = `protected renderExportSection(): React.ReactNode 
         const percent = status.progressPercent ?? 0;
         const stage = quickExportStageLabel(status.progressStage);
         const label = running
-            ? \`\${stage ?? (status.phase === 'linting' ? 'lint 確認中' : '準備')} · \${percent}%\`
+            ? \`\${stage ?? (status.phase === 'linting' ? 'Checking lint' : 'Preparing')} · \${percent}%\`
             : status.phase === 'done'
-                ? '書き出し完了'
-                : status.phase === 'lint-failed' ? 'lint NG' : '書き出し失敗';
+                ? 'Export complete'
+                : status.phase === 'lint-failed' ? 'Lint failed' : 'Export failed';
         return (
             <section style={{ marginBottom: '22px' }}>
-                <h3 style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>書き出し</h3>
+                <h3 style={{ margin: '0 0 8px', fontSize: '0.85em', opacity: 0.6, letterSpacing: '0.05em' }}>Export</h3>
                 <button
                     className='theia-button secondary'
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start', padding: '8px 10px', width: '100%' }}
@@ -60,11 +60,11 @@ const baselineExportSection = `protected renderExportSection(): React.ReactNode 
                     onClick={() => void this.openExportDialog()}
                 >
                     <span className='codicon codicon-desktop-download' aria-hidden='true' />
-                    <span>書き出し…</span>
+                    <span>Export…</span>
                 </button>
                 {this.selectedEditName !== 'edit.json' && (
                     <p style={{ opacity: 0.75, fontSize: '0.85em', margin: '6px 0 0' }}>
-                        書き出し対象: {this.selectedEditName}。別タイムラインは現在書き出せません。edit.json のタブに戻すと書き出せます。
+                        Export target: {this.selectedEditName}. Exporting another timeline is currently unsupported. Return to the edit.json tab to export.
                     </p>
                 )}
                 {!this.editJsonExists && (
@@ -74,7 +74,7 @@ const baselineExportSection = `protected renderExportSection(): React.ReactNode 
                     <div data-akari-export-mini-status={status.phase} style={{ marginTop: '8px', border: '1px solid var(--theia-widget-border)', borderRadius: '6px', padding: '7px 9px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82em' }}>
                             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                            <button className='theia-button secondary' style={{ marginLeft: 'auto', padding: '2px 7px', fontSize: '0.82em' }} onClick={() => void this.openExportDialog()}>開く</button>
+                            <button className='theia-button secondary' style={{ marginLeft: 'auto', padding: '2px 7px', fontSize: '0.82em' }} onClick={() => void this.openExportDialog()}>Open</button>
                         </div>
                         {running && (
                             <div style={{ height: '4px', borderRadius: '2px', background: 'var(--akari-elevated, rgba(128,128,128,0.25))', overflow: 'hidden', marginTop: '5px' }}>
@@ -87,18 +87,18 @@ const baselineExportSection = `protected renderExportSection(): React.ReactNode 
                     className='theia-button secondary'
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-start', padding: '8px 10px', width: '100%', marginTop: '8px' }}
                     disabled={!this.workspaceOpened || this.cleaningProject}
-                    title='書き出しの一時ファイルや再生成できるキャッシュを、一覧で確認してから削除します'
+                    title='Review and delete export temporary files and regenerable caches'
                     onClick={() => void this.cleanProjectData()}
                 >
                     <span className={\`codicon \${this.cleaningProject ? 'codicon-loading codicon-modifier-spin' : 'codicon-trash'}\`} aria-hidden='true' />
-                    <span>{this.cleaningProject ? '調べています…' : '不要なデータを整理…'}</span>
+                    <span>{this.cleaningProject ? 'Inspecting…' : 'Clean up unused data…'}</span>
                 </button>
             </section>
         );
     }`;
 
 test('renderExportSection exactly matches the variant target UI', () => {
-    const current = method('renderExportSection').getText(ast);
+    const current = method('renderExportSection').getText(ast).replace(/\r\n/g, '\n');
     assert.match(current, /data-akari-onboarding-target='export-button'/);
     assert.equal(current.replace("                    data-akari-onboarding-target='export-button'\n", ''), baselineExportSection);
 });

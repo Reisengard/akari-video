@@ -8,18 +8,18 @@ import { AkariProjectCleanServiceImpl, parseInspection } from '../lib/node/akari
 
 const SAMPLE = JSON.stringify({
     disposable: [
-        { path: '.akari/render-tmp/run-1', class: 'disposable', reason: '書き出しの一時作業領域', files: 49, bytes: 31424345 },
-        { path: '.akari/cache/thumbnails', class: 'disposable', reason: '再生成できるキャッシュ', files: 2, bytes: 1168 }
+        { path: '.akari/render-tmp/run-1', class: 'disposable', reason: 'Export temporary workspace', files: 49, bytes: 31424345 },
+        { path: '.akari/cache/thumbnails', class: 'disposable', reason: 'Regenerable cache', files: 2, bytes: 1168 }
     ],
-    keep: [{ path: 'edit.json', class: 'keep', reason: '編集内容の正本', files: 1, bytes: 10 }],
+    keep: [{ path: 'edit.json', class: 'keep', reason: 'Canonical edit content', files: 1, bytes: 10 }],
     undecided: [
-        { path: '.akari/render-tmp/run-2', class: 'undecided', reason: '実行中の可能性', files: 3, bytes: 2048, held_reason: '実行中の可能性' },
-        { path: 'source.mp4', class: 'undecided', reason: '宣言表に分類がありません', files: 1, bytes: 500 }
+        { path: '.akari/render-tmp/run-2', class: 'undecided', reason: 'May be running', files: 3, bytes: 2048, held_reason: 'May be running' },
+        { path: 'source.mp4', class: 'undecided', reason: 'No classification in declarations', files: 1, bytes: 500 }
     ],
     totals: {}
 });
 
-test('parseInspection: disposable / undecided と合計バイト数を読む', () => {
+test('parseInspection reads disposable, undecided, and total bytes', () => {
     const inspection = parseInspection(`${SAMPLE}\n`);
     assert.equal(inspection.disposable.length, 2);
     assert.equal(inspection.disposableBytes, 31424345 + 1168);
@@ -28,19 +28,19 @@ test('parseInspection: disposable / undecided と合計バイト数を読む', (
     assert.equal(inspection.disposable[0].path, '.akari/render-tmp/run-1');
 });
 
-test('parseInspection: held_reason を heldReason として拾う（保留の理由を人に見せる）', () => {
+test('parseInspection maps held_reason to heldReason for display', () => {
     const inspection = parseInspection(SAMPLE);
     const held = inspection.undecided.filter(entry => entry.heldReason);
     assert.equal(held.length, 1);
-    assert.equal(held[0].heldReason, '実行中の可能性');
+    assert.equal(held[0].heldReason, 'May be running');
 });
 
-test('parseInspection: 警告行が前に混ざっても最後の JSON 行を採る', () => {
+test('parseInspection selects the final JSON line after warning output', () => {
     const inspection = parseInspection(`provenance warning: something\n${SAMPLE}\n`);
     assert.equal(inspection.disposable.length, 2);
 });
 
-test('parseInspection: 壊れた出力は undefined（0 件と嘘をつかない）', () => {
+test('parseInspection returns undefined for malformed output rather than claiming zero items', () => {
     assert.equal(parseInspection(''), undefined);
     assert.equal(parseInspection('not json'), undefined);
     assert.equal(parseInspection('{ broken'), undefined);
@@ -64,7 +64,7 @@ function stubbedService(results) {
     return new StubService();
 }
 
-test('inspect: --json --dry-run で呼び、消さない', async () => {
+test('inspect uses --json --dry-run without deleting', async () => {
     const service = stubbedService([{ exitCode: 0, stdout: SAMPLE, stderr: '' }]);
     const result = await service.inspect('file:///project');
     assert.equal(result.ok, true);
@@ -72,31 +72,31 @@ test('inspect: --json --dry-run で呼び、消さない', async () => {
     assert.deepEqual(service.calls, [['clean', '/project', '--json', '--dry-run']]);
 });
 
-test('inspect: CLI 不在なら理由を返す', async () => {
+test('inspect returns a reason when CLI is missing', async () => {
     class NoCli extends AkariProjectCleanServiceImpl {
         async findCleanCli() { return undefined; }
         fsPath() { return '/project'; }
     }
     const result = await new NoCli().inspect('file:///project');
     assert.equal(result.ok, false);
-    assert.match(result.reason, /CLI が見つかりません/u);
+    assert.match(result.reason, /CLI not found/u);
 });
 
-test('inspect: CLI が失敗したら stderr の末尾を理由にする', async () => {
-    const service = stubbedService([{ exitCode: 2, stdout: '', stderr: 'edit.json が見つかりません: /project\n' }]);
+test('inspect uses the stderr tail as the reason on CLI failure', async () => {
+    const service = stubbedService([{ exitCode: 2, stdout: '', stderr: 'edit.json not found: /project\n' }]);
     const result = await service.inspect('file:///project');
     assert.equal(result.ok, false);
-    assert.match(result.reason, /edit\.json が見つかりません/u);
+    assert.match(result.reason, /edit\.json not found/u);
 });
 
-test('inspect: exit 0 でも出力が読めなければ ok にしない', async () => {
+test('inspect does not report ok for unreadable output even with exit 0', async () => {
     const service = stubbedService([{ exitCode: 0, stdout: 'garbage', stderr: '' }]);
     const result = await service.inspect('file:///project');
     assert.equal(result.ok, false);
-    assert.match(result.reason, /読み取れません/u);
+    assert.match(result.reason, /Could not read/u);
 });
 
-test('clean: --json --yes で呼び、消した件数とバイト数を返す', async () => {
+test('clean uses --json --yes and returns deleted count and bytes', async () => {
     const service = stubbedService([{ exitCode: 0, stdout: SAMPLE, stderr: '' }]);
     const result = await service.clean('file:///project');
     assert.deepEqual(service.calls, [['clean', '/project', '--json', '--yes']]);
@@ -105,13 +105,13 @@ test('clean: --json --yes で呼び、消した件数とバイト数を返す', 
     assert.equal(result.bytes, 31424345 + 1168);
 });
 
-test('clean: 一部でも消せなければ cleaned にしない（成功と言い切らない）', async () => {
+test('clean does not report cleaned on partial failure', async () => {
     const service = stubbedService([{
         exitCode: 1,
         stdout: SAMPLE,
-        stderr: '削除に失敗しました: .akari/cache (EBUSY)\n一部を削除できませんでした。\n'
+        stderr: 'Deletion failed: .akari/cache (EBUSY)\nSome items could not be deleted.\n'
     }]);
     const result = await service.clean('file:///project');
     assert.equal(result.cleaned, false);
-    assert.match(result.reason, /削除に失敗しました/u);
+    assert.match(result.reason, /Deletion failed/u);
 });

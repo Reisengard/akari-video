@@ -10,7 +10,7 @@ import {
   parseManifestPanel
 } from '../lib/common/companion-panel-geometry.js';
 
-test('パネルの大きさを境界内へ丸める', () => {
+test('Clamp panel dimensions to bounds', () => {
   assert.deepEqual(clampPanelSize(43, 43), { width: 44, height: 44 });
   assert.deepEqual(clampPanelSize(721, 721), { width: 720, height: 720 });
   assert.deepEqual(clampPanelSize(100.6, 100.4), { width: 101, height: 100 });
@@ -20,20 +20,20 @@ test('パネルの大きさを境界内へ丸める', () => {
   );
 });
 
-test('横位置は中央を既定にし画面内へ丸める', () => {
+test('Default horizontal position to center and clamp to screen', () => {
   assert.equal(clampPanelX(undefined, 1000, 360), 320);
   assert.equal(clampPanelX(-20, 1000, 360), 0);
   assert.equal(clampPanelX(900, 1000, 360), 640);
   assert.equal(clampPanelX(20, 30, 44), 0);
 });
 
-test('形は tab と pill だけを受ける', () => {
+test('Accept only tab and pill shapes', () => {
   assert.equal(normalizePanelMode('tab'), 'tab');
   assert.equal(normalizePanelMode('pill'), 'pill');
   assert.equal(normalizePanelMode('other', 'pill'), 'pill');
 });
 
-test('同じ origin の相対パスだけを受ける', () => {
+test('Accept only same-origin relative paths', () => {
   assert.equal(isSameOriginPanelPath('/panel'), true);
   assert.equal(isSameOriginPanelPath('/panel?k=fixture'), true);
   assert.equal(isSameOriginPanelPath('panel'), false);
@@ -42,7 +42,7 @@ test('同じ origin の相対パスだけを受ける', () => {
   assert.equal(isSameOriginPanelPath(`/${'a'.repeat(512)}`), false);
 });
 
-test('manifest の有効な枠情報だけを取り出す', () => {
+test('Extract only valid manifest panel information', () => {
   assert.deepEqual(parseManifestPanel({ panelPath: '/panel', panel: { width: 500, height: 240 } }), {
     panelPath: '/panel', panel: { width: 500, height: 240 }
   });
@@ -51,7 +51,7 @@ test('manifest の有効な枠情報だけを取り出す', () => {
   assert.deepEqual(parseManifestPanel(undefined), {});
 });
 
-test('既定の置き場所は呼び出しボタンの真下・右端そろえ', () => {
+test('Default placement is directly below and right-aligned with the trigger', () => {
   const size = { width: 360, height: 200 };
   const viewport = { width: 1440, height: 900 };
   const anchor = { left: 1100, right: 1140, bottom: 40 };
@@ -62,7 +62,7 @@ test('既定の置き場所は呼び出しボタンの真下・右端そろえ',
   assert.deepEqual(anchoredPanelPosition(anchor, size, { width: 1440, height: 180 }), { x: 780, y: 0 });
 });
 
-test('縦位置は画面の中に丸める', () => {
+test('Clamp vertical position to the screen', () => {
   assert.equal(clampPanelY(undefined, 900, 200), 0);
   assert.equal(clampPanelY(-40, 900, 200), 0);
   assert.equal(clampPanelY(880, 900, 200), 700);

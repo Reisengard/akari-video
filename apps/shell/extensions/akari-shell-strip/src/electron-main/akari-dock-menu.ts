@@ -23,10 +23,10 @@ export class AkariDockMenu implements ElectronMainApplicationContribution {
         }
         app.dock.setMenu(Menu.buildFromTemplate([
             {
-                label: '新しいウィンドウ',
+                label: 'New Window',
                 click: () => {
                     application.openDefaultWindow().catch(error =>
-                        console.error('[akari-shell-strip] dock「新しいウィンドウ」でウィンドウを開けませんでした:', error)
+                        console.error('[akari-shell-strip] Could not open a window from the New Window dock item:', error)
                     );
                 }
             }

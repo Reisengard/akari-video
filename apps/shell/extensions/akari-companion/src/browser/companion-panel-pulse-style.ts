@@ -1,3 +1,4 @@
+/* タブ帯のボタン。待機中は灰色の丸、枠が出ているあいだは基調色で灯る。 */
 export function installCompanionPanelPulseStyle(doc: Document = document): void {
     if (doc.getElementById('akari-companion-panel-style')) return;
     const style = doc.createElement('style');
@@ -62,7 +63,7 @@ export function installCompanionPanelPulseStyle(doc: Document = document): void 
     height: 10px;
     cursor: nesw-resize;
 }
-/* タブ帯のボタン。待機中は灰色の丸、枠が出ているあいだは基調色で灯る。 */
+
 .akari-companion-toggle-dot {
     color: var(--theia-descriptionForeground, rgba(255, 255, 255, 0.55));
     font-size: 12px;

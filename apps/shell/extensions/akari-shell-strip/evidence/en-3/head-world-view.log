@@ -1,0 +1,28 @@
+
+> akari-world-view@0.0.1 test
+> tsc -b && node --test test/*.test.mjs
+
+✔ errorHtml escapes tag delimiters (1.3424ms)
+✔ errorHtml escapes ampersands and quotes (0.2623ms)
+✔ errorHtml contains no executable script element (0.2379ms)
+✔ errorHtml returns a complete static document for empty text (1.1066ms)
+✔ moveStop spawns launcher with expected arguments and environment and reads final JSON (4.8212ms)
+✔ Invalid arguments do not spawn (0.3466ms)
+✔ Wrap malformed JSON and spawn failures in results (0.9955ms)
+✔ Concurrent execution for the same stopId returns BUSY (5.9216ms)
+✔ overview reads generated HTML from CLI JSON output (5.585ms)
+✔ overview returns stderr as error on empty stdout (0.8891ms)
+✔ overview wraps malformed JSON in error (0.932ms)
+✔ overview wraps spawn exceptions in error (0.4485ms)
+✔ overview rejects concurrent generation for the same root (4.9702ms)
+✔ overview rejects JSON whose output is not a string (0.6415ms)
+✔ overview errors when the generated file cannot be read (1.2297ms)
+✔ overview does not spawn when CLI is missing (1.1844ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.548

@@ -7,7 +7,7 @@ import {
     EXPORT_SHARE_TARGETS
 } from '../lib/common/export-share.js';
 
-test('EXPORT_SHARE_TARGETS: 固定された 4 サービスを順番どおり返す', () => {
+test('EXPORT_SHARE_TARGETS returns the four fixed services in order', () => {
     assert.deepEqual(EXPORT_SHARE_TARGETS.map(target => target.id), [
         'x', 'youtube', 'instagram', 'tiktok'
     ]);
@@ -15,7 +15,7 @@ test('EXPORT_SHARE_TARGETS: 固定された 4 サービスを順番どおり返�
     assert.ok(EXPORT_SHARE_TARGETS.every(target => target.url.startsWith('https://')));
 });
 
-test('composeExportHandOffPacket: 動画の事実をすべて含む', () => {
+test('composeExportHandOffPacket includes every video fact', () => {
     const packet = composeExportHandOffPacket({
         artifactPath: '/project/exports/final.mp4',
         durationSeconds: 12.5,
@@ -30,11 +30,11 @@ test('composeExportHandOffPacket: 動画の事実をすべて含む', () => {
     assert.match(packet, /1920×1080/);
     assert.match(packet, /30/);
     assert.match(packet, /123456/);
-    assert.match(packet, /パートナー/);
+    assert.match(packet, /Partner/);
     assert.doesNotMatch(packet, /Claude Code/);
 });
 
-test('copyArtifactCommand: 各 OS のコピーコマンドを組み立てる', () => {
+test('copyArtifactCommand builds copy commands for each OS', () => {
     assert.deepEqual(copyArtifactCommand('darwin', '/project/exports/final.mp4'), {
         command: 'osascript',
         args: ['-e', 'set the clipboard to POSIX file "/project/exports/final.mp4"']
@@ -50,6 +50,6 @@ test('copyArtifactCommand: 各 OS のコピーコマンドを組み立てる', (
     assert.equal(copyArtifactStdin('linux', '/project/exports/final.mp4'), 'file:///project/exports/final.mp4\n');
 });
 
-test('copyArtifactCommand: 未対応 OS では undefined を返す', () => {
+test('copyArtifactCommand returns undefined for unsupported OSes', () => {
     assert.equal(copyArtifactCommand('aix', '/project/exports/final.mp4'), undefined);
 });

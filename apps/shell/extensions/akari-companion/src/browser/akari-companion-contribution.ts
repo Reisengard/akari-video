@@ -93,11 +93,11 @@ export class AkariCompanionContribution implements FrontendApplicationContributi
         });
         this.client.setPanelHandler((connected, manifest) => this.onConnectionState(connected, manifest));
         this.disposables.push(this.commands.registerCommand(
-            { id: COMPANION_TOGGLE_COMMAND_ID, label: `${COMPANION_TOGGLE_LABEL}を表示/非表示` },
+            { id: COMPANION_TOGGLE_COMMAND_ID, label: `${COMPANION_TOGGLE_LABEL} show/hide` },
             { execute: () => this.togglePanel() }
         ));
         this.disposables.push(this.commands.registerCommand(
-            { id: 'akari.companion.resetPanelPlacement', label: `${COMPANION_TOGGLE_LABEL}を既定の位置へ戻す` },
+            { id: 'akari.companion.resetPanelPlacement', label: `${COMPANION_TOGGLE_LABEL} reset placement` },
             { execute: () => { this.panel?.resetPlacement(); } }
         ));
         this.disposables.push(this.preferences.onPreferenceChanged(event => {
@@ -158,10 +158,10 @@ export class AkariCompanionContribution implements FrontendApplicationContributi
         this.toolbar.refresh(document);
         try {
             if (!await this.service.start() && this.enabled) {
-                void this.messages.warn('AKARI バイブを起動できませんでした');
+                void this.messages.warn('Could not start AKARI Vibe');
             }
         } catch {
-            if (this.enabled) void this.messages.warn('AKARI バイブを起動できませんでした');
+            if (this.enabled) void this.messages.warn('Could not start AKARI Vibe');
         } finally {
             this.starting = false;
             this.toolbar.refresh(document);

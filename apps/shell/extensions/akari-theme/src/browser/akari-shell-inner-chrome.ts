@@ -47,30 +47,68 @@ const TAB_BAND = {
     radius: '6px'
 };
 
-export const SHELL_INNER_CHROME_CSS = `
+/* ── スクロールバー（オーナー指示 2026-09-05）────────────────────────
+ *
+ * 既定は幅 10px・角丸 0・カードの縁にべた付き。カード言語の中で刃物のように
+ * 見えるので、次の 4 点へ寄せる:
+ *   1. 半分の太さ（見えている刃は 5px）
+ *   2. 縁から離す（左右 5px の余白を挟む）
+ *   3. 丸める
+ *   4. 矢印は出さない / 操作していなくても消えない
+ *
+ * 余白は margin では作れない（::-webkit-scrollbar-thumb に margin は効かない）。
+ * 透明な border と background-clip: padding-box で「軌道は 15px、塗るのは内側 5px」
+ * にするのが定石。overlay scrollbar（自動で消えるやつ）は ::-webkit-scrollbar を
+ * 明示指定した時点で無効になるので、常時表示は自動的に満たされる。 */
+/* 上下の矢印は出さない。 */
+/* perfect-scrollbar（サイドパネル等が使う自前レール）も同じ姿に揃える。 */
+/* ══ 4. 縦アイコンバーの項目 ═══════════════════════════════════
+   spec §3「カード内のパネル・リスト項目」= 角丸 8px。
+   幅 48px は Theia がレイアウト計算に使う固定値なので変えず、
+   background-clip: content-box で **塗りだけ**を内側 34px に寄せてピルにする。 */
+/* アクティブの合図はモックと同じ「カードの端に立つ 2px のアクセント棒」。
+   Theia 標準の inset box-shadow は角丸に沿って三日月に潰れるので使わない。 */
+/* Theia 標準は hover とアクティブに同じ activityBar.activeBackground を当てるので
+   「今どれが開いているか」が触った瞬間に分からなくなる。hover は elevated に分ける。 */
+/* ══ 5. ドラッグ中のタブ ═══════════════════════════════════════
+   Theia 標準は矩形 + contrastBorder（未定義だと currentColor の枠）で、
+   ピルに揃えた帯の中で 1 つだけ旧来の見た目が出てくる。掴んだ絵も揃える。 */
+/* 閉じるボタンぶんだけ右を詰める（Theia 標準と同じ考え方） */
+/* アクティブの合図は「浮いていること」＋ アイコンのアクセント。
+   Theia 標準の上辺 2px オレンジ線は矩形の名残なので出さない。
+   codicon は color、mask 方式のアイコンは background-color で色が付く
+   （file-icon / plugin-icon は自前の絵を持つので触らない）。 */
+/* タブ帯の右側のツールバー（「変更を見る」等）も帯と同じ高さ感で並べる。 */
 /* ══ 1. 二重線の除去 ═══════════════════════════════════════════
    カード外周のすぐ内側 / 仕切りの上に重なる Theia 由来の border を落とす。
    仕切りそのものは akari-shell-card-layout.ts の inset box-shadow が 1 本だけ引く。 */
+/* 下段カードのタブ帯の上辺。カード外周と重なって二重に見える。 */
+/* 分割エディタの上辺も同様（縦分割時にだけ出る）。 */
+/* ══ 2. 縦アイコンバーの仕切り ═════════════════════════════════
+   spec §2「カード内の区切り」= 外周の約半分。外殻ファイルは --akari-line
+   （外周と同じ強さ）で引いているので、ここで内側の強さへ落とす。
+   畳んだ状態ではアイコンバーの右辺 = カードの辺そのものなので仕切りを消す
+   （残すとカード外周と二重になる）。 */
+/* ══ 3. タブ帯 ═════════════════════════════════════════════════
+   帯は card 面に溶かし、アクティブだけ raised のピルで浮かせる。 */
+export const SHELL_INNER_CHROME_CSS = `
+
 #theia-left-content-panel > .lm-Panel {
     border-right: none;
 }
 #theia-right-content-panel > .lm-Panel {
     border-left: none;
 }
-/* 下段カードのタブ帯の上辺。カード外周と重なって二重に見える。 */
+
 #theia-bottom-content-panel .lm-TabBar {
     border-top: none;
 }
-/* 分割エディタの上辺も同様（縦分割時にだけ出る）。 */
+
 #theia-main-content-panel .lm-DockPanel-handle[data-orientation="vertical"] + .lm-TabBar {
     border-top: none;
 }
 
-/* ══ 2. 縦アイコンバーの仕切り ═════════════════════════════════
-   spec §2「カード内の区切り」= 外周の約半分。外殻ファイルは --akari-line
-   （外周と同じ強さ）で引いているので、ここで内側の強さへ落とす。
-   畳んだ状態ではアイコンバーの右辺 = カードの辺そのものなので仕切りを消す
-   （残すとカード外周と二重になる）。 */
+
 #theia-app-shell #theia-left-content-panel > .theia-app-sidebar-container {
     box-shadow: inset -1px 0 0 var(--akari-line-inner, #1b1b1b);
 }
@@ -82,8 +120,7 @@ export const SHELL_INNER_CHROME_CSS = `
     box-shadow: none;
 }
 
-/* ══ 3. タブ帯 ═════════════════════════════════════════════════
-   帯は card 面に溶かし、アクティブだけ raised のピルで浮かせる。 */
+
 #theia-main-content-panel .lm-TabBar.theia-app-centers,
 #theia-bottom-content-panel .lm-TabBar.theia-app-centers {
     background: var(--akari-bg, #0a0a0a);
@@ -107,7 +144,7 @@ export const SHELL_INNER_CHROME_CSS = `
 }
 #theia-main-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-tab.lm-mod-closable:not(.closeIcon-start),
 #theia-bottom-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-tab.lm-mod-closable:not(.closeIcon-start) {
-    /* 閉じるボタンぶんだけ右を詰める（Theia 標準と同じ考え方） */
+
     padding-right: 6px;
 }
 #theia-main-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-tab:hover,
@@ -120,10 +157,7 @@ export const SHELL_INNER_CHROME_CSS = `
     color: var(--akari-ink, #e5e5e5);
     box-shadow: none;
 }
-/* アクティブの合図は「浮いていること」＋ アイコンのアクセント。
-   Theia 標準の上辺 2px オレンジ線は矩形の名残なので出さない。
-   codicon は color、mask 方式のアイコンは background-color で色が付く
-   （file-icon / plugin-icon は自前の絵を持つので触らない）。 */
+
 #theia-main-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-tab.lm-mod-current .lm-TabBar-tabIcon.codicon,
 #theia-bottom-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-tab.lm-mod-current .lm-TabBar-tabIcon.codicon {
     color: var(--akari-accent, #f97316);
@@ -134,16 +168,13 @@ export const SHELL_INNER_CHROME_CSS = `
     .lm-TabBar-tabIcon:not(.codicon):not(.file-icon):not(.fa):not([class*="plugin-icon-"]) {
     background-color: var(--akari-accent, #f97316);
 }
-/* タブ帯の右側のツールバー（「変更を見る」等）も帯と同じ高さ感で並べる。 */
+
 #theia-main-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-toolbar,
 #theia-bottom-content-panel .lm-TabBar.theia-app-centers .lm-TabBar-toolbar {
     padding-inline: ${TAB_BAND.bandPadX};
 }
 
-/* ══ 4. 縦アイコンバーの項目 ═══════════════════════════════════
-   spec §3「カード内のパネル・リスト項目」= 角丸 8px。
-   幅 48px は Theia がレイアウト計算に使う固定値なので変えず、
-   background-clip: content-box で **塗りだけ**を内側 34px に寄せてピルにする。 */
+
 #theia-app-shell .lm-TabBar.theia-app-sides .lm-TabBar-content {
     padding-top: 6px;
 }
@@ -152,8 +183,7 @@ export const SHELL_INNER_CHROME_CSS = `
     border-radius: 8px;
     background-clip: content-box;
 }
-/* アクティブの合図はモックと同じ「カードの端に立つ 2px のアクセント棒」。
-   Theia 標準の inset box-shadow は角丸に沿って三日月に潰れるので使わない。 */
+
 #theia-app-shell .lm-TabBar.theia-app-left .lm-TabBar-tab.lm-mod-current,
 #theia-app-shell .lm-TabBar.theia-app-right .lm-TabBar-tab.lm-mod-current {
     box-shadow: none;
@@ -174,16 +204,13 @@ export const SHELL_INNER_CHROME_CSS = `
     right: 0;
     border-radius: 2px 0 0 2px;
 }
-/* Theia 標準は hover とアクティブに同じ activityBar.activeBackground を当てるので
-   「今どれが開いているか」が触った瞬間に分からなくなる。hover は elevated に分ける。 */
+
 #theia-app-shell .lm-TabBar.theia-app-sides .lm-TabBar-tab:hover:not(.lm-mod-current) {
     background-color: var(--akari-elevated, #1a1a1a);
     color: var(--akari-ink, #e5e5e5);
 }
 
-/* ══ 5. ドラッグ中のタブ ═══════════════════════════════════════
-   Theia 標準は矩形 + contrastBorder（未定義だと currentColor の枠）で、
-   ピルに揃えた帯の中で 1 つだけ旧来の見た目が出てくる。掴んだ絵も揃える。 */
+
 .lm-TabBar-tab.lm-mod-drag-image {
     height: ${TAB_BAND.tabHeight};
     min-height: ${TAB_BAND.tabHeight};
@@ -195,19 +222,7 @@ export const SHELL_INNER_CHROME_CSS = `
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
-/* ── スクロールバー（オーナー指示 2026-09-05）────────────────────────
- *
- * 既定は幅 10px・角丸 0・カードの縁にべた付き。カード言語の中で刃物のように
- * 見えるので、次の 4 点へ寄せる:
- *   1. 半分の太さ（見えている刃は 5px）
- *   2. 縁から離す（左右 5px の余白を挟む）
- *   3. 丸める
- *   4. 矢印は出さない / 操作していなくても消えない
- *
- * 余白は margin では作れない（::-webkit-scrollbar-thumb に margin は効かない）。
- * 透明な border と background-clip: padding-box で「軌道は 15px、塗るのは内側 5px」
- * にするのが定石。overlay scrollbar（自動で消えるやつ）は ::-webkit-scrollbar を
- * 明示指定した時点で無効になるので、常時表示は自動的に満たされる。 */
+
 ::-webkit-scrollbar {
     width: 15px;
     height: 15px;
@@ -232,14 +247,14 @@ export const SHELL_INNER_CHROME_CSS = `
 ::-webkit-scrollbar-track {
     background: transparent;
 }
-/* 上下の矢印は出さない。 */
+
 ::-webkit-scrollbar-button {
     display: none;
     width: 0;
     height: 0;
 }
 
-/* perfect-scrollbar（サイドパネル等が使う自前レール）も同じ姿に揃える。 */
+
 #theia-app-shell .ps__rail-y > .ps__thumb-y,
 #theia-dialog-shell .ps__rail-y > .ps__thumb-y {
     width: 5px;

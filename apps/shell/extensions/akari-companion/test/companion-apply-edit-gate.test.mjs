@@ -19,7 +19,7 @@ const instruction = {
   }
 };
 
-test('applyEdit 以外は検査せず通す', async () => {
+test('Pass commands other than applyEdit without validation', async () => {
   let calls = 0;
   const result = await gateCompanionApplyEdit({ id: 'i', kind: 'getState' }, {
     currentLocation: () => undefined,
@@ -29,7 +29,7 @@ test('applyEdit 以外は検査せず通す', async () => {
   assert.equal(calls, 0);
 });
 
-test('場所なしと session 不一致を stale-session にする', async () => {
+test('Missing location and session mismatch produce stale-session', async () => {
   for (const currentLocation of [() => undefined, () => ({ ...location, projectSessionId: 'other' })]) {
     let calls = 0;
     const result = await gateCompanionApplyEdit(instruction, {
@@ -41,7 +41,7 @@ test('場所なしと session 不一致を stale-session にする', async () =>
   }
 });
 
-test('検査の失敗理由をそのまま返す', async () => {
+test('Return validation failure reasons unchanged', async () => {
   const result = await gateCompanionApplyEdit(instruction, {
     currentLocation: () => location,
     lintCandidates: async () => ({ pass: false, errors: ['first', 'second'] })
@@ -51,7 +51,7 @@ test('検査の失敗理由をそのまま返す', async () => {
   });
 });
 
-test('検査通過と中身の無い applyEdit は通す', async () => {
+test('Allow validated and empty applyEdit payloads', async () => {
   assert.equal(await gateCompanionApplyEdit(instruction, {
     currentLocation: () => location,
     lintCandidates: async () => ({ pass: true, errors: [] })
@@ -66,7 +66,7 @@ test('検査通過と中身の無い applyEdit は通す', async () => {
   assert.equal(calls, 0);
 });
 
-test('候補名には basename だけを使う', async () => {
+test('Use only basename for candidate names', async () => {
   let received;
   await gateCompanionApplyEdit(instruction, {
     currentLocation: () => location,

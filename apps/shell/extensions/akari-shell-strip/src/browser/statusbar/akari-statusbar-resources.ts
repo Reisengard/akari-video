@@ -145,24 +145,24 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
         const terminals = this.terminals.all.filter(t => !t.exitStatus && t.kind === 'akari-partner');
         const pids = knownPids ?? await Promise.all(terminals.map(t => t.processId.catch(() => 0)));
         const items: RunningItem[] = terminals.map((terminal, index) => ({
-            id: `terminal:${terminal.id}`, icon: '⌘', label: terminal.title.label || 'パートナー端末',
+            id: `terminal:${terminal.id}`, icon: '⌘', label: terminal.title.label || 'Partner terminal',
             memoryBytes: this.sample?.rssByPid[String(pids[index])] ?? null, stoppable: true
         }));
         const exportStatus = this.exportSession.snapshot.status;
         if (exportStatus.phase === 'linting' || exportStatus.phase === 'rendering') {
-            items.push({ id: 'export', icon: '⇩', label: `書き出し ${Math.round(exportStatus.progressPercent ?? 0)}%`, memoryBytes: null, stoppable: true });
+            items.push({ id: 'export', icon: '⇩', label: `Export ${Math.round(exportStatus.progressPercent ?? 0)}%`, memoryBytes: null, stoppable: true });
         }
         // プレビューサーバー自身が保持する状態を読む。新しいプロセス監視は置かない。
         try { this.preview = knownPreview ?? await this.previewService.getStatus(); } catch { this.preview = undefined; }
         if (this.preview?.phase === 'starting' || this.preview?.phase === 'running') {
-            items.push({ id: 'preview', icon: '▣', label: 'プレビュー',
+            items.push({ id: 'preview', icon: '▣', label: 'Preview',
                 memoryBytes: this.sample?.rssByPid[String(this.preview.pid)] ?? null, stoppable: true });
         }
         // 文字起こしダイアログが既に描画している進行表示だけを読む。
         const transcribe = document.querySelector('[data-akari-transcribe-progress]')
             ?? Array.from(document.querySelectorAll('[data-akari-transcribe-mode="advanced"][data-step="2"]'))
-                .find(node => node.textContent?.includes('起こし中'));
-        if (transcribe) items.push({ id: 'transcribe', icon: '♫', label: '文字起こし', memoryBytes: null,
+                .find(node => node.textContent?.includes('Transcribing'));
+        if (transcribe) items.push({ id: 'transcribe', icon: '♫', label: 'Transcription', memoryBytes: null,
             stoppable: !!this.transcribeCancelButton() });
         this.running = items;
         void this.updateEntries();
@@ -170,16 +170,16 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
     }
 
     protected async updateEntries(): Promise<void> {
-        const name = this.accountName ?? this.sample?.username ?? 'アカウント';
+        const name = this.accountName ?? this.sample?.username ?? 'Account';
         const balance = this.options.accountBalance ? [...this.balances.values()].find(item => item.ok)?.display : undefined;
         await this.statusBar.setElement(ACCOUNT_ENTRY, {
             text: `$(account) ${name}${balance ? ` · ${balance}` : ''}`,
-            alignment: StatusBarAlignment.LEFT, priority: 10000, name: 'アカウント',
+            alignment: StatusBarAlignment.LEFT, priority: 10000, name: 'Account',
             onclick: event => this.togglePopup('account', event.currentTarget as HTMLElement)
         });
         await this.statusBar.setElement(RESOURCE_ENTRY, {
-            text: this.sample ? resourceSummary(this.sample, this.options, this.running.length) : 'CPU — · メモリ —',
-            alignment: StatusBarAlignment.RIGHT, priority: 10000, name: 'リソース', className: 'akari-statusbar-mono',
+            text: this.sample ? resourceSummary(this.sample, this.options, this.running.length) : 'CPU — · Memory —',
+            alignment: StatusBarAlignment.RIGHT, priority: 10000, name: 'Resources', className: 'akari-statusbar-mono',
             onclick: event => this.togglePopup('resources', event.currentTarget as HTMLElement)
         });
     }
@@ -228,7 +228,7 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
         const rows = this.providers.filter(row => row.configured && ['openrouter', 'fal', 'elevenlabs'].includes(row.id));
         await Promise.all(rows.map(async row => {
             try { this.balances.set(row.id, await this.connections.readBalance(row.id)); }
-            catch { this.balances.set(row.id, { ok: false, error: '取得できません', checked_at: new Date().toISOString() }); }
+            catch { this.balances.set(row.id, { ok: false, error: 'Unavailable', checked_at: new Date().toISOString() }); }
         }));
         this.balanceCheckedAt = Date.now();
         this.renderOpenPopup();
@@ -251,14 +251,14 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
 
     protected renderAccount(popup: HTMLElement): void {
         const heading = this.element('header');
-        const refresh = this.element('button', '', `↻ ${this.balanceCheckedAt ? `${Math.max(0, Math.floor((Date.now() - this.balanceCheckedAt) / 60000))} 分前` : '更新'}`);
+        const refresh = this.element('button', '', `↻ ${this.balanceCheckedAt ? `${Math.max(0, Math.floor((Date.now() - this.balanceCheckedAt) / 60000))} min ago` : 'Refresh'}`);
         refresh.dataset.akariBalanceRefresh = 'true';
         refresh.onclick = () => void this.refreshBalances();
-        heading.append(this.element('span', '', 'アカウント'), refresh);
+        heading.append(this.element('span', '', 'Account'), refresh);
         const account = this.element('div', 'account');
         const detail = this.element('div');
-        detail.append(this.element('b', '', this.accountName ?? this.sample?.username ?? 'アカウント'),
-            this.element('div', 'muted', this.storeConnected ? 'AKARI アカウント 接続済み' : 'AKARI アカウント 未接続'));
+        detail.append(this.element('b', '', this.accountName ?? this.sample?.username ?? 'Account'),
+            this.element('div', 'muted', this.storeConnected ? 'AKARI account connected' : 'AKARI account disconnected'));
         const avatar = this.element('span', 'avatar');
         avatar.append(this.element('i', 'codicon codicon-account'));
         account.append(avatar, detail);
@@ -267,7 +267,7 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
             const button = this.element('button', 'provider');
             button.dataset.akariProvider = row.id;
             const balance = this.balances.get(row.id);
-            const display = !row.configured ? '未接続' : balance?.display ?? (balance?.error || '—');
+            const display = !row.configured ? 'Disconnected' : balance?.display ?? (balance?.error || '—');
             const logoUrl = providerLogo(row.id);
             const logo = logoUrl ? this.element('img', 'provider-logo') : this.element('span', 'provider-logo', providerInitial(row.label));
             if (logoUrl && logo instanceof HTMLImageElement) { logo.src = logoUrl; logo.alt = ''; }
@@ -294,7 +294,7 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
 
     protected renderResources(popup: HTMLElement): void {
         const header = this.element('header');
-        header.append(this.element('span', '', 'リソース'), this.element('span', 'muted', `${this.options.intervalSec} 秒ごと`));
+        header.append(this.element('span', '', 'Resources'), this.element('span', 'muted', `${this.options.intervalSec} s interval`));
         popup.append(header);
         if (this.sample) for (const row of resourceRows(this.sample, this.options)) {
             const meter = this.element('div', 'meter');
@@ -314,7 +314,7 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
                 line.append(this.element('span', '', item.icon), this.element('span', 'name', item.label),
                     this.element('span', 'mono muted', item.memoryBytes === null ? '—' : formatGb(item.memoryBytes)));
                 if (item.stoppable) {
-                    const stop = this.element('button', 'stop', '止める');
+                    const stop = this.element('button', 'stop', 'Stop');
                     stop.onclick = () => void this.stopItem(item.id);
                     line.append(stop);
                 }
@@ -341,7 +341,7 @@ export class AkariStatusbarResources implements FrontendApplicationContribution 
     protected transcribeCancelButton(): HTMLButtonElement | undefined {
         const dialogs = Array.from(document.querySelectorAll<HTMLElement>('[data-akari-transcribe-mode]'));
         for (const dialog of dialogs) {
-            const button = Array.from(dialog.querySelectorAll('button')).find(item => item.textContent?.trim() === '中止');
+            const button = Array.from(dialog.querySelectorAll('button')).find(item => item.textContent?.trim() === 'Cancel');
             if (button && dialog.getClientRects().length > 0) return button;
         }
         return undefined;

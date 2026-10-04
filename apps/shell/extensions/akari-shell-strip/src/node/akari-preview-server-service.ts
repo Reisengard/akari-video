@@ -118,24 +118,24 @@ export class AkariPreviewServerServiceImpl implements AkariPreviewServerService,
         try {
             projectRoot = this.fsPath(request.projectRootUri);
         } catch (error) {
-            return this.fail(describeUnexpectedQuickExportFailure(error, 'プロジェクトルートを解決できませんでした'));
+            return this.fail(describeUnexpectedQuickExportFailure(error, 'Could not resolve the project root'));
         }
         const entry = await this.findServerEntry();
         if (!entry) {
-            return this.fail('preview-server が見つかりませんでした（packages/preview-server/src/server.mjs 不在）');
+            return this.fail('preview-server not found (missing packages/preview-server/src/server.mjs)');
         }
         const port = await this.findFreePort();
         if (port === undefined) {
             const first = PREVIEW_SERVER_DEFAULT_PORT;
             const last = PREVIEW_SERVER_DEFAULT_PORT + PREVIEW_SERVER_PORT_ATTEMPTS - 1;
-            return this.fail(`ポート ${first}〜${last} がすべて使用中です`);
+            return this.fail(`Ports ${first}–${last} are all in use`);
         }
         const args = buildPreviewServerArgs(projectRoot, port);
         let child: ChildProcess;
         try {
             child = this.spawnServer(entry, args);
         } catch (error) {
-            return this.fail(describeUnexpectedQuickExportFailure(error, 'プレビューサーバーを起動できませんでした'));
+            return this.fail(describeUnexpectedQuickExportFailure(error, 'Could not start the preview server'));
         }
         const session: PreviewServerSession = {
             child,
@@ -176,7 +176,7 @@ export class AkariPreviewServerServiceImpl implements AkariPreviewServerService,
             await this.terminate(session);
             const stderrSummary = summarizeStderrTail(session.stderr);
             return this.fail(
-                `プレビューサーバーが ${this.readyTimeoutMs / 1000} 秒以内に起動しませんでした`
+                `Preview server: ${this.readyTimeoutMs / 1000} s elapsed without starting`
                 + (stderrSummary ? `\n${stderrSummary}` : '')
             );
         }
@@ -237,7 +237,7 @@ export class AkariPreviewServerServiceImpl implements AkariPreviewServerService,
         }
         if (this.status.phase === 'running') {
             this.session = undefined;
-            this.fail(`プレビューサーバーが予期せず終了しました\n${describePreviewServerFailure(code, session.stderr, session.port)}`);
+            this.fail(`Preview server exited unexpectedly\n${describePreviewServerFailure(code, session.stderr, session.port)}`);
         }
     }
 
@@ -378,14 +378,14 @@ export class AkariPreviewServerServiceImpl implements AkariPreviewServerService,
         for (const [index, candidate] of candidates.entries()) {
             try {
                 if ((await this.fsImpl.stat(candidate)).isFile()) {
-                    this.appendLog(`preview-server 解決: 候補 ${index + 1}/${candidates.length} = ${candidate}\n`);
+                    this.appendLog(`preview-server resolution: candidate ${index + 1}/${candidates.length} = ${candidate}\n`);
                     return candidate;
                 }
             } catch {
                 // 次の候補（パッケージ版配置 / 祖先探索 / 後方互換配置）を試す。
             }
         }
-        this.appendLog(`preview-server の解決に失敗（試した候補 ${candidates.length} 件）:\n${candidates.map(c => `  - ${c}`).join('\n')}\n`);
+        this.appendLog(`preview-server resolution failed (candidates tried: ${candidates.length}):\n${candidates.map(c => `  - ${c}`).join('\n')}\n`);
         return undefined;
     }
 

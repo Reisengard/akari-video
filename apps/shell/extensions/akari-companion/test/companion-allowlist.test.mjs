@@ -42,14 +42,14 @@ const valid = {
   'akari.settings.open': { section: 'connections' }
 };
 
-test('許可された全コマンドの正常な引数を受ける', () => {
+test('Accept valid arguments for all allowed commands', () => {
   assert.equal(ALLOWED_COMMAND_IDS.length, Object.keys(valid).length);
   for (const id of ALLOWED_COMMAND_IDS) {
     assert.equal(validateCommandArgs(id, valid[id]).ok, true, id);
   }
 });
 
-test('固定一覧に無い副作用コマンドを拒む', () => {
+test('Reject side-effect commands outside the allowlist', () => {
   for (const id of [
     'akari.partner.send',
     'akari.partner.injectPrompt',
@@ -61,7 +61,7 @@ test('固定一覧に無い副作用コマンドを拒む', () => {
   }
 });
 
-test('文字列・配列・数値の境界を検査する', () => {
+test('Check string, array, and numeric bounds', () => {
   assert.equal(validateCommandArgs('akari.preview.ensureVisible', { editUri: 'x'.repeat(512) }).ok, true);
   assert.equal(validateCommandArgs('akari.preview.ensureVisible', { editUri: 'x'.repeat(513) }).ok, false);
   assert.equal(validateCommandArgs('akari.preview.showZoneHint', {
@@ -74,7 +74,7 @@ test('文字列・配列・数値の境界を検査する', () => {
   assert.equal(validateCommandArgs('akari.preview.setViewZoom', { editUri: 'x', scale: 0 }).ok, false);
 });
 
-test('型違い・未知のキー・不完全な union を拒む', () => {
+test('Reject type mismatches, unknown keys, and incomplete unions', () => {
   assert.equal(validateCommandArgs('akari.timeline.setSnap', { enabled: 'yes' }).ok, false);
   assert.equal(validateCommandArgs('akari.timeline.seek', { seconds: 1, extra: true }).ok, false);
   assert.equal(validateCommandArgs('akari.preview.setLoopRange', { editUri: 'x', clear: true, startSeconds: 0 }).ok, false);
@@ -85,7 +85,7 @@ test('型違い・未知のキー・不完全な union を拒む', () => {
   assert.equal(validateCommandArgs('akari.catalog.listCategories', { extra: true }).ok, false);
 });
 
-test('素材取り込みの引数を厳密に検査する', () => {
+test('Strictly validate Footage import arguments', () => {
   assert.equal(validateCommandArgs('akari.catalog.importAsset', { assetId: 'x' }).ok, true);
   assert.equal(validateCommandArgs('akari.catalog.importAsset', { assetId: 'x', path: '/etc' }).ok, false);
   assert.equal(validateCommandArgs('akari.catalog.importAsset', {}).ok, false);
@@ -94,12 +94,12 @@ test('素材取り込みの引数を厳密に検査する', () => {
   assert.equal(validateCommandArgs('akari.catalog.importAsset', { assetId: 1 }).ok, false);
 });
 
-test('インスペクターの単独表示指定を検査する', () => {
+test('Validate standalone Inspector options', () => {
   assert.equal(validateCommandArgs('akari.inspector.open', { solo: true }).ok, true);
   assert.equal(validateCommandArgs('akari.inspector.open', { solo: 'yes' }).ok, false);
 });
 
-test('editUri は橋が入れる — 必須のコマンドでも係は渡さなくてよい', () => {
+test('The bridge supplies editUri; the companion need not supply it for required commands', () => {
   // 橋が入れたあとの形で検査が通ること（入れる前に検査すると invalid-args に落ちる）。
   const withUri = { editUri: 'file:///p/edit.json' };
   for (const id of ['akari.preview.play', 'akari.preview.pause', 'akari.preview.pulseItem']) {

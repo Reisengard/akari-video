@@ -1,0 +1,37 @@
+
+> akari-theme@0.0.1 test
+> tsc -b && node --test test/*.test.mjs
+
+✔ Suppress outlines only for shell container focus (2.1327ms)
+✔ Exclude buttons, inputs, links, and editors while preserving visible focus color (0.5178ms)
+✔ pure classification uses timer firing and failure, independent of elapsed time or Error values (3.829ms)
+✔ elapsed time alone cannot turn fulfilled into a timeout (5.9992ms)
+✔ elapsed time alone cannot turn throw into a timeout (0.7894ms)
+✔ elapsed time alone cannot turn reject into a timeout (1.0151ms)
+✔ default timeout resolves at 2000ms even if work never settles (5.8315ms)
+✔ guard handles void and clears its deadline (1.0977ms)
+✔ guard handles fulfilled and clears its deadline (0.551ms)
+✔ guard handles throw and clears its deadline (0.8712ms)
+✔ guard handles reject and clears its deadline (0.5054ms)
+✔ guard handles undefined-rejection and clears its deadline (0.5516ms)
+✔ late success does not warn twice after timeout (0.7479ms)
+✔ late rejection is handled after timeout (0.3448ms)
+✔ even a throwing console cannot reject or leave the guard pending (0.8758ms)
+✔ akari-shell-card-layout.ts: guarded callback success (148.2495ms)
+✔ akari-shell-card-layout.ts: guarded callback throw (12.5258ms)
+✔ akari-shell-card-layout.ts: guarded callback reject (13.1962ms)
+✔ akari-shell-card-layout.ts: guarded callback pending (24.7774ms)
+✔ akari-shell-card-layout.ts: real applyGap throws (21.0297ms)
+✔ content, visibility and focus bursts coalesce after the last event (2.4105ms)
+✔ events and heartbeats share the one-second resend throttle (0.3778ms)
+✔ hidden widgets do not send or consume the visible resend allowance (1.5553ms)
+✔ a heartbeat consumes a pending event to avoid a duplicate resend (0.2396ms)
+✔ idle heartbeat restores within 60 seconds and stays below two sends per minute (0.3102ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1072.1549

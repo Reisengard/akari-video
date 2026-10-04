@@ -41,7 +41,7 @@ export interface ExportSettingSeat {
 }
 
 export interface OutputDescriptionLine {
-    readonly label: '形式' | '画素数' | '音' | '色';
+    readonly label: 'Format' | 'Resolution' | 'Audio' | 'Color';
     readonly value: string;
 }
 
@@ -58,52 +58,52 @@ export function containerForCodec(codec: QuickExportCodec): { ext: 'mp4' | 'mov'
 
 export const EXPORT_QUALITY_CHOICES: readonly ExportQualityChoice[] = Object.freeze([
     {
-        id: 'standard', label: '標準', recommended: true,
-        description: '投稿・共有にちょうどいい画質。ふつうはこれ。', crf: 23, hardwareMbps: 8
+        id: 'standard', label: 'Standard', recommended: true,
+        description: 'Suitable for posting and sharing. Recommended for most exports.', crf: 23, hardwareMbps: 8
     },
     {
-        id: 'high', label: '高画質',
-        description: '納品・保存用。時間はかかるが最もきれい。', crf: 18, hardwareMbps: 12
+        id: 'high', label: 'High quality',
+        description: 'For delivery and archiving. Takes longer but offers the best quality.', crf: 18, hardwareMbps: 12
     },
     {
-        id: 'light', label: '軽量',
-        description: '確認用の下書き。すぐ出て軽い。', crf: 26, hardwareMbps: 5
+        id: 'light', label: 'Lightweight',
+        description: 'A quick, lightweight draft for review.', crf: 26, hardwareMbps: 5
     }
 ]);
 
 export const EXPORT_FORMAT_SEATS: readonly ExportSettingSeat[] = Object.freeze([
-    { id: 'h264', label: 'MP4 · H.264', description: 'SNS・Web・ふつうの納品', available: true, exit: 'GPU 直結' },
-    { id: 'hevc', label: 'MP4 · H.265（HEVC）', description: '容量ほぼ半分。X は非対応', available: true, exit: 'GPU 直結のまま', tooltip: 'H.265: GPU 直結のまま容量を約半分に。X は非対応です。' },
-    { id: 'prores422', label: 'MOV · ProRes 422 HQ', description: '制作会社・TV への納品マスター', available: true, exit: 'GPU で描く → ffmpeg で包む', tooltip: 'ProRes 422 HQ: 制作会社向けの高品質な納品形式。' },
-    { id: 'prores4444', label: 'MOV · ProRes 4444（透過）', description: '透過つきのテロップ素材', available: false, exit: 'GPU で描く → ffmpeg で包む', tooltip: 'ProRes 4444: 透過つきの動画を書き出します。近日' },
-    { id: 'vp9', label: 'WebM · VP9（透過）', description: 'Web で使う透過動画', available: false, exit: 'GPU で描く → ffmpeg で包む', tooltip: 'WebM VP9: Web 向けの透過動画を書き出します。近日' },
-    { id: 'png', label: '連番 PNG', description: 'VFX・After Effects へ渡す', available: true, exit: 'OSR', tooltip: '連番 PNG: 1 コマずつ画像として書き出します。' }
+    { id: 'h264', label: 'MP4 · H.264', description: 'Social media, web, and standard delivery', available: true, exit: 'Direct GPU' },
+    { id: 'hevc', label: 'MP4 · H.265(HEVC)', description: 'About half the size. Unsupported by X', available: true, exit: 'Direct GPU retained', tooltip: 'H.265: About half the size with direct GPU encoding. Unsupported by X.' },
+    { id: 'prores422', label: 'MOV · ProRes 422 HQ', description: 'Master for production companies and TV', available: true, exit: 'Render on GPU → package with ffmpeg', tooltip: 'ProRes 422 HQ: High-quality delivery format for production companies.' },
+    { id: 'prores4444', label: 'MOV · ProRes 4444 (alpha)', description: 'Captions with transparency', available: false, exit: 'Render on GPU → package with ffmpeg', tooltip: 'ProRes 4444: Export video with transparency. Coming soon' },
+    { id: 'vp9', label: 'WebM · VP9 (alpha)', description: 'Transparent video for the web', available: false, exit: 'Render on GPU → package with ffmpeg', tooltip: 'WebM VP9: Export transparent video for the web. Coming soon' },
+    { id: 'png', label: 'PNG sequence', description: 'For VFX and After Effects', available: true, exit: 'OSR', tooltip: 'PNG sequence: Export each frame as an image.' }
 ]);
 
 export const EXPORT_RESOLUTION_SEATS: readonly ExportSettingSeat[] = Object.freeze([
-    { id: 'source', label: 'そのまま', description: 'edit.json の画素数を維持', available: true },
-    { id: '720p', label: '720p', description: '1280 × 720', available: true, tooltip: '画角を保ったまま短辺 720 px にします。' },
-    { id: '1440p', label: '1440p', description: '2560 × 1440', available: true, tooltip: '画角を保ったまま短辺 1440 px にします。' },
-    { id: '4k', label: '4K', description: '3840 × 2160', available: true, tooltip: '画角を保ったまま短辺 2160 px にします。' },
-    { id: 'custom', label: '自由指定', description: '幅から高さを自動計算', available: true, tooltip: '幅を指定し、画角を保って高さを計算します。' },
-    { id: 'unlock-aspect', label: '画角を外す', description: '余白または切り取りが必要', available: false, tooltip: '画角を外す: 幅と高さを別々に指定します。近日' }
+    { id: 'source', label: 'Original', description: 'Keep the resolution from edit.json', available: true },
+    { id: '720p', label: '720p', description: '1280 × 720', available: true, tooltip: 'Set the short edge to 720 px, preserving aspect ratio.' },
+    { id: '1440p', label: '1440p', description: '2560 × 1440', available: true, tooltip: 'Set the short edge to 1440 px, preserving aspect ratio.' },
+    { id: '4k', label: '4K', description: '3840 × 2160', available: true, tooltip: 'Set the short edge to 2160 px, preserving aspect ratio.' },
+    { id: 'custom', label: 'Custom', description: 'Calculate height from width', available: true, tooltip: 'Set the width and calculate height, preserving aspect ratio.' },
+    { id: 'unlock-aspect', label: 'Unlock aspect ratio', description: 'Requires padding or cropping', available: false, tooltip: 'Unlock aspect ratio: Set width and height separately. Coming soon' }
 ]);
 
 export const EXPORT_AUDIO_SEATS: readonly ExportSettingSeat[] = Object.freeze([
-    { id: 'aac', label: 'AAC 48 kHz', description: '映像配信の標準', available: true },
-    { id: 'lufs-14', label: '−14 LUFS', description: 'YouTube・配信向け', available: false, tooltip: 'ラウドネス −14 LUFS を画面から指定できるようになります。近日' },
-    { id: 'lufs-16', label: '−16 LUFS', description: 'Apple 系配信向け', available: false, tooltip: 'ラウドネス −16 LUFS を選べるようになります。近日' },
-    { id: 'lufs-23', label: '−23 LUFS', description: '放送向け', available: false, tooltip: 'ラウドネス −23 LUFS を選べるようになります。近日' },
-    { id: 'noise-reduction', label: 'ノイズ低減', description: '弱・強を選択', available: false, tooltip: 'ノイズ低減の強さを選べるようになります。近日' },
-    { id: 'bitrate', label: 'ビットレート', description: '128〜320 kbps', available: false, tooltip: '音声ビットレートを選べるようになります。近日' }
+    { id: 'aac', label: 'AAC 48 kHz', description: 'Standard for video delivery', available: true },
+    { id: 'lufs-14', label: '−14 LUFS', description: 'For YouTube and streaming', available: false, tooltip: 'Set loudness to −14 LUFS in the UI. Coming soon' },
+    { id: 'lufs-16', label: '−16 LUFS', description: 'For Apple streaming services', available: false, tooltip: 'Select loudness of −16 LUFS. Coming soon' },
+    { id: 'lufs-23', label: '−23 LUFS', description: 'For broadcast', available: false, tooltip: 'Select loudness of −23 LUFS. Coming soon' },
+    { id: 'noise-reduction', label: 'Noise reduction', description: 'Choose Low or High', available: false, tooltip: 'Select noise reduction strength. Coming soon' },
+    { id: 'bitrate', label: 'Bitrate', description: '128〜320 kbps', available: false, tooltip: 'Select audio bitrate. Coming soon' }
 ]);
 
 export const EXPORT_COLOR_SEATS: readonly ExportSettingSeat[] = Object.freeze([
-    { id: 'rec709', label: '8-bit · Rec.709 · tv', description: '現在の固定出力', available: true },
-    { id: '10bit', label: '10-bit', description: '階調を多く保持', available: false, tooltip: '10-bit: ProRes などの高精度形式で使えるようになります。近日' },
-    { id: 'full-range', label: 'フルレンジ', description: 'pc レンジ', available: false, tooltip: 'フルレンジ: pc レンジの映像を書き出せるようになります。近日' },
-    { id: 'hdr-hlg', label: 'HDR · HLG', description: 'Rec.2020 HLG', available: false, tooltip: 'HDR HLG: 広色域の配信向け出力です。近日' },
-    { id: 'hdr-pq', label: 'HDR · PQ', description: 'Rec.2020 PQ', available: false, tooltip: 'HDR PQ: 広色域のマスター向け出力です。近日' }
+    { id: 'rec709', label: '8-bit · Rec.709 · tv', description: 'Current fixed output', available: true },
+    { id: '10bit', label: '10-bit', description: 'Preserve more tonal detail', available: false, tooltip: '10-bit: Available for high-precision formats such as ProRes. Coming soon' },
+    { id: 'full-range', label: 'Full range', description: 'PC range', available: false, tooltip: 'Full range: Export video in PC range. Coming soon' },
+    { id: 'hdr-hlg', label: 'HDR · HLG', description: 'Rec.2020 HLG', available: false, tooltip: 'HDR HLG: Wide-gamut output for streaming. Coming soon' },
+    { id: 'hdr-pq', label: 'HDR · PQ', description: 'Rec.2020 PQ', available: false, tooltip: 'HDR PQ: Wide-gamut output for masters. Coming soon' }
 ]);
 
 export const EXPORT_SETTING_SEATS: readonly ExportSettingSeat[] = Object.freeze([
@@ -178,28 +178,28 @@ export function describeOutput(settings: ExportSettings, edit: unknown): readonl
     const width = finitePositive(outputRecord.width);
     const height = finitePositive(outputRecord.height);
     const sourceFps = finitePositive(outputRecord.fps);
-    const dimensions = width && height ? `${width} × ${height}` : 'edit.json のまま';
+    const dimensions = width && height ? `${width} × ${height}` : 'As defined in edit.json';
     const fps = settings.fps ?? sourceFps;
     const resolved = resolveOutputResolution({ width, height }, settings);
     const resolutionLabel: Readonly<Record<ExportResolution, string>> = {
-        native: 'そのまま', '720p': '720p', '1440p': '1440p', '4k': '4K', custom: '自由指定'
+        native: 'Original', '720p': '720p', '1440p': '1440p', '4k': '4K', custom: 'Custom'
     };
     const modeLabel: Readonly<Record<OutputScaleMode, string>> = {
-        up: '拡大', down: '縮小', none: 'そのまま'
+        up: 'Upscale', down: 'Downscale', none: 'Original'
     };
     const pixelValue = (settings.resolution ?? 'native') === 'native'
-        ? `そのまま（${dimensions}${fps ? ` · ${fps} fps` : ''}）`
-        : `${resolved.width} × ${resolved.height}（${resolutionLabel[settings.resolution]}・${modeLabel[resolved.mode]}${fps ? ` · ${fps} fps` : ''}）`;
+        ? `Original(${dimensions}${fps ? ` · ${fps} fps` : ''})`
+        : `${resolved.width} × ${resolved.height}(${resolutionLabel[settings.resolution]} · ${modeLabel[resolved.mode]}${fps ? ` · ${fps} fps` : ''})`;
     const formatValue: Readonly<Record<QuickExportCodec, string>> = {
         h264: 'MP4 · H.264 / AAC 48 kHz',
-        hevc: 'MP4 · H.265（HEVC） / AAC 48 kHz',
+        hevc: 'MP4 · H.265(HEVC) / AAC 48 kHz',
         prores422: 'MOV · ProRes 422 HQ / PCM 48 kHz',
-        png: '連番 PNG / WAV 48 kHz'
+        png: 'PNG sequence / WAV 48 kHz'
     };
     return [
-        { label: '形式', value: formatValue[settings.codec] },
-        { label: '画素数', value: pixelValue },
-        { label: '音', value: `${settings.codec === 'h264' || settings.codec === 'hevc' ? 'AAC' : settings.codec === 'png' ? 'WAV' : 'PCM'} 48 kHz · ラウドネス −14 LUFS（既定）` },
-        { label: '色', value: settings.codec === 'prores422' ? '10-bit · Rec.709' : '8-bit · Rec.709' }
+        { label: 'Format', value: formatValue[settings.codec] },
+        { label: 'Resolution', value: pixelValue },
+        { label: 'Audio', value: `${settings.codec === 'h264' || settings.codec === 'hevc' ? 'AAC' : settings.codec === 'png' ? 'WAV' : 'PCM'} 48 kHz · Loudness −14 LUFS (default)` },
+        { label: 'Color', value: settings.codec === 'prores422' ? '10-bit · Rec.709' : '8-bit · Rec.709' }
     ];
 }

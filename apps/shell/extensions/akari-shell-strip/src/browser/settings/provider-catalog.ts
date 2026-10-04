@@ -11,19 +11,19 @@ import { PROVIDER_LOGOS } from './provider-logos';
 export type ProviderGroup = 'generate' | 'transcribe';
 
 export const PROVIDER_GROUP_LABELS: Record<ProviderGroup, string> = {
-    generate: '生成サービス',
-    transcribe: '文字起こし'
+    generate: 'Generation services',
+    transcribe: 'Transcription'
 };
 
 export const PROVIDER_DISPLAY: Readonly<Record<string, { group: ProviderGroup; description: string; highlight?: string }>> = {
-    fal: { group: 'generate', description: 'おすすめ · 1 本のキーで画像・動画・読み上げ・BGM を使えます' },
+    fal: { group: 'generate', description: 'Recommended · One key for images, video, speech, and BGM' },
     openrouter: {
-        group: 'generate', description: 'いろいろな会社のモデルを 1 つのキーで。',
-        highlight: 'つなぐと Akari Vibe（声で話しかけて動画を編集）が使えます'
+        group: 'generate', description: 'Models from multiple providers with one key.',
+        highlight: 'Connect to use Akari Vibe and edit videos by voice'
     },
-    replicate: { group: 'generate', description: '画像・動画・音声のいろいろなモデルを呼び出します' },
-    elevenlabs: { group: 'generate', description: 'ナレーション・音声の生成。つなぐと今月の残りクレジットを見られます' },
-    groq: { group: 'transcribe', description: '速いクラウド文字起こし。残高を問い合わせる公式の口が無いので、管理画面へのリンクだけ出します' }
+    replicate: { group: 'generate', description: 'Access a range of image, video, and audio models' },
+    elevenlabs: { group: 'generate', description: 'Generate Narration and audio. Connect to see this month\'s remaining credits' },
+    groq: { group: 'transcribe', description: 'Fast cloud transcription. No official balance API; a link to the dashboard is provided' }
 };
 
 export function providerGroup(id: string): ProviderGroup {

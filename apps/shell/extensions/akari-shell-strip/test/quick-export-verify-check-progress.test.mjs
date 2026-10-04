@@ -28,13 +28,13 @@ const enterVerify = [
     'PROGRESS stage=verify status=start'
 ];
 
-test('検査工程の status 行で工程名が snapshot に出る', () => {
+test('Verify status lines expose the check name in the snapshot', () => {
     const snapshot = trackerAfter([...enterVerify, 'PROGRESS stage=verify check=blank-frames status=start']);
     assert.equal(snapshot.stage, 'verify');
     assert.equal(snapshot.verifyCheck, 'blank-frames');
 });
 
-test('黒画面検査の frames 行で工程内の進捗が段の進捗へ反映される', () => {
+test('Blank-frame check frame counts contribute to stage progress', () => {
     const half = trackerAfter([
         ...enterVerify,
         'PROGRESS stage=verify check=blank-frames status=start',
@@ -43,7 +43,7 @@ test('黒画面検査の frames 行で工程内の進捗が段の進捗へ反映
     assert.equal(half.verifyCheck, 'blank-frames');
     assert.equal(half.verifyCheckFrames, TOTAL_FRAMES / 2);
     assert.equal(half.verifyCheckTotalFrames, TOTAL_FRAMES);
-    assert.ok(half.stageFraction > 0, '従来は 0 のまま固まっていた');
+    assert.ok(half.stageFraction > 0, 'Previously stuck at zero');
 
     // 進むほど段の進捗も単調に増える（止まって見えないことの本質）。
     const later = trackerAfter([
@@ -56,7 +56,7 @@ test('黒画面検査の frames 行で工程内の進捗が段の進捗へ反映
     assert.ok(later.stageFraction <= 1);
 });
 
-test('工程が終わるたびに段の進捗が前へ進む（frames を出さない工程でも固まらない）', () => {
+test('Stage progress advances as each check completes even without frame output', () => {
     const fractions = [];
     const tracker = createQuickExportProgressTracker();
     for (const line of enterVerify) {
@@ -68,23 +68,23 @@ test('工程が終わるたびに段の進捗が前へ進む（frames を出さ�
         fractions.push(tracker.snapshot().stageFraction);
     }
     for (let index = 1; index < fractions.length; index += 1) {
-        assert.ok(fractions[index] > fractions[index - 1], `${index} 番目で進捗が増える`);
+        assert.ok(fractions[index] > fractions[index - 1], `${index} advances progress`);
     }
 });
 
-test('reused / skipped も「その工程は終わった」として扱う（reused は省略ではない）', () => {
+test('Reused and skipped count as completed checks', () => {
     for (const status of ['reused', 'skipped']) {
         const snapshot = trackerAfter([
             ...enterVerify,
             'PROGRESS stage=verify check=probe status=start',
             `PROGRESS stage=verify check=probe status=${status}`
         ]);
-        assert.equal(snapshot.verifyCheck, undefined, `${status} で工程名が消える`);
-        assert.ok(snapshot.stageFraction > 0, `${status} でも進捗が前へ進む`);
+        assert.equal(snapshot.verifyCheck, undefined, `${status} clears the check name`);
+        assert.ok(snapshot.stageFraction > 0, `${status} still advances progress`);
     }
 });
 
-test('verify 段が終われば工程名は消え、段は 1 になる', () => {
+test('Completing verify clears check name and sets stage progress to 1', () => {
     const snapshot = trackerAfter([
         ...enterVerify,
         'PROGRESS stage=verify check=blank-frames status=start',
@@ -96,7 +96,7 @@ test('verify 段が終われば工程名は消え、段は 1 になる', () => {
     assert.equal(snapshot.stageFraction, 1);
 });
 
-test('verify 段をやり直すと工程の積み上げがリセットされる', () => {
+test('Restarting verify resets accumulated checks', () => {
     const snapshot = trackerAfter([
         ...enterVerify,
         'PROGRESS stage=verify check=probe status=end',
@@ -107,7 +107,7 @@ test('verify 段をやり直すと工程の積み上げがリセットされる'
     assert.equal(snapshot.verifyCheck, undefined);
 });
 
-test('既存の stage / frame 行の解釈は変えていない', () => {
+test('Existing stage/frame parsing remains unchanged', () => {
     const snapshot = trackerAfter([
         'PROGRESS stage=render status=start engine=gpu',
         'PROGRESS frame=79341 total=158682'
@@ -120,7 +120,7 @@ test('既存の stage / frame 行の解釈は変えていない', () => {
     assert.equal(snapshot.verifyCheck, undefined);
 });
 
-test('未知の検査名や壊れた行は無視する', () => {
+test('Ignore unknown check names and malformed lines', () => {
     const snapshot = trackerAfter([
         ...enterVerify,
         'PROGRESS stage=verify check=unknown-check status=start',
@@ -131,10 +131,10 @@ test('未知の検査名や壊れた行は無視する', () => {
     assert.equal(snapshot.stageFraction, 0);
 });
 
-test('ラベルは確認中の工程を添える', () => {
-    assert.equal(quickExportStageLabel('verify'), '確認');
-    assert.equal(quickExportStageLabel('verify', 'blank-frames'), '確認（黒画面を探す）');
-    assert.equal(quickExportStageLabel('render'), '映像を描いて圧縮する');
+test('Label includes the current verification check', () => {
+    assert.equal(quickExportStageLabel('verify'), 'Verifying');
+    assert.equal(quickExportStageLabel('verify', 'blank-frames'), 'Verifying (Checking blank frames)');
+    assert.equal(quickExportStageLabel('render'), 'Rendering and encoding video');
     // 全工程に日本語ラベルがある（switch の網羅を実行時にも確かめる）。
     for (const check of [
         'probe', 'video-identity', 'decode', 'audio-decode', 'audio-level', 'motion', 'blank-frames'

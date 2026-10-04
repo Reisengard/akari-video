@@ -10,7 +10,7 @@ const sample = {
     diskTotalBytes: 500_000_000_000, rssByPid: {}, username: 'ryoma', sampledAt: 1
 };
 
-test('未登録キーは既定値で、明示 false と変更した間隔を反映する', () => {
+test('Unknown keys use defaults; explicit false and changed interval are honored', () => {
     const options = resolveStatusbarOptions(key => ({
         'akari.statusBar.cpu': false, 'akari.statusBar.disk': true, 'akari.statusBar.intervalSec': 5
     })[key]);
@@ -21,14 +21,14 @@ test('未登録キーは既定値で、明示 false と変更した間隔を反�
     assert.equal(resolveStatusbarOptions(() => undefined).intervalSec, 3);
 });
 
-test('ioreg の PerformanceStatistics 利用率を取り、無ければ null', () => {
+test('Read ioreg PerformanceStatistics utilization or return null', () => {
     assert.equal(parseIoregGpuUtilization('"PerformanceStatistics" = {"Device Utilization %"=21,"Foo"=1}'), 21);
     assert.equal(parseIoregGpuUtilization('"Device Utilization %" = 22\n"Device Utilization %" = 41'), 41);
     assert.equal(parseIoregGpuUtilization('"Device Utilization %" = 999'), null);
     assert.equal(parseIoregGpuUtilization('"IOAccelerator" = {}'), null);
 });
 
-test('vm_stat は active + wired + compressor のみをページサイズでバイトへ変換する', () => {
+test('vm_stat converts active + wired + compressor pages to bytes', () => {
     const output = `Mach Virtual Memory Statistics: (page size of 16384 bytes)
 Pages free: 75362.
 Pages active: 153321.
@@ -42,9 +42,9 @@ Pages occupied by compressor: 350707.\n`;
     assert.equal(parseVmStatUsedBytes('vm_stat failed'), null);
 });
 
-test('下のバーは設定で項目を消し、取得不能 GPU も消す', () => {
+test('Status bar preferences hide items and unavailable GPU', () => {
     const options = resolveStatusbarOptions(() => undefined);
-    assert.equal(resourceSummary(sample, options, 3), 'CPU 38% · GPU 21% · メモリ 11.4 GB · 実行中 3');
-    assert.equal(resourceSummary({ ...sample, gpuPercent: null }, { ...options, cpu: false, memory: false }, 0), '実行中 0');
+    assert.equal(resourceSummary(sample, options, 3), 'CPU 38% · GPU 21% · Memory 11.4 GB · Running 3');
+    assert.equal(resourceSummary({ ...sample, gpuPercent: null }, { ...options, cpu: false, memory: false }, 0), 'Running 0');
     assert.deepEqual(resourceRows({ ...sample, gpuPercent: null }, { ...options, disk: true }).map(row => row.key), ['cpu', 'memory', 'disk']);
 });

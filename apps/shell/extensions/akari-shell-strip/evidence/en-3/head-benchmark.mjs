@@ -1,0 +1,11 @@
+import {spawnSync} from 'node:child_process';
+import {resolve} from 'node:path';
+import {writeFileSync} from 'node:fs';
+const evidence=resolve('apps/shell/extensions/akari-shell-strip/evidence/en-3');
+const suffix=process.argv.includes('--warm') ? '-warm' : '';
+const start=performance.now();
+const result=spawnSync(process.env.ComSpec ?? 'cmd.exe',['/d','/s','/c','npm test'],{cwd:resolve('apps/shell/extensions/akari-shell-strip'),encoding:'utf8',maxBuffer:10_000_000});
+const receipt={seconds:(performance.now()-start)/1000,exitCode:result.status};
+writeFileSync(resolve(evidence,`head-shell-strip${suffix}.log`),result.stdout+result.stderr);
+writeFileSync(resolve(evidence,`head-shell-strip${suffix}.json`),JSON.stringify(receipt,null,2));
+console.log(JSON.stringify(receipt));

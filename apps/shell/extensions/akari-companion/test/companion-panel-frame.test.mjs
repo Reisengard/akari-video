@@ -117,7 +117,7 @@ function mouse(clientX, buttons = 1) {
     preventDefault() {}, stopPropagation() {} };
 }
 
-test('(a) start 後の差分 3 回で枠が合計 90,30 動く', () => {
+test('(a) Three deltas after start move the frame by 90,30', () => {
   const { frame, mount, message } = fixture();
   mount();
   const { x, y } = frame;
@@ -129,7 +129,7 @@ test('(a) start 後の差分 3 回で枠が合計 90,30 動く', () => {
   frame.unmount();
 });
 
-test('(b) 親の mousemove はボタンが離れていても中身の移動を終えず動かさない', () => {
+test('(b) Parent mousemove never moves or ends content dragging after button release', () => {
   const { frame, win, mount, message } = fixture();
   mount();
   message({ type: 'akari-companion-panel', drag: { phase: 'start' } });
@@ -143,7 +143,7 @@ test('(b) 親の mousemove はボタンが離れていても中身の移動を�
   frame.unmount();
 });
 
-test('(d) start から 2 秒で終了し、差分・blur・unmount でタイマーを片付ける', () => {
+test('(d) End after two seconds and clean timers on delta, blur, and unmount', () => {
   const { frame, win, timers, advance, mount, message } = fixture();
   mount();
   message({ type: 'akari-companion-panel', drag: { phase: 'start' } });
@@ -170,7 +170,7 @@ test('(d) start から 2 秒で終了し、差分・blur・unmount でタイマ�
   assert.equal(timers.size, 0);
 });
 
-test('(e) 三角を置かず、左端と左下角に透明なリサイズ帯を置く', async () => {
+test('(e) Use transparent resize edges at left and bottom-left without a triangle', async () => {
   const { frame, mount } = fixture();
   mount();
   assert.equal(frame.panelEl.children.length, 4);
@@ -184,7 +184,7 @@ test('(e) 三角を置かず、左端と左下角に透明なリサイズ帯を�
   frame.unmount();
 });
 
-test('(f) 左端の帯を左へ動かすと右端固定で幅を保存・通知し、720 で止まる', () => {
+test('(f) Dragging left keeps right edge fixed, saves and reports width, and caps at 720', () => {
   const { frame, win, values, mount, message } = fixture();
   frame.setAnchorProvider(() => ({ left: 900, right: 940, bottom: 40 }));
   mount();
@@ -193,7 +193,7 @@ test('(f) 左端の帯を左へ動かすと右端固定で幅を保存・通知�
   firstIframe.dispatch('load');
   assert.deepEqual(firstIframe.messages.at(-1), [{ type: 'akari-companion-frame', width: 620 }, '*']);
   const grip = frame.resizeEdgeEl;
-  assert.equal(grip.attributes.title, 'AKARI バイブの横幅を変える');
+  assert.equal(grip.attributes.title, 'Resize AKARI Vibe');
   const right = frame.x + frame.size.width;
   grip.dispatch('mousedown', mouse(400));
   win.dispatch('mousemove', mouse(300));
@@ -222,7 +222,7 @@ test('(f) 左端の帯を左へ動かすと右端固定で幅を保存・通知�
   frame.unmount();
 });
 
-test('(g) つかんだまま 3 秒止めても次の差分で合計 20 動く', () => {
+test('(g) Next delta moves by 20 even after a three-second drag pause', () => {
   const { frame, timers, advance, mount, message } = fixture();
   mount();
   const x = frame.x;
@@ -238,7 +238,7 @@ test('(g) つかんだまま 3 秒止めても次の差分で合計 20 動く', 
   frame.unmount();
 });
 
-test('(h) start 前と end 後の差分でも枠が動く', () => {
+test('(h) Deltas before start and after end still move the frame', () => {
   const { frame, timers, mount, message } = fixture();
   mount();
   const { x, y } = frame;
@@ -257,7 +257,7 @@ test('(h) start 前と end 後の差分でも枠が動く', () => {
   frame.unmount();
 });
 
-test('pill は中身の幅と角丸を使い、リサイズ帯は pill と小さい枠で隠す', async () => {
+test('Pill uses content width and radius and hides resize edges on pills and small frames', async () => {
   const { frame, win, mount, message } = fixture();
   mount();
   frame.resizeEdgeEl.dispatch('mousedown', mouse(400));
@@ -283,7 +283,7 @@ test('pill は中身の幅と角丸を使い、リサイズ帯は pill と小さ
   assert.match(style, /\.akari-companion-panel\[data-mode='pill'\] \{\s*border-radius: 22px;/);
 });
 
-test('横幅を覚えていても、畳まれた中身（tab のまま丸だけ）には空の帯を広げない', () => {
+test('Remembered width does not expand an empty strip beside collapsed circular content', () => {
   const { frame, win, mount, message } = fixture();
   mount();
   frame.resizeEdgeEl.dispatch('mousedown', mouse(400));
@@ -304,7 +304,7 @@ test('横幅を覚えていても、畳まれた中身（tab のまま丸だけ�
   frame.unmount();
 });
 
-test('リサイズの操作面は押下中だけ iframe の上を覆う', () => {
+test('Resize surface covers iframe only while pressed', () => {
   const { frame, win, mount } = fixture();
   mount();
   const grip = frame.resizeEdgeEl;
@@ -334,7 +334,7 @@ test('リサイズの操作面は押下中だけ iframe の上を覆う', () => 
   assert.equal(surface.parent, undefined);
 });
 
-test('中身からの高さは 720 と画面の高さに収める', () => {
+test('Clamp content height to 720 and screen height', () => {
   const { frame, win, mount, message } = fixture();
   mount();
   message({ type: 'akari-companion-panel', width: 620, height: 1000 });
@@ -345,7 +345,7 @@ test('中身からの高さは 720 と画面の高さに収める', () => {
   frame.unmount();
 });
 
-test('閉じるボタンは背景の四角を持たない', async () => {
+test('Close button has no square background', async () => {
   const style = await readFile(new URL('../src/browser/companion-panel-pulse-style.ts', import.meta.url), 'utf8');
   const corner = style.match(/\.akari-companion-panel-corner \{([^}]+)\}/)?.[1];
   const hover = style.match(/\.akari-companion-panel-corner:hover \{([^}]+)\}/)?.[1];

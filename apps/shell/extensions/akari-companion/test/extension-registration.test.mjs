@@ -7,7 +7,7 @@ import test from 'node:test';
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..', '..', '..', '..', '..');
 
-test('shell・build:ext・unit lane に登録されている', async () => {
+test('Registered in shell, build:ext, and unit lane', async () => {
   const shell = JSON.parse(await readFile(join(root, 'apps', 'shell', 'package.json'), 'utf8'));
   assert.equal(shell.dependencies['akari-companion'], 'file:./extensions/akari-companion');
   const build = shell.scripts['build:ext'];

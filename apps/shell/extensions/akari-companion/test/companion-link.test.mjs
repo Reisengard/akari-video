@@ -77,7 +77,7 @@ async function fixtureServer({ validProof = true } = {}) {
   };
 }
 
-serverTest('manifest の proof が不正なら実行も状態送信もしない', async () => {
+serverTest('Invalid manifest proof blocks execution and state sending', async () => {
   const fixture = await fixtureServer({ validProof: false });
   let executions = 0;
   const link = new CompanionLink({
@@ -98,7 +98,7 @@ serverTest('manifest の proof が不正なら実行も状態送信もしない'
   }
 });
 
-serverTest('SSE を順に実行し重複を再実行せず light/docs を各 1 POST で送る', async () => {
+serverTest('Execute SSE in order without duplicates and POST light/docs once each', async () => {
   const fixture = await fixtureServer();
   let executions = 0;
   const link = new CompanionLink({
@@ -134,7 +134,7 @@ serverTest('SSE を順に実行し重複を再実行せず light/docs を各 1 P
   }
 });
 
-serverTest('実行中を含む 64 件を超えた指示へ busy を返す', async () => {
+serverTest('Return busy after 64 instructions including running commands', async () => {
   const fixture = await fixtureServer();
   let executions = 0;
   const never = new Promise(() => {});
@@ -158,7 +158,7 @@ serverTest('実行中を含む 64 件を超えた指示へ busy を返す', asyn
   }
 });
 
-serverTest('dropQueued は未実行分を stale-session で返す', async () => {
+serverTest('dropQueued returns stale-session for pending commands', async () => {
   const fixture = await fixtureServer();
   let executions = 0;
   const never = new Promise(() => {});
@@ -182,7 +182,7 @@ serverTest('dropQueued は未実行分を stale-session で返す', async () => 
   }
 });
 
-serverTest('再接続で Last-Event-ID を送り backoff を 2/5/10 秒にする', async () => {
+serverTest('Reconnect sends Last-Event-ID with 2/5/10-second backoff', async () => {
   const fixture = await fixtureServer();
   const timers = [];
   let addressAvailable = true;

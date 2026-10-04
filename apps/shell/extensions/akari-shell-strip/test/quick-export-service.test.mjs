@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { basename, resolve } from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import {
     AkariQuickExportServiceImpl,
@@ -7,7 +8,7 @@ import {
 } from '../lib/node/akari-quick-export-service.js';
 import { resolveExportPreviewPath } from '../lib/node/akari-quick-export-service.js';
 
-test('start: バックエンドの予期しない例外を failed へ終端させる', async () => {
+test('start terminates unexpected backend exceptions as failed', async () => {
     class ThrowingService extends AkariQuickExportServiceImpl {
         async run() {
             throw new Error('unexpected test failure');
@@ -28,7 +29,7 @@ test('start: バックエンドの予期しない例外を failed へ終端さ�
     assert.match(status.logTail, /unexpected test failure/);
 });
 
-test('start: render-cut CLI 不在は理由付き failed で終端する', async () => {
+test('start terminates missing render-cut CLI as failed with a reason', async () => {
     class MissingCliService extends AkariQuickExportServiceImpl {
         fsPath() { return '/project'; }
         async findRenderCutCli() { return undefined; }
@@ -45,10 +46,10 @@ test('start: render-cut CLI 不在は理由付き failed で終端する', async
     const status = await service.getStatus();
     assert.equal(status.phase, 'failed');
     assert.match(status.failureSummary, /render-cut CLI/);
-    assert.match(status.failureSummary, /見つかりません/);
+    assert.match(status.failureSummary, /not found/);
 });
 
-test('start: lint-failed に error / warning 件数とレポートを載せる', async () => {
+test('start includes error/warning counts and report on lint-failed', async () => {
     class LintFailureService extends AkariQuickExportServiceImpl {
         fsPath() { return '/project'; }
         async findEditLintCli() { return '/cli/edit-lint.mjs'; }
@@ -105,7 +106,7 @@ test('start: lint-failed に error / warning 件数とレポートを載せる',
     });
 });
 
-test('start: render-cut の stage / frame 出力を status の詳細進捗へ載せる', async () => {
+test('start includes render-cut stage/frame details in status', async () => {
     class ProgressService extends AkariQuickExportServiceImpl {
         fsPath() { return '/project'; }
         async findRenderCutCli() { return '/cli/render-cut.mjs'; }
@@ -134,7 +135,7 @@ test('start: render-cut の stage / frame 出力を status の詳細進捗へ載
     assert.equal(status.progressPercent, 33);
 });
 
-test('cancel: 実行中の子プロセスの「プロセスグループ」へ SIGTERM を送り cancelled へ終端する', async () => {
+test('cancel sends SIGTERM to the running process group and becomes cancelled', async () => {
     // 直接の子（render-cut / osr-export の node）だけを殺すと、その子が起こした
     // ffmpeg / OSR Electron / Chromium が孤児として残り続ける。中止はグループ宛でなければならない。
     class CancelService extends AkariQuickExportServiceImpl {
@@ -176,7 +177,7 @@ test('cancel: 実行中の子プロセスの「プロセスグループ」へ SI
     assert.equal((await service.getStatus()).phase, 'cancelled');
 });
 
-test('cancel: SIGTERM で 5 秒以内に終わらなければグループへ SIGKILL を送る', async () => {
+test('cancel sends SIGKILL to the group after 5 seconds without exit', async () => {
     class StubbornService extends AkariQuickExportServiceImpl {
         constructor() {
             super();
@@ -197,7 +198,7 @@ test('cancel: SIGTERM で 5 秒以内に終わらなければグループへ SIG
     assert.deepEqual(service.groupSignals, [[99, 'SIGTERM'], [99, 'SIGKILL']]);
 });
 
-test('cancel: Windows では taskkill /T でツリーごと畳む', async () => {
+test('cancel uses taskkill /T for the Windows process tree', async () => {
     class WindowsService extends AkariQuickExportServiceImpl {
         constructor() {
             super();
@@ -231,7 +232,7 @@ test('cancel: Windows では taskkill /T でツリーごと畳む', async () => 
     assert.deepEqual(service.treeKills, [777]);
 });
 
-test('onStop: シェル終了時に走っている書き出しをグループごと道連れにする', () => {
+test('onStop terminates running export groups on shell exit', () => {
     class StopService extends AkariQuickExportServiceImpl {
         constructor() {
             super();
@@ -247,7 +248,7 @@ test('onStop: シェル終了時に走っている書き出しをグループご
     assert.equal(service.activeChild, undefined);
 });
 
-test('revealArtifact: OS ごとのファイル管理コマンドを組み立てる', () => {
+test('revealArtifact builds OS-specific file manager commands', () => {
     assert.deepEqual(buildRevealArtifactCommand('darwin', '/project/exports/final.mp4'), {
         command: 'open', args: ['-R', '/project/exports/final.mp4']
     });
@@ -259,7 +260,7 @@ test('revealArtifact: OS ごとのファイル管理コマンドを組み立て�
     });
 });
 
-test('copyArtifact: コピーコマンドの終了コードを結果へ反映する', async () => {
+test('copyArtifact reflects copy command exit code in its result', async () => {
     class CopyService extends AkariQuickExportServiceImpl {
         constructor(exitCode) {
             super();
@@ -281,7 +282,7 @@ test('copyArtifact: コピーコマンドの終了コードを結果へ反映す
     assert.deepEqual(await successful.copyArtifact(), { copied: true });
     assert.deepEqual(successful.copyRequest, {
         command: 'osascript',
-        args: ['-e', 'set the clipboard to POSIX file "/project/exports/final.mp4"'],
+        args: ['-e', `set the clipboard to POSIX file "${resolve('/project/exports/final.mp4')}"`],
         stdin: undefined
     });
 
@@ -289,10 +290,10 @@ test('copyArtifact: コピーコマンドの終了コードを結果へ反映す
     failed.prime();
     const failure = await failed.copyArtifact();
     assert.equal(failure.copied, false);
-    assert.match(failure.reason, /exit code 7/);
+    assert.match(failure.reason, /exited with code 7/);
 });
 
-test('readPreviewFrame: 許可ディレクトリ配下の JPEG を data URL として返す', async () => {
+test('readPreviewFrame returns allowed JPEGs as data URLs', async () => {
     class PreviewService extends AkariQuickExportServiceImpl {
         constructor() {
             super();
@@ -305,14 +306,14 @@ test('readPreviewFrame: 許可ディレクトリ配下の JPEG を data URL と�
             };
         }
     }
-    const path = '/project/.akari/cache/export-preview/30.jpg';
+    const path = resolve('/project/.akari/cache/export-preview/30.jpg');
     assert.equal(resolveExportPreviewPath('/project', path), path);
     const service = new PreviewService();
     assert.equal(await service.readPreviewFrame(path), 'data:image/jpeg;base64,/9j/');
     assert.equal(service.readPath, path);
 });
 
-test('readPreviewFrame: 許可ディレクトリ外を拒否してファイルを読まない', async () => {
+test('readPreviewFrame rejects files outside allowed directories without reading', async () => {
     class GuardedPreviewService extends AkariQuickExportServiceImpl {
         constructor() {
             super();
@@ -340,7 +341,7 @@ test('readPreviewFrame: 許可ディレクトリ外を拒否してファイル�
 
 const LINT_FAILED_STATUS = {
     phase: 'lint-failed',
-    logTail: '直前の書き出しログ',
+    logTail: 'Previous export log',
     lintIssueCount: 1,
     lintErrorCount: 1,
     lintWarningCount: 0,
@@ -365,7 +366,7 @@ class RecheckService extends AkariQuickExportServiceImpl {
     }
 }
 
-test('recheckLint: 直っていれば保持していた lint-failed を idle へ戻す', async () => {
+test('recheckLint returns lint-failed to idle once issues are fixed', async () => {
     const service = new RecheckService({ exitCode: 0, stdout: '{"findings":[]}', stderr: '' });
 
     const result = await service.recheckLint({ projectRootUri: 'file:///project' });
@@ -377,13 +378,13 @@ test('recheckLint: 直っていれば保持していた lint-failed を idle へ
     assert.equal(result.status.lintCheckedAt, 1_772_000_000_000);
     assert.equal((await service.getStatus()).phase, 'idle');
     // 再検査は書き出しのログを汚さない（子プロセス出力は status.logTail へ流さない）。
-    assert.equal((await service.getStatus()).logTail, '直前の書き出しログ');
+    assert.equal((await service.getStatus()).logTail, 'Previous export log');
     // 中止ボタンの対象にしない子として起動する。
     assert.deepEqual(service.spawnCalls[0].options, { trackActive: false });
     assert.deepEqual(service.spawnCalls[0].args, ['/project', '--json']);
 });
 
-test('recheckLint: まだ NG なら findings を最新へ差し替える', async () => {
+test('recheckLint updates findings when issues remain', async () => {
     const service = new RecheckService({
         exitCode: 1,
         stdout: JSON.stringify({
@@ -406,7 +407,7 @@ test('recheckLint: まだ NG なら findings を最新へ差し替える', async
     assert.equal(result.status.lintCheckedAt, 1_772_000_000_000);
 });
 
-test('recheckLint: 書き出しの実行中は走らせず status も触らない', async () => {
+test('recheckLint does not run or change status during export', async () => {
     const service = new RecheckService({ exitCode: 0, stdout: '{"findings":[]}', stderr: '' });
     service.running = true;
 
@@ -417,7 +418,7 @@ test('recheckLint: 書き出しの実行中は走らせず status も触らな�
     assert.equal(service.spawnCalls.length, 0);
 });
 
-test('recheckLint: 再検査の最中に書き出しが始まったら結果を捨てる', async () => {
+test('recheckLint discards results if export starts during checks', async () => {
     class RaceService extends RecheckService {
         async spawnNodeScript(script, args, onChunk, options) {
             this.running = true;
@@ -432,7 +433,7 @@ test('recheckLint: 再検査の最中に書き出しが始まったら結果を�
     assert.equal((await service.getStatus()).phase, 'lint-failed');
 });
 
-test('recheckLint: CLI 不在・異常終了は unavailable として保持中の所見を残す', async () => {
+test('recheckLint retains findings as unavailable on missing CLI or abnormal exit', async () => {
     class MissingCliService extends RecheckService {
         async findEditLintCli() { return undefined; }
     }
@@ -463,35 +464,35 @@ function leftoverService(entriesAtStart, entriesNow, sizes = {}) {
             this.renderTmpEntriesAtStart = new Set(entriesAtStart);
         }
         async readRenderTmpEntries() { return new Set(entriesNow); }
-        async treeSize(path) { return sizes[path.split('/').pop()] ?? 0; }
+        async treeSize(path) { return sizes[basename(path)] ?? 0; }
     }
     const service = new LeftoverService();
     service.fsImpl.rm = async path => { removed.push(path); };
     return service;
 }
 
-test('cancel 後: start 前から在った作業ディレクトリは「この回のゴミ」に数えない', async () => {
+test('After cancel, existing work directories are excluded from new leftovers', async () => {
     const service = leftoverService(['old-run'], ['old-run', 'new-run'], { 'new-run': 30 * 1024 * 1024 });
     const leftover = await service.measureCancelledLeftover();
     assert.deepEqual(leftover, { entries: ['new-run'], bytes: 30 * 1024 * 1024 });
 });
 
-test('cancel 後: 増えた entry が無ければ leftover は undefined（片付け導線を出さない）', async () => {
+test('After cancel, no new entries means undefined leftover without cleanup action', async () => {
     const service = leftoverService(['old-run'], ['old-run']);
     assert.equal(await service.measureCancelledLeftover(), undefined);
 });
 
-test('discardCancelledLeftover: leftover の entry だけを削除しバイト数を返す', async () => {
+test('discardCancelledLeftover deletes only leftover entries and returns bytes', async () => {
     const service = leftoverService(['old-run'], ['old-run', 'new-run'], { 'new-run': 1024 });
     service.status = { phase: 'cancelled', logTail: '', cancelledLeftover: { entries: ['new-run'], bytes: 1024 } };
     // 削除後は増分が消えた状態を返す（数え直しで leftover が消える）。
     service.readRenderTmpEntries = async () => new Set(['old-run']);
     assert.deepEqual(await service.discardCancelledLeftover(), { discarded: true, bytes: 1024 });
-    assert.deepEqual(service.removed, ['/project/.akari/render-tmp/new-run']);
+    assert.deepEqual(service.removed, [resolve('/project/.akari/render-tmp/new-run')]);
     assert.equal((await service.getStatus()).cancelledLeftover, undefined);
 });
 
-test('discardCancelledLeftover: 書き出しの実行中は消さない', async () => {
+test('discardCancelledLeftover does not delete while exporting', async () => {
     const service = leftoverService([], ['new-run']);
     service.running = true;
     service.status = { phase: 'rendering', logTail: '', cancelledLeftover: { entries: ['new-run'], bytes: 1 } };
@@ -500,7 +501,7 @@ test('discardCancelledLeftover: 書き出しの実行中は消さない', async 
     assert.deepEqual(service.removed, []);
 });
 
-test('discardCancelledLeftover: leftover が無ければ何も消さない', async () => {
+test('discardCancelledLeftover does nothing without leftovers', async () => {
     const service = leftoverService([], []);
     service.status = { phase: 'cancelled', logTail: '' };
     const result = await service.discardCancelledLeftover();
@@ -508,16 +509,16 @@ test('discardCancelledLeftover: leftover が無ければ何も消さない', asy
     assert.deepEqual(service.removed, []);
 });
 
-test('resolveRenderTmpEntry: render-tmp の外へ出る entry は解決しない（親越え・絶対パス）', () => {
+test('resolveRenderTmpEntry rejects traversal and absolute paths outside render-tmp', () => {
     const service = leftoverService([], []);
     const inside = service.resolveRenderTmpEntry('/project', 'run-1');
-    assert.equal(inside, '/project/.akari/render-tmp/run-1');
+    assert.equal(inside, resolve('/project/.akari/render-tmp/run-1'));
     assert.equal(service.resolveRenderTmpEntry('/project', '../../../etc'), undefined);
     assert.equal(service.resolveRenderTmpEntry('/project', '/etc/passwd'), undefined);
     assert.equal(service.resolveRenderTmpEntry('/project', '..'), undefined);
 });
 
-test('discardCancelledLeftover: render-tmp の外を指す entry は消さず失敗として返す', async () => {
+test('discardCancelledLeftover fails without deleting entries outside render-tmp', async () => {
     const service = leftoverService([], ['x']);
     service.status = { phase: 'cancelled', logTail: '', cancelledLeftover: { entries: ['../../escape'], bytes: 1 } };
     const result = await service.discardCancelledLeftover();

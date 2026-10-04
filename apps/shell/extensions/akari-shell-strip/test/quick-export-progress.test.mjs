@@ -10,7 +10,7 @@ import {
     QUICK_EXPORT_STAGE_WEIGHTS
 } from '../lib/common/quick-export-progress.js';
 
-test('parseQuickExportProgressLine: out_time_ms/total_ms 行から % を算出', () => {
+test('parseQuickExportProgressLine calculates percent from out_time_ms/total_ms', () => {
     assert.deepEqual(parseQuickExportProgressLine('PROGRESS out_time_ms=5000 total_ms=10000'), {
         percent: 50,
         outTimeMs: 5000,
@@ -19,7 +19,7 @@ test('parseQuickExportProgressLine: out_time_ms/total_ms 行から % を算出',
     });
 });
 
-test('parseQuickExportProgressLine: done 行は 100% 確定', () => {
+test('parseQuickExportProgressLine done is exactly 100%', () => {
     assert.deepEqual(parseQuickExportProgressLine('PROGRESS done total_ms=10000'), {
         percent: 100,
         outTimeMs: 10000,
@@ -28,18 +28,18 @@ test('parseQuickExportProgressLine: done 行は 100% 確定', () => {
     });
 });
 
-test('parseQuickExportProgressLine: 一致しない行は undefined（無視）', () => {
+test('parseQuickExportProgressLine ignores unmatched lines as undefined', () => {
     assert.equal(parseQuickExportProgressLine(''), undefined);
     assert.equal(parseQuickExportProgressLine('PASS: exports/final.mp4'), undefined);
     assert.equal(parseQuickExportProgressLine('{"findings":[]}'), undefined);
     assert.equal(parseQuickExportProgressLine('  PROGRESS out_time_ms=abc total_ms=10  '), undefined);
 });
 
-test('parseQuickExportProgressLine: total_ms=0 は 0% に落とす（ゼロ除算を避ける）', () => {
+test('parseQuickExportProgressLine total_ms=0 returns 0% without division by zero', () => {
     assert.equal(parseQuickExportProgressLine('PROGRESS out_time_ms=0 total_ms=0').percent, 0);
 });
 
-test('latestQuickExportProgress: 複数行のうち最後に見つかった行だけを返す', () => {
+test('latestQuickExportProgress returns only the last matching line', () => {
     const text = [
         'some other stdout noise',
         'PROGRESS out_time_ms=1000 total_ms=10000',
@@ -54,34 +54,34 @@ test('latestQuickExportProgress: 複数行のうち最後に見つかった行�
     });
 });
 
-test('latestQuickExportProgress: 一致行が無ければ undefined', () => {
+test('latestQuickExportProgress returns undefined without a matching line', () => {
     assert.equal(latestQuickExportProgress('nothing here\nor here'), undefined);
 });
 
-test('estimateElapsedAndRemaining: done/100% は残り0固定', () => {
+test('estimateElapsedAndRemaining done/100% has zero remaining time', () => {
     const snapshot = { percent: 100, outTimeMs: 10000, totalMs: 10000, done: true };
     assert.deepEqual(estimateElapsedAndRemaining(snapshot, 12345), { elapsedMs: 12345, remainingMs: 0 });
 });
 
-test('estimateElapsedAndRemaining: 0% は残り時間を計算できず undefined', () => {
+test('estimateElapsedAndRemaining 0% cannot estimate remaining time', () => {
     const snapshot = { percent: 0, outTimeMs: 0, totalMs: 10000, done: false };
     assert.deepEqual(estimateElapsedAndRemaining(snapshot, 500), { elapsedMs: 500, remainingMs: undefined });
 });
 
-test('estimateElapsedAndRemaining: 線形外挿（50%経過・4秒経過なら残り約4秒）', () => {
+test('estimateElapsedAndRemaining extrapolates 4 seconds remaining after 4 seconds at 50%', () => {
     const snapshot = { percent: 50, outTimeMs: 5000, totalMs: 10000, done: false };
     const result = estimateElapsedAndRemaining(snapshot, 4000);
     assert.equal(result.elapsedMs, 4000);
     assert.equal(result.remainingMs, 4000);
 });
 
-test('estimateElapsedAndRemaining: 25%経過・3秒経過なら残り約9秒', () => {
+test('estimateElapsedAndRemaining estimates 9 seconds remaining after 3 seconds at 25%', () => {
     const snapshot = { percent: 25, outTimeMs: 2500, totalMs: 10000, done: false };
     const result = estimateElapsedAndRemaining(snapshot, 3000);
     assert.equal(result.remainingMs, 9000);
 });
 
-test('tracker: render の frame 行ごとに重み付き percent が進む', () => {
+test('Tracker advances weighted percent per render frame line', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push([
         'PROGRESS stage=prepare status=start',
@@ -106,7 +106,7 @@ test('tracker: render の frame 行ごとに重み付き percent が進む', () 
     }
 });
 
-test('tracker: 全工程では done 行で初めて 100% になる', () => {
+test('Tracker reaches 100% only on the overall done line', () => {
     const tracker = createQuickExportProgressTracker();
     const beforeDone = [
         'PROGRESS stage=prepare status=start',
@@ -130,7 +130,7 @@ test('tracker: 全工程では done 行で初めて 100% になる', () => {
     assert.equal(tracker.snapshot().done, true);
 });
 
-test('tracker: gpu から osr へ render が再スタートしても percent は戻らない', () => {
+test('Tracker percent does not regress when render restarts from GPU to OSR', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push([
         'PROGRESS stage=prepare status=end',
@@ -149,7 +149,7 @@ test('tracker: gpu から osr へ render が再スタートしても percent は
     assert.equal(tracker.snapshot().percent, gpuPercent);
 });
 
-test('tracker: チャンク途中で分割された frame 行を完成後に解釈する', () => {
+test('Tracker parses a frame line split across chunks after completion', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push('PROGRESS stage=render status=start engine=gpu\n');
     tracker.push('PROGRESS fra');
@@ -159,7 +159,7 @@ test('tracker: チャンク途中で分割された frame 行を完成後に解�
     assert.equal(tracker.snapshot().totalFrames, 10);
 });
 
-test('tracker: stage 行が無い out_time_ms は従来の percent を使う', () => {
+test('Tracker uses legacy percent for out_time_ms without a stage line', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push('PROGRESS out_time_ms=4000 total_ms=10000\n');
     assert.deepEqual(tracker.snapshot(), {
@@ -170,7 +170,7 @@ test('tracker: stage 行が無い out_time_ms は従来の percent を使う', (
     });
 });
 
-test('tracker: frame 行を 300 本流しても render 工程を保持する', () => {
+test('Tracker retains render stage after 300 frame lines', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push('PROGRESS stage=render status=start engine=osr\n');
     for (let frame = 1; frame <= 300; frame += 1) {
@@ -181,7 +181,7 @@ test('tracker: frame 行を 300 本流しても render 工程を保持する', (
     assert.equal(tracker.snapshot().totalFrames, 300);
 });
 
-test('estimateElapsedAndRemaining: render のコマあたり実測から残りを見積もる', () => {
+test('estimateElapsedAndRemaining uses measured render time per frame', () => {
     const snapshot = {
         percent: 50,
         outTimeMs: 0,
@@ -195,7 +195,7 @@ test('estimateElapsedAndRemaining: render のコマあたり実測から残り�
     assert.deepEqual(result, { elapsedMs: 3000, remainingMs: 11905 });
 });
 
-test('tracker: GPU preview 行を最新実フレームとして保持する', () => {
+test('Tracker keeps GPU preview as the latest actual frame', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push('PROGRESS preview=30 path=/project/.akari/cache/export-preview/30.jpg\n');
     assert.deepEqual(tracker.snapshot(), {
@@ -208,7 +208,7 @@ test('tracker: GPU preview 行を最新実フレームとして保持する', ()
     });
 });
 
-test('tracker: GPU preview の後に frame 行が来ても preview と既存進捗を保持する', () => {
+test('Tracker retains preview and progress when frame lines follow GPU preview', () => {
     const tracker = createQuickExportProgressTracker();
     tracker.push('PROGRESS stage=render status=start engine=gpu\n');
     tracker.push('PROGRESS preview=30 path=/project/.akari/cache/export-preview/30.jpg\n');

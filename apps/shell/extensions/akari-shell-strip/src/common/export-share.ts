@@ -16,26 +16,26 @@ export function composeExportHandOffPacket(input: {
     bytes?: number;
     engine?: string;
 }): string {
-    const facts = [`パス: ${input.artifactPath}`];
+    const facts = [`Path: ${input.artifactPath}`];
     if (input.durationSeconds !== undefined) {
-        facts.push(`尺: ${input.durationSeconds} 秒`);
+        facts.push(`Duration: ${input.durationSeconds} s`);
     }
     if (input.width !== undefined && input.height !== undefined) {
-        facts.push(`画角: ${input.width}×${input.height}`);
+        facts.push(`Aspect ratio: ${input.width}×${input.height}`);
     }
     if (input.fps !== undefined) {
         facts.push(`fps: ${input.fps}`);
     }
     if (input.bytes !== undefined) {
-        facts.push(`容量: ${input.bytes} bytes`);
+        facts.push(`Size: ${input.bytes} bytes`);
     }
     if (input.engine !== undefined) {
-        facts.push(`エンジン: ${input.engine}`);
+        facts.push(`Engine: ${input.engine}`);
     }
     return [
-        '【パートナーへの依頼】',
-        'この動画を確認して、投稿文（X / YouTube 用）とサムネ案と切り抜き候補を提案してください。',
-        '【動画の事実】',
+        '[Request for Partner]',
+        'Review this video and suggest posts for X / YouTube, thumbnail ideas, and highlight clips.',
+        '[Video facts]',
         ...facts
     ].join('\n');
 }
