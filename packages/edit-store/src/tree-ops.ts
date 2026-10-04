@@ -202,7 +202,7 @@ export function moveKeyframe(
     const points = editableKeyframes(item);
     const source = points.find(point => point.t === fromT);
     const value = source ? keyframeValue(source, property) : undefined;
-    if (!source || value === undefined) throw new Error(`キーフレームが見つかりません: ${id} ${property} t=${fromT}`);
+    if (!source || value === undefined) throw new Error(`Keyframe was not found: ${id} ${property} t=${fromT}`);
     const easing = source.easing;
     deleteKeyframeValue(source, property);
     let target = points.find(point => point.t === targetTime);
@@ -213,7 +213,7 @@ export function moveKeyframe(
     assignKeyframeValue(target, property, value);
     if (easing !== undefined && target.easing === undefined) target.easing = clone(easing);
     const remaining = points.filter(hasKeyframeValue);
-    if (remaining.length < 2) throw new Error('キーフレームは 2 点以上必要です。');
+    if (remaining.length < 2) throw new Error('At least two keyframes are required.');
     item.keyframes = normalizeKeyframes(remaining);
     return item;
 }
@@ -231,7 +231,7 @@ export function setSegmentEasing(
     const points = editableKeyframes(item);
     const index = points.findIndex(point => point.t === toT);
     if (index <= 0 || keyframeValue(points[index], property) === undefined) {
-        throw new Error('イージングを設定する区間が見つかりません。');
+        throw new Error('No span was found for the easing.');
     }
     const point = points[index];
     const declared = keyframeProperties(point);
@@ -256,7 +256,7 @@ export function hydrateKeyframes(
     id: string,
     points: readonly KeyframeV2[]
 ): ProjectItemV2 {
-    if (points.length > 0 && points.length < 2) throw new Error('キーフレームは 2 点以上必要です。');
+    if (points.length > 0 && points.length < 2) throw new Error('At least two keyframes are required.');
     const item = requireLocation(edit, id).item;
     item.keyframes = normalizeKeyframes(points.map(point => clone(point)));
     return item;
@@ -264,7 +264,7 @@ export function hydrateKeyframes(
 
 export function moveItem(edit: EditableEditV2, id: string, target: MoveTarget): ProjectItemV2 {
     if ((target.track === undefined) === (target.parent === undefined)) {
-        throw new Error('move の置き先は track または parent のどちらか一方で指定してください。');
+        throw new Error('Specify the move destination as either track or parent.');
     }
     const source = requireLocation(edit, id);
     const worldAt = absoluteAt(source);
@@ -276,8 +276,8 @@ export function moveItem(edit: EditableEditV2, id: string, target: MoveTarget): 
     if (target.parent !== undefined) {
         destinationParent = requireLocation(edit, target.parent);
         const parent = destinationParent.item;
-        if (parent.id === id || containsItem(source.item, parent.id)) throw new Error('自分自身の子へ move できません。');
-        if (worldAt < absoluteAt(destinationParent)) throw new Error('キャンバスより前の item は入れられません。');
+        if (parent.id === id || containsItem(source.item, parent.id)) throw new Error('Cannot move an item under itself.');
+        if (worldAt < absoluteAt(destinationParent)) throw new Error('An item cannot be placed before the canvas.');
         destinationItems = ensureChildren(parent);
     } else {
         destinationTrack = requireTrack(edit, target.track as string);
@@ -312,7 +312,7 @@ export function moveItem(edit: EditableEditV2, id: string, target: MoveTarget): 
 /** 固定尺の空のキャンバスを visual 段へ追加する。重なれば新しい段を作る。 */
 export function createCanvas(edit: EditableEditV2, options: CreateCanvasOptions): ProjectItemV2 {
     if (!Number.isInteger(options.at) || options.at < 0 || !Number.isInteger(options.duration) || options.duration <= 0) {
-        throw new Error('キャンバスの位置と尺はフレーム単位の正の整数で指定してください。');
+        throw new Error('Specify the canvas position and duration as positive integers in frames.');
     }
     const canvas: CanvasV0 = { origin: 'user', durationMode: 'fixed',
         ...(options.intent === undefined ? {} : { intent: options.intent }),
@@ -330,7 +330,7 @@ export function createCanvas(edit: EditableEditV2, options: CreateCanvasOptions)
 /** 明示的な出し入れ。各 item の時刻・合成済み変形・不透明度を保つ。 */
 export function putIntoCanvas(edit: EditableEditV2, itemIds: readonly string[], canvasId: string): ProjectItemV2[] {
     const canvas = requireLocation(edit, canvasId).item;
-    if (canvas.source.kind !== 'group') throw new Error('置き先がキャンバスではありません。');
+    if (canvas.source.kind !== 'group') throw new Error('The destination is not the canvas.');
     return [...new Set(itemIds)].map(id => moveItem(edit, id, { parent: canvasId }));
 }
 
@@ -339,14 +339,14 @@ export function putPlacedCaptionIntoCanvas(
     edit: EditableEditV2, caption: { id: string; at: number; duration: number }, canvasId: string
 ): ProjectItemV2 {
     const canvas = requireLocation(edit, canvasId);
-    if (canvas.item.source.kind !== 'group') throw new Error('置き先がキャンバスではありません。');
+    if (canvas.item.source.kind !== 'group') throw new Error('The destination is not the canvas.');
     const existing = allLocations(edit).find(location => location.item.source.kind === 'caption'
         && location.item.source.id === caption.id);
     if (existing) return moveItem(edit, existing.item.id, { parent: canvasId });
     if (!Number.isInteger(caption.at) || !Number.isInteger(caption.duration) || caption.duration <= 0) {
-        throw new Error('字幕の時刻が不正です。');
+        throw new Error('The caption time is invalid.');
     }
-    if (caption.at < absoluteAt(canvas)) throw new Error('キャンバスより前の字幕は入れられません。');
+    if (caption.at < absoluteAt(canvas)) throw new Error('A caption cannot be placed before the canvas.');
     const bag = ensurePlacedCaptionBag(edit, caption);
     const exclude = bag.source.kind === 'captions' ? bag.source.exclude ?? [] : [];
     if (bag.source.kind === 'captions' && !exclude.includes(caption.id)) bag.source.exclude = [...exclude, caption.id];
@@ -385,14 +385,14 @@ export function putPlacedCaptionIntoTrack(
     target: { track?: string; insertIndex?: number }
 ): ProjectItemV2 {
     if (!Number.isInteger(caption.at) || caption.at < 0
-        || !Number.isInteger(caption.duration) || caption.duration <= 0) throw new Error('字幕の時刻が不正です。');
+        || !Number.isInteger(caption.duration) || caption.duration <= 0) throw new Error('The caption time is invalid.');
     const existing = allLocations(edit).find(location => location.item.source.kind === 'caption'
         && location.item.source.id === caption.id);
     if (existing) {
         const track = target.insertIndex === undefined ? target.track
             : createTrackAt(edit, 'visual', target.insertIndex).id;
-        if (!track) throw new Error('置き先の段がありません。');
-        if (requireTrack(edit, track).lane !== 'visual') throw new Error('置き先は映像トラックにしてください。');
+        if (!track) throw new Error('The destination track does not exist.');
+        if (requireTrack(edit, track).lane !== 'visual') throw new Error('Choose a picture track as the destination.');
         updateItem(edit, existing.item.id, {
             at: existing.item.at + caption.at - absoluteAt(existing), duration: caption.duration
         });
@@ -400,7 +400,7 @@ export function putPlacedCaptionIntoTrack(
     }
     const track = target.insertIndex === undefined ? tracksOf(edit).find(candidate => candidate.id === target.track)
         : createTrackAt(edit, 'visual', target.insertIndex);
-    if (!track || track.lane !== 'visual') throw new Error('置き先は映像トラックにしてください。');
+    if (!track || track.lane !== 'visual') throw new Error('Choose a picture track as the destination.');
     const bag = ensurePlacedCaptionBag(edit, caption);
     const exclude = bag.source.kind === 'captions' ? bag.source.exclude ?? [] : [];
     if (bag.source.kind === 'captions' && !exclude.includes(caption.id)) bag.source.exclude = [...exclude, caption.id];
@@ -426,13 +426,13 @@ export function returnPlacedCaptionToBag(edit: EditableEditV2, captionId: string
 export function takeOutOfCanvas(edit: EditableEditV2, itemIds: readonly string[]): ProjectItemV2[] {
     return [...new Set(itemIds)].map(id => {
         const location = requireLocation(edit, id);
-        if (location.parent?.source.kind !== 'group') throw new Error('キャンバスの中身ではありません。');
+        if (location.parent?.source.kind !== 'group') throw new Error('This is not canvas content.');
         return detachItem(edit, id, { track: 'above' });
     });
 }
 
 export function insertItem(edit: EditableEditV2, target: string, item: MutableItem, index?: number): ProjectItemV2 {
-    if (locate(edit, item.id)) throw new Error(`item id が重複しています: ${item.id}`);
+    if (locate(edit, item.id)) throw new Error(`Duplicate item id: ${item.id}`);
     const cloned = clone(item);
     const track = tracksOf(edit).find(candidate => candidate.id === target);
     if (track) {
@@ -460,7 +460,7 @@ export function detachItem(
     projected?: ProjectedItemTiming
 ): ProjectItemV2 {
     const source = locate(edit, id) ?? materializeProjectedPart(edit, id, projected);
-    if (!source.parent) throw new Error(`段直下の item は detach できません: ${id}`);
+    if (!source.parent) throw new Error(`An item directly on a track cannot be detached: ${id}`);
     const worldAt = absoluteAt(source);
     const worldTransform = composeTransforms(worldTransformOfAncestors(source.ancestors), source.item.transform);
     const worldOpacity = opacityOfAncestors(source.ancestors) * (source.item.opacity ?? 1);
@@ -506,7 +506,7 @@ export function materializeProjectedPart(
 ): ItemLocation {
     const separator = id.lastIndexOf('#');
     if (separator <= 0 || separator === id.length - 1) {
-        throw new Error(`item が見つかりません: ${id}`);
+        throw new Error(`Item was not found: ${id}`);
     }
     const bagId = id.slice(0, separator);
     const part = id.slice(separator + 1);
@@ -521,7 +521,7 @@ export function materializeProjectedPart(
         ensureChildren(bag.item).push(child);
         return requireLocation(edit, child.id);
     }
-    if (bag.item.source.kind !== 'html') throw new Error(`袋ではありません: ${bagId}`);
+    if (bag.item.source.kind !== 'html') throw new Error(`Not a container: ${bagId}`);
     const source = { ...bag.item.source, part } as MutableItem['source'] & JsonRecord;
     delete source.exclude;
     const child: MutableItem = {
@@ -574,14 +574,14 @@ export function filterCaptionRootByExcludedIds<T>(root: T, excluded: ReadonlySet
 export function groupItems(edit: EditableEditV2, ids: string[], options: { name?: string; canvas?: boolean } = {}): GroupResult {
     const uniqueIds = [...new Set(ids)];
     if (uniqueIds.length < 2 || uniqueIds.length !== ids.length) {
-        throw new Error('group は重複しない 2 個以上の id を必要とします。');
+        throw new Error('A group needs at least two distinct ids.');
     }
     const locations = uniqueIds.map(id => requireLocation(edit, id));
     const parentIds = new Set(locations.map(location => location.parent?.id));
-    if (parentIds.size !== 1) throw new Error('group は同じ場所にある item だけをまとめられます。');
+    if (parentIds.size !== 1) throw new Error('A group can contain only items that share a place.');
     const inParent = locations[0].parent !== undefined;
     if (inParent && new Set(locations.map(location => location.items)).size !== 1) {
-        throw new Error('group は同じグループ内の item だけをまとめられます。');
+        throw new Error('A group can contain only items from the same group.');
     }
 
     const ordered = [...locations].sort((left, right) =>
@@ -617,11 +617,11 @@ export function ungroupItem(edit: EditableEditV2, id: string): ProjectItemV2[] {
     const location = requireLocation(edit, id);
     const group = location.item;
     if (group.source.kind === 'html' || group.source.kind === 'captions') {
-        throw new Error('袋グループは ungroup できません。');
+        throw new Error('A container group cannot be ungrouped.');
     }
-    if (group.source.kind !== 'group') throw new Error(`純グループではありません: ${id}`);
+    if (group.source.kind !== 'group') throw new Error(`Not a plain group: ${id}`);
     if (group.keyframes !== undefined || group.motion !== undefined || group.animator !== undefined) {
-        throw new Error('v2.group-bake-blocked: keyframes / motion / animator を持つグループは ungroup できません。');
+        throw new Error('v2.group-bake-blocked: a group with keyframes, motion, or an animator cannot be ungrouped.');
     }
     const children = ensureChildren(group).map(child => {
         const item = child;
@@ -664,7 +664,7 @@ export function allLocations(edit: EditableEditV2): ItemLocation[] {
     });
     const ids = new Set<string>();
     for (const location of result) {
-        if (ids.has(location.item.id)) throw new Error(`item id が重複しています: ${location.item.id}`);
+        if (ids.has(location.item.id)) throw new Error(`Duplicate item id: ${location.item.id}`);
         ids.add(location.item.id);
     }
     return result;
@@ -686,7 +686,7 @@ export function createTrackAbove(edit: EditableEditV2, track: MutableTrack | str
 /** 既存の段外 D&D 用。段の生成自体を shell へ漏らさない。 */
 export function createTrackAt(edit: EditableEditV2, lane: string, index: number): MutableTrack {
     const tracks = tracksOf(edit);
-    if (!Number.isInteger(index) || index < 0 || index > tracks.length) throw new Error('track index が範囲外です。');
+    if (!Number.isInteger(index) || index < 0 || index > tracks.length) throw new Error('The track index is out of range.');
     const created = { id: nextTrackId(edit, lane), lane, items: [] } as unknown as MutableTrack;
     tracks.splice(index, 0, created);
     return created;
@@ -800,19 +800,19 @@ export function clone<T>(value: T): T {
 function editableKeyframes(item: MutableItem): KeyframeV2[] {
     if (item.keyframes === undefined) return [];
     if (!Array.isArray(item.keyframes)) {
-        throw new Error('motion 袋を inline に戻してからキーフレームを編集してください。');
+        throw new Error('Inline the motion container before editing keyframes.');
     }
     return item.keyframes.map(point => clone(point));
 }
 
 function requireSegmentEasing(value: string): void {
     const cubic = /^cubic-bezier\(\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*\)$/u;
-    if (!SEGMENT_EASINGS.has(value) && !cubic.test(value)) throw new Error(`未対応の easing です: ${value}`);
+    if (!SEGMENT_EASINGS.has(value) && !cubic.test(value)) throw new Error(`Unsupported easing: ${value}`);
 }
 
 function requireKeyframeTime(t: number, duration: number): number {
     if (!Number.isInteger(t) || t < 0 || t > duration) {
-        throw new Error(`キーフレーム時刻は 0〜${duration} の整数フレームで指定してください。`);
+        throw new Error(`Specify the keyframe time as an integer frame from 0 to ${duration}.`);
     }
     return t;
 }
@@ -820,7 +820,7 @@ function requireKeyframeTime(t: number, duration: number): number {
 function normalizeKeyframes(points: readonly KeyframeV2[]): KeyframeV2[] {
     const result = points.map(point => clone(point)).sort((left, right) => left.t - right.t);
     for (let index = 1; index < result.length; index++) {
-        if (result[index - 1].t === result[index].t) throw new Error('同じ時刻にキーフレームを重ねられません。');
+        if (result[index - 1].t === result[index].t) throw new Error('Keyframes cannot share the same time.');
     }
     return result;
 }
@@ -878,7 +878,7 @@ function hasKeyframeValue(point: KeyframeV2): boolean {
 
 function requireLocation(edit: EditableEditV2, id: string): ItemLocation {
     const location = locate(edit, id);
-    if (!location) throw new Error(`item が見つかりません: ${id}`);
+    if (!location) throw new Error(`Item was not found: ${id}`);
     return location;
 }
 
@@ -888,18 +888,18 @@ function tracksOf(edit: EditableEditV2): MutableTrack[] {
 
 function requireTrack(edit: EditableEditV2, id: string): MutableTrack {
     const track = tracksOf(edit).find(candidate => candidate.id === id);
-    if (!track) throw new Error(`track が見つかりません: ${id}`);
+    if (!track) throw new Error(`Track was not found: ${id}`);
     return track;
 }
 
 function requireTrackItems(track: MutableTrack): MutableItem[] {
-    if (!Array.isArray(track.items)) throw new Error(`item を置けない track です: ${String(track.id)}`);
+    if (!Array.isArray(track.items)) throw new Error(`This track cannot hold the item: ${String(track.id)}`);
     return track.items as MutableItem[];
 }
 
 function insertionIndex(value: number | undefined, length: number): number {
     const index = value ?? length;
-    if (!Number.isInteger(index) || index < 0 || index > length) throw new Error('index が範囲外です。');
+    if (!Number.isInteger(index) || index < 0 || index > length) throw new Error('The index is out of range.');
     return index;
 }
 

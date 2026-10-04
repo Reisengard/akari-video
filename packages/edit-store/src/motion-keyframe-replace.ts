@@ -4,13 +4,13 @@ import type { KeyframeV2 } from './edit-v2';
 export function replaceXYKeyframes(existing: readonly KeyframeV2[] | undefined,
     drawn: readonly { t: number; transform: { x: number; y: number } }[], duration: number): KeyframeV2[] {
     if (drawn.length < 2 || !Number.isInteger(duration) || duration < 1) {
-        throw new Error('道筋には 2 点以上必要です。');
+        throw new Error('A path needs at least two points.');
     }
     const sorted = drawn.slice().sort((a, b) => a.t - b.t);
     if (sorted.some(point => !Number.isInteger(point.t) || point.t < 0 || point.t > duration
         || !Number.isFinite(point.transform.x) || !Number.isFinite(point.transform.y))
         || sorted.some((point, index) => index > 0 && point.t === sorted[index - 1].t)) {
-        throw new Error('道筋の時刻または位置が正しくありません。');
+        throw new Error('The path time or position is invalid.');
     }
     const first = sorted[0].t, last = sorted[sorted.length - 1].t;
     const byTime = new Map<number, KeyframeV2>();

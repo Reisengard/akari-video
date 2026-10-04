@@ -136,9 +136,9 @@ test('字幕 item を音の段へ移す書き込みを拒否する', () => {
   const before = initial();
   before.tracks.push({ id: 'a1', lane: 'audio', items: [{ id: 'sound', at: 0, duration: 120,
     source: { kind: 'audio', path: 'sound.wav' } }] });
-  assert.throws(() => moveTreeV2PlacedCaption(before, caption, { track: 'a1' }), /映像トラック/);
+  assert.throws(() => moveTreeV2PlacedCaption(before, caption, { track: 'a1' }), /picture track/);
   const placed = moveTreeV2PlacedCaption(before, caption, { track: 'v1' }).document;
-  assert.throws(() => moveTreeV2PlacedCaption(placed, caption, { track: 'a1' }), /映像トラック/);
+  assert.throws(() => moveTreeV2PlacedCaption(placed, caption, { track: 'a1' }), /picture track/);
 });
 
 test('1 回の履歴スナップショットで edit.json と captions.json が往復する', () => {

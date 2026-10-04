@@ -71,7 +71,7 @@ test('wrap width style patch changes only the selected cue and undo removes an u
     { size_px: 48 });
   for (const value of [0, 101, NaN]) {
     assert.throws(() => updateCaptionTextStyleInSource(source, 'c-0001', { wrapWidthPct: value }),
-      /折り返し幅/u);
+      /Wrap width/u);
   }
 });
 
@@ -287,21 +287,21 @@ test('unrecognized の非 object 要素は拒否する', () => {
   const source = JSON.stringify([caption('c-0001', 0, '本文')]);
   assert.throws(() => updateCaptionFieldsInSource(source, 'c-0001', {
     unrecognized: [null]
-  }), /未認識区間が不正/);
+  }), /unrecognized span is invalid/);
 });
 
 test('unrecognized の非有限時刻は拒否する', () => {
   const source = JSON.stringify([caption('c-0001', 0, '本文')]);
   assert.throws(() => updateCaptionFieldsInSource(source, 'c-0001', {
     unrecognized: [{ start: Number.NaN, end: 0.5 }]
-  }), /未認識区間が不正/);
+  }), /unrecognized span is invalid/);
 });
 
 test('unrecognized の end <= start は拒否する', () => {
   const source = JSON.stringify([caption('c-0001', 0, '本文')]);
   assert.throws(() => updateCaptionFieldsInSource(source, 'c-0001', {
     unrecognized: [{ start: 0.5, end: 0.5 }]
-  }), /未認識区間が不正/);
+  }), /unrecognized span is invalid/);
 });
 
 test('time_domain を読み、絶対時刻更新で output 変換と未宣言への undo を往復できる', () => {
@@ -375,7 +375,7 @@ test('未知キーは字幕行を破棄せず、警告を残して無視する',
   assert.equal(parsed.captions.length, 1);
   assert.equal(parsed.captions[0].textStyle.color, '#FFFFFF');
   assert.equal(parsed.warnings.length, 1);
-  assert.match(parsed.warnings[0], /1 番目の字幕の text_style に未知のフィールド/);
+  assert.match(parsed.warnings[0], /Ignored unknown text_style fields on caption 1/);
   assert.match(parsed.warnings[0], /mystery_field/);
   assert.match(parsed.warnings[0], /also_unknown/);
 });
@@ -389,7 +389,7 @@ test('default_text_style の未知キーも既定スタイルを破棄せず警�
 
   assert.deepEqual(parsed.defaultTextStyle, { color: '#112233' });
   assert.equal(parsed.warnings.length, 1);
-  assert.match(parsed.warnings[0], /字幕の既定スタイルに未知のフィールド（bogus）/);
+  assert.match(parsed.warnings[0], /Ignored unknown fields on the default caption style \(bogus\)/);
 });
 
 test('default_text_style の max_characters は警告なしで取り込む', () => {
@@ -457,7 +457,7 @@ test('shared parity fixture の invalid_cases 全件で「構造的に不正」�
         default_text_style: item.default_text_style,
         captions: [styleParity.caption]
       });
-      assert.throws(() => parseCaptions(source), /字幕の既定スタイルを確認できません/, item.id);
+      assert.throws(() => parseCaptions(source), /default caption style is not in a recognized format/, item.id);
       continue;
     }
     if (structurallyInvalidCaption.has(item.id)) {
@@ -501,8 +501,8 @@ test('非退行: 時刻や必須フィールドが真に不正な字幕は従来
 
   assert.deepEqual(parsed.captions.map(item => item.id), ['c-0003']);
   assert.equal(parsed.warnings.length, 2);
-  assert.match(parsed.warnings[0], /1 番目の字幕は時刻または内容が不正/);
-  assert.match(parsed.warnings[1], /2 番目の字幕は時刻または内容が不正/);
+  assert.match(parsed.warnings[0], /Caption 1 is not shown because its time or text is invalid/);
+  assert.match(parsed.warnings[1], /Caption 2 is not shown because its time or text is invalid/);
 });
 
 test('zone と layout が両方有効なときは zone を優先し layout を落とす（schema の併用禁止への互換動作）', () => {
@@ -794,16 +794,16 @@ test('splitCaptionLine は前半 end と後半 start を語境界に置く', () 
 });
 test('splitCaptionLine は text 不一致を拒否する', () => {
   const row = { ...timedCaption('c-0001', 0, ['a', 'b']), text: 'ab!' };
-  assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /テキストと語のタイミング/);
+  assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /text and word timing/);
 });
 test('splitCaptionLine は words なしを拒否する', () => {
-  const row = caption('c-0001', 0, 'a'); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /2 つ以上/);
+  const row = caption('c-0001', 0, 'a'); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /at least two words/);
 });
 test('splitCaptionLine は 1 word を拒否する', () => {
-  const row = timedCaption('c-0001', 0, ['a']); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /2 つ以上/);
+  const row = timedCaption('c-0001', 0, ['a']); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 1, 'c-0002'), /at least two words/);
 });
 test('splitCaptionLine は範囲外境界を拒否する', () => {
-  const row = timedCaption('c-0001', 0, ['a', 'b']); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 0, 'c-0002'), /2 つ以上/);
+  const row = timedCaption('c-0001', 0, ['a', 'b']); assert.throws(() => splitCaptionLine(captionSource([row]), row.id, 0, 'c-0002'), /at least two words/);
 });
 test('splitCaptionLine は unrecognized を両側へ振り分ける', () => {
   const row = timedCaption('c-0001', 0, ['a', 'b'], { unrecognized: [{ start: .2, end: .3 }, { start: 1, end: 1.1 }] });
@@ -829,7 +829,7 @@ test('splitCaptionLine は他行のバイト列を変えない', () => {
 });
 test('splitCaptionLine は新 id の衝突を拒否する', () => {
   const rows = [timedCaption('c-0001', 0, ['a', 'b']), timedCaption('c-0002', 3, ['c', 'd'])];
-  assert.throws(() => splitCaptionLine(captionSource(rows), 'c-0001', 1, 'c-0002'), /既にあります/);
+  assert.throws(() => splitCaptionLine(captionSource(rows), 'c-0001', 1, 'c-0002'), /already exists/);
 });
 test('mergeCaptionLines は 2 行を結合する', () => {
   const rows = [timedCaption('c-0001', 0, ['a']), timedCaption('c-0002', 2, ['b'])]; const result = JSON.parse(mergeCaptionLines(captionSource(rows), rows.map(row => row.id)));
@@ -845,7 +845,7 @@ test('mergeCaptionLines は words を入力 id 順に連結する', () => {
 });
 test('mergeCaptionLines は time_domain 不一致を拒否する', () => {
   const rows = [timedCaption('c-0001', 0, ['a']), timedCaption('c-0002', 2, ['b'], { time_domain: 'output' })];
-  assert.throws(() => mergeCaptionLines(captionSource(rows), rows.map(row => row.id)), /タイムドメイン/);
+  assert.throws(() => mergeCaptionLines(captionSource(rows), rows.map(row => row.id)), /time domains/);
 });
 test('mergeCaptionLines は unrecognized を連結する', () => {
   const rows = [timedCaption('c-0001', 0, ['a'], { unrecognized: [{ start: .1, end: .2 }] }), timedCaption('c-0002', 2, ['b'], { unrecognized: [{ start: 2.1, end: 2.2 }] })];
@@ -856,10 +856,10 @@ test('mergeCaptionLines は他行のバイト列を変えない', () => {
   assert.ok(mergeCaptionLines(`[\n  ${rows.map(JSON.stringify).join(',\n  ')},\n  ${other}\n]\n`, rows.map(row => row.id)).includes(other));
 });
 test('mergeCaptionLines は 1 行入力を拒否する', () => {
-  assert.throws(() => mergeCaptionLines(captionSource([timedCaption('c-0001', 0, ['a'])]), ['c-0001']), /2 行以上/);
+  assert.throws(() => mergeCaptionLines(captionSource([timedCaption('c-0001', 0, ['a'])]), ['c-0001']), /at least two caption lines/);
 });
 test('mergeCaptionLines は重複 id を拒否する', () => {
-  assert.throws(() => mergeCaptionLines(captionSource([timedCaption('c-0001', 0, ['a'])]), ['c-0001', 'c-0001']), /重複/);
+  assert.throws(() => mergeCaptionLines(captionSource([timedCaption('c-0001', 0, ['a'])]), ['c-0001', 'c-0001']), /cannot be joined twice/);
 });
 test('正準順 fixture は分割して直後に結合するとバイト一致する', () => {
   const row = timedCaption('c-0001', 0, ['a', 'b'], { edited: true, style: 'karaoke', extra_key: { keep: true } });

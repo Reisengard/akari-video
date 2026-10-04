@@ -40,35 +40,35 @@ var AkariFrameEngine = (() => {
       exports.TRANSITION_BY_ID = exports.TRANSITION_CATEGORIES = exports.TRANSITION_TYPE_IDS = exports.TRANSITION_VOCABULARY = void 0;
       exports.isTransitionType = isTransitionType2;
       exports.TRANSITION_VOCABULARY = [
-        { id: "dissolve", xfadeName: "dissolve", labelJa: "\u30C7\u30A3\u30BE\u30EB\u30D6", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "dissolve", glyph: "D" },
-        { id: "fade", xfadeName: "fade", labelJa: "\u30AF\u30ED\u30B9\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade", glyph: "F" },
-        { id: "fade-black", xfadeName: "fadeblack", labelJa: "\u9ED2\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-black", glyph: "B" },
-        { id: "fade-white", xfadeName: "fadewhite", labelJa: "\u767D\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-white", glyph: "W" },
-        { id: "fade-grays", xfadeName: "fadegrays", labelJa: "\u30E2\u30CE\u30AF\u30ED\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-grays", glyph: "G" },
-        { id: "wipe-left", xfadeName: "wipeleft", labelJa: "\u30EF\u30A4\u30D7\uFF08\u5DE6\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-left", glyph: "\u2190" },
-        { id: "wipe-right", xfadeName: "wiperight", labelJa: "\u30EF\u30A4\u30D7\uFF08\u53F3\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-right", glyph: "\u2192" },
-        { id: "wipe-up", xfadeName: "wipeup", labelJa: "\u30EF\u30A4\u30D7\uFF08\u4E0A\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-up", glyph: "\u2191" },
-        { id: "wipe-down", xfadeName: "wipedown", labelJa: "\u30EF\u30A4\u30D7\uFF08\u4E0B\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-down", glyph: "\u2193" },
-        { id: "radial", xfadeName: "radial", labelJa: "\u6642\u8A08\u30EF\u30A4\u30D7", category: "\u30EF\u30A4\u30D7", previewKind: "radial", glyph: "\u25F7" },
-        { id: "slide-left", xfadeName: "slideleft", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u5DE6\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-left", glyph: "\u2190" },
-        { id: "slide-right", xfadeName: "slideright", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u53F3\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-right", glyph: "\u2192" },
-        { id: "slide-up", xfadeName: "slideup", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u4E0A\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-up", glyph: "\u2191" },
-        { id: "slide-down", xfadeName: "slidedown", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u4E0B\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-down", glyph: "\u2193" },
-        { id: "cover-left", xfadeName: "coverleft", labelJa: "\u30AB\u30D0\u30FC\uFF08\u5DE6\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-left", glyph: "\u2190" },
-        { id: "cover-right", xfadeName: "coverright", labelJa: "\u30AB\u30D0\u30FC\uFF08\u53F3\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-right", glyph: "\u2192" },
-        { id: "cover-up", xfadeName: "coverup", labelJa: "\u30AB\u30D0\u30FC\uFF08\u4E0A\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-up", glyph: "\u2191" },
-        { id: "cover-down", xfadeName: "coverdown", labelJa: "\u30AB\u30D0\u30FC\uFF08\u4E0B\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-down", glyph: "\u2193" },
-        { id: "reveal-left", xfadeName: "revealleft", labelJa: "\u30EA\u30D3\u30FC\u30EB\uFF08\u5DE6\u3078\uFF09", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-left", glyph: "\u2190" },
-        { id: "reveal-right", xfadeName: "revealright", labelJa: "\u30EA\u30D3\u30FC\u30EB\uFF08\u53F3\u3078\uFF09", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-right", glyph: "\u2192" },
-        { id: "reveal-down", xfadeName: "revealdown", labelJa: "\u4E0A\u304B\u3089\u30EA\u30D3\u30FC\u30EB", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-down", glyph: "\u2193" },
-        { id: "reveal-up", xfadeName: "revealup", labelJa: "\u4E0B\u304B\u3089\u30EA\u30D3\u30FC\u30EB", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-up", glyph: "\u2191" },
-        { id: "circle-open", xfadeName: "circleopen", labelJa: "\u30B5\u30FC\u30AF\u30EB\uFF08\u958B\u304F\uFF09", category: "\u5F62\u72B6", previewKind: "circle-open", glyph: "\u25CB" },
-        { id: "circle-close", xfadeName: "circleclose", labelJa: "\u30B5\u30FC\u30AF\u30EB\uFF08\u9589\u3058\u308B\uFF09", category: "\u5F62\u72B6", previewKind: "circle-close", glyph: "\u25CF" },
-        { id: "zoom-in", xfadeName: "zoomin", labelJa: "\u30BA\u30FC\u30E0\u30A4\u30F3", category: "\u5909\u5F62", previewKind: "zoom-in", glyph: "\uFF0B" },
-        { id: "squeeze-h", xfadeName: "squeezeh", labelJa: "\u30B9\u30AF\u30A4\u30FC\u30BA\uFF08\u7E26\u3064\u3076\u3057\uFF09", category: "\u5909\u5F62", previewKind: "squeeze-h", glyph: "\u2195" },
-        { id: "squeeze-v", xfadeName: "squeezev", labelJa: "\u30B9\u30AF\u30A4\u30FC\u30BA\uFF08\u6A2A\u3064\u3076\u3057\uFF09", category: "\u5909\u5F62", previewKind: "squeeze-v", glyph: "\u2194" },
-        { id: "blur", xfadeName: "hblur", labelJa: "\u30D6\u30E9\u30FC", category: "\u8CEA\u611F", previewKind: "blur", glyph: "B" },
-        { id: "pixelize", xfadeName: "pixelize", labelJa: "\u30D4\u30AF\u30BB\u30EC\u30FC\u30C8", category: "\u8CEA\u611F", previewKind: "pixelize", glyph: "P" }
+        { id: "dissolve", xfadeName: "dissolve", labelJa: "Dissolve", category: "Fade", previewKind: "dissolve", glyph: "D" },
+        { id: "fade", xfadeName: "fade", labelJa: "Crossfade", category: "Fade", previewKind: "fade", glyph: "F" },
+        { id: "fade-black", xfadeName: "fadeblack", labelJa: "Fade to black", category: "Fade", previewKind: "fade-black", glyph: "B" },
+        { id: "fade-white", xfadeName: "fadewhite", labelJa: "Fade to white", category: "Fade", previewKind: "fade-white", glyph: "W" },
+        { id: "fade-grays", xfadeName: "fadegrays", labelJa: "Fade to gray", category: "Fade", previewKind: "fade-grays", glyph: "G" },
+        { id: "wipe-left", xfadeName: "wipeleft", labelJa: "Wipe left", category: "Wipe", previewKind: "wipe-left", glyph: "\u2190" },
+        { id: "wipe-right", xfadeName: "wiperight", labelJa: "Wipe right", category: "Wipe", previewKind: "wipe-right", glyph: "\u2192" },
+        { id: "wipe-up", xfadeName: "wipeup", labelJa: "Wipe up", category: "Wipe", previewKind: "wipe-up", glyph: "\u2191" },
+        { id: "wipe-down", xfadeName: "wipedown", labelJa: "Wipe down", category: "Wipe", previewKind: "wipe-down", glyph: "\u2193" },
+        { id: "radial", xfadeName: "radial", labelJa: "Clock wipe", category: "Wipe", previewKind: "radial", glyph: "\u25F7" },
+        { id: "slide-left", xfadeName: "slideleft", labelJa: "Slide left", category: "Slide", previewKind: "slide-left", glyph: "\u2190" },
+        { id: "slide-right", xfadeName: "slideright", labelJa: "Slide right", category: "Slide", previewKind: "slide-right", glyph: "\u2192" },
+        { id: "slide-up", xfadeName: "slideup", labelJa: "Slide up", category: "Slide", previewKind: "slide-up", glyph: "\u2191" },
+        { id: "slide-down", xfadeName: "slidedown", labelJa: "Slide down", category: "Slide", previewKind: "slide-down", glyph: "\u2193" },
+        { id: "cover-left", xfadeName: "coverleft", labelJa: "Cover left", category: "Cover", previewKind: "cover-left", glyph: "\u2190" },
+        { id: "cover-right", xfadeName: "coverright", labelJa: "Cover right", category: "Cover", previewKind: "cover-right", glyph: "\u2192" },
+        { id: "cover-up", xfadeName: "coverup", labelJa: "Cover up", category: "Cover", previewKind: "cover-up", glyph: "\u2191" },
+        { id: "cover-down", xfadeName: "coverdown", labelJa: "Cover down", category: "Cover", previewKind: "cover-down", glyph: "\u2193" },
+        { id: "reveal-left", xfadeName: "revealleft", labelJa: "Reveal left", category: "Reveal", previewKind: "reveal-left", glyph: "\u2190" },
+        { id: "reveal-right", xfadeName: "revealright", labelJa: "Reveal right", category: "Reveal", previewKind: "reveal-right", glyph: "\u2192" },
+        { id: "reveal-down", xfadeName: "revealdown", labelJa: "Reveal from top", category: "Reveal", previewKind: "reveal-down", glyph: "\u2193" },
+        { id: "reveal-up", xfadeName: "revealup", labelJa: "Reveal from bottom", category: "Reveal", previewKind: "reveal-up", glyph: "\u2191" },
+        { id: "circle-open", xfadeName: "circleopen", labelJa: "Circle open", category: "Shape", previewKind: "circle-open", glyph: "\u25CB" },
+        { id: "circle-close", xfadeName: "circleclose", labelJa: "Circle close", category: "Shape", previewKind: "circle-close", glyph: "\u25CF" },
+        { id: "zoom-in", xfadeName: "zoomin", labelJa: "Zoom in", category: "Transform", previewKind: "zoom-in", glyph: "\uFF0B" },
+        { id: "squeeze-h", xfadeName: "squeezeh", labelJa: "Squeeze vertical", category: "Transform", previewKind: "squeeze-h", glyph: "\u2195" },
+        { id: "squeeze-v", xfadeName: "squeezev", labelJa: "Squeeze horizontal", category: "Transform", previewKind: "squeeze-v", glyph: "\u2194" },
+        { id: "blur", xfadeName: "hblur", labelJa: "Blur", category: "Texture", previewKind: "blur", glyph: "B" },
+        { id: "pixelize", xfadeName: "pixelize", labelJa: "Pixelate", category: "Texture", previewKind: "pixelize", glyph: "P" }
       ];
       exports.TRANSITION_TYPE_IDS = exports.TRANSITION_VOCABULARY.map((entry) => entry.id);
       exports.TRANSITION_CATEGORIES = [...new Set(exports.TRANSITION_VOCABULARY.map((entry) => entry.category))];
@@ -139,7 +139,7 @@ var AkariFrameEngine = (() => {
       function findMatchingBracket(source, openIndex) {
         const opening = source[openIndex];
         if (opening !== "[" && opening !== "{") {
-          throw new Error("\u5BFE\u5FDC\u3059\u308B\u62EC\u5F27\u3092\u63A2\u3059\u958B\u59CB\u4F4D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The start position for matching brackets is invalid.");
         }
         const stack = [opening];
         let inString = false;
@@ -163,14 +163,14 @@ var AkariFrameEngine = (() => {
           } else if (character === "]" || character === "}") {
             const expected = character === "]" ? "[" : "{";
             if (stack.pop() !== expected) {
-              throw new Error("JSON \u306E\u62EC\u5F27\u306E\u5BFE\u5FDC\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+              throw new Error("The JSON brackets do not match.");
             }
             if (stack.length === 0) {
               return index;
             }
           }
         }
-        throw new Error("JSON \u306E\u9589\u3058\u62EC\u5F27\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002");
+        throw new Error("The JSON closing bracket was not found.");
       }
       function splitTopLevelElements(innerText) {
         const ranges = [];
@@ -248,15 +248,15 @@ var AkariFrameEngine = (() => {
       function trimCutInSource(source, cutIndex, nextIn, nextOut, maxOutSeconds) {
         if (maxOutSeconds !== void 0) {
           if (!Number.isFinite(maxOutSeconds) || maxOutSeconds < 0) {
-            throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u5B9F\u5C3A\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The clip duration is invalid.");
           }
           nextOut = Math.min(nextOut, maxOutSeconds);
         }
         if (!Number.isFinite(nextIn) || !Number.isFinite(nextOut) || nextIn < 0 || nextOut < 0) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Clip time is invalid.");
         }
         if (nextOut - nextIn < 0.15) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u304C\u77ED\u3059\u304E\u307E\u3059\uFF080.15 \u79D2\u672A\u6E80\u306B\u306F\u3067\u304D\u307E\u305B\u3093\uFF09");
+          throw new Error("The clip is too short. It cannot be under 0.15 seconds.");
         }
         const before = readCutsForSurgery(source);
         source = freezeNextImplicitCutAt(source, cutIndex, before);
@@ -265,7 +265,7 @@ var AkariFrameEngine = (() => {
           const speed = typeof before.cuts[cutIndex].speed === "number" && before.cuts[cutIndex].speed > 0 ? before.cuts[cutIndex].speed : 1;
           const nextAt = segment.at + (nextIn - before.cuts[cutIndex].in) / speed;
           if (nextAt < 0) {
-            throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u51FA\u529B\u4F4D\u7F6E\u306F 0 \u4EE5\u4E0A\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("The clip output position must be 0 or greater.");
           }
           source = writeCutAtProperty(source, cutIndex, nextAt);
         }
@@ -273,9 +273,9 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const element = elements[cutIndex];
         if (!element) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
-        const label = `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`;
+        const label = `Clip ${cutIndex + 1}`;
         const currentIn = readNumberProperty(element.text, "in", label);
         const currentOut = readNumberProperty(element.text, "out", label);
         let nextText = element.text;
@@ -290,25 +290,25 @@ var AkariFrameEngine = (() => {
       function slipCutInSource(source, cutIndex, nextIn, nextOut, maxOutSeconds) {
         if (maxOutSeconds !== void 0) {
           if (!Number.isFinite(maxOutSeconds) || maxOutSeconds < 0) {
-            throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u5B9F\u5C3A\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The clip duration is invalid.");
           }
           if (nextOut > maxOutSeconds) {
-            throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E out \u304C\u5B9F\u5C3A\u3092\u8D85\u3048\u3066\u3044\u307E\u3059\u3002");
+            throw new Error("The clip out point is past the footage duration.");
           }
         }
         if (!Number.isFinite(nextIn) || !Number.isFinite(nextOut) || nextIn < 0 || nextOut < 0) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Clip time is invalid.");
         }
         if (nextOut - nextIn < 0.15) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u304C\u77ED\u3059\u304E\u307E\u3059\uFF080.15 \u79D2\u672A\u6E80\u306B\u306F\u3067\u304D\u307E\u305B\u3093\uFF09");
+          throw new Error("The clip is too short. It cannot be under 0.15 seconds.");
         }
         const array = locateArray(source, "cuts");
         const elements = splitTopLevelElements(array.inner);
         const element = elements[cutIndex];
         if (!element) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
-        const label = `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`;
+        const label = `Clip ${cutIndex + 1}`;
         const currentIn = readNumberProperty(element.text, "in", label);
         const currentOut = readNumberProperty(element.text, "out", label);
         let nextText = element.text;
@@ -322,33 +322,33 @@ var AkariFrameEngine = (() => {
       }
       function setCutSpeedInSource(source, cutIndex, speed) {
         if (speed !== null && (!Number.isFinite(speed) || speed <= 0)) {
-          throw new Error("speed \u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("speed must be a positive number.");
         }
-        return updateArrayElementByIndex(source, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => {
+        return updateArrayElementByIndex(source, "cuts", cutIndex, "Clip", (element) => {
           const hasSpeed = hasTopLevelProperty(element, "speed");
           if (speed === null) {
             return hasSpeed ? removeObjectProperty(element, "speed") : element;
           }
-          return hasSpeed ? replacePropertyValue(element, "speed", speed, `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`) : appendNumberProperty(element, "speed", speed);
+          return hasSpeed ? replacePropertyValue(element, "speed", speed, `Clip ${cutIndex + 1}`) : appendNumberProperty(element, "speed", speed);
         });
       }
       function updateCutTransformInSource(source, cutIndex, updates) {
         if (updates.x === void 0 && updates.y === void 0 && updates.scale === void 0 && updates.scaleX === void 0 && updates.scaleY === void 0 && updates.rotate === void 0) {
-          throw new Error("\u5909\u66F4\u3059\u308B transform \u30D5\u30A3\u30FC\u30EB\u30C9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the transform fields to change.");
         }
         for (const property of ["x", "y", "rotate"]) {
           const value = updates[property];
           if (value !== void 0 && value !== null && !Number.isFinite(value)) {
-            throw new Error(`transform.${property} \u306F\u6709\u9650\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+            throw new Error(`transform.${property} must be a finite number.`);
           }
         }
         for (const key of ["scale", "scaleX", "scaleY"]) {
           const value = updates[key];
           if (value !== void 0 && value !== null && (!Number.isFinite(value) || value <= 0)) {
-            throw new Error(`transform.${key} \u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+            throw new Error(`transform.${key} must be a positive number.`);
           }
         }
-        return updateArrayElementByIndex(source, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => {
+        return updateArrayElementByIndex(source, "cuts", cutIndex, "Clip", (element) => {
           const hasTransform2 = hasTopLevelProperty(element, "transform");
           if (!hasTransform2) {
             const transform2 = Object.fromEntries(Object.entries(updates).filter((entry) => entry[1] !== void 0 && entry[1] !== null));
@@ -362,7 +362,7 @@ var AkariFrameEngine = (() => {
               continue;
             }
             const hasProperty = hasTopLevelProperty(transform, property);
-            transform = value === null ? hasProperty ? removeObjectProperty(transform, property) : transform : hasProperty ? replacePropertyValue(transform, property, value, `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u306E transform`) : appendNumberProperty(transform, property, value);
+            transform = value === null ? hasProperty ? removeObjectProperty(transform, property) : transform : hasProperty ? replacePropertyValue(transform, property, value, `transform of clip ${cutIndex + 1}`) : appendNumberProperty(transform, property, value);
           }
           if (Object.keys(JSON.parse(transform)).length === 0) {
             return removeObjectProperty(element, "transform");
@@ -372,26 +372,26 @@ var AkariFrameEngine = (() => {
       }
       function updateCutOpacityInSource(source, cutIndex, opacity) {
         if (opacity !== null && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-          throw new Error("opacity \u306F 0\u301C1 \u306E\u7BC4\u56F2\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("opacity must be from 0 to 1.");
         }
-        return updateArrayElementByIndex(source, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => {
+        return updateArrayElementByIndex(source, "cuts", cutIndex, "Clip", (element) => {
           const hasOpacity = hasTopLevelProperty(element, "opacity");
           if (opacity === null) {
             return hasOpacity ? removeObjectProperty(element, "opacity") : element;
           }
-          return hasOpacity ? replaceTopLevelPropertyValue(element, "opacity", opacity, `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`) : appendNumberProperty(element, "opacity", opacity);
+          return hasOpacity ? replaceTopLevelPropertyValue(element, "opacity", opacity, `Clip ${cutIndex + 1}`) : appendNumberProperty(element, "opacity", opacity);
         });
       }
       function setCutTransitionOutInSource(source, cutIndex, transitionOut) {
         if (transitionOut !== null) {
           if (!(0, transition_vocabulary_1.isTransitionType)(transitionOut.type)) {
-            throw new Error("\u30C8\u30E9\u30F3\u30B8\u30B7\u30E7\u30F3\u306E\u7A2E\u5225\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The transition type is invalid.");
           }
           if (!Number.isFinite(transitionOut.duration) || transitionOut.duration <= 0) {
-            throw new Error("\u30C8\u30E9\u30F3\u30B8\u30B7\u30E7\u30F3\u306E\u5C3A\u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("Transition duration must be a positive number.");
           }
         }
-        return updateArrayElementByIndex(source, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => {
+        return updateArrayElementByIndex(source, "cuts", cutIndex, "Clip", (element) => {
           const hasTransitionOut = hasTopLevelProperty(element, "transition_out");
           if (transitionOut === null) {
             return hasTransitionOut ? removeObjectProperty(element, "transition_out") : element;
@@ -411,13 +411,13 @@ var AkariFrameEngine = (() => {
       function removeV2TransitionOutWithHandleRetractInSource(source, input) {
         const raw = JSON.parse(source);
         if (raw.version !== 2) {
-          throw new Error("v2 \u3078\u5909\u63DB\u3057\u3066\u304B\u3089\u7DE8\u96C6\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Convert to v2 before editing.");
         }
         if (!input.itemId) {
-          throw new Error("\u30C8\u30E9\u30F3\u30B8\u30B7\u30E7\u30F3\u5BFE\u8C61\u306E\u30A2\u30A4\u30C6\u30E0 id \u304C\u7A7A\u3067\u3059\u3002");
+          throw new Error("The transition item id is empty.");
         }
         if (!Number.isInteger(input.retractFrames) || input.retractFrames <= 0 || !Number.isFinite(input.fps) || input.fps <= 0) {
-          throw new Error("\u306E\u308A\u3057\u308D\u306E\u5FA9\u5143\u91CF\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The overlap restore amount is invalid.");
         }
         const tracks = locateArray(source, "tracks");
         const trackElements = splitTopLevelElements(tracks.inner);
@@ -434,27 +434,27 @@ var AkariFrameEngine = (() => {
             matches.push({ track, items, item });
         }
         if (matches.length !== 1) {
-          throw new Error(matches.length === 0 ? `\u30A2\u30A4\u30C6\u30E0 ${input.itemId} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093` : `\u30A2\u30A4\u30C6\u30E0 ${input.itemId} \u304C\u8907\u6570\u3042\u308A\u307E\u3059`);
+          throw new Error(matches.length === 0 ? `Item ${input.itemId} was not found.` : `Item ${input.itemId} appears more than once.`);
         }
         const match = matches[0];
-        const label = `\u30A2\u30A4\u30C6\u30E0 ${input.itemId}`;
+        const label = `Item ${input.itemId}`;
         const durationFrames = readNumberProperty(match.item.text, "duration", label);
         if (!Number.isInteger(durationFrames) || durationFrames < input.retractFrames) {
-          throw new Error(`${label} \u306E duration \u3092\u5B89\u5168\u306B\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} duration cannot be restored safely.`);
         }
         const mediaSource = locateTopLevelObjectProperty(match.item.text, "source");
         if (readStringProperty(mediaSource.text, "kind") !== "media") {
-          throw new Error(`${label} \u306F\u6620\u50CF\u7D20\u6750\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} is not picture footage.`);
         }
         const sourceIn = readNumberProperty(mediaSource.text, "in", label);
         const sourceOut = readNumberProperty(mediaSource.text, "out", label);
         const speed = (sourceOut - sourceIn) / (durationFrames / input.fps);
         if (!Number.isFinite(speed) || speed <= 0) {
-          throw new Error(`${label} \u306E speed \u3092\u5B89\u5168\u306B\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} speed cannot be restored safely.`);
         }
         const nextOut = sourceOut - input.retractFrames / input.fps * speed;
         if (!Number.isFinite(nextOut) || nextOut < sourceIn) {
-          throw new Error(`${label} \u306E out \u3092\u5B89\u5168\u306B\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} out cannot be restored safely.`);
         }
         let nextMediaSource = removeObjectProperty(mediaSource.text, "transition_out");
         nextMediaSource = replaceNumberProperty(nextMediaSource, "out", nextOut, label);
@@ -467,7 +467,7 @@ var AkariFrameEngine = (() => {
         const array = locateArray(source, "cuts");
         const elements = splitTopLevelElements(array.inner);
         if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex) || fromIndex < 0 || fromIndex >= elements.length || toIndex < 0 || toIndex >= elements.length) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u4E26\u3079\u66FF\u3048\u4F4D\u7F6E\u304C\u7BC4\u56F2\u5916\u3067\u3059\u3002");
+          throw new Error("The clip reorder position is out of range.");
         }
         if (fromIndex === toIndex) {
           return source;
@@ -484,19 +484,19 @@ var AkariFrameEngine = (() => {
       }
       function splitCutInSource(source, cutIndex, atSeconds) {
         if (!Number.isFinite(atSeconds)) {
-          throw new Error("\u5206\u5272\u4F4D\u7F6E\u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The split time is invalid.");
         }
         const array = locateArray(source, "cuts");
         const elements = splitTopLevelElements(array.inner);
         const element = elements[cutIndex];
         if (!element) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
-        const label = `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`;
+        const label = `Clip ${cutIndex + 1}`;
         const currentIn = readNumberProperty(element.text, "in", label);
         const currentOut = readNumberProperty(element.text, "out", label);
         if (atSeconds < currentIn + 0.15 || atSeconds > currentOut - 0.15) {
-          throw new Error("\u5206\u5272\u4F4D\u7F6E\u304C\u30AF\u30EA\u30C3\u30D7\u306E\u7AEF\u306B\u8FD1\u3059\u304E\u307E\u3059\uFF08\u4E21\u5074 0.15 \u79D2\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\uFF09");
+          throw new Error("The split is too close to a clip edge. Each side needs at least 0.15 seconds.");
         }
         const firstText = replaceNumberProperty(element.text, "out", atSeconds, label);
         let secondText = replaceNumberProperty(element.text, "in", atSeconds, label);
@@ -517,7 +517,7 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const element = elements[index];
         if (!element) {
-          throw new Error(`${key} \u306E ${index + 1} \u756A\u76EE\u306E\u8981\u7D20\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Item ${index + 1} of ${key} was not found.`);
         }
         const innerOffset = array.openIndex + 1;
         let removeStart;
@@ -552,7 +552,7 @@ var AkariFrameEngine = (() => {
         }
         const target = elements[index];
         if (!target) {
-          throw new Error(`${key} \u306E ${index + 1} \u756A\u76EE\u306E\u633F\u5165\u4F4D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059`);
+          throw new Error(`The insert position ${index + 1} on ${key} is invalid.`);
         }
         const insertAt = innerOffset + target.start;
         return source.slice(0, insertAt) + elementText + separator + source.slice(insertAt);
@@ -562,7 +562,7 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const layerIndex = elements.findIndex((element) => readStringProperty(element.text, "id") === layerId);
         if (layerIndex < 0) {
-          throw new Error(`\u7D20\u6750 ${layerId} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Footage ${layerId} was not found.`);
         }
         return { ...removeArrayElementByIndex(source, "layers", layerIndex), layerIndex };
       }
@@ -580,21 +580,21 @@ var AkariFrameEngine = (() => {
       }
       function moveCutInSource(source, cutIndex, nextAt, nextTrack, trackState) {
         if (!Number.isFinite(nextAt) || nextAt < 0) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u958B\u59CB\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Clip start time is invalid.");
         }
         if (nextTrack !== void 0 && nextTrack !== null && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-          throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Clip track is invalid.");
         }
         const before = readCutsForSurgery(source);
         if (!before.cuts[cutIndex]) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
         let updated = freezeNextImplicitCutAt(source, cutIndex, before);
         updated = writeCutAtProperty(updated, cutIndex, nextAt);
         if (trackState) {
-          updated = applyIndexedTrackState(updated, "cuts", trackState, "\u30AF\u30EA\u30C3\u30D7");
+          updated = applyIndexedTrackState(updated, "cuts", trackState, "Clip");
         } else if (nextTrack === null || nextTrack !== void 0 && normalizeTrack(before.cuts[cutIndex].track) !== nextTrack) {
-          updated = updateArrayElementByIndex(updated, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => writeTrackProperty(element, nextTrack, `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`));
+          updated = updateArrayElementByIndex(updated, "cuts", cutIndex, "Clip", (element) => writeTrackProperty(element, nextTrack, `Clip ${cutIndex + 1}`));
         }
         assertMovedCutDoesNotOverlap(updated, cutIndex);
         return updated;
@@ -623,7 +623,7 @@ var AkariFrameEngine = (() => {
         const updates = new Map(entries.map((entry) => [entry.cutIndex, entry.at]));
         for (const [index, value] of updates) {
           if (!Number.isInteger(index) || index < 0 || value !== null && (!Number.isFinite(value) || value < 0)) {
-            throw new Error("\u30AF\u30EA\u30C3\u30D7\u306E\u8A70\u3081\u4F4D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The clip pack position is invalid.");
           }
         }
         const array = locateArray(source, "cuts");
@@ -634,12 +634,12 @@ var AkariFrameEngine = (() => {
           }
           const at2 = updates.get(index);
           const hasAt = hasTopLevelProperty(element.text, "at");
-          return at2 === null ? hasAt ? removeObjectProperty(element.text, "at") : element.text : hasAt ? replacePropertyValue(element.text, "at", at2, `\u30AF\u30EA\u30C3\u30D7 ${index + 1}`) : appendNumberProperty(element.text, "at", at2);
+          return at2 === null ? hasAt ? removeObjectProperty(element.text, "at") : element.text : hasAt ? replacePropertyValue(element.text, "at", at2, `Clip ${index + 1}`) : appendNumberProperty(element.text, "at", at2);
         });
         return rebuildArrayElements(source, array, elements, texts);
       }
       function updateLayerInSource(source, layerId, updates) {
-        return updateArrayElementById(source, "layers", layerId, "\u7D20\u6750", (element) => {
+        return updateArrayElementById(source, "layers", layerId, "Footage", (element) => {
           let next = element;
           for (const property of ["t", "duration", "track"]) {
             const value = updates[property];
@@ -650,28 +650,28 @@ var AkariFrameEngine = (() => {
             if (hasProperty && readOptionalNumberProperty(next, property) === value) {
               continue;
             }
-            next = hasProperty ? replacePropertyValue(next, property, value, `\u7D20\u6750 ${layerId}`) : appendNumberProperty(next, property, value);
+            next = hasProperty ? replacePropertyValue(next, property, value, `Footage ${layerId}`) : appendNumberProperty(next, property, value);
           }
           return next;
         });
       }
       function updateLayerTransformInSource(source, layerId, updates) {
         if (updates.x === void 0 && updates.y === void 0 && updates.scale === void 0 && updates.scaleX === void 0 && updates.scaleY === void 0 && updates.rotate === void 0) {
-          throw new Error("\u5909\u66F4\u3059\u308B transform \u30D5\u30A3\u30FC\u30EB\u30C9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the transform fields to change.");
         }
         for (const property of ["x", "y", "rotate"]) {
           const value = updates[property];
           if (value !== void 0 && value !== null && !Number.isFinite(value)) {
-            throw new Error(`transform.${property} \u306F\u6709\u9650\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+            throw new Error(`transform.${property} must be a finite number.`);
           }
         }
         for (const key of ["scale", "scaleX", "scaleY"]) {
           const value = updates[key];
           if (value !== void 0 && value !== null && (!Number.isFinite(value) || value <= 0)) {
-            throw new Error(`transform.${key} \u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+            throw new Error(`transform.${key} must be a positive number.`);
           }
         }
-        return updateArrayElementById(source, "layers", layerId, "\u7D20\u6750", (element) => {
+        return updateArrayElementById(source, "layers", layerId, "Footage", (element) => {
           const hasTransform2 = hasTopLevelProperty(element, "transform");
           if (!hasTransform2) {
             const transform2 = Object.fromEntries(Object.entries(updates).filter((entry) => entry[1] !== void 0 && entry[1] !== null));
@@ -685,7 +685,7 @@ var AkariFrameEngine = (() => {
               continue;
             }
             const hasProperty = hasTopLevelProperty(transform, property);
-            transform = value === null ? hasProperty ? removeObjectProperty(transform, property) : transform : hasProperty ? replacePropertyValue(transform, property, value, `\u7D20\u6750 ${layerId} \u306E transform`) : appendNumberProperty(transform, property, value);
+            transform = value === null ? hasProperty ? removeObjectProperty(transform, property) : transform : hasProperty ? replacePropertyValue(transform, property, value, `transform of footage ${layerId}`) : appendNumberProperty(transform, property, value);
           }
           if (Object.keys(JSON.parse(transform)).length === 0) {
             return removeObjectProperty(element, "transform");
@@ -695,40 +695,40 @@ var AkariFrameEngine = (() => {
       }
       function updateLayerOpacityInSource(source, layerId, opacity) {
         if (opacity !== null && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-          throw new Error("opacity \u306F 0\u301C1 \u306E\u7BC4\u56F2\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("opacity must be from 0 to 1.");
         }
-        return updateArrayElementById(source, "layers", layerId, "\u7D20\u6750", (element) => {
+        return updateArrayElementById(source, "layers", layerId, "Footage", (element) => {
           const hasOpacity = hasTopLevelProperty(element, "opacity");
           if (opacity === null) {
             return hasOpacity ? removeObjectProperty(element, "opacity") : element;
           }
-          return hasOpacity ? replaceTopLevelPropertyValue(element, "opacity", opacity, `\u7D20\u6750 ${layerId}`) : appendNumberProperty(element, "opacity", opacity);
+          return hasOpacity ? replaceTopLevelPropertyValue(element, "opacity", opacity, `Footage ${layerId}`) : appendNumberProperty(element, "opacity", opacity);
         });
       }
       function updateLayerBlendInSource(source, layerId, blend) {
         if (blend !== null && !LAYER_BLEND_MODES.includes(blend)) {
-          throw new Error("blend \u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The blend value is invalid.");
         }
-        return updateArrayElementById(source, "layers", layerId, "\u7D20\u6750", (element) => {
+        return updateArrayElementById(source, "layers", layerId, "Footage", (element) => {
           const hasBlend = hasTopLevelProperty(element, "blend");
           if (blend === null) {
             return hasBlend ? removeObjectProperty(element, "blend") : element;
           }
-          return hasBlend ? replaceTopLevelPropertyValue(element, "blend", blend, `\u7D20\u6750 ${layerId}`) : appendJsonProperty(element, "blend", blend);
+          return hasBlend ? replaceTopLevelPropertyValue(element, "blend", blend, `Footage ${layerId}`) : appendJsonProperty(element, "blend", blend);
         });
       }
       function moveLayerInSource(source, layerId, nextT, nextDuration, nextTrack, trackState) {
         if (!Number.isFinite(nextT) || nextT < 0 || !Number.isFinite(nextDuration) || nextDuration < 0.15) {
-          throw new Error("\u7D20\u6750\u306E\u6642\u523B\u307E\u305F\u306F\u5C3A\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Footage time or duration is invalid.");
         }
         if (nextTrack !== void 0 && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-          throw new Error("\u7D20\u6750\u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Footage track is invalid.");
         }
         const beforeArray = locateArray(source, "layers");
         const beforeElements = splitTopLevelElements(beforeArray.inner);
         const beforeIndex = beforeElements.findIndex((element) => readStringProperty(element.text, "id") === layerId);
         if (beforeIndex < 0) {
-          throw new Error(`\u7D20\u6750 ${layerId} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Footage ${layerId} was not found.`);
         }
         const currentTrack = normalizeTrack(readOptionalNumberProperty(beforeElements[beforeIndex].text, "track"));
         const updated = updateLayerInSource(source, layerId, {
@@ -737,22 +737,22 @@ var AkariFrameEngine = (() => {
           ...!trackState && nextTrack !== void 0 && nextTrack !== currentTrack ? { track: nextTrack } : {}
         });
         if (trackState) {
-          return applyIdTrackState(updated, "layers", trackState, "\u7D20\u6750");
+          return applyIdTrackState(updated, "layers", trackState, "Footage");
         }
         return updated;
       }
       function moveSfxInSource(source, sfxIndex, nextT, nextTrack, trackState) {
         if (!Number.isFinite(nextT) || nextT < 0) {
-          throw new Error("SE \u306E\u958B\u59CB\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("SE start time is invalid.");
         }
         if (nextTrack !== void 0 && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-          throw new Error("SE \u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("SE track is invalid.");
         }
         const beforeArray = locateArray(source, "sfx");
         const beforeElements = splitTopLevelElements(beforeArray.inner);
         const currentElement = beforeElements[sfxIndex];
         if (!currentElement) {
-          throw new Error(`SE ${sfxIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`SE ${sfxIndex + 1} was not found.`);
         }
         const currentTrack = normalizeTrack(readOptionalNumberProperty(currentElement.text, "track"));
         const updated = updateArrayElementByIndex(source, "sfx", sfxIndex, "SE", (element) => {
@@ -770,16 +770,16 @@ var AkariFrameEngine = (() => {
       }
       function trimSfxInSource(source, sfxIndex, nextIn, nextOut, nextT) {
         if (nextIn !== null && (!Number.isFinite(nextIn) || nextIn < 0)) {
-          throw new Error("SE \u306E in \u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("SE in is invalid.");
         }
         if (nextOut !== null && (!Number.isFinite(nextOut) || nextOut <= 0)) {
-          throw new Error("SE \u306E out \u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("SE out is invalid.");
         }
         if (nextIn !== null && nextOut !== null && nextOut - nextIn < 0.1) {
-          throw new Error("SE \u304C\u77ED\u3059\u304E\u307E\u3059\uFF080.1 \u79D2\u672A\u6E80\u306B\u306F\u3067\u304D\u307E\u305B\u3093\uFF09");
+          throw new Error("The sound effect is too short. It cannot be under 0.1 seconds.");
         }
         if (nextT !== void 0 && (!Number.isFinite(nextT) || nextT < 0)) {
-          throw new Error("SE \u306E\u958B\u59CB\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("SE start time is invalid.");
         }
         return updateArrayElementByIndex(source, "sfx", sfxIndex, "SE", (element) => {
           const label = `SE ${sfxIndex + 1}`;
@@ -802,7 +802,7 @@ var AkariFrameEngine = (() => {
       }
       function setSfxGainDbInSource(source, sfxIndex, gainDb) {
         if (gainDb !== null && (!Number.isFinite(gainDb) || gainDb < -60 || gainDb > 12)) {
-          throw new Error("gain_db \u306F -60\u301C12 \u306E\u7BC4\u56F2\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("gain_db must be from -60 to 12.");
         }
         return updateArrayElementByIndex(source, "sfx", sfxIndex, "SE", (element) => {
           const hasGain = hasTopLevelProperty(element, "gain_db");
@@ -814,19 +814,19 @@ var AkariFrameEngine = (() => {
       }
       function updateBgmInSource(source, updates) {
         if (updates.gainDb === void 0 && updates.fadeIn === void 0 && updates.fadeOut === void 0 && updates.ducking === void 0) {
-          throw new Error("\u5909\u66F4\u3059\u308B BGM \u30D5\u30A3\u30FC\u30EB\u30C9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the BGM fields to change.");
         }
         if (updates.gainDb !== void 0 && updates.gainDb !== null && (!Number.isFinite(updates.gainDb) || updates.gainDb < -60 || updates.gainDb > 12)) {
-          throw new Error("gain_db \u306F -60\u301C12 \u306E\u7BC4\u56F2\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("gain_db must be from -60 to 12.");
         }
         if (updates.fadeIn !== void 0 && updates.fadeIn !== null && (!Number.isFinite(updates.fadeIn) || updates.fadeIn < 0)) {
-          throw new Error("fadeIn \u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("fadeIn must be 0 or greater.");
         }
         if (updates.fadeOut !== void 0 && updates.fadeOut !== null && (!Number.isFinite(updates.fadeOut) || updates.fadeOut < 0)) {
-          throw new Error("fadeOut \u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("fadeOut must be 0 or greater.");
         }
         if (updates.ducking !== void 0 && updates.ducking !== null && typeof updates.ducking !== "boolean") {
-          throw new Error("ducking \u306F boolean \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("ducking must be a boolean.");
         }
         const audio = locateTopLevelObjectProperty(source, "audio");
         const located = locateTopLevelObjectProperty(audio.text, "bgm");
@@ -851,15 +851,15 @@ var AkariFrameEngine = (() => {
       }
       function moveOverlayInSource(source, overlayId, nextStart, nextTrack, trackState) {
         if (!Number.isFinite(nextStart)) {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u958B\u59CB\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Overlay start time is invalid.");
         }
         if (nextTrack !== void 0 && nextTrack !== null && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("Overlay track is invalid.");
         }
         const updated = updateOverlay(source, overlayId, (element) => {
-          let next = replaceNumberProperty(element, "start", nextStart, `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId}`);
+          let next = replaceNumberProperty(element, "start", nextStart, `Overlay ${overlayId}`);
           if (!trackState && (nextTrack === null || nextTrack !== void 0 && normalizeTrack(readOptionalNumberProperty(element, "track")) !== nextTrack)) {
-            next = writeTrackProperty(next, nextTrack, `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId}`);
+            next = writeTrackProperty(next, nextTrack, `Overlay ${overlayId}`);
           }
           return next;
         });
@@ -870,21 +870,21 @@ var AkariFrameEngine = (() => {
       }
       function resizeOverlayInSource(source, overlayId, nextDuration) {
         if (!Number.isFinite(nextDuration) || nextDuration <= 0) {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u5C3A\u306F\u6B63\u306E\u5024\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Overlay duration must be a positive number.");
         }
-        return updateOverlay(source, overlayId, (element) => replaceNumberProperty(element, "duration", nextDuration, `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId}`));
+        return updateOverlay(source, overlayId, (element) => replaceNumberProperty(element, "duration", nextDuration, `Overlay ${overlayId}`));
       }
       function insertOverlayInSource(source, overlay) {
         const id = overlay.id;
         const start = overlay.start;
         const duration = overlay.duration;
         if (typeof id !== "string" || !id || typeof start !== "number" || !Number.isFinite(start) || typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) {
-          throw new Error("\u8FFD\u52A0\u3059\u308B\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u5F62\u5F0F\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The overlay to add is not in a recognized format.");
         }
         const array = locateArray(source, "overlays");
         const elements = splitTopLevelElements(array.inner);
         if (elements.some((element) => readStringProperty(element.text, "id") === id)) {
-          throw new Error(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${id} \u306F\u65E2\u306B\u3042\u308A\u307E\u3059\u3002`);
+          throw new Error(`Overlay ${id} already exists.`);
         }
         const serialized = serializeLikeExistingElement(overlay, array.inner, elements);
         const trailingStart = elements.length > 0 ? elements[elements.length - 1].end : 0;
@@ -905,7 +905,7 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const index = elements.findIndex((element) => readStringProperty(element.text, "id") === overlayId);
         if (index < 0) {
-          throw new Error(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Overlay ${overlayId} was not found.`);
         }
         let nextInner;
         if (elements.length === 1) {
@@ -942,7 +942,7 @@ var AkariFrameEngine = (() => {
       function locateArray(source, key) {
         const match = new RegExp(`"${key}"\\s*:\\s*\\[`).exec(source);
         if (!match) {
-          throw new Error(`edit.json \u306B ${key} \u914D\u5217\u304C\u3042\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`edit.json has no ${key} array.`);
         }
         const openIndex = source.indexOf("[", match.index);
         const closeIndex = findMatchingBracket(source, openIndex);
@@ -972,12 +972,12 @@ var AkariFrameEngine = (() => {
       function locateTopLevelObjectProperty(scopeText, key) {
         const property = locateTopLevelProperty(scopeText, key);
         if (!property) {
-          throw new Error(`"${key}" \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`"${key}" was not found.`);
         }
         const colonIndex = property.text.indexOf(":");
         const openIndex = scopeText.indexOf("{", property.start + colonIndex + 1);
         if (openIndex < 0 || openIndex >= property.end) {
-          throw new Error(`"${key}" \u304C object \u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`"${key}" is not an object.`);
         }
         const closeIndex = findMatchingBracket(scopeText, openIndex);
         return { start: openIndex, end: closeIndex + 1, text: scopeText.slice(openIndex, closeIndex + 1) };
@@ -985,7 +985,7 @@ var AkariFrameEngine = (() => {
       function locateObjectProperty(scopeText, key) {
         const match = new RegExp(`"${key}"\\s*:\\s*\\{`).exec(scopeText);
         if (!match) {
-          throw new Error(`"${key}" \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`"${key}" was not found.`);
         }
         const openIndex = scopeText.indexOf("{", match.index);
         const closeIndex = findMatchingBracket(scopeText, openIndex);
@@ -994,15 +994,15 @@ var AkariFrameEngine = (() => {
       function readCutsForSurgery(source) {
         const value = JSON.parse(source);
         if (!Array.isArray(value.cuts)) {
-          throw new Error("edit.json \u306B cuts \u914D\u5217\u304C\u3042\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("edit.json has no cuts array.");
         }
         const cuts = value.cuts.map((raw, index) => {
           if (!raw || typeof raw !== "object") {
-            throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${index + 1} \u306E\u5F62\u5F0F\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+            throw new Error(`Clip ${index + 1} is not in a recognized format.`);
           }
           const cut = raw;
           if (typeof cut.in !== "number" || !Number.isFinite(cut.in) || typeof cut.out !== "number" || !Number.isFinite(cut.out) || cut.out <= cut.in) {
-            throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${index + 1} \u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+            throw new Error(`Clip ${index + 1} time is invalid.`);
           }
           return {
             in: cut.in,
@@ -1018,7 +1018,7 @@ var AkariFrameEngine = (() => {
       function freezeNextImplicitCutAt(source, cutIndex, before) {
         const target = before.segments[cutIndex];
         if (!target) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
         for (let index = cutIndex + 1; index < before.cuts.length; index++) {
           if (before.segments[index].track !== target.track) {
@@ -1030,17 +1030,17 @@ var AkariFrameEngine = (() => {
         return source;
       }
       function writeCutAtProperty(source, cutIndex, at2) {
-        return updateArrayElementByIndex(source, "cuts", cutIndex, "\u30AF\u30EA\u30C3\u30D7", (element) => hasTopLevelProperty(element, "at") ? replacePropertyValue(element, "at", at2, `\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1}`) : appendNumberProperty(element, "at", at2));
+        return updateArrayElementByIndex(source, "cuts", cutIndex, "Clip", (element) => hasTopLevelProperty(element, "at") ? replacePropertyValue(element, "at", at2, `Clip ${cutIndex + 1}`) : appendNumberProperty(element, "at", at2));
       }
       function updateArrayElementByIndex(source, key, index, label, update) {
         if (!Number.isInteger(index) || index < 0) {
-          throw new Error(`${label}\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+          throw new Error(`The ${label} index is invalid.`);
         }
         const array = locateArray(source, key);
         const elements = splitTopLevelElements(array.inner);
         const element = elements[index];
         if (!element) {
-          throw new Error(`${label} ${index + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`${label} ${index + 1} was not found.`);
         }
         return replaceElement(source, array.openIndex + 1, element, update(element.text));
       }
@@ -1049,7 +1049,7 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const matches = elements.filter((element) => readStringProperty(element.text, "id") === id);
         if (matches.length !== 1) {
-          throw new Error(matches.length === 0 ? `${label} ${id} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093` : `${label} ${id} \u304C\u8907\u6570\u3042\u308A\u307E\u3059`);
+          throw new Error(matches.length === 0 ? `${label} ${id} was not found.` : `${label} ${id} appears more than once.`);
         }
         return replaceElement(source, array.openIndex + 1, matches[0], update(matches[0].text));
       }
@@ -1089,7 +1089,7 @@ var AkariFrameEngine = (() => {
       }
       function writeTrackProperty(source, track, label) {
         if (track !== null && (!Number.isInteger(track) || track < 0)) {
-          throw new Error(`${label} \u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+          throw new Error(`${label} track is invalid.`);
         }
         const hasTrack = hasTopLevelProperty(source, "track");
         if (track === null) {
@@ -1101,21 +1101,21 @@ var AkariFrameEngine = (() => {
         const { segments } = readCutsForSurgery(source);
         const moved = segments[cutIndex];
         if (!moved) {
-          throw new Error(`\u30AF\u30EA\u30C3\u30D7 ${cutIndex + 1} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093`);
+          throw new Error(`Clip ${cutIndex + 1} was not found.`);
         }
         if (segments.some((segment) => segment.index !== cutIndex && segment.track === moved.track && moved.at < segment.end && segment.at < moved.end)) {
-          throw new Error("\u540C\u3058\u30AF\u30EA\u30C3\u30D7\u30C8\u30E9\u30C3\u30AF\u5185\u3067\u533A\u9593\u304C\u91CD\u306A\u3063\u3066\u3044\u307E\u3059\u3002");
+          throw new Error("Spans overlap on the same clip track.");
         }
       }
       function replaceNumberProperty(source, property, value, label) {
         const located = locateTopLevelProperty(source, property);
         if (!located) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)${JSON_NUMBER}$`);
         if (!pattern.test(located.text)) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
         return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -1123,7 +1123,7 @@ var AkariFrameEngine = (() => {
       function readNumberProperty(source, property, label) {
         const value = readOptionalNumberProperty(source, property);
         if (value === void 0) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         return value;
       }
@@ -1145,7 +1145,7 @@ var AkariFrameEngine = (() => {
       function appendJsonProperty(source, property, value) {
         const closeIndex = source.lastIndexOf("}");
         if (closeIndex < 0) {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Cannot locate the overlay object.");
         }
         const beforeClose = source.slice(0, closeIndex);
         const trailingWhitespace = beforeClose.match(/\s*$/)?.[0] ?? "";
@@ -1163,12 +1163,12 @@ var AkariFrameEngine = (() => {
       function replacePropertyValue(source, property, value, label) {
         const located = locateTopLevelProperty(source, property);
         if (!located) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)$`);
         if (!pattern.test(located.text)) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
         return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -1180,7 +1180,7 @@ var AkariFrameEngine = (() => {
         const openIndex = source.indexOf("{");
         const closeIndex = openIndex >= 0 ? findMatchingBracket(source, openIndex) : -1;
         if (openIndex < 0 || closeIndex < 0) {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Cannot locate the overlay object.");
         }
         const inner = source.slice(openIndex + 1, closeIndex);
         const elements = splitTopLevelElements(inner);
@@ -1210,10 +1210,10 @@ var AkariFrameEngine = (() => {
           }
           const track = trackState[id];
           if (track !== null && (!Number.isInteger(track) || track < 0)) {
-            throw new Error(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${id} \u306E\u30C8\u30E9\u30C3\u30AF\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+            throw new Error(`Overlay ${id} track is invalid.`);
           }
           const hasTrack = hasTopLevelProperty(element.text, "track");
-          const nextText = track === null ? hasTrack ? removeObjectProperty(element.text, "track") : element.text : hasTrack ? replacePropertyValue(element.text, "track", track, `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${id}`) : appendNumberProperty(element.text, "track", track);
+          const nextText = track === null ? hasTrack ? removeObjectProperty(element.text, "track") : element.text : hasTrack ? replacePropertyValue(element.text, "track", track, `Overlay ${id}`) : appendNumberProperty(element.text, "track", track);
           nextInner = nextInner.slice(0, element.start) + nextText + nextInner.slice(element.end);
         }
         return source.slice(0, array.openIndex + 1) + nextInner + source.slice(array.closeIndex);
@@ -1223,22 +1223,22 @@ var AkariFrameEngine = (() => {
         const elements = splitTopLevelElements(array.inner);
         const matches = elements.filter((element2) => readStringProperty(element2.text, "id") === overlayId);
         if (matches.length !== 1) {
-          throw new Error(matches.length === 0 ? `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093` : `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId} \u304C\u8907\u6570\u3042\u308A\u307E\u3059`);
+          throw new Error(matches.length === 0 ? `Overlay ${overlayId} was not found.` : `Overlay ${overlayId} appears more than once.`);
         }
         const element = matches[0];
         return replaceElement(source, array.openIndex + 1, element, update(element.text));
       }
       function updateOverlayVarInSource(source, overlayId, varName, nextValue) {
         if (!overlayId || !varName || typeof nextValue !== "string") {
-          throw new Error("\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306E\u30D1\u30E9\u30E1\u30FC\u30BF\u66F4\u65B0\u5024\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The overlay parameter update is invalid.");
         }
-        return updateArrayElementById(source, "overlays", overlayId, "\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4", (element) => {
+        return updateArrayElementById(source, "overlays", overlayId, "Overlay", (element) => {
           const vars = locateTopLevelObjectProperty(element, "vars");
           const hasVar = hasTopLevelProperty(vars.text, varName);
           if (!hasVar) {
-            throw new Error(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId} \u306E\u30D1\u30E9\u30E1\u30FC\u30BF ${varName} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`);
+            throw new Error(`Parameter ${varName} of overlay ${overlayId} was not found.`);
           }
-          const nextVarsText = replacePropertyValue(vars.text, varName, nextValue, `\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlayId} \u306E ${varName}`);
+          const nextVarsText = replacePropertyValue(vars.text, varName, nextValue, `${varName} of overlay ${overlayId}`);
           return element.slice(0, vars.start) + nextVarsText + element.slice(vars.end);
         });
       }
@@ -1313,7 +1313,7 @@ ${indent}`);
       }
       function validRunRange(text, from, to) {
         if (!Number.isInteger(from) || !Number.isInteger(to) || from < 0 || to <= from || to > captionGraphemes(text).length) {
-          throw new Error("\u6587\u5B57\u7BC4\u56F2\u304C\u8868\u793A\u6587\u5B57\u5217\u306E\u5916\u306B\u3042\u308A\u307E\u3059\u3002");
+          throw new Error("The character range is outside the displayed text.");
         }
       }
       function setCaptionRunStyle(text, runs, from, to, patch) {
@@ -1330,7 +1330,7 @@ ${indent}`);
           "underline"
         ]);
         if (!patch || typeof patch !== "object" || !Object.keys(patch).length || Object.entries(patch).some(([key, value]) => !allowed.has(key) || key === "color" && (typeof value !== "string" || !/^#(?:[\da-fA-F]{3}|[\da-fA-F]{6}|[\da-fA-F]{8})$/.test(value)) || ["font_weight", "scale", "baseline_shift_em", "rotate_deg", "letter_spacing_em"].includes(key) && (typeof value !== "number" || !Number.isFinite(value)) || key === "font_weight" && (!Number.isInteger(value) || value < 1 || value > 1e3) || key === "scale" && value <= 0 || ["italic", "underline"].includes(key) && typeof value !== "boolean" || key === "stroke" && (!value || typeof value !== "object" || Object.keys(value).some((strokeKey) => !["method", "color", "width_px"].includes(strokeKey)) || value?.method !== void 0 && value?.method !== "webkit-outline" || value?.color !== void 0 && !/^#(?:[\da-fA-F]{3}|[\da-fA-F]{6}|[\da-fA-F]{8})$/.test(value.color) || value?.width_px !== void 0 && (typeof value?.width_px !== "number" || !Number.isFinite(value?.width_px) || value.width_px < 0)))) {
-          throw new Error("\u6587\u5B57\u7BC4\u56F2\u306B\u4F7F\u3048\u306A\u3044\u30B9\u30BF\u30A4\u30EB\u9805\u76EE\u304C\u3042\u308A\u307E\u3059\u3002");
+          throw new Error("The character range has a style field that is not allowed.");
         }
         const next = [...runs ?? []];
         const index = next.map((run) => run.from === from && run.to === to).lastIndexOf(true);
@@ -1350,7 +1350,7 @@ ${indent}`);
       function setCaptionRunRole(text, runs, from, to, role) {
         validRunRange(text, from, to);
         if (typeof role !== "string" || !role.trim())
-          throw new Error("\u6587\u5B57\u7BC4\u56F2\u306E\u5F79\u5272\u304C\u7A7A\u3067\u3059\u3002");
+          throw new Error("The character range role is empty.");
         const next = [...runs ?? []];
         const index = next.map((run) => run.from === from && run.to === to).lastIndexOf(true);
         const existing = index >= 0 ? next[index] : { from, to };
@@ -1363,7 +1363,7 @@ ${indent}`);
       }
       function removeCaptionRun(runs, index) {
         if (!Number.isInteger(index) || index < 0 || index >= (runs?.length ?? 0)) {
-          throw new Error("\u5916\u3059\u6587\u5B57\u7BC4\u56F2\u304C\u3042\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("There is no character range to remove.");
         }
         return runs.filter((_run, position) => position !== index);
       }
@@ -1526,8 +1526,8 @@ ${indent}`);
         const selection = characters.slice(Math.max(0, first.from), Math.max(0, first.to)).join("").replace(/\s+/gu, " ").trim();
         const preview = captionGraphemes(selection).slice(0, 16).join("");
         const suffix = captionGraphemes(selection).length > 16 ? "\u2026" : "";
-        const quoted = preview ? `\uFF08\u300C${preview}${suffix}\u300D${removedRuns.length > 1 ? "\u306A\u3069" : ""}\uFF09` : "";
-        return `\u6587\u5B57\u7BC4\u56F2 ${removedRuns.length} \u4EF6${quoted}\u304C\u5916\u308C\u307E\u3057\u305F`;
+        const quoted = preview ? ` ("${preview}${suffix}"${removedRuns.length > 1 ? " and more" : ""})` : "";
+        return `Removed ${removedRuns.length} character range(s)${quoted}`;
       }
       function applyCaptionRunsToHtml(html, displayText, runs) {
         if (!runs?.length)
@@ -2033,7 +2033,7 @@ ${indent}`);
       function applyCaptionTextEdit(record2, newText) {
         const normalizedText = newText.normalize("NFC").trim();
         if (!normalizedText) {
-          throw new Error("\u5B57\u5E55\u306E\u30C6\u30AD\u30B9\u30C8\u306F\u7A7A\u306B\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption text cannot be empty.");
         }
         if (normalizedText === record2.text) {
           return { record: record2 };
@@ -2188,7 +2188,7 @@ ${indent}`);
       exports.TEXTSTYLE_CATALOG = {
         "cinema-blue": {
           "id": "cinema-blue",
-          "name": "\u6620\u753B \u9752\u3044\u4F59\u97FB",
+          "name": "Cinema, blue afterglow",
           "category": "title",
           "style": {
             "size_px": 75,
@@ -2206,7 +2206,7 @@ ${indent}`);
         },
         "cinema-gold": {
           "id": "cinema-gold",
-          "name": "\u6620\u753B \u91D1\u306E\u898B\u51FA\u3057",
+          "name": "Cinema, gold title",
           "category": "title",
           "style": {
             "size_px": 84,
@@ -2224,7 +2224,7 @@ ${indent}`);
         },
         "cinema-white": {
           "id": "cinema-white",
-          "name": "\u6620\u753B \u767D\u3044\u4F59\u767D",
+          "name": "Cinema, white space",
           "category": "title",
           "style": {
             "size_px": 68,
@@ -2242,7 +2242,7 @@ ${indent}`);
         },
         "discount-text": {
           "id": "discount-text",
-          "name": "\u5272\u5F15\u30D0\u30C3\u30B8\u30C6\u30AD\u30B9\u30C8",
+          "name": "Discount badge text",
           "category": "price",
           "style": {
             "size_px": 72,
@@ -2257,7 +2257,7 @@ ${indent}`);
         },
         "emphasis-red": {
           "id": "emphasis-red",
-          "name": "\u5F37\u8ABF",
+          "name": "Emphasis",
           "category": "emphasis",
           "style": {
             "size_px": 92,
@@ -2276,7 +2276,7 @@ ${indent}`);
         },
         "glitch": {
           "id": "glitch",
-          "name": "\u30B0\u30EA\u30C3\u30C1\u98A8",
+          "name": "Glitch",
           "category": "decorative",
           "style": {
             "size_px": 116,
@@ -2300,7 +2300,7 @@ ${indent}`);
         },
         "narration-caption": {
           "id": "narration-caption",
-          "name": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u5B57\u5E55",
+          "name": "Narration captions",
           "category": "subtitle",
           "style": {
             "font_family": "'Noto Serif JP', serif",
@@ -2318,7 +2318,7 @@ ${indent}`);
         },
         "neon": {
           "id": "neon",
-          "name": "\u30CD\u30AA\u30F3",
+          "name": "Neon",
           "category": "decorative",
           "style": {
             "size_px": 120,
@@ -2353,7 +2353,7 @@ ${indent}`);
         },
         "neon-amber": {
           "id": "neon-amber",
-          "name": "\u30CD\u30AA\u30F3 \u7425\u73C0",
+          "name": "Neon amber",
           "category": "decorative",
           "style": {
             "size_px": 104,
@@ -2377,7 +2377,7 @@ ${indent}`);
         },
         "neon-lime": {
           "id": "neon-lime",
-          "name": "\u30CD\u30AA\u30F3 \u9EC4\u7DD1",
+          "name": "Neon yellow-green",
           "category": "decorative",
           "style": {
             "size_px": 100,
@@ -2401,7 +2401,7 @@ ${indent}`);
         },
         "neon-rose": {
           "id": "neon-rose",
-          "name": "\u30CD\u30AA\u30F3 \u6843\u8272",
+          "name": "Neon pink",
           "category": "decorative",
           "style": {
             "size_px": 106,
@@ -2425,7 +2425,7 @@ ${indent}`);
         },
         "neon-violet": {
           "id": "neon-violet",
-          "name": "\u30CD\u30AA\u30F3 \u7D2B",
+          "name": "Neon purple",
           "category": "decorative",
           "style": {
             "size_px": 104,
@@ -2449,7 +2449,7 @@ ${indent}`);
         },
         "news-navy-bar": {
           "id": "news-navy-bar",
-          "name": "\u30CB\u30E5\u30FC\u30B9 \u7D3A\u306E\u89E3\u8AAC\u5E2F",
+          "name": "News, navy explainer bar",
           "category": "subtitle",
           "style": {
             "size_px": 58,
@@ -2465,7 +2465,7 @@ ${indent}`);
         },
         "news-red-bar": {
           "id": "news-red-bar",
-          "name": "\u30CB\u30E5\u30FC\u30B9 \u6DE1\u8D64\u306E\u901F\u5831\u5E2F",
+          "name": "News, pale-red breaking bar",
           "category": "subtitle",
           "style": {
             "size_px": 60,
@@ -2488,7 +2488,7 @@ ${indent}`);
         },
         "news-yellow-label": {
           "id": "news-yellow-label",
-          "name": "\u89E3\u8AAC \u9EC4\u8272\u30E9\u30D9\u30EB",
+          "name": "Explainer, yellow label",
           "category": "emphasis",
           "style": {
             "size_px": 58,
@@ -2504,7 +2504,7 @@ ${indent}`);
         },
         "plate-coral": {
           "id": "plate-coral",
-          "name": "\u5EA7\u5E03\u56E3 \u73CA\u745A\u8272",
+          "name": "Plate, coral",
           "category": "emphasis",
           "style": {
             "size_px": 62,
@@ -2520,7 +2520,7 @@ ${indent}`);
         },
         "plate-cream": {
           "id": "plate-cream",
-          "name": "\u5EA7\u5E03\u56E3 \u751F\u6210\u308A",
+          "name": "Plate, cream",
           "category": "title",
           "style": {
             "size_px": 72,
@@ -2537,7 +2537,7 @@ ${indent}`);
         },
         "plate-indigo": {
           "id": "plate-indigo",
-          "name": "\u5EA7\u5E03\u56E3 \u85CD\u7D2B\u89D2\u4E38",
+          "name": "Plate, indigo rounded",
           "category": "subtitle",
           "style": {
             "size_px": 64,
@@ -2553,7 +2553,7 @@ ${indent}`);
         },
         "subtitle-commentary": {
           "id": "subtitle-commentary",
-          "name": "\u5B9F\u6CC1\u30C6\u30ED\u30C3\u30D7",
+          "name": "Commentary caption",
           "category": "subtitle",
           "style": {
             "size_px": 60,
@@ -2572,7 +2572,7 @@ ${indent}`);
         },
         "subtitle-interview": {
           "id": "subtitle-interview",
-          "name": "\u30A4\u30F3\u30BF\u30D3\u30E5\u30FC\u5B57\u5E55",
+          "name": "Interview captions",
           "category": "subtitle",
           "style": {
             "size_px": 56,
@@ -2593,7 +2593,7 @@ ${indent}`);
         },
         "subtitle-news": {
           "id": "subtitle-news",
-          "name": "\u30CB\u30E5\u30FC\u30B9\u98A8",
+          "name": "News",
           "category": "subtitle",
           "style": {
             "size_px": 56,
@@ -2609,7 +2609,7 @@ ${indent}`);
         },
         "subtitle-soft-band": {
           "id": "subtitle-soft-band",
-          "name": "\u5B57\u5E55 \u534A\u900F\u660E\u306E\u5E2F",
+          "name": "Captions, translucent band",
           "category": "subtitle",
           "style": {
             "size_px": 52,
@@ -2625,7 +2625,7 @@ ${indent}`);
         },
         "subtitle-standard": {
           "id": "subtitle-standard",
-          "name": "\u6A19\u6E96\u5B57\u5E55",
+          "name": "Standard captions",
           "category": "subtitle",
           "style": {
             "size_px": 56,
@@ -2639,7 +2639,7 @@ ${indent}`);
         },
         "subtitle-variety": {
           "id": "subtitle-variety",
-          "name": "\u30D0\u30E9\u30A8\u30C6\u30A3",
+          "name": "Variety",
           "category": "subtitle",
           "style": {
             "size_px": 80,
@@ -2660,7 +2660,7 @@ ${indent}`);
         },
         "subtitle-white-bold": {
           "id": "subtitle-white-bold",
-          "name": "\u767D\u5B57\u5E55 \u592A\u7E01",
+          "name": "White captions, thick edge",
           "category": "subtitle",
           "style": {
             "size_px": 64,
@@ -2674,7 +2674,7 @@ ${indent}`);
         },
         "subtitle-white-hairline": {
           "id": "subtitle-white-hairline",
-          "name": "\u767D\u5B57\u5E55 \u7D30\u7E01",
+          "name": "White captions, thin edge",
           "category": "subtitle",
           "style": {
             "size_px": 52,
@@ -2688,7 +2688,7 @@ ${indent}`);
         },
         "subtitle-yellow-bold": {
           "id": "subtitle-yellow-bold",
-          "name": "\u9EC4\u8272\u5B57\u5E55 \u592A\u7E01",
+          "name": "Yellow captions, thick edge",
           "category": "subtitle",
           "style": {
             "size_px": 64,
@@ -2702,7 +2702,7 @@ ${indent}`);
         },
         "title-impact": {
           "id": "title-impact",
-          "name": "\u30A4\u30F3\u30D1\u30AF\u30C8",
+          "name": "Impact",
           "category": "title",
           "style": {
             "size_px": 168,
@@ -2723,7 +2723,7 @@ ${indent}`);
         },
         "variety-candy-pink": {
           "id": "variety-candy-pink",
-          "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6843\u306E\u888B\u6587\u5B57",
+          "name": "Variety, pink outlined letters",
           "category": "decorative",
           "style": {
             "size_px": 90,
@@ -2745,7 +2745,7 @@ ${indent}`);
         },
         "variety-lime-pop": {
           "id": "variety-lime-pop",
-          "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u9EC4\u7DD1\u30DD\u30C3\u30D7",
+          "name": "Variety, yellow-green pop",
           "category": "decorative",
           "style": {
             "size_px": 84,
@@ -2767,7 +2767,7 @@ ${indent}`);
         },
         "variety-orange-pop": {
           "id": "variety-orange-pop",
-          "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u30AA\u30EC\u30F3\u30B8\u5F71",
+          "name": "Variety, orange shadow",
           "category": "decorative",
           "style": {
             "size_px": 86,
@@ -2789,7 +2789,7 @@ ${indent}`);
         },
         "variety-soda-blue": {
           "id": "variety-soda-blue",
-          "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6C34\u8272\u306E\u888B\u6587\u5B57",
+          "name": "Variety, light-blue outlined letters",
           "category": "decorative",
           "style": {
             "size_px": 90,
@@ -2811,7 +2811,7 @@ ${indent}`);
         },
         "verdict-badge": {
           "id": "verdict-badge",
-          "name": "\u5224\u5B9A\u30D0\u30C3\u30B8",
+          "name": "Verdict badge",
           "category": "emphasis",
           "style": {
             "size_px": 80,
@@ -2832,7 +2832,7 @@ ${indent}`);
         },
         "vertical-impact-cyan": {
           "id": "vertical-impact-cyan",
-          "name": "\u7E26\u52D5\u753B \u6C34\u8272\u306E\u5927\u898B\u51FA\u3057",
+          "name": "Vertical, large cyan title",
           "category": "title",
           "style": {
             "size_px": 125,
@@ -2854,7 +2854,7 @@ ${indent}`);
         },
         "vertical-impact-red": {
           "id": "vertical-impact-red",
-          "name": "\u7E26\u52D5\u753B \u8D64\u306E\u5927\u898B\u51FA\u3057",
+          "name": "Vertical, large red title",
           "category": "title",
           "style": {
             "size_px": 130,
@@ -2876,7 +2876,7 @@ ${indent}`);
         },
         "vertical-impact-white": {
           "id": "vertical-impact-white",
-          "name": "\u7E26\u52D5\u753B \u767D\u306E\u5927\u898B\u51FA\u3057",
+          "name": "Vertical, large white title",
           "category": "title",
           "style": {
             "size_px": 126,
@@ -2923,7 +2923,7 @@ ${indent}`);
         for (const preset of library) {
           if (Object.prototype.hasOwnProperty.call(builtin, preset.id)) {
             conflicts.push(preset.id);
-            warnings2.push(`captions.style-preset-library-shadowed: ${preset.id} \u306F\u30E9\u30A4\u30D6\u30E9\u30EA\u7531\u6765\u3067\u3059\u304C\u7D44\u307F\u8FBC\u307F\u30D7\u30EA\u30BB\u30C3\u30C8\u3068\u540C\u3058 id \u306E\u305F\u3081\u7D44\u307F\u8FBC\u307F\u3092\u4F7F\u3044\u307E\u3059`);
+            warnings2.push(`captions.style-preset-library-shadowed: ${preset.id} comes from the library, but a built-in preset has the same id, so the built-in preset is used.`);
           } else if (!Object.prototype.hasOwnProperty.call(catalog, preset.id)) {
             catalog[preset.id] = preset;
           }
@@ -2977,23 +2977,23 @@ ${indent}`);
         root = (0, caption_style_preset_1.applyCaptionStylePresets)(root, options.catalog ?? (0, textstyle_catalog_merge_1.resolveTextstyleCatalog)().catalog).root;
         const values = Array.isArray(root) ? root : isRecord2(root) && Array.isArray(root.captions) ? root.captions : void 0;
         if (!values) {
-          throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption data is not in a recognized format.");
         }
         const warnings2 = [];
-        const defaultTextStyle = !Array.isArray(root) && isRecord2(root) && root.default_text_style !== void 0 ? normalizeTextStyle(root.default_text_style, (keys) => warnings2.push(`\u5B57\u5E55\u306E\u65E2\u5B9A\u30B9\u30BF\u30A4\u30EB\u306B\u672A\u77E5\u306E\u30D5\u30A3\u30FC\u30EB\u30C9\uFF08${keys.join(", ")}\uFF09\u304C\u3042\u308B\u305F\u3081\u7121\u8996\u3057\u307E\u3057\u305F\u3002`)) : void 0;
+        const defaultTextStyle = !Array.isArray(root) && isRecord2(root) && root.default_text_style !== void 0 ? normalizeTextStyle(root.default_text_style, (keys) => warnings2.push(`Ignored unknown fields on the default caption style (${keys.join(", ")}).`)) : void 0;
         if (!Array.isArray(root) && isRecord2(root) && root.default_text_style !== void 0 && defaultTextStyle === void 0) {
-          throw new Error("\u5B57\u5E55\u306E\u65E2\u5B9A\u30B9\u30BF\u30A4\u30EB\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("The default caption style is not in a recognized format.");
         }
         const captions = [];
         const seenIds = /* @__PURE__ */ new Set();
         for (let index = 0; index < values.length; index++) {
-          const caption = normalizeCaption(values[index], (keys) => warnings2.push(`${index + 1} \u756A\u76EE\u306E\u5B57\u5E55\u306E text_style \u306B\u672A\u77E5\u306E\u30D5\u30A3\u30FC\u30EB\u30C9\uFF08${keys.join(", ")}\uFF09\u304C\u3042\u308B\u305F\u3081\u7121\u8996\u3057\u307E\u3057\u305F\u3002`));
+          const caption = normalizeCaption(values[index], (keys) => warnings2.push(`Ignored unknown text_style fields on caption ${index + 1} (${keys.join(", ")}).`));
           if (!caption) {
-            warnings2.push(`${index + 1} \u756A\u76EE\u306E\u5B57\u5E55\u306F\u6642\u523B\u307E\u305F\u306F\u5185\u5BB9\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+            warnings2.push(`Caption ${index + 1} is not shown because its time or text is invalid.`);
             continue;
           }
           if (seenIds.has(caption.id)) {
-            warnings2.push(`\u5B57\u5E55 ${caption.id} \u304C\u91CD\u8907\u3057\u3066\u3044\u308B\u305F\u3081\u3001\u5F8C\u306E\u884C\u306F\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+            warnings2.push(`Caption ${caption.id} is duplicated, so later rows are not shown.`);
             continue;
           }
           seenIds.add(caption.id);
@@ -3068,7 +3068,7 @@ ${indent}`);
       }
       function shiftCaptionLine(source, captionId, deltaStart, deltaEnd) {
         if (!captionId || !Number.isFinite(deltaStart) || !Number.isFinite(deltaEnd)) {
-          throw new Error("\u5B57\u5E55\u306E\u8ABF\u6574\u5024\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption adjustment value is invalid.");
         }
         const array = locateCaptionArray(source);
         const element = findCaptionElement(array.elements, captionId);
@@ -3077,7 +3077,7 @@ ${indent}`);
         const nextStart = start + deltaStart;
         const nextEnd = end + deltaEnd;
         if (!Number.isFinite(nextStart) || !Number.isFinite(nextEnd) || nextStart < 0 || nextEnd - nextStart < 0.15) {
-          throw new Error("\u5B57\u5E55\u304C\u77ED\u3059\u304E\u307E\u3059\uFF080.15 \u79D2\u672A\u6E80\u306B\u306F\u3067\u304D\u307E\u305B\u3093\uFF09");
+          throw new Error("The caption is too short. It cannot be under 0.15 seconds.");
         }
         let nextElement = replaceCaptionProperty(element.text, "start", nextStart, captionId);
         nextElement = replaceCaptionProperty(nextElement, "end", nextEnd, captionId);
@@ -3086,14 +3086,14 @@ ${indent}`);
       }
       function setCaptionTimingLine(source, captionId, start, end, timeDomain, edited) {
         if (!captionId || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end - start < 0.15) {
-          throw new Error("\u5B57\u5E55\u304C\u77ED\u3059\u304E\u307E\u3059\uFF080.15 \u79D2\u672A\u6E80\u306B\u306F\u3067\u304D\u307E\u305B\u3093\uFF09");
+          throw new Error("The caption is too short. It cannot be under 0.15 seconds.");
         }
         const array = locateCaptionArray(source);
         const element = findCaptionElement(array.elements, captionId);
         let nextElement = replaceCaptionProperty(element.text, "start", start, captionId);
         nextElement = replaceCaptionProperty(nextElement, "end", end, captionId);
         nextElement = replaceCaptionProperty(nextElement, "edited", edited, captionId);
-        nextElement = updateOptionalStyleProperty(nextElement, "time_domain", timeDomain, `\u5B57\u5E55 ${captionId}`);
+        nextElement = updateOptionalStyleProperty(nextElement, "time_domain", timeDomain, `Caption ${captionId}`);
         return replaceElement(source, array.openIndex + 1, element, nextElement);
       }
       function updateCaptionFieldsInSource(source, captionId, updates) {
@@ -3101,31 +3101,31 @@ ${indent}`);
       }
       function updateCaptionFieldsInSourceWithReport(source, captionId, updates) {
         if (!captionId) {
-          throw new Error("\u5B57\u5E55 ID \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify a caption id.");
         }
         if (updates.text === void 0 && updates.speaker === void 0 && updates.unrecognized === void 0 && updates.style === void 0 && updates.displayTiming === void 0) {
-          throw new Error("\u5909\u66F4\u3059\u308B\u5B57\u5E55\u30D5\u30A3\u30FC\u30EB\u30C9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the caption fields to change.");
         }
         if (updates.text !== void 0 && (typeof updates.text !== "string" || !updates.text.trim())) {
-          throw new Error("\u5B57\u5E55\u306E\u30C6\u30AD\u30B9\u30C8\u306F\u7A7A\u306B\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption text cannot be empty.");
         }
         if (updates.speaker !== void 0 && updates.speaker !== null && typeof updates.speaker !== "string") {
-          throw new Error("\u5B57\u5E55\u306E\u8A71\u8005\u306F\u6587\u5B57\u5217\u307E\u305F\u306F null \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption speaker must be a string or null.");
         }
         if (updates.style !== void 0 && updates.style !== null && !["karaoke", "pop", "reveal", "reveal-word"].includes(updates.style)) {
-          throw new Error("\u5B57\u5E55\u306E\u30B9\u30BF\u30A4\u30EB\uFF08\u6F14\u51FA\uFF09\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption style is invalid.");
         }
         if (updates.displayTiming !== void 0 && updates.displayTiming !== null && updates.displayTiming !== "full" && updates.displayTiming !== "speech-tight") {
-          throw new Error("\u5B57\u5E55\u306E\u8868\u793A\u30BF\u30A4\u30DF\u30F3\u30B0\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption timing is invalid.");
         }
         let unrecognized;
         if (updates.unrecognized !== void 0 && updates.unrecognized !== null) {
           if (!Array.isArray(updates.unrecognized)) {
-            throw new Error("\u5B57\u5E55\u306E\u672A\u8A8D\u8B58\u533A\u9593\u306F\u914D\u5217\u307E\u305F\u306F null \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("Caption unrecognized spans must be an array or null.");
           }
           unrecognized = updates.unrecognized.map((span) => {
             if (!span || typeof span !== "object" || typeof span.start !== "number" || !Number.isFinite(span.start) || typeof span.end !== "number" || !Number.isFinite(span.end) || span.end <= span.start) {
-              throw new Error("\u5B57\u5E55\u306E\u672A\u8A8D\u8B58\u533A\u9593\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+              throw new Error("A caption unrecognized span is invalid.");
             }
             return { start: span.start, end: span.end };
           }).sort((left, right) => left.start - right.start || left.end - right.end);
@@ -3183,16 +3183,16 @@ ${indent}`);
         if (nextEmphasis && oldEmphasis) {
           const property = locateTopLevelProperty(updated, "emphasis_words");
           if (!property)
-            throw new Error("emphasis_words \u914D\u5217\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot locate the emphasis_words array.");
           const colon = property.text.indexOf(":");
           const open = updated.indexOf("[", property.start + colon + 1);
           if (open < 0 || open >= property.end)
-            throw new Error("emphasis_words \u914D\u5217\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot locate the emphasis_words array.");
           const close = (0, edit_store_1.findMatchingBracket)(updated, open);
           const inner = updated.slice(open + 1, close);
           const elements = (0, edit_store_1.splitTopLevelElements)(inner);
           if (elements.length !== oldEmphasis.length)
-            throw new Error("emphasis_words \u914D\u5217\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot locate the emphasis_words array.");
           const byId = new Map(nextEmphasis.map((entry) => [entry.id, entry]));
           const kept = elements.flatMap((entry, index) => {
             const old = oldEmphasis[index];
@@ -3218,7 +3218,7 @@ ${indent}`);
         const display = caption.display_text ?? caption.text;
         const runs = edit.kind === "style" ? (0, caption_runs_1.setCaptionRunStyle)(display, caption.runs, edit.from, edit.to, edit.style) : edit.kind === "role" ? (0, caption_runs_1.setCaptionRunRole)(display, caption.runs, edit.from, edit.to, edit.role) : edit.kind === "remove" ? (0, caption_runs_1.removeCaptionRun)(caption.runs, edit.index) : (() => {
           if (!Number.isInteger(edit.index) || edit.index < 0 || edit.index > (caption.runs?.length ?? 0) || !Number.isInteger(edit.run.from) || !Number.isInteger(edit.run.to) || edit.run.from < 0 || edit.run.to <= edit.run.from || edit.run.to > (0, caption_runs_1.captionGraphemes)(display).length) {
-            throw new Error("\u623B\u3059\u6587\u5B57\u7BC4\u56F2\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The character range to restore is invalid.");
           }
           const restored = [...caption.runs ?? []];
           restored.splice(edit.index, 0, edit.run);
@@ -3231,7 +3231,7 @@ ${indent}`);
           return void 0;
         const first = removed[0];
         const word = typeof first.word === "string" ? first.word.trim() : "";
-        return `\u5F37\u8ABF ${removed.length} \u4EF6${word ? `\uFF08\u300C${(0, caption_runs_1.captionGraphemes)(word).slice(0, 16).join("")}\u300D\uFF09` : ""}\u304C\u5916\u308C\u307E\u3057\u305F`;
+        return `Removed ${removed.length} emphasis span(s)${word ? ` ("${(0, caption_runs_1.captionGraphemes)(word).slice(0, 16).join("")}")` : ""}`;
       }
       function captionEditNotices(result, oldDisplayText) {
         return [
@@ -3258,7 +3258,7 @@ ${indent}`);
       }
       function updateCaptionTextStyleInSource(source, captionId, updates) {
         if (!captionId) {
-          throw new Error("\u5B57\u5E55 ID \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify a caption id.");
         }
         validateTextStylePatch(updates);
         const array = locateCaptionArray(source);
@@ -3272,18 +3272,18 @@ ${indent}`);
           }
           nextElement = appendJsonProperty(nextElement, "text_style", created);
         } else {
-          const located = locateTopLevelObjectProperty(nextElement, "text_style", `\u5B57\u5E55 ${captionId}`);
+          const located = locateTopLevelObjectProperty(nextElement, "text_style", `Caption ${captionId}`);
           let textStyle = located.text;
-          textStyle = updateOptionalStyleProperty(textStyle, "color", updates.color, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "size_px", updates.sizePx, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "wrap_width_pct", updates.wrapWidthPct, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "font_weight", updates.fontWeight, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "weight", updates.weight === void 0 && updates.fontWeight !== void 0 ? null : updates.weight, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "line_height", updates.lineHeight, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "letter_spacing_em", updates.letterSpacingEm, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalStyleProperty(textStyle, "font_family", updates.fontFamily, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalObjectStyleProperty(textStyle, "shadow", updates.shadow, `\u5B57\u5E55 ${captionId} \u306E text_style`);
-          textStyle = updateOptionalObjectStyleProperty(textStyle, "glow", updates.glow, `\u5B57\u5E55 ${captionId} \u306E text_style`);
+          textStyle = updateOptionalStyleProperty(textStyle, "color", updates.color, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "size_px", updates.sizePx, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "wrap_width_pct", updates.wrapWidthPct, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "font_weight", updates.fontWeight, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "weight", updates.weight === void 0 && updates.fontWeight !== void 0 ? null : updates.weight, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "line_height", updates.lineHeight, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "letter_spacing_em", updates.letterSpacingEm, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalStyleProperty(textStyle, "font_family", updates.fontFamily, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalObjectStyleProperty(textStyle, "shadow", updates.shadow, `text_style of caption ${captionId}`);
+          textStyle = updateOptionalObjectStyleProperty(textStyle, "glow", updates.glow, `text_style of caption ${captionId}`);
           for (const [key, value] of [
             ["stroke_inner", updates.strokeInner],
             ["fill_gradient", updates.fillGradient],
@@ -3298,11 +3298,11 @@ ${indent}`);
               return textStyle.slice(0, object.start) + JSON.stringify(json) + textStyle.slice(object.end);
             })() : appendJsonProperty(textStyle, key, json);
           }
-          textStyle = updateOptionalStyleProperty(textStyle, "zone", updates.zone, `\u5B57\u5E55 ${captionId} \u306E text_style`);
+          textStyle = updateOptionalStyleProperty(textStyle, "zone", updates.zone, `text_style of caption ${captionId}`);
           textStyle = updateNestedStyleObject(textStyle, "stroke", {
             color: updates.stroke?.color,
             width_px: updates.stroke?.widthPx
-          }, `\u5B57\u5E55 ${captionId} \u306E text_style.stroke`);
+          }, `text_style.stroke of caption ${captionId}`);
           textStyle = updateNestedStyleObject(textStyle, "background", {
             color: updates.background?.color,
             opacity: updates.background?.opacity,
@@ -3310,8 +3310,8 @@ ${indent}`);
             padding_px: updates.background?.paddingPx,
             mode: updates.background?.mode,
             fit: updates.background?.fit
-          }, `\u5B57\u5E55 ${captionId} \u306E text_style.background`);
-          textStyle = updateAnimationStyleObject(textStyle, updates.animation, `\u5B57\u5E55 ${captionId} \u306E text_style.animation`);
+          }, `text_style.background of caption ${captionId}`);
+          textStyle = updateAnimationStyleObject(textStyle, updates.animation, `text_style.animation of caption ${captionId}`);
           if (updates.karaoke === null) {
             if (locateTopLevelProperty(textStyle, "karaoke"))
               textStyle = removeObjectProperty(textStyle, "karaoke");
@@ -3320,7 +3320,7 @@ ${indent}`);
               done_color: updates.karaoke.doneColor,
               fill: updates.karaoke.fill,
               start_index: updates.karaoke.startIndex
-            }, `\u5B57\u5E55 ${captionId} \u306E text_style.karaoke`);
+            }, `text_style.karaoke of caption ${captionId}`);
           }
           nextElement = Object.keys(JSON.parse(textStyle)).length === 0 ? removeObjectProperty(nextElement, "text_style") : nextElement.slice(0, located.start) + textStyle + nextElement.slice(located.end);
         }
@@ -3328,10 +3328,10 @@ ${indent}`);
       }
       function updateCaptionStylePresetInSource(source, captionIds, presetId, options = {}) {
         if (captionIds.length === 0) {
-          throw new Error("\u5B57\u5E55 ID \u3092 1 \u4EF6\u4EE5\u4E0A\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify at least one caption id.");
         }
         if (presetId !== null && !/^[a-z0-9][a-z0-9-]*$/.test(presetId)) {
-          throw new Error("\u5B57\u5E55\u30C6\u30F3\u30D7\u30EC ID \u306E\u5F62\u5F0F\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption template id format is invalid.");
         }
         const ids = [...new Set(captionIds)];
         const array = locateCaptionArray(source);
@@ -3347,7 +3347,7 @@ ${indent}`);
         for (const captionId of ids) {
           const matches = elementsById.get(captionId) ?? [];
           if (matches.length !== 1) {
-            throw new Error(matches.length === 0 ? `\u5B57\u5E55 ${captionId} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u3042\u308A\u307E\u305B\u3093\u3002` : `\u5B57\u5E55 ${captionId} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u8907\u6570\u3042\u308A\u307E\u3059\u3002`);
+            throw new Error(matches.length === 0 ? `Caption ${captionId} is not in the caption data.` : `Caption ${captionId} appears more than once in the caption data.`);
           }
           targets.push({ captionId, element: matches[0] });
         }
@@ -3398,7 +3398,7 @@ ${indent}`);
         if (keys.length === 0) {
           return element;
         }
-        const located = locateTopLevelObjectProperty(element, "text_style", `\u5B57\u5E55 ${captionId}`);
+        const located = locateTopLevelObjectProperty(element, "text_style", `Caption ${captionId}`);
         let textStyle = located.text;
         for (const key of keys) {
           textStyle = removeObjectProperty(textStyle, key);
@@ -3408,12 +3408,12 @@ ${indent}`);
       function insertCaptionLine(source, caption) {
         const parsed = parseCaptions(source);
         if (!normalizeCaption(caption)) {
-          throw new Error("\u8FFD\u52A0\u3059\u308B\u5B57\u5E55\u306E\u5F62\u5F0F\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption to add is not in a recognized format.");
         }
         const array = locateCaptionArray(source);
         const entries = captionElementEntries(array.elements);
         if (entries.some((candidate) => candidate.id === caption.id)) {
-          throw new Error(`\u5B57\u5E55 ${caption.id} \u306F\u65E2\u306B\u3042\u308A\u307E\u3059\u3002`);
+          throw new Error(`Caption ${caption.id} already exists.`);
         }
         validateCaptionElements(entries, parsed.captions);
         const lineEnding = source.includes("\r\n") ? "\r\n" : "\n";
@@ -3441,7 +3441,7 @@ ${indent}`);
         validateCaptionElements(entries, parsed.captions);
         const index = entries.findIndex((entry2) => entry2.id === captionId);
         if (index < 0) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u3042\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`Caption ${captionId} is not in the caption data.`);
         }
         const entry = entries[index];
         let nextInner;
@@ -3458,12 +3458,12 @@ ${indent}`);
         const array = locateCaptionArray(source);
         const entries = captionElementEntries(array.elements);
         if (entries.some((entry) => entry.id === newCaptionId)) {
-          throw new Error(`\u5B57\u5E55 ${newCaptionId} \u306F\u65E2\u306B\u3042\u308A\u307E\u3059\u3002`);
+          throw new Error(`Caption ${newCaptionId} already exists.`);
         }
         const element = findCaptionElement(array.elements, captionId);
         const record2 = JSON.parse(element.text);
         if (!Array.isArray(record2.words) || record2.words.length < 2 || !Number.isInteger(wordIndex) || wordIndex <= 0 || wordIndex >= record2.words.length) {
-          throw new Error("\u3053\u306E\u884C\u306F\u5206\u5272\u3067\u304D\u307E\u305B\u3093\uFF08\u5358\u8A9E\u304C 2 \u3064\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\uFF09");
+          throw new Error("This line cannot be split. It needs at least two words.");
         }
         const words = record2.words;
         const wordsA = words.slice(0, wordIndex);
@@ -3471,11 +3471,11 @@ ${indent}`);
         const textA = wordsA.map((word) => String(word.text ?? "")).join("");
         const textB = wordsB.map((word) => String(word.text ?? "")).join("");
         if (textA + textB !== record2.text) {
-          throw new Error("\u3053\u306E\u884C\u306E\u30C6\u30AD\u30B9\u30C8\u3068\u8A9E\u306E\u30BF\u30A4\u30DF\u30F3\u30B0\u304C\u4E00\u81F4\u3057\u3066\u3044\u306A\u3044\u305F\u3081\u5206\u5272\u3067\u304D\u307E\u305B\u3093");
+          throw new Error("This line cannot be split because the text and word timing do not match.");
         }
         const splitEnd = wordsA[wordsA.length - 1].end;
         if (typeof splitEnd !== "number") {
-          throw new Error("\u3053\u306E\u884C\u306F\u5206\u5272\u3067\u304D\u307E\u305B\u3093\uFF08\u5358\u8A9E\u304C 2 \u3064\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\uFF09");
+          throw new Error("This line cannot be split. It needs at least two words.");
         }
         const unrecognized = Array.isArray(record2.unrecognized) ? record2.unrecognized : [];
         const recordA = {
@@ -3528,17 +3528,17 @@ ${indent}`);
       }
       function mergeCaptionLines(source, captionIds) {
         if (captionIds.length < 2) {
-          throw new Error("\u7D50\u5408\u3059\u308B\u5B57\u5E55\u3092 2 \u884C\u4EE5\u4E0A\u9078\u3093\u3067\u304F\u3060\u3055\u3044");
+          throw new Error("Select at least two caption lines to join.");
         }
         if (new Set(captionIds).size !== captionIds.length) {
-          throw new Error("\u540C\u3058\u5B57\u5E55\u3092\u91CD\u8907\u3057\u3066\u7D50\u5408\u3067\u304D\u307E\u305B\u3093");
+          throw new Error("The same caption cannot be joined twice.");
         }
         const array = locateCaptionArray(source);
         const elements = captionIds.map((id) => findCaptionElement(array.elements, id));
         const records = elements.map((element) => JSON.parse(element.text));
         const domains = records.map((record2) => record2.time_domain ?? "source");
         if (domains.some((domain) => domain !== domains[0])) {
-          throw new Error("\u30BF\u30A4\u30E0\u30C9\u30E1\u30A4\u30F3\u304C\u7570\u306A\u308B\u884C\u306F\u7D50\u5408\u3067\u304D\u307E\u305B\u3093");
+          throw new Error("Lines in different time domains cannot be joined.");
         }
         const words = records.flatMap((record2) => Array.isArray(record2.words) ? record2.words : []);
         const unrecognized = records.flatMap((record2) => Array.isArray(record2.unrecognized) ? record2.unrecognized : []);
@@ -3617,7 +3617,7 @@ ${indent}`);
         const value = JSON.parse(source);
         const rootStart = source.search(/\S/);
         if (rootStart < 0) {
-          throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption data is not in a recognized format.");
         }
         let openIndex;
         if (Array.isArray(value) && source[rootStart] === "[") {
@@ -3625,26 +3625,26 @@ ${indent}`);
         } else if (isRecord2(value) && Array.isArray(value.captions) && source[rootStart] === "{") {
           const rootClose = (0, edit_store_1.findMatchingBracket)(source, rootStart);
           if (source.slice(rootClose + 1).trim()) {
-            throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Caption data is not in a recognized format.");
           }
           const rootInner = source.slice(rootStart + 1, rootClose);
           const captionsProperties = (0, edit_store_1.splitTopLevelElements)(rootInner).filter((element) => /^"captions"\s*:/.test(element.text));
           if (captionsProperties.length !== 1) {
-            throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E captions \u914D\u5217\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot locate the captions array in the caption data.");
           }
           const property = captionsProperties[0];
           const propertyOffset = rootStart + 1 + property.start;
           const colonIndex = property.text.indexOf(":");
           openIndex = source.indexOf("[", propertyOffset + colonIndex + 1);
           if (openIndex < 0 || openIndex >= rootStart + 1 + property.end) {
-            throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E captions \u914D\u5217\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot locate the captions array in the caption data.");
           }
         } else {
-          throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption data is not in a recognized format.");
         }
         const closeIndex = (0, edit_store_1.findMatchingBracket)(source, openIndex);
         if (Array.isArray(value) && source.slice(closeIndex + 1).trim()) {
-          throw new Error("\u5B57\u5E55\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Caption data is not in a recognized format.");
         }
         const inner = source.slice(openIndex + 1, closeIndex);
         return {
@@ -3668,7 +3668,7 @@ ${indent}`);
         for (const caption of captions) {
           const matches = entries.filter((entry) => entry.id === caption.id);
           if (matches.length !== 1) {
-            throw new Error(matches.length === 0 ? `\u5B57\u5E55 ${caption.id} \u306E\u30EC\u30B3\u30FC\u30C9\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002` : `\u5B57\u5E55 ${caption.id} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u8907\u6570\u3042\u308A\u307E\u3059\u3002`);
+            throw new Error(matches.length === 0 ? `Cannot locate the record for caption ${caption.id}.` : `Caption ${caption.id} appears more than once in the caption data.`);
           }
         }
       }
@@ -3676,24 +3676,24 @@ ${indent}`);
         const entries = captionElementEntries(elements);
         const matches = entries.filter((entry) => entry.id === captionId);
         if (matches.length !== 1) {
-          throw new Error(matches.length === 0 ? `\u5B57\u5E55 ${captionId} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u3042\u308A\u307E\u305B\u3093\u3002` : `\u5B57\u5E55 ${captionId} \u304C\u5B57\u5E55\u30C7\u30FC\u30BF\u306B\u8907\u6570\u3042\u308A\u307E\u3059\u3002`);
+          throw new Error(matches.length === 0 ? `Caption ${captionId} is not in the caption data.` : `Caption ${captionId} appears more than once in the caption data.`);
         }
         return matches[0].element;
       }
       function locateCaptionProperty(source, property, captionId) {
         const openIndex = source.search(/\S/);
         if (openIndex < 0 || source[openIndex] !== "{") {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E\u30EC\u30B3\u30FC\u30C9\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate the record for caption ${captionId}.`);
         }
         const closeIndex = (0, edit_store_1.findMatchingBracket)(source, openIndex);
         if (source.slice(closeIndex + 1).trim()) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E\u30EC\u30B3\u30FC\u30C9\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate the record for caption ${captionId}.`);
         }
         const inner = source.slice(openIndex + 1, closeIndex);
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const matches = (0, edit_store_1.splitTopLevelElements)(inner).filter((element) => new RegExp(`^"${escapedProperty}"\\s*:`).test(element.text));
         if (matches.length !== 1) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E ${property} \u30D7\u30ED\u30D1\u30C6\u30A3\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
         }
         const match = matches[0];
         return {
@@ -3707,7 +3707,7 @@ ${indent}`);
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)`);
         if (!pattern.test(located.text)) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E ${property} \u30D7\u30ED\u30D1\u30C6\u30A3\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
         }
         const nextProperty = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
         return source.slice(0, located.start) + nextProperty + source.slice(located.end);
@@ -3717,7 +3717,7 @@ ${indent}`);
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)[\\s\\S]*$`);
         if (!pattern.test(located.text)) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E ${property} \u30D7\u30ED\u30D1\u30C6\u30A3\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
         }
         const nextProperty = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
         return source.slice(0, located.start) + nextProperty + source.slice(located.end);
@@ -3734,7 +3734,7 @@ ${indent}`);
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const match = new RegExp(`^"${escapedProperty}"\\s*:\\s*(${JSON_NUMBER})`).exec(located.text);
         if (!match) {
-          throw new Error(`\u5B57\u5E55 ${captionId} \u306E ${property} \u30D7\u30ED\u30D1\u30C6\u30A3\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
         }
         return Number(match[1]);
       }
@@ -4339,57 +4339,57 @@ ${indent}`);
       function validateTextStylePatch(updates) {
         const hasUpdate = updates.karaoke !== void 0 || updates.color !== void 0 || updates.sizePx !== void 0 || updates.wrapWidthPct !== void 0 || updates.zone !== void 0 || updates.fontWeight !== void 0 || updates.weight !== void 0 || updates.lineHeight !== void 0 || updates.letterSpacingEm !== void 0 || updates.fontFamily !== void 0 || updates.shadow !== void 0 || updates.glow !== void 0 || updates.stroke?.color !== void 0 || updates.stroke?.widthPx !== void 0 || updates.strokeInner !== void 0 || updates.fillGradient !== void 0 || updates.extrude !== void 0 || updates.background?.color !== void 0 || updates.background?.opacity !== void 0 || updates.background?.radiusPx !== void 0 || updates.background?.paddingPx !== void 0 || updates.background?.mode !== void 0 || updates.background?.fit !== void 0 || updates.animation !== void 0;
         if (!hasUpdate) {
-          throw new Error("\u5909\u66F4\u3059\u308B\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB\u306E\u30D5\u30A3\u30FC\u30EB\u30C9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the caption style fields to change.");
         }
         if (updates.karaoke) {
           if (Object.keys(updates.karaoke).some((key) => !["doneColor", "fill", "startIndex"].includes(key)))
-            throw new Error("\u30AB\u30E9\u30AA\u30B1\u306E\u8A2D\u5B9A\u306B\u672A\u77E5\u306E\u9805\u76EE\u304C\u3042\u308A\u307E\u3059\u3002");
+            throw new Error("The karaoke settings include an unknown field.");
           if (updates.karaoke.doneColor !== void 0 && !isHexColor(updates.karaoke.doneColor))
-            throw new Error("\u30AB\u30E9\u30AA\u30B1\u306E\u8272\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The karaoke color is invalid.");
           if (updates.karaoke.fill !== void 0 && !["char", "word", "smooth"].includes(updates.karaoke.fill))
-            throw new Error("\u30AB\u30E9\u30AA\u30B1\u306E\u5857\u308A\u65B9\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The karaoke fill mode is invalid.");
           if (updates.karaoke.startIndex !== void 0 && (!Number.isInteger(updates.karaoke.startIndex) || updates.karaoke.startIndex < 0))
-            throw new Error("\u30AB\u30E9\u30AA\u30B1\u306E\u958B\u59CB\u4F4D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The karaoke start index is invalid.");
         }
         for (const color of [updates.color, updates.stroke?.color, updates.background?.color]) {
           if (color !== void 0 && color !== null && !isHexColor(color)) {
-            throw new Error("\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB\u306E\u8272\u306F #RGB / #RRGGBB / #RRGGBBAA \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("Caption style colors must be #RGB, #RRGGBB, or #RRGGBBAA.");
           }
         }
         if (updates.strokeInner !== void 0 && updates.strokeInner !== null && (updates.strokeInner.color !== void 0 && !isHexColor(updates.strokeInner.color) || updates.strokeInner.widthPx !== void 0 && !isFiniteNonNegative(updates.strokeInner.widthPx))) {
-          throw new Error("stroke_inner \u306E\u8272\u304B\u592A\u3055\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("stroke_inner color or width is invalid.");
         }
         if (updates.fillGradient !== void 0 && updates.fillGradient !== null && (!Array.isArray(updates.fillGradient.colors) || updates.fillGradient.colors.length < 2 || updates.fillGradient.colors.length > 3 || !updates.fillGradient.colors.every(isHexColor) || !isFiniteNumber(updates.fillGradient.angleDeg))) {
-          throw new Error("fill_gradient \u306E\u8272\u304B\u89D2\u5EA6\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("fill_gradient color or angle is invalid.");
         }
         if (updates.extrude !== void 0 && updates.extrude !== null && (!Number.isInteger(updates.extrude.depthPx) || updates.extrude.depthPx < 1 || updates.extrude.depthPx > 32 || !isHexColor(updates.extrude.color) || updates.extrude.colorEnd !== void 0 && !isHexColor(updates.extrude.colorEnd) || !isFiniteNumber(updates.extrude.angleDeg))) {
-          throw new Error("extrude \u306E\u5965\u884C\u304D\u30FB\u8272\u30FB\u89D2\u5EA6\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("extrude depth, color, or angle is invalid.");
         }
         if (updates.sizePx !== void 0 && updates.sizePx !== null && (!Number.isFinite(updates.sizePx) || updates.sizePx <= 0)) {
-          throw new Error("\u5B57\u5E55\u30B5\u30A4\u30BA\u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption size must be a positive number.");
         }
         if (updates.wrapWidthPct !== void 0 && updates.wrapWidthPct !== null && (!Number.isFinite(updates.wrapWidthPct) || updates.wrapWidthPct <= 0 || updates.wrapWidthPct > 100)) {
-          throw new Error("\u6587\u5B57\u306E\u6298\u308A\u8FD4\u3057\u5E45\u306F 0 \u3088\u308A\u5927\u304D\u304F 100% \u4EE5\u4E0B\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Wrap width must be greater than 0 and at most 100%.");
         }
         for (const [value, min, max, label] of [
           [updates.fontWeight, 1, 1e3, "font_weight"],
           [updates.weight, 100, 900, "weight"]
         ]) {
           if (value !== void 0 && value !== null && (!Number.isInteger(value) || value < min || value > max)) {
-            throw new Error(`${label} \u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059\u3002`);
+            throw new Error(`The value of ${label} is invalid.`);
           }
         }
         if (updates.lineHeight !== void 0 && updates.lineHeight !== null && (!Number.isFinite(updates.lineHeight) || updates.lineHeight <= 0)) {
-          throw new Error("\u5B57\u5E55\u306E\u884C\u9593\u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption line height must be a positive number.");
         }
         if (updates.letterSpacingEm !== void 0 && updates.letterSpacingEm !== null && !Number.isFinite(updates.letterSpacingEm)) {
-          throw new Error("\u5B57\u5E55\u306E\u5B57\u9593\u306F\u6709\u9650\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption letter spacing must be a finite number.");
         }
         if (updates.fontFamily !== void 0 && updates.fontFamily !== null && (typeof updates.fontFamily !== "string" || !updates.fontFamily.trim())) {
-          throw new Error("\u5B57\u5E55\u30D5\u30A9\u30F3\u30C8\u540D\u306F\u7A7A\u306B\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("The caption font name cannot be empty.");
         }
         if (updates.background?.paddingPx !== void 0 && updates.background.paddingPx !== null && (!Number.isFinite(updates.background.paddingPx) || updates.background.paddingPx < 0)) {
-          throw new Error("\u5B57\u5E55\u306E\u5EA7\u5E03\u56E3\u4F59\u767D\u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption plate padding must be 0 or greater.");
         }
         for (const [name, effect, fields] of [
           ["shadow", updates.shadow, ["blurPx", "distancePx"]],
@@ -4398,67 +4398,67 @@ ${indent}`);
           if (effect === void 0 || effect === null)
             continue;
           if (typeof effect !== "object" || Array.isArray(effect) || !isHexColor(effect.color)) {
-            throw new Error(`${name} \u306E\u8272\u306F hex \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+            throw new Error(`Specify a hex color for ${name}.`);
           }
           const allowedKeys = name === "shadow" ? ["color", "opacity", "blurPx", "distancePx", "angleDeg"] : ["color", "density", "spread", "offsetX", "offsetY"];
           if (Object.keys(effect).some((key) => !allowedKeys.includes(key))) {
-            throw new Error(`${name} \u306B\u672A\u5BFE\u5FDC\u306E\u9805\u76EE\u304C\u3042\u308A\u307E\u3059\u3002`);
+            throw new Error(`${name} has an unsupported field.`);
           }
           for (const key of fields) {
             const value = effect[key];
             if (value !== void 0 && (typeof value !== "number" || !Number.isFinite(value) || value < 0)) {
-              throw new Error(`${name}.${key} \u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+              throw new Error(`${name}.${key} must be 0 or greater.`);
             }
           }
         }
         if (updates.shadow) {
           const { opacity, angleDeg } = updates.shadow;
           if (opacity !== void 0 && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-            throw new Error("shadow.opacity \u306F 0\u301C1 \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("shadow.opacity must be from 0 to 1.");
           }
           if (angleDeg !== void 0 && !Number.isFinite(angleDeg)) {
-            throw new Error("shadow.angleDeg \u306F\u6709\u9650\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("shadow.angleDeg must be a finite number.");
           }
         }
         if (updates.glow && [updates.glow.offsetX, updates.glow.offsetY].some((value) => value !== void 0 && !Number.isFinite(value))) {
-          throw new Error("glow \u306E\u4F4D\u7F6E\u306F\u6709\u9650\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("The glow position must be a finite number.");
         }
         if (updates.stroke?.widthPx !== void 0 && updates.stroke.widthPx !== null && (!Number.isFinite(updates.stroke.widthPx) || updates.stroke.widthPx < 0)) {
-          throw new Error("\u5B57\u5E55\u306E\u7E01\u53D6\u308A\u592A\u3055\u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption stroke width must be 0 or greater.");
         }
         if (updates.background?.opacity !== void 0 && updates.background.opacity !== null && (!Number.isFinite(updates.background.opacity) || updates.background.opacity < 0 || updates.background.opacity > 1)) {
-          throw new Error("\u5B57\u5E55\u306E\u5EA7\u5E03\u56E3\u4E0D\u900F\u660E\u5EA6\u306F 0\u301C1 \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption plate opacity must be from 0 to 1.");
         }
         if (updates.background?.radiusPx !== void 0 && updates.background.radiusPx !== null && (!Number.isFinite(updates.background.radiusPx) || updates.background.radiusPx < 0)) {
-          throw new Error("\u5B57\u5E55\u306E\u5EA7\u5E03\u56E3\u89D2\u4E38\u306F 0 \u4EE5\u4E0A\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Caption plate corner radius must be 0 or greater.");
         }
         if (updates.background?.mode !== void 0 && updates.background.mode !== null && updates.background.mode !== "per-line" && updates.background.mode !== "block") {
-          throw new Error("\u5B57\u5E55\u306E\u5EA7\u5E03\u56E3\u306E\u5F62\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption plate shape is invalid.");
         }
         if (updates.background?.fit !== void 0 && updates.background.fit !== null && updates.background.fit !== "text" && updates.background.fit !== "frame") {
-          throw new Error("\u5B57\u5E55\u306E\u5EA7\u5E03\u56E3\u306E\u5E45\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption plate width is invalid.");
         }
         if (updates.zone !== void 0 && updates.zone !== null && !exports.CAPTION_ZONES.includes(updates.zone)) {
-          throw new Error("\u5B57\u5E55\u306E\u4F4D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption position is invalid.");
         }
         if (updates.animation !== void 0 && updates.animation !== null && (typeof updates.animation !== "object" || Array.isArray(updates.animation))) {
-          throw new Error("\u5B57\u5E55\u30A2\u30CB\u30E1\u306E\u8A2D\u5B9A\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption animation settings are invalid.");
         }
         if (updates.animation && typeof updates.animation === "object") {
           for (const slot of [updates.animation.in, updates.animation.out]) {
             if (slot === void 0 || slot === null)
               continue;
             if (!slot || typeof slot !== "object" || typeof slot.id !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(slot.id)) {
-              throw new Error("\u5B57\u5E55\u30A2\u30CB\u30E1\u306E ID \u304C\u4E0D\u6B63\u3067\u3059\u3002");
+              throw new Error("The caption animation id is invalid.");
             }
             if (slot.durationSec !== void 0 && (!Number.isFinite(slot.durationSec) || slot.durationSec <= 0)) {
-              throw new Error("\u5B57\u5E55\u30A2\u30CB\u30E1\u306E\u9577\u3055\u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+              throw new Error("Caption animation length must be a positive number.");
             }
             if (slot.ease !== void 0 && slot.ease !== null && (typeof slot.ease !== "string" || !slot.ease.trim())) {
-              throw new Error("\u5B57\u5E55\u30A2\u30CB\u30E1\u306E\u30A4\u30FC\u30B8\u30F3\u30B0\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+              throw new Error("The caption animation easing is invalid.");
             }
             if (slot.amp !== void 0 && slot.amp !== null && (!Number.isFinite(slot.amp) || slot.amp <= 0)) {
-              throw new Error("\u5B57\u5E55\u30A2\u30CB\u30E1\u306E\u5F37\u3055\u306F\u6B63\u306E\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+              throw new Error("Caption animation strength must be a positive number.");
             }
           }
         }
@@ -4575,12 +4575,12 @@ ${indent}`);
       function locateTopLevelObjectProperty(scopeText, key, label) {
         const property = locateTopLevelProperty(scopeText, key);
         if (!property) {
-          throw new Error(`${label} \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} was not found.`);
         }
         const colonIndex = property.text.indexOf(":");
         const openIndex = scopeText.indexOf("{", property.start + colonIndex + 1);
         if (openIndex < 0 || openIndex >= property.end) {
-          throw new Error(`${label} \u304C object \u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002`);
+          throw new Error(`${label} is not an object.`);
         }
         const closeIndex = (0, edit_store_1.findMatchingBracket)(scopeText, openIndex);
         return { start: openIndex, end: closeIndex + 1, text: scopeText.slice(openIndex, closeIndex + 1) };
@@ -4649,7 +4649,7 @@ ${indent}`);
       function appendJsonProperty(source, property, value) {
         const closeIndex = source.lastIndexOf("}");
         if (closeIndex < 0) {
-          throw new Error("\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Cannot locate the caption style object.");
         }
         const beforeClose = source.slice(0, closeIndex);
         const trailingWhitespace = beforeClose.match(/\s*$/)?.[0] ?? "";
@@ -4667,12 +4667,12 @@ ${indent}`);
       function replaceTopLevelPropertyValue(source, property, value, label) {
         const located = locateTopLevelProperty(source, property);
         if (!located) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)`);
         if (!pattern.test(located.text)) {
-          throw new Error(`${label} \u306E ${property} \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002`);
+          throw new Error(`Cannot locate ${label} ${property}.`);
         }
         const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
         return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -4681,7 +4681,7 @@ ${indent}`);
         const openIndex = source.search(/\S/);
         const closeIndex = openIndex >= 0 ? (0, edit_store_1.findMatchingBracket)(source, openIndex) : -1;
         if (openIndex < 0 || source[openIndex] !== "{" || closeIndex < 0) {
-          throw new Error("\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("Cannot locate the caption style object.");
         }
         const inner = source.slice(openIndex + 1, closeIndex);
         const elements = (0, edit_store_1.splitTopLevelElements)(inner);
@@ -7789,34 +7789,34 @@ ${indent}`);
       var hex = /^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/u;
       var record2 = (v2) => typeof v2 === "object" && v2 !== null && !Array.isArray(v2);
       var fail = (path, message) => {
-        throw new Error(`edit.json v2 \u304C\u4E0D\u6B63\u3067\u3059 (${path}): ${message}`);
+        throw new Error(`edit.json v2 is invalid (${path}): ${message}`);
       };
       function requireRecord(value, path) {
         if (!record2(value))
-          fail(path, "object \u304C\u5FC5\u8981\u3067\u3059");
+          fail(path, "Must be an object.");
       }
       var number2 = (v2, min, max, integer = false) => typeof v2 === "number" && Number.isFinite(v2) && v2 >= min && v2 <= max && (!integer || Number.isInteger(v2));
       function assertKeys(value, allowed, path) {
         for (const key of Object.keys(value))
           if (!allowed.has(key))
-            fail(`${path}.${key}`, "\u672A\u5BFE\u5FDC\u306E\u30AD\u30FC\u3067\u3059");
+            fail(`${path}.${key}`, "Unsupported key.");
       }
       function paint(value, path, v1) {
         if (typeof value === "string") {
           if (v1 && value !== "none" && !hex.test(value))
-            fail(path, "#RRGGBB(AA) \u307E\u305F\u306F none \u304C\u5FC5\u8981\u3067\u3059");
+            fail(path, "Must be #RRGGBB(AA) or none.");
           return;
         }
         requireRecord(value, path);
         assertKeys(value, /* @__PURE__ */ new Set(["type", "angle", "stops"]), path);
         if (value.type !== "linear" && value.type !== "radial") {
-          fail(`${path}.type`, "linear \u307E\u305F\u306F radial \u304C\u5FC5\u8981\u3067\u3059");
+          fail(`${path}.type`, "Must be linear or radial.");
         }
         if (value.type === "linear" ? !number2(value.angle, 0, 360) : "angle" in value) {
-          fail(`${path}.angle`, "\u89D2\u5EA6\u304C\u4E0D\u6B63\u3067\u3059");
+          fail(`${path}.angle`, "The angle is invalid.");
         }
         if (!Array.isArray(value.stops) || value.stops.length < 2 || value.stops.length > 5) {
-          fail(`${path}.stops`, "2\u301C5 \u8272\u304C\u5FC5\u8981\u3067\u3059");
+          fail(`${path}.stops`, "Must have 2 to 5 colors.");
         }
         const stops = value.stops;
         let last = -1;
@@ -7825,10 +7825,10 @@ ${indent}`);
           requireRecord(stop, `${path}.stops[${i2}]`);
           assertKeys(stop, /* @__PURE__ */ new Set(["color", "offset"]), `${path}.stops[${i2}]`);
           if (typeof stop.color !== "string" || !hex.test(stop.color)) {
-            fail(`${path}.stops[${i2}].color`, "\u8272\u304C\u4E0D\u6B63\u3067\u3059");
+            fail(`${path}.stops[${i2}].color`, "The color is invalid.");
           }
           if (!number2(stop.offset, 0, 1) || stop.offset < last) {
-            fail(`${path}.stops[${i2}].offset`, "\u4F4D\u7F6E\u306F\u6607\u9806\u306E 0\u301C1 \u3067\u3059");
+            fail(`${path}.stops[${i2}].offset`, "Positions must increase from 0 to 1.");
           }
           last = stop.offset;
         }
@@ -7836,10 +7836,10 @@ ${indent}`);
       function validateShapeSource(value, path) {
         assertKeys(value, /* @__PURE__ */ new Set(["kind", "shape", "params"]), path);
         if (!kinds.has(value.shape))
-          fail(`${path}.shape`, "\u672A\u5BFE\u5FDC\u306E shape \u3067\u3059");
+          fail(`${path}.shape`, "Unsupported shape.");
         if (value.params === void 0) {
           if (value.shape === "path")
-            fail(`${path}.params.path`, "path \u304C\u5FC5\u8981\u3067\u3059");
+            fail(`${path}.params.path`, "A path is required.");
           return;
         }
         requireRecord(value.params, `${path}.params`);
@@ -7866,51 +7866,51 @@ ${indent}`);
         ].some((k2) => k2 in p2) || record2(p2.fill) || record2(p2.stroke);
         for (const key of ["width", "height"]) {
           if (key in p2 && !number2(p2[key], Number.MIN_VALUE, Infinity)) {
-            fail(`${path}.params.${key}`, "\u6B63\u306E\u6709\u9650\u6570\u304C\u5FC5\u8981\u3067\u3059");
+            fail(`${path}.params.${key}`, "Must be a positive finite number.");
           }
         }
         if ("strokeWidth" in p2 && !number2(p2.strokeWidth, 0, v1 ? 100 : Infinity)) {
-          fail(`${path}.params.strokeWidth`, "\u7BC4\u56F2\u5916\u3067\u3059");
+          fail(`${path}.params.strokeWidth`, "Out of range.");
         }
         if ("cornerRadius" in p2 && !number2(p2.cornerRadius, 0, value.shape === "path" ? 100 : Infinity)) {
-          fail(`${path}.params.cornerRadius`, "\u7BC4\u56F2\u5916\u3067\u3059");
+          fail(`${path}.params.cornerRadius`, "Out of range.");
         }
         for (const key of ["fill", "stroke"])
           if (key in p2)
             paint(p2[key], `${path}.params.${key}`, v1);
         if ("preset" in p2 && (typeof p2.preset !== "string" || !p2.preset.trim())) {
-          fail(`${path}.params.preset`, "ID \u304C\u5FC5\u8981\u3067\u3059");
+          fail(`${path}.params.preset`, "An id is required.");
         }
         if ("path" in p2 || value.shape === "path") {
           if (value.shape !== "path")
-            fail(`${path}.params.path`, "path \u578B\u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+            fail(`${path}.params.path`, "Only a path type can hold this.");
           requireRecord(p2.path, `${path}.params.path`);
           const pathValue = p2.path;
           assertKeys(pathValue, /* @__PURE__ */ new Set(["d", "vb", "rule"]), `${path}.params.path`);
           if (typeof pathValue.d !== "string" || !Array.isArray(pathValue.vb) || pathValue.vb.length !== 2 || !pathValue.vb.every((n2) => number2(n2, Number.MIN_VALUE, Infinity)) || pathValue.rule !== void 0 && !["nonzero", "evenodd"].includes(pathValue.rule))
-            fail(`${path}.params.path`, "path \u304C\u4E0D\u6B63\u3067\u3059");
+            fail(`${path}.params.path`, "The path is invalid.");
           try {
             (0, shape_geometry_1.parseShapePath)(pathValue.d);
           } catch {
-            fail(`${path}.params.path.d`, "\u7D76\u5BFE\u5EA7\u6A19\u306E M/L/C/Z \u304C\u5FC5\u8981\u3067\u3059");
+            fail(`${path}.params.path.d`, "Absolute M/L/C/Z coordinates are required.");
           }
         }
         if (["startCap", "endCap", "startCapFilled", "endCapFilled", "lineCap"].some((k2) => k2 in p2) && !["line", "arrow"].includes(value.shape))
-          fail(`${path}.params`, "\u7AEF\u306E\u5024\u306F line/arrow \u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+          fail(`${path}.params`, "Only a line or arrow can hold an end value.");
         if ("dash" in p2 && !["solid", "dash", "dot"].includes(p2.dash)) {
-          fail(`${path}.params.dash`, "\u7DDA\u7A2E\u304C\u4E0D\u6B63\u3067\u3059");
+          fail(`${path}.params.dash`, "The line style is invalid.");
         }
         for (const key of ["startCap", "endCap"]) {
           if (key in p2 && !capKinds.has(p2[key])) {
-            fail(`${path}.params.${key}`, "\u7AEF\u306E\u7A2E\u985E\u304C\u4E0D\u6B63\u3067\u3059");
+            fail(`${path}.params.${key}`, "The edge kind is invalid.");
           }
         }
         for (const key of ["startCapFilled", "endCapFilled"]) {
           if (key in p2 && typeof p2[key] !== "boolean")
-            fail(`${path}.params.${key}`, "boolean \u304C\u5FC5\u8981\u3067\u3059");
+            fail(`${path}.params.${key}`, "Must be a boolean.");
         }
         if ("lineCap" in p2 && !["butt", "round"].includes(p2.lineCap)) {
-          fail(`${path}.params.lineCap`, "\u7AEF\u306E\u5F62\u304C\u4E0D\u6B63\u3067\u3059");
+          fail(`${path}.params.lineCap`, "The edge shape is invalid.");
         }
         if ([
           "style",
@@ -7924,19 +7924,19 @@ ${indent}`);
           "tailWidth",
           "tailCurve"
         ].some((k2) => k2 in p2) && value.shape !== "bubble")
-          fail(`${path}.params`, "\u5439\u304D\u51FA\u3057\u306E\u5024\u306F bubble \u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+          fail(`${path}.params`, "Only a bubble can hold a speech-bubble value.");
         if ("style" in p2 && !bubbleStyles.has(p2.style)) {
-          fail(`${path}.params.style`, "\u5439\u304D\u51FA\u3057\u306E\u5F62\u304C\u4E0D\u6B63\u3067\u3059");
+          fail(`${path}.params.style`, "The speech-bubble shape is invalid.");
         }
         if ("tail" in p2 && !["point", "dots", "none"].includes(p2.tail)) {
-          fail(`${path}.params.tail`, "\u3057\u3063\u307D\u304C\u4E0D\u6B63\u3067\u3059");
+          fail(`${path}.params.tail`, "The tail is invalid.");
         }
         for (const key of ["count", "depth", "jitter", "tailAngle", "tailLength", "tailWidth", "tailCurve", "seed"]) {
           if (key in p2) {
             const range = key === "count" ? [4, 48, true] : key === "seed" ? [-2147483648, 2147483647, true] : key === "tailCurve" ? [-100, 100, false] : key === "tailAngle" ? [0, 360, false] : [0, 100, false];
             const [min, max, integer] = range;
             if (!number2(p2[key], min, max, integer))
-              fail(`${path}.params.${key}`, "\u7BC4\u56F2\u5916\u3067\u3059");
+              fail(`${path}.params.${key}`, "Out of range.");
           }
         }
       }
@@ -8023,30 +8023,30 @@ ${indent}`);
         requireRecord(parsed, "edit.json");
         requireExactKeys(parsed, /* @__PURE__ */ new Set(["version", "output", "sources", "tracks", "audio", "captions", "thumbnail"]), "edit.json");
         if (parsed.version !== 2) {
-          throw invalid("edit.json.version", "2 \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\uFF08v0/v1 \u306F\u3053\u306E reader \u306E\u5BFE\u8C61\u5916\u3067\u3059\uFF09");
+          throw invalid("edit.json.version", "Must be 2. This reader does not accept v0 or v1.");
         }
         validateOutput(parsed.output);
         if (!Array.isArray(parsed.sources)) {
-          throw invalid("edit.json.sources", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid("edit.json.sources", "Must be an array.");
         }
         if (!Array.isArray(parsed.tracks)) {
-          throw invalid("edit.json.tracks", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid("edit.json.tracks", "Must be an array.");
         }
         if (hasOwn(parsed, "audio")) {
           requireRecord(parsed.audio, "edit.json.audio");
           if (hasOwn(parsed.audio, "duck_keys")) {
             if (!Array.isArray(parsed.audio.duck_keys))
-              throw invalid("edit.json.audio.duck_keys", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid("edit.json.audio.duck_keys", "Must be an array.");
             const keys = parsed.audio.duck_keys;
             if (keys.some((key) => key !== "narration" && key !== "speech")) {
-              throw invalid("edit.json.audio.duck_keys", "narration/speech \u306E\u307F\u6307\u5B9A\u3067\u304D\u307E\u3059");
+              throw invalid("edit.json.audio.duck_keys", "Only narration or speech can be specified.");
             }
             if (new Set(keys).size !== keys.length)
-              throw invalid("edit.json.audio.duck_keys", "\u91CD\u8907\u3067\u304D\u307E\u305B\u3093");
+              throw invalid("edit.json.audio.duck_keys", "Must not contain duplicates.");
           }
         }
         if (hasOwn(parsed, "captions") && !Array.isArray(parsed.captions)) {
-          throw invalid("edit.json.captions", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid("edit.json.captions", "Must be an array.");
         }
         if (hasOwn(parsed, "thumbnail"))
           requireRecord(parsed.thumbnail, "edit.json.thumbnail");
@@ -8091,7 +8091,7 @@ ${indent}`);
         try {
           return JSON.parse(json);
         } catch (error) {
-          throw invalid("edit.json", `JSON \u3068\u3057\u3066\u8AAD\u3081\u307E\u305B\u3093: ${messageOf(error)}`);
+          throw invalid("edit.json", `Not valid JSON: ${messageOf(error)}`);
         }
       }
       function validateOutput(value) {
@@ -8106,7 +8106,7 @@ ${indent}`);
         requireExactKeys(value, /* @__PURE__ */ new Set(["id", "path", "proxy", "chroma_key"]), path);
         requireText(value.id, `${path}.id`);
         if (ids.has(value.id))
-          throw invalid(`${path}.id`, `source id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+          throw invalid(`${path}.id`, `Duplicate source id: ${value.id}`);
         ids.add(value.id);
         requireText(value.path, `${path}.path`);
         if (hasOwn(value, "proxy") && value.proxy !== null)
@@ -8121,25 +8121,25 @@ ${indent}`);
         requireExactKeys(value, /* @__PURE__ */ new Set(["id", "lane", "name", "muted", "items", "content"]), path);
         requireText(value.id, `${path}.id`);
         if (trackIds.has(value.id))
-          throw invalid(`${path}.id`, `track id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+          throw invalid(`${path}.id`, `Duplicate track id: ${value.id}`);
         trackIds.add(value.id);
         if (value.lane !== "visual" && value.lane !== "audio") {
-          throw invalid(`${path}.lane`, "visual \u307E\u305F\u306F audio \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.lane`, "Must be visual or audio.");
         }
         if (hasOwn(value, "name") && typeof value.name !== "string") {
-          throw invalid(`${path}.name`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.name`, "Must be a string.");
         }
         if (hasOwn(value, "muted") && typeof value.muted !== "boolean") {
-          throw invalid(`${path}.muted`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.muted`, "Must be a boolean.");
         }
         const hasItems = hasOwn(value, "items");
         const hasContent = hasOwn(value, "content");
         if (hasItems === hasContent) {
-          throw invalid(path, "items \u3068 content \u306E\u3069\u3061\u3089\u304B\u4E00\u65B9\u3060\u3051\u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(path, "Specify either items or content, not both.");
         }
         if (hasItems) {
           if (!Array.isArray(value.items))
-            throw invalid(`${path}.items`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.items`, "Must be an array.");
           value.items.forEach((item, itemIndex) => {
             const itemPath = `${path}.items[${itemIndex}]`;
             if (value.lane === "audio")
@@ -8152,7 +8152,7 @@ ${indent}`);
         requireRecord(value.content, `${path}.content`);
         requireExactKeys(value.content, /* @__PURE__ */ new Set(["from"]), `${path}.content`);
         if (value.content.from !== "captions.json") {
-          throw invalid(`${path}.content.from`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.content.from`, "Must be captions.json.");
         }
       }
       function validateAudioItem(value, path, ids, sourceIds) {
@@ -8160,7 +8160,7 @@ ${indent}`);
         requireExactKeys(value, AUDIO_ITEM_KEYS, path);
         requireText(value.id, `${path}.id`);
         if (ids.has(value.id))
-          throw invalid(`${path}.id`, `item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+          throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
         ids.add(value.id);
         validateItemMetadata(value, path);
         if (hasOwn(value, "anchor"))
@@ -8168,12 +8168,12 @@ ${indent}`);
         requireInteger(value.at, 0, `${path}.at`);
         requireInteger(value.duration, 0, `${path}.duration`);
         if (hasOwn(value, "role") && value.role !== "sfx" && value.role !== "narration" && value.role !== "bgm" && value.role !== "speech") {
-          throw invalid(`${path}.role`, "sfx/narration/bgm/speech \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.role`, "Must be one of sfx, narration, bgm, speech.");
         }
         if (hasOwn(value, "link"))
           requireText(value.link, `${path}.link`);
         if (hasOwn(value, "mute") && typeof value.mute !== "boolean") {
-          throw invalid(`${path}.mute`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.mute`, "Must be a boolean.");
         }
         if (hasOwn(value, "gain_db"))
           requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
@@ -8188,7 +8188,7 @@ ${indent}`);
         if (hasOwn(value, "fade_out"))
           requireNonNegativeNumber(value.fade_out, `${path}.fade_out`);
         if (hasOwn(value, "ducking") && typeof value.ducking !== "boolean") {
-          throw invalid(`${path}.ducking`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.ducking`, "Must be a boolean.");
         }
         if (hasOwn(value, "duck_db"))
           requireRange(value.duck_db, -40, 0, `${path}.duck_db`);
@@ -8197,13 +8197,13 @@ ${indent}`);
         if (hasOwn(value, "duck_release"))
           requireRange(value.duck_release, 0, 5, `${path}.duck_release`);
         if (hasOwn(value, "script") && typeof value.script !== "string") {
-          throw invalid(`${path}.script`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.script`, "Must be a string.");
         }
         if (hasOwn(value, "reading") && typeof value.reading !== "string") {
-          throw invalid(`${path}.reading`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.reading`, "Must be a string.");
         }
         if (hasOwn(value, "caption_ref") && (typeof value.caption_ref !== "string" || !/^c-\d{4}$/.test(value.caption_ref))) {
-          throw invalid(`${path}.caption_ref`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.caption_ref`, "A caption id is required.");
         }
         if (hasOwn(value, "provenance"))
           validateNarrationProvenance(value.provenance, `${path}.provenance`);
@@ -8214,45 +8214,45 @@ ${indent}`);
         requireText(value.provider, `${path}.provider`);
         for (const key of ["engine", "voice", "credit", "generated_at"]) {
           if (hasOwn(value, key) && typeof value[key] !== "string") {
-            throw invalid(`${path}.${key}`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.${key}`, "Must be a string.");
           }
         }
         if (value.provider === "voicevox" && (!hasOwn(value, "credit") || typeof value.credit !== "string" || value.credit.trim().length === 0)) {
-          throw invalid(`${path}.credit`, "provider \u304C voicevox \u306E\u3068\u304D\u306F\u7A7A\u3067\u306A\u3044\u6587\u5B57\u5217\u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.credit`, "When provider is voicevox, a non-empty string is required.");
         }
       }
       function validateAudioMediaSource(value, path, sourceIds) {
         requireRecord(value, path);
         requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "src", "in", "out", "speed", "pitch_semitones", "formant"]), path);
         if (value.kind !== "media")
-          throw invalid(`${path}.kind`, "media \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.kind`, "Must be media.");
         requireText(value.src, `${path}.src`);
         if (!sourceIds.has(value.src))
-          throw invalid(`${path}.src`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.src}`);
+          throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
         if (hasOwn(value, "in"))
           requireNonNegativeNumber(value.in, `${path}.in`);
         if (hasOwn(value, "out")) {
           requireNonNegativeNumber(value.out, `${path}.out`);
           const inSeconds = hasOwn(value, "in") ? value.in : 0;
           if (value.out <= inSeconds)
-            throw invalid(path, "audio media source \u306F out > in \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(path, "An audio media source needs out > in.");
         }
         if (hasOwn(value, "speed")) {
           requireRange(value.speed, 0.25, 4, `${path}.speed`);
           if (value.speed === 0.25)
-            throw invalid(`${path}.speed`, "0.25 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.speed`, "Must be greater than 0.25.");
         }
         if (hasOwn(value, "pitch_semitones"))
           requireRange(value.pitch_semitones, -24, 24, `${path}.pitch_semitones`);
         if (hasOwn(value, "formant") && value.formant !== "preserve" && value.formant !== "shift") {
-          throw invalid(`${path}.formant`, "preserve/shift \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.formant`, "Must be preserve or shift.");
         }
       }
       function validateAudioClipDenoise(value, path) {
         requireRecord(value, path);
         requireExactKeys(value, /* @__PURE__ */ new Set(["method", "strength"]), path);
         if (value.method !== "fft" && value.method !== "nlm") {
-          throw invalid(`${path}.method`, "fft/nlm \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.method`, "Must be fft or nlm.");
         }
         requireRange(value.strength, 0, 1, `${path}.strength`);
       }
@@ -8261,7 +8261,7 @@ ${indent}`);
         requireExactKeys(value, ITEM_KEYS, path);
         requireText(value.id, `${path}.id`);
         if (ids.has(value.id))
-          throw invalid(`${path}.id`, `item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+          throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
         ids.add(value.id);
         validateItemMetadata(value, path);
         if (hasOwn(value, "anchor"))
@@ -8273,7 +8273,7 @@ ${indent}`);
         if (hasOwn(value, "opacity"))
           requireRange(value.opacity, 0, 1, `${path}.opacity`);
         if (hasOwn(value, "blend") && !BLEND_MODES.has(value.blend)) {
-          throw invalid(`${path}.blend`, "\u672A\u5BFE\u5FDC\u306E blend mode \u3067\u3059");
+          throw invalid(`${path}.blend`, "Unsupported blend mode.");
         }
         if (hasOwn(value, "crop"))
           validateCrop(value.crop, `${path}.crop`);
@@ -8294,31 +8294,31 @@ ${indent}`);
           const transforms = [value.transform, ...Array.isArray(value.keyframes) ? value.keyframes.map((point) => point.transform) : []];
           for (const transform of transforms) {
             if (transform !== null && typeof transform === "object" && (hasOwn(transform, "scaleX") || hasOwn(transform, "scaleY"))) {
-              throw invalid(`${path}.transform`, "group \u306F scaleX / scaleY \u3092\u6307\u5B9A\u3067\u304D\u307E\u305B\u3093");
+              throw invalid(`${path}.transform`, "A group cannot set scaleX or scaleY.");
             }
           }
         }
         if (hasOwn(value, "audio")) {
           if (value.source.kind !== "media")
-            throw invalid(`${path}.audio`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+            throw invalid(`${path}.audio`, "Only a media item can be specified.");
           if (value.audio !== false)
-            throw invalid(`${path}.audio`, "false \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.audio`, "Must be false.");
         }
         if (hasOwn(value, "mask")) {
           if (value.source.kind !== "media")
-            throw invalid(`${path}.mask`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+            throw invalid(`${path}.mask`, "Only a media item can be specified.");
           requireText(value.mask, `${path}.mask`);
           if (!sourceIds.has(value.mask))
-            throw invalid(`${path}.mask`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.mask}`);
+            throw invalid(`${path}.mask`, `Not in sources[].id: ${value.mask}`);
         }
         if (hasOwn(value, "maskFeather")) {
           if (value.source.kind !== "media")
-            throw invalid(`${path}.maskFeather`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+            throw invalid(`${path}.maskFeather`, "Only a media item can be specified.");
           requireRange(value.maskFeather, 0, 100, `${path}.maskFeather`);
         }
         if (hasOwn(value, "regions")) {
           if (value.source.kind !== "media" || !Array.isArray(value.regions) || value.regions.length > 32)
-            throw invalid(`${path}.regions`, "media item \u306E 32 \u500B\u4EE5\u4E0B\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.regions`, "Must be an array of at most 32 media items.");
           const regionIds = /* @__PURE__ */ new Set();
           value.regions.forEach((region, index) => {
             const at2 = `${path}.regions[${index}]`;
@@ -8328,14 +8328,14 @@ ${indent}`);
             if (hasOwn(region, "name"))
               requireText(region.name, `${at2}.name`);
             if (regionIds.has(region.id))
-              throw invalid(`${at2}.id`, "\u91CD\u8907\u3057\u3066\u3044\u307E\u3059");
+              throw invalid(`${at2}.id`, "This is a duplicate.");
             regionIds.add(region.id);
             requireText(region.maskRef, `${at2}.maskRef`);
             if (!sourceIds.has(region.maskRef))
-              throw invalid(`${at2}.maskRef`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${region.maskRef}`);
+              throw invalid(`${at2}.maskRef`, `Not in sources[].id: ${region.maskRef}`);
             for (const key of ["invert", "enabled"])
               if (hasOwn(region, key) && typeof region[key] !== "boolean")
-                throw invalid(`${at2}.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+                throw invalid(`${at2}.${key}`, "Must be a boolean.");
             if (hasOwn(region, "adjust")) {
               requireRecord(region.adjust, `${at2}.adjust`);
               requireExactKeys(region.adjust, /* @__PURE__ */ new Set(["basic"]), `${at2}.adjust`);
@@ -8360,18 +8360,18 @@ ${indent}`);
         }
         if (hasOwn(value, "erase")) {
           if (value.source.kind !== "media" || !Array.isArray(value.erase))
-            throw invalid(`${path}.erase`, "media item \u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.erase`, "Must be an array on a media item.");
           value.erase.forEach((stroke, index) => {
             const at2 = `${path}.erase[${index}]`;
             requireRecord(stroke, at2);
             requireExactKeys(stroke, /* @__PURE__ */ new Set(["mode", "points", "size", "hardness"]), at2);
             if (stroke.mode !== "erase" && stroke.mode !== "restore")
-              throw invalid(`${at2}.mode`, "erase \u307E\u305F\u306F restore \u304C\u5FC5\u8981\u3067\u3059");
+              throw invalid(`${at2}.mode`, "Must be erase or restore.");
             if (!Array.isArray(stroke.points) || stroke.points.length === 0)
-              throw invalid(`${at2}.points`, "\u70B9\u304C\u5FC5\u8981\u3067\u3059");
+              throw invalid(`${at2}.points`, "At least one point is required.");
             stroke.points.forEach((point, pointIndex) => {
               if (!Array.isArray(point) || point.length !== 2)
-                throw invalid(`${at2}.points[${pointIndex}]`, "2 \u5EA7\u6A19\u304C\u5FC5\u8981\u3067\u3059");
+                throw invalid(`${at2}.points[${pointIndex}]`, "Two coordinates are required.");
               requireRange(point[0], 0, 1, `${at2}.points[${pointIndex}][0]`);
               requireRange(point[1], 0, 1, `${at2}.points[${pointIndex}][1]`);
             });
@@ -8381,46 +8381,46 @@ ${indent}`);
         }
         if (hasOwn(value, "flip")) {
           if (value.source.kind !== "media")
-            throw invalid(`${path}.flip`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+            throw invalid(`${path}.flip`, "Only a media item can be specified.");
           requireRecord(value.flip, `${path}.flip`);
           requireExactKeys(value.flip, /* @__PURE__ */ new Set(["h", "v"]), `${path}.flip`);
           for (const axis of ["h", "v"])
             if (hasOwn(value.flip, axis) && typeof value.flip[axis] !== "boolean")
-              throw invalid(`${path}.flip.${axis}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.flip.${axis}`, "Must be a boolean.");
         }
         if (hasOwn(value, "items")) {
           if (!Array.isArray(value.items))
-            throw invalid(`${path}.items`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.items`, "Must be an array.");
           value.items.forEach((child, index) => validateItem(child, `${path}.items[${index}]`, ids, sourceIds));
         }
       }
       function validateItemMetadata(value, path) {
         if (hasOwn(value, "name") && typeof value.name !== "string")
-          throw invalid(`${path}.name`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(`${path}.name`, "Must be a string.");
         for (const key of ["hidden", "locked"]) {
           if (hasOwn(value, key) && typeof value[key] !== "boolean")
-            throw invalid(`${path}.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.${key}`, "Must be a boolean.");
         }
       }
       function validateItemAnchor(value, path) {
         requireRecord(value, path);
         requireExactKeys(value, /* @__PURE__ */ new Set(["caption", "range", "offset", "edge", "duration", "attached_by"]), path);
         if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption))
-          throw invalid(`${path}.caption`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.caption`, "A caption id is required.");
         if (hasOwn(value, "range")) {
           requireRecord(value.range, `${path}.range`);
           requireExactKeys(value.range, /* @__PURE__ */ new Set(["start", "end"]), `${path}.range`);
           requireNonNegativeNumber(value.range.start, `${path}.range.start`);
           requireNonNegativeNumber(value.range.end, `${path}.range.end`);
           if (value.range.end <= value.range.start)
-            throw invalid(`${path}.range`, "end > start \u304C\u5FC5\u8981\u3067\u3059");
+            throw invalid(`${path}.range`, "end must be greater than start.");
         }
         if (hasOwn(value, "offset") && !Number.isInteger(value.offset))
-          throw invalid(`${path}.offset`, "\u6574\u6570\u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.offset`, "Must be an integer.");
         if (hasOwn(value, "edge") && value.edge !== "start" && value.edge !== "end")
-          throw invalid(`${path}.edge`, "start/end \u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.edge`, "Must be start or end.");
         if (hasOwn(value, "duration") && value.duration !== "caption" && value.duration !== "own")
-          throw invalid(`${path}.duration`, "caption/own \u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.duration`, "Must be caption or own.");
         if (hasOwn(value, "attached_by"))
           validateAttachedBy(value.attached_by, `${path}.attached_by`);
       }
@@ -8429,7 +8429,7 @@ ${indent}`);
         requireExactKeys(value, /* @__PURE__ */ new Set(["style_uid", "caption"]), path);
         requireText(value.style_uid, `${path}.style_uid`);
         if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption))
-          throw invalid(`${path}.caption`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+          throw invalid(`${path}.caption`, "A caption id is required.");
       }
       function validateItemSource(value, path, sourceIds) {
         requireRecord(value, path);
@@ -8451,23 +8451,23 @@ ${indent}`);
             ]), path);
             requireText(value.src, `${path}.src`);
             if (!sourceIds.has(value.src))
-              throw invalid(`${path}.src`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.src}`);
+              throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
             requireNonNegativeNumber(value.in, `${path}.in`);
             requireNonNegativeNumber(value.out, `${path}.out`);
             if (value.out <= value.in)
-              throw invalid(path, "media source \u306F out > in \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(path, "A media source needs out > in.");
             for (const key of ["framing", "transition_out", "freeze", "chroma_key"]) {
               if (hasOwn(value, key) && value[key] !== null)
                 requireRecord(value[key], `${path}.${key}`);
             }
             if (hasOwn(value, "fx") && !Array.isArray(value.fx))
-              throw invalid(`${path}.fx`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.fx`, "Must be an array.");
             if (hasOwn(value, "speed"))
               requirePositiveNumber(value.speed, `${path}.speed`);
             if (hasOwn(value, "gain_db"))
               requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
             if (hasOwn(value, "mute") && typeof value.mute !== "boolean")
-              throw invalid(`${path}.mute`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.mute`, "Must be a boolean.");
             return;
           case "html":
             requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "part", "style", "text", "exclude", "derivedFrom", "vars", "params"]), path);
@@ -8476,7 +8476,7 @@ ${indent}`);
               if (hasOwn(value, key))
                 requireText(value[key], `${path}.${key}`);
             if (hasOwn(value, "text") && typeof value.text !== "string")
-              throw invalid(`${path}.text`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.text`, "Must be a string.");
             if (hasOwn(value, "style"))
               validateStringMap(value.style, `${path}.style`);
             if (hasOwn(value, "exclude"))
@@ -8487,7 +8487,7 @@ ${indent}`);
               requireRecord(value.params, `${path}.params`);
               for (const [name, text] of Object.entries(value.params)) {
                 if (typeof text !== "string")
-                  throw invalid(`${path}.params.${name}`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+                  throw invalid(`${path}.params.${name}`, "Must be a string.");
               }
             }
             return;
@@ -8514,54 +8514,54 @@ ${indent}`);
               requireRecord(value.canvas, `${path}.canvas`);
               requireExactKeys(value.canvas, /* @__PURE__ */ new Set(["origin", "durationMode", "intent", "background"]), `${path}.canvas`);
               if (value.canvas.origin !== "user" && value.canvas.origin !== "plan")
-                throw invalid(`${path}.canvas.origin`, "user / plan \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+                throw invalid(`${path}.canvas.origin`, "Must be user or plan.");
               if (value.canvas.durationMode !== "fixed")
-                throw invalid(`${path}.canvas.durationMode`, "fixed \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+                throw invalid(`${path}.canvas.durationMode`, "Must be fixed.");
               if (hasOwn(value.canvas, "intent") && typeof value.canvas.intent !== "string")
-                throw invalid(`${path}.canvas.intent`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+                throw invalid(`${path}.canvas.intent`, "Must be a string.");
               if (hasOwn(value.canvas, "background")) {
                 requireRecord(value.canvas.background, `${path}.canvas.background`);
                 requireExactKeys(value.canvas.background, /* @__PURE__ */ new Set(["type", "color"]), `${path}.canvas.background`);
                 if (value.canvas.background.type === "color") {
                   if (typeof value.canvas.background.color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(value.canvas.background.color))
-                    throw invalid(`${path}.canvas.background.color`, "#RRGGBB \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+                    throw invalid(`${path}.canvas.background.color`, "Must be #RRGGBB.");
                 } else if (value.canvas.background.type !== "none" || hasOwn(value.canvas.background, "color"))
-                  throw invalid(`${path}.canvas.background`, "none \u307E\u305F\u306F color \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+                  throw invalid(`${path}.canvas.background`, "Must be none or color.");
               }
             }
             return;
           case "captions":
             requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "exclude"]), path);
             if (value.path !== "captions.json")
-              throw invalid(`${path}.path`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.path`, "Must be captions.json.");
             if (hasOwn(value, "exclude"))
               validateStringList(value.exclude, `${path}.exclude`);
             return;
           case "caption":
             requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "id"]), path);
             if (value.path !== "captions.json")
-              throw invalid(`${path}.path`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.path`, "Must be captions.json.");
             requireText(value.id, `${path}.id`);
             return;
           default:
-            throw invalid(`${path}.kind`, "media/html/telop/filter/group/captions/caption \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.kind`, "Must be media, html, telop, filter, group, captions, or caption.");
         }
       }
       function validateStringMap(value, path) {
         requireRecord(value, path);
         for (const [key, entry] of Object.entries(value)) {
           if (typeof entry !== "string")
-            throw invalid(`${path}.${key}`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.${key}`, "Must be a string.");
         }
       }
       function validateStringList(value, path) {
         if (!Array.isArray(value))
-          throw invalid(path, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be an array.");
         const seen = /* @__PURE__ */ new Set();
         value.forEach((entry, index) => {
           requireText(entry, `${path}[${index}]`);
           if (seen.has(entry))
-            throw invalid(path, `\u5024\u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${entry}`);
+            throw invalid(path, `Duplicate value: ${entry}`);
           seen.add(entry);
         });
       }
@@ -8582,7 +8582,7 @@ ${indent}`);
             requireRange(value.value, 0, 3, `${path}.value`);
             return;
           default:
-            throw invalid(`${path}.type`, "invert/lut/saturation \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.type`, "Must be one of invert, lut, saturation.");
         }
       }
       function validateTransform(value, path) {
@@ -8604,14 +8604,14 @@ ${indent}`);
         for (const key of ["w", "h"]) {
           requireRange(value[key], 0, 1, `${path}.${key}`);
           if (value[key] === 0)
-            throw invalid(`${path}.${key}`, "0 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.${key}`, "Must be greater than 0.");
         }
         if (hasOwn(value, "rotate"))
           requireRange(value.rotate, -45, 45, `${path}.rotate`);
       }
       function validatePhotoFrame(value, path, source) {
         if (!source || typeof source !== "object" || source.kind !== "media") {
-          throw invalid(path, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+          throw invalid(path, "Only a media item can be specified.");
         }
         requireRecord(value, path);
         requireExactKeys(value, /* @__PURE__ */ new Set(["stroke", "cornerRadius"]), path);
@@ -8621,7 +8621,7 @@ ${indent}`);
           requireRecord(value.stroke, `${path}.stroke`);
           requireExactKeys(value.stroke, /* @__PURE__ */ new Set(["color", "width"]), `${path}.stroke`);
           if (typeof value.stroke.color !== "string" || !/^#[0-9a-fA-F]{6}$/u.test(value.stroke.color)) {
-            throw invalid(`${path}.stroke.color`, "#RRGGBB \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.stroke.color`, "Must be #RRGGBB.");
           }
           requireRange(value.stroke.width, 0, 100, `${path}.stroke.width`);
         }
@@ -8676,7 +8676,7 @@ ${indent}`);
           for (const [channel, points] of Object.entries(channels)) {
             const channelPath = `${sectionPath}.${channel}`;
             if (!Array.isArray(points) || points.length < minimum || points.length > 16) {
-              throw invalid(channelPath, `${minimum} \u304B\u3089 16 \u70B9\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+              throw invalid(channelPath, `Must be an array of ${minimum} to 16 points.`);
             }
             let previous = -Infinity;
             for (const [index, point] of points.entries()) {
@@ -8686,7 +8686,7 @@ ${indent}`);
               requireRange(point[axis], 0, 1, `${pointPath}.${axis}`);
               requireRange(point[output], 0, 1, `${pointPath}.${output}`);
               if (point[axis] <= previous)
-                throw invalid(`${pointPath}.${axis}`, "\u72ED\u7FA9\u5358\u8ABF\u5897\u52A0\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+                throw invalid(`${pointPath}.${axis}`, "Must be strictly increasing.");
               previous = point[axis];
             }
           }
@@ -8738,7 +8738,7 @@ ${indent}`);
           requireExactKeys(value.sections, sectionKeys, `${path}.sections`);
           for (const key of sectionKeys) {
             if (hasOwn(value.sections, key) && typeof value.sections[key] !== "boolean") {
-              throw invalid(`${path}.sections.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${path}.sections.${key}`, "Must be a boolean.");
             }
           }
         }
@@ -8769,7 +8769,7 @@ ${indent}`);
       function validateEasing(value, path) {
         const validateOne = (entry, entryPath) => {
           if (typeof entry !== "string" || !EASINGS.has(entry) && !CUBIC_BEZIER.test(entry)) {
-            throw invalid(entryPath, "\u672A\u5BFE\u5FDC\u306E easing \u3067\u3059");
+            throw invalid(entryPath, "Unsupported easing.");
           }
         };
         if (typeof value === "string")
@@ -8784,19 +8784,19 @@ ${indent}`);
           requireExactKeys(value, /* @__PURE__ */ new Set(["path", "count"]), path);
           requireText(value.path, `${path}.path`);
           if (!/^motion\/.+\.json$/.test(value.path))
-            throw invalid(`${path}.path`, "motion/ \u914D\u4E0B\u306E JSON \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+            throw invalid(`${path}.path`, "Must be JSON under motion/.");
           requireInteger(value.count, 2, `${path}.count`);
           return;
         }
         if (!Array.isArray(value) || value.length < 2)
-          throw invalid(path, "2 \u8981\u7D20\u4EE5\u4E0A\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be an array of at least two items.");
         value.forEach((entry, index) => {
           const itemPath = `${path}[${index}]`;
           requireRecord(entry, itemPath);
           requireInteger(entry.t, 0, `${itemPath}.t`);
           if (audio) {
             if (!hasOwn(entry, "gain_db"))
-              throw invalid(`${itemPath}.gain_db`, "audio keyframe \u306B\u5FC5\u8981\u3067\u3059");
+              throw invalid(`${itemPath}.gain_db`, "Required on an audio keyframe.");
             requireRange(entry.gain_db, -60, 12, `${itemPath}.gain_db`);
           }
           if (hasOwn(entry, "transform"))
@@ -8842,16 +8842,16 @@ ${indent}`);
       }
       function validateAnimators(value, path) {
         if (!Array.isArray(value))
-          throw invalid(path, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be an array.");
         value.forEach((entry, index) => {
           const entryPath = `${path}[${index}]`;
           requireRecord(entry, entryPath);
           requireExactKeys(entry, /* @__PURE__ */ new Set(["id", "basis", "shape", "start", "end", "offset", "randomize", "amount", "ease"]), entryPath);
           requireText(entry.id, `${entryPath}.id`);
           if (!["chars", "words", "lines", "segments"].includes(String(entry.basis)))
-            throw invalid(`${entryPath}.basis`, "\u672A\u5BFE\u5FDC\u306E basis \u3067\u3059");
+            throw invalid(`${entryPath}.basis`, "Unsupported basis.");
           if (!["ramp", "triangle", "round", "smooth", "square", "ramp-down"].includes(String(entry.shape)))
-            throw invalid(`${entryPath}.shape`, "\u672A\u5BFE\u5FDC\u306E shape \u3067\u3059");
+            throw invalid(`${entryPath}.shape`, "Unsupported shape.");
           requireRange(entry.start, 0, 1, `${entryPath}.start`);
           requireRange(entry.end, 0, 1, `${entryPath}.end`);
           requireRange(entry.offset, -1, 1, `${entryPath}.offset`);
@@ -8859,7 +8859,7 @@ ${indent}`);
             requireRecord(entry.randomize, `${entryPath}.randomize`);
             requireExactKeys(entry.randomize, /* @__PURE__ */ new Set(["seed"]), `${entryPath}.randomize`);
             if (!Number.isInteger(entry.randomize.seed))
-              throw invalid(`${entryPath}.randomize.seed`, "\u6574\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw invalid(`${entryPath}.randomize.seed`, "Must be an integer.");
           }
           requireRecord(entry.amount, `${entryPath}.amount`);
           requireExactKeys(entry.amount, /* @__PURE__ */ new Set(["x", "y", "scale", "rotate", "opacity", "letterSpacing", "blur"]), `${entryPath}.amount`);
@@ -8875,53 +8875,53 @@ ${indent}`);
       }
       function requireRecord(value, path) {
         if (value === null || typeof value !== "object" || Array.isArray(value)) {
-          throw invalid(path, "object \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be an object.");
         }
       }
       function hasOwn(value, key) {
         return Object.prototype.hasOwnProperty.call(value, key);
       }
       var UNKNOWN_KEY_GUIDANCE = {
-        emphasis_words: "\u8A9E\u30EC\u30D9\u30EB\u6F14\u51FA\u306F captions.json \u306E\u30C8\u30C3\u30D7\u30EC\u30D9\u30EB emphasis_words[] \u3078\u79FB\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u5951\u7D04 contract-2026-08-23-captions-emphasis-words-v0.md\uFF09"
+        emphasis_words: "Move word-level emphasis to top-level emphasis_words[] in captions.json (contract-2026-08-23-captions-emphasis-words-v0.md)."
       };
-      var DEFAULT_UNKNOWN_KEY_GUIDANCE = "\u3053\u306E\u30AD\u30FC\u306F v2 \u306E\u8A9E\u5F59\u306B\u3042\u308A\u307E\u305B\u3093\u3002\u624B\u3067\u7DE8\u96C6\u3057\u305F\u5834\u5408\u306F\u53D6\u308A\u9664\u304F\u304B\u3001.akari/backup/ \u306E\u539F\u672C\u304B\u3089\u5FA9\u5143\u3057\u3066\u304F\u3060\u3055\u3044";
+      var DEFAULT_UNKNOWN_KEY_GUIDANCE = "This key is not in the v2 vocabulary. If it was edited by hand, remove it or restore the original from .akari/backup/.";
       function requireExactKeys(value, allowed, path) {
         const unknown = Object.keys(value).filter((key) => !allowed.has(key));
         if (unknown.length > 0) {
           const guidance = unknown.map((key) => `${key}: ${UNKNOWN_KEY_GUIDANCE[key] ?? DEFAULT_UNKNOWN_KEY_GUIDANCE}`).join(" / ");
-          throw invalid(path, `\u672A\u5B9A\u7FA9\u30AD\u30FC\u3092\u4F7F\u7528\u3067\u304D\u307E\u305B\u3093: ${unknown.join(", ")}\u3002\u6848\u5185: ${guidance}`);
+          throw invalid(path, `Cannot use an undefined key: ${unknown.join(", ")}. Guidance: ${guidance}`);
         }
       }
       function requireText(value, path) {
         if (typeof value !== "string" || value.trim().length === 0)
-          throw invalid(path, "\u7A7A\u3067\u306A\u3044\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be a non-empty string.");
       }
       function requireNumber(value, path) {
         if (typeof value !== "number" || !Number.isFinite(value))
-          throw invalid(path, "\u6709\u9650\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be a finite number.");
       }
       function requirePositiveNumber(value, path) {
         requireNumber(value, path);
         if (value <= 0)
-          throw invalid(path, "0 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be greater than 0.");
       }
       function requireNonNegativeNumber(value, path) {
         requireNumber(value, path);
         if (value < 0)
-          throw invalid(path, "0 \u4EE5\u4E0A\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          throw invalid(path, "Must be 0 or greater.");
       }
       function requireInteger(value, minimum, path) {
         if (!Number.isInteger(value) || value < minimum) {
-          throw invalid(path, `${minimum} \u4EE5\u4E0A\u306E\u6574\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+          throw invalid(path, `Must be an integer greater than or equal to ${minimum}.`);
         }
       }
       function requireRange(value, minimum, maximum, path) {
         requireNumber(value, path);
         if (value < minimum || value > maximum)
-          throw invalid(path, `${minimum}..${maximum} \u306E\u7BC4\u56F2\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+          throw invalid(path, `Must be from ${minimum} to ${maximum}.`);
       }
       function invalid(path, message) {
-        return new Error(`edit.json v2 \u304C\u4E0D\u6B63\u3067\u3059 (${path}): ${message}`);
+        return new Error(`edit.json v2 is invalid (${path}): ${message}`);
       }
       function messageOf(error) {
         return error instanceof Error ? error.message : String(error);
@@ -9566,11 +9566,11 @@ ${indent}`);
       exports.replaceXYKeyframes = replaceXYKeyframes;
       function replaceXYKeyframes(existing, drawn, duration) {
         if (drawn.length < 2 || !Number.isInteger(duration) || duration < 1) {
-          throw new Error("\u9053\u7B4B\u306B\u306F 2 \u70B9\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\u3002");
+          throw new Error("A path needs at least two points.");
         }
         const sorted = drawn.slice().sort((a, b) => a.t - b.t);
         if (sorted.some((point) => !Number.isInteger(point.t) || point.t < 0 || point.t > duration || !Number.isFinite(point.transform.x) || !Number.isFinite(point.transform.y)) || sorted.some((point, index) => index > 0 && point.t === sorted[index - 1].t)) {
-          throw new Error("\u9053\u7B4B\u306E\u6642\u523B\u307E\u305F\u306F\u4F4D\u7F6E\u304C\u6B63\u3057\u304F\u3042\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("The path time or position is invalid.");
         }
         const first = sorted[0].t, last = sorted[sorted.length - 1].t;
         const byTime = /* @__PURE__ */ new Map();
@@ -9634,18 +9634,18 @@ ${indent}`);
       function resolvePreviewItemWrite(editText, command) {
         const parsed = JSON.parse(editText);
         if (!isRecord2(parsed)) {
-          throw new Error("edit.json \u304C object \u3067\u306F\u3042\u308A\u307E\u305B\u3093");
+          throw new Error("edit.json is not an object.");
         }
         return parsed.version === 2 ? resolveV2Write(parsed, command) : resolveLegacyWrite(parsed, command);
       }
       function resolvePreviewItemWriteBatch(editText, commands) {
         if (!Array.isArray(commands) || commands.length === 0) {
-          throw new Error("\u66F8\u304D\u8FBC\u307F\u30D0\u30C3\u30C1\u304C\u7A7A\u3067\u3059");
+          throw new Error("The write batch is empty.");
         }
         let candidateText = editText;
         for (const command of commands) {
           if (command.kind === "overlay" && "html" in command.patch) {
-            throw new Error("\u30D0\u30C3\u30C1\u3067\u306F\u5916\u90E8 HTML \u672C\u6587\u3092\u66F8\u304D\u8FBC\u3081\u307E\u305B\u3093");
+            throw new Error("A batch cannot write external HTML body text.");
           }
           const resolved = resolvePreviewItemWrite(candidateText, command);
           candidateText = resolved.candidateText ?? candidateText;
@@ -9657,7 +9657,7 @@ ${indent}`);
         const edit = parsed;
         const itemId = command.itemId;
         if (!itemId) {
-          throw new Error("v2 \u30A2\u30A4\u30C6\u30E0\u306E id \u3092\u7279\u5B9A\u3067\u304D\u307E\u305B\u3093");
+          throw new Error("Cannot locate the v2 item id.");
         }
         const children = (item2) => item2.items ?? (Array.isArray(item2.children) ? item2.children : []);
         const find = (items, id, ancestors = []) => {
@@ -9709,7 +9709,7 @@ ${indent}`);
           }
         }
         if (!target)
-          throw new Error(`\u30A2\u30A4\u30C6\u30E0\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${itemId}`);
+          throw new Error(`Item was not found: ${itemId}`);
         const item = target.item;
         const writeTransform = (patch) => {
           const seconds = command.playheadSeconds;
@@ -9727,14 +9727,14 @@ ${indent}`);
         if (command.kind === "overlay") {
           if ("text" in command.patch) {
             if (typeof command.patch.text !== "string") {
-              throw new Error("\u90E8\u54C1\u306E text \u306F\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+              throw new Error("A part's text must be a string.");
             }
             if (item.source.kind !== "html" || !item.source.part) {
-              throw new Error(`\u90E8\u54C1\u3067\u306A\u3044\u30A2\u30A4\u30C6\u30E0\u306B\u306F text \u3092\u66F8\u304D\u623B\u305B\u307E\u305B\u3093: ${itemId}`);
+              throw new Error(`Cannot write text back to an item that is not a part: ${itemId}`);
             }
           }
           if (item.source.kind === "html" && item.source.part && "html" in command.patch) {
-            throw new Error(`\u90E8\u54C1\u306E\u6587\u5B57\u306F source.text \u306B\u4FDD\u5B58\u3057\u307E\u3059: ${itemId}`);
+            throw new Error(`Part text is stored on source.text: ${itemId}`);
           }
           if (command.patch.transform && (target.ancestors.length || item.motion || item.keyframes?.length)) {
             const compose = (parent2, child = {}) => {
@@ -9749,7 +9749,7 @@ ${indent}`);
             };
             const parent = target.ancestors.filter((ancestor) => ancestor.source.kind === "group").reduce((world2, ancestor) => compose(world2, ancestor.transform), { x: 0, y: 0, scale: 1, rotate: 0 });
             if (!Number.isFinite(parent.scale) || parent.scale === 0) {
-              throw new Error(`\u89AA\u306E\u5909\u5F62\u3092\u9006\u5909\u63DB\u3067\u304D\u307E\u305B\u3093: ${itemId}`);
+              throw new Error(`Cannot invert the parent transform: ${itemId}`);
             }
             const patch = command.patch.transform;
             const bag = target.ancestors[target.ancestors.length - 1];
@@ -9797,7 +9797,7 @@ ${indent}`);
           }
           if (item.source.kind === "group") {
             if (command.patch.html !== void 0 || command.patch.vars !== void 0 || command.patch.params !== void 0) {
-              throw new Error(`\u30B0\u30EB\u30FC\u30D7\u30A2\u30A4\u30C6\u30E0\u306B\u306F HTML \u672C\u6587\u30FBvars\u30FBHTML params \u3092\u66F8\u304D\u623B\u305B\u307E\u305B\u3093: ${itemId}`);
+              throw new Error(`Cannot write HTML body, vars, or HTML params back onto a group item: ${itemId}`);
             }
             if (command.patch.xyKeyframes)
               item.keyframes = (0, transform_keyframe_edit_1.normalizeItemKeyframeGroup)({
@@ -9815,7 +9815,7 @@ ${indent}`);
         let editChanged = materialized;
         if (command.kind === "overlay") {
           if (item.source.kind !== "html" && item.source.kind !== "shape") {
-            throw new Error(`HTML/\u56F3\u5F62\u30A2\u30A4\u30C6\u30E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093: ${itemId}`);
+            throw new Error(`Not an HTML or shape item: ${itemId}`);
           }
           if (item.source.kind === "html") {
             const source = item.source;
@@ -9829,7 +9829,7 @@ ${indent}`);
             if (command.patch.params) {
               for (const [name, value] of Object.entries(command.patch.params)) {
                 if (!name || typeof value !== "string") {
-                  throw new Error("HTML params \u306F\u7A7A\u3067\u306A\u3044\u30AD\u30FC\u3068\u6587\u5B57\u5217\u5024\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+                  throw new Error("HTML params need non-empty keys and string values.");
                 }
               }
               source.params = { ...source.params, ...command.patch.params };
@@ -9840,7 +9840,7 @@ ${indent}`);
               editChanged = true;
             }
           } else if (command.patch.html !== void 0 || command.patch.params !== void 0 || command.patch.vars !== void 0) {
-            throw new Error(`\u56F3\u5F62\u30A2\u30A4\u30C6\u30E0\u306B\u306F HTML \u672C\u6587\u30FBvars\u30FBHTML params \u3092\u66F8\u304D\u623B\u305B\u307E\u305B\u3093: ${itemId}`);
+            throw new Error(`Cannot write HTML body, vars, or HTML params back onto a shape item: ${itemId}`);
           }
           if (command.patch.transform) {
             writeTransform(command.patch.transform);
@@ -9881,7 +9881,7 @@ ${indent}`);
           }
         } else {
           if (item.source.kind !== "media") {
-            throw new Error(`\u6620\u50CF\u30A2\u30A4\u30C6\u30E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093: ${itemId}`);
+            throw new Error(`Not a picture item: ${itemId}`);
           }
           if (command.patch.xyKeyframes) {
             item.keyframes = (0, transform_keyframe_edit_1.normalizeItemKeyframeGroup)({
@@ -9907,19 +9907,19 @@ ${indent}`);
       function resolveLegacyWrite(edit, command) {
         if (command.kind === "overlay") {
           if (!Array.isArray(edit.overlays)) {
-            throw new Error("edit.json \u306E overlays \u304C\u914D\u5217\u3067\u306F\u3042\u308A\u307E\u305B\u3093");
+            throw new Error("edit.json overlays is not an array.");
           }
           const overlay = edit.overlays.find((value) => isRecord2(value) && String(value.id) === command.itemId);
           if (!isRecord2(overlay)) {
-            throw new Error(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${command.itemId}`);
+            throw new Error(`Overlay was not found: ${command.itemId}`);
           }
           const htmlPath = typeof command.patch.html === "string" ? typeof overlay.html === "string" ? overlay.html : void 0 : void 0;
           if (typeof command.patch.html === "string" && !htmlPath) {
-            throw new Error(`overlays[].html \u304C\u30D5\u30A1\u30A4\u30EB\u53C2\u7167\u3067\u306F\u3042\u308A\u307E\u305B\u3093: ${command.itemId}`);
+            throw new Error(`overlays[].html is not a file reference: ${command.itemId}`);
           }
           let editChanged = false;
           if (command.patch.params) {
-            throw new Error("HTML params \u306E\u66F8\u304D\u623B\u3057\u306B\u306F edit.json version 2 \u304C\u5FC5\u8981\u3067\u3059");
+            throw new Error("Writing HTML params back requires edit.json version 2.");
           }
           if (command.patch.vars) {
             overlay.vars = { ...recordOf(overlay.vars), ...command.patch.vars };
@@ -9936,11 +9936,11 @@ ${indent}`);
         }
         if (command.kind === "layer") {
           if (!Array.isArray(edit.layers)) {
-            throw new Error("edit.json \u306E layers \u304C\u914D\u5217\u3067\u306F\u3042\u308A\u307E\u305B\u3093");
+            throw new Error("edit.json layers is not an array.");
           }
           const layer = edit.layers.find((value) => isRecord2(value) && String(value.id) === command.itemId);
           if (!isRecord2(layer)) {
-            throw new Error(`\u7D20\u6750\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${command.itemId}`);
+            throw new Error(`Footage was not found: ${command.itemId}`);
           }
           if (command.patch.transform) {
             layer.transform = mergeTransform(layer.transform, command.patch.transform);
@@ -9960,14 +9960,14 @@ ${indent}`);
           return { candidateText: stringifyEdit(edit) };
         }
         if (!Array.isArray(edit.cuts)) {
-          throw new Error("edit.json \u306E cuts \u304C\u914D\u5217\u3067\u306F\u3042\u308A\u307E\u305B\u3093");
+          throw new Error("edit.json cuts is not an array.");
         }
         const cut = edit.cuts[command.legacyIndex];
         if (!isRecord2(cut)) {
-          throw new Error(`\u30AB\u30C3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: index ${command.legacyIndex}`);
+          throw new Error(`Cut was not found: index ${command.legacyIndex}`);
         }
         if (command.patch.crop) {
-          throw new Error("\u30AB\u30C3\u30C8\u306E crop \u66F8\u304D\u623B\u3057\u306B\u306F edit.json version 2 \u304C\u5FC5\u8981\u3067\u3059");
+          throw new Error("Writing a cut crop back requires edit.json version 2.");
         }
         if (command.patch.transform) {
           cut.transform = mergeTransform(cut.transform, command.patch.transform);
@@ -10315,7 +10315,7 @@ ${indent}`);
         const source = points.find((point) => point.t === fromT);
         const value = source ? keyframeValue(source, property) : void 0;
         if (!source || value === void 0)
-          throw new Error(`\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${id} ${property} t=${fromT}`);
+          throw new Error(`Keyframe was not found: ${id} ${property} t=${fromT}`);
         const easing = source.easing;
         deleteKeyframeValue(source, property);
         let target = points.find((point) => point.t === targetTime);
@@ -10328,7 +10328,7 @@ ${indent}`);
           target.easing = clone(easing);
         const remaining = points.filter(hasKeyframeValue);
         if (remaining.length < 2)
-          throw new Error("\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u306F 2 \u70B9\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\u3002");
+          throw new Error("At least two keyframes are required.");
         item.keyframes = normalizeKeyframes(remaining);
         return item;
       }
@@ -10338,7 +10338,7 @@ ${indent}`);
         const points = editableKeyframes(item);
         const index = points.findIndex((point2) => point2.t === toT);
         if (index <= 0 || keyframeValue(points[index], property) === void 0) {
-          throw new Error("\u30A4\u30FC\u30B8\u30F3\u30B0\u3092\u8A2D\u5B9A\u3059\u308B\u533A\u9593\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("No span was found for the easing.");
         }
         const point = points[index];
         const declared = keyframeProperties(point);
@@ -10359,14 +10359,14 @@ ${indent}`);
       }
       function hydrateKeyframes(edit, id, points) {
         if (points.length > 0 && points.length < 2)
-          throw new Error("\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u306F 2 \u70B9\u4EE5\u4E0A\u5FC5\u8981\u3067\u3059\u3002");
+          throw new Error("At least two keyframes are required.");
         const item = requireLocation(edit, id).item;
         item.keyframes = normalizeKeyframes(points.map((point) => clone(point)));
         return item;
       }
       function moveItem(edit, id, target) {
         if (target.track === void 0 === (target.parent === void 0)) {
-          throw new Error("move \u306E\u7F6E\u304D\u5148\u306F track \u307E\u305F\u306F parent \u306E\u3069\u3061\u3089\u304B\u4E00\u65B9\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the move destination as either track or parent.");
         }
         const source = requireLocation(edit, id);
         const worldAt = absoluteAt(source);
@@ -10379,9 +10379,9 @@ ${indent}`);
           destinationParent = requireLocation(edit, target.parent);
           const parent = destinationParent.item;
           if (parent.id === id || containsItem(source.item, parent.id))
-            throw new Error("\u81EA\u5206\u81EA\u8EAB\u306E\u5B50\u3078 move \u3067\u304D\u307E\u305B\u3093\u3002");
+            throw new Error("Cannot move an item under itself.");
           if (worldAt < absoluteAt(destinationParent))
-            throw new Error("\u30AD\u30E3\u30F3\u30D0\u30B9\u3088\u308A\u524D\u306E item \u306F\u5165\u308C\u3089\u308C\u307E\u305B\u3093\u3002");
+            throw new Error("An item cannot be placed before the canvas.");
           destinationItems = ensureChildren(parent);
         } else {
           destinationTrack = requireTrack(edit, target.track);
@@ -10409,7 +10409,7 @@ ${indent}`);
       }
       function createCanvas(edit, options) {
         if (!Number.isInteger(options.at) || options.at < 0 || !Number.isInteger(options.duration) || options.duration <= 0) {
-          throw new Error("\u30AD\u30E3\u30F3\u30D0\u30B9\u306E\u4F4D\u7F6E\u3068\u5C3A\u306F\u30D5\u30EC\u30FC\u30E0\u5358\u4F4D\u306E\u6B63\u306E\u6574\u6570\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Specify the canvas position and duration as positive integers in frames.");
         }
         const canvas = {
           origin: "user",
@@ -10437,21 +10437,21 @@ ${indent}`);
       function putIntoCanvas(edit, itemIds, canvasId) {
         const canvas = requireLocation(edit, canvasId).item;
         if (canvas.source.kind !== "group")
-          throw new Error("\u7F6E\u304D\u5148\u304C\u30AD\u30E3\u30F3\u30D0\u30B9\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("The destination is not the canvas.");
         return [...new Set(itemIds)].map((id) => moveItem(edit, id, { parent: canvasId }));
       }
       function putPlacedCaptionIntoCanvas(edit, caption, canvasId) {
         const canvas = requireLocation(edit, canvasId);
         if (canvas.item.source.kind !== "group")
-          throw new Error("\u7F6E\u304D\u5148\u304C\u30AD\u30E3\u30F3\u30D0\u30B9\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
+          throw new Error("The destination is not the canvas.");
         const existing = allLocations(edit).find((location2) => location2.item.source.kind === "caption" && location2.item.source.id === caption.id);
         if (existing)
           return moveItem(edit, existing.item.id, { parent: canvasId });
         if (!Number.isInteger(caption.at) || !Number.isInteger(caption.duration) || caption.duration <= 0) {
-          throw new Error("\u5B57\u5E55\u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption time is invalid.");
         }
         if (caption.at < absoluteAt(canvas))
-          throw new Error("\u30AD\u30E3\u30F3\u30D0\u30B9\u3088\u308A\u524D\u306E\u5B57\u5E55\u306F\u5165\u308C\u3089\u308C\u307E\u305B\u3093\u3002");
+          throw new Error("A caption cannot be placed before the canvas.");
         const bag = ensurePlacedCaptionBag(edit, caption);
         const exclude = bag.source.kind === "captions" ? bag.source.exclude ?? [] : [];
         if (bag.source.kind === "captions" && !exclude.includes(caption.id))
@@ -10493,14 +10493,14 @@ ${indent}`);
       }
       function putPlacedCaptionIntoTrack(edit, caption, target) {
         if (!Number.isInteger(caption.at) || caption.at < 0 || !Number.isInteger(caption.duration) || caption.duration <= 0)
-          throw new Error("\u5B57\u5E55\u306E\u6642\u523B\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The caption time is invalid.");
         const existing = allLocations(edit).find((location2) => location2.item.source.kind === "caption" && location2.item.source.id === caption.id);
         if (existing) {
           const track2 = target.insertIndex === void 0 ? target.track : createTrackAt(edit, "visual", target.insertIndex).id;
           if (!track2)
-            throw new Error("\u7F6E\u304D\u5148\u306E\u6BB5\u304C\u3042\u308A\u307E\u305B\u3093\u3002");
+            throw new Error("The destination track does not exist.");
           if (requireTrack(edit, track2).lane !== "visual")
-            throw new Error("\u7F6E\u304D\u5148\u306F\u6620\u50CF\u30C8\u30E9\u30C3\u30AF\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+            throw new Error("Choose a picture track as the destination.");
           updateItem(edit, existing.item.id, {
             at: existing.item.at + caption.at - absoluteAt(existing),
             duration: caption.duration
@@ -10509,7 +10509,7 @@ ${indent}`);
         }
         const track = target.insertIndex === void 0 ? tracksOf(edit).find((candidate) => candidate.id === target.track) : createTrackAt(edit, "visual", target.insertIndex);
         if (!track || track.lane !== "visual")
-          throw new Error("\u7F6E\u304D\u5148\u306F\u6620\u50CF\u30C8\u30E9\u30C3\u30AF\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Choose a picture track as the destination.");
         const bag = ensurePlacedCaptionBag(edit, caption);
         const exclude = bag.source.kind === "captions" ? bag.source.exclude ?? [] : [];
         if (bag.source.kind === "captions" && !exclude.includes(caption.id))
@@ -10542,13 +10542,13 @@ ${indent}`);
         return [...new Set(itemIds)].map((id) => {
           const location2 = requireLocation(edit, id);
           if (location2.parent?.source.kind !== "group")
-            throw new Error("\u30AD\u30E3\u30F3\u30D0\u30B9\u306E\u4E2D\u8EAB\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
+            throw new Error("This is not canvas content.");
           return detachItem(edit, id, { track: "above" });
         });
       }
       function insertItem(edit, target, item, index) {
         if (locate(edit, item.id))
-          throw new Error(`item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${item.id}`);
+          throw new Error(`Duplicate item id: ${item.id}`);
         const cloned = clone(item);
         const track = tracksOf(edit).find((candidate) => candidate.id === target);
         if (track) {
@@ -10571,7 +10571,7 @@ ${indent}`);
       function detachItem(edit, id, target, projected) {
         const source = locate(edit, id) ?? materializeProjectedPart(edit, id, projected);
         if (!source.parent)
-          throw new Error(`\u6BB5\u76F4\u4E0B\u306E item \u306F detach \u3067\u304D\u307E\u305B\u3093: ${id}`);
+          throw new Error(`An item directly on a track cannot be detached: ${id}`);
         const worldAt = absoluteAt(source);
         const worldTransform = composeTransforms(worldTransformOfAncestors(source.ancestors), source.item.transform);
         const worldOpacity = opacityOfAncestors(source.ancestors) * (source.item.opacity ?? 1);
@@ -10609,7 +10609,7 @@ ${indent}`);
       function materializeProjectedPart(edit, id, projected) {
         const separator = id.lastIndexOf("#");
         if (separator <= 0 || separator === id.length - 1) {
-          throw new Error(`item \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${id}`);
+          throw new Error(`Item was not found: ${id}`);
         }
         const bagId = id.slice(0, separator);
         const part = id.slice(separator + 1);
@@ -10625,7 +10625,7 @@ ${indent}`);
           return requireLocation(edit, child2.id);
         }
         if (bag.item.source.kind !== "html")
-          throw new Error(`\u888B\u3067\u306F\u3042\u308A\u307E\u305B\u3093: ${bagId}`);
+          throw new Error(`Not a container: ${bagId}`);
         const source = { ...bag.item.source, part };
         delete source.exclude;
         const child = {
@@ -10681,15 +10681,15 @@ ${indent}`);
       function groupItems(edit, ids, options = {}) {
         const uniqueIds = [...new Set(ids)];
         if (uniqueIds.length < 2 || uniqueIds.length !== ids.length) {
-          throw new Error("group \u306F\u91CD\u8907\u3057\u306A\u3044 2 \u500B\u4EE5\u4E0A\u306E id \u3092\u5FC5\u8981\u3068\u3057\u307E\u3059\u3002");
+          throw new Error("A group needs at least two distinct ids.");
         }
         const locations = uniqueIds.map((id) => requireLocation(edit, id));
         const parentIds = new Set(locations.map((location2) => location2.parent?.id));
         if (parentIds.size !== 1)
-          throw new Error("group \u306F\u540C\u3058\u5834\u6240\u306B\u3042\u308B item \u3060\u3051\u3092\u307E\u3068\u3081\u3089\u308C\u307E\u3059\u3002");
+          throw new Error("A group can contain only items that share a place.");
         const inParent = locations[0].parent !== void 0;
         if (inParent && new Set(locations.map((location2) => location2.items)).size !== 1) {
-          throw new Error("group \u306F\u540C\u3058\u30B0\u30EB\u30FC\u30D7\u5185\u306E item \u3060\u3051\u3092\u307E\u3068\u3081\u3089\u308C\u307E\u3059\u3002");
+          throw new Error("A group can contain only items from the same group.");
         }
         const ordered = [...locations].sort((left, right) => left.trackIndex - right.trackIndex || left.index - right.index);
         const minimumAt = Math.min(...ordered.map((location2) => location2.item.at));
@@ -10721,12 +10721,12 @@ ${indent}`);
         const location2 = requireLocation(edit, id);
         const group = location2.item;
         if (group.source.kind === "html" || group.source.kind === "captions") {
-          throw new Error("\u888B\u30B0\u30EB\u30FC\u30D7\u306F ungroup \u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("A container group cannot be ungrouped.");
         }
         if (group.source.kind !== "group")
-          throw new Error(`\u7D14\u30B0\u30EB\u30FC\u30D7\u3067\u306F\u3042\u308A\u307E\u305B\u3093: ${id}`);
+          throw new Error(`Not a plain group: ${id}`);
         if (group.keyframes !== void 0 || group.motion !== void 0 || group.animator !== void 0) {
-          throw new Error("v2.group-bake-blocked: keyframes / motion / animator \u3092\u6301\u3064\u30B0\u30EB\u30FC\u30D7\u306F ungroup \u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("v2.group-bake-blocked: a group with keyframes, motion, or an animator cannot be ungrouped.");
         }
         const children = ensureChildren(group).map((child) => {
           const item = child;
@@ -10773,7 +10773,7 @@ ${indent}`);
         const ids = /* @__PURE__ */ new Set();
         for (const location2 of result) {
           if (ids.has(location2.item.id))
-            throw new Error(`item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${location2.item.id}`);
+            throw new Error(`Duplicate item id: ${location2.item.id}`);
           ids.add(location2.item.id);
         }
         return result;
@@ -10792,7 +10792,7 @@ ${indent}`);
       function createTrackAt(edit, lane, index) {
         const tracks = tracksOf(edit);
         if (!Number.isInteger(index) || index < 0 || index > tracks.length)
-          throw new Error("track index \u304C\u7BC4\u56F2\u5916\u3067\u3059\u3002");
+          throw new Error("The track index is out of range.");
         const created = { id: nextTrackId(edit, lane), lane, items: [] };
         tracks.splice(index, 0, created);
         return created;
@@ -10896,18 +10896,18 @@ ${indent}`);
         if (item.keyframes === void 0)
           return [];
         if (!Array.isArray(item.keyframes)) {
-          throw new Error("motion \u888B\u3092 inline \u306B\u623B\u3057\u3066\u304B\u3089\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u3092\u7DE8\u96C6\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+          throw new Error("Inline the motion container before editing keyframes.");
         }
         return item.keyframes.map((point) => clone(point));
       }
       function requireSegmentEasing(value) {
         const cubic = /^cubic-bezier\(\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*\)$/u;
         if (!SEGMENT_EASINGS.has(value) && !cubic.test(value))
-          throw new Error(`\u672A\u5BFE\u5FDC\u306E easing \u3067\u3059: ${value}`);
+          throw new Error(`Unsupported easing: ${value}`);
       }
       function requireKeyframeTime(t, duration) {
         if (!Number.isInteger(t) || t < 0 || t > duration) {
-          throw new Error(`\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u6642\u523B\u306F 0\u301C${duration} \u306E\u6574\u6570\u30D5\u30EC\u30FC\u30E0\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002`);
+          throw new Error(`Specify the keyframe time as an integer frame from 0 to ${duration}.`);
         }
         return t;
       }
@@ -10915,7 +10915,7 @@ ${indent}`);
         const result = points.map((point) => clone(point)).sort((left, right) => left.t - right.t);
         for (let index = 1; index < result.length; index++) {
           if (result[index - 1].t === result[index].t)
-            throw new Error("\u540C\u3058\u6642\u523B\u306B\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u3092\u91CD\u306D\u3089\u308C\u307E\u305B\u3093\u3002");
+            throw new Error("Keyframes cannot share the same time.");
         }
         return result;
       }
@@ -10972,7 +10972,7 @@ ${indent}`);
       function requireLocation(edit, id) {
         const location2 = locate(edit, id);
         if (!location2)
-          throw new Error(`item \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${id}`);
+          throw new Error(`Item was not found: ${id}`);
         return location2;
       }
       function tracksOf(edit) {
@@ -10981,18 +10981,18 @@ ${indent}`);
       function requireTrack(edit, id) {
         const track = tracksOf(edit).find((candidate) => candidate.id === id);
         if (!track)
-          throw new Error(`track \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${id}`);
+          throw new Error(`Track was not found: ${id}`);
         return track;
       }
       function requireTrackItems(track) {
         if (!Array.isArray(track.items))
-          throw new Error(`item \u3092\u7F6E\u3051\u306A\u3044 track \u3067\u3059: ${String(track.id)}`);
+          throw new Error(`This track cannot hold the item: ${String(track.id)}`);
         return track.items;
       }
       function insertionIndex(value, length) {
         const index = value ?? length;
         if (!Number.isInteger(index) || index < 0 || index > length)
-          throw new Error("index \u304C\u7BC4\u56F2\u5916\u3067\u3059\u3002");
+          throw new Error("The index is out of range.");
         return index;
       }
       function removeLocations(locations) {
@@ -11054,7 +11054,7 @@ ${indent}`);
       exports.LegacyEditVersionError = void 0;
       var LegacyEditVersionError = class extends Error {
         constructor(version) {
-          super(`\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306F\u53E4\u3044\u5F62\u5F0F\u3067\u3059\uFF08edit.json version ${version}\uFF09\u3002\`akari migrate <dir>\` \u3067\u5909\u63DB\u3057\u3066\u304B\u3089\u958B\u3044\u3066\u304F\u3060\u3055\u3044\u3002\u5C06\u6765\u672C\u4F53\u304B\u3089\u5909\u63DB\u5668\u304C\u5916\u308C\u305F\u5F8C\u306F \`npx akari-migrate@<\u7248> <dir>\` \u3092\u4F7F\u3044\u307E\u3059\u3002`);
+          super(`This project uses an older format (edit.json version ${version}). Convert it with \`akari migrate <dir>\` before opening. After the converter leaves the app, use \`npx akari-migrate@<version> <dir>\`.`);
           this.version = version;
           this.name = "LegacyEditVersionError";
         }
@@ -11824,11 +11824,11 @@ ${indent}`);
       function readInternalEdit(source, options) {
         const text = typeof source === "string" ? source : JSON.stringify(source);
         if (typeof text !== "string") {
-          throw new Error("\u7DE8\u96C6\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("The edit data is not in a recognized format.");
         }
         const raw = JSON.parse(text);
         if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-          throw new Error("\u7DE8\u96C6\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("The edit data is not in a recognized format.");
         }
         const record2 = raw;
         if (record2.version !== 2) {
@@ -13107,11 +13107,11 @@ ${indent}`);
       var edit_v2_1 = require_edit_v2();
       function retime(source, fpsNew) {
         if (!Number.isInteger(fpsNew) || fpsNew < 1) {
-          throw new Error(`fpsNew \u306F 1 \u4EE5\u4E0A\u306E\u6574\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059: ${String(fpsNew)}`);
+          throw new Error(`fpsNew must be an integer of 1 or greater: ${String(fpsNew)}`);
         }
         const parsed = typeof source === "string" ? JSON.parse(source) : source;
         if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) && parsed.version !== 2) {
-          throw new Error("retime \u306F edit.json v2 \u5C02\u7528\u3067\u3059\uFF08v0/v1 \u306F\u5BFE\u8C61\u5916\u3067\u3059\uFF09\u3002");
+          throw new Error("retime is edit.json v2 only. v0 and v1 are out of scope.");
         }
         const edit = (0, edit_v2_1.readEditV2)(parsed);
         const ratio = fpsNew / edit.output.fps;
@@ -13572,7 +13572,7 @@ ${indent}`);
         }
         return {
           ...cross(),
-          fallbackLabel: `${fallbackName || previewKind} \u2014 \u30D7\u30EC\u30D3\u30E5\u30FC\u8FD1\u4F3C\u306A\u3057`
+          fallbackLabel: `${fallbackName || previewKind} \u2014 no preview approximation`
         };
       }
     }
@@ -14546,15 +14546,15 @@ ${indent}`);
       exports.removeCutAudioLinked = removeCutAudioLinked;
       var tree_ops_1 = require_tree_ops();
       var BLOCKER_MESSAGES = {
-        "not-found": "\u30AB\u30C3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093",
-        "not-visual-media": "\u6620\u50CF\u30C8\u30E9\u30C3\u30AF\u306E\u7D20\u6750\u30AB\u30C3\u30C8\u3060\u3051\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u3059",
-        nested: "\u5165\u308C\u5B50\u306E\u30AB\u30C3\u30C8\u306F\u307E\u3060\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u305B\u3093",
-        anchored: "\u5B57\u5E55\u306B\u56FA\u5B9A\u3057\u305F\u30AB\u30C3\u30C8\u306F\u307E\u3060\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u305B\u3093",
-        speed: "\u901F\u5EA6\u3092\u5909\u3048\u305F\u30AB\u30C3\u30C8\u306F\u307E\u3060\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u305B\u3093",
-        freeze: "\u9759\u6B62\u533A\u9593\u3092\u6301\u3064\u30AB\u30C3\u30C8\u306F\u307E\u3060\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u305B\u3093",
-        "transition-crossfade": "\u30C8\u30E9\u30F3\u30B8\u30B7\u30E7\u30F3\u3092\u6301\u3064\u30AB\u30C3\u30C8\u306F\u307E\u3060\u97F3\u58F0\u3092\u5206\u96E2\u3067\u304D\u307E\u305B\u3093",
-        "already-split": "\u3053\u306E\u30AB\u30C3\u30C8\u306E\u97F3\u58F0\u306F\u3059\u3067\u306B\u5206\u96E2\u3055\u308C\u3066\u3044\u307E\u3059",
-        "no-audio": "\u3053\u306E\u7D20\u6750\u306B\u306F\u97F3\u58F0\u304C\u3042\u308A\u307E\u305B\u3093"
+        "not-found": "The cut was not found.",
+        "not-visual-media": "Only a footage cut on a picture track can split audio.",
+        nested: "Nested cuts cannot split audio yet.",
+        anchored: "Cuts locked to captions cannot split audio yet.",
+        speed: "Speed-changed cuts cannot split audio yet.",
+        freeze: "Cuts with a freeze cannot split audio yet.",
+        "transition-crossfade": "Cuts with a transition cannot split audio yet.",
+        "already-split": "Audio for this cut is already split.",
+        "no-audio": "This footage has no audio."
       };
       function tree(doc) {
         return doc;
@@ -14672,13 +14672,13 @@ ${indent}`);
       }
       function moveLinkedCutAudio(doc, options) {
         if (!Number.isInteger(options.deltaFrames))
-          throw new Error("\u79FB\u52D5\u91CF\u306F\u6574\u6570\u30D5\u30EC\u30FC\u30E0\u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+          throw new Error("Specify the move amount as an integer frame count.");
         const document2 = structuredClone(doc);
         const cut = requireCut(document2, options.cutId);
         const audioId = linkedAudioItemIdOf(document2, options.cutId);
         const locations = [cut, ...audioId === void 0 ? [] : [requireAudio(document2, audioId)]];
         if (locations.some((location2) => location2.item.at + options.deltaFrames < 0)) {
-          throw new Error("\u30AB\u30C3\u30C8\u307E\u305F\u306F\u97F3\u58F0\u304C\u30BF\u30A4\u30E0\u30E9\u30A4\u30F3\u306E\u5148\u982D\u3088\u308A\u524D\u306B\u306A\u308B\u305F\u3081\u79FB\u52D5\u3067\u304D\u307E\u305B\u3093");
+          throw new Error("Cannot move because the cut or audio would start before the timeline.");
         }
         for (const location2 of locations)
           location2.item.at += options.deltaFrames;
@@ -14687,13 +14687,13 @@ ${indent}`);
       function removeCutAudioLinked(doc, options) {
         const document2 = structuredClone(doc);
         if (!["pair", "audio-only", "cut-only"].includes(options.target))
-          throw new Error("\u524A\u9664\u5BFE\u8C61\u304C\u4E0D\u6B63\u3067\u3059");
+          throw new Error("The delete target is invalid.");
         if (options.cutId === void 0 && options.audioItemId === void 0)
-          throw new Error("\u524A\u9664\u5BFE\u8C61\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+          throw new Error("Specify the delete target.");
         let cut = options.cutId === void 0 ? void 0 : requireCut(document2, options.cutId);
         let audio = options.audioItemId === void 0 ? void 0 : requireAudio(document2, options.audioItemId);
         if (cut && audio && audio.item.link !== cut.item.id)
-          throw new Error("\u6307\u5B9A\u3055\u308C\u305F\u6620\u50CF\u3068\u97F3\u58F0\u306F\u30EA\u30F3\u30AF\u3057\u3066\u3044\u307E\u305B\u3093");
+          throw new Error("The named picture and audio are not linked.");
         if (!cut && typeof audio?.item.link === "string")
           cut = requireCut(document2, audio.item.link);
         if (!audio && cut) {
@@ -14702,9 +14702,9 @@ ${indent}`);
             audio = requireAudio(document2, audioId);
         }
         if (options.target === "audio-only" && !audio)
-          throw new Error("\u30EA\u30F3\u30AF\u3055\u308C\u305F\u97F3\u58F0\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+          throw new Error("The linked audio was not found.");
         if (options.target === "cut-only" && !cut)
-          throw new Error("\u30EA\u30F3\u30AF\u3055\u308C\u305F\u30AB\u30C3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+          throw new Error("The linked cut was not found.");
         if (options.target !== "audio-only" && cut)
           removeLocation(cut);
         if (options.target !== "cut-only" && audio)
@@ -14716,14 +14716,14 @@ ${indent}`);
       function requireCut(doc, id) {
         const location2 = (0, tree_ops_1.locate)(tree(doc), id);
         if (!location2 || location2.track.lane !== "visual" || location2.item.source.kind !== "media") {
-          throw new Error("\u6620\u50CF\u306E\u7D20\u6750\u30AB\u30C3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+          throw new Error("The picture footage cut was not found.");
         }
         return location2;
       }
       function requireAudio(doc, id) {
         const location2 = (0, tree_ops_1.locate)(tree(doc), id);
         if (!location2 || location2.track.lane !== "audio")
-          throw new Error("\u97F3\u58F0\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+          throw new Error("The audio was not found.");
         return location2;
       }
       function removeLocation(location2) {
@@ -15249,7 +15249,7 @@ ${indent}`);
       }
       function requireRecord(value, label) {
         if (!isRecord2(value))
-          throw new Error(`${label} \u306F object \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002`);
+          throw new Error(`${label} must be an object.`);
         return value;
       }
       function isRecord2(value) {
@@ -15302,7 +15302,7 @@ ${indent}`);
       function detectEditVersion(source) {
         const version = JSON.parse(source).version;
         if (typeof version !== "number" || !(/* @__PURE__ */ new Set([0, 1, 2])).has(version)) {
-          throw new Error("edit.json.version \u306F 0\u30FB1\u30FB2 \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002");
+          throw new Error("edit.json.version must be 0, 1, or 2.");
         }
         return version;
       }
@@ -15354,7 +15354,7 @@ ${indent}`);
             }
           }
           if (!matched)
-            warnings2.push(`\u30AB\u30C3\u30C8\u5BFE\u8C61\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${range.in}\u2013${range.out}`);
+            warnings2.push(`The cut target was not found: ${range.in}-${range.out}`);
         }
         if (affectedTracks.size > 0) {
           const after = readLegacyCuts(source);
@@ -15395,7 +15395,7 @@ ${indent}`);
             }
           }
           if (!matched)
-            warnings2.push(`\u30AB\u30C3\u30C8\u5BFE\u8C61\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${range.in}\u2013${range.out}`);
+            warnings2.push(`The cut target was not found: ${range.in}-${range.out}`);
         }
         for (const track of visualTracks(edit)) {
           if (!affectedTrackIds.has(track.id))
@@ -15494,7 +15494,7 @@ ${indent}`);
       function normalizeRanges(ranges) {
         return ranges.map((range) => {
           if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) {
-            throw new Error("\u30AB\u30C3\u30C8\u7BC4\u56F2\u304C\u4E0D\u6B63\u3067\u3059\u3002");
+            throw new Error("The cut range is invalid.");
           }
           return { ...range };
         }).sort((left, right) => right.in - left.in || right.out - left.out);
@@ -15507,7 +15507,7 @@ ${indent}`);
       }
       function requireFps(value) {
         if (!Number.isFinite(value) || value <= 0)
-          throw new Error("fps \u304C\u4E0D\u6B63\u3067\u3059\u3002");
+          throw new Error("The fps value is invalid.");
         return value;
       }
       function clampFrame(value, duration) {
@@ -15570,7 +15570,7 @@ ${indent}`);
       function parseEdit(source) {
         const value = JSON.parse(source);
         if (!value || typeof value !== "object") {
-          throw new Error("\u7DE8\u96C6\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+          throw new Error("The edit data is not in a recognized format.");
         }
         const warnings2 = [];
         const cuts = [];
@@ -15618,7 +15618,7 @@ ${indent}`);
             const output = rawCut?.out;
             const hasSrc = rawCut !== null && typeof rawCut === "object" && Object.prototype.hasOwnProperty.call(rawCut, "src");
             if (isV1 && !hasSrc || hasSrc && typeof rawCut.src !== "string" || isV0 && hasSrc || hasSrc && (!isV1 || !sourceIds.has(rawCut.src))) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E src \u3092\u89E3\u6C7A\u3067\u304D\u306A\u3044\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Clip ${index + 1} is not shown because its src could not be resolved.`);
               continue;
             }
             if (typeof input === "number" && Number.isFinite(input) && typeof output === "number" && Number.isFinite(output) && input < output) {
@@ -15627,7 +15627,7 @@ ${indent}`);
                 if (typeof rawCut.speed === "number" && Number.isFinite(rawCut.speed) && rawCut.speed > 0) {
                   speed = rawCut.speed;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E speed \u304C\u4E0D\u6B63\u306A\u305F\u3081 1 \u3068\u3057\u3066\u6271\u3044\u307E\u3059\u3002`);
+                  warnings2.push(`Clip ${index + 1} has an invalid speed, so it is treated as 1.`);
                 }
               }
               let transitionOut;
@@ -15641,7 +15641,7 @@ ${indent}`);
                     duration: transition.duration
                   };
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E transition_out \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid transition_out on clip ${index + 1}.`);
                 }
               }
               let at2;
@@ -15649,12 +15649,12 @@ ${indent}`);
                 if (typeof rawCut.at === "number" && Number.isFinite(rawCut.at) && rawCut.at >= 0) {
                   at2 = rawCut.at;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E at \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid at on clip ${index + 1}.`);
                 }
               }
               const track = normalizeTrack(rawCut.track);
               if (rawCut.track !== void 0 && track !== rawCut.track) {
-                warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E track \u304C\u4E0D\u6B63\u306A\u305F\u3081 track 0 \u306B\u8868\u793A\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Clip ${index + 1} has an invalid track, so it is shown on track 0.`);
               }
               let transform;
               if (rawCut.transform !== void 0 && rawCut.transform !== null) {
@@ -15669,7 +15669,7 @@ ${indent}`);
                     ...rawTransform.rotate !== void 0 ? { rotate: rawTransform.rotate } : {}
                   };
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E transform \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid transform on clip ${index + 1}.`);
                 }
               }
               let opacity;
@@ -15677,7 +15677,7 @@ ${indent}`);
                 if (typeof rawCut.opacity === "number" && Number.isFinite(rawCut.opacity) && rawCut.opacity >= 0 && rawCut.opacity <= 1) {
                   opacity = rawCut.opacity;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306E opacity \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid opacity on clip ${index + 1}.`);
                 }
               }
               origins.cuts.push(index);
@@ -15693,11 +15693,11 @@ ${indent}`);
                 ...rawCut.track !== void 0 ? { track } : {}
               });
             } else {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AF\u30EA\u30C3\u30D7\u306F\u6642\u523B\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Clip ${index + 1} is not shown because its time is invalid.`);
             }
           }
         } else if (value.cuts !== void 0) {
-          warnings2.push("cuts \u304C\u914D\u5217\u3067\u306F\u306A\u3044\u305F\u3081\u30AF\u30EA\u30C3\u30D7\u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+          warnings2.push("cuts is not an array, so clips are not shown.");
         }
         if (Array.isArray(value.overlays)) {
           const seenIds = /* @__PURE__ */ new Set();
@@ -15705,7 +15705,7 @@ ${indent}`);
             const overlay = value.overlays[index];
             if (typeof overlay?.id === "string" && overlay.id && typeof overlay.start === "number" && Number.isFinite(overlay.start) && typeof overlay.duration === "number" && Number.isFinite(overlay.duration) && overlay.duration > 0) {
               if (seenIds.has(overlay.id)) {
-                warnings2.push(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlay.id} \u304C\u91CD\u8907\u3057\u3066\u3044\u308B\u305F\u3081\u3001\u5F8C\u306E\u8981\u7D20\u306F\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+                warnings2.push(`Overlay ${overlay.id} is duplicated, so later entries are not shown.`);
                 continue;
               }
               seenIds.add(overlay.id);
@@ -15718,14 +15718,14 @@ ${indent}`);
                 payload: JSON.parse(JSON.stringify(overlay))
               });
               if (overlay.track !== void 0 && normalizeTrack(overlay.track) !== overlay.track) {
-                warnings2.push(`\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4 ${overlay.id} \u306E track \u304C\u4E0D\u6B63\u306A\u305F\u3081 track 0 \u306B\u8868\u793A\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Overlay ${overlay.id} has an invalid track, so it is shown on track 0.`);
               }
             } else {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u306F\u8B58\u5225\u60C5\u5831\u307E\u305F\u306F\u6642\u523B\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Overlay ${index + 1} is not shown because its id or time is invalid.`);
             }
           }
         } else if (value.overlays !== void 0) {
-          warnings2.push("overlays \u304C\u914D\u5217\u3067\u306F\u306A\u3044\u305F\u3081\u30AA\u30FC\u30D0\u30FC\u30EC\u30A4\u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+          warnings2.push("overlays is not an array, so overlays are not shown.");
         }
         if (Array.isArray(value.beats)) {
           const seenIds = /* @__PURE__ */ new Set();
@@ -15733,12 +15733,12 @@ ${indent}`);
             const beat = value.beats[index];
             const validRequiredFields = beat !== null && typeof beat === "object" && typeof beat.id === "string" && /^b-\d{4}$/.test(beat.id) && typeof beat.kind === "string" && beat.kind.length > 0 && typeof beat.t === "number" && Number.isFinite(beat.t) && beat.t >= 0 && typeof beat.strength === "number" && Number.isFinite(beat.strength) && beat.strength >= 0 && beat.strength <= 1;
             if (!validRequiredFields || seenIds.has(beat.id)) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u898B\u305B\u5834\u30DE\u30FC\u30AB\u30FC\u306F\u8B58\u5225\u60C5\u5831\u30FB\u6642\u523B\u30FB\u7A2E\u985E\u30FB\u5F37\u5EA6\u306E\u3044\u305A\u308C\u304B\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Beat marker ${index + 1} is not shown because its id, time, kind, or strength is invalid.`);
               continue;
             }
             const hasSrc = Object.prototype.hasOwnProperty.call(beat, "src");
             if (hasSrc && typeof beat.src !== "string" || isV0 && hasSrc || hasSrc && (!isV1 || !sourceIds.has(beat.src))) {
-              warnings2.push(`\u898B\u305B\u5834\u30DE\u30FC\u30AB\u30FC ${beat.id} \u306E src \u3092\u89E3\u6C7A\u3067\u304D\u306A\u3044\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Beat marker ${beat.id} is not shown because its src could not be resolved.`);
               continue;
             }
             seenIds.add(beat.id);
@@ -15753,7 +15753,7 @@ ${indent}`);
             });
           }
         } else if (value.beats !== void 0) {
-          warnings2.push("beats \u304C\u914D\u5217\u3067\u306F\u306A\u3044\u305F\u3081\u898B\u305B\u5834\u30DE\u30FC\u30AB\u30FC\u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+          warnings2.push("beats is not an array, so beat markers are not shown.");
         }
         if (Array.isArray(value.layers)) {
           const seenIds = /* @__PURE__ */ new Set();
@@ -15761,24 +15761,24 @@ ${indent}`);
             const layer = value.layers[index];
             const valid = layer !== null && typeof layer === "object" && typeof layer.id === "string" && layer.id.length > 0 && typeof layer.t === "number" && Number.isFinite(layer.t) && layer.t >= 0 && typeof layer.duration === "number" && Number.isFinite(layer.duration) && layer.duration > 0 && (layer.kind === "baked" || layer.kind === "video") && typeof layer.src === "string" && layer.src.length > 0;
             if (!valid) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u7D20\u6750\u306F\u8B58\u5225\u60C5\u5831\u30FB\u6642\u523B\u30FB\u7A2E\u985E\u306E\u3044\u305A\u308C\u304B\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Footage ${index + 1} is not shown because its id, time, or kind is invalid.`);
               continue;
             }
             if (seenIds.has(layer.id)) {
-              warnings2.push(`\u7D20\u6750 ${layer.id} \u304C\u91CD\u8907\u3057\u3066\u3044\u308B\u305F\u3081\u3001\u5F8C\u306E\u8981\u7D20\u306F\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`Footage ${layer.id} is duplicated, so later entries are not shown.`);
               continue;
             }
             seenIds.add(layer.id);
             const track = normalizeTrack(layer.track);
             if (layer.track !== void 0 && track !== layer.track) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E\u7D20\u6750\u306E track \u304C\u4E0D\u6B63\u306A\u305F\u3081 track 0 \u306B\u8868\u793A\u3057\u307E\u3059\u3002`);
+              warnings2.push(`Footage ${index + 1} has an invalid track, so it is shown on track 0.`);
             }
             let preset;
             if (layer.preset !== void 0 && layer.preset !== null) {
               if (typeof layer.preset === "string") {
                 preset = layer.preset;
               } else {
-                warnings2.push(`\u7D20\u6750 ${layer.id} \u306E preset \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Ignored the invalid preset on footage ${layer.id}.`);
               }
             }
             let transform;
@@ -15793,7 +15793,7 @@ ${indent}`);
                   ...rawTransform.rotate !== void 0 ? { rotate: rawTransform.rotate } : {}
                 };
               } else {
-                warnings2.push(`\u7D20\u6750 ${layer.id} \u306E transform \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Ignored the invalid transform on footage ${layer.id}.`);
               }
             }
             let opacity;
@@ -15801,7 +15801,7 @@ ${indent}`);
               if (typeof layer.opacity === "number" && Number.isFinite(layer.opacity) && layer.opacity >= 0 && layer.opacity <= 1) {
                 opacity = layer.opacity;
               } else {
-                warnings2.push(`\u7D20\u6750 ${layer.id} \u306E opacity \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Ignored the invalid opacity on footage ${layer.id}.`);
               }
             }
             let blend;
@@ -15809,7 +15809,7 @@ ${indent}`);
               if (typeof layer.blend === "string" && LAYER_BLEND_MODES.includes(layer.blend)) {
                 blend = layer.blend;
               } else {
-                warnings2.push(`\u7D20\u6750 ${layer.id} \u306E blend \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Ignored the invalid blend on footage ${layer.id}.`);
               }
             }
             let chromaKey;
@@ -15823,7 +15823,7 @@ ${indent}`);
                   ...rawChromaKey.blend !== void 0 ? { blend: rawChromaKey.blend } : {}
                 };
               } else {
-                warnings2.push(`\u7D20\u6750 ${layer.id} \u306E chroma_key \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Ignored the invalid chroma_key on footage ${layer.id}.`);
               }
             }
             origins.layers.push(index);
@@ -15842,16 +15842,16 @@ ${indent}`);
             });
           }
         } else if (value.layers !== void 0) {
-          warnings2.push("layers \u304C\u914D\u5217\u3067\u306F\u306A\u3044\u305F\u3081\u7D20\u6750\u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+          warnings2.push("layers is not an array, so footage is not shown.");
         }
         if (value.audio !== void 0 && (value.audio === null || typeof value.audio !== "object" || Array.isArray(value.audio))) {
-          warnings2.push("audio \u304C object \u3067\u306F\u306A\u3044\u305F\u3081 SE/BGM \u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+          warnings2.push("audio is not an object, so sound effects and BGM are not shown.");
         } else if (value.audio && typeof value.audio === "object") {
           if (Array.isArray(value.audio.sfx)) {
             for (let index = 0; index < value.audio.sfx.length; index++) {
               const sfx = value.audio.sfx[index];
               if (sfx === null || typeof sfx !== "object" || typeof sfx.path !== "string" || sfx.path.length === 0 || typeof sfx.t !== "number" || !Number.isFinite(sfx.t) || sfx.t < 0) {
-                warnings2.push(`${index + 1} \u756A\u76EE\u306E SE \u306F\u6642\u523B\u307E\u305F\u306F\u7D20\u6750\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+                warnings2.push(`Sound effect ${index + 1} is not shown because its time or footage is invalid.`);
                 continue;
               }
               let gainDb;
@@ -15859,7 +15859,7 @@ ${indent}`);
                 if (typeof sfx.gain_db === "number" && Number.isFinite(sfx.gain_db) && sfx.gain_db >= -60 && sfx.gain_db <= 12) {
                   gainDb = sfx.gain_db;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E SE \u306E gain_db \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid gain_db on sound effect ${index + 1}.`);
                 }
               }
               let inSeconds;
@@ -15867,7 +15867,7 @@ ${indent}`);
                 if (typeof sfx.in === "number" && Number.isFinite(sfx.in) && sfx.in >= 0) {
                   inSeconds = sfx.in;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E SE \u306E in \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid in on sound effect ${index + 1}.`);
                 }
               }
               let outSeconds;
@@ -15875,7 +15875,7 @@ ${indent}`);
                 if (typeof sfx.out === "number" && Number.isFinite(sfx.out) && sfx.out > 0) {
                   outSeconds = sfx.out;
                 } else {
-                  warnings2.push(`${index + 1} \u756A\u76EE\u306E SE \u306E out \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid out on sound effect ${index + 1}.`);
                 }
               }
               origins.audioSfx.push(index);
@@ -15892,7 +15892,7 @@ ${indent}`);
                 ...gainDb !== void 0 ? { gainDb } : {}
               });
               if (sfx.track !== void 0 && normalizeTrack(sfx.track) !== sfx.track) {
-                warnings2.push(`${index + 1} \u756A\u76EE\u306E SE \u306E track \u304C\u4E0D\u6B63\u306A\u305F\u3081 track 0 \u306B\u8868\u793A\u3057\u307E\u3059\u3002`);
+                warnings2.push(`Sound effect ${index + 1} has an invalid track, so it is shown on track 0.`);
               }
             }
           }
@@ -15901,11 +15901,11 @@ ${indent}`);
             for (let index = 0; index < value.audio.narration.length; index++) {
               const narration = value.audio.narration[index];
               if (narration === null || typeof narration !== "object" || typeof narration.id !== "string" || narration.id.length === 0 || typeof narration.path !== "string" || narration.path.length === 0 || typeof narration.t !== "number" || !Number.isFinite(narration.t) || narration.t < 0) {
-                warnings2.push(`${index + 1} \u756A\u76EE\u306E\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u306F\u8B58\u5225\u60C5\u5831\u30FB\u6642\u523B\u30FB\u7D20\u6750\u306E\u3044\u305A\u308C\u304B\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+                warnings2.push(`Narration ${index + 1} is not shown because its id, time, or footage is invalid.`);
                 continue;
               }
               if (seenNarrationIds.has(narration.id)) {
-                warnings2.push(`\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3 ${narration.id} \u304C\u91CD\u8907\u3057\u3066\u3044\u308B\u305F\u3081\u3001\u5F8C\u306E\u8981\u7D20\u306F\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+                warnings2.push(`Narration ${narration.id} is duplicated, so later entries are not shown.`);
                 continue;
               }
               seenNarrationIds.add(narration.id);
@@ -15914,7 +15914,7 @@ ${indent}`);
                 if (typeof narration.gain_db === "number" && Number.isFinite(narration.gain_db) && narration.gain_db >= -60 && narration.gain_db <= 12) {
                   gainDb = narration.gain_db;
                 } else {
-                  warnings2.push(`\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3 ${narration.id} \u306E gain_db \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002`);
+                  warnings2.push(`Ignored the invalid gain_db on narration ${narration.id}.`);
                 }
               }
               origins.audioNarration.push(index);
@@ -15931,7 +15931,7 @@ ${indent}`);
               });
             }
           } else if (value.audio.narration !== void 0) {
-            warnings2.push("audio.narration \u304C\u914D\u5217\u3067\u306F\u306A\u3044\u305F\u3081\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u3092\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+            warnings2.push("audio.narration is not an array, so narration is not shown.");
           }
           const bgm = value.audio.bgm;
           if (bgm !== void 0 && bgm !== null) {
@@ -15941,7 +15941,7 @@ ${indent}`);
                 if (typeof bgm.gain_db === "number" && Number.isFinite(bgm.gain_db) && bgm.gain_db >= -60 && bgm.gain_db <= 12) {
                   gainDb = bgm.gain_db;
                 } else {
-                  warnings2.push("bgm \u306E gain_db \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002");
+                  warnings2.push("Ignored the invalid bgm gain_db.");
                 }
               }
               let ducking;
@@ -15949,7 +15949,7 @@ ${indent}`);
                 if (typeof bgm.ducking === "boolean") {
                   ducking = bgm.ducking;
                 } else {
-                  warnings2.push("bgm \u306E ducking \u304C\u4E0D\u6B63\u306A\u305F\u3081\u7121\u8996\u3057\u307E\u3059\u3002");
+                  warnings2.push("Ignored the invalid bgm ducking.");
                 }
               }
               audioBgm = {
@@ -15961,7 +15961,7 @@ ${indent}`);
                 ...ducking !== void 0 ? { ducking } : {}
               };
             } else {
-              warnings2.push("bgm \u306E path \u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002");
+              warnings2.push("bgm is not shown because its path is invalid.");
             }
           }
         }
@@ -15974,11 +15974,11 @@ ${indent}`);
             const track = value.timeline.tracks[index];
             const valid = track !== null && typeof track === "object" && !Array.isArray(track) && typeof track.id === "string" && track.id.length > 0 && typeof track.kind === "string" && kinds.includes(track.kind) && (track.ref === void 0 || Number.isInteger(track.ref) && track.ref >= 0) && (track.label === void 0 || typeof track.label === "string") && (track.muted === void 0 || typeof track.muted === "boolean") && (track.hidden === void 0 || typeof track.hidden === "boolean") && (track.locked === void 0 || typeof track.locked === "boolean");
             if (!valid) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E timeline.tracks \u8981\u7D20\u304C\u4E0D\u6B63\u306A\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`timeline.tracks entry ${index + 1} is invalid, so it is not shown.`);
               continue;
             }
             if (seenTrackIds.has(track.id) || track.kind === "captions" && seenSingletonKinds.has(track.kind)) {
-              warnings2.push(`${index + 1} \u756A\u76EE\u306E timeline.tracks \u8981\u7D20\u304C\u91CD\u8907\u306E\u305F\u3081\u8868\u793A\u3057\u307E\u305B\u3093\u3002`);
+              warnings2.push(`timeline.tracks entry ${index + 1} is a duplicate, so it is not shown.`);
               continue;
             }
             seenTrackIds.add(track.id);
@@ -16209,13 +16209,13 @@ ${indent}`);
       }
       function isUnknownKeyEditError(error) {
         const message = error instanceof Error ? error.message : String(error);
-        return /edit\.json[^\n]*未定義キーを使用できません/.test(message);
+        return /edit\.json[^\n]*(?:未定義キーを使用できません|Cannot use an undefined key)/.test(message);
       }
       function newerVersionOpenNotice(savedVersion, currentVersion) {
-        return `\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306F\u65B0\u3057\u3044\u7248\u306E AKARI Video\uFF08v${savedVersion}\uFF09\u3067\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059\u3002\u3044\u307E\u306E\u7248\uFF08v${currentVersion}\uFF09\u3067\u306F\u958B\u3051\u306A\u3044\u6A5F\u80FD\u304C\u4F7F\u308F\u308C\u3066\u3044\u307E\u3059\u3002AKARI Video \u3092\u66F4\u65B0\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
+        return `This project was saved by a newer AKARI Video (v${savedVersion}). This file uses a feature this version (v${currentVersion}) cannot open. Update AKARI Video.`;
       }
       function newerVersionLintPrefix(savedVersion) {
-        return `\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306F\u65B0\u3057\u3044\u7248\uFF08v${savedVersion}\uFF09\u3067\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059\u3002\u3044\u307E\u306E\u7248\u306E\u691C\u8A3C\u306F\u65B0\u3057\u3044\u6A5F\u80FD\u3092\u77E5\u3089\u306A\u3044\u305F\u3081\u3001\u8AA4\u3063\u3066\u30A8\u30E9\u30FC\u3092\u51FA\u3059\u3053\u3068\u304C\u3042\u308A\u307E\u3059\u3002`;
+        return `This project was saved by a newer version (v${savedVersion}). This version's checks do not know newer features, so they can report a false error.`;
       }
       function withNewerVersionLintPrefix(message, savedVersion) {
         return savedVersion ? `${newerVersionLintPrefix(savedVersion)} ${message}` : message;
@@ -30396,9 +30396,9 @@ void main() {
   function describeIndexParseFailure(error, stage, headerByteLength) {
     const cause = error instanceof Error ? error : new Error(String(error));
     const isArrayLength = cause instanceof RangeError || /invalid array length|invalid typed array length/iu.test(cause.message);
-    const hint = isArrayLength ? " \u5DE8\u5927\u306A\u30B5\u30F3\u30D7\u30EB\u8868\u3092\u914D\u5217\u3078\u5C55\u958B\u3067\u304D\u3066\u3044\u306A\u3044\u53EF\u80FD\u6027\u304C\u3042\u308B\uFF08\u975E\u6620\u50CF trak \u306F videoOnlyIndexHeader \u3067\u96A0\u3057\u3066\u3044\u308B\u306E\u3067\u3001\u6620\u50CF trak \u81EA\u4F53\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u304B \u30D8\u30C3\u30C0\u30FC\u306E\u7834\u640D\u3092\u7591\u3046\uFF09\u3002" : "";
+    const hint = isArrayLength ? " A huge sample table may have failed to expand into an array (non-picture traks are hidden by videoOnlyIndexHeader, so suspect the picture trak sample count or a corrupt header)." : "";
     const wrapped = new Error(
-      `${stage} \u306E\u69CB\u7BC9\u306B\u5931\u6557\u3057\u307E\u3057\u305F\uFF08\u30D8\u30C3\u30C0\u30FC ${headerByteLength} \u30D0\u30A4\u30C8\uFF09: ${cause.message}.${hint}`,
+      `${stage} failed to build (header ${headerByteLength} bytes): ${cause.message}.${hint}`,
       { cause }
     );
     if (cause.stack) wrapped.stack = `${wrapped.stack ?? wrapped.message}
@@ -31452,7 +31452,7 @@ caused by: ${cause.stack}`;
       const gopSeconds = maxKeyframeIntervalSeconds(keyframes);
       if (gopSeconds !== void 0 && gopSeconds > LONG_GOP_WARNING_SECONDS) {
         this.options.onWarning?.(
-          `${this.id}: \u6700\u5927\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u9593\u9694\u304C ${gopSeconds.toFixed(3)} \u79D2\u306E\u305F\u3081\u3001\u30B7\u30FC\u30AF\u3068\u30AB\u30C3\u30C8\u5207\u308A\u66FF\u3048\u304C\u9045\u304F\u306A\u308A\u307E\u3059\u3002GOP 1 \u79D2\u4EE5\u4E0B\u306E\u8EFD\u91CF\u7248\u3092\u7528\u610F\u3057\u3066\u304F\u3060\u3055\u3044\uFF08ffmpeg -i <input> \u2026 -g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0 <output>\uFF09`
+          `${this.id}: the maximum keyframe interval is ${gopSeconds.toFixed(3)} seconds, so seeks and cut switches will be slow. Prepare a lightweight version with a GOP of 1 second or less\uFF08ffmpeg -i <input> \u2026 -g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0 <output>\uFF09`
         );
       }
       this.prepared = { table, keyframes, totalBytes: opened.totalBytes };

@@ -1,34 +1,34 @@
 // ../edit-store/src/transition-vocabulary.ts
 var TRANSITION_VOCABULARY = [
-  { id: "dissolve", xfadeName: "dissolve", labelJa: "\u30C7\u30A3\u30BE\u30EB\u30D6", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "dissolve", glyph: "D" },
-  { id: "fade", xfadeName: "fade", labelJa: "\u30AF\u30ED\u30B9\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade", glyph: "F" },
-  { id: "fade-black", xfadeName: "fadeblack", labelJa: "\u9ED2\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-black", glyph: "B" },
-  { id: "fade-white", xfadeName: "fadewhite", labelJa: "\u767D\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-white", glyph: "W" },
-  { id: "fade-grays", xfadeName: "fadegrays", labelJa: "\u30E2\u30CE\u30AF\u30ED\u30D5\u30A7\u30FC\u30C9", category: "\u30D5\u30A7\u30FC\u30C9", previewKind: "fade-grays", glyph: "G" },
-  { id: "wipe-left", xfadeName: "wipeleft", labelJa: "\u30EF\u30A4\u30D7\uFF08\u5DE6\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-left", glyph: "\u2190" },
-  { id: "wipe-right", xfadeName: "wiperight", labelJa: "\u30EF\u30A4\u30D7\uFF08\u53F3\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-right", glyph: "\u2192" },
-  { id: "wipe-up", xfadeName: "wipeup", labelJa: "\u30EF\u30A4\u30D7\uFF08\u4E0A\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-up", glyph: "\u2191" },
-  { id: "wipe-down", xfadeName: "wipedown", labelJa: "\u30EF\u30A4\u30D7\uFF08\u4E0B\u3078\uFF09", category: "\u30EF\u30A4\u30D7", previewKind: "wipe-down", glyph: "\u2193" },
-  { id: "radial", xfadeName: "radial", labelJa: "\u6642\u8A08\u30EF\u30A4\u30D7", category: "\u30EF\u30A4\u30D7", previewKind: "radial", glyph: "\u25F7" },
-  { id: "slide-left", xfadeName: "slideleft", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u5DE6\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-left", glyph: "\u2190" },
-  { id: "slide-right", xfadeName: "slideright", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u53F3\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-right", glyph: "\u2192" },
-  { id: "slide-up", xfadeName: "slideup", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u4E0A\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-up", glyph: "\u2191" },
-  { id: "slide-down", xfadeName: "slidedown", labelJa: "\u30B9\u30E9\u30A4\u30C9\uFF08\u4E0B\u3078\uFF09", category: "\u30B9\u30E9\u30A4\u30C9", previewKind: "slide-down", glyph: "\u2193" },
-  { id: "cover-left", xfadeName: "coverleft", labelJa: "\u30AB\u30D0\u30FC\uFF08\u5DE6\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-left", glyph: "\u2190" },
-  { id: "cover-right", xfadeName: "coverright", labelJa: "\u30AB\u30D0\u30FC\uFF08\u53F3\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-right", glyph: "\u2192" },
-  { id: "cover-up", xfadeName: "coverup", labelJa: "\u30AB\u30D0\u30FC\uFF08\u4E0A\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-up", glyph: "\u2191" },
-  { id: "cover-down", xfadeName: "coverdown", labelJa: "\u30AB\u30D0\u30FC\uFF08\u4E0B\u3078\uFF09", category: "\u30AB\u30D0\u30FC", previewKind: "cover-down", glyph: "\u2193" },
-  { id: "reveal-left", xfadeName: "revealleft", labelJa: "\u30EA\u30D3\u30FC\u30EB\uFF08\u5DE6\u3078\uFF09", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-left", glyph: "\u2190" },
-  { id: "reveal-right", xfadeName: "revealright", labelJa: "\u30EA\u30D3\u30FC\u30EB\uFF08\u53F3\u3078\uFF09", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-right", glyph: "\u2192" },
-  { id: "reveal-down", xfadeName: "revealdown", labelJa: "\u4E0A\u304B\u3089\u30EA\u30D3\u30FC\u30EB", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-down", glyph: "\u2193" },
-  { id: "reveal-up", xfadeName: "revealup", labelJa: "\u4E0B\u304B\u3089\u30EA\u30D3\u30FC\u30EB", category: "\u30EA\u30D3\u30FC\u30EB", previewKind: "reveal-up", glyph: "\u2191" },
-  { id: "circle-open", xfadeName: "circleopen", labelJa: "\u30B5\u30FC\u30AF\u30EB\uFF08\u958B\u304F\uFF09", category: "\u5F62\u72B6", previewKind: "circle-open", glyph: "\u25CB" },
-  { id: "circle-close", xfadeName: "circleclose", labelJa: "\u30B5\u30FC\u30AF\u30EB\uFF08\u9589\u3058\u308B\uFF09", category: "\u5F62\u72B6", previewKind: "circle-close", glyph: "\u25CF" },
-  { id: "zoom-in", xfadeName: "zoomin", labelJa: "\u30BA\u30FC\u30E0\u30A4\u30F3", category: "\u5909\u5F62", previewKind: "zoom-in", glyph: "\uFF0B" },
-  { id: "squeeze-h", xfadeName: "squeezeh", labelJa: "\u30B9\u30AF\u30A4\u30FC\u30BA\uFF08\u7E26\u3064\u3076\u3057\uFF09", category: "\u5909\u5F62", previewKind: "squeeze-h", glyph: "\u2195" },
-  { id: "squeeze-v", xfadeName: "squeezev", labelJa: "\u30B9\u30AF\u30A4\u30FC\u30BA\uFF08\u6A2A\u3064\u3076\u3057\uFF09", category: "\u5909\u5F62", previewKind: "squeeze-v", glyph: "\u2194" },
-  { id: "blur", xfadeName: "hblur", labelJa: "\u30D6\u30E9\u30FC", category: "\u8CEA\u611F", previewKind: "blur", glyph: "B" },
-  { id: "pixelize", xfadeName: "pixelize", labelJa: "\u30D4\u30AF\u30BB\u30EC\u30FC\u30C8", category: "\u8CEA\u611F", previewKind: "pixelize", glyph: "P" }
+  { id: "dissolve", xfadeName: "dissolve", labelJa: "Dissolve", category: "Fade", previewKind: "dissolve", glyph: "D" },
+  { id: "fade", xfadeName: "fade", labelJa: "Crossfade", category: "Fade", previewKind: "fade", glyph: "F" },
+  { id: "fade-black", xfadeName: "fadeblack", labelJa: "Fade to black", category: "Fade", previewKind: "fade-black", glyph: "B" },
+  { id: "fade-white", xfadeName: "fadewhite", labelJa: "Fade to white", category: "Fade", previewKind: "fade-white", glyph: "W" },
+  { id: "fade-grays", xfadeName: "fadegrays", labelJa: "Fade to gray", category: "Fade", previewKind: "fade-grays", glyph: "G" },
+  { id: "wipe-left", xfadeName: "wipeleft", labelJa: "Wipe left", category: "Wipe", previewKind: "wipe-left", glyph: "\u2190" },
+  { id: "wipe-right", xfadeName: "wiperight", labelJa: "Wipe right", category: "Wipe", previewKind: "wipe-right", glyph: "\u2192" },
+  { id: "wipe-up", xfadeName: "wipeup", labelJa: "Wipe up", category: "Wipe", previewKind: "wipe-up", glyph: "\u2191" },
+  { id: "wipe-down", xfadeName: "wipedown", labelJa: "Wipe down", category: "Wipe", previewKind: "wipe-down", glyph: "\u2193" },
+  { id: "radial", xfadeName: "radial", labelJa: "Clock wipe", category: "Wipe", previewKind: "radial", glyph: "\u25F7" },
+  { id: "slide-left", xfadeName: "slideleft", labelJa: "Slide left", category: "Slide", previewKind: "slide-left", glyph: "\u2190" },
+  { id: "slide-right", xfadeName: "slideright", labelJa: "Slide right", category: "Slide", previewKind: "slide-right", glyph: "\u2192" },
+  { id: "slide-up", xfadeName: "slideup", labelJa: "Slide up", category: "Slide", previewKind: "slide-up", glyph: "\u2191" },
+  { id: "slide-down", xfadeName: "slidedown", labelJa: "Slide down", category: "Slide", previewKind: "slide-down", glyph: "\u2193" },
+  { id: "cover-left", xfadeName: "coverleft", labelJa: "Cover left", category: "Cover", previewKind: "cover-left", glyph: "\u2190" },
+  { id: "cover-right", xfadeName: "coverright", labelJa: "Cover right", category: "Cover", previewKind: "cover-right", glyph: "\u2192" },
+  { id: "cover-up", xfadeName: "coverup", labelJa: "Cover up", category: "Cover", previewKind: "cover-up", glyph: "\u2191" },
+  { id: "cover-down", xfadeName: "coverdown", labelJa: "Cover down", category: "Cover", previewKind: "cover-down", glyph: "\u2193" },
+  { id: "reveal-left", xfadeName: "revealleft", labelJa: "Reveal left", category: "Reveal", previewKind: "reveal-left", glyph: "\u2190" },
+  { id: "reveal-right", xfadeName: "revealright", labelJa: "Reveal right", category: "Reveal", previewKind: "reveal-right", glyph: "\u2192" },
+  { id: "reveal-down", xfadeName: "revealdown", labelJa: "Reveal from top", category: "Reveal", previewKind: "reveal-down", glyph: "\u2193" },
+  { id: "reveal-up", xfadeName: "revealup", labelJa: "Reveal from bottom", category: "Reveal", previewKind: "reveal-up", glyph: "\u2191" },
+  { id: "circle-open", xfadeName: "circleopen", labelJa: "Circle open", category: "Shape", previewKind: "circle-open", glyph: "\u25CB" },
+  { id: "circle-close", xfadeName: "circleclose", labelJa: "Circle close", category: "Shape", previewKind: "circle-close", glyph: "\u25CF" },
+  { id: "zoom-in", xfadeName: "zoomin", labelJa: "Zoom in", category: "Transform", previewKind: "zoom-in", glyph: "\uFF0B" },
+  { id: "squeeze-h", xfadeName: "squeezeh", labelJa: "Squeeze vertical", category: "Transform", previewKind: "squeeze-h", glyph: "\u2195" },
+  { id: "squeeze-v", xfadeName: "squeezev", labelJa: "Squeeze horizontal", category: "Transform", previewKind: "squeeze-v", glyph: "\u2194" },
+  { id: "blur", xfadeName: "hblur", labelJa: "Blur", category: "Texture", previewKind: "blur", glyph: "B" },
+  { id: "pixelize", xfadeName: "pixelize", labelJa: "Pixelate", category: "Texture", previewKind: "pixelize", glyph: "P" }
 ];
 var TRANSITION_TYPE_IDS = TRANSITION_VOCABULARY.map((entry) => entry.id);
 var TRANSITION_CATEGORIES = [...new Set(TRANSITION_VOCABULARY.map((entry) => entry.category))];
@@ -563,7 +563,7 @@ function isRecord(value) {
 var TEXTSTYLE_CATALOG = {
   "cinema-blue": {
     "id": "cinema-blue",
-    "name": "\u6620\u753B \u9752\u3044\u4F59\u97FB",
+    "name": "Cinema, blue afterglow",
     "category": "title",
     "style": {
       "size_px": 75,
@@ -581,7 +581,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "cinema-gold": {
     "id": "cinema-gold",
-    "name": "\u6620\u753B \u91D1\u306E\u898B\u51FA\u3057",
+    "name": "Cinema, gold title",
     "category": "title",
     "style": {
       "size_px": 84,
@@ -599,7 +599,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "cinema-white": {
     "id": "cinema-white",
-    "name": "\u6620\u753B \u767D\u3044\u4F59\u767D",
+    "name": "Cinema, white space",
     "category": "title",
     "style": {
       "size_px": 68,
@@ -617,7 +617,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "discount-text": {
     "id": "discount-text",
-    "name": "\u5272\u5F15\u30D0\u30C3\u30B8\u30C6\u30AD\u30B9\u30C8",
+    "name": "Discount badge text",
     "category": "price",
     "style": {
       "size_px": 72,
@@ -632,7 +632,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "emphasis-red": {
     "id": "emphasis-red",
-    "name": "\u5F37\u8ABF",
+    "name": "Emphasis",
     "category": "emphasis",
     "style": {
       "size_px": 92,
@@ -651,7 +651,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "glitch": {
     "id": "glitch",
-    "name": "\u30B0\u30EA\u30C3\u30C1\u98A8",
+    "name": "Glitch",
     "category": "decorative",
     "style": {
       "size_px": 116,
@@ -675,7 +675,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "narration-caption": {
     "id": "narration-caption",
-    "name": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u5B57\u5E55",
+    "name": "Narration captions",
     "category": "subtitle",
     "style": {
       "font_family": "'Noto Serif JP', serif",
@@ -693,7 +693,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "neon": {
     "id": "neon",
-    "name": "\u30CD\u30AA\u30F3",
+    "name": "Neon",
     "category": "decorative",
     "style": {
       "size_px": 120,
@@ -728,7 +728,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "neon-amber": {
     "id": "neon-amber",
-    "name": "\u30CD\u30AA\u30F3 \u7425\u73C0",
+    "name": "Neon amber",
     "category": "decorative",
     "style": {
       "size_px": 104,
@@ -752,7 +752,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "neon-lime": {
     "id": "neon-lime",
-    "name": "\u30CD\u30AA\u30F3 \u9EC4\u7DD1",
+    "name": "Neon yellow-green",
     "category": "decorative",
     "style": {
       "size_px": 100,
@@ -776,7 +776,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "neon-rose": {
     "id": "neon-rose",
-    "name": "\u30CD\u30AA\u30F3 \u6843\u8272",
+    "name": "Neon pink",
     "category": "decorative",
     "style": {
       "size_px": 106,
@@ -800,7 +800,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "neon-violet": {
     "id": "neon-violet",
-    "name": "\u30CD\u30AA\u30F3 \u7D2B",
+    "name": "Neon purple",
     "category": "decorative",
     "style": {
       "size_px": 104,
@@ -824,7 +824,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "news-navy-bar": {
     "id": "news-navy-bar",
-    "name": "\u30CB\u30E5\u30FC\u30B9 \u7D3A\u306E\u89E3\u8AAC\u5E2F",
+    "name": "News, navy explainer bar",
     "category": "subtitle",
     "style": {
       "size_px": 58,
@@ -840,7 +840,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "news-red-bar": {
     "id": "news-red-bar",
-    "name": "\u30CB\u30E5\u30FC\u30B9 \u6DE1\u8D64\u306E\u901F\u5831\u5E2F",
+    "name": "News, pale-red breaking bar",
     "category": "subtitle",
     "style": {
       "size_px": 60,
@@ -863,7 +863,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "news-yellow-label": {
     "id": "news-yellow-label",
-    "name": "\u89E3\u8AAC \u9EC4\u8272\u30E9\u30D9\u30EB",
+    "name": "Explainer, yellow label",
     "category": "emphasis",
     "style": {
       "size_px": 58,
@@ -879,7 +879,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "plate-coral": {
     "id": "plate-coral",
-    "name": "\u5EA7\u5E03\u56E3 \u73CA\u745A\u8272",
+    "name": "Plate, coral",
     "category": "emphasis",
     "style": {
       "size_px": 62,
@@ -895,7 +895,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "plate-cream": {
     "id": "plate-cream",
-    "name": "\u5EA7\u5E03\u56E3 \u751F\u6210\u308A",
+    "name": "Plate, cream",
     "category": "title",
     "style": {
       "size_px": 72,
@@ -912,7 +912,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "plate-indigo": {
     "id": "plate-indigo",
-    "name": "\u5EA7\u5E03\u56E3 \u85CD\u7D2B\u89D2\u4E38",
+    "name": "Plate, indigo rounded",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -928,7 +928,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-commentary": {
     "id": "subtitle-commentary",
-    "name": "\u5B9F\u6CC1\u30C6\u30ED\u30C3\u30D7",
+    "name": "Commentary caption",
     "category": "subtitle",
     "style": {
       "size_px": 60,
@@ -947,7 +947,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-interview": {
     "id": "subtitle-interview",
-    "name": "\u30A4\u30F3\u30BF\u30D3\u30E5\u30FC\u5B57\u5E55",
+    "name": "Interview captions",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -968,7 +968,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-news": {
     "id": "subtitle-news",
-    "name": "\u30CB\u30E5\u30FC\u30B9\u98A8",
+    "name": "News",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -984,7 +984,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-soft-band": {
     "id": "subtitle-soft-band",
-    "name": "\u5B57\u5E55 \u534A\u900F\u660E\u306E\u5E2F",
+    "name": "Captions, translucent band",
     "category": "subtitle",
     "style": {
       "size_px": 52,
@@ -1000,7 +1000,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-standard": {
     "id": "subtitle-standard",
-    "name": "\u6A19\u6E96\u5B57\u5E55",
+    "name": "Standard captions",
     "category": "subtitle",
     "style": {
       "size_px": 56,
@@ -1014,7 +1014,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-variety": {
     "id": "subtitle-variety",
-    "name": "\u30D0\u30E9\u30A8\u30C6\u30A3",
+    "name": "Variety",
     "category": "subtitle",
     "style": {
       "size_px": 80,
@@ -1035,7 +1035,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-white-bold": {
     "id": "subtitle-white-bold",
-    "name": "\u767D\u5B57\u5E55 \u592A\u7E01",
+    "name": "White captions, thick edge",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -1049,7 +1049,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-white-hairline": {
     "id": "subtitle-white-hairline",
-    "name": "\u767D\u5B57\u5E55 \u7D30\u7E01",
+    "name": "White captions, thin edge",
     "category": "subtitle",
     "style": {
       "size_px": 52,
@@ -1063,7 +1063,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "subtitle-yellow-bold": {
     "id": "subtitle-yellow-bold",
-    "name": "\u9EC4\u8272\u5B57\u5E55 \u592A\u7E01",
+    "name": "Yellow captions, thick edge",
     "category": "subtitle",
     "style": {
       "size_px": 64,
@@ -1077,7 +1077,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "title-impact": {
     "id": "title-impact",
-    "name": "\u30A4\u30F3\u30D1\u30AF\u30C8",
+    "name": "Impact",
     "category": "title",
     "style": {
       "size_px": 168,
@@ -1098,7 +1098,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "variety-candy-pink": {
     "id": "variety-candy-pink",
-    "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6843\u306E\u888B\u6587\u5B57",
+    "name": "Variety, pink outlined letters",
     "category": "decorative",
     "style": {
       "size_px": 90,
@@ -1120,7 +1120,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "variety-lime-pop": {
     "id": "variety-lime-pop",
-    "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u9EC4\u7DD1\u30DD\u30C3\u30D7",
+    "name": "Variety, yellow-green pop",
     "category": "decorative",
     "style": {
       "size_px": 84,
@@ -1142,7 +1142,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "variety-orange-pop": {
     "id": "variety-orange-pop",
-    "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u30AA\u30EC\u30F3\u30B8\u5F71",
+    "name": "Variety, orange shadow",
     "category": "decorative",
     "style": {
       "size_px": 86,
@@ -1164,7 +1164,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "variety-soda-blue": {
     "id": "variety-soda-blue",
-    "name": "\u30D0\u30E9\u30A8\u30C6\u30A3 \u6C34\u8272\u306E\u888B\u6587\u5B57",
+    "name": "Variety, light-blue outlined letters",
     "category": "decorative",
     "style": {
       "size_px": 90,
@@ -1186,7 +1186,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "verdict-badge": {
     "id": "verdict-badge",
-    "name": "\u5224\u5B9A\u30D0\u30C3\u30B8",
+    "name": "Verdict badge",
     "category": "emphasis",
     "style": {
       "size_px": 80,
@@ -1207,7 +1207,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "vertical-impact-cyan": {
     "id": "vertical-impact-cyan",
-    "name": "\u7E26\u52D5\u753B \u6C34\u8272\u306E\u5927\u898B\u51FA\u3057",
+    "name": "Vertical, large cyan title",
     "category": "title",
     "style": {
       "size_px": 125,
@@ -1229,7 +1229,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "vertical-impact-red": {
     "id": "vertical-impact-red",
-    "name": "\u7E26\u52D5\u753B \u8D64\u306E\u5927\u898B\u51FA\u3057",
+    "name": "Vertical, large red title",
     "category": "title",
     "style": {
       "size_px": 130,
@@ -1251,7 +1251,7 @@ var TEXTSTYLE_CATALOG = {
   },
   "vertical-impact-white": {
     "id": "vertical-impact-white",
-    "name": "\u7E26\u52D5\u753B \u767D\u306E\u5927\u898B\u51FA\u3057",
+    "name": "Vertical, large white title",
     "category": "title",
     "style": {
       "size_px": 126,
@@ -1399,7 +1399,7 @@ function computeTransitionVisual(previewKind, rawProgress, fallbackName = "") {
   }
   return {
     ...cross(),
-    fallbackLabel: `${fallbackName || previewKind} \u2014 \u30D7\u30EC\u30D3\u30E5\u30FC\u8FD1\u4F3C\u306A\u3057`
+    fallbackLabel: `${fallbackName || previewKind} \u2014 no preview approximation`
   };
 }
 
@@ -2524,30 +2524,30 @@ var paramsKeys = /* @__PURE__ */ new Set([
 var hex = /^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/u;
 var record = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 var fail = (path, message) => {
-  throw new Error(`edit.json v2 \u304C\u4E0D\u6B63\u3067\u3059 (${path}): ${message}`);
+  throw new Error(`edit.json v2 is invalid (${path}): ${message}`);
 };
 function requireRecord(value, path) {
-  if (!record(value)) fail(path, "object \u304C\u5FC5\u8981\u3067\u3059");
+  if (!record(value)) fail(path, "Must be an object.");
 }
 var number = (v, min, max, integer = false) => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max && (!integer || Number.isInteger(v));
 function assertKeys(value, allowed, path) {
-  for (const key of Object.keys(value)) if (!allowed.has(key)) fail(`${path}.${key}`, "\u672A\u5BFE\u5FDC\u306E\u30AD\u30FC\u3067\u3059");
+  for (const key of Object.keys(value)) if (!allowed.has(key)) fail(`${path}.${key}`, "Unsupported key.");
 }
 function paint(value, path, v1) {
   if (typeof value === "string") {
-    if (v1 && value !== "none" && !hex.test(value)) fail(path, "#RRGGBB(AA) \u307E\u305F\u306F none \u304C\u5FC5\u8981\u3067\u3059");
+    if (v1 && value !== "none" && !hex.test(value)) fail(path, "Must be #RRGGBB(AA) or none.");
     return;
   }
   requireRecord(value, path);
   assertKeys(value, /* @__PURE__ */ new Set(["type", "angle", "stops"]), path);
   if (value.type !== "linear" && value.type !== "radial") {
-    fail(`${path}.type`, "linear \u307E\u305F\u306F radial \u304C\u5FC5\u8981\u3067\u3059");
+    fail(`${path}.type`, "Must be linear or radial.");
   }
   if (value.type === "linear" ? !number(value.angle, 0, 360) : "angle" in value) {
-    fail(`${path}.angle`, "\u89D2\u5EA6\u304C\u4E0D\u6B63\u3067\u3059");
+    fail(`${path}.angle`, "The angle is invalid.");
   }
   if (!Array.isArray(value.stops) || value.stops.length < 2 || value.stops.length > 5) {
-    fail(`${path}.stops`, "2\u301C5 \u8272\u304C\u5FC5\u8981\u3067\u3059");
+    fail(`${path}.stops`, "Must have 2 to 5 colors.");
   }
   const stops = value.stops;
   let last = -1;
@@ -2556,19 +2556,19 @@ function paint(value, path, v1) {
     requireRecord(stop, `${path}.stops[${i}]`);
     assertKeys(stop, /* @__PURE__ */ new Set(["color", "offset"]), `${path}.stops[${i}]`);
     if (typeof stop.color !== "string" || !hex.test(stop.color)) {
-      fail(`${path}.stops[${i}].color`, "\u8272\u304C\u4E0D\u6B63\u3067\u3059");
+      fail(`${path}.stops[${i}].color`, "The color is invalid.");
     }
     if (!number(stop.offset, 0, 1) || stop.offset < last) {
-      fail(`${path}.stops[${i}].offset`, "\u4F4D\u7F6E\u306F\u6607\u9806\u306E 0\u301C1 \u3067\u3059");
+      fail(`${path}.stops[${i}].offset`, "Positions must increase from 0 to 1.");
     }
     last = stop.offset;
   }
 }
 function validateShapeSource(value, path) {
   assertKeys(value, /* @__PURE__ */ new Set(["kind", "shape", "params"]), path);
-  if (!kinds.has(value.shape)) fail(`${path}.shape`, "\u672A\u5BFE\u5FDC\u306E shape \u3067\u3059");
+  if (!kinds.has(value.shape)) fail(`${path}.shape`, "Unsupported shape.");
   if (value.params === void 0) {
-    if (value.shape === "path") fail(`${path}.params.path`, "path \u304C\u5FC5\u8981\u3067\u3059");
+    if (value.shape === "path") fail(`${path}.params.path`, "A path is required.");
     return;
   }
   requireRecord(value.params, `${path}.params`);
@@ -2595,45 +2595,45 @@ function validateShapeSource(value, path) {
   ].some((k) => k in p) || record(p.fill) || record(p.stroke);
   for (const key of ["width", "height"]) {
     if (key in p && !number(p[key], Number.MIN_VALUE, Infinity)) {
-      fail(`${path}.params.${key}`, "\u6B63\u306E\u6709\u9650\u6570\u304C\u5FC5\u8981\u3067\u3059");
+      fail(`${path}.params.${key}`, "Must be a positive finite number.");
     }
   }
   if ("strokeWidth" in p && !number(p.strokeWidth, 0, v1 ? 100 : Infinity)) {
-    fail(`${path}.params.strokeWidth`, "\u7BC4\u56F2\u5916\u3067\u3059");
+    fail(`${path}.params.strokeWidth`, "Out of range.");
   }
   if ("cornerRadius" in p && !number(p.cornerRadius, 0, value.shape === "path" ? 100 : Infinity)) {
-    fail(`${path}.params.cornerRadius`, "\u7BC4\u56F2\u5916\u3067\u3059");
+    fail(`${path}.params.cornerRadius`, "Out of range.");
   }
   for (const key of ["fill", "stroke"]) if (key in p) paint(p[key], `${path}.params.${key}`, v1);
   if ("preset" in p && (typeof p.preset !== "string" || !p.preset.trim())) {
-    fail(`${path}.params.preset`, "ID \u304C\u5FC5\u8981\u3067\u3059");
+    fail(`${path}.params.preset`, "An id is required.");
   }
   if ("path" in p || value.shape === "path") {
-    if (value.shape !== "path") fail(`${path}.params.path`, "path \u578B\u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+    if (value.shape !== "path") fail(`${path}.params.path`, "Only a path type can hold this.");
     requireRecord(p.path, `${path}.params.path`);
     const pathValue = p.path;
     assertKeys(pathValue, /* @__PURE__ */ new Set(["d", "vb", "rule"]), `${path}.params.path`);
-    if (typeof pathValue.d !== "string" || !Array.isArray(pathValue.vb) || pathValue.vb.length !== 2 || !pathValue.vb.every((n) => number(n, Number.MIN_VALUE, Infinity)) || pathValue.rule !== void 0 && !["nonzero", "evenodd"].includes(pathValue.rule)) fail(`${path}.params.path`, "path \u304C\u4E0D\u6B63\u3067\u3059");
+    if (typeof pathValue.d !== "string" || !Array.isArray(pathValue.vb) || pathValue.vb.length !== 2 || !pathValue.vb.every((n) => number(n, Number.MIN_VALUE, Infinity)) || pathValue.rule !== void 0 && !["nonzero", "evenodd"].includes(pathValue.rule)) fail(`${path}.params.path`, "The path is invalid.");
     try {
       parseShapePath(pathValue.d);
     } catch {
-      fail(`${path}.params.path.d`, "\u7D76\u5BFE\u5EA7\u6A19\u306E M/L/C/Z \u304C\u5FC5\u8981\u3067\u3059");
+      fail(`${path}.params.path.d`, "Absolute M/L/C/Z coordinates are required.");
     }
   }
-  if (["startCap", "endCap", "startCapFilled", "endCapFilled", "lineCap"].some((k) => k in p) && !["line", "arrow"].includes(value.shape)) fail(`${path}.params`, "\u7AEF\u306E\u5024\u306F line/arrow \u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+  if (["startCap", "endCap", "startCapFilled", "endCapFilled", "lineCap"].some((k) => k in p) && !["line", "arrow"].includes(value.shape)) fail(`${path}.params`, "Only a line or arrow can hold an end value.");
   if ("dash" in p && !["solid", "dash", "dot"].includes(p.dash)) {
-    fail(`${path}.params.dash`, "\u7DDA\u7A2E\u304C\u4E0D\u6B63\u3067\u3059");
+    fail(`${path}.params.dash`, "The line style is invalid.");
   }
   for (const key of ["startCap", "endCap"]) {
     if (key in p && !capKinds.has(p[key])) {
-      fail(`${path}.params.${key}`, "\u7AEF\u306E\u7A2E\u985E\u304C\u4E0D\u6B63\u3067\u3059");
+      fail(`${path}.params.${key}`, "The edge kind is invalid.");
     }
   }
   for (const key of ["startCapFilled", "endCapFilled"]) {
-    if (key in p && typeof p[key] !== "boolean") fail(`${path}.params.${key}`, "boolean \u304C\u5FC5\u8981\u3067\u3059");
+    if (key in p && typeof p[key] !== "boolean") fail(`${path}.params.${key}`, "Must be a boolean.");
   }
   if ("lineCap" in p && !["butt", "round"].includes(p.lineCap)) {
-    fail(`${path}.params.lineCap`, "\u7AEF\u306E\u5F62\u304C\u4E0D\u6B63\u3067\u3059");
+    fail(`${path}.params.lineCap`, "The edge shape is invalid.");
   }
   if ([
     "style",
@@ -2646,18 +2646,18 @@ function validateShapeSource(value, path) {
     "tailLength",
     "tailWidth",
     "tailCurve"
-  ].some((k) => k in p) && value.shape !== "bubble") fail(`${path}.params`, "\u5439\u304D\u51FA\u3057\u306E\u5024\u306F bubble \u3060\u3051\u304C\u6301\u3066\u307E\u3059");
+  ].some((k) => k in p) && value.shape !== "bubble") fail(`${path}.params`, "Only a bubble can hold a speech-bubble value.");
   if ("style" in p && !bubbleStyles.has(p.style)) {
-    fail(`${path}.params.style`, "\u5439\u304D\u51FA\u3057\u306E\u5F62\u304C\u4E0D\u6B63\u3067\u3059");
+    fail(`${path}.params.style`, "The speech-bubble shape is invalid.");
   }
   if ("tail" in p && !["point", "dots", "none"].includes(p.tail)) {
-    fail(`${path}.params.tail`, "\u3057\u3063\u307D\u304C\u4E0D\u6B63\u3067\u3059");
+    fail(`${path}.params.tail`, "The tail is invalid.");
   }
   for (const key of ["count", "depth", "jitter", "tailAngle", "tailLength", "tailWidth", "tailCurve", "seed"]) {
     if (key in p) {
       const range = key === "count" ? [4, 48, true] : key === "seed" ? [-2147483648, 2147483647, true] : key === "tailCurve" ? [-100, 100, false] : key === "tailAngle" ? [0, 360, false] : [0, 100, false];
       const [min, max, integer] = range;
-      if (!number(p[key], min, max, integer)) fail(`${path}.params.${key}`, "\u7BC4\u56F2\u5916\u3067\u3059");
+      if (!number(p[key], min, max, integer)) fail(`${path}.params.${key}`, "Out of range.");
     }
   }
 }
@@ -2736,28 +2736,28 @@ function readEditV2(json) {
   requireRecord2(parsed, "edit.json");
   requireExactKeys(parsed, /* @__PURE__ */ new Set(["version", "output", "sources", "tracks", "audio", "captions", "thumbnail"]), "edit.json");
   if (parsed.version !== 2) {
-    throw invalid("edit.json.version", "2 \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\uFF08v0/v1 \u306F\u3053\u306E reader \u306E\u5BFE\u8C61\u5916\u3067\u3059\uFF09");
+    throw invalid("edit.json.version", "Must be 2. This reader does not accept v0 or v1.");
   }
   validateOutput(parsed.output);
   if (!Array.isArray(parsed.sources)) {
-    throw invalid("edit.json.sources", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid("edit.json.sources", "Must be an array.");
   }
   if (!Array.isArray(parsed.tracks)) {
-    throw invalid("edit.json.tracks", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid("edit.json.tracks", "Must be an array.");
   }
   if (hasOwn(parsed, "audio")) {
     requireRecord2(parsed.audio, "edit.json.audio");
     if (hasOwn(parsed.audio, "duck_keys")) {
-      if (!Array.isArray(parsed.audio.duck_keys)) throw invalid("edit.json.audio.duck_keys", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (!Array.isArray(parsed.audio.duck_keys)) throw invalid("edit.json.audio.duck_keys", "Must be an array.");
       const keys = parsed.audio.duck_keys;
       if (keys.some((key) => key !== "narration" && key !== "speech")) {
-        throw invalid("edit.json.audio.duck_keys", "narration/speech \u306E\u307F\u6307\u5B9A\u3067\u304D\u307E\u3059");
+        throw invalid("edit.json.audio.duck_keys", "Only narration or speech can be specified.");
       }
-      if (new Set(keys).size !== keys.length) throw invalid("edit.json.audio.duck_keys", "\u91CD\u8907\u3067\u304D\u307E\u305B\u3093");
+      if (new Set(keys).size !== keys.length) throw invalid("edit.json.audio.duck_keys", "Must not contain duplicates.");
     }
   }
   if (hasOwn(parsed, "captions") && !Array.isArray(parsed.captions)) {
-    throw invalid("edit.json.captions", "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid("edit.json.captions", "Must be an array.");
   }
   if (hasOwn(parsed, "thumbnail")) requireRecord2(parsed.thumbnail, "edit.json.thumbnail");
   const sourceIds = /* @__PURE__ */ new Set();
@@ -2800,7 +2800,7 @@ function parseInput(json) {
   try {
     return JSON.parse(json);
   } catch (error) {
-    throw invalid("edit.json", `JSON \u3068\u3057\u3066\u8AAD\u3081\u307E\u305B\u3093: ${messageOf(error)}`);
+    throw invalid("edit.json", `Not valid JSON: ${messageOf(error)}`);
   }
 }
 function validateOutput(value) {
@@ -2814,7 +2814,7 @@ function validateEditSource(value, index, ids) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["id", "path", "proxy", "chroma_key"]), path);
   requireText(value.id, `${path}.id`);
-  if (ids.has(value.id)) throw invalid(`${path}.id`, `source id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+  if (ids.has(value.id)) throw invalid(`${path}.id`, `Duplicate source id: ${value.id}`);
   ids.add(value.id);
   requireText(value.path, `${path}.path`);
   if (hasOwn(value, "proxy") && value.proxy !== null) requireText(value.proxy, `${path}.proxy`);
@@ -2827,24 +2827,24 @@ function validateTrack(value, index, trackIds, itemIds, sourceIds) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["id", "lane", "name", "muted", "items", "content"]), path);
   requireText(value.id, `${path}.id`);
-  if (trackIds.has(value.id)) throw invalid(`${path}.id`, `track id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+  if (trackIds.has(value.id)) throw invalid(`${path}.id`, `Duplicate track id: ${value.id}`);
   trackIds.add(value.id);
   if (value.lane !== "visual" && value.lane !== "audio") {
-    throw invalid(`${path}.lane`, "visual \u307E\u305F\u306F audio \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.lane`, "Must be visual or audio.");
   }
   if (hasOwn(value, "name") && typeof value.name !== "string") {
-    throw invalid(`${path}.name`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.name`, "Must be a string.");
   }
   if (hasOwn(value, "muted") && typeof value.muted !== "boolean") {
-    throw invalid(`${path}.muted`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.muted`, "Must be a boolean.");
   }
   const hasItems = hasOwn(value, "items");
   const hasContent = hasOwn(value, "content");
   if (hasItems === hasContent) {
-    throw invalid(path, "items \u3068 content \u306E\u3069\u3061\u3089\u304B\u4E00\u65B9\u3060\u3051\u304C\u5FC5\u8981\u3067\u3059");
+    throw invalid(path, "Specify either items or content, not both.");
   }
   if (hasItems) {
-    if (!Array.isArray(value.items)) throw invalid(`${path}.items`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (!Array.isArray(value.items)) throw invalid(`${path}.items`, "Must be an array.");
     value.items.forEach((item, itemIndex) => {
       const itemPath = `${path}.items[${itemIndex}]`;
       if (value.lane === "audio") validateAudioItem(item, itemPath, itemIds, sourceIds);
@@ -2855,25 +2855,25 @@ function validateTrack(value, index, trackIds, itemIds, sourceIds) {
   requireRecord2(value.content, `${path}.content`);
   requireExactKeys(value.content, /* @__PURE__ */ new Set(["from"]), `${path}.content`);
   if (value.content.from !== "captions.json") {
-    throw invalid(`${path}.content.from`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.content.from`, "Must be captions.json.");
   }
 }
 function validateAudioItem(value, path, ids, sourceIds) {
   requireRecord2(value, path);
   requireExactKeys(value, AUDIO_ITEM_KEYS, path);
   requireText(value.id, `${path}.id`);
-  if (ids.has(value.id)) throw invalid(`${path}.id`, `item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+  if (ids.has(value.id)) throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
   ids.add(value.id);
   validateItemMetadata(value, path);
   if (hasOwn(value, "anchor")) validateItemAnchor(value.anchor, `${path}.anchor`);
   requireInteger(value.at, 0, `${path}.at`);
   requireInteger(value.duration, 0, `${path}.duration`);
   if (hasOwn(value, "role") && value.role !== "sfx" && value.role !== "narration" && value.role !== "bgm" && value.role !== "speech") {
-    throw invalid(`${path}.role`, "sfx/narration/bgm/speech \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.role`, "Must be one of sfx, narration, bgm, speech.");
   }
   if (hasOwn(value, "link")) requireText(value.link, `${path}.link`);
   if (hasOwn(value, "mute") && typeof value.mute !== "boolean") {
-    throw invalid(`${path}.mute`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.mute`, "Must be a boolean.");
   }
   if (hasOwn(value, "gain_db")) requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
   if (hasOwn(value, "denoise")) validateAudioClipDenoise(value.denoise, `${path}.denoise`);
@@ -2882,19 +2882,19 @@ function validateAudioItem(value, path, ids, sourceIds) {
   if (hasOwn(value, "fade_in")) requireNonNegativeNumber(value.fade_in, `${path}.fade_in`);
   if (hasOwn(value, "fade_out")) requireNonNegativeNumber(value.fade_out, `${path}.fade_out`);
   if (hasOwn(value, "ducking") && typeof value.ducking !== "boolean") {
-    throw invalid(`${path}.ducking`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.ducking`, "Must be a boolean.");
   }
   if (hasOwn(value, "duck_db")) requireRange(value.duck_db, -40, 0, `${path}.duck_db`);
   if (hasOwn(value, "duck_attack")) requireRange(value.duck_attack, 0, 2, `${path}.duck_attack`);
   if (hasOwn(value, "duck_release")) requireRange(value.duck_release, 0, 5, `${path}.duck_release`);
   if (hasOwn(value, "script") && typeof value.script !== "string") {
-    throw invalid(`${path}.script`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.script`, "Must be a string.");
   }
   if (hasOwn(value, "reading") && typeof value.reading !== "string") {
-    throw invalid(`${path}.reading`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.reading`, "Must be a string.");
   }
   if (hasOwn(value, "caption_ref") && (typeof value.caption_ref !== "string" || !/^c-\d{4}$/.test(value.caption_ref))) {
-    throw invalid(`${path}.caption_ref`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+    throw invalid(`${path}.caption_ref`, "A caption id is required.");
   }
   if (hasOwn(value, "provenance")) validateNarrationProvenance(value.provenance, `${path}.provenance`);
   validateAudioMediaSource(value.source, `${path}.source`, sourceIds);
@@ -2904,39 +2904,39 @@ function validateNarrationProvenance(value, path) {
   requireText(value.provider, `${path}.provider`);
   for (const key of ["engine", "voice", "credit", "generated_at"]) {
     if (hasOwn(value, key) && typeof value[key] !== "string") {
-      throw invalid(`${path}.${key}`, "string \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      throw invalid(`${path}.${key}`, "Must be a string.");
     }
   }
   if (value.provider === "voicevox" && (!hasOwn(value, "credit") || typeof value.credit !== "string" || value.credit.trim().length === 0)) {
-    throw invalid(`${path}.credit`, "provider \u304C voicevox \u306E\u3068\u304D\u306F\u7A7A\u3067\u306A\u3044\u6587\u5B57\u5217\u304C\u5FC5\u8981\u3067\u3059");
+    throw invalid(`${path}.credit`, "When provider is voicevox, a non-empty string is required.");
   }
 }
 function validateAudioMediaSource(value, path, sourceIds) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "src", "in", "out", "speed", "pitch_semitones", "formant"]), path);
-  if (value.kind !== "media") throw invalid(`${path}.kind`, "media \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (value.kind !== "media") throw invalid(`${path}.kind`, "Must be media.");
   requireText(value.src, `${path}.src`);
-  if (!sourceIds.has(value.src)) throw invalid(`${path}.src`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.src}`);
+  if (!sourceIds.has(value.src)) throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
   if (hasOwn(value, "in")) requireNonNegativeNumber(value.in, `${path}.in`);
   if (hasOwn(value, "out")) {
     requireNonNegativeNumber(value.out, `${path}.out`);
     const inSeconds = hasOwn(value, "in") ? value.in : 0;
-    if (value.out <= inSeconds) throw invalid(path, "audio media source \u306F out > in \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (value.out <= inSeconds) throw invalid(path, "An audio media source needs out > in.");
   }
   if (hasOwn(value, "speed")) {
     requireRange(value.speed, 0.25, 4, `${path}.speed`);
-    if (value.speed === 0.25) throw invalid(`${path}.speed`, "0.25 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (value.speed === 0.25) throw invalid(`${path}.speed`, "Must be greater than 0.25.");
   }
   if (hasOwn(value, "pitch_semitones")) requireRange(value.pitch_semitones, -24, 24, `${path}.pitch_semitones`);
   if (hasOwn(value, "formant") && value.formant !== "preserve" && value.formant !== "shift") {
-    throw invalid(`${path}.formant`, "preserve/shift \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.formant`, "Must be preserve or shift.");
   }
 }
 function validateAudioClipDenoise(value, path) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["method", "strength"]), path);
   if (value.method !== "fft" && value.method !== "nlm") {
-    throw invalid(`${path}.method`, "fft/nlm \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(`${path}.method`, "Must be fft or nlm.");
   }
   requireRange(value.strength, 0, 1, `${path}.strength`);
 }
@@ -2944,7 +2944,7 @@ function validateItem(value, path, ids, sourceIds) {
   requireRecord2(value, path);
   requireExactKeys(value, ITEM_KEYS, path);
   requireText(value.id, `${path}.id`);
-  if (ids.has(value.id)) throw invalid(`${path}.id`, `item id \u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${value.id}`);
+  if (ids.has(value.id)) throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
   ids.add(value.id);
   validateItemMetadata(value, path);
   if (hasOwn(value, "anchor")) validateItemAnchor(value.anchor, `${path}.anchor`);
@@ -2953,7 +2953,7 @@ function validateItem(value, path, ids, sourceIds) {
   if (hasOwn(value, "transform")) validateTransform(value.transform, `${path}.transform`);
   if (hasOwn(value, "opacity")) requireRange(value.opacity, 0, 1, `${path}.opacity`);
   if (hasOwn(value, "blend") && !BLEND_MODES.has(value.blend)) {
-    throw invalid(`${path}.blend`, "\u672A\u5BFE\u5FDC\u306E blend mode \u3067\u3059");
+    throw invalid(`${path}.blend`, "Unsupported blend mode.");
   }
   if (hasOwn(value, "crop")) validateCrop(value.crop, `${path}.crop`);
   if (hasOwn(value, "frame")) validatePhotoFrame(value.frame, `${path}.frame`, value.source);
@@ -2967,26 +2967,26 @@ function validateItem(value, path, ids, sourceIds) {
     const transforms = [value.transform, ...Array.isArray(value.keyframes) ? value.keyframes.map((point2) => point2.transform) : []];
     for (const transform of transforms) {
       if (transform !== null && typeof transform === "object" && (hasOwn(transform, "scaleX") || hasOwn(transform, "scaleY"))) {
-        throw invalid(`${path}.transform`, "group \u306F scaleX / scaleY \u3092\u6307\u5B9A\u3067\u304D\u307E\u305B\u3093");
+        throw invalid(`${path}.transform`, "A group cannot set scaleX or scaleY.");
       }
     }
   }
   if (hasOwn(value, "audio")) {
-    if (value.source.kind !== "media") throw invalid(`${path}.audio`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
-    if (value.audio !== false) throw invalid(`${path}.audio`, "false \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (value.source.kind !== "media") throw invalid(`${path}.audio`, "Only a media item can be specified.");
+    if (value.audio !== false) throw invalid(`${path}.audio`, "Must be false.");
   }
   if (hasOwn(value, "mask")) {
-    if (value.source.kind !== "media") throw invalid(`${path}.mask`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+    if (value.source.kind !== "media") throw invalid(`${path}.mask`, "Only a media item can be specified.");
     requireText(value.mask, `${path}.mask`);
-    if (!sourceIds.has(value.mask)) throw invalid(`${path}.mask`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.mask}`);
+    if (!sourceIds.has(value.mask)) throw invalid(`${path}.mask`, `Not in sources[].id: ${value.mask}`);
   }
   if (hasOwn(value, "maskFeather")) {
-    if (value.source.kind !== "media") throw invalid(`${path}.maskFeather`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+    if (value.source.kind !== "media") throw invalid(`${path}.maskFeather`, "Only a media item can be specified.");
     requireRange(value.maskFeather, 0, 100, `${path}.maskFeather`);
   }
   if (hasOwn(value, "regions")) {
     if (value.source.kind !== "media" || !Array.isArray(value.regions) || value.regions.length > 32)
-      throw invalid(`${path}.regions`, "media item \u306E 32 \u500B\u4EE5\u4E0B\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      throw invalid(`${path}.regions`, "Must be an array of at most 32 media items.");
     const regionIds = /* @__PURE__ */ new Set();
     value.regions.forEach((region, index) => {
       const at = `${path}.regions[${index}]`;
@@ -2994,11 +2994,11 @@ function validateItem(value, path, ids, sourceIds) {
       requireExactKeys(region, /* @__PURE__ */ new Set(["id", "name", "maskRef", "invert", "enabled", "adjust", "filter", "blur"]), at);
       requireText(region.id, `${at}.id`);
       if (hasOwn(region, "name")) requireText(region.name, `${at}.name`);
-      if (regionIds.has(region.id)) throw invalid(`${at}.id`, "\u91CD\u8907\u3057\u3066\u3044\u307E\u3059");
+      if (regionIds.has(region.id)) throw invalid(`${at}.id`, "This is a duplicate.");
       regionIds.add(region.id);
       requireText(region.maskRef, `${at}.maskRef`);
-      if (!sourceIds.has(region.maskRef)) throw invalid(`${at}.maskRef`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${region.maskRef}`);
-      for (const key of ["invert", "enabled"]) if (hasOwn(region, key) && typeof region[key] !== "boolean") throw invalid(`${at}.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (!sourceIds.has(region.maskRef)) throw invalid(`${at}.maskRef`, `Not in sources[].id: ${region.maskRef}`);
+      for (const key of ["invert", "enabled"]) if (hasOwn(region, key) && typeof region[key] !== "boolean") throw invalid(`${at}.${key}`, "Must be a boolean.");
       if (hasOwn(region, "adjust")) {
         requireRecord2(region.adjust, `${at}.adjust`);
         requireExactKeys(region.adjust, /* @__PURE__ */ new Set(["basic"]), `${at}.adjust`);
@@ -3024,15 +3024,15 @@ function validateItem(value, path, ids, sourceIds) {
     });
   }
   if (hasOwn(value, "erase")) {
-    if (value.source.kind !== "media" || !Array.isArray(value.erase)) throw invalid(`${path}.erase`, "media item \u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (value.source.kind !== "media" || !Array.isArray(value.erase)) throw invalid(`${path}.erase`, "Must be an array on a media item.");
     value.erase.forEach((stroke, index) => {
       const at = `${path}.erase[${index}]`;
       requireRecord2(stroke, at);
       requireExactKeys(stroke, /* @__PURE__ */ new Set(["mode", "points", "size", "hardness"]), at);
-      if (stroke.mode !== "erase" && stroke.mode !== "restore") throw invalid(`${at}.mode`, "erase \u307E\u305F\u306F restore \u304C\u5FC5\u8981\u3067\u3059");
-      if (!Array.isArray(stroke.points) || stroke.points.length === 0) throw invalid(`${at}.points`, "\u70B9\u304C\u5FC5\u8981\u3067\u3059");
+      if (stroke.mode !== "erase" && stroke.mode !== "restore") throw invalid(`${at}.mode`, "Must be erase or restore.");
+      if (!Array.isArray(stroke.points) || stroke.points.length === 0) throw invalid(`${at}.points`, "At least one point is required.");
       stroke.points.forEach((point2, pointIndex) => {
-        if (!Array.isArray(point2) || point2.length !== 2) throw invalid(`${at}.points[${pointIndex}]`, "2 \u5EA7\u6A19\u304C\u5FC5\u8981\u3067\u3059");
+        if (!Array.isArray(point2) || point2.length !== 2) throw invalid(`${at}.points[${pointIndex}]`, "Two coordinates are required.");
         requireRange(point2[0], 0, 1, `${at}.points[${pointIndex}][0]`);
         requireRange(point2[1], 0, 1, `${at}.points[${pointIndex}][1]`);
       });
@@ -3041,43 +3041,43 @@ function validateItem(value, path, ids, sourceIds) {
     });
   }
   if (hasOwn(value, "flip")) {
-    if (value.source.kind !== "media") throw invalid(`${path}.flip`, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+    if (value.source.kind !== "media") throw invalid(`${path}.flip`, "Only a media item can be specified.");
     requireRecord2(value.flip, `${path}.flip`);
     requireExactKeys(value.flip, /* @__PURE__ */ new Set(["h", "v"]), `${path}.flip`);
-    for (const axis of ["h", "v"]) if (hasOwn(value.flip, axis) && typeof value.flip[axis] !== "boolean") throw invalid(`${path}.flip.${axis}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    for (const axis of ["h", "v"]) if (hasOwn(value.flip, axis) && typeof value.flip[axis] !== "boolean") throw invalid(`${path}.flip.${axis}`, "Must be a boolean.");
   }
   if (hasOwn(value, "items")) {
-    if (!Array.isArray(value.items)) throw invalid(`${path}.items`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (!Array.isArray(value.items)) throw invalid(`${path}.items`, "Must be an array.");
     value.items.forEach((child, index) => validateItem(child, `${path}.items[${index}]`, ids, sourceIds));
   }
 }
 function validateItemMetadata(value, path) {
-  if (hasOwn(value, "name") && typeof value.name !== "string") throw invalid(`${path}.name`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (hasOwn(value, "name") && typeof value.name !== "string") throw invalid(`${path}.name`, "Must be a string.");
   for (const key of ["hidden", "locked"]) {
-    if (hasOwn(value, key) && typeof value[key] !== "boolean") throw invalid(`${path}.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (hasOwn(value, key) && typeof value[key] !== "boolean") throw invalid(`${path}.${key}`, "Must be a boolean.");
   }
 }
 function validateItemAnchor(value, path) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["caption", "range", "offset", "edge", "duration", "attached_by"]), path);
-  if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption)) throw invalid(`${path}.caption`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+  if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption)) throw invalid(`${path}.caption`, "A caption id is required.");
   if (hasOwn(value, "range")) {
     requireRecord2(value.range, `${path}.range`);
     requireExactKeys(value.range, /* @__PURE__ */ new Set(["start", "end"]), `${path}.range`);
     requireNonNegativeNumber(value.range.start, `${path}.range.start`);
     requireNonNegativeNumber(value.range.end, `${path}.range.end`);
-    if (value.range.end <= value.range.start) throw invalid(`${path}.range`, "end > start \u304C\u5FC5\u8981\u3067\u3059");
+    if (value.range.end <= value.range.start) throw invalid(`${path}.range`, "end must be greater than start.");
   }
-  if (hasOwn(value, "offset") && !Number.isInteger(value.offset)) throw invalid(`${path}.offset`, "\u6574\u6570\u304C\u5FC5\u8981\u3067\u3059");
-  if (hasOwn(value, "edge") && value.edge !== "start" && value.edge !== "end") throw invalid(`${path}.edge`, "start/end \u304C\u5FC5\u8981\u3067\u3059");
-  if (hasOwn(value, "duration") && value.duration !== "caption" && value.duration !== "own") throw invalid(`${path}.duration`, "caption/own \u304C\u5FC5\u8981\u3067\u3059");
+  if (hasOwn(value, "offset") && !Number.isInteger(value.offset)) throw invalid(`${path}.offset`, "Must be an integer.");
+  if (hasOwn(value, "edge") && value.edge !== "start" && value.edge !== "end") throw invalid(`${path}.edge`, "Must be start or end.");
+  if (hasOwn(value, "duration") && value.duration !== "caption" && value.duration !== "own") throw invalid(`${path}.duration`, "Must be caption or own.");
   if (hasOwn(value, "attached_by")) validateAttachedBy(value.attached_by, `${path}.attached_by`);
 }
 function validateAttachedBy(value, path) {
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["style_uid", "caption"]), path);
   requireText(value.style_uid, `${path}.style_uid`);
-  if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption)) throw invalid(`${path}.caption`, "\u5B57\u5E55 id \u304C\u5FC5\u8981\u3067\u3059");
+  if (typeof value.caption !== "string" || !/^c-\d{4}$/.test(value.caption)) throw invalid(`${path}.caption`, "A caption id is required.");
 }
 function validateItemSource(value, path, sourceIds) {
   requireRecord2(value, path);
@@ -3098,30 +3098,30 @@ function validateItemSource(value, path, sourceIds) {
         "mute"
       ]), path);
       requireText(value.src, `${path}.src`);
-      if (!sourceIds.has(value.src)) throw invalid(`${path}.src`, `sources[].id \u306B\u5B58\u5728\u3057\u307E\u305B\u3093: ${value.src}`);
+      if (!sourceIds.has(value.src)) throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
       requireNonNegativeNumber(value.in, `${path}.in`);
       requireNonNegativeNumber(value.out, `${path}.out`);
-      if (value.out <= value.in) throw invalid(path, "media source \u306F out > in \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (value.out <= value.in) throw invalid(path, "A media source needs out > in.");
       for (const key of ["framing", "transition_out", "freeze", "chroma_key"]) {
         if (hasOwn(value, key) && value[key] !== null) requireRecord2(value[key], `${path}.${key}`);
       }
-      if (hasOwn(value, "fx") && !Array.isArray(value.fx)) throw invalid(`${path}.fx`, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (hasOwn(value, "fx") && !Array.isArray(value.fx)) throw invalid(`${path}.fx`, "Must be an array.");
       if (hasOwn(value, "speed")) requirePositiveNumber(value.speed, `${path}.speed`);
       if (hasOwn(value, "gain_db")) requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
-      if (hasOwn(value, "mute") && typeof value.mute !== "boolean") throw invalid(`${path}.mute`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (hasOwn(value, "mute") && typeof value.mute !== "boolean") throw invalid(`${path}.mute`, "Must be a boolean.");
       return;
     case "html":
       requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "part", "style", "text", "exclude", "derivedFrom", "vars", "params"]), path);
       requireText(value.path, `${path}.path`);
       for (const key of ["part", "derivedFrom"]) if (hasOwn(value, key)) requireText(value[key], `${path}.${key}`);
-      if (hasOwn(value, "text") && typeof value.text !== "string") throw invalid(`${path}.text`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (hasOwn(value, "text") && typeof value.text !== "string") throw invalid(`${path}.text`, "Must be a string.");
       if (hasOwn(value, "style")) validateStringMap(value.style, `${path}.style`);
       if (hasOwn(value, "exclude")) validateStringList(value.exclude, `${path}.exclude`);
       if (hasOwn(value, "vars")) requireRecord2(value.vars, `${path}.vars`);
       if (hasOwn(value, "params")) {
         requireRecord2(value.params, `${path}.params`);
         for (const [name, text] of Object.entries(value.params)) {
-          if (typeof text !== "string") throw invalid(`${path}.params.${name}`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+          if (typeof text !== "string") throw invalid(`${path}.params.${name}`, "Must be a string.");
         }
       }
       return;
@@ -3144,44 +3144,44 @@ function validateItemSource(value, path, sourceIds) {
       if (hasOwn(value, "canvas")) {
         requireRecord2(value.canvas, `${path}.canvas`);
         requireExactKeys(value.canvas, /* @__PURE__ */ new Set(["origin", "durationMode", "intent", "background"]), `${path}.canvas`);
-        if (value.canvas.origin !== "user" && value.canvas.origin !== "plan") throw invalid(`${path}.canvas.origin`, "user / plan \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
-        if (value.canvas.durationMode !== "fixed") throw invalid(`${path}.canvas.durationMode`, "fixed \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
-        if (hasOwn(value.canvas, "intent") && typeof value.canvas.intent !== "string") throw invalid(`${path}.canvas.intent`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+        if (value.canvas.origin !== "user" && value.canvas.origin !== "plan") throw invalid(`${path}.canvas.origin`, "Must be user or plan.");
+        if (value.canvas.durationMode !== "fixed") throw invalid(`${path}.canvas.durationMode`, "Must be fixed.");
+        if (hasOwn(value.canvas, "intent") && typeof value.canvas.intent !== "string") throw invalid(`${path}.canvas.intent`, "Must be a string.");
         if (hasOwn(value.canvas, "background")) {
           requireRecord2(value.canvas.background, `${path}.canvas.background`);
           requireExactKeys(value.canvas.background, /* @__PURE__ */ new Set(["type", "color"]), `${path}.canvas.background`);
           if (value.canvas.background.type === "color") {
-            if (typeof value.canvas.background.color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(value.canvas.background.color)) throw invalid(`${path}.canvas.background.color`, "#RRGGBB \u3067\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
-          } else if (value.canvas.background.type !== "none" || hasOwn(value.canvas.background, "color")) throw invalid(`${path}.canvas.background`, "none \u307E\u305F\u306F color \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044");
+            if (typeof value.canvas.background.color !== "string" || !/^#[0-9a-fA-F]{6}$/.test(value.canvas.background.color)) throw invalid(`${path}.canvas.background.color`, "Must be #RRGGBB.");
+          } else if (value.canvas.background.type !== "none" || hasOwn(value.canvas.background, "color")) throw invalid(`${path}.canvas.background`, "Must be none or color.");
         }
       }
       return;
     case "captions":
       requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "exclude"]), path);
-      if (value.path !== "captions.json") throw invalid(`${path}.path`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (value.path !== "captions.json") throw invalid(`${path}.path`, "Must be captions.json.");
       if (hasOwn(value, "exclude")) validateStringList(value.exclude, `${path}.exclude`);
       return;
     case "caption":
       requireExactKeys(value, /* @__PURE__ */ new Set(["kind", "path", "id"]), path);
-      if (value.path !== "captions.json") throw invalid(`${path}.path`, "captions.json \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (value.path !== "captions.json") throw invalid(`${path}.path`, "Must be captions.json.");
       requireText(value.id, `${path}.id`);
       return;
     default:
-      throw invalid(`${path}.kind`, "media/html/telop/filter/group/captions/caption \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      throw invalid(`${path}.kind`, "Must be media, html, telop, filter, group, captions, or caption.");
   }
 }
 function validateStringMap(value, path) {
   requireRecord2(value, path);
   for (const [key, entry] of Object.entries(value)) {
-    if (typeof entry !== "string") throw invalid(`${path}.${key}`, "\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (typeof entry !== "string") throw invalid(`${path}.${key}`, "Must be a string.");
   }
 }
 function validateStringList(value, path) {
-  if (!Array.isArray(value)) throw invalid(path, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (!Array.isArray(value)) throw invalid(path, "Must be an array.");
   const seen = /* @__PURE__ */ new Set();
   value.forEach((entry, index) => {
     requireText(entry, `${path}[${index}]`);
-    if (seen.has(entry)) throw invalid(path, `\u5024\u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059: ${entry}`);
+    if (seen.has(entry)) throw invalid(path, `Duplicate value: ${entry}`);
     seen.add(entry);
   });
 }
@@ -3201,7 +3201,7 @@ function validateFilter(value, path) {
       requireRange(value.value, 0, 3, `${path}.value`);
       return;
     default:
-      throw invalid(`${path}.type`, "invert/lut/saturation \u306E\u3044\u305A\u308C\u304B\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      throw invalid(`${path}.type`, "Must be one of invert, lut, saturation.");
   }
 }
 function validateTransform(value, path) {
@@ -3219,13 +3219,13 @@ function validateCrop(value, path) {
   for (const key of ["x", "y"]) requireRange(value[key], 0, 1, `${path}.${key}`);
   for (const key of ["w", "h"]) {
     requireRange(value[key], 0, 1, `${path}.${key}`);
-    if (value[key] === 0) throw invalid(`${path}.${key}`, "0 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (value[key] === 0) throw invalid(`${path}.${key}`, "Must be greater than 0.");
   }
   if (hasOwn(value, "rotate")) requireRange(value.rotate, -45, 45, `${path}.rotate`);
 }
 function validatePhotoFrame(value, path, source) {
   if (!source || typeof source !== "object" || source.kind !== "media") {
-    throw invalid(path, "media item \u3060\u3051\u304C\u6307\u5B9A\u3067\u304D\u307E\u3059");
+    throw invalid(path, "Only a media item can be specified.");
   }
   requireRecord2(value, path);
   requireExactKeys(value, /* @__PURE__ */ new Set(["stroke", "cornerRadius"]), path);
@@ -3234,7 +3234,7 @@ function validatePhotoFrame(value, path, source) {
     requireRecord2(value.stroke, `${path}.stroke`);
     requireExactKeys(value.stroke, /* @__PURE__ */ new Set(["color", "width"]), `${path}.stroke`);
     if (typeof value.stroke.color !== "string" || !/^#[0-9a-fA-F]{6}$/u.test(value.stroke.color)) {
-      throw invalid(`${path}.stroke.color`, "#RRGGBB \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      throw invalid(`${path}.stroke.color`, "Must be #RRGGBB.");
     }
     requireRange(value.stroke.width, 0, 100, `${path}.stroke.width`);
   }
@@ -3286,7 +3286,7 @@ function validateAdjust(value, path) {
     for (const [channel, points] of Object.entries(channels)) {
       const channelPath = `${sectionPath}.${channel}`;
       if (!Array.isArray(points) || points.length < minimum || points.length > 16) {
-        throw invalid(channelPath, `${minimum} \u304B\u3089 16 \u70B9\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+        throw invalid(channelPath, `Must be an array of ${minimum} to 16 points.`);
       }
       let previous = -Infinity;
       for (const [index, point2] of points.entries()) {
@@ -3295,7 +3295,7 @@ function validateAdjust(value, path) {
         requireExactKeys(point2, /* @__PURE__ */ new Set([axis, output]), pointPath);
         requireRange(point2[axis], 0, 1, `${pointPath}.${axis}`);
         requireRange(point2[output], 0, 1, `${pointPath}.${output}`);
-        if (point2[axis] <= previous) throw invalid(`${pointPath}.${axis}`, "\u72ED\u7FA9\u5358\u8ABF\u5897\u52A0\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+        if (point2[axis] <= previous) throw invalid(`${pointPath}.${axis}`, "Must be strictly increasing.");
         previous = point2[axis];
       }
     }
@@ -3344,7 +3344,7 @@ function validateAdjust(value, path) {
     requireExactKeys(value.sections, sectionKeys, `${path}.sections`);
     for (const key of sectionKeys) {
       if (hasOwn(value.sections, key) && typeof value.sections[key] !== "boolean") {
-        throw invalid(`${path}.sections.${key}`, "boolean \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+        throw invalid(`${path}.sections.${key}`, "Must be a boolean.");
       }
     }
   }
@@ -3375,7 +3375,7 @@ var CUBIC_BEZIER = /^cubic-bezier\(\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*-?(?:\d+(?
 function validateEasing(value, path) {
   const validateOne = (entry, entryPath) => {
     if (typeof entry !== "string" || !EASINGS.has(entry) && !CUBIC_BEZIER.test(entry)) {
-      throw invalid(entryPath, "\u672A\u5BFE\u5FDC\u306E easing \u3067\u3059");
+      throw invalid(entryPath, "Unsupported easing.");
     }
   };
   if (typeof value === "string") return validateOne(value, path);
@@ -3387,17 +3387,17 @@ function validateKeyframes(value, path, audio = false) {
     requireRecord2(value, path);
     requireExactKeys(value, /* @__PURE__ */ new Set(["path", "count"]), path);
     requireText(value.path, `${path}.path`);
-    if (!/^motion\/.+\.json$/.test(value.path)) throw invalid(`${path}.path`, "motion/ \u914D\u4E0B\u306E JSON \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    if (!/^motion\/.+\.json$/.test(value.path)) throw invalid(`${path}.path`, "Must be JSON under motion/.");
     requireInteger(value.count, 2, `${path}.count`);
     return;
   }
-  if (!Array.isArray(value) || value.length < 2) throw invalid(path, "2 \u8981\u7D20\u4EE5\u4E0A\u306E\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (!Array.isArray(value) || value.length < 2) throw invalid(path, "Must be an array of at least two items.");
   value.forEach((entry, index) => {
     const itemPath = `${path}[${index}]`;
     requireRecord2(entry, itemPath);
     requireInteger(entry.t, 0, `${itemPath}.t`);
     if (audio) {
-      if (!hasOwn(entry, "gain_db")) throw invalid(`${itemPath}.gain_db`, "audio keyframe \u306B\u5FC5\u8981\u3067\u3059");
+      if (!hasOwn(entry, "gain_db")) throw invalid(`${itemPath}.gain_db`, "Required on an audio keyframe.");
       requireRange(entry.gain_db, -60, 12, `${itemPath}.gain_db`);
     }
     if (hasOwn(entry, "transform")) validateTransform(entry.transform, `${itemPath}.transform`);
@@ -3431,21 +3431,21 @@ function validateMotion(value, path) {
   }
 }
 function validateAnimators(value, path) {
-  if (!Array.isArray(value)) throw invalid(path, "\u914D\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (!Array.isArray(value)) throw invalid(path, "Must be an array.");
   value.forEach((entry, index) => {
     const entryPath = `${path}[${index}]`;
     requireRecord2(entry, entryPath);
     requireExactKeys(entry, /* @__PURE__ */ new Set(["id", "basis", "shape", "start", "end", "offset", "randomize", "amount", "ease"]), entryPath);
     requireText(entry.id, `${entryPath}.id`);
-    if (!["chars", "words", "lines", "segments"].includes(String(entry.basis))) throw invalid(`${entryPath}.basis`, "\u672A\u5BFE\u5FDC\u306E basis \u3067\u3059");
-    if (!["ramp", "triangle", "round", "smooth", "square", "ramp-down"].includes(String(entry.shape))) throw invalid(`${entryPath}.shape`, "\u672A\u5BFE\u5FDC\u306E shape \u3067\u3059");
+    if (!["chars", "words", "lines", "segments"].includes(String(entry.basis))) throw invalid(`${entryPath}.basis`, "Unsupported basis.");
+    if (!["ramp", "triangle", "round", "smooth", "square", "ramp-down"].includes(String(entry.shape))) throw invalid(`${entryPath}.shape`, "Unsupported shape.");
     requireRange(entry.start, 0, 1, `${entryPath}.start`);
     requireRange(entry.end, 0, 1, `${entryPath}.end`);
     requireRange(entry.offset, -1, 1, `${entryPath}.offset`);
     if (hasOwn(entry, "randomize")) {
       requireRecord2(entry.randomize, `${entryPath}.randomize`);
       requireExactKeys(entry.randomize, /* @__PURE__ */ new Set(["seed"]), `${entryPath}.randomize`);
-      if (!Number.isInteger(entry.randomize.seed)) throw invalid(`${entryPath}.randomize.seed`, "\u6574\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+      if (!Number.isInteger(entry.randomize.seed)) throw invalid(`${entryPath}.randomize.seed`, "Must be an integer.");
     }
     requireRecord2(entry.amount, `${entryPath}.amount`);
     requireExactKeys(entry.amount, /* @__PURE__ */ new Set(["x", "y", "scale", "rotate", "opacity", "letterSpacing", "blur"]), `${entryPath}.amount`);
@@ -3458,48 +3458,48 @@ function validateAnimators(value, path) {
 }
 function requireRecord2(value, path) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
-    throw invalid(path, "object \u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+    throw invalid(path, "Must be an object.");
   }
 }
 function hasOwn(value, key) {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 var UNKNOWN_KEY_GUIDANCE = {
-  emphasis_words: "\u8A9E\u30EC\u30D9\u30EB\u6F14\u51FA\u306F captions.json \u306E\u30C8\u30C3\u30D7\u30EC\u30D9\u30EB emphasis_words[] \u3078\u79FB\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u5951\u7D04 contract-2026-08-23-captions-emphasis-words-v0.md\uFF09"
+  emphasis_words: "Move word-level emphasis to top-level emphasis_words[] in captions.json (contract-2026-08-23-captions-emphasis-words-v0.md)."
 };
-var DEFAULT_UNKNOWN_KEY_GUIDANCE = "\u3053\u306E\u30AD\u30FC\u306F v2 \u306E\u8A9E\u5F59\u306B\u3042\u308A\u307E\u305B\u3093\u3002\u624B\u3067\u7DE8\u96C6\u3057\u305F\u5834\u5408\u306F\u53D6\u308A\u9664\u304F\u304B\u3001.akari/backup/ \u306E\u539F\u672C\u304B\u3089\u5FA9\u5143\u3057\u3066\u304F\u3060\u3055\u3044";
+var DEFAULT_UNKNOWN_KEY_GUIDANCE = "This key is not in the v2 vocabulary. If it was edited by hand, remove it or restore the original from .akari/backup/.";
 function requireExactKeys(value, allowed, path) {
   const unknown = Object.keys(value).filter((key) => !allowed.has(key));
   if (unknown.length > 0) {
     const guidance = unknown.map((key) => `${key}: ${UNKNOWN_KEY_GUIDANCE[key] ?? DEFAULT_UNKNOWN_KEY_GUIDANCE}`).join(" / ");
-    throw invalid(path, `\u672A\u5B9A\u7FA9\u30AD\u30FC\u3092\u4F7F\u7528\u3067\u304D\u307E\u305B\u3093: ${unknown.join(", ")}\u3002\u6848\u5185: ${guidance}`);
+    throw invalid(path, `Cannot use an undefined key: ${unknown.join(", ")}. Guidance: ${guidance}`);
   }
 }
 function requireText(value, path) {
-  if (typeof value !== "string" || value.trim().length === 0) throw invalid(path, "\u7A7A\u3067\u306A\u3044\u6587\u5B57\u5217\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (typeof value !== "string" || value.trim().length === 0) throw invalid(path, "Must be a non-empty string.");
 }
 function requireNumber(value, path) {
-  if (typeof value !== "number" || !Number.isFinite(value)) throw invalid(path, "\u6709\u9650\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (typeof value !== "number" || !Number.isFinite(value)) throw invalid(path, "Must be a finite number.");
 }
 function requirePositiveNumber(value, path) {
   requireNumber(value, path);
-  if (value <= 0) throw invalid(path, "0 \u3088\u308A\u5927\u304D\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (value <= 0) throw invalid(path, "Must be greater than 0.");
 }
 function requireNonNegativeNumber(value, path) {
   requireNumber(value, path);
-  if (value < 0) throw invalid(path, "0 \u4EE5\u4E0A\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059");
+  if (value < 0) throw invalid(path, "Must be 0 or greater.");
 }
 function requireInteger(value, minimum, path) {
   if (!Number.isInteger(value) || value < minimum) {
-    throw invalid(path, `${minimum} \u4EE5\u4E0A\u306E\u6574\u6570\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+    throw invalid(path, `Must be an integer greater than or equal to ${minimum}.`);
   }
 }
 function requireRange(value, minimum, maximum, path) {
   requireNumber(value, path);
-  if (value < minimum || value > maximum) throw invalid(path, `${minimum}..${maximum} \u306E\u7BC4\u56F2\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059`);
+  if (value < minimum || value > maximum) throw invalid(path, `Must be from ${minimum} to ${maximum}.`);
 }
 function invalid(path, message) {
-  return new Error(`edit.json v2 \u304C\u4E0D\u6B63\u3067\u3059 (${path}): ${message}`);
+  return new Error(`edit.json v2 is invalid (${path}): ${message}`);
 }
 function messageOf(error) {
   return error instanceof Error ? error.message : String(error);
@@ -3550,7 +3550,7 @@ function composeTransforms(parent, child) {
 var LegacyEditVersionError = class extends Error {
   constructor(version) {
     super(
-      `\u3053\u306E\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306F\u53E4\u3044\u5F62\u5F0F\u3067\u3059\uFF08edit.json version ${version}\uFF09\u3002\`akari migrate <dir>\` \u3067\u5909\u63DB\u3057\u3066\u304B\u3089\u958B\u3044\u3066\u304F\u3060\u3055\u3044\u3002\u5C06\u6765\u672C\u4F53\u304B\u3089\u5909\u63DB\u5668\u304C\u5916\u308C\u305F\u5F8C\u306F \`npx akari-migrate@<\u7248> <dir>\` \u3092\u4F7F\u3044\u307E\u3059\u3002`
+      `This project uses an older format (edit.json version ${version}). Convert it with \`akari migrate <dir>\` before opening. After the converter leaves the app, use \`npx akari-migrate@<version> <dir>\`.`
     );
     this.version = version;
     this.name = "LegacyEditVersionError";
@@ -4234,11 +4234,11 @@ function flattenGroupDescendants(internal) {
 function readInternalEdit(source, options) {
   const text = typeof source === "string" ? source : JSON.stringify(source);
   if (typeof text !== "string") {
-    throw new Error("\u7DE8\u96C6\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+    throw new Error("The edit data is not in a recognized format.");
   }
   const raw = JSON.parse(text);
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-    throw new Error("\u7DE8\u96C6\u30C7\u30FC\u30BF\u306E\u5F62\u5F0F\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002");
+    throw new Error("The edit data is not in a recognized format.");
   }
   const record2 = raw;
   if (record2.version !== 2) {

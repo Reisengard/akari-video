@@ -41,7 +41,7 @@ test('新しい版だけを検出し、検証前置きは版があるときだ�
   assert.equal(newerSavedByVersion(undefined, '0.1.86'), undefined);
   const message = '保存後の検証で問題が見つかりました: [v2.mask-video]';
   assert.equal(withNewerVersionLintPrefix(message), message);
-  assert.match(withNewerVersionLintPrefix(message, '9.9.9'), /^このプロジェクトは新しい版（v9\.9\.9）で保存されています。.*保存後の検証で問題が見つかりました/s);
+  assert.match(withNewerVersionLintPrefix(message, '9.9.9'), /^This project was saved by a newer version \(v9\.9\.9\)\..*保存後の検証で問題が見つかりました/s);
 });
 
 test('saved-by の版は major.minor.patch を数値で比較する', () => {

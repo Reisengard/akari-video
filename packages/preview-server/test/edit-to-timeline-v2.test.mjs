@@ -219,13 +219,13 @@ test('preview projection の v1 は captions 引数の有無でバイト同一',
   const legacy = { version: 1, output: { fps: 30 }, sources: [], cuts: [], overlays: [] };
   assert.throws(() => projectPreviewEdit(
     legacy, '/project/.akari/preview-projection', '/project'
-  ), /古い形式/u);
+  ), /older format/u);
   assert.throws(() => projectPreviewEdit(
     legacy,
     '/project/.akari/preview-projection',
     '/project',
     [{ id: 'c-0003', start: 2, end: 3 }],
-  ), /古い形式/u);
+  ), /older format/u);
 });
 
 async function freePort() {

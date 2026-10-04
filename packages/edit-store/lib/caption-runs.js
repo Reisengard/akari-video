@@ -18,7 +18,7 @@ function captionGraphemes(text) {
 function validRunRange(text, from, to) {
     if (!Number.isInteger(from) || !Number.isInteger(to) || from < 0
         || to <= from || to > captionGraphemes(text).length) {
-        throw new Error('文字範囲が表示文字列の外にあります。');
+        throw new Error('The character range is outside the displayed text.');
     }
 }
 /** The last matching run owns edits to a range, preserving the order of overlapping runs. */
@@ -44,7 +44,7 @@ function setCaptionRunStyle(text, runs, from, to, patch) {
                     && (typeof value?.width_px !== 'number'
                         || !Number.isFinite(value?.width_px)
                         || value.width_px < 0))))) {
-        throw new Error('文字範囲に使えないスタイル項目があります。');
+        throw new Error('The character range has a style field that is not allowed.');
     }
     const next = [...(runs ?? [])];
     const index = next.map(run => run.from === from && run.to === to).lastIndexOf(true);
@@ -61,7 +61,7 @@ function setCaptionRunStyle(text, runs, from, to, patch) {
 function setCaptionRunRole(text, runs, from, to, role) {
     validRunRange(text, from, to);
     if (typeof role !== 'string' || !role.trim())
-        throw new Error('文字範囲の役割が空です。');
+        throw new Error('The character range role is empty.');
     const next = [...(runs ?? [])];
     const index = next.map(run => run.from === from && run.to === to).lastIndexOf(true);
     const existing = index >= 0 ? next[index] : { from, to };
@@ -74,7 +74,7 @@ function setCaptionRunRole(text, runs, from, to, role) {
 }
 function removeCaptionRun(runs, index) {
     if (!Number.isInteger(index) || index < 0 || index >= (runs?.length ?? 0)) {
-        throw new Error('外す文字範囲がありません。');
+        throw new Error('There is no character range to remove.');
     }
     return runs.filter((_run, position) => position !== index);
 }
@@ -239,8 +239,8 @@ function captionRunsRemovedNotice(removedRuns, oldDisplayText) {
         .join('').replace(/\s+/gu, ' ').trim();
     const preview = captionGraphemes(selection).slice(0, 16).join('');
     const suffix = captionGraphemes(selection).length > 16 ? '…' : '';
-    const quoted = preview ? `（「${preview}${suffix}」${removedRuns.length > 1 ? 'など' : ''}）` : '';
-    return `文字範囲 ${removedRuns.length} 件${quoted}が外れました`;
+    const quoted = preview ? ` ("${preview}${suffix}"${removedRuns.length > 1 ? ' and more' : ''})` : '';
+    return `Removed ${removedRuns.length} character range(s)${quoted}`;
 }
 /** Self-contained because preview injects this function into its webview with toString(). */
 function applyCaptionRunsToHtml(html, displayText, runs) {

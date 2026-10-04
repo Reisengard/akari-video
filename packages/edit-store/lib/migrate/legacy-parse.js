@@ -9,7 +9,7 @@ const LAYER_BLEND_MODES = [
 function parseEdit(source) {
     const value = JSON.parse(source);
     if (!value || typeof value !== 'object') {
-        throw new Error('編集データの形式を確認できません。');
+        throw new Error('The edit data is not in a recognized format.');
     }
     const warnings = [];
     const cuts = [];
@@ -62,7 +62,7 @@ function parseEdit(source) {
                 || (hasSrc && typeof rawCut.src !== 'string')
                 || (isV0 && hasSrc)
                 || (hasSrc && (!isV1 || !sourceIds.has(rawCut.src)))) {
-                warnings.push(`${index + 1} 番目のクリップの src を解決できないため表示しません。`);
+                warnings.push(`Clip ${index + 1} is not shown because its src could not be resolved.`);
                 continue;
             }
             if (typeof input === 'number' && Number.isFinite(input)
@@ -73,7 +73,7 @@ function parseEdit(source) {
                         speed = rawCut.speed;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目のクリップの speed が不正なため 1 として扱います。`);
+                        warnings.push(`Clip ${index + 1} has an invalid speed, so it is treated as 1.`);
                     }
                 }
                 let transitionOut;
@@ -93,7 +93,7 @@ function parseEdit(source) {
                         };
                     }
                     else {
-                        warnings.push(`${index + 1} 番目のクリップの transition_out が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid transition_out on clip ${index + 1}.`);
                     }
                 }
                 let at;
@@ -102,12 +102,12 @@ function parseEdit(source) {
                         at = rawCut.at;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目のクリップの at が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid at on clip ${index + 1}.`);
                     }
                 }
                 const track = normalizeTrack(rawCut.track);
                 if (rawCut.track !== undefined && track !== rawCut.track) {
-                    warnings.push(`${index + 1} 番目のクリップの track が不正なため track 0 に表示します。`);
+                    warnings.push(`Clip ${index + 1} has an invalid track, so it is shown on track 0.`);
                 }
                 let transform;
                 if (rawCut.transform !== undefined && rawCut.transform !== null) {
@@ -133,7 +133,7 @@ function parseEdit(source) {
                         };
                     }
                     else {
-                        warnings.push(`${index + 1} 番目のクリップの transform が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid transform on clip ${index + 1}.`);
                     }
                 }
                 let opacity;
@@ -143,7 +143,7 @@ function parseEdit(source) {
                         opacity = rawCut.opacity;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目のクリップの opacity が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid opacity on clip ${index + 1}.`);
                     }
                 }
                 origins.cuts.push(index);
@@ -160,12 +160,12 @@ function parseEdit(source) {
                 });
             }
             else {
-                warnings.push(`${index + 1} 番目のクリップは時刻が不正なため表示しません。`);
+                warnings.push(`Clip ${index + 1} is not shown because its time is invalid.`);
             }
         }
     }
     else if (value.cuts !== undefined) {
-        warnings.push('cuts が配列ではないためクリップを表示しません。');
+        warnings.push('cuts is not an array, so clips are not shown.');
     }
     if (Array.isArray(value.overlays)) {
         const seenIds = new Set();
@@ -175,7 +175,7 @@ function parseEdit(source) {
                 && typeof overlay.start === 'number' && Number.isFinite(overlay.start)
                 && typeof overlay.duration === 'number' && Number.isFinite(overlay.duration) && overlay.duration > 0) {
                 if (seenIds.has(overlay.id)) {
-                    warnings.push(`オーバーレイ ${overlay.id} が重複しているため、後の要素は表示しません。`);
+                    warnings.push(`Overlay ${overlay.id} is duplicated, so later entries are not shown.`);
                     continue;
                 }
                 seenIds.add(overlay.id);
@@ -188,16 +188,16 @@ function parseEdit(source) {
                     payload: JSON.parse(JSON.stringify(overlay))
                 });
                 if (overlay.track !== undefined && normalizeTrack(overlay.track) !== overlay.track) {
-                    warnings.push(`オーバーレイ ${overlay.id} の track が不正なため track 0 に表示します。`);
+                    warnings.push(`Overlay ${overlay.id} has an invalid track, so it is shown on track 0.`);
                 }
             }
             else {
-                warnings.push(`${index + 1} 番目のオーバーレイは識別情報または時刻が不正なため表示しません。`);
+                warnings.push(`Overlay ${index + 1} is not shown because its id or time is invalid.`);
             }
         }
     }
     else if (value.overlays !== undefined) {
-        warnings.push('overlays が配列ではないためオーバーレイを表示しません。');
+        warnings.push('overlays is not an array, so overlays are not shown.');
     }
     if (Array.isArray(value.beats)) {
         const seenIds = new Set();
@@ -210,14 +210,14 @@ function parseEdit(source) {
                 && typeof beat.strength === 'number' && Number.isFinite(beat.strength)
                 && beat.strength >= 0 && beat.strength <= 1;
             if (!validRequiredFields || seenIds.has(beat.id)) {
-                warnings.push(`${index + 1} 番目の見せ場マーカーは識別情報・時刻・種類・強度のいずれかが不正なため表示しません。`);
+                warnings.push(`Beat marker ${index + 1} is not shown because its id, time, kind, or strength is invalid.`);
                 continue;
             }
             const hasSrc = Object.prototype.hasOwnProperty.call(beat, 'src');
             if ((hasSrc && typeof beat.src !== 'string')
                 || (isV0 && hasSrc)
                 || (hasSrc && (!isV1 || !sourceIds.has(beat.src)))) {
-                warnings.push(`見せ場マーカー ${beat.id} の src を解決できないため表示しません。`);
+                warnings.push(`Beat marker ${beat.id} is not shown because its src could not be resolved.`);
                 continue;
             }
             seenIds.add(beat.id);
@@ -233,7 +233,7 @@ function parseEdit(source) {
         }
     }
     else if (value.beats !== undefined) {
-        warnings.push('beats が配列ではないため見せ場マーカーを表示しません。');
+        warnings.push('beats is not an array, so beat markers are not shown.');
     }
     if (Array.isArray(value.layers)) {
         const seenIds = new Set();
@@ -246,17 +246,17 @@ function parseEdit(source) {
                 && (layer.kind === 'baked' || layer.kind === 'video')
                 && typeof layer.src === 'string' && layer.src.length > 0;
             if (!valid) {
-                warnings.push(`${index + 1} 番目の素材は識別情報・時刻・種類のいずれかが不正なため表示しません。`);
+                warnings.push(`Footage ${index + 1} is not shown because its id, time, or kind is invalid.`);
                 continue;
             }
             if (seenIds.has(layer.id)) {
-                warnings.push(`素材 ${layer.id} が重複しているため、後の要素は表示しません。`);
+                warnings.push(`Footage ${layer.id} is duplicated, so later entries are not shown.`);
                 continue;
             }
             seenIds.add(layer.id);
             const track = normalizeTrack(layer.track);
             if (layer.track !== undefined && track !== layer.track) {
-                warnings.push(`${index + 1} 番目の素材の track が不正なため track 0 に表示します。`);
+                warnings.push(`Footage ${index + 1} has an invalid track, so it is shown on track 0.`);
             }
             let preset;
             if (layer.preset !== undefined && layer.preset !== null) {
@@ -264,7 +264,7 @@ function parseEdit(source) {
                     preset = layer.preset;
                 }
                 else {
-                    warnings.push(`素材 ${layer.id} の preset が不正なため無視します。`);
+                    warnings.push(`Ignored the invalid preset on footage ${layer.id}.`);
                 }
             }
             let transform;
@@ -289,7 +289,7 @@ function parseEdit(source) {
                     };
                 }
                 else {
-                    warnings.push(`素材 ${layer.id} の transform が不正なため無視します。`);
+                    warnings.push(`Ignored the invalid transform on footage ${layer.id}.`);
                 }
             }
             let opacity;
@@ -299,7 +299,7 @@ function parseEdit(source) {
                     opacity = layer.opacity;
                 }
                 else {
-                    warnings.push(`素材 ${layer.id} の opacity が不正なため無視します。`);
+                    warnings.push(`Ignored the invalid opacity on footage ${layer.id}.`);
                 }
             }
             let blend;
@@ -309,7 +309,7 @@ function parseEdit(source) {
                     blend = layer.blend;
                 }
                 else {
-                    warnings.push(`素材 ${layer.id} の blend が不正なため無視します。`);
+                    warnings.push(`Ignored the invalid blend on footage ${layer.id}.`);
                 }
             }
             let chromaKey;
@@ -331,7 +331,7 @@ function parseEdit(source) {
                     };
                 }
                 else {
-                    warnings.push(`素材 ${layer.id} の chroma_key が不正なため無視します。`);
+                    warnings.push(`Ignored the invalid chroma_key on footage ${layer.id}.`);
                 }
             }
             origins.layers.push(index);
@@ -351,10 +351,10 @@ function parseEdit(source) {
         }
     }
     else if (value.layers !== undefined) {
-        warnings.push('layers が配列ではないため素材を表示しません。');
+        warnings.push('layers is not an array, so footage is not shown.');
     }
     if (value.audio !== undefined && (value.audio === null || typeof value.audio !== 'object' || Array.isArray(value.audio))) {
-        warnings.push('audio が object ではないため SE/BGM を表示しません。');
+        warnings.push('audio is not an object, so sound effects and BGM are not shown.');
     }
     else if (value.audio && typeof value.audio === 'object') {
         if (Array.isArray(value.audio.sfx)) {
@@ -363,7 +363,7 @@ function parseEdit(source) {
                 if (sfx === null || typeof sfx !== 'object'
                     || typeof sfx.path !== 'string' || sfx.path.length === 0
                     || typeof sfx.t !== 'number' || !Number.isFinite(sfx.t) || sfx.t < 0) {
-                    warnings.push(`${index + 1} 番目の SE は時刻または素材が不正なため表示しません。`);
+                    warnings.push(`Sound effect ${index + 1} is not shown because its time or footage is invalid.`);
                     continue;
                 }
                 let gainDb;
@@ -373,7 +373,7 @@ function parseEdit(source) {
                         gainDb = sfx.gain_db;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目の SE の gain_db が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid gain_db on sound effect ${index + 1}.`);
                     }
                 }
                 let inSeconds;
@@ -382,7 +382,7 @@ function parseEdit(source) {
                         inSeconds = sfx.in;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目の SE の in が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid in on sound effect ${index + 1}.`);
                     }
                 }
                 let outSeconds;
@@ -391,7 +391,7 @@ function parseEdit(source) {
                         outSeconds = sfx.out;
                     }
                     else {
-                        warnings.push(`${index + 1} 番目の SE の out が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid out on sound effect ${index + 1}.`);
                     }
                 }
                 origins.audioSfx.push(index);
@@ -408,7 +408,7 @@ function parseEdit(source) {
                     ...(gainDb !== undefined ? { gainDb } : {})
                 });
                 if (sfx.track !== undefined && normalizeTrack(sfx.track) !== sfx.track) {
-                    warnings.push(`${index + 1} 番目の SE の track が不正なため track 0 に表示します。`);
+                    warnings.push(`Sound effect ${index + 1} has an invalid track, so it is shown on track 0.`);
                 }
             }
         }
@@ -420,11 +420,11 @@ function parseEdit(source) {
                     || typeof narration.id !== 'string' || narration.id.length === 0
                     || typeof narration.path !== 'string' || narration.path.length === 0
                     || typeof narration.t !== 'number' || !Number.isFinite(narration.t) || narration.t < 0) {
-                    warnings.push(`${index + 1} 番目のナレーションは識別情報・時刻・素材のいずれかが不正なため表示しません。`);
+                    warnings.push(`Narration ${index + 1} is not shown because its id, time, or footage is invalid.`);
                     continue;
                 }
                 if (seenNarrationIds.has(narration.id)) {
-                    warnings.push(`ナレーション ${narration.id} が重複しているため、後の要素は表示しません。`);
+                    warnings.push(`Narration ${narration.id} is duplicated, so later entries are not shown.`);
                     continue;
                 }
                 seenNarrationIds.add(narration.id);
@@ -435,7 +435,7 @@ function parseEdit(source) {
                         gainDb = narration.gain_db;
                     }
                     else {
-                        warnings.push(`ナレーション ${narration.id} の gain_db が不正なため無視します。`);
+                        warnings.push(`Ignored the invalid gain_db on narration ${narration.id}.`);
                     }
                 }
                 origins.audioNarration.push(index);
@@ -457,7 +457,7 @@ function parseEdit(source) {
             }
         }
         else if (value.audio.narration !== undefined) {
-            warnings.push('audio.narration が配列ではないためナレーションを表示しません。');
+            warnings.push('audio.narration is not an array, so narration is not shown.');
         }
         const bgm = value.audio.bgm;
         if (bgm !== undefined && bgm !== null) {
@@ -470,7 +470,7 @@ function parseEdit(source) {
                         gainDb = bgm.gain_db;
                     }
                     else {
-                        warnings.push('bgm の gain_db が不正なため無視します。');
+                        warnings.push('Ignored the invalid bgm gain_db.');
                     }
                 }
                 let ducking;
@@ -479,7 +479,7 @@ function parseEdit(source) {
                         ducking = bgm.ducking;
                     }
                     else {
-                        warnings.push('bgm の ducking が不正なため無視します。');
+                        warnings.push('Ignored the invalid bgm ducking.');
                     }
                 }
                 audioBgm = {
@@ -494,7 +494,7 @@ function parseEdit(source) {
                 };
             }
             else {
-                warnings.push('bgm の path が不正なため表示しません。');
+                warnings.push('bgm is not shown because its path is invalid.');
             }
         }
     }
@@ -515,12 +515,12 @@ function parseEdit(source) {
                 && (track.hidden === undefined || typeof track.hidden === 'boolean')
                 && (track.locked === undefined || typeof track.locked === 'boolean');
             if (!valid) {
-                warnings.push(`${index + 1} 番目の timeline.tracks 要素が不正なため表示しません。`);
+                warnings.push(`timeline.tracks entry ${index + 1} is invalid, so it is not shown.`);
                 continue;
             }
             if (seenTrackIds.has(track.id)
                 || (track.kind === 'captions' && seenSingletonKinds.has(track.kind))) {
-                warnings.push(`${index + 1} 番目の timeline.tracks 要素が重複のため表示しません。`);
+                warnings.push(`timeline.tracks entry ${index + 1} is a duplicate, so it is not shown.`);
                 continue;
             }
             seenTrackIds.add(track.id);

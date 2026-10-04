@@ -26,7 +26,7 @@ test('v2 の未定義 item キーを検証した例外はメッセージ全文�
   const failure = classifyEditLoadFailure(validationError);
   assert.equal(failure.kind, 'invalid');
   assert.equal(failure.notice, `Could not load edit.json: ${validationError.message}`);
-  assert.match(failure.notice, /未定義キーを使用できません: name/);
+  assert.match(failure.notice, /Cannot use an undefined key: name/);
 });
 
 test('未定義キーと新しい版の stamp の組だけ更新を案内する', () => {
@@ -36,7 +36,7 @@ test('未定義キーと新しい版の stamp の組だけ更新を案内する'
   const newer = classifyEditLoadFailure(error, context(stamp('9.9.9')));
   assert.equal(newer.kind, 'invalid');
   assert.equal(newer.updateAvailable, true);
-  assert.match(newer.notice, /v9\.9\.9.*v0\.1\.86.*更新してください/);
+  assert.match(newer.notice, /v9\.9\.9.*v0\.1\.86.*Update AKARI Video/);
   assert.doesNotMatch(newer.notice, /取り除く|\.akari\/backup/);
   for (const input of [context(undefined), context(stamp('0.1.86'))]) {
     const old = classifyEditLoadFailure(error, input);

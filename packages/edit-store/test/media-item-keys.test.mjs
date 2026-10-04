@@ -48,7 +48,7 @@ test('抽出した ITEM_KEYS は readInternalEdit で未定義キーにならな
     try {
       readInternalEdit(edit);
     } catch (error) {
-      assert.doesNotMatch(String(error), /未定義キーを使用できません/u, key);
+      assert.doesNotMatch(String(error), /Cannot use an undefined key/u, key);
     }
   }
 });

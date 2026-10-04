@@ -23,7 +23,7 @@ test('正準表は 29 種・8 カテゴリで id / xfade 名が一意', () => {
   assert.equal(new Set(TRANSITION_TYPE_IDS).size, 29);
   assert.equal(new Set(TRANSITION_VOCABULARY.map(entry => entry.xfadeName)).size, 29);
   assert.deepEqual(TRANSITION_CATEGORIES, [
-    'フェード', 'ワイプ', 'スライド', 'カバー', 'リビール', '形状', '変形', '質感'
+    'Fade', 'Wipe', 'Slide', 'Cover', 'Reveal', 'Shape', 'Transform', 'Texture'
   ]);
   for (const entry of TRANSITION_VOCABULARY) {
     assert.equal(TRANSITION_BY_ID[entry.id], entry);
@@ -51,7 +51,7 @@ test('legacy テキスト手術は正準 29 種をすべて保存し、未知種
   }
   assert.throws(
     () => setCutTransitionOutInSource(source, 0, { type: 'future-transition', duration: 0.5 }),
-    /種別/u
+    /transition type is invalid/u
   );
 });
 

@@ -39,7 +39,7 @@ test('tracks[].muted rejects non-booleans at the exact track field path', () => 
   for (const muted of ['yes', 1, null, [], {}, undefined]) {
     const edit = fixture();
     edit.tracks[0].muted = muted;
-    assert.throws(() => readEditV2(edit), /edit\.json\.tracks\[0\]\.muted.*boolean である必要があります/u);
+    assert.throws(() => readEditV2(edit), /edit\.json\.tracks\[0\]\.muted.*Must be a boolean/u);
   }
 });
 

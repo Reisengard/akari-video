@@ -246,7 +246,7 @@ test('split and unlink dispatch through one snapshot history entry, with one-ste
 test('known silent sources fail with the kernel message; unknown availability permits splitting', async () => {
     const silent = fixture(false);
     silent.dispatchTimelineClipMenuAction('split-audio', cutSelection, 0, false);
-    await assert.rejects(silent.pending, /音声がありません/);
+    await assert.rejects(silent.pending, /has no audio/);
     assert.equal(silent.history.length, 0);
     const unknown = fixture(false);
     unknown.dispatchTimelineClipMenuAction('split-audio', cutSelection, 0);
@@ -637,7 +637,7 @@ test('linked move rejects a negative partner position atomically; unlink then mo
     await context.commitDrag({ kind: 'cut-move', index: 0, at: 1 });
     assert.deepEqual(context.editDocument, before);
     assert.equal(context.history.length, 0);
-    assert.match(context.notices.join('\n'), /先頭より前/);
+    assert.match(context.notices.join('\n'), /before the timeline/);
     context.dispatchTimelineClipMenuAction('unlink-audio', audioSelection, 0);
     await context.pending;
     await context.commitDrag({ kind: 'audio', id: 'cut-audio', t: 1 });

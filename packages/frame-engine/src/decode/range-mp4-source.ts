@@ -716,8 +716,8 @@ export class RangeMp4Source {
     const gopSeconds = maxKeyframeIntervalSeconds(keyframes);
     if (gopSeconds !== undefined && gopSeconds > LONG_GOP_WARNING_SECONDS) {
       this.options.onWarning?.(
-        `${this.id}: 最大キーフレーム間隔が ${gopSeconds.toFixed(3)} 秒のため、`
-        + 'シークとカット切り替えが遅くなります。GOP 1 秒以下の軽量版を用意してください'
+        `${this.id}: the maximum keyframe interval is ${gopSeconds.toFixed(3)} seconds, so `
+        + 'seeks and cut switches will be slow. Prepare a lightweight version with a GOP of 1 second or less'
         + '（ffmpeg -i <input> … -g <fps> -keyint_min <fps> -sc_threshold 0 -bf 0 <output>）'
       );
     }

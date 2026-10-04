@@ -36,7 +36,7 @@ function mergeTransform(original, patch) {
 function resolvePreviewItemWrite(editText, command) {
     const parsed = JSON.parse(editText);
     if (!isRecord(parsed)) {
-        throw new Error('edit.json が object ではありません');
+        throw new Error('edit.json is not an object.');
     }
     return parsed.version === 2
         ? resolveV2Write(parsed, command)
@@ -47,12 +47,12 @@ function resolvePreviewItemWrite(editText, command) {
  */
 function resolvePreviewItemWriteBatch(editText, commands) {
     if (!Array.isArray(commands) || commands.length === 0) {
-        throw new Error('書き込みバッチが空です');
+        throw new Error('The write batch is empty.');
     }
     let candidateText = editText;
     for (const command of commands) {
         if (command.kind === 'overlay' && 'html' in command.patch) {
-            throw new Error('バッチでは外部 HTML 本文を書き込めません');
+            throw new Error('A batch cannot write external HTML body text.');
         }
         const resolved = resolvePreviewItemWrite(candidateText, command);
         candidateText = resolved.candidateText ?? candidateText;
@@ -65,7 +65,7 @@ function resolveV2Write(parsed, command) {
     const edit = parsed;
     const itemId = command.itemId;
     if (!itemId) {
-        throw new Error('v2 アイテムの id を特定できません');
+        throw new Error('Cannot locate the v2 item id.');
     }
     const children = (item) => item.items
         ?? (Array.isArray(item.children)
@@ -123,7 +123,7 @@ function resolveV2Write(parsed, command) {
         }
     }
     if (!target)
-        throw new Error(`アイテムが見つかりません: ${itemId}`);
+        throw new Error(`Item was not found: ${itemId}`);
     const item = target.item;
     const writeTransform = (patch) => {
         const seconds = command.playheadSeconds;
@@ -144,14 +144,14 @@ function resolveV2Write(parsed, command) {
     if (command.kind === 'overlay') {
         if ('text' in command.patch) {
             if (typeof command.patch.text !== 'string') {
-                throw new Error('部品の text は文字列である必要があります');
+                throw new Error('A part\'s text must be a string.');
             }
             if (item.source.kind !== 'html' || !item.source.part) {
-                throw new Error(`部品でないアイテムには text を書き戻せません: ${itemId}`);
+                throw new Error(`Cannot write text back to an item that is not a part: ${itemId}`);
             }
         }
         if (item.source.kind === 'html' && item.source.part && 'html' in command.patch) {
-            throw new Error(`部品の文字は source.text に保存します: ${itemId}`);
+            throw new Error(`Part text is stored on source.text: ${itemId}`);
         }
         // parts.mjs composes groups, but a bag supplies per-key defaults that
         // its part overrides. Only group ancestors form an invertible parent.
@@ -169,7 +169,7 @@ function resolveV2Write(parsed, command) {
             const parent = target.ancestors.filter(ancestor => ancestor.source.kind === 'group')
                 .reduce((world, ancestor) => compose(world, ancestor.transform), { x: 0, y: 0, scale: 1, rotate: 0 });
             if (!Number.isFinite(parent.scale) || parent.scale === 0) {
-                throw new Error(`親の変形を逆変換できません: ${itemId}`);
+                throw new Error(`Cannot invert the parent transform: ${itemId}`);
             }
             const patch = command.patch.transform;
             const bag = target.ancestors[target.ancestors.length - 1];
@@ -206,7 +206,7 @@ function resolveV2Write(parsed, command) {
         }
         if (item.source.kind === 'group') {
             if (command.patch.html !== undefined || command.patch.vars !== undefined || command.patch.params !== undefined) {
-                throw new Error(`グループアイテムには HTML 本文・vars・HTML params を書き戻せません: ${itemId}`);
+                throw new Error(`Cannot write HTML body, vars, or HTML params back onto a group item: ${itemId}`);
             }
             if (command.patch.xyKeyframes)
                 item.keyframes = (0, transform_keyframe_edit_1.normalizeItemKeyframeGroup)({ ...item,
@@ -222,7 +222,7 @@ function resolveV2Write(parsed, command) {
     let editChanged = materialized;
     if (command.kind === 'overlay') {
         if (item.source.kind !== 'html' && item.source.kind !== 'shape') {
-            throw new Error(`HTML/図形アイテムではありません: ${itemId}`);
+            throw new Error(`Not an HTML or shape item: ${itemId}`);
         }
         if (item.source.kind === 'html') {
             const source = item.source;
@@ -236,7 +236,7 @@ function resolveV2Write(parsed, command) {
             if (command.patch.params) {
                 for (const [name, value] of Object.entries(command.patch.params)) {
                     if (!name || typeof value !== 'string') {
-                        throw new Error('HTML params は空でないキーと文字列値である必要があります');
+                        throw new Error('HTML params need non-empty keys and string values.');
                     }
                 }
                 source.params = { ...source.params, ...command.patch.params };
@@ -248,7 +248,7 @@ function resolveV2Write(parsed, command) {
             }
         }
         else if (command.patch.html !== undefined || command.patch.params !== undefined || command.patch.vars !== undefined) {
-            throw new Error(`図形アイテムには HTML 本文・vars・HTML params を書き戻せません: ${itemId}`);
+            throw new Error(`Cannot write HTML body, vars, or HTML params back onto a shape item: ${itemId}`);
         }
         if (command.patch.transform) {
             writeTransform(command.patch.transform);
@@ -288,7 +288,7 @@ function resolveV2Write(parsed, command) {
     }
     else {
         if (item.source.kind !== 'media') {
-            throw new Error(`映像アイテムではありません: ${itemId}`);
+            throw new Error(`Not a picture item: ${itemId}`);
         }
         if (command.patch.xyKeyframes) {
             item.keyframes = (0, transform_keyframe_edit_1.normalizeItemKeyframeGroup)({ ...item,
@@ -312,21 +312,21 @@ function resolveV2Write(parsed, command) {
 function resolveLegacyWrite(edit, command) {
     if (command.kind === 'overlay') {
         if (!Array.isArray(edit.overlays)) {
-            throw new Error('edit.json の overlays が配列ではありません');
+            throw new Error('edit.json overlays is not an array.');
         }
         const overlay = edit.overlays.find(value => isRecord(value) && String(value.id) === command.itemId);
         if (!isRecord(overlay)) {
-            throw new Error(`オーバーレイが見つかりません: ${command.itemId}`);
+            throw new Error(`Overlay was not found: ${command.itemId}`);
         }
         const htmlPath = typeof command.patch.html === 'string'
             ? (typeof overlay.html === 'string' ? overlay.html : undefined)
             : undefined;
         if (typeof command.patch.html === 'string' && !htmlPath) {
-            throw new Error(`overlays[].html がファイル参照ではありません: ${command.itemId}`);
+            throw new Error(`overlays[].html is not a file reference: ${command.itemId}`);
         }
         let editChanged = false;
         if (command.patch.params) {
-            throw new Error('HTML params の書き戻しには edit.json version 2 が必要です');
+            throw new Error('Writing HTML params back requires edit.json version 2.');
         }
         if (command.patch.vars) {
             overlay.vars = { ...recordOf(overlay.vars), ...command.patch.vars };
@@ -343,11 +343,11 @@ function resolveLegacyWrite(edit, command) {
     }
     if (command.kind === 'layer') {
         if (!Array.isArray(edit.layers)) {
-            throw new Error('edit.json の layers が配列ではありません');
+            throw new Error('edit.json layers is not an array.');
         }
         const layer = edit.layers.find(value => isRecord(value) && String(value.id) === command.itemId);
         if (!isRecord(layer)) {
-            throw new Error(`素材が見つかりません: ${command.itemId}`);
+            throw new Error(`Footage was not found: ${command.itemId}`);
         }
         if (command.patch.transform) {
             layer.transform = mergeTransform(layer.transform, command.patch.transform);
@@ -368,15 +368,15 @@ function resolveLegacyWrite(edit, command) {
         return { candidateText: stringifyEdit(edit) };
     }
     if (!Array.isArray(edit.cuts)) {
-        throw new Error('edit.json の cuts が配列ではありません');
+        throw new Error('edit.json cuts is not an array.');
     }
     const cut = edit.cuts[command.legacyIndex];
     if (!isRecord(cut)) {
-        throw new Error(`カットが見つかりません: index ${command.legacyIndex}`);
+        throw new Error(`Cut was not found: index ${command.legacyIndex}`);
     }
     // cutV0 / cutV1 schema に crop の席が無いので、legacy 文書へは書けない（黙って捨てない）。
     if (command.patch.crop) {
-        throw new Error('カットの crop 書き戻しには edit.json version 2 が必要です');
+        throw new Error('Writing a cut crop back requires edit.json version 2.');
     }
     if (command.patch.transform) {
         cut.transform = mergeTransform(cut.transform, command.patch.transform);

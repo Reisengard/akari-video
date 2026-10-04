@@ -61,7 +61,7 @@ test("存在しない optional フィールドを追加する", () => {
 test("未知 id は throw する", () => {
   assert.throws(
     () => applyWordBookToCaptionsInSource(JSON.stringify([base("c-0001")]), [{ id: "c-9999", text: "新" }]),
-    /字幕 c-9999 が字幕データにありません/u,
+    /Caption c-9999 is not in the caption data/u,
   );
 });
 

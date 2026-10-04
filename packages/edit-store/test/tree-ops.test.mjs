@@ -240,8 +240,8 @@ test('点の移動は整数・範囲・単調性を守り、既存時刻へは�
   moveKeyframe(value, 'a', 'transform.x', 30, 15);
   assert.deepEqual(value.find('a').keyframes.map(point => point.t), [0, 15, 30]);
   assert.equal(value.find('a').keyframes[1].transform.x, 30);
-  assert.throws(() => moveKeyframe(value, 'a', 'transform.x', 15, 31), /0〜30/);
-  assert.throws(() => moveKeyframe(value, 'a', 'transform.x', 15, 2.5), /整数フレーム/);
+  assert.throws(() => moveKeyframe(value, 'a', 'transform.x', 15, 31), /from 0 to 30/);
+  assert.throws(() => moveKeyframe(value, 'a', 'transform.x', 15, 2.5), /integer frame/);
 });
 
 test('削除で 2 点未満になる場合は keyframes 全体を外す', () => {
@@ -263,12 +263,12 @@ test('区間 easing は終点へ載り、複数プロパティでは property ma
   assert.deepEqual(value.find('a').keyframes[1].easing, {
     'transform.x': 'ease-in-out', opacity: 'linear'
   });
-  assert.throws(() => setSegmentEasing(value, 'a', 'opacity', 0, 'hold'), /区間/);
+  assert.throws(() => setSegmentEasing(value, 'a', 'opacity', 0, 'hold'), /No span was found/);
 });
 
 test('参照形は hydrate 前の編集を拒む', () => {
   const value = edit([{ id: 'v1', lane: 'visual', items: [item('a', 0, 30, {
     keyframes: { path: 'motion/a.json', count: 9 }
   })] }]);
-  assert.throws(() => setKeyframe(value, 'a', 'opacity', 0, 0), /inline/);
+  assert.throws(() => setKeyframe(value, 'a', 'opacity', 0, 0), /Inline the motion container/);
 });

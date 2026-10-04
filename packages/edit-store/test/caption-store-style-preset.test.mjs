@@ -135,7 +135,7 @@ test('未知 caption id は部分適用せず throw する', () => {
   const source = lines([caption('c-1'), caption('c-2')]);
   assert.throws(
     () => updateCaptionStylePresetInSource(source, ['c-1', 'missing'], 'subtitle-news'),
-    /missing.*ありません/
+    /missing is not in the caption data/
   );
   assert.equal(JSON.parse(source)[0].style_preset, undefined);
 });
@@ -143,7 +143,7 @@ test('未知 caption id は部分適用せず throw する', () => {
 test('preset id の pattern 違反を拒否する', () => {
   assert.throws(
     () => updateCaptionStylePresetInSource(lines([caption('c-1')]), ['c-1'], 'Subtitle News'),
-    /形式が不正/
+    /template id format is invalid/
   );
 });
 
@@ -157,6 +157,6 @@ test('object ルート形式でも一括適用する', () => {
 test('空の captionIds を拒否する', () => {
   assert.throws(
     () => updateCaptionStylePresetInSource(lines([caption('c-1')]), [], 'subtitle-news'),
-    /1 件以上/
+    /at least one caption id/
   );
 });

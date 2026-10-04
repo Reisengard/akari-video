@@ -50,7 +50,7 @@ export type CaptionRunStyleField = keyof CaptionRunStyle;
 function validRunRange(text: string, from: number, to: number): void {
     if (!Number.isInteger(from) || !Number.isInteger(to) || from < 0
         || to <= from || to > captionGraphemes(text).length) {
-        throw new Error('文字範囲が表示文字列の外にあります。');
+        throw new Error('The character range is outside the displayed text.');
     }
 }
 
@@ -78,7 +78,7 @@ export function setCaptionRunStyle(text: string, runs: readonly CaptionRun[] | u
                     && (typeof (value as CaptionRunStyle['stroke'])?.width_px !== 'number'
                         || !Number.isFinite((value as CaptionRunStyle['stroke'])?.width_px)
                         || (value as CaptionRunStyle['stroke'])!.width_px! < 0))))) {
-        throw new Error('文字範囲に使えないスタイル項目があります。');
+        throw new Error('The character range has a style field that is not allowed.');
     }
     const next = [...(runs ?? [])];
     const index = next.map(run => run.from === from && run.to === to).lastIndexOf(true);
@@ -94,7 +94,7 @@ export function setCaptionRunStyle(text: string, runs: readonly CaptionRun[] | u
 export function setCaptionRunRole(text: string, runs: readonly CaptionRun[] | undefined,
     from: number, to: number, role: string): CaptionRun[] {
     validRunRange(text, from, to);
-    if (typeof role !== 'string' || !role.trim()) throw new Error('文字範囲の役割が空です。');
+    if (typeof role !== 'string' || !role.trim()) throw new Error('The character range role is empty.');
     const next = [...(runs ?? [])];
     const index = next.map(run => run.from === from && run.to === to).lastIndexOf(true);
     const existing = index >= 0 ? next[index] : { from, to };
@@ -106,7 +106,7 @@ export function setCaptionRunRole(text: string, runs: readonly CaptionRun[] | un
 
 export function removeCaptionRun(runs: readonly CaptionRun[] | undefined, index: number): CaptionRun[] {
     if (!Number.isInteger(index) || index < 0 || index >= (runs?.length ?? 0)) {
-        throw new Error('外す文字範囲がありません。');
+        throw new Error('There is no character range to remove.');
     }
     return runs!.filter((_run, position) => position !== index);
 }
@@ -243,8 +243,8 @@ export function captionRunsRemovedNotice(removedRuns: readonly CaptionRun[], old
         .join('').replace(/\s+/gu, ' ').trim();
     const preview = captionGraphemes(selection).slice(0, 16).join('');
     const suffix = captionGraphemes(selection).length > 16 ? '…' : '';
-    const quoted = preview ? `（「${preview}${suffix}」${removedRuns.length > 1 ? 'など' : ''}）` : '';
-    return `文字範囲 ${removedRuns.length} 件${quoted}が外れました`;
+    const quoted = preview ? ` ("${preview}${suffix}"${removedRuns.length > 1 ? ' and more' : ''})` : '';
+    return `Removed ${removedRuns.length} character range(s)${quoted}`;
 }
 
 /** Self-contained because preview injects this function into its webview with toString(). */

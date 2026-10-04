@@ -28,11 +28,11 @@ const group_flatten_1 = require("./group-flatten");
 function readInternalEdit(source, options) {
     const text = typeof source === 'string' ? source : JSON.stringify(source);
     if (typeof text !== 'string') {
-        throw new Error('編集データの形式を確認できません。');
+        throw new Error('The edit data is not in a recognized format.');
     }
     const raw = JSON.parse(text);
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-        throw new Error('編集データの形式を確認できません。');
+        throw new Error('The edit data is not in a recognized format.');
     }
     const record = raw;
     if (record.version !== 2) {

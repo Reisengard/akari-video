@@ -41,7 +41,7 @@ test('座布団 fit は他の background を保って追加でき、text 選択�
   assert.deepEqual(JSON.parse(frame)[0].text_style.background,
     { color: '#111111', width_pct: 100, mode: 'block', fit: 'frame' });
   assert.equal(updateCaptionTextStyleInSource(frame, 'c-1', { background: { fit: null } }), source);
-  assert.throws(() => write(source, { background: { fit: 'foo' } }), /座布団の幅/u);
+  assert.throws(() => write(source, { background: { fit: 'foo' } }), /caption plate width/u);
 });
 
 test('shadow と glow はオブジェクトごと置換・削除する', () => {

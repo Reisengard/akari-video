@@ -93,7 +93,7 @@ test('reporting API preserves the string API and returns removed runs for a noti
   assert.deepEqual(report.removedRuns, [run]);
   assert.equal(Object.hasOwn(JSON.parse(report.source)[0], 'runs'), false);
   assert.equal(captionRunsRemovedNotice(report.removedRuns, 'これは最高'),
-    '文字範囲 1 件（「最高」）が外れました');
+    'Removed 1 character range(s) ("最高")');
   assert.equal(captionRunsRemovedNotice([], 'これは最高'), undefined);
   assert.deepEqual(updateCaptionFieldsInSourceWithReport(source, 'c-0001', { speaker: 'A' }).removedRuns, []);
 });

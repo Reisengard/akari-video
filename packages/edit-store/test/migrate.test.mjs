@@ -442,7 +442,7 @@ test('凍結方針: 未知フィールド・非整数 fps・不正な filter は
   fractional.output.fps = 29.97;
   assert.match(migrateEditToV2(fractional).blockers.join('\n'), /integer/);
   const layer = { ...base(), layers: [{ id: 'x', t: 0, duration: 1, kind: 'filter', filter: {} }] };
-  assert.match(migrateEditToV2(layer).blockers.join('\n'), /filter\.type.*invert\/lut\/saturation/s);
+  assert.match(migrateEditToV2(layer).blockers.join('\n'), /filter\.type.*invert, lut, saturation/s);
 });
 
 test('filter layer は src の無い独立 source として閉じた FilterV2 をそのまま転写する', () => {
@@ -705,7 +705,7 @@ test('migrateEditToV2 の最終自己検証の根拠: readEditV2 は item.crop: 
       ? { ...track, items: track.items.map((item, itemIndex) => itemIndex === 0 ? { ...item, crop: null } : item) }
       : track)
   };
-  assert.throws(() => readEditV2(brokenDoc), /crop.*object である必要があります/s);
+  assert.throws(() => readEditV2(brokenDoc), /crop.*Must be an object/s);
 });
 
 test('legacy audio envelope は秒からフレームへ変換し duck 設定と鍵を保持する', () => {

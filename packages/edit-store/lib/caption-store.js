@@ -37,26 +37,26 @@ function parseCaptions(source, options = {}) {
             ? root.captions
             : undefined;
     if (!values) {
-        throw new Error('字幕データの形式を確認できません。');
+        throw new Error('Caption data is not in a recognized format.');
     }
     const warnings = [];
     const defaultTextStyle = !Array.isArray(root) && isRecord(root) && root.default_text_style !== undefined
-        ? normalizeTextStyle(root.default_text_style, keys => warnings.push(`字幕の既定スタイルに未知のフィールド（${keys.join(', ')}）があるため無視しました。`))
+        ? normalizeTextStyle(root.default_text_style, keys => warnings.push(`Ignored unknown fields on the default caption style (${keys.join(', ')}).`))
         : undefined;
     if (!Array.isArray(root) && isRecord(root)
         && root.default_text_style !== undefined && defaultTextStyle === undefined) {
-        throw new Error('字幕の既定スタイルを確認できません。');
+        throw new Error('The default caption style is not in a recognized format.');
     }
     const captions = [];
     const seenIds = new Set();
     for (let index = 0; index < values.length; index++) {
-        const caption = normalizeCaption(values[index], keys => warnings.push(`${index + 1} 番目の字幕の text_style に未知のフィールド（${keys.join(', ')}）があるため無視しました。`));
+        const caption = normalizeCaption(values[index], keys => warnings.push(`Ignored unknown text_style fields on caption ${index + 1} (${keys.join(', ')}).`));
         if (!caption) {
-            warnings.push(`${index + 1} 番目の字幕は時刻または内容が不正なため表示しません。`);
+            warnings.push(`Caption ${index + 1} is not shown because its time or text is invalid.`);
             continue;
         }
         if (seenIds.has(caption.id)) {
-            warnings.push(`字幕 ${caption.id} が重複しているため、後の行は表示しません。`);
+            warnings.push(`Caption ${caption.id} is duplicated, so later rows are not shown.`);
             continue;
         }
         seenIds.add(caption.id);
@@ -138,7 +138,7 @@ function mergeCaptionTextStyles(defaultStyle, captionStyle) {
 }
 function shiftCaptionLine(source, captionId, deltaStart, deltaEnd) {
     if (!captionId || !Number.isFinite(deltaStart) || !Number.isFinite(deltaEnd)) {
-        throw new Error('字幕の調整値が不正です。');
+        throw new Error('The caption adjustment value is invalid.');
     }
     const array = locateCaptionArray(source);
     const element = findCaptionElement(array.elements, captionId);
@@ -148,7 +148,7 @@ function shiftCaptionLine(source, captionId, deltaStart, deltaEnd) {
     const nextEnd = end + deltaEnd;
     if (!Number.isFinite(nextStart) || !Number.isFinite(nextEnd)
         || nextStart < 0 || nextEnd - nextStart < 0.15) {
-        throw new Error('字幕が短すぎます（0.15 秒未満にはできません）');
+        throw new Error('The caption is too short. It cannot be under 0.15 seconds.');
     }
     let nextElement = replaceCaptionProperty(element.text, 'start', nextStart, captionId);
     nextElement = replaceCaptionProperty(nextElement, 'end', nextEnd, captionId);
@@ -159,14 +159,14 @@ function shiftCaptionLine(source, captionId, deltaStart, deltaEnd) {
 function setCaptionTimingLine(source, captionId, start, end, timeDomain, edited) {
     if (!captionId || !Number.isFinite(start) || !Number.isFinite(end)
         || start < 0 || end - start < 0.15) {
-        throw new Error('字幕が短すぎます（0.15 秒未満にはできません）');
+        throw new Error('The caption is too short. It cannot be under 0.15 seconds.');
     }
     const array = locateCaptionArray(source);
     const element = findCaptionElement(array.elements, captionId);
     let nextElement = replaceCaptionProperty(element.text, 'start', start, captionId);
     nextElement = replaceCaptionProperty(nextElement, 'end', end, captionId);
     nextElement = replaceCaptionProperty(nextElement, 'edited', edited, captionId);
-    nextElement = updateOptionalStyleProperty(nextElement, 'time_domain', timeDomain, `字幕 ${captionId}`);
+    nextElement = updateOptionalStyleProperty(nextElement, 'time_domain', timeDomain, `Caption ${captionId}`);
     return replaceElement(source, array.openIndex + 1, element, nextElement);
 }
 function updateCaptionFieldsInSource(source, captionId, updates) {
@@ -174,37 +174,37 @@ function updateCaptionFieldsInSource(source, captionId, updates) {
 }
 function updateCaptionFieldsInSourceWithReport(source, captionId, updates) {
     if (!captionId) {
-        throw new Error('字幕 ID を指定してください。');
+        throw new Error('Specify a caption id.');
     }
     if (updates.text === undefined && updates.speaker === undefined && updates.unrecognized === undefined
         && updates.style === undefined && updates.displayTiming === undefined) {
-        throw new Error('変更する字幕フィールドを指定してください。');
+        throw new Error('Specify the caption fields to change.');
     }
     if (updates.text !== undefined && (typeof updates.text !== 'string' || !updates.text.trim())) {
-        throw new Error('字幕のテキストは空にできません。');
+        throw new Error('Caption text cannot be empty.');
     }
     if (updates.speaker !== undefined && updates.speaker !== null && typeof updates.speaker !== 'string') {
-        throw new Error('字幕の話者は文字列または null で指定してください。');
+        throw new Error('Caption speaker must be a string or null.');
     }
     if (updates.style !== undefined && updates.style !== null
         && !['karaoke', 'pop', 'reveal', 'reveal-word'].includes(updates.style)) {
-        throw new Error('字幕のスタイル（演出）が不正です。');
+        throw new Error('The caption style is invalid.');
     }
     if (updates.displayTiming !== undefined && updates.displayTiming !== null
         && updates.displayTiming !== 'full' && updates.displayTiming !== 'speech-tight') {
-        throw new Error('字幕の表示タイミングが不正です。');
+        throw new Error('The caption timing is invalid.');
     }
     let unrecognized;
     if (updates.unrecognized !== undefined && updates.unrecognized !== null) {
         if (!Array.isArray(updates.unrecognized)) {
-            throw new Error('字幕の未認識区間は配列または null で指定してください。');
+            throw new Error('Caption unrecognized spans must be an array or null.');
         }
         unrecognized = updates.unrecognized.map(span => {
             if (!span || typeof span !== 'object'
                 || typeof span.start !== 'number' || !Number.isFinite(span.start)
                 || typeof span.end !== 'number' || !Number.isFinite(span.end)
                 || span.end <= span.start) {
-                throw new Error('字幕の未認識区間が不正です。');
+                throw new Error('A caption unrecognized span is invalid.');
             }
             return { start: span.start, end: span.end };
         }).sort((left, right) => left.start - right.start || left.end - right.end);
@@ -263,16 +263,16 @@ function updateCaptionFieldsInSourceWithReport(source, captionId, updates) {
     if (nextEmphasis && oldEmphasis) {
         const property = locateTopLevelProperty(updated, 'emphasis_words');
         if (!property)
-            throw new Error('emphasis_words 配列を特定できません。');
+            throw new Error('Cannot locate the emphasis_words array.');
         const colon = property.text.indexOf(':');
         const open = updated.indexOf('[', property.start + colon + 1);
         if (open < 0 || open >= property.end)
-            throw new Error('emphasis_words 配列を特定できません。');
+            throw new Error('Cannot locate the emphasis_words array.');
         const close = (0, edit_store_1.findMatchingBracket)(updated, open);
         const inner = updated.slice(open + 1, close);
         const elements = (0, edit_store_1.splitTopLevelElements)(inner);
         if (elements.length !== oldEmphasis.length)
-            throw new Error('emphasis_words 配列を特定できません。');
+            throw new Error('Cannot locate the emphasis_words array.');
         const byId = new Map(nextEmphasis.map(entry => [entry.id, entry]));
         const kept = elements.flatMap((entry, index) => {
             const old = oldEmphasis[index];
@@ -309,7 +309,7 @@ function updateCaptionRunsInSource(source, captionId, edit) {
                         || !Number.isInteger(edit.run.from) || !Number.isInteger(edit.run.to)
                         || edit.run.from < 0 || edit.run.to <= edit.run.from
                         || edit.run.to > (0, caption_runs_1.captionGraphemes)(display).length) {
-                        throw new Error('戻す文字範囲が不正です。');
+                        throw new Error('The character range to restore is invalid.');
                     }
                     const restored = [...(caption.runs ?? [])];
                     restored.splice(edit.index, 0, edit.run);
@@ -322,7 +322,7 @@ function captionEmphasisRemovedNotice(removed) {
         return undefined;
     const first = removed[0];
     const word = typeof first.word === 'string' ? first.word.trim() : '';
-    return `強調 ${removed.length} 件${word ? `（「${(0, caption_runs_1.captionGraphemes)(word).slice(0, 16).join('')}」）` : ''}が外れました`;
+    return `Removed ${removed.length} emphasis span(s)${word ? ` ("${(0, caption_runs_1.captionGraphemes)(word).slice(0, 16).join('')}")` : ''}`;
 }
 function captionEditNotices(result, oldDisplayText) {
     return [(0, caption_runs_1.captionRunsRemovedNotice)(result.removedRuns, oldDisplayText),
@@ -347,7 +347,7 @@ function applyWordBookToCaptionsInSource(source, changes) {
 }
 function updateCaptionTextStyleInSource(source, captionId, updates) {
     if (!captionId) {
-        throw new Error('字幕 ID を指定してください。');
+        throw new Error('Specify a caption id.');
     }
     validateTextStylePatch(updates);
     const array = locateCaptionArray(source);
@@ -362,18 +362,18 @@ function updateCaptionTextStyleInSource(source, captionId, updates) {
         nextElement = appendJsonProperty(nextElement, 'text_style', created);
     }
     else {
-        const located = locateTopLevelObjectProperty(nextElement, 'text_style', `字幕 ${captionId}`);
+        const located = locateTopLevelObjectProperty(nextElement, 'text_style', `Caption ${captionId}`);
         let textStyle = located.text;
-        textStyle = updateOptionalStyleProperty(textStyle, 'color', updates.color, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'size_px', updates.sizePx, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'wrap_width_pct', updates.wrapWidthPct, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'font_weight', updates.fontWeight, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'weight', updates.weight === undefined && updates.fontWeight !== undefined ? null : updates.weight, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'line_height', updates.lineHeight, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'letter_spacing_em', updates.letterSpacingEm, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalStyleProperty(textStyle, 'font_family', updates.fontFamily, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalObjectStyleProperty(textStyle, 'shadow', updates.shadow, `字幕 ${captionId} の text_style`);
-        textStyle = updateOptionalObjectStyleProperty(textStyle, 'glow', updates.glow, `字幕 ${captionId} の text_style`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'color', updates.color, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'size_px', updates.sizePx, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'wrap_width_pct', updates.wrapWidthPct, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'font_weight', updates.fontWeight, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'weight', updates.weight === undefined && updates.fontWeight !== undefined ? null : updates.weight, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'line_height', updates.lineHeight, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'letter_spacing_em', updates.letterSpacingEm, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'font_family', updates.fontFamily, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalObjectStyleProperty(textStyle, 'shadow', updates.shadow, `text_style of caption ${captionId}`);
+        textStyle = updateOptionalObjectStyleProperty(textStyle, 'glow', updates.glow, `text_style of caption ${captionId}`);
         for (const [key, value] of [
             ['stroke_inner', updates.strokeInner], ['fill_gradient', updates.fillGradient], ['extrude', updates.extrude]
         ]) {
@@ -390,11 +390,11 @@ function updateCaptionTextStyleInSource(source, captionId, updates) {
                     })()
                     : appendJsonProperty(textStyle, key, json);
         }
-        textStyle = updateOptionalStyleProperty(textStyle, 'zone', updates.zone, `字幕 ${captionId} の text_style`);
+        textStyle = updateOptionalStyleProperty(textStyle, 'zone', updates.zone, `text_style of caption ${captionId}`);
         textStyle = updateNestedStyleObject(textStyle, 'stroke', {
             color: updates.stroke?.color,
             width_px: updates.stroke?.widthPx
-        }, `字幕 ${captionId} の text_style.stroke`);
+        }, `text_style.stroke of caption ${captionId}`);
         textStyle = updateNestedStyleObject(textStyle, 'background', {
             color: updates.background?.color,
             opacity: updates.background?.opacity,
@@ -402,8 +402,8 @@ function updateCaptionTextStyleInSource(source, captionId, updates) {
             padding_px: updates.background?.paddingPx,
             mode: updates.background?.mode,
             fit: updates.background?.fit
-        }, `字幕 ${captionId} の text_style.background`);
-        textStyle = updateAnimationStyleObject(textStyle, updates.animation, `字幕 ${captionId} の text_style.animation`);
+        }, `text_style.background of caption ${captionId}`);
+        textStyle = updateAnimationStyleObject(textStyle, updates.animation, `text_style.animation of caption ${captionId}`);
         if (updates.karaoke === null) {
             if (locateTopLevelProperty(textStyle, 'karaoke'))
                 textStyle = removeObjectProperty(textStyle, 'karaoke');
@@ -413,7 +413,7 @@ function updateCaptionTextStyleInSource(source, captionId, updates) {
                 done_color: updates.karaoke.doneColor,
                 fill: updates.karaoke.fill,
                 start_index: updates.karaoke.startIndex
-            }, `字幕 ${captionId} の text_style.karaoke`);
+            }, `text_style.karaoke of caption ${captionId}`);
         }
         nextElement = Object.keys(JSON.parse(textStyle)).length === 0
             ? removeObjectProperty(nextElement, 'text_style')
@@ -423,10 +423,10 @@ function updateCaptionTextStyleInSource(source, captionId, updates) {
 }
 function updateCaptionStylePresetInSource(source, captionIds, presetId, options = {}) {
     if (captionIds.length === 0) {
-        throw new Error('字幕 ID を 1 件以上指定してください。');
+        throw new Error('Specify at least one caption id.');
     }
     if (presetId !== null && !/^[a-z0-9][a-z0-9-]*$/.test(presetId)) {
-        throw new Error('字幕テンプレ ID の形式が不正です。');
+        throw new Error('The caption template id format is invalid.');
     }
     const ids = [...new Set(captionIds)];
     const array = locateCaptionArray(source);
@@ -443,8 +443,8 @@ function updateCaptionStylePresetInSource(source, captionIds, presetId, options 
         const matches = elementsById.get(captionId) ?? [];
         if (matches.length !== 1) {
             throw new Error(matches.length === 0
-                ? `字幕 ${captionId} が字幕データにありません。`
-                : `字幕 ${captionId} が字幕データに複数あります。`);
+                ? `Caption ${captionId} is not in the caption data.`
+                : `Caption ${captionId} appears more than once in the caption data.`);
         }
         targets.push({ captionId, element: matches[0] });
     }
@@ -519,7 +519,7 @@ function pruneShadowedTextStyle(element, keys, captionId) {
     if (keys.length === 0) {
         return element;
     }
-    const located = locateTopLevelObjectProperty(element, 'text_style', `字幕 ${captionId}`);
+    const located = locateTopLevelObjectProperty(element, 'text_style', `Caption ${captionId}`);
     let textStyle = located.text;
     for (const key of keys) {
         textStyle = removeObjectProperty(textStyle, key);
@@ -531,12 +531,12 @@ function pruneShadowedTextStyle(element, keys, captionId) {
 function insertCaptionLine(source, caption) {
     const parsed = parseCaptions(source);
     if (!normalizeCaption(caption)) {
-        throw new Error('追加する字幕の形式が不正です。');
+        throw new Error('The caption to add is not in a recognized format.');
     }
     const array = locateCaptionArray(source);
     const entries = captionElementEntries(array.elements);
     if (entries.some(candidate => candidate.id === caption.id)) {
-        throw new Error(`字幕 ${caption.id} は既にあります。`);
+        throw new Error(`Caption ${caption.id} already exists.`);
     }
     // Preserve the existing validation behavior for duplicate/ambiguous records.
     validateCaptionElements(entries, parsed.captions);
@@ -569,7 +569,7 @@ function removeCaptionLine(source, captionId) {
     validateCaptionElements(entries, parsed.captions);
     const index = entries.findIndex(entry => entry.id === captionId);
     if (index < 0) {
-        throw new Error(`字幕 ${captionId} が字幕データにありません。`);
+        throw new Error(`Caption ${captionId} is not in the caption data.`);
     }
     const entry = entries[index];
     let nextInner;
@@ -590,13 +590,13 @@ function splitCaptionLine(source, captionId, wordIndex, newCaptionId) {
     const array = locateCaptionArray(source);
     const entries = captionElementEntries(array.elements);
     if (entries.some(entry => entry.id === newCaptionId)) {
-        throw new Error(`字幕 ${newCaptionId} は既にあります。`);
+        throw new Error(`Caption ${newCaptionId} already exists.`);
     }
     const element = findCaptionElement(array.elements, captionId);
     const record = JSON.parse(element.text);
     if (!Array.isArray(record.words) || record.words.length < 2
         || !Number.isInteger(wordIndex) || wordIndex <= 0 || wordIndex >= record.words.length) {
-        throw new Error('この行は分割できません（単語が 2 つ以上必要です）');
+        throw new Error('This line cannot be split. It needs at least two words.');
     }
     const words = record.words;
     const wordsA = words.slice(0, wordIndex);
@@ -604,11 +604,11 @@ function splitCaptionLine(source, captionId, wordIndex, newCaptionId) {
     const textA = wordsA.map(word => String(word.text ?? '')).join('');
     const textB = wordsB.map(word => String(word.text ?? '')).join('');
     if (textA + textB !== record.text) {
-        throw new Error('この行のテキストと語のタイミングが一致していないため分割できません');
+        throw new Error('This line cannot be split because the text and word timing do not match.');
     }
     const splitEnd = wordsA[wordsA.length - 1].end;
     if (typeof splitEnd !== 'number') {
-        throw new Error('この行は分割できません（単語が 2 つ以上必要です）');
+        throw new Error('This line cannot be split. It needs at least two words.');
     }
     const unrecognized = Array.isArray(record.unrecognized)
         ? record.unrecognized : [];
@@ -653,17 +653,17 @@ function splitCaptionLine(source, captionId, wordIndex, newCaptionId) {
 }
 function mergeCaptionLines(source, captionIds) {
     if (captionIds.length < 2) {
-        throw new Error('結合する字幕を 2 行以上選んでください');
+        throw new Error('Select at least two caption lines to join.');
     }
     if (new Set(captionIds).size !== captionIds.length) {
-        throw new Error('同じ字幕を重複して結合できません');
+        throw new Error('The same caption cannot be joined twice.');
     }
     const array = locateCaptionArray(source);
     const elements = captionIds.map(id => findCaptionElement(array.elements, id));
     const records = elements.map(element => JSON.parse(element.text));
     const domains = records.map(record => record.time_domain ?? 'source');
     if (domains.some(domain => domain !== domains[0])) {
-        throw new Error('タイムドメインが異なる行は結合できません');
+        throw new Error('Lines in different time domains cannot be joined.');
     }
     const words = records.flatMap(record => Array.isArray(record.words) ? record.words : []);
     const unrecognized = records.flatMap(record => Array.isArray(record.unrecognized) ? record.unrecognized : []);
@@ -752,7 +752,7 @@ function locateCaptionArray(source) {
     const value = JSON.parse(source);
     const rootStart = source.search(/\S/);
     if (rootStart < 0) {
-        throw new Error('字幕データの形式を確認できません。');
+        throw new Error('Caption data is not in a recognized format.');
     }
     let openIndex;
     if (Array.isArray(value) && source[rootStart] === '[') {
@@ -761,28 +761,28 @@ function locateCaptionArray(source) {
     else if (isRecord(value) && Array.isArray(value.captions) && source[rootStart] === '{') {
         const rootClose = (0, edit_store_1.findMatchingBracket)(source, rootStart);
         if (source.slice(rootClose + 1).trim()) {
-            throw new Error('字幕データの形式を確認できません。');
+            throw new Error('Caption data is not in a recognized format.');
         }
         const rootInner = source.slice(rootStart + 1, rootClose);
         const captionsProperties = (0, edit_store_1.splitTopLevelElements)(rootInner)
             .filter(element => /^"captions"\s*:/.test(element.text));
         if (captionsProperties.length !== 1) {
-            throw new Error('字幕データの captions 配列を特定できません。');
+            throw new Error('Cannot locate the captions array in the caption data.');
         }
         const property = captionsProperties[0];
         const propertyOffset = rootStart + 1 + property.start;
         const colonIndex = property.text.indexOf(':');
         openIndex = source.indexOf('[', propertyOffset + colonIndex + 1);
         if (openIndex < 0 || openIndex >= rootStart + 1 + property.end) {
-            throw new Error('字幕データの captions 配列を特定できません。');
+            throw new Error('Cannot locate the captions array in the caption data.');
         }
     }
     else {
-        throw new Error('字幕データの形式を確認できません。');
+        throw new Error('Caption data is not in a recognized format.');
     }
     const closeIndex = (0, edit_store_1.findMatchingBracket)(source, openIndex);
     if (Array.isArray(value) && source.slice(closeIndex + 1).trim()) {
-        throw new Error('字幕データの形式を確認できません。');
+        throw new Error('Caption data is not in a recognized format.');
     }
     const inner = source.slice(openIndex + 1, closeIndex);
     return {
@@ -808,8 +808,8 @@ function validateCaptionElements(entries, captions) {
         const matches = entries.filter(entry => entry.id === caption.id);
         if (matches.length !== 1) {
             throw new Error(matches.length === 0
-                ? `字幕 ${caption.id} のレコードを特定できません。`
-                : `字幕 ${caption.id} が字幕データに複数あります。`);
+                ? `Cannot locate the record for caption ${caption.id}.`
+                : `Caption ${caption.id} appears more than once in the caption data.`);
         }
     }
 }
@@ -818,26 +818,26 @@ function findCaptionElement(elements, captionId) {
     const matches = entries.filter(entry => entry.id === captionId);
     if (matches.length !== 1) {
         throw new Error(matches.length === 0
-            ? `字幕 ${captionId} が字幕データにありません。`
-            : `字幕 ${captionId} が字幕データに複数あります。`);
+            ? `Caption ${captionId} is not in the caption data.`
+            : `Caption ${captionId} appears more than once in the caption data.`);
     }
     return matches[0].element;
 }
 function locateCaptionProperty(source, property, captionId) {
     const openIndex = source.search(/\S/);
     if (openIndex < 0 || source[openIndex] !== '{') {
-        throw new Error(`字幕 ${captionId} のレコードを特定できません。`);
+        throw new Error(`Cannot locate the record for caption ${captionId}.`);
     }
     const closeIndex = (0, edit_store_1.findMatchingBracket)(source, openIndex);
     if (source.slice(closeIndex + 1).trim()) {
-        throw new Error(`字幕 ${captionId} のレコードを特定できません。`);
+        throw new Error(`Cannot locate the record for caption ${captionId}.`);
     }
     const inner = source.slice(openIndex + 1, closeIndex);
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const matches = (0, edit_store_1.splitTopLevelElements)(inner)
         .filter(element => new RegExp(`^"${escapedProperty}"\\s*:`).test(element.text));
     if (matches.length !== 1) {
-        throw new Error(`字幕 ${captionId} の ${property} プロパティを特定できません。`);
+        throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
     }
     const match = matches[0];
     return {
@@ -851,7 +851,7 @@ function replaceCaptionProperty(source, property, value, captionId) {
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)`);
     if (!pattern.test(located.text)) {
-        throw new Error(`字幕 ${captionId} の ${property} プロパティを特定できません。`);
+        throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
     }
     const nextProperty = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
     return source.slice(0, located.start) + nextProperty + source.slice(located.end);
@@ -861,7 +861,7 @@ function replaceCaptionJsonProperty(source, property, value, captionId) {
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)[\\s\\S]*$`);
     if (!pattern.test(located.text)) {
-        throw new Error(`字幕 ${captionId} の ${property} プロパティを特定できません。`);
+        throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
     }
     const nextProperty = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
     return source.slice(0, located.start) + nextProperty + source.slice(located.end);
@@ -880,7 +880,7 @@ function readCaptionNumberProperty(source, property, captionId) {
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const match = new RegExp(`^"${escapedProperty}"\\s*:\\s*(${JSON_NUMBER})`).exec(located.text);
     if (!match) {
-        throw new Error(`字幕 ${captionId} の ${property} プロパティを特定できません。`);
+        throw new Error(`Cannot locate ${property} on caption ${captionId}.`);
     }
     return Number(match[1]);
 }
@@ -1461,48 +1461,48 @@ function validateTextStylePatch(updates) {
         || updates.background?.mode !== undefined || updates.background?.fit !== undefined
         || updates.animation !== undefined;
     if (!hasUpdate) {
-        throw new Error('変更する字幕スタイルのフィールドを指定してください。');
+        throw new Error('Specify the caption style fields to change.');
     }
     if (updates.karaoke) {
         if (Object.keys(updates.karaoke).some(key => !['doneColor', 'fill', 'startIndex'].includes(key)))
-            throw new Error('カラオケの設定に未知の項目があります。');
+            throw new Error('The karaoke settings include an unknown field.');
         if (updates.karaoke.doneColor !== undefined && !isHexColor(updates.karaoke.doneColor))
-            throw new Error('カラオケの色が不正です。');
+            throw new Error('The karaoke color is invalid.');
         if (updates.karaoke.fill !== undefined && !['char', 'word', 'smooth'].includes(updates.karaoke.fill))
-            throw new Error('カラオケの塗り方が不正です。');
+            throw new Error('The karaoke fill mode is invalid.');
         if (updates.karaoke.startIndex !== undefined && (!Number.isInteger(updates.karaoke.startIndex) || updates.karaoke.startIndex < 0))
-            throw new Error('カラオケの開始位置が不正です。');
+            throw new Error('The karaoke start index is invalid.');
     }
     for (const color of [updates.color, updates.stroke?.color, updates.background?.color]) {
         if (color !== undefined && color !== null && !isHexColor(color)) {
-            throw new Error('字幕スタイルの色は #RGB / #RRGGBB / #RRGGBBAA で指定してください。');
+            throw new Error('Caption style colors must be #RGB, #RRGGBB, or #RRGGBBAA.');
         }
     }
     if (updates.strokeInner !== undefined && updates.strokeInner !== null
         && ((updates.strokeInner.color !== undefined && !isHexColor(updates.strokeInner.color))
             || (updates.strokeInner.widthPx !== undefined && !isFiniteNonNegative(updates.strokeInner.widthPx)))) {
-        throw new Error('stroke_inner の色か太さが不正です。');
+        throw new Error('stroke_inner color or width is invalid.');
     }
     if (updates.fillGradient !== undefined && updates.fillGradient !== null
         && (!Array.isArray(updates.fillGradient.colors) || updates.fillGradient.colors.length < 2
             || updates.fillGradient.colors.length > 3 || !updates.fillGradient.colors.every(isHexColor)
             || !isFiniteNumber(updates.fillGradient.angleDeg))) {
-        throw new Error('fill_gradient の色か角度が不正です。');
+        throw new Error('fill_gradient color or angle is invalid.');
     }
     if (updates.extrude !== undefined && updates.extrude !== null
         && (!Number.isInteger(updates.extrude.depthPx) || updates.extrude.depthPx < 1 || updates.extrude.depthPx > 32
             || !isHexColor(updates.extrude.color)
             || (updates.extrude.colorEnd !== undefined && !isHexColor(updates.extrude.colorEnd))
             || !isFiniteNumber(updates.extrude.angleDeg))) {
-        throw new Error('extrude の奥行き・色・角度が不正です。');
+        throw new Error('extrude depth, color, or angle is invalid.');
     }
     if (updates.sizePx !== undefined && updates.sizePx !== null
         && (!Number.isFinite(updates.sizePx) || updates.sizePx <= 0)) {
-        throw new Error('字幕サイズは正の数で指定してください。');
+        throw new Error('Caption size must be a positive number.');
     }
     if (updates.wrapWidthPct !== undefined && updates.wrapWidthPct !== null
         && (!Number.isFinite(updates.wrapWidthPct) || updates.wrapWidthPct <= 0 || updates.wrapWidthPct > 100)) {
-        throw new Error('文字の折り返し幅は 0 より大きく 100% 以下で指定してください。');
+        throw new Error('Wrap width must be greater than 0 and at most 100%.');
     }
     for (const [value, min, max, label] of [
         [updates.fontWeight, 1, 1000, 'font_weight'],
@@ -1510,24 +1510,24 @@ function validateTextStylePatch(updates) {
     ]) {
         if (value !== undefined && value !== null
             && (!Number.isInteger(value) || value < min || value > max)) {
-            throw new Error(`${label} の値が不正です。`);
+            throw new Error(`The value of ${label} is invalid.`);
         }
     }
     if (updates.lineHeight !== undefined && updates.lineHeight !== null
         && (!Number.isFinite(updates.lineHeight) || updates.lineHeight <= 0)) {
-        throw new Error('字幕の行間は正の数で指定してください。');
+        throw new Error('Caption line height must be a positive number.');
     }
     if (updates.letterSpacingEm !== undefined && updates.letterSpacingEm !== null
         && !Number.isFinite(updates.letterSpacingEm)) {
-        throw new Error('字幕の字間は有限数で指定してください。');
+        throw new Error('Caption letter spacing must be a finite number.');
     }
     if (updates.fontFamily !== undefined && updates.fontFamily !== null
         && (typeof updates.fontFamily !== 'string' || !updates.fontFamily.trim())) {
-        throw new Error('字幕フォント名は空にできません。');
+        throw new Error('The caption font name cannot be empty.');
     }
     if (updates.background?.paddingPx !== undefined && updates.background.paddingPx !== null
         && (!Number.isFinite(updates.background.paddingPx) || updates.background.paddingPx < 0)) {
-        throw new Error('字幕の座布団余白は 0 以上で指定してください。');
+        throw new Error('Caption plate padding must be 0 or greater.');
     }
     for (const [name, effect, fields] of [
         ['shadow', updates.shadow, ['blurPx', 'distancePx']],
@@ -1536,61 +1536,61 @@ function validateTextStylePatch(updates) {
         if (effect === undefined || effect === null)
             continue;
         if (typeof effect !== 'object' || Array.isArray(effect) || !isHexColor(effect.color)) {
-            throw new Error(`${name} の色は hex で指定してください。`);
+            throw new Error(`Specify a hex color for ${name}.`);
         }
         const allowedKeys = name === 'shadow'
             ? ['color', 'opacity', 'blurPx', 'distancePx', 'angleDeg']
             : ['color', 'density', 'spread', 'offsetX', 'offsetY'];
         if (Object.keys(effect).some(key => !allowedKeys.includes(key))) {
-            throw new Error(`${name} に未対応の項目があります。`);
+            throw new Error(`${name} has an unsupported field.`);
         }
         for (const key of fields) {
             const value = effect[key];
             if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
-                throw new Error(`${name}.${key} は 0 以上で指定してください。`);
+                throw new Error(`${name}.${key} must be 0 or greater.`);
             }
         }
     }
     if (updates.shadow) {
         const { opacity, angleDeg } = updates.shadow;
         if (opacity !== undefined && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-            throw new Error('shadow.opacity は 0〜1 で指定してください。');
+            throw new Error('shadow.opacity must be from 0 to 1.');
         }
         if (angleDeg !== undefined && !Number.isFinite(angleDeg)) {
-            throw new Error('shadow.angleDeg は有限数で指定してください。');
+            throw new Error('shadow.angleDeg must be a finite number.');
         }
     }
     if (updates.glow && [updates.glow.offsetX, updates.glow.offsetY]
         .some(value => value !== undefined && !Number.isFinite(value))) {
-        throw new Error('glow の位置は有限数で指定してください。');
+        throw new Error('The glow position must be a finite number.');
     }
     if (updates.stroke?.widthPx !== undefined && updates.stroke.widthPx !== null
         && (!Number.isFinite(updates.stroke.widthPx) || updates.stroke.widthPx < 0)) {
-        throw new Error('字幕の縁取り太さは 0 以上で指定してください。');
+        throw new Error('Caption stroke width must be 0 or greater.');
     }
     if (updates.background?.opacity !== undefined && updates.background.opacity !== null
         && (!Number.isFinite(updates.background.opacity)
             || updates.background.opacity < 0 || updates.background.opacity > 1)) {
-        throw new Error('字幕の座布団不透明度は 0〜1 で指定してください。');
+        throw new Error('Caption plate opacity must be from 0 to 1.');
     }
     if (updates.background?.radiusPx !== undefined && updates.background.radiusPx !== null
         && (!Number.isFinite(updates.background.radiusPx) || updates.background.radiusPx < 0)) {
-        throw new Error('字幕の座布団角丸は 0 以上で指定してください。');
+        throw new Error('Caption plate corner radius must be 0 or greater.');
     }
     if (updates.background?.mode !== undefined && updates.background.mode !== null
         && updates.background.mode !== 'per-line' && updates.background.mode !== 'block') {
-        throw new Error('字幕の座布団の形が不正です。');
+        throw new Error('The caption plate shape is invalid.');
     }
     if (updates.background?.fit !== undefined && updates.background.fit !== null
         && updates.background.fit !== 'text' && updates.background.fit !== 'frame') {
-        throw new Error('字幕の座布団の幅が不正です。');
+        throw new Error('The caption plate width is invalid.');
     }
     if (updates.zone !== undefined && updates.zone !== null && !exports.CAPTION_ZONES.includes(updates.zone)) {
-        throw new Error('字幕の位置が不正です。');
+        throw new Error('The caption position is invalid.');
     }
     if (updates.animation !== undefined && updates.animation !== null
         && (typeof updates.animation !== 'object' || Array.isArray(updates.animation))) {
-        throw new Error('字幕アニメの設定が不正です。');
+        throw new Error('The caption animation settings are invalid.');
     }
     if (updates.animation && typeof updates.animation === 'object') {
         for (const slot of [updates.animation.in, updates.animation.out]) {
@@ -1598,19 +1598,19 @@ function validateTextStylePatch(updates) {
                 continue;
             if (!slot || typeof slot !== 'object' || typeof slot.id !== 'string'
                 || !/^[a-z0-9][a-z0-9-]*$/.test(slot.id)) {
-                throw new Error('字幕アニメの ID が不正です。');
+                throw new Error('The caption animation id is invalid.');
             }
             if (slot.durationSec !== undefined
                 && (!Number.isFinite(slot.durationSec) || slot.durationSec <= 0)) {
-                throw new Error('字幕アニメの長さは正の数で指定してください。');
+                throw new Error('Caption animation length must be a positive number.');
             }
             if (slot.ease !== undefined && slot.ease !== null
                 && (typeof slot.ease !== 'string' || !slot.ease.trim())) {
-                throw new Error('字幕アニメのイージングが不正です。');
+                throw new Error('The caption animation easing is invalid.');
             }
             if (slot.amp !== undefined && slot.amp !== null
                 && (!Number.isFinite(slot.amp) || slot.amp <= 0)) {
-                throw new Error('字幕アニメの強さは正の数で指定してください。');
+                throw new Error('Caption animation strength must be a positive number.');
             }
         }
     }
@@ -1734,12 +1734,12 @@ function locateTopLevelProperty(scopeText, key) {
 function locateTopLevelObjectProperty(scopeText, key, label) {
     const property = locateTopLevelProperty(scopeText, key);
     if (!property) {
-        throw new Error(`${label} が見つかりません。`);
+        throw new Error(`${label} was not found.`);
     }
     const colonIndex = property.text.indexOf(':');
     const openIndex = scopeText.indexOf('{', property.start + colonIndex + 1);
     if (openIndex < 0 || openIndex >= property.end) {
-        throw new Error(`${label} が object ではありません。`);
+        throw new Error(`${label} is not an object.`);
     }
     const closeIndex = (0, edit_store_1.findMatchingBracket)(scopeText, openIndex);
     return { start: openIndex, end: closeIndex + 1, text: scopeText.slice(openIndex, closeIndex + 1) };
@@ -1815,7 +1815,7 @@ function updateOptionalStyleProperty(source, property, value, label) {
 function appendJsonProperty(source, property, value) {
     const closeIndex = source.lastIndexOf('}');
     if (closeIndex < 0) {
-        throw new Error('字幕スタイルのオブジェクトを特定できません。');
+        throw new Error('Cannot locate the caption style object.');
     }
     const beforeClose = source.slice(0, closeIndex);
     const trailingWhitespace = beforeClose.match(/\s*$/)?.[0] ?? '';
@@ -1834,12 +1834,12 @@ function appendJsonProperty(source, property, value) {
 function replaceTopLevelPropertyValue(source, property, value, label) {
     const located = locateTopLevelProperty(source, property);
     if (!located) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)`);
     if (!pattern.test(located.text)) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
     return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -1848,7 +1848,7 @@ function removeObjectProperty(source, property) {
     const openIndex = source.search(/\S/);
     const closeIndex = openIndex >= 0 ? (0, edit_store_1.findMatchingBracket)(source, openIndex) : -1;
     if (openIndex < 0 || source[openIndex] !== '{' || closeIndex < 0) {
-        throw new Error('字幕スタイルのオブジェクトを特定できません。');
+        throw new Error('Cannot locate the caption style object.');
     }
     const inner = source.slice(openIndex + 1, closeIndex);
     const elements = (0, edit_store_1.splitTopLevelElements)(inner);

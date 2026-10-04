@@ -118,10 +118,10 @@ test("readRenderEdit resolves a stale item cache when normalized captions are su
 
 test("readRenderEdit without captions preserves v1 and stale v2 cache behavior", () => {
   const v1 = { version: 1, output: { fps: 30 }, sources: [], cuts: [], overlays: [] };
-  assert.throws(() => readRenderEdit(v1, "/tmp/render"), /古い形式/u);
+  assert.throws(() => readRenderEdit(v1, "/tmp/render"), /older format/u);
   assert.throws(() => readRenderEdit(v1, "/tmp/render", {
     captions: [{ id: "c-0003", start: 2, end: 3 }],
-  }), /古い形式/u);
+  }), /older format/u);
   const anchored = structuredClone(fixture);
   anchored.tracks[1].items[0] = {
     id: "anchored", at: 7, duration: 9,

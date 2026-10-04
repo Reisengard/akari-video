@@ -114,8 +114,8 @@ test('索引構築の失敗は段とヘッダー長を名乗る（第1項: 素�
         'video sample table',
         4096
     );
-    assert.match(wrapped.message, /video sample table の構築に失敗しました/u);
-    assert.match(wrapped.message, /ヘッダー 4096 バイト/u);
+    assert.match(wrapped.message, /video sample table failed to build/u);
+    assert.match(wrapped.message, /header 4096 bytes/u);
     assert.match(wrapped.message, /Invalid array length/u, '元の理由を落とさない');
 });
 
@@ -123,11 +123,11 @@ test('配列長の失敗には次に疑う場所の手がかりを付ける', ()
     const wrapped = describeIndexParseFailure(
         new RangeError('Invalid array length'), 'keyframe index', 1
     );
-    assert.match(wrapped.message, /巨大なサンプル表を配列へ展開できていない/u);
+    assert.match(wrapped.message, /huge sample table may have failed to expand/u);
     assert.match(wrapped.message, /videoOnlyIndexHeader/u, '既に閉じた経路を再び疑わせない');
     // 配列長と無関係な失敗に的外れな手がかりを付けない。
     const other = describeIndexParseFailure(new Error('moov not found'), 'keyframe index', 1);
-    assert.doesNotMatch(other.message, /巨大なサンプル表/u);
+    assert.doesNotMatch(other.message, /huge sample table/u);
     assert.match(other.message, /moov not found/u);
 });
 

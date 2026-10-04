@@ -13,7 +13,7 @@ const LEGACY_EDGE_SECONDS = 0.15;
 function detectEditVersion(source) {
     const version = JSON.parse(source).version;
     if (typeof version !== 'number' || !new Set([0, 1, 2]).has(version)) {
-        throw new Error('edit.json.version は 0・1・2 のいずれかである必要があります。');
+        throw new Error('edit.json.version must be 0, 1, or 2.');
     }
     return version;
 }
@@ -70,7 +70,7 @@ function applyLegacy(initialSource, ranges, opts) {
             }
         }
         if (!matched)
-            warnings.push(`カット対象が見つかりません: ${range.in}–${range.out}`);
+            warnings.push(`The cut target was not found: ${range.in}-${range.out}`);
     }
     // deleteCutInSource は後続の暗黙 at を凍結する。対象トラックだけ暗黙カーソルへ
     // 戻すことで、元から別レーンにある cuts の位置を動かさずリップルさせる。
@@ -113,7 +113,7 @@ function applyV2(source, ranges, opts) {
             }
         }
         if (!matched)
-            warnings.push(`カット対象が見つかりません: ${range.in}–${range.out}`);
+            warnings.push(`The cut target was not found: ${range.in}-${range.out}`);
     }
     // performCompactCuts と同じく、対象となった visual track の media items だけを
     // 配列順に整数フレームのカーソルへ詰める。他 visual track / audio lane は不変。
@@ -212,7 +212,7 @@ function readLegacyCuts(source) {
 function normalizeRanges(ranges) {
     return ranges.map(range => {
         if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) {
-            throw new Error('カット範囲が不正です。');
+            throw new Error('The cut range is invalid.');
         }
         return { ...range };
     }).sort((left, right) => right.in - left.in || right.out - left.out);
@@ -225,7 +225,7 @@ function validSpeed(speed) {
 }
 function requireFps(value) {
     if (!Number.isFinite(value) || value <= 0)
-        throw new Error('fps が不正です。');
+        throw new Error('The fps value is invalid.');
     return value;
 }
 function clampFrame(value, duration) {

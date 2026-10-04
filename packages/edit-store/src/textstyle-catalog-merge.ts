@@ -27,7 +27,7 @@ export function resolveTextstyleCatalog({ builtin = TEXTSTYLE_CATALOG, library =
     for (const preset of library) {
         if (Object.prototype.hasOwnProperty.call(builtin, preset.id)) {
             conflicts.push(preset.id);
-            warnings.push(`captions.style-preset-library-shadowed: ${preset.id} はライブラリ由来ですが組み込みプリセットと同じ id のため組み込みを使います`);
+            warnings.push(`captions.style-preset-library-shadowed: ${preset.id} comes from the library, but a built-in preset has the same id, so the built-in preset is used.`);
         } else if (!Object.prototype.hasOwnProperty.call(catalog, preset.id)) {
             catalog[preset.id] = preset;
         }

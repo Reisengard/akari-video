@@ -340,9 +340,9 @@ test('GPU page builder の v1 拒否は captions.json の有無で同一', async
     await writeFile(join(projectRoot, 'edit.json'), JSON.stringify({
       version: 1, output: { fps: 30 }, sources: [], cuts: [], overlays: [],
     }));
-    await assert.rejects(() => loadAndBuildGpuPage({ projectRoot, duration: 1 }), /古い形式/u);
+    await assert.rejects(() => loadAndBuildGpuPage({ projectRoot, duration: 1 }), /older format/u);
     await writeFile(join(projectRoot, 'captions.json'), '[]\n');
-    await assert.rejects(() => loadAndBuildGpuPage({ projectRoot, duration: 1 }), /古い形式/u);
+    await assert.rejects(() => loadAndBuildGpuPage({ projectRoot, duration: 1 }), /older format/u);
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
   }

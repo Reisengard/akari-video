@@ -57,7 +57,7 @@ test('nested group translation changes only its local x/y, never its children', 
 });
 for (const patch of [{ html: '<b>x</b>' }, { vars: { '--x': 2 } }, { params: { title: 'x' } }]) {
   test(`groups reject non-transform ${Object.keys(patch)[0]} patches`, () => {
-    assert.throws(() => write(doc([group('g', {}, [leaf('a')])]), 'g', patch), /グループ.*書き戻せません/u);
+    assert.throws(() => write(doc([group('g', {}, [leaf('a')])]), 'g', patch), /onto a group item/u);
   });
 }
 test('scanned bag part becomes an explicit child with a unique id and local transform, without exclude', () => {
@@ -86,8 +86,8 @@ test('explicit bag part id and stale scanned alias both resolve to the same exis
 });
 test('excluded/unknown targets are rejected and nested text resolves to the referenced HTML', () => {
   const bag = { ...leaf('bag'), source: { kind: 'html', path: 'overlays/title.html', exclude: ['C'] } };
-  assert.throws(() => write(doc([bag]), 'bag#C', { transform: { x: 2 } }), /見つかりません/u);
-  assert.throws(() => write(doc([bag]), 'missing', { transform: { x: 2 } }), /見つかりません/u);
+  assert.throws(() => write(doc([bag]), 'bag#C', { transform: { x: 2 } }), /was not found/u);
+  assert.throws(() => write(doc([bag]), 'missing', { transform: { x: 2 } }), /was not found/u);
   assert.deepEqual(write(doc([group('g', {}, [leaf('a')])]), 'a', { html: '<b>new</b>' }), { htmlPath: 'overlays/title.html' });
 });
 test('top-level item output bytes remain the pre-drill-in stringifyEdit result', () => {
