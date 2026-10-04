@@ -84,28 +84,28 @@ export function stampVerifyFailureMessage({
   const classification = classifyStampSamples(samples, expectedFrameNumber);
   const delta = signedStampDelta(samples[0]?.frameNumber, expectedFrameNumber, 65_536);
   const reason = {
-    stale: `${Math.abs(delta)} コマ前の絵のまま（描画が追いついていない）`,
-    ahead: `${delta} コマ先の絵`,
-    torn: "stamp 行の 3 点で番号が食い違う（描画の途中を掴んだ）",
-    color: "stamp 行の色が崩れている（ブレンド・フィルタ・色変換が最下行に及んでいる可能性）",
-    match: "stamp 行は一致",
+    stale: `${Math.abs(delta)} frame(s) behind (drawing has not caught up)`,
+    ahead: `${delta} frame(s) ahead`,
+    torn: "the three stamp-row samples disagree (the read caught a frame mid-draw)",
+    color: "stamp row color is broken (a blend, filter, or color transform may be reaching the last row)",
+    match: "stamp row matches",
   }[classification];
   const read = samples.length === 0 ? "read unavailable" : `read ${samples.map((sample) =>
-    `x=${sample.x}:${sample.frameNumber}${sample.validColor ? "" : `(色不一致 BGRA ${sample.bgra.join(",")})`}`).join(" ")}`;
-  let active = "active overlays: 取得できませんでした";
+    `x=${sample.x}:${sample.frameNumber}${sample.validColor ? "" : `(color mismatch BGRA ${sample.bgra.join(",")})`}`).join(" ")}`;
+  let active = "active overlays: unavailable";
   if (Array.isArray(overlays)) {
     const shown = overlays.slice(0, 8).map(({ id, cssFeatures = [], blend = "normal" }) =>
-      `${id}${cssFeatures.length ? `（CSS: ${cssFeatures.join(", ")}）` : ""}${blend !== "normal" ? `（blend: ${blend}）` : ""}`);
-    if (overlays.length > 8) shown.push(`ほか ${overlays.length - 8} 件`);
-    active = `active overlays: ${shown.length ? shown.join(", ") : "なし"}`;
+      `${id}${cssFeatures.length ? ` (CSS: ${cssFeatures.join(", ")})` : ""}${blend !== "normal" ? ` (blend: ${blend})` : ""}`);
+    if (overlays.length > 8) shown.push(`${overlays.length - 8} more`);
+    active = `active overlays: ${shown.length ? shown.join(", ") : "none"}`;
   }
   return [
-    `frame ${frame} stamp verify failed after ${retries} retries over ${roundMs(elapsedMs)} ms（GPU: ${activeDevice ?? "unknown"}）`,
+    `frame ${frame} stamp verify failed after ${retries} retries over ${roundMs(elapsedMs)} ms (GPU: ${activeDevice ?? "unknown"})`,
     `expected stamp ${expectedFrameNumber}, ${read}`,
     reason,
     active,
-    `予算 ${budgetMs} ms / ${maximumRetries} 回`,
-    "他の書き出しと並走していると起きることがあります。同じ内容で再実行してください",
+    `budget ${budgetMs} ms / ${maximumRetries} tries`,
+    "This can happen when another export is running at the same time. Run the same export again",
   ].join("; ");
 }
 
@@ -136,25 +136,25 @@ export function bitmapSizeMismatchMessage({
   emulated = false,
 }) {
   const dpr = Number(devicePixelRatio ?? 1);
-  const applied = `setContentSize ${resized ? "適用" : "未適用"} / device emulation ${emulated ? "適用" : "未適用"}`;
+  const applied = `setContentSize ${resized ? "applied" : "not applied"} / device emulation ${emulated ? "applied" : "not applied"}`;
   let message = `frame ${frame} bitmap size ${describeSize(measured)}, expected ${describeSize(requested)}; `
     + `requested ${describeSize(requested)}, measured ${describeSize(measured)}, `
     + `primary display ${describeSize(display)}, work area ${describeSize(workArea)}; `
-    + `オフスクリーン窓の bitmap を出力寸法 + stamp 行 1 px に固定できませんでした（${applied}）`;
+    + `could not pin the offscreen window bitmap to the output size plus a 1 px stamp row (${applied})`;
   if (Number.isFinite(dpr) && dpr !== 1) {
-    message += `; devicePixelRatio ${dpr} — Electron の実プロセスへ --force-device-scale-factor=1 を渡してください`;
+    message += `; devicePixelRatio ${dpr}. Pass --force-device-scale-factor=1 to the real Electron process`;
   }
   return message;
 }
 
 // 空 paint が予算（時間 / 回数のどちらか）に達したときの 1 行。回数・ms・載った GPU（無ければ unknown）を含む。
 export function emptyPaintFailureMessage({ frame, attempts, elapsedMs, activeDevice = null }) {
-  return `frame ${frame}: offscreen paint returned an empty bitmap ${attempts} times over ${roundMs(elapsedMs)} ms（GPU: ${activeDevice ?? "unknown"}）`;
+  return `frame ${frame}: offscreen paint returned an empty bitmap ${attempts} times over ${roundMs(elapsedMs)} ms (GPU: ${activeDevice ?? "unknown"})`;
 }
 
 // warm-up が予算内に非空 bitmap を 1 枚も得られなかったときの 1 行（electron-main が fail-closed に使う）。
 export function warmUpFailureMessage({ empty_attempts: emptyAttempts, elapsed_ms: elapsedMs, activeDevice = null }) {
-  return `offscreen paint warm-up: ${emptyAttempts} empty paints over ${roundMs(elapsedMs)} ms（GPU: ${activeDevice ?? "unknown"}）`;
+  return `offscreen paint warm-up: ${emptyAttempts} empty paints over ${roundMs(elapsedMs)} ms (GPU: ${activeDevice ?? "unknown"})`;
 }
 
 function sizeRecord(size) {

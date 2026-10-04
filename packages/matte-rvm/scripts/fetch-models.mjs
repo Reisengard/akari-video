@@ -60,7 +60,7 @@ export async function ensureModel(
   { vendorRoot = VENDOR_ROOT, download = downloadModel, log = () => {} } = {},
 ) {
   const entry = MODEL_MANIFEST[model];
-  if (!entry) throw new Error(`--model は ${Object.keys(MODEL_MANIFEST).join(" / ")} のいずれかです`);
+  if (!entry) throw new Error(`--model must be one of ${Object.keys(MODEL_MANIFEST).join(" / ")}`);
   const destination = modelPath(model, vendorRoot);
   await mkdir(vendorRoot, { recursive: true });
 
@@ -69,20 +69,20 @@ export async function ensureModel(
     if (actual === entry.sha256) return destination;
     await rm(destination, { force: true });
     throw new Error(
-      `sha256 不一致: ${destination}\n  期待値: ${entry.sha256}\n  実際値: ${actual}\n` +
-        "不正な既存モデルを削除しました。取得を中止します。",
+      `sha256 mismatch: ${destination}\n  expected: ${entry.sha256}\n  actual: ${actual}\n` +
+        "Deleted an invalid existing model. Stopping the fetch.",
     );
   }
 
   const partial = `${destination}.partial-${process.pid}-${Date.now()}`;
   try {
-    log(`matte-rvm: 取得中 ${entry.url}`);
+    log(`matte-rvm: fetching ${entry.url}`);
     await download(entry.url, partial);
     const actual = await sha256File(partial);
     if (actual !== entry.sha256) {
       throw new Error(
-        `sha256 不一致: ${entry.url}\n  期待値: ${entry.sha256}\n  実際値: ${actual}\n` +
-          "配布元の内容が変わった、またはダウンロードが破損しています。取得を中止しました。",
+        `sha256 mismatch: ${entry.url}\n  expected: ${entry.sha256}\n  actual: ${actual}\n` +
+          "The published file changed, or the download is corrupt. The fetch was stopped.",
       );
     }
     await rename(partial, destination);
@@ -98,7 +98,7 @@ function parseModel(argv) {
   if (argv.length === 2 && argv[0] === "--model" && argv[1] && !argv[1].startsWith("--")) {
     return argv[1];
   }
-  throw new Error("使い方: node scripts/fetch-models.mjs [--model mobilenetv3|resnet50]");
+  throw new Error("Usage: node scripts/fetch-models.mjs [--model mobilenetv3|resnet50]");
 }
 
 function isMainModule() {
@@ -112,9 +112,9 @@ function isMainModule() {
 
 if (isMainModule()) {
   ensureModel(parseModel(process.argv.slice(2)), { log: (message) => console.log(message) })
-    .then((destination) => console.log(`matte-rvm: 完了（${destination}）`))
+    .then((destination) => console.log(`matte-rvm: done (${destination})`))
     .catch((error) => {
-      console.error(`matte-rvm: モデル取得に失敗しました — ${error.message}`);
+      console.error(`matte-rvm: model fetch failed: ${error.message}`);
       process.exitCode = 1;
     });
 }

@@ -21,7 +21,7 @@ import { buildXmeml } from "../src/xmeml.mjs";
 import { buildSrt, loadCaptions } from "../src/srt.mjs";
 
 const BETA_NOTICE =
-  "BETA: 生成物の実 NLE（Final Cut Pro / DaVinci Resolve / Premiere Pro）取り込みは未確認。取り込み結果の報告を歓迎します";
+  "BETA: import of these files into a real NLE (Final Cut Pro / DaVinci Resolve / Premiere Pro) is not verified. Reports of import results are welcome";
 
 const FORMATS = new Set(["fcpxml", "xmeml", "srt"]);
 
@@ -33,7 +33,7 @@ function parseArgs(argv) {
       const value = argv[index += 1] ?? "";
       args.formats = value === "all" ? [...FORMATS] : value.split(",").map((item) => item.trim());
       for (const format of args.formats) {
-        if (!FORMATS.has(format)) throw new Error(`未知の --format: ${format}（fcpxml / xmeml / srt / all）`);
+        if (!FORMATS.has(format)) throw new Error(`unknown --format: ${format} (fcpxml / xmeml / srt / all)`);
       }
     } else if (arg === "--out") {
       args.out = argv[index += 1] ?? null;
@@ -42,14 +42,14 @@ function parseArgs(argv) {
     } else if (arg === "--json") {
       args.json = true;
     } else if (arg.startsWith("-")) {
-      throw new Error(`未知のオプション: ${arg}`);
+      throw new Error(`unknown option: ${arg}`);
     } else if (args.input === null) {
       args.input = arg;
     } else {
-      throw new Error(`入力は 1 つだけ: ${arg}`);
+      throw new Error(`only one input is allowed: ${arg}`);
     }
   }
-  if (!args.input) throw new Error("入力（project-root または edit.json）を指定してください");
+  if (!args.input) throw new Error("Specify an input (project root or edit.json)");
   return args;
 }
 
@@ -68,7 +68,7 @@ async function resolveFfprobeOrNull(enabled, warnings) {
       // 次の解決手段へ
     }
   }
-  warnings.push("ffprobe を解決できない（media-bin 不在）— 実尺取得なしで続行");
+  warnings.push("could not resolve ffprobe (media-bin is missing). Continuing without measured durations");
   return null;
 }
 
@@ -84,7 +84,7 @@ async function main() {
   });
   const fd = frameDuration(model.output.fps);
   const totalDuration = timelineDurationWithMedia(model, baseTimelineDuration(model), durations);
-  if (totalDuration <= 0) throw new Error("タイムラインの尺が 0 — cuts / layers が空のプロジェクトは書き出せない");
+  if (totalDuration <= 0) throw new Error("timeline duration is 0. A project with empty cuts and layers cannot be exported");
 
   const outDir = resolve(args.out ?? resolve(projectRoot, "exports", "nle"));
   mkdirSync(outDir, { recursive: true });
@@ -105,19 +105,19 @@ async function main() {
     const result = buildXmeml(model, context);
     const path = resolve(outDir, `${model.projectName}.premiere.xml`);
     writeFileSync(path, result.xml);
-    written.push({ format: "xmeml", path, target: "Premiere Pro（FCP7 XML 経由）" });
+    written.push({ format: "xmeml", path, target: "Premiere Pro (via FCP7 XML)" });
     dropped.push(...result.dropped.map((entry) => ({ format: "xmeml", ...entry })));
     warnings.push(...result.warnings.filter((warning) => !warnings.includes(warning)));
   }
   if (args.formats.includes("srt")) {
     const captions = loadCaptions(projectRoot);
     if (captions === null) {
-      warnings.push("captions.json が無いため SRT はスキップ");
+      warnings.push("SRT skipped because captions.json is missing");
     } else {
       const result = buildSrt(model, captions);
       const path = resolve(outDir, `${model.projectName}.srt`);
       writeFileSync(path, result.srt);
-      written.push({ format: "srt", path, cues: result.cueCount, target: "全 NLE 共通の字幕サイドカー" });
+      written.push({ format: "srt", path, cues: result.cueCount, target: "caption sidecar shared by NLEs" });
       dropped.push(...result.dropped.map((entry) => ({ format: "srt", ...entry })));
       warnings.push(...result.warnings.filter((warning) => !warnings.includes(warning)));
     }
@@ -142,10 +142,10 @@ async function main() {
   } else {
     process.stdout.write(`⚠ ${BETA_NOTICE}\n`);
     for (const file of written) {
-      process.stdout.write(`書き出し: ${file.path}（${file.target}）\n`);
+      process.stdout.write(`exported: ${file.path} (${file.target})\n`);
     }
     if (dropped.length > 0) {
-      process.stdout.write(`移らないフィールド ${dropped.length} 件（詳細: export-report.json の dropped[]）:\n`);
+      process.stdout.write(`fields that do not transfer: ${dropped.length} (details in export-report.json dropped[]):\n`);
       for (const entry of dropped) {
         process.stdout.write(`  - [${entry.format}] ${entry.field}: ${entry.reason}\n`);
       }

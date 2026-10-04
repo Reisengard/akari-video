@@ -359,7 +359,7 @@ test("resolveVideoEvidenceReuse の scope と理由は判定の根拠を残す",
     spawnSyncImpl: makeStub({ outputVideoOverrides: { width: 1920 } }).impl,
   });
   assert.equal(unproven.scope, "none");
-  assert.match(unproven.reason, /width が違う/u);
+  assert.match(unproven.reason, /width differs/u);
 });
 
 test("proveVideoStreamIdentity は確かめられない項目があれば identical を返さない", () => {
@@ -370,17 +370,17 @@ test("proveVideoStreamIdentity は確かめられない項目があれば identi
   assert.equal(proveVideoStreamIdentity({
     referencePath: "", referenceStream: reference, referenceFrames: "30",
     candidatePath: OUTPUT, candidateStream: candidate, ffmpegCommand: "ffmpeg-test", spawnSyncImpl: hashing,
-  }).reason, "audio_mix の入力パスが plan に無い");
+  }).reason, "the audio_mix input path is not in the plan");
 
   assert.equal(proveVideoStreamIdentity({
     referencePath: COMPOSITE, referenceStream: null, referenceFrames: "30",
     candidatePath: OUTPUT, candidateStream: candidate, ffmpegCommand: "ffmpeg-test", spawnSyncImpl: hashing,
-  }).reason, "映像ストリームの測定値が揃っていない");
+  }).reason, "video stream measurements are incomplete");
 
   assert.match(proveVideoStreamIdentity({
     referencePath: COMPOSITE, referenceStream: reference, referenceFrames: "not-a-number",
     candidatePath: OUTPUT, candidateStream: candidate, ffmpegCommand: "ffmpeg-test", spawnSyncImpl: hashing,
-  }).reason, /GPU 段の数えたフレーム数が読めない/u);
+  }).reason, /frame count measured by the GPU stage cannot be read/u);
 
   assert.equal(proveVideoStreamIdentity({
     referencePath: COMPOSITE, referenceStream: reference, referenceFrames: "30",
@@ -397,7 +397,7 @@ test("proveVideoStreamIdentity は確かめられない項目があれば identi
       stderr: "",
       stdout: `0,v,SHA256=${(call++ === 0 ? "a" : "c").repeat(64)}\n`,
     }),
-  }).reason, "映像ビットストリームが一致しない");
+  }).reason, "video bitstreams do not match");
 });
 
 // ここから下は実素材での確認（ffmpeg / ffprobe が無い環境では skip）。
@@ -465,7 +465,7 @@ test("実素材: 音声のみ作り直した成果物は映像ビットストリ
       ffmpegCommand: "ffmpeg",
     });
     assert.equal(clipped.identical, false);
-    assert.match(clipped.reason, /フレーム数が違う/u);
+    assert.match(clipped.reason, /frame count differs/u);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

@@ -42,10 +42,10 @@ test("missing fragment assets share a project-relative correction hint with expo
   const raw = "../assets/logo.png";
   const path = "overlays/assets/logo.png";
   const hint = describeFragmentAssetHint({ projectRoot, htmlPath, raw, path });
-  assert.match(hint, /^断片ファイル基準では/u);
+  assert.match(hint, /^Relative to the fragment file, this points at/u);
   assert.match(hint, /`overlays\/assets\/logo.png`/u);
-  assert.match(hint, /project の `assets\/logo.png`/u);
-  assert.match(hint, /`\.\.\/\.\.\/assets\/logo.png` に直してください/u);
+  assert.match(hint, /the project's `assets\/logo.png`/u);
+  assert.match(hint, /change it to `\.\.\/\.\.\/assets\/logo.png`/u);
   assert.throws(() => embedFragmentAssets(`<img src="${raw}">`, { projectRoot, htmlPath, overlayId: "logo" }), error => error instanceof RenderInputError && error.message.endsWith(` ${hint}`));
   assert.equal(describeFragmentAssetHint({ projectRoot, htmlPath, raw: "missing.png", path: "overlays/lower-third/missing.png" }), "");
   assert.equal(describeFragmentAssetHint({ projectRoot, htmlPath, raw: "../../../assets/logo.png", path: "../assets/logo.png" }), "");
@@ -160,7 +160,7 @@ test("embedded files over 16 MiB are rejected before reading their contents", as
   try { await file.truncate(16 * 1024 * 1024 + 1); } finally { await file.close(); }
   assert.throws(() => embedFragmentAssets('<img src="../assets/large.png">', options), error => {
     assert.ok(error instanceof RenderInputError);
-    for (const value of ["overlay:logo", options.htmlPath, "../assets/large.png", "16.000001 MiB", "縮小するか video として扱う"]) assert.ok(error.message.includes(value));
+    for (const value of ["overlay:logo", options.htmlPath, "../assets/large.png", "16.000001 MiB", "Scale it down or treat it as video"]) assert.ok(error.message.includes(value));
     return true;
   });
 });
@@ -224,6 +224,6 @@ test("library fallback embeds images but refuses video and audio outside the pro
     await writeFile(join(directory, filename), png);
     const html = `<source src="../assets/${category}/${id}/${filename}">`;
     if (category === "still") assert.equal(embedFragmentAssets(html, options), `<source src="${data}">`);
-    else assert.throws(() => embedFragmentAssets(html, options), error => error instanceof RenderInputError && /動画・音声はプロジェクト内に置く/u.test(error.message));
+    else assert.throws(() => embedFragmentAssets(html, options), error => error instanceof RenderInputError && /keep video and audio inside the project/u.test(error.message));
   }
 });

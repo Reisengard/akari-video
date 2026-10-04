@@ -95,7 +95,7 @@ test("v2 renderer audio is derived from role-marked tracks while raw master is p
 test("unbaked telop is explicitly refused; existing baked is reused", () => {
   const unbaked = structuredClone(fixture);
   delete unbaked.tracks[1].items[0].source.baked;
-  assert.throws(() => readRenderEdit(unbaked, "/tmp/render"), /telop.retired.*name.*退役/u);
+  assert.throws(() => readRenderEdit(unbaked, "/tmp/render"), /telop.retired.*name.*retired/u);
   const baked = readRenderEdit(fixture, "/tmp/render");
   assert.equal(baked.edit.layers.find(layer => layer.id === "name").src, "cached.mov");
 });

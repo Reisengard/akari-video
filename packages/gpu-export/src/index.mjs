@@ -34,7 +34,7 @@ export function gpuRuntimeFallbackReason(error, fallbackReasons = FALLBACK_REASO
 export function assertNoSkippedLayers(run) {
   const skipped = Number(run?.frameEngineMetrics?.skippedLayers ?? 0);
   if (skipped > 0 || !Number.isFinite(skipped)) {
-    throw new Error(`GPU run skipped ${run.frameEngineMetrics.skippedLayers} layer draw(s); 層の欠けた出力は採用しません（run.json の frameEngineMetrics.skippedLayers）`);
+    throw new Error(`GPU run skipped ${run.frameEngineMetrics.skippedLayers} layer draw(s); a frame with missing layers is not kept (run.json frameEngineMetrics.skippedLayers)`);
   }
 }
 
@@ -165,7 +165,7 @@ export async function exportWithGpu({
         source_has_audio: Boolean(sourceHasAudio),
       };
       if (!sourceHasAudio) {
-        io.error?.(`gpu-export: 音声ソースに音声ストリームが無いため無音トラック（契約 §5 の carrier）を付けました: ${audio.source}`);
+        io.error?.(`gpu-export: the audio source has no audio stream, so a silent track was added (carrier in contract section 5): ${audio.source}`);
       }
     }
     recordTiming("audio_mux", audioMuxStarted);

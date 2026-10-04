@@ -12,7 +12,7 @@ test("CLI arguments default to auto and accept both v2 engines", () => {
 test("the retired engine is refused with exit code 2", () => {
   assert.throws(
     () => parseArguments(["project", "--engine", "legacy"]),
-    (error) => error instanceof RefusalError && error.exitCode === 2 && /廃止/.test(error.message),
+    (error) => error instanceof RefusalError && error.exitCode === 2 && /has been removed/.test(error.message),
   );
 });
 

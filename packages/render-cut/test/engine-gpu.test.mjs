@@ -77,7 +77,7 @@ test("explicit gpu still rejects unsupported entries when force is enabled", () 
       summary: { degraded: 0, unsupported: 1, forced: 0 },
     }, { force: true }),
     (error) => error instanceof RefusalError
-      && error.message === "GPU export is ineligible: caption:c1:motion（AKARI_FORCE_GPU は degraded のみ対象）",
+      && error.message === "GPU export is ineligible: caption:c1:motion (AKARI_FORCE_GPU applies to degraded only)",
   );
 });
 
@@ -119,11 +119,11 @@ test("renderProject stamps only an explicit GPU eligibility bypass and leaves au
     assert.equal(forced.gpu_forced, true);
     assert.equal(forced.provenance.engine, "gpu");
     assert.deepEqual(errors, [
-      "[force-gpu] 適格性を迂回しました（検証用・納品不可）: overlay:forced-overlay:forced-dom:embedded-context",
+      "[force-gpu] eligibility was bypassed (verification only, not for delivery): overlay:forced-overlay:forced-dom:embedded-context",
     ]);
     const recorded = JSON.parse(await readFile(join(root, ".akari", "render.json"), "utf8"));
     assert.equal(recorded.gpu_forced, true);
-    assert.match(await readFile(join(root, ".akari", "reports", "render-report.html"), "utf8"), /検証用（GPU 強制）/u);
+    assert.match(await readFile(join(root, ".akari", "reports", "render-report.html"), "utf8"), /Verification only \(GPU forced\)/u);
 
     errors.length = 0;
     const automatic = await renderProject(root, {

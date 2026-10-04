@@ -424,7 +424,7 @@ export function renderItemDeclaration(item, temporaryDirectory) {
       };
     case "telop":
       if (item.source.baked === undefined) {
-        throw new Error(`telop.retired: ${item.id}: テロップ（ATF）の描画は退役しました。Lab の HTML 素材版へ差し替えてください。既存の baked は再生できます。`);
+        throw new Error(`telop.retired: ${item.id}: telop (ATF) drawing is retired. Replace it with the HTML version from Lab. Existing baked clips still play.`);
       }
       return {
         ...declaration,

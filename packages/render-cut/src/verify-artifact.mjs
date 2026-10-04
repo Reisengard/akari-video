@@ -279,27 +279,27 @@ export function proveVideoStreamIdentity({
 }) {
   const unproven = (reason) => ({ identical: false, reason, frames: null, sha256: null });
   if (typeof referencePath !== "string" || referencePath === "") {
-    return unproven("audio_mix の入力パスが plan に無い");
+    return unproven("the audio_mix input path is not in the plan");
   }
-  if (!referenceStream || !candidateStream) return unproven("映像ストリームの測定値が揃っていない");
+  if (!referenceStream || !candidateStream) return unproven("video stream measurements are incomplete");
   for (const field of VIDEO_STREAM_IDENTITY_FIELDS) {
     const left = referenceStream[field] ?? null;
     const right = candidateStream[field] ?? null;
     if (String(left) !== String(right)) {
-      return unproven(`映像ストリームの ${field} が違う（${String(left)} → ${String(right)}）`);
+      return unproven(`video stream ${field} differs (${String(left)} -> ${String(right)})`);
     }
   }
-  if (finiteFrameCount(referenceFrames) === null) return unproven("GPU 段の数えたフレーム数が読めない");
+  if (finiteFrameCount(referenceFrames) === null) return unproven("the frame count measured by the GPU stage cannot be read");
   const candidateFrames = finiteFrameCount(candidateStream.nb_frames);
-  if (candidateFrames === null) return unproven("成果物のフレーム数（nb_frames）がコンテナから読めない");
+  if (candidateFrames === null) return unproven("the artifact frame count (nb_frames) cannot be read from the container");
   if (candidateFrames !== Number(referenceFrames)) {
-    return unproven(`フレーム数が違う（${referenceFrames} → ${candidateFrames}）`);
+    return unproven(`frame count differs (${referenceFrames} -> ${candidateFrames})`);
   }
   const referenceHash = hashVideoBitstream({ path: referencePath, ffmpegCommand, spawnSyncImpl });
-  if (referenceHash === null) return unproven("audio_mix 入力の映像ビットストリームを読めない");
+  if (referenceHash === null) return unproven("could not read the video bitstream of the audio_mix input");
   const candidateHash = hashVideoBitstream({ path: candidatePath, ffmpegCommand, spawnSyncImpl });
-  if (candidateHash === null) return unproven("成果物の映像ビットストリームを読めない");
-  if (referenceHash !== candidateHash) return unproven("映像ビットストリームが一致しない");
+  if (candidateHash === null) return unproven("could not read the artifact video bitstream");
+  if (referenceHash !== candidateHash) return unproven("video bitstreams do not match");
   return { identical: true, reason: null, frames: candidateFrames, sha256: candidateHash };
 }
 
@@ -339,7 +339,7 @@ export function resolveVideoEvidenceReuse({
     const video = reusable.measured.streams.find((stream) => stream?.codec_type === "video");
     return {
       scope: "full",
-      reason: "audio_mix は composite のバイトコピーなので最終ファイルは GPU 段が測ったファイルそのもの",
+      reason: "audio_mix is a byte copy of composite, so the final file is the file the GPU stage measured",
       measured: reusable.measured,
       decodeStderr: reusable.decodeStderr,
       frameCount: finiteFrameCount(video?.nb_read_frames),
@@ -364,8 +364,8 @@ export function resolveVideoEvidenceReuse({
   });
   if (reusable === null) {
     return unreusable(gpuVerification === null
-      ? "GPU 段の映像検査値が無い（OSR 経路など）"
-      : "GPU 段の映像検査値が引き継げる形をしていない");
+      ? "GPU-stage picture checks are missing (the OSR path, for example)"
+      : "GPU-stage picture checks are not in a form that can be carried forward");
   }
   const referenceStream = reusable.measured.streams.find((stream) => stream?.codec_type === "video");
   const candidateStream = measured.streams?.find((stream) => stream?.codec_type === "video");
@@ -383,11 +383,11 @@ export function resolveVideoEvidenceReuse({
   reportTiming(onTiming, "verify_video_identity", identityStarted);
   notifyVerifyCheck(onCheck, "video-identity", "end");
   if (!identity.identical) {
-    return unreusable(`映像ストリームの同一性を実証できない: ${identity.reason}`, identity);
+    return unreusable(`cannot prove the video streams are identical: ${identity.reason}`, identity);
   }
   return {
     scope: "video",
-    reason: "映像ビットストリームが audio_mix 入力と同一",
+    reason: "the video bitstream matches the audio_mix input",
     measured,
     decodeStderr: reusable.decodeStderr,
     frameCount: identity.frames,
@@ -604,7 +604,7 @@ function declaredAudioReasons({ plan, inputs, edit }) {
     if (reasons.length === 0) reasons.push("audio_mix");
   }
   if (inputs.some((input) => input?.has_audio === true || input?.hasAudio === true)) {
-    reasons.push("素材音声");
+    reasons.push("footage audio");
   }
   return [...new Set(reasons)];
 }

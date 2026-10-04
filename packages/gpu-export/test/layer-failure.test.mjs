@@ -61,7 +61,7 @@ test("GPU 書き出しランタイムは層の準備失敗を層 id と原因つ
     failingLayerFE(calls),
   );
   await assert.rejects(runtime.frameAt.call(runtimeFixture(), 3), (error) => {
-    assert.match(error.message, /layer image-2 を描けないため書き出しを中止します/u);
+    assert.match(error.message, /layer image-2 cannot be drawn, so the export stopped/u);
     assert.ok(error.message.includes(LAYER_404), error.message);
     return true;
   });
@@ -79,7 +79,7 @@ test("OSR 書き出しランタイムも層の準備失敗を失敗にする（G
     { config: { mediaPlaneSummary: null } },
   );
   await assert.rejects(runtime.renderAt.call(runtimeFixture(), 3),
-    /layer image-2 を描けないため書き出しを中止します.*404/u);
+    /layer image-2 cannot be drawn, so the export stopped.*404/u);
   assert.deepEqual(calls, ["function"]);
 });
 

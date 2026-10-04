@@ -38,7 +38,7 @@ export function measureAudioLevel({
 }) {
   const planned = planVolumeIntervals(durationSeconds);
   if (planned.length === 0) {
-    return { ok: false, intervals: [], max_db: null, error: "出力尺が正の有限値ではありません" };
+    return { ok: false, intervals: [], max_db: null, error: "output duration is not a positive finite number" };
   }
 
   const intervals = [];
@@ -108,13 +108,13 @@ export function judgeAudioLevel({ declared, reasons = [], hasAudioStream, measur
   }
 
   if (!measurement || measurement.ok === false || !isDb(measurement.max_db)) {
-    const error = measurement?.error || "volumedetect の結果を解釈できません";
+    const error = measurement?.error || "could not interpret the volumedetect result";
     const intervalCount = measurement?.intervals?.length ?? 0;
     return {
       finding: {
         severity: "error",
         check: "verify.audio-level",
-        message: `音量を測定できません（閾値 ${AUDIO_LEVEL_THRESHOLD_DB} dB・${intervalCount} 区間）: ${error}`,
+        message: `could not measure loudness (threshold ${AUDIO_LEVEL_THRESHOLD_DB} dB, ${intervalCount} ${intervalCount === 1 ? "span" : "spans"}): ${error}`,
       },
       record: {
         ...base,
@@ -128,14 +128,14 @@ export function judgeAudioLevel({ declared, reasons = [], hasAudioStream, measur
   const intervals = measurement.intervals ?? [];
   const maxDb = measurement.max_db;
   const maxText = formatDb(maxDb);
-  const countText = `${intervals.length} 区間`;
+  const countText = `${intervals.length} ${intervals.length === 1 ? "span" : "spans"}`;
   if (declared === true && maxDb < AUDIO_LEVEL_THRESHOLD_DB) {
-    const reasonText = normalizedReasons.length > 0 ? normalizedReasons.join("/") : "音声";
+    const reasonText = normalizedReasons.length > 0 ? normalizedReasons.join("/") : "audio";
     return {
       finding: {
         severity: "error",
         check: "verify.audio-level",
-        message: `宣言された音声（${reasonText}）に対し、出力の最大音量が ${maxText} dB（閾値 ${AUDIO_LEVEL_THRESHOLD_DB} dB・${countText}）— デジタル無音`,
+        message: `declared audio (${reasonText}) but the output peak is ${maxText} dB (threshold ${AUDIO_LEVEL_THRESHOLD_DB} dB, ${countText}): digital silence`,
       },
       record: { ...base, intervals, max_db: maxDb, verdict: "fail" },
     };
@@ -145,7 +145,7 @@ export function judgeAudioLevel({ declared, reasons = [], hasAudioStream, measur
       finding: {
         severity: "info",
         check: "verify.audio-level",
-        message: `最大音量 ${maxText} dB（${countText}）`,
+        message: `peak ${maxText} dB (${countText})`,
       },
       record: { ...base, intervals, max_db: maxDb, verdict: "pass" },
     };
@@ -157,8 +157,8 @@ export function judgeAudioLevel({ declared, reasons = [], hasAudioStream, measur
       severity: "warning",
       check: "verify.audio-level",
       message: silent
-        ? `音声の宣言が無い無音トラック（${maxText} dB）`
-        : `音声の宣言が無いのに可聴音声（${maxText} dB）`,
+        ? `silent track with no declared audio (${maxText} dB)`
+        : `audible audio with no declared audio (${maxText} dB)`,
     },
     record: { ...base, intervals, max_db: maxDb, verdict: "warning" },
   };
@@ -296,7 +296,7 @@ export function judgeMotion({
       severity: warning ? "warning" : "info",
       check: "verify.motion-static",
       message: warning
-        ? `cut ${probe.cut}: keyframes が異なる画角を宣言する t=${formatSeconds(probe.t1)}s / t=${formatSeconds(probe.t2)}s の出力フレームが酷似（NCC ${formatNcc(ncc)}）— カメラワーク未反映の可能性`
+        ? `cut ${probe.cut}: keyframes declare different framing, but the output frames at t=${formatSeconds(probe.t1)}s and t=${formatSeconds(probe.t2)}s are nearly identical (NCC ${formatNcc(ncc)}). The camera move may be missing`
         : `cut ${probe.cut}: NCC ${formatNcc(ncc)}`,
     });
   }

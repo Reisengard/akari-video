@@ -32,7 +32,7 @@ const SINGLE = summarizeGpuAdapters([
 function assertOneLine(message) {
   assert.equal(typeof message, "string");
   assert.doesNotMatch(message, /[\r\n]/u);
-  assert.match(message, /（原因: WebCodecs H\.264 config is unsupported: prefer-hardware \(avc1\.640033 3840x2160@30fps 45000000bps\) renderer=ANGLE \(Intel, .*\)）$/u);
+  assert.match(message, / \(cause: WebCodecs H\.264 config is unsupported: prefer-hardware \(avc1\.640033 3840x2160@30fps 45000000bps\) renderer=ANGLE \(Intel, .*\)\)$/u);
 }
 
 test("a. hybrid・iGPU・user-preference-respected: 省電力固定の説明と force の案内", () => {
@@ -41,7 +41,7 @@ test("a. hybrid・iGPU・user-preference-respected: 省電力固定の説明と 
     gpuPreference: { applied: false, reason: "user-preference-respected", previous: "GpuPreference=1;", executable: EXE },
   });
   assertOneLine(message);
-  assert.equal(message, `ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（Intel(R) UHD Graphics）で動作しています。Windows の「グラフィックスの設定」でこのアプリが省電力に固定されているため自動切り替えしませんでした。高パフォーマンスへ変更するか、AKARI_EXPORT_GPU_PREFERENCE=force（render-cut --gpu-preference force）で再実行してください（原因: ${CAUSE}）`);
+  assert.equal(message, `The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (Intel(R) UHD Graphics). Windows Graphics settings pin this app to power saving, so AKARI did not switch automatically. Switch it to high performance, or rerun with AKARI_EXPORT_GPU_PREFERENCE=force (render-cut --gpu-preference force) (cause: ${CAUSE})`);
 });
 
 test("b. hybrid・iGPU・policy-off: 高パフォーマンス GPU 名と auto の案内", () => {
@@ -50,7 +50,7 @@ test("b. hybrid・iGPU・policy-off: 高パフォーマンス GPU 名と auto �
     gpuPreference: { applied: false, reason: "policy-off", policy: "off" },
   });
   assertOneLine(message);
-  assert.equal(message, `ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（Intel(R) UHD Graphics）で動作しています。高パフォーマンス GPU（NVIDIA GeForce RTX 5060 Laptop GPU）への自動切り替えが off です。AKARI_EXPORT_GPU_PREFERENCE=auto で再実行してください（原因: ${CAUSE}）`);
+  assert.equal(message, `The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (Intel(R) UHD Graphics). Automatic switch to the high-performance GPU (NVIDIA GeForce RTX 5060 Laptop GPU) is off. Rerun with AKARI_EXPORT_GPU_PREFERENCE=auto (cause: ${CAUSE})`);
 });
 
 test("c. hybrid・iGPU・applied: 書いた実行ファイルを示して設定アプリを案内", () => {
@@ -59,7 +59,7 @@ test("c. hybrid・iGPU・applied: 書いた実行ファイルを示して設定�
     gpuPreference: { applied: true, reason: "unset", executable: EXE, restored: true },
   });
   assertOneLine(message);
-  assert.equal(message, `ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（Intel(R) UHD Graphics）で動作しています。GPU 設定（${EXE}）を書き込みましたが反映されませんでした。Windows の「グラフィックスの設定」でこの実行ファイルを高パフォーマンスにしてください（原因: ${CAUSE}）`);
+  assert.equal(message, `The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (Intel(R) UHD Graphics). AKARI wrote the GPU setting (${EXE}) but Windows did not apply it. Set this executable to high performance in Windows Graphics settings (cause: ${CAUSE})`);
 });
 
 test("d. dGPU に載ったのに unsupported: ドライバ更新か --engine osr", () => {
@@ -68,24 +68,24 @@ test("d. dGPU に載ったのに unsupported: ドライバ更新か --engine osr
     gpuPreference: { applied: true, reason: "unset", executable: EXE, restored: true }, cause: firstLine(RUN_ERROR),
   });
   assertOneLine(message);
-  assert.equal(message, `高パフォーマンス GPU（NVIDIA GeForce RTX 5060 Laptop GPU）で動作していますがハードウェア H.264 エンコーダが応答しません。GPU ドライバの更新、または --engine osr で再実行してください（原因: ${CAUSE}）`);
+  assert.equal(message, `The high-performance GPU (NVIDIA GeForce RTX 5060 Laptop GPU) is active, but its hardware H.264 encoder does not respond. Update the GPU driver, or rerun with --engine osr (cause: ${CAUSE})`);
 });
 
 test("e. hybrid でない: この GPU にはエンコーダが無い", () => {
   const message = describeHardwareEncoderFailure({ adapters: SINGLE, renderer: RENDERER, gpuPreference: { reason: "unset", applied: true }, cause: firstLine(RUN_ERROR) });
   assertOneLine(message);
-  assert.equal(message, `この GPU（Intel(R) Iris(R) Xe Graphics）にはハードウェア H.264 エンコーダがありません。--engine osr で再実行してください（原因: ${CAUSE}）`);
+  assert.equal(message, `This GPU (Intel(R) Iris(R) Xe Graphics) has no hardware H.264 encoder. Rerun with --engine osr (cause: ${CAUSE})`);
   // 他 OS（platform skip）でも同じ文面。active_device が無ければ renderer 文字列
   const noDeviceString = describeHardwareEncoderFailure({ adapters: { ...SINGLE, active_device: null }, renderer: RENDERER, gpuPreference: { reason: "platform" }, cause: CAUSE });
-  assert.match(noDeviceString, /^この GPU（ANGLE \(Intel, /u);
+  assert.match(noDeviceString, /^This GPU \(ANGLE \(Intel, /u);
 });
 
 test("f. devices が null: renderer 文字列だけで e 相当 + GPU 情報未取得の注記", () => {
   const message = describeHardwareEncoderFailure({ adapters: null, renderer: RENDERER, gpuPreference: { reason: "unset", applied: true }, cause: firstLine(RUN_ERROR) });
   assertOneLine(message);
-  assert.equal(message, `この GPU（${RENDERER.renderer}）にはハードウェア H.264 エンコーダがありません。--engine osr で再実行してください（GPU 情報は取得できませんでした）（原因: ${CAUSE}）`);
+  assert.equal(message, `This GPU (${RENDERER.renderer}) has no hardware H.264 encoder. Rerun with --engine osr (GPU info was not available) (cause: ${CAUSE})`);
   // renderer も無いときは「不明な GPU」。原因が無ければ末尾の括弧も付けない
-  assert.equal(describeHardwareEncoderFailure({}), "この GPU（不明な GPU）にはハードウェア H.264 エンコーダがありません。--engine osr で再実行してください（GPU 情報は取得できませんでした）");
+  assert.equal(describeHardwareEncoderFailure({}), "This GPU (Unknown GPU) has no hardware H.264 encoder. Rerun with --engine osr (GPU info was not available)");
 });
 
 test("判定表に無い理由（already-high-performance 等）で iGPU のままなら設定アプリを案内する", () => {
@@ -94,7 +94,7 @@ test("判定表に無い理由（already-high-performance 等）で iGPU のま�
     gpuPreference: { applied: false, reason: "already-high-performance", executable: EXE },
   });
   assert.doesNotMatch(message, /[\r\n]/u);
-  assert.equal(message, `ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（Intel(R) UHD Graphics）で動作しています。自動切り替えは行われませんでした（already-high-performance）。Windows の「グラフィックスの設定」でこの実行ファイル（${EXE}）を高パフォーマンスにしてください（原因: boom）`);
+  assert.equal(message, `The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (Intel(R) UHD Graphics). AKARI did not switch automatically (already-high-performance). Set this executable (${EXE}) to high performance in Windows Graphics settings (cause: boom)`);
 });
 
 test("renderer 側の診断は error のプロパティ → message 末尾の marker の順で拾い、記録からは marker を外す", () => {

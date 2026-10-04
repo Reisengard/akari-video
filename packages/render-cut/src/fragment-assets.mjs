@@ -59,7 +59,7 @@ export function describeFragmentAssetHint({ projectRoot, htmlPath, raw, path }) 
     if (!within(target) || !isFile(target)) continue;
     const local = relative(root, target).replaceAll("\\", "/");
     const correction = relative(resolve(root, dirname(htmlPath)), target).replaceAll("\\", "/");
-    return `断片ファイル基準では \`${path}\` を指しています。project の \`${local}\` を指すなら \`${correction}\` に直してください`;
+    return `Relative to the fragment file, this points at \`${path}\`. To point at the project's \`${local}\`, change it to \`${correction}\``;
   }
   return "";
 }
@@ -71,7 +71,7 @@ export function embedFragmentAssets(html, { projectRoot, htmlPath, overlayId }) 
   // Apply edits from the end so every offset still refers to the original HTML.
   for (const reference of references.reverse()) {
     const { raw, path, role, start, end } = reference;
-    const context = `overlay:${overlayId} fragment ${htmlPath} の参照 "${raw}"`;
+    const context = `overlay:${overlayId} fragment ${htmlPath} reference "${raw}"`;
     let replacement = replacements.get(path);
     if (replacement === undefined) {
       let absolute;
@@ -87,13 +87,13 @@ export function embedFragmentAssets(html, { projectRoot, htmlPath, overlayId }) 
       if (role === "video" || role === "audio") {
         const local = relative(realpathSync(resolve(projectRoot)), absolute).replaceAll("\\", "/");
         if (local === ".." || local.startsWith("../") || isAbsolute(local)) {
-          throw new RenderInputError(`${context}: 動画・音声はプロジェクト内に置く`);
+          throw new RenderInputError(`${context}: keep video and audio inside the project`);
         }
         replacement = `/media/${local.split("/").map(encodeURIComponent).join("/")}`;
       } else {
         const size = statSync(absolute).size;
         if (size > MAX_EMBED_BYTES) {
-          throw new RenderInputError(`${context}: ${(size / 1024 / 1024).toFixed(6)} MiB exceeds 16 MiB. 縮小するか video として扱う`);
+          throw new RenderInputError(`${context}: ${(size / 1024 / 1024).toFixed(6)} MiB exceeds 16 MiB. Scale it down or treat it as video`);
         }
         replacement = `data:${assetType(path)[1]};base64,${readFileSync(absolute).toString("base64")}`;
       }

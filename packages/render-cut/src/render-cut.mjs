@@ -100,7 +100,7 @@ export async function runGpuWithRuntimeFallback({ engineRequested, runGpu, runOs
     if (isVgpuFailure(error)) throw error;
     const reason = gpuRuntimeFallbackReason(error, FALLBACK_REASONS);
     if (engineRequested === "gpu" && reason === "hevc-unsupported") {
-      throw new RefusalError("この GPU の WebCodecs は HEVC 圧縮に対応していません。--engine osr を使用してください");
+      throw new RefusalError("This GPU WebCodecs encoder does not support HEVC. Use --engine osr");
     }
     if (engineRequested !== "auto" || reason === null) throw error;
     return {
@@ -164,7 +164,7 @@ export function formatWarningLines(warnings, limit = 5) {
   return [...groups.values()].flatMap((group) => [
     ...group.slice(0, limit).map((warning) => `render-cut warning: ${warning}`),
     ...(group.length > limit
-      ? [`render-cut warning: 他 ${group.length - limit} 件（同種）`]
+      ? [`render-cut warning: ${group.length - limit} more of the same kind`]
       : []),
   ]);
 }
@@ -259,7 +259,7 @@ export async function renderProject(input, options = {}, io = console) {
     && gpuEligibility?.eligible === false
     && gpuEligibility?.summary?.unsupported === 0;
   if (gpuForceBypassed) {
-    io.error(`[force-gpu] 適格性を迂回しました（検証用・納品不可）: ${formatGpuEligibilityFailures(gpuEligibility)}`);
+    io.error(`[force-gpu] eligibility was bypassed (verification only, not for delivery): ${formatGpuEligibilityFailures(gpuEligibility)}`);
   }
   resolvedEngine = container.ext === "mp4"
     ? resolveEngineChoice(engineRequested, process.platform, gpuEligibility)
@@ -1063,7 +1063,7 @@ export async function loadCaptions(projectRoot, edit) {
     throw new ExecutionError(error instanceof Error ? error.message : String(error));
   }
   if (plan.layout && plan.layout.word_book_fallbacks.length > 0) {
-    console.error(`単語帳: ${plan.layout.word_book_fallbacks.length} 行で行分割保護を外しました`);
+    console.error(`word book: dropped line-break protection on ${plan.layout.word_book_fallbacks.length} line(s)`);
   }
   return {
     overlays: plan.overlays,

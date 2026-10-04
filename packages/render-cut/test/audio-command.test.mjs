@@ -81,7 +81,7 @@ test('unknown ffmpeg version keeps the inline graph and still checks length', ()
   const execution=prepareAudioMixExecution(plan,{ffmpegVersion:null,limit:1000});
   assert.equal(execution.filterGraph,null);
   assert.deepEqual(execution.args,plan.args);
-  assert.throws(()=>prepareAudioMixExecution(plan,{ffmpegVersion:null,limit:10}),/上限 10 文字/u);
+  assert.throws(()=>prepareAudioMixExecution(plan,{ffmpegVersion:null,limit:10}),/over the 10 character limit/u);
 });
 
 test('relative media paths are used only when shorter and protected from leading dash', () => {
@@ -97,12 +97,12 @@ test('relative media paths are used only when shorter and protected from leading
 
 test('oversize audio command explains item count, size, limit and stem workaround', () => {
   const plan = { command:'ffmpeg', args:['-i','long-input.wav','-filter_complex','anull','out.mp4'] };
-  assert.throws(()=>prepareAudioMixExecution(plan,{ffmpegVersion:'ffmpeg version 8.1.1',graphPath:'graph.txt',audioItemCount:136,limit:20}),/音声アイテム 136 個.*上限 20 文字.*ステム/u);
+  assert.throws(()=>prepareAudioMixExecution(plan,{ffmpegVersion:'ffmpeg version 8.1.1',graphPath:'graph.txt',audioItemCount:136,limit:20}),/136 audio items.*over the 20 character limit.*stem/u);
 });
 
 test('oversize audio command is refused before launch even without a master', async () => {
   const plan={operation:'ffmpeg',command:'ffmpeg',output:join(tmpdir(),'out.wav'),args:['-filter_complex','a'.repeat(132000),'out.wav']};
-  await assert.rejects(executeAudioPlan(plan,null,{projectRoot:tmpdir(),temporaryDirectory:tmpdir(),audioItemCount:136}),error=>error instanceof RefusalError && /音声アイテム 136 個.*ステム/u.test(error.message));
+  await assert.rejects(executeAudioPlan(plan,null,{projectRoot:tmpdir(),temporaryDirectory:tmpdir(),audioItemCount:136}),error=>error instanceof RefusalError && /136 audio items.*stem/u.test(error.message));
 });
 
 test('only probed SFX up to 30 seconds can share an input', () => {

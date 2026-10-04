@@ -8,30 +8,30 @@ export function collectBaseDropped(model) {
   if (model.bgm?.ducking) {
     push(
       "audio.bgm.ducking",
-      "サイドチェーンダッキングはレンダ時処理で交換形式に対応概念がない",
-      "書き出し先で BGM トラックへ手動でダッキング（Premiere: Essential Sound / Resolve: Fairlight）を設定する",
+      "sidechain ducking runs at render time and has no exchange-format equivalent",
+      "Set ducking on the BGM track by hand in the destination (Premiere: Essential Sound / Resolve: Fairlight)",
     );
   }
   if (model.master) {
     push(
       "audio.master",
-      "loudnorm / denoise はレンダ時処理で交換形式に移らない",
-      "書き出し先のラウドネス正規化（-14 LUFS 目安）を使う",
+      "loudnorm / denoise run at render time and do not transfer to an exchange format",
+      "Use the destination loudness normalization (about -14 LUFS)",
     );
   }
   if (model.output?.look?.lut) {
     push(
       "output.look",
-      "LUT 適用は交換形式で相互運用できる表現がない",
-      `presets/luts の .cube を書き出し先で手動適用する（lut: ${model.output.look.lut}）`,
+      "LUT application has no interop form in an exchange format",
+      `Apply the .cube from presets/luts by hand in the destination (lut: ${model.output.look.lut})`,
     );
   }
   for (const source of model.sources) {
     if (source.chroma_key) {
       push(
         `sources[${source.id}].chroma_key`,
-        "クロマキーのパラメータ（similarity/blend）は ffmpeg 語彙で NLE と互換がない",
-        "書き出し先のキーヤーを手動設定するか、アルファ付きに焼いてから読み込む",
+        "chroma-key parameters (similarity/blend) use ffmpeg vocabulary and are not compatible with an NLE",
+        "Set the destination keyer by hand, or bake the alpha and then import",
       );
     }
   }
@@ -39,16 +39,16 @@ export function collectBaseDropped(model) {
     if (layer.chroma_key) {
       push(
         `items[${layer.id}].chroma_key`,
-        "レイヤーのクロマキーは交換形式に移らない",
-        "書き出し先のキーヤーを手動設定する",
+        "a layer chroma key does not transfer to an exchange format",
+        "Set the destination keyer by hand",
       );
     }
   }
   if (model.direction) {
     push(
       "direction",
-      "演出宣言（preset/intensity）は AKARI 固有の意味論で交換形式に対応概念がない",
-      "レンダ済み出力を参照するか、書き出し先で演出を再現する",
+      "effect declarations (preset/intensity) are AKARI-specific and have no exchange-format equivalent",
+      "Refer to a rendered output, or rebuild the effect in the destination",
     );
   }
   return dropped;

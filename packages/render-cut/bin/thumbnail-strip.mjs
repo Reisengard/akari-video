@@ -31,7 +31,7 @@ export async function runCli(args, io = console) {
     if (options.json) {
       io.log(JSON.stringify(result));
     } else {
-      io.log(`サムネイル ${frames.filter((frame) => frame.path !== null).length}/${frames.length} 枚を生成しました`);
+      io.log(`wrote ${frames.filter((frame) => frame.path !== null).length}/${frames.length} thumbnails`);
     }
     return 0;
   } catch (error) {
@@ -48,7 +48,7 @@ function parseArguments(args) {
       options.projectRoot = argument;
     } else if (argument === "--out" || argument === "--count" || argument === "--width") {
       const value = args[index + 1];
-      if (!value || value.startsWith("--")) throw new Error(`${argument} に値を指定してください`);
+      if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
       if (argument === "--out") options.out = value;
       if (argument === "--count") options.count = Number(value);
       if (argument === "--width") options.width = Number(value);
@@ -56,14 +56,14 @@ function parseArguments(args) {
     } else if (argument === "--json") {
       options.json = true;
     } else {
-      throw new Error(`不明な引数です: ${argument}`);
+      throw new Error(`unknown argument: ${argument}`);
     }
   }
   if (!options.projectRoot || !options.out) {
-    throw new Error("使い方: thumbnail-strip <projectRoot> --out <dir> [--count 12] [--width 160] --json");
+    throw new Error("Usage: thumbnail-strip <projectRoot> --out <dir> [--count 12] [--width 160] --json");
   }
-  if (!Number.isInteger(options.count) || options.count <= 0) throw new Error("--count は正の整数で指定してください");
-  if (!Number.isInteger(options.width) || options.width <= 0) throw new Error("--width は正の整数で指定してください");
+  if (!Number.isInteger(options.count) || options.count <= 0) throw new Error("--count must be a positive integer");
+  if (!Number.isInteger(options.width) || options.width <= 0) throw new Error("--width must be a positive integer");
   return options;
 }
 

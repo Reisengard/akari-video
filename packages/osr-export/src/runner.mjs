@@ -94,7 +94,7 @@ export async function resolveElectronLauncher({
     reason += "; the installed desktop app is skipped because its --render entry crashes (osr contract §11.5)";
   }
   if (skippedInstalledDesktopForDevLayout) {
-    reason += `; 開発リポジトリ配置のためインストール済みアプリは候補から外しています（${EXPORT_ALLOW_DESKTOP_ENV}=1 で許可、または AKARI_OSR_ELECTRON=<path> を指定）`;
+    reason += `; installed app omitted because this is a development checkout (${EXPORT_ALLOW_DESKTOP_ENV}=1 allows it, or set AKARI_OSR_ELECTRON=<path>)`;
   }
   return {
     tier: 3, executable: null,
@@ -154,7 +154,7 @@ export async function launchElectronExport(launcher, options, {
       ? (await readdir(options.out).catch(() => [])).length === 0
       : output.size === 0);
     if (outputMissing) {
-      const error = new Error(`osr-export error: OSR Electron は exit 0 で終了しましたが出力がありません（PROGRESS 行 ${progressLines}）。起動中の AKARI Video デスクトップアプリの単一インスタンスロックに弾かれた可能性があります（--user-data-dir の伝播を確認）: ${options.out}`);
+      const error = new Error(`osr-export error: OSR Electron exited 0 but wrote no output (PROGRESS lines ${progressLines}). A running AKARI Video desktop app may have rejected this process with its single-instance lock (check that --user-data-dir was passed): ${options.out}`);
       error.gpuPreference = gpuPreference;
       throw error;
     }
@@ -163,7 +163,7 @@ export async function launchElectronExport(launcher, options, {
     if (temporaryUserData) {
       await rm(temporaryUserData, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
         .catch((error) => {
-          const line = `osr-export warning: Electron の一時 userData を削除できませんでした: ${temporaryUserData}: ${error?.message ?? error}\n`;
+          const line = `osr-export warning: could not delete the temporary Electron userData: ${temporaryUserData}: ${error?.message ?? error}\n`;
           try {
             if (stderr?.write) stderr.write(line);
             else if (options.onStderr) options.onStderr(line);

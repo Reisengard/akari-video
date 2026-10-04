@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isMainModule } from "./is-main-module.mjs";
 
-const USAGE = "使い方: akari-apply-textstyle <project-dir> <preset-id> [--caption <index|id>...] [--dry-run]";
+const USAGE = "Usage: akari-apply-textstyle <project-dir> <preset-id> [--caption <index|id>...] [--dry-run]";
 const DEEP_MERGE_KEYS = ["stroke", "background", "shadow", "glow", "position", "animation"];
 
 export function resolvePresetStyleFields(preset) {
@@ -58,7 +58,7 @@ export async function runCli(args, io = console) {
       for (const index of targets) {
         const caption = captionsRoot.captionsArray[index];
         if (caption === null || typeof caption !== "object" || Array.isArray(caption)) {
-          throw new Error(`captions[${index}] はオブジェクトである必要があります。`);
+          throw new Error(`captions[${index}] must be an object.`);
         }
         const before = caption.text_style ?? null;
         const after = mergeTextStyle(caption.text_style, presetFields);
@@ -92,14 +92,14 @@ function parseArguments(args) {
     if (argument === "--caption") {
       const value = args[index + 1];
       if (!value || value.startsWith("--")) {
-        throw new Error(`--caption に index または id を指定してください。\n${USAGE}`);
+        throw new Error(`--caption requires an index or an id.\n${USAGE}`);
       }
       options.captionSelectors.push(value);
       index += 1;
     } else if (argument === "--dry-run") {
       options.dryRun = true;
     } else if (argument.startsWith("--")) {
-      throw new Error(`不明なフラグです: ${argument}\n${USAGE}`);
+      throw new Error(`unknown flag: ${argument}\n${USAGE}`);
     } else {
       positionals.push(argument);
     }
@@ -121,7 +121,7 @@ async function loadPreset(repoRoot, presetId) {
   } catch {
     const candidates = await loadPresetCandidates(repoRoot);
     throw new Error(
-      `textstyle preset を読み込めません: ${presetId}\n候補:\n`
+      `could not load textstyle preset: ${presetId}\ncandidates:\n`
       + candidates.map(({ id, name }) => `  ${id} — ${name}`).join("\n"),
     );
   }
@@ -138,7 +138,7 @@ async function loadPresetCandidates(repoRoot) {
       .filter((entry) => typeof entry.id === "string" && typeof entry.name === "string")
       .map(({ id, name }) => ({ id, name }));
   } catch (error) {
-    throw new Error(`${indexPath} から preset 候補を読み取れません: ${error.message}`);
+    throw new Error(`could not read preset candidates from ${indexPath}: ${error.message}`);
   }
 }
 
@@ -148,16 +148,16 @@ async function loadCaptions(captionsPath) {
     source = await readFile(captionsPath, "utf8");
   } catch (error) {
     if (error?.code === "ENOENT") {
-      throw new Error(`captions.json が見つかりません: ${captionsPath}`);
+      throw new Error(`captions.json was not found: ${captionsPath}`);
     }
-    throw new Error(`captions.json を読み取れません: ${captionsPath}（${error.message}）`);
+    throw new Error(`could not read captions.json: ${captionsPath} (${error.message})`);
   }
 
   let root;
   try {
     root = JSON.parse(source);
   } catch (error) {
-    throw new Error(`captions.json を JSON として読み取れません: ${captionsPath}（${error.message}）`);
+    throw new Error(`captions.json is not valid JSON: ${captionsPath} (${error.message})`);
   }
 
   if (Array.isArray(root)) {
@@ -170,7 +170,7 @@ async function loadCaptions(captionsPath) {
   }
   if (root !== null && typeof root === "object" && !Array.isArray(root)) {
     if (!Array.isArray(root.captions)) {
-      throw new Error(`captions.json の captions は配列である必要があります: ${captionsPath}`);
+      throw new Error(`captions.json captions must be an array: ${captionsPath}`);
     }
     return {
       root,
@@ -179,20 +179,20 @@ async function loadCaptions(captionsPath) {
       isArrayRoot: false,
     };
   }
-  throw new Error(`captions.json のルートは配列またはオブジェクトである必要があります: ${captionsPath}`);
+  throw new Error(`captions.json root must be an array or an object: ${captionsPath}`);
 }
 
 function resolveCaptionTarget(captions, selector) {
   if (/^\d+$/u.test(selector)) {
     const index = Number(selector);
     if (!Number.isSafeInteger(index) || index >= captions.length) {
-      throw new Error(`caption index が範囲外です: ${selector}（0-${Math.max(captions.length - 1, 0)}）`);
+      throw new Error(`caption index is out of range: ${selector} (0-${Math.max(captions.length - 1, 0)})`);
     }
     return index;
   }
   const index = captions.findIndex((caption) => caption?.id === selector);
   if (index === -1) {
-    throw new Error(`caption id が見つかりません: ${selector}`);
+    throw new Error(`caption id was not found: ${selector}`);
   }
   return index;
 }

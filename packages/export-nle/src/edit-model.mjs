@@ -108,8 +108,8 @@ export function normalizeEdit(edit, projectRoot) {
             if (baked) clips.push(bakedClip(item, range, z, baked));
             else unsupportedItems.push({
               field,
-              reason: "html は NLE が実行できず、v2 の html source には焼き済み実体 baked がないため書き出さない",
-              hint: "AKARI でアルファ付き動画へ焼き、baked を持つ telop として配置してから再書き出しする",
+              reason: "html cannot run in an NLE, and a v2 html source has no baked picture, so it is not exported",
+              hint: "Bake an alpha video in AKARI, place it as a telop that has baked, then export again",
             });
             break;
           }
@@ -118,20 +118,20 @@ export function normalizeEdit(edit, projectRoot) {
             if (baked) clips.push(bakedClip(item, range, z, baked));
             else unsupportedItems.push({
               field,
-              reason: "telop に焼き済み実体 baked がないため NLE クリップへ変換できない",
-              hint: "AKARI でアルファ付き動画へ焼いて source.baked を設定してから再書き出しする",
+              reason: "telop has no baked picture, so it cannot be converted to an NLE clip",
+              hint: "Bake an alpha video in AKARI, set source.baked, then export again",
             });
             break;
           }
           case "filter":
             unsupportedItems.push({
               field,
-              reason: "AKARI の filter source は交換形式に相互運用できるクリップ表現がない",
-              hint: "書き出し先でフィルターを再設定するか、映像へ焼いてから書き出す",
+              reason: "an AKARI filter source has no clip form that interops with an exchange format",
+              hint: "Set the filter again in the destination, or bake it into the picture and then export",
             });
             break;
           default:
-            unsupportedItems.push({ field, reason: "未知の source.kind のため書き出さない", hint: "edit-lint で入力を確認する" });
+            unsupportedItems.push({ field, reason: "not exported because source.kind is unknown", hint: "Check the input with edit-lint" });
         }
       }
       return { id: track.id, z, clips };
@@ -170,8 +170,8 @@ function declaredAudioItems(edit) {
     if (!isRecord(track) || track.lane !== "audio" || !Array.isArray(track.items)) return [];
     return track.items.filter(isRecord).map((item, index) => ({
       field: `tracks[${typeof track.id === "string" ? track.id : "?"}].items[${typeof item.id === "string" ? item.id : index}]`,
-      reason: "音声はまだ tracks[] の正式な書き出し入力ではないため、この宣言は使用しない",
-      hint: "現行契約の edit.audio.narration / sfx / bgm へ音声を宣言する",
+      reason: "audio is not yet an official export input on tracks[], so this declaration is unused",
+      hint: "Declare the audio on edit.audio.narration, sfx, or bgm in the current contract",
     }));
   });
 }

@@ -87,15 +87,15 @@ test("stamp failure includes measurements, cause, overlays, budget and retry adv
     overlays: [{ id: "warm", blend: "normal", cssFeatures: ["mix-blend-mode: soft-light"] }],
   };
   const message = stampVerifyFailureMessage(base);
-  assert.match(message, /^frame 295 stamp verify failed after 12 retries over 3012 ms（GPU: Intel\(R\) UHD Graphics）/);
-  for (const part of ["expected stamp 295", "x=0:294", "1 コマ前の絵のまま", "active overlays: warm（CSS: mix-blend-mode: soft-light）", "予算 3000 ms / 32 回"]) {
+  assert.match(message, /^frame 295 stamp verify failed after 12 retries over 3012 ms \(GPU: Intel\(R\) UHD Graphics\)/);
+  for (const part of ["expected stamp 295", "x=0:294", "1 frame(s) behind", "active overlays: warm (CSS: mix-blend-mode: soft-light)", "budget 3000 ms / 32 tries"]) {
     assert.ok(message.includes(part), part);
   }
-  assert.ok(message.endsWith("同じ内容で再実行してください"));
-  assert.match(stampVerifyFailureMessage({ ...base, overlays: null }), /active overlays: 取得できませんでした/);
-  assert.match(stampVerifyFailureMessage({ ...base, overlays: [] }), /active overlays: なし/);
+  assert.ok(message.endsWith("Run the same export again"));
+  assert.match(stampVerifyFailureMessage({ ...base, overlays: null }), /active overlays: unavailable/);
+  assert.match(stampVerifyFailureMessage({ ...base, overlays: [] }), /active overlays: none/);
   const color = stampVerifyFailureMessage({ ...base, samples: [sample(294, false)] });
-  assert.match(color, /色不一致 BGRA/);
-  assert.match(color, /stamp 行の色が崩れている/);
-  assert.match(stampVerifyFailureMessage({ ...base, overlays: Array.from({ length: 9 }, (_, id) => ({ id: String(id) })) }), /ほか 1 件/);
+  assert.match(color, /color mismatch BGRA/);
+  assert.match(color, /stamp row color is broken/);
+  assert.match(stampVerifyFailureMessage({ ...base, overlays: Array.from({ length: 9 }, (_, id) => ({ id: String(id) })) }), /1 more/);
 });

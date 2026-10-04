@@ -38,17 +38,17 @@ test("GPU CLI --help bypasses required arguments", () => {
 
 test("GPU CLI rejects unknown arguments with exit-code-2 errors", () => {
   assert.throws(() => parse([...REQUIRED_ARGUMENTS, "--unknown"]),
-    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /不明な引数/u.test(error.message));
+    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /unknown argument/u.test(error.message));
 });
 
 test("GPU CLI rejects missing required arguments with exit-code-2 errors", () => {
   assert.throws(() => parse([]),
-    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /必須/u.test(error.message));
+    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /are required/u.test(error.message));
 });
 
 test("GPU CLI rejects a flag without its value with exit-code-2 errors", () => {
   assert.throws(() => parse(["project", "--out"]),
-    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /値を指定/u.test(error.message));
+    (error) => error instanceof CliArgumentError && error.exitCode === 2 && /requires a value/u.test(error.message));
 });
 
 test("GPU CLI help writes usage to stdout and exits 0 without building", async () => {
@@ -76,7 +76,7 @@ test("GPU CLI without --audio announces video-only output and exports with audio
   assert.equal(exitCode, 0);
   assert.equal(exported.audioSourcePath, null);
   assert.deepEqual(errors, [
-    "akari-gpu-export: --audio 未指定のため映像のみで書き出します（音声トラックなし）。音声を付けるには --audio <path> を指定してください",
+    "akari-gpu-export: --audio was omitted, so this exports video only (no audio track). Pass --audio <path> to include audio",
   ]);
 });
 
@@ -99,7 +99,7 @@ test("GPU CLI refuses an existing --audio source without an audio stream before 
   assert.equal(built, false);
   assert.equal(exported, false);
   assert.deepEqual(errors, [
-    "akari-gpu-export: --audio <path> に音声ストリームがありません。無音トラックは作らず中止します",
+    "akari-gpu-export: --audio <path> has no audio stream. Stopping without a silent track",
   ]);
 });
 
@@ -136,8 +136,8 @@ test("GPU CLI reports argument failures with usage and exits 2", async () => {
   const exitCode = await runCli([], { io: { log() {}, error(message) { errors.push(message); } } });
   assert.equal(exitCode, 2);
   assert.equal(errors.length, 1);
-  assert.match(errors[0], /project-dir、--out、--duration は必須です/u);
-  assert.match(errors[0], /使い方: akari-gpu-export/u);
+  assert.match(errors[0], /project-dir, --out, and --duration are required/u);
+  assert.match(errors[0], /Usage: akari-gpu-export/u);
 });
 
 test("GPU CLI reserves exit 1 for export failures", async () => {

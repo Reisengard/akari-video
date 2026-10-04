@@ -46,9 +46,9 @@ test("warm-up: 予算に達したら satisfied false で返し、失敗文は回
   assert.deepEqual(h.counts(), { captures: 20, settles: 19, time: 5000 });
   assert.equal(
     warmUpFailureMessage({ ...record, activeDevice: "NVIDIA GeForce RTX 5060 Laptop GPU" }),
-    "offscreen paint warm-up: 20 empty paints over 5000 ms（GPU: NVIDIA GeForce RTX 5060 Laptop GPU）",
+    "offscreen paint warm-up: 20 empty paints over 5000 ms (GPU: NVIDIA GeForce RTX 5060 Laptop GPU)",
   );
-  assert.equal(warmUpFailureMessage(record), "offscreen paint warm-up: 20 empty paints over 5000 ms（GPU: unknown）");
+  assert.equal(warmUpFailureMessage(record), "offscreen paint warm-up: 20 empty paints over 5000 ms (GPU: unknown)");
 });
 
 test("warm-up: settle の所要も予算に含める（capture 0 ms・settle 1000 ms なら 6 回目の空で 5000 ms）", async () => {

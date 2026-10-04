@@ -82,15 +82,15 @@ export function buildXmeml(model, { durations, frameDur, totalDuration }) {
         if (boundary.type !== "dissolve") {
           dropped.push({
             field: `tracks[${track.id}].items[${clip.id}].source.transition_out.type`,
-            reason: `${boundary.type} は Cross Dissolve で近似する`,
-            hint: "書き出し先で Dip to Black/White へ差し替える",
+            reason: `${boundary.type} is approximated with Cross Dissolve`,
+            hint: "Replace it with Dip to Black/White in the destination",
           });
         }
       } else if (clip.transition_out) {
         dropped.push({
           field: `tracks[${track.id}].items[${clip.id}].source.transition_out`,
-          reason: "後続クリップとの配置が transition_out の重複と一致しないため書き出さない",
-          hint: "書き出し先で手動でトランジションを追加する",
+          reason: "not exported because placement against the following clip does not match the transition_out overlap",
+          hint: "Add the transition by hand in the destination",
         });
       }
     });
@@ -142,7 +142,7 @@ export function buildXmeml(model, { durations, frameDur, totalDuration }) {
     const src = typeof beat.src === "string" ? beat.src : null;
     const mapped = mapAnchor(model, beat.t, src);
     if (mapped === null) {
-      dropped.push({ field: `beats[${beat.id}]`, reason: "アンカーがどのカットにも含まれない", hint: "カット範囲外のマーカーは書き出されない" });
+      dropped.push({ field: `beats[${beat.id}]`, reason: "the anchor is not inside any cut", hint: "markers outside the cut range are not exported" });
       continue;
     }
     markers.push(sequenceMarker(`beat:${beat.kind} (${beat.strength})`, beat.basis ?? "", mapped, null, toFrame));
@@ -151,7 +151,7 @@ export function buildXmeml(model, { durations, frameDur, totalDuration }) {
     const src = typeof word.src === "string" ? word.src : null;
     const mappedStart = mapAnchor(model, word.t_start, src);
     if (mappedStart === null) {
-      dropped.push({ field: `emphasis_words[${word.id}]`, reason: "アンカーがどのカットにも含まれない", hint: "カット範囲外のマーカーは書き出されない" });
+      dropped.push({ field: `emphasis_words[${word.id}]`, reason: "the anchor is not inside any cut", hint: "markers outside the cut range are not exported" });
       continue;
     }
     const mappedEnd = mapAnchor(model, word.t_end, src);
@@ -200,11 +200,11 @@ function cutClipItem(model, cut, placement, visibleDuration, context) {
   if (cut.transform) filters.push(basicMotionFilter(cut.transform, model.output));
   if (typeof cut.opacity === "number" && cut.opacity < 1) filters.push(opacityFilter(cut.opacity));
   if (typeof cut.blend === "string" && cut.blend !== "normal") {
-    warnings.push(`items[${cut.id}] blend=${cut.blend} は xmeml に相互運用表現がなく落ちる（合成モードは書き出し先で再設定）`);
+    warnings.push(`items[${cut.id}] blend=${cut.blend} has no interop form in xmeml and is dropped (set the blend mode in the destination)`);
   }
   if (speed !== 1) {
     // ⚠ 未検証: FCP7 流儀の timeremap 定速。Premiere は speed パラメータ（%）を読む
-    warnings.push(`items[${cut.id}] speed=${speed} を timeremap 定速で書き出す（未検証）`);
+    warnings.push(`items[${cut.id}] speed=${speed} is written as a constant timeremap (unverified)`);
     filters.push(element("filter", {}, [element("effect", {}, [
       element("name", {}, [], "Time Remap"),
       element("effectid", {}, [], "timeremap"),
@@ -247,7 +247,7 @@ function layerClipItem(model, layer, context) {
   if (layer.transform) filters.push(basicMotionFilter(layer.transform, model.output));
   if (typeof layer.opacity === "number" && layer.opacity < 1) filters.push(opacityFilter(layer.opacity));
   if (typeof layer.blend === "string" && layer.blend !== "normal") {
-    warnings.push(`items[${layer.id}] blend=${layer.blend} は xmeml に相互運用表現がなく落ちる（合成モードは書き出し先で再設定）`);
+    warnings.push(`items[${layer.id}] blend=${layer.blend} has no interop form in xmeml and is dropped (set the blend mode in the destination)`);
   }
   return element("clipitem", { id: clipId() }, [
     element("name", {}, [], layer.id),
@@ -315,7 +315,7 @@ function bgmClipItems(model, context) {
       first = false;
     }
   } else {
-    warnings.push(`bgm の実尺が不明（ffprobe 不使用/失敗）— ループ展開せず全体尺 1 クリップで書き出す: ${bgm.path}`);
+    warnings.push(`bgm duration is unknown (ffprobe skipped or failed). Writing one clip for the whole timeline instead of unrolling the loop: ${bgm.path}`);
     pieces.push({ offset: 0, start: inPoint, duration: totalDuration });
   }
   return pieces.map((piece, index) => {
@@ -466,6 +466,6 @@ function mapAnchor(model, t, src) {
 }
 
 function placeholder(path, role, warnings) {
-  warnings.push(`${role} の実尺が不明（ffprobe 不使用/失敗）— ${PLACEHOLDER_AUDIO_SECONDS}s のプレースホルダ尺で書き出す: ${path}`);
+  warnings.push(`${role} duration is unknown (ffprobe skipped or failed). Writing a ${PLACEHOLDER_AUDIO_SECONDS}s placeholder: ${path}`);
   return PLACEHOLDER_AUDIO_SECONDS;
 }

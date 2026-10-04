@@ -66,7 +66,7 @@ test("runner resolves quality bitrate and keeps master fail-closed", () => {
   assert.throws(() => buildGpuElectronArguments({ tier: 2 }, {
     projectRoot: "/project", out: "/out.mp4", fps: 30, width: 320, height: 180,
     duration: 1, frames: 30, quality: "master",
-  }), /master は GPU 出口では --bitrate の明示が必要/);
+  }), /master requires an explicit --bitrate on the GPU exit/);
 });
 
 test("runner resolves HEVC bitrate and quantizer from HEVC presets", () => {

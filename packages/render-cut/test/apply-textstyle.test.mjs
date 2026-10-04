@@ -114,7 +114,7 @@ test("reports preset candidates and exits 1 for an unknown id", async () => {
   await withFixture([], async ({ projectDir }) => {
     const result = run(projectDir, "not-a-real-preset");
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /候補:/u);
+    assert.match(result.stderr, /candidates:/u);
     assert.match(result.stderr, /subtitle-news/u);
     assert.match(result.stderr, /ニュース風/u);
   });

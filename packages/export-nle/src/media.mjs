@@ -43,7 +43,7 @@ export function probeDurations(model, { ffprobePath, onWarning }) {
   for (const ref of collectMediaRefs(model)) {
     const absolute = absoluteMediaPath(model.projectRoot, ref.path);
     if (!existsSync(absolute)) {
-      onWarning?.(`メディアが見つからない: ${ref.path} — 実尺不明のまま書き出す`);
+      onWarning?.(`media not found: ${ref.path}. Exporting with unknown duration`);
       continue;
     }
     const result = spawnSync(
@@ -55,7 +55,7 @@ export function probeDurations(model, { ffprobePath, onWarning }) {
     if (result.status === 0 && Number.isFinite(parsed) && parsed > 0) {
       durations.set(ref.path, parsed);
     } else {
-      onWarning?.(`ffprobe が実尺を取得できない: ${ref.path}`);
+      onWarning?.(`ffprobe could not read the duration: ${ref.path}`);
     }
   }
   return durations;

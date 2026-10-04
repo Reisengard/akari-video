@@ -4,7 +4,7 @@
 
 export const HARDWARE_ENCODER_UNSUPPORTED_MARKER = "WebCodecs H.264 config is unsupported";
 export const GPU_DIAGNOSTICS_MARKER = "AKARI_GPU_DIAGNOSTICS:";
-const UNKNOWN_GPU = "不明な GPU";
+const UNKNOWN_GPU = "Unknown GPU";
 
 export function describeHardwareEncoderFailure({ adapters = null, renderer = null, gpuPreference = null, cause = null } = {}) {
   const rendererName = rendererString(renderer);
@@ -12,33 +12,33 @@ export function describeHardwareEncoderFailure({ adapters = null, renderer = nul
   let body;
   if (!adapters || typeof adapters !== "object") {
     // f. devices が取れなかった: renderer 文字列だけで e 相当
-    body = `この GPU（${rendererName ?? UNKNOWN_GPU}）にはハードウェア H.264 エンコーダがありません。--engine osr で再実行してください（GPU 情報は取得できませんでした）`;
+    body = `This GPU (${rendererName ?? UNKNOWN_GPU}) has no hardware H.264 encoder. Rerun with --engine osr (GPU info was not available)`;
   } else if (!adapters.hybrid) {
     // e. hybrid でない
-    body = `この GPU（${adapters.active_device ?? rendererName ?? UNKNOWN_GPU}）にはハードウェア H.264 エンコーダがありません。--engine osr で再実行してください`;
+    body = `This GPU (${adapters.active_device ?? rendererName ?? UNKNOWN_GPU}) has no hardware H.264 encoder. Rerun with --engine osr`;
   } else if (adapters.active_is_high_performance) {
     // d. dGPU に載ったのに unsupported
-    body = `高パフォーマンス GPU（${adapters.active_device ?? rendererName ?? UNKNOWN_GPU}）で動作していますがハードウェア H.264 エンコーダが応答しません。GPU ドライバの更新、または --engine osr で再実行してください`;
+    body = `The high-performance GPU (${adapters.active_device ?? rendererName ?? UNKNOWN_GPU}) is active, but its hardware H.264 encoder does not respond. Update the GPU driver, or rerun with --engine osr`;
   } else {
     const activeDevice = adapters.active_device ?? rendererName ?? UNKNOWN_GPU;
-    const prefix = `ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（${activeDevice}）で動作しています。`;
+    const prefix = `The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (${activeDevice}). `;
     if (preference.reason === "user-preference-respected") {
       // a. 利用者が省電力に固定している
-      body = `${prefix}Windows の「グラフィックスの設定」でこのアプリが省電力に固定されているため自動切り替えしませんでした。高パフォーマンスへ変更するか、AKARI_EXPORT_GPU_PREFERENCE=force（render-cut --gpu-preference force）で再実行してください`;
+      body = `${prefix}Windows Graphics settings pin this app to power saving, so AKARI did not switch automatically. Switch it to high performance, or rerun with AKARI_EXPORT_GPU_PREFERENCE=force (render-cut --gpu-preference force)`;
     } else if (preference.reason === "policy-off") {
       // b. 自動切替が off
-      body = `${prefix}高パフォーマンス GPU（${adapters.high_performance_device ?? UNKNOWN_GPU}）への自動切り替えが off です。AKARI_EXPORT_GPU_PREFERENCE=auto で再実行してください`;
+      body = `${prefix}Automatic switch to the high-performance GPU (${adapters.high_performance_device ?? UNKNOWN_GPU}) is off. Rerun with AKARI_EXPORT_GPU_PREFERENCE=auto`;
     } else if (preference.applied === true) {
       // c. 書いたのに iGPU
-      body = `${prefix}GPU 設定（${preference.executable ?? "実行ファイル"}）を書き込みましたが反映されませんでした。Windows の「グラフィックスの設定」でこの実行ファイルを高パフォーマンスにしてください`;
+      body = `${prefix}AKARI wrote the GPU setting (${preference.executable ?? "executable"}) but Windows did not apply it. Set this executable to high performance in Windows Graphics settings`;
     } else {
       // 判定表に無い理由（soft / already-high-performance / registry 不可 等）でも次の一手は同じ
-      const reason = preference.reason ? `（${preference.reason}）` : "";
-      body = `${prefix}自動切り替えは行われませんでした${reason}。Windows の「グラフィックスの設定」でこの実行ファイル${preference.executable ? `（${preference.executable}）` : ""}を高パフォーマンスにしてください`;
+      const reason = preference.reason ? ` (${preference.reason})` : "";
+      body = `${prefix}AKARI did not switch automatically${reason}. Set this executable${preference.executable ? ` (${preference.executable})` : ""} to high performance in Windows Graphics settings`;
     }
   }
   const causeLine = firstLine(cause);
-  return singleLine(causeLine ? `${body}（原因: ${causeLine}）` : body);
+  return singleLine(causeLine ? `${body} (cause: ${causeLine})` : body);
 }
 
 // run.json の error（stack 文字列）から元の英語エラー 1 行を取り出す（`Error: ` 接頭辞と診断 marker は外す）。

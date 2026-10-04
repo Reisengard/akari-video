@@ -53,7 +53,7 @@ export function prepareAudioMixExecution(audioPlan, { ffmpegVersion, graphPath, 
   }
   const length = audioCommandLength(audioPlan.command, args);
   if (length >= limit) {
-    throw new Error(`音声アイテム ${audioItemCount} 個でコマンドが ${length} 文字になり上限 ${limit} 文字を超えた。効果音をステムにまとめてください`);
+    throw new Error(`${audioItemCount} audio items made a ${length} character command, over the ${limit} character limit. Mix the sound effects down into a stem`);
   }
   return { args, filterGraph, graphFilename: filterGraph === null ? null : basename(graphPath), commandLength: length };
 }
