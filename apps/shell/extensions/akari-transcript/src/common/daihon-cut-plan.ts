@@ -20,14 +20,14 @@ export function clampRowCutRange(
         out: Math.min(row.end + 0.04, next?.start ?? Number.POSITIVE_INFINITY),
         kind: 'row',
         captionId: row.id,
-        label: '行',
+        label: 'Line',
     };
 }
 
 export function normalizeCutRanges(ranges: readonly DaihonCutRange[]): DaihonCutRange[] {
     const sorted = ranges.map(range => {
         if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) {
-            throw new Error('カット範囲が不正です。');
+            throw new Error('The cut range is invalid.');
         }
         return { ...range };
     }).sort((left, right) => left.in - right.in || left.out - right.out);

@@ -14,5 +14,5 @@ test('add, remove whole range, and extend last same-row range', () => {
 test('words and summary follow range order across rows', () => {
   const ranges = [{ row: 'a', a: 0, b: 1 }, { row: 'b', a: 0, b: 0 }];
   assert.equal(wordsOf(rows, ranges).length, 3);
-  assert.deepEqual(wordRangeSummary(rows, ranges), { rangeCount: 2, wordCount: 3, start: 0, end: 4, text: 'AB・D' });
+  assert.deepEqual(wordRangeSummary(rows, ranges), { rangeCount: 2, wordCount: 3, start: 0, end: 4, text: 'AB, D' });
 });

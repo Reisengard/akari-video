@@ -23,9 +23,9 @@ import { setDaihonHistoryService } from '../../common/captions-button';
 import { TranscribeConnectionStatus, TranscribeToolStatus } from '../../common/transcribe-steps';
 
 const DAIHON_PANEL_RANK = 190;
-export const OPEN_AKARI_CUTS: Command = { id: 'akari.cuts.open', label: 'カット候補を開く' };
-export const AKARI_TRANSCRIBE_OPEN_DIALOG: Command = { id: 'akari.transcribe.openDialog', label: '文字起こしのポップアップを開く' };
-export const AKARI_TRANSCRIBE_ENGINES: Command = { id: 'akari.transcribe.engines', label: '文字起こしエンジン一覧' };
+export const OPEN_AKARI_CUTS: Command = { id: 'akari.cuts.open', label: 'Open cut candidates' };
+export const AKARI_TRANSCRIBE_OPEN_DIALOG: Command = { id: 'akari.transcribe.openDialog', label: 'Open transcription popup' };
+export const AKARI_TRANSCRIBE_ENGINES: Command = { id: 'akari.transcribe.engines', label: 'Transcription engines' };
 
 @injectable()
 export class AkariDaihonContribution implements CommandContribution, FrontendApplicationContribution {
@@ -48,18 +48,18 @@ export class AkariDaihonContribution implements CommandContribution, FrontendApp
                     type: 'string',
                     enum: ['word', 'token'],
                     default: 'word',
-                    description: '台本で選択・操作する単位（単語または認識トークン）'
+                    description: 'What you select in the script (words or recognition tokens)'
                 },
                 'akari.daihon.showBreaks': {
                     type: 'boolean',
                     default: true,
-                    description: '台本の本文に自動・手置きの表示区切りを表示する'
+                    description: 'Show automatic and manual line breaks in the script text'
                 },
                 'akari.daihon.attachmentMode': {
                     type: 'string',
                     enum: ['all', 'text', 'none'],
                     default: 'all',
-                    description: '台本に表示する添付の種類'
+                    description: 'Attachment types shown on the script'
                 }
             }
         });

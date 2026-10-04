@@ -32,6 +32,6 @@ test('古い words は表示に使わなくてもカラオケ不整合の札を�
     };
     assert.equal(shouldUseKaraokeWords(row.text, row.words), false);
     assert.deepEqual(rowIssues(row).find(issue => issue.kind === 'karaoke-unhealthy'), {
-        kind: 'karaoke-unhealthy', label: 'カラオケ不整合'
+        kind: 'karaoke-unhealthy', label: 'Karaoke mismatch'
     });
 });

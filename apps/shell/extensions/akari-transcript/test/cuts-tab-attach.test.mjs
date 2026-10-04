@@ -100,7 +100,7 @@ function contribution(configure, daihonConfigure = async () => {}) {
 }
 
 test('root search result determines notice, and errors retain their reason', () => {
-    assert.equal(view.cutsViewNotice(false), 'edit.json のあるプロジェクトを開いてください');
+    assert.equal(view.cutsViewNotice(false), 'Open a project that has edit.json');
     assert.equal(view.cutsViewNotice(true), '');
     assert.match(view.cutsViewNotice(true, new Error('ENOENT missing.mp4')), /ENOENT missing.mp4/);
 });
@@ -151,7 +151,7 @@ test('open command attaches, activates and can reattach the cuts tab', async () 
     const { instance, cuts, attached, activated } = contribution(async () => {});
     const commands = new Map();
     instance.registerCommands({ registerCommand(command, handler) { commands.set(command.id, handler); } });
-    assert.deepEqual(OPEN_AKARI_CUTS, { id: 'akari.cuts.open', label: 'カット候補を開く' });
+    assert.deepEqual(OPEN_AKARI_CUTS, { id: 'akari.cuts.open', label: 'Open cut candidates' });
     await commands.get('akari.cuts.open').execute();
     await commands.get('akari.cuts.open').execute();
     assert.equal(attached.length, 1);
@@ -219,7 +219,7 @@ test('no workspace → empty folder → edit created → project switch follows 
     await h.change('file:///empty/edit.json');
     assert.equal(h.widget.root.toString(), 'file:///empty');
     assert.equal(h.widget.notice.textContent, '');
-    assert.equal(h.widget.list.children[0].textContent, '文字起こし後にカット候補がここに並びます');
+    assert.equal(h.widget.list.children[0].textContent, 'Cut candidates show up here after transcription');
     h.projects.set('file:///next', edit);
     await h.workspace('file:///next');
     assert.equal(h.widget.root.toString(), 'file:///next');
@@ -362,7 +362,7 @@ for (const failed of ['daihon', 'cuts']) {
             await tick();
             assert.deepEqual(calls, ['daihon', 'cuts']);
             if (failed === 'daihon') {
-                assert.equal(h.daihon.footer.textContent, '台本を読み取れません: daihon unreadable');
+                assert.equal(h.daihon.footer.textContent, 'Could not read the script: daihon unreadable');
             } else {
                 assert.match(h.cuts.notice.textContent, /cuts unreadable/);
             }

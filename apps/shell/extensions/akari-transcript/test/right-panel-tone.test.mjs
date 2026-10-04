@@ -43,7 +43,7 @@ test('カットと台本の面・文字・枠は共通テーマの色を使う',
 test('カットのフッターボタンは生成後にテーマ色で上書きし、順序と disabled を維持する', () => {
     const footer = cuts.slice(cuts.indexOf("this.foot.replaceChildren(transcribeElement('p'"));
     const buttons = [...footer.matchAll(/const (\w+) = transcribeButton\('([^']+)'/g)].map(match => match.slice(1));
-    assert.deepEqual(buttons, [['previewButton', 'プレビューで見る'], ['timelineButton', 'タイムラインへ']]);
+    assert.deepEqual(buttons, [['previewButton', 'View in Preview'], ['timelineButton', 'To timeline']]);
     assert.equal([...footer.matchAll(/\}, !first\);/g)].length, 2);
     const overrideStart = footer.indexOf('for (const button of [previewButton, timelineButton]) {');
     const append = footer.indexOf('this.foot.append(previewButton, timelineButton);');
@@ -64,7 +64,7 @@ test('台本の内側見出しだけを隠し、ヘッダーの寸法と他の�
     assert.doesNotMatch(rule('.akari-daihon-head'), /display:none|height:0/);
     assert.match(rule('.akari-daihon-head'), /gap:7px; padding:8px 11px/);
     assert.match(daihon, /header\.append\(title, this\.count, spacer, this\.captionsButton, this\.placeTextButton, this\.retimeButton, this\.historyButton, this\.displayButton, this\.tplButton, this\.qcButton, this\.silenceButton, this\.cutsButton\)/);
-    assert.match(daihon, /this\.title\.label = '台本'/);
+    assert.match(daihon, /this\.title\.label = 'Script'/);
 });
 
 test('ダーク・ライトの主要テキストは共通パレットの各面で WCAG AA を満たす', t => {

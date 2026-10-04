@@ -24,15 +24,15 @@ test('コマンドのエンジン札はダイアログと同じ順・文言・�
   assert.equal(dialogExports.transcribeEngineList, transcribeEngineList);
   const list = transcribeEngineList(dialogCards, tools, connections, 'whisper-cpp');
   assert.deepEqual(list.map(row => row.id), ['auto', ...dialogCards.map(card => card.id)]);
-  assert.deepEqual(list[0], { id: 'auto', label: 'おまかせ（ローカル優先）', place: 'ローカル優先',
-    price: '無料', hourlyUsd: 0, availability: { state: 'available', label: '使える' } });
+  assert.deepEqual(list[0], { id: 'auto', label: 'Automatic (prefer local)', place: 'Prefer local',
+    price: 'Free', hourlyUsd: 0, availability: { state: 'available', label: 'Available' } });
   for (const card of dialogCards) {
     const row = list.find(item => item.id === card.id);
     const availability = transcribeEngineAvailability(card.id, tools, connections);
     assert.equal(row.label, card.label);
     assert.equal(row.place, card.place);
     assert.equal(row.hourlyUsd, card.hourlyUsd);
-    assert.equal(row.price, card.hourlyUsd ? `$${card.hourlyUsd.toFixed(2)} / 時` : '無料');
+    assert.equal(row.price, card.hourlyUsd ? `$${card.hourlyUsd.toFixed(2)} / hour` : 'Free');
     assert.equal(row.availability.label, availability.label);
     assert.equal(row.availability.state, availability.state === 'available' ? 'available'
       : availability.state === 'needs' ? 'needs' : 'unavailable');

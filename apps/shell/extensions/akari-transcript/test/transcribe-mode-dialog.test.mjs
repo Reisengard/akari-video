@@ -148,7 +148,7 @@ const switchLink = dialog => dialog.node.querySelectorAll('button').find(node =>
 const badges = dialog => dialog.node.querySelectorAll('section[data-backend]')
     .flatMap(card => card.children.filter(node => node.dataset?.akariEngineAvailability));
 function simpleDOM(dialog) {
-    assert.equal(dialog.titleNode.textContent, '文字起こし');
+    assert.equal(dialog.titleNode.textContent, 'Transcript');
     assert.equal(dialog.node.dataset.akariTranscribeMode, 'simple');
     assert.equal(dialog.node.dataset.step, '1');
     assert.equal(dialog.node.querySelectorAll('nav').length, 0);
@@ -162,8 +162,8 @@ function simpleDOM(dialog) {
         assert.deepEqual(badge.listeners, {}, 'simple availability badges have no actions');
     }
     assert.deepEqual(dialog.node.querySelectorAll('button').map(node => node.textContent),
-        [...buttons(dialog), 'アドバンス（比較・差分）に切り替える']);
-    assert.doesNotMatch(dialog.node.textContent, /翻訳|差分を読み込み|数値は予測|比べる組|fal.ai/);
+        [...buttons(dialog), 'Switch to advanced (compare and diff)']);
+    assert.doesNotMatch(dialog.node.textContent, /翻訳|Loading the diff|figures are estimates|Compare set|fal.ai/);
 }
 
 for (const done of [false, true]) {
@@ -172,7 +172,7 @@ for (const done of [false, true]) {
         simpleDOM(dialog);
         assert.deepEqual(badges(dialog).map(badge => badge.dataset.akariEngineAvailability),
             ['needs', 'available', 'unconfigured', 'unconfigured']);
-        assert.deepEqual(buttons(dialog), done ? ['台本へ', '起こし直す'] : ['起こす']);
+        assert.deepEqual(buttons(dialog), done ? ['To the script', 'Transcribe again'] : ['Transcribe']);
         for (const card of dialog.node.querySelectorAll('section[data-backend]')) {
             assert.equal(card.querySelectorAll('input').length, 1);
             assert.equal(card.querySelectorAll('strong').length, 1);
@@ -182,7 +182,7 @@ for (const done of [false, true]) {
         switchLink(dialog).click(); await tick();
         assert.deepEqual(writes, [['akari.transcribe.mode', 'advanced', PreferenceScope.User]]);
         assert.equal(dialog.node.dataset.akariTranscribeMode, 'advanced');
-        assert.equal(dialog.titleNode.textContent, '文字起こしして字幕を作る');
+        assert.equal(dialog.titleNode.textContent, 'Transcribe and create captions');
         for (const badge of badges(dialog)) {
             const interactive = ['needs', 'unconfigured'].includes(badge.dataset.akariEngineAvailability);
             assert.equal(badge.tagName, interactive ? 'button' : 'span');
@@ -192,7 +192,7 @@ for (const done of [false, true]) {
         assert.equal(dialog.node.querySelectorAll('nav').length, 1);
         assert.equal(dialog.node.querySelectorAll('input[type=checkbox]').length, 4);
         assert.equal(dialog.node.querySelectorAll('svg').length, 4);
-        assert.deepEqual(buttons(dialog), done ? ['このまま字幕へ', '起こし直す', '比べる'] : ['起こす ▸']);
+        assert.deepEqual(buttons(dialog), done ? ['Continue to captions', 'Transcribe again', 'Compare'] : ['Transcribe ▸']);
         assert.equal(dialog.closed, 0);
         assert.deepEqual(dialog.selection.compareSet, compareSet);
         switchLink(dialog).click(); await tick();
@@ -203,8 +203,8 @@ for (const done of [false, true]) {
     });
 }
 function viewCards(id) {
-    return { 'speech-analyzer': '句読点あり / フィラーを残す', 'whisper-cpp': '句読点あり / フィラーは落ちやすい',
-        'cloud:scribe': '句読点・フィラーを残す', 'cloud:groq': '句読点なし / フィラーは落ちる' }[id];
+    return { 'speech-analyzer': 'Punctuation kept / fillers kept', 'whisper-cpp': 'Punctuation kept / fillers often dropped',
+        'cloud:scribe': 'Punctuation and fillers kept', 'cloud:groq': 'No punctuation / fillers are dropped' }[id];
 }
 test('invalid saved mode uses simple DOM; failed switch keeps the dialog and selected mode', async () => {
     const { dialog } = await harness({ mode: 'invalid', failSave: true });
@@ -212,7 +212,7 @@ test('invalid saved mode uses simple DOM; failed switch keeps the dialog and sel
     switchLink(dialog).click(); await tick();
     simpleDOM(dialog);
     assert.equal(dialog.closed, 0);
-    assert.match(dialog.notice.textContent, /設定を保存できませんでした/);
+    assert.match(dialog.notice.textContent, /Could not save settings/);
     dialog.dispose();
 });
 test('simple start ignores saved comparison, shows timed progress on the same screen and automatically reuses', async () => {
@@ -225,10 +225,10 @@ test('simple start ignores saved comparison, shows timed progress on the same sc
     assert.deepEqual(dialog.selection.compareSet, compareSet);
     assert.equal(dialog.closed, 0);
     simpleDOM(dialog);
-    assert.equal(dialog.node.querySelector('[data-akari-transcribe-progress]').textContent, '起こしています… 0:00 / 3:00');
+    assert.equal(dialog.node.querySelector('[data-akari-transcribe-progress]').textContent, 'Transcribing... 0:00 / 3:00');
     clock.now = 83000;
     for (const interval of clock.intervals) interval();
-    assert.equal(dialog.node.querySelector('[data-akari-transcribe-progress]').textContent, '起こしています… 1:23 / 3:00');
+    assert.equal(dialog.node.querySelector('[data-akari-transcribe-progress]').textContent, 'Transcribing... 1:23 / 3:00');
     assert.equal(dialog.defaultButton.disabled, true);
     dialog.defaultButton.click(); await tick();
     assert.equal(requests.length, 1);
@@ -240,7 +240,7 @@ test('simple start ignores saved comparison, shows timed progress on the same sc
 test('simple reuse applies in place while redo preserves the existing exit path', async () => {
     for (const redo of [false, true]) {
         const { dialog, requests, buildRequests } = await harness({ done: true });
-        dialog.foot.querySelectorAll('button').find(button => button.textContent === (redo ? '起こし直す' : '台本へ')).click();
+        dialog.foot.querySelectorAll('button').find(button => button.textContent === (redo ? 'Transcribe again' : 'To the script')).click();
         await tick();
         assert.equal(dialog.accepted, redo ? 1 : 0);
         assert.equal(requests.length, 0, 'redo delegates through the existing result to buildCaptions');
@@ -253,25 +253,25 @@ test('opening shows apply preview with and without protected rows', async () => 
     const { dialog, buildRequests } = await harness({ done: true });
     assert.equal(buildRequests.filter(request => request.dryRun).length, 1);
     assert.equal(dialog.node.querySelector('[data-akari-captions-preview]').textContent,
-        '新規 12 · 変更 3 · 手直し済み 2 行は保護 · 消える 0');
+        'New 12 · changed 3 · 2 edited lines protected · removed 0');
     dialog.dispose();
     const zero = await harness({ done: true, previewResult: { added: 12, changed: 3, protected: 0, removed: 0, total: 15 } });
-    assert.equal(zero.dialog.node.querySelector('[data-akari-captions-preview]').textContent, '新規 12 · 変更 3 · 消える 0');
+    assert.equal(zero.dialog.node.querySelector('[data-akari-captions-preview]').textContent, 'New 12 · changed 3 · removed 0');
     zero.dialog.dispose();
 });
 
 test('apply runs once without confirmation, stays open, and registers undo history', async () => {
     const before = '{"captions":[{"id":"before"}]}';
     const { dialog, buildRequests, confirm, history, fileWrites } = await harness({ done: true, captionsBefore: before });
-    dialog.foot.querySelectorAll('button').find(button => button.textContent === '台本へ').click();
+    dialog.foot.querySelectorAll('button').find(button => button.textContent === 'To the script').click();
     await tick();
     assert.equal(buildRequests.filter(request => !request.dryRun).length, 1);
     assert.equal(confirm.count, 0);
-    assert.equal(dialog.node.querySelector('[data-akari-captions-applied]').textContent, '台本に反映した（新規 12 · 変更 3）');
+    assert.equal(dialog.node.querySelector('[data-akari-captions-applied]').textContent, 'Applied to the script (new 12 · changed 3)');
     assert.equal(dialog.value, undefined);
     assert.equal(dialog.closed, 0);
     assert.equal(history.length, 1);
-    assert.equal(history[0].label, '台本へ反映（新規 12 · 変更 3）');
+    assert.equal(history[0].label, 'Apply to script (new 12 · changed 3)');
     await history[0].undo();
     assert.deepEqual(fileWrites.at(-1), ['file:///fixture/captions.json', before]);
     dialog.dispose();
@@ -285,7 +285,7 @@ test('a completed engine event refreshes the dry-run summary', async () => {
     const { dialog, buildRequests } = await harness({ done: true, previewResult: [first, second], eventPayload });
     await dialog.consumeEvent(new URI('file:///fixture/event.json'));
     assert.equal(buildRequests.filter(request => request.dryRun).length, 2);
-    assert.equal(dialog.node.querySelector('[data-akari-captions-preview]').textContent, '新規 4 · 変更 1 · 消える 2');
+    assert.equal(dialog.node.querySelector('[data-akari-captions-preview]').textContent, 'New 4 · changed 1 · removed 2');
     dialog.dispose();
 });
 test('failed simple transcription stays on its screen with retry and releases the timer', async () => {
@@ -295,7 +295,7 @@ test('failed simple transcription stays on its screen with retry and releases th
     pending.reject(new Error('engine failed')); await tick();
     simpleDOM(dialog);
     assert.match(dialog.notice.textContent, /engine failed/);
-    assert.deepEqual(buttons(dialog), ['起こす']);
+    assert.deepEqual(buttons(dialog), ['Transcribe']);
     assert.equal(dialog.defaultButton.disabled, false);
     assert.equal(dialog.closed, 0);
     assert.equal(clock.intervals.size, 0);
@@ -304,7 +304,7 @@ test('failed simple transcription stays on its screen with retry and releases th
 test('saved advanced mode keeps the comparison execution path and does not auto-close', async () => {
     const pending = deferred();
     const { dialog, requests, compareSet } = await harness({ mode: 'advanced', pending });
-    assert.equal(dialog.titleNode.textContent, '文字起こしして字幕を作る');
+    assert.equal(dialog.titleNode.textContent, 'Transcribe and create captions');
     dialog.defaultButton.click(); await tick();
     assert.deepEqual(requests[0].compareSet, compareSet);
     assert.equal(dialog.node.dataset.step, '2');
@@ -320,12 +320,12 @@ test('context-menu autoStart opens on step 2, exposes cancel, and does not auto-
     assert.equal(dialog.node.dataset.step, '2');
     assert.equal(requests.length, 1);
     assert.deepEqual(requests[0].compareSet, []);
-    const cancel = dialog.foot.querySelectorAll('button').find(button => button.textContent === '中止');
+    const cancel = dialog.foot.querySelectorAll('button').find(button => button.textContent === 'Stop');
     assert.equal(cancel.disabled, false);
     cancel.click(); await tick();
     assert.deepEqual(cancels, [{ projectRoot: 'file:///fixture', relativePath: 'clip.mp4' }]);
     pending.reject(new Error('文字起こしを中止しました')); await tick();
-    assert.equal(dialog.notice.textContent, '文字起こしを中止しました');
+    assert.equal(dialog.notice.textContent, 'Stopped transcription');
     assert.doesNotMatch(dialog.notice.textContent, /^Error:/);
     assert.equal(dialog.wasCancelled, true);
     assert.equal(dialog.accepted, 0);

@@ -11,36 +11,36 @@ export function wordContextMenuGroups(input: {
     splitAvailable: boolean; mergeAvailable: boolean; mergeNextAvailable: boolean;
     wordInsertAvailable: boolean; itemCaptionsAvailable: boolean;
 }): WordMenuGroup[] {
-    const subject = input.rangeCount > 1 ? `${input.rangeCount} 範囲を一括`
-        : input.wordCount > 1 ? 'この範囲' : 'この語';
+    const subject = input.rangeCount > 1 ? `${input.rangeCount} ranges at once`
+        : input.wordCount > 1 ? 'This range' : 'This word';
     const coming = (label: string, what: string): WordMenuItem => ({ label, disabled: true, action: { kind: 'coming-soon', what } });
     return [
-        { title: `${subject}「${input.text}」`, items: [
-            { label: '▶ ここから再生', action: { kind: 'play' } }, { label: '✎ 直す', action: { kind: 'edit' } },
-            { label: '📖 辞書に覚える', action: { kind: 'dictionary' } },
-            { label: '✂ 映像ごとカット', action: { kind: 'cut-video' }, danger: true },
-            { label: '字幕からだけ消す', action: { kind: 'caption-only' } },
-            { label: '⏸ この語の間だけ止める（Freeze）', action: { kind: 'freeze' } }
+        { title: `${subject}: "${input.text}"`, items: [
+            { label: '▶ Play from here', action: { kind: 'play' } }, { label: '✎ Edit', action: { kind: 'edit' } },
+            { label: '📖 Add to the dictionary', action: { kind: 'dictionary' } },
+            { label: '✂ Cut from the video', action: { kind: 'cut-video' }, danger: true },
+            { label: 'Remove from captions only', action: { kind: 'caption-only' } },
+            { label: '⏸ Freeze on this word only', action: { kind: 'freeze' } }
         ] },
-        { title: '挿入', note: `「${input.nextWordText}」の前に`, items: [
-            coming('🖼 画像 Coming soon', '画像'), coming('🎬 B-roll Coming soon', 'B-roll'),
-            coming('🅰 テロップ Coming soon', 'テロップ'), input.wordInsertAvailable
-                ? { label: '＋ 語', action: { kind: 'insert-word' } }
-                : coming('＋ 語 Coming soon', '語'),
-            { label: '⏸ 間 0.5 秒', accel: '⌘;', action: { kind: 'pause' } }
+        { title: 'Insert', note: `Before "${input.nextWordText}"`, items: [
+            coming('🖼 Image Coming soon', 'Image'), coming('🎬 B-roll Coming soon', 'B-roll'),
+            coming('🅰 Captions Coming soon', 'Captions'), input.wordInsertAvailable
+                ? { label: '+ Word', action: { kind: 'insert-word' } }
+                : coming('+ Word Coming soon', 'Word'),
+            { label: '⏸ Pause 0.5 sec', accel: '⌘;', action: { kind: 'pause' } }
         ] },
-        { title: '行', items: [
-            { label: '／ ここで改行（表示だけ・行は 1 つのまま）', accel: '⇧⏎', action: { kind: 'break' } },
-            input.splitAvailable ? { label: '⏎ ここで分割（行が 2 つになる）', accel: '⏎', action: { kind: 'split' } }
-                : coming('⏎ ここで分割（行が 2 つになる） — Coming soon', 'ここで分割'),
-            input.mergeAvailable ? { label: '前の行と結合', accel: '⌫', action: { kind: 'merge-prev' } }
-                : coming('前の行と結合 — Coming soon', '前の行と結合'),
-            input.mergeNextAvailable ? { label: '次の行と結合', action: { kind: 'merge-next' } }
-                : coming('次の行と結合 — Coming soon', '次の行と結合'),
-            { label: 'この行だけの字幕にする（同じ素材の他クリップでは出さない）', action: { kind: 'item-captions' },
-                disabled: !input.itemCaptionsAvailable, title: input.itemCaptionsAvailable ? undefined : '票 1（item の captions スイッチ）待ち' }
+        { title: 'Line', items: [
+            { label: '/ Line break here (display only, still one line)', accel: '⇧⏎', action: { kind: 'break' } },
+            input.splitAvailable ? { label: '⏎ Split here (becomes 2 lines)', accel: '⏎', action: { kind: 'split' } }
+                : coming('⏎ Split here (becomes 2 lines) — Coming soon', 'Split here'),
+            input.mergeAvailable ? { label: 'Merge with the previous line', accel: '⌫', action: { kind: 'merge-prev' } }
+                : coming('Merge with the previous line — Coming soon', 'Merge with the previous line'),
+            input.mergeNextAvailable ? { label: 'Merge with the next line', action: { kind: 'merge-next' } }
+                : coming('Merge with the next line — Coming soon', 'Merge with the next line'),
+            { label: 'Use captions for this line only (hide them on other clips of the same footage)', action: { kind: 'item-captions' },
+                disabled: !input.itemCaptionsAvailable, title: input.itemCaptionsAvailable ? undefined : 'Waiting on ticket 1 (the item captions switch)' }
         ] },
-        { title: 'マーク', colors: COLORS, items: COLORS.map(color => ({ label: color, action: { kind: 'mark' as const, color } })) }
+        { title: 'Mark', colors: COLORS, items: COLORS.map(color => ({ label: color, action: { kind: 'mark' as const, color } })) }
     ];
 }
 

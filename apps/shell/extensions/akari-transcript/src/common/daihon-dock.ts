@@ -9,7 +9,7 @@ export function dockTabs(kind: DockKind): DockTab[] {
 }
 
 export function rowDockTitle(count: number, text: string): string {
-    return count > 1 ? `${count} 行を選択中` : text;
+    return count > 1 ? `${count} lines selected` : text;
 }
 
 export function dockActions(kind: DockKind, available: Partial<Record<DockAction, boolean>>): DockAction[] {

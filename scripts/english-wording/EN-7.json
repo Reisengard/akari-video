@@ -1,5 +1,6 @@
 {
   "id": "EN-7",
   "glob": "apps/shell/extensions/akari-transcript/**",
-  "max": 14561
+  "exclude": ["apps/shell/extensions/akari-transcript/lib/**"],
+  "max": 8074
 }

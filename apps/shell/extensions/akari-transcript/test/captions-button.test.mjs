@@ -6,12 +6,12 @@ import { captionsAppliedLine, captionsApplyHistoryLabel, captionsApplyPreviewLin
 
 test('処理済みの素材がなければ連続実行の文言を表示する', () => {
     for (const states of [[], ['none'], ['running'], ['none', 'running']]) {
-        assert.equal(captionsButtonLabel(states), '文字起こしして字幕を作る');
+        assert.equal(captionsButtonLabel(states), 'Transcribe and create captions');
     }
 });
 test('処理済みの素材があれば字幕生成の文言を表示する', () => {
-    assert.equal(captionsButtonLabel(['done']), '字幕を作る');
-    assert.equal(captionsButtonLabel(['none', 'done']), '字幕を作る');
+    assert.equal(captionsButtonLabel(['done']), 'Create captions');
+    assert.equal(captionsButtonLabel(['none', 'done']), 'Create captions');
 });
 
 test('差分要約は5つの有限数が揃ったときだけ受理する', () => {
@@ -24,10 +24,10 @@ test('差分要約は5つの有限数が揃ったときだけ受理する', () =
 
 test('差分・反映済み・履歴の文言を組み立てる', () => {
     const preview = { added: 12, changed: 3, protected: 2, removed: 0, total: 17 };
-    assert.equal(captionsApplyPreviewLine(preview), '新規 12 · 変更 3 · 手直し済み 2 行は保護 · 消える 0');
-    assert.equal(captionsApplyPreviewLine({ ...preview, protected: 0 }), '新規 12 · 変更 3 · 消える 0');
-    assert.equal(captionsAppliedLine(preview), '台本に反映した（新規 12 · 変更 3）');
-    assert.equal(captionsApplyHistoryLabel(preview), '台本へ反映（新規 12 · 変更 3）');
+    assert.equal(captionsApplyPreviewLine(preview), 'New 12 · changed 3 · 2 edited lines protected · removed 0');
+    assert.equal(captionsApplyPreviewLine({ ...preview, protected: 0 }), 'New 12 · changed 3 · removed 0');
+    assert.equal(captionsAppliedLine(preview), 'Applied to the script (new 12 · changed 3)');
+    assert.equal(captionsApplyHistoryLabel(preview), 'Apply to script (new 12 · changed 3)');
 });
 
 test('台本履歴サービスをモジュール単位で保持する', () => {
@@ -44,16 +44,16 @@ test('発話への合わせ直し結果を検証して footer と履歴の文言
         assert.equal(captionsRetimeMovedWords(value), undefined);
     }
     const cases = [
-        [{ moved_words: 52 }, '52 語を動かした'],
-        [{ moved_words: 52, clamped_pairs: 2, overlaps_left: 0 }, '52 語を動かした · 2 組の重なりを解消'],
+        [{ moved_words: 52 }, '52 words moved'],
+        [{ moved_words: 52, clamped_pairs: 2, overlaps_left: 0 }, '52 words moved · 2 overlapping pairs resolved'],
         [{ moved_words: 3, clamped_pairs: 1, overlaps_left: 1 },
-            '3 語を動かした · 1 組の重なりを解消 · 1 組は重なりのまま'],
-        [{ moved_words: 7, clamped_pairs: '2', overlaps_left: '1' }, '7 語を動かした']
+            '3 words moved · 1 overlapping pairs resolved · 1 pairs still overlap'],
+        [{ moved_words: 7, clamped_pairs: '2', overlaps_left: '1' }, '7 words moved']
     ];
     for (const [summary, line] of cases) {
         const movedWords = captionsRetimeMovedWords(summary);
         assert.notEqual(movedWords, undefined);
         assert.equal(captionsRetimeLine(movedWords, summary), line);
-        assert.equal(captionsRetimeHistoryLabel(movedWords), `発話に合わせ直す（${movedWords} 語）`);
+        assert.equal(captionsRetimeHistoryLabel(movedWords), `Refit to speech (${movedWords} words)`);
     }
 });

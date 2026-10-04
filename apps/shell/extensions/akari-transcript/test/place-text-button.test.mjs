@@ -58,7 +58,7 @@ test('rejected placement keeps selection intact and re-enables the button', asyn
 
 test('only the transcript entry remains; the placement command and timeline tools are retained', () => {
     assert.match(text, /placeTextButton\.className = 'akari-daihon-retime akari-daihon-place-text'/);
-    assert.match(text, /placeTextButton\.textContent = 'T この行から文字を置く'/);
+    assert.match(text, /placeTextButton\.textContent = 'T Place text from this line'/);
     assert.match(text, /placeTextButton\.addEventListener\('click', \(\) => void this\.placeTextFromSelection\(\)\)/);
     const timeline = readFileSync(new URL('../../akari-annotations/src/browser/akari-annotations-widget.ts', import.meta.url), 'utf8');
     assert.doesNotMatch(timeline, /placeTextButton|akari-timeline-place-text|T 文字を置く/);

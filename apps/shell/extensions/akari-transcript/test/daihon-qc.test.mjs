@@ -25,7 +25,7 @@ test('visibleLength は空白と句読点を数えない', () => {
 test('8.1 字/秒は fast になる', () => {
     const issues = rowIssues(row({ text: 'あ'.repeat(81), end: 10, outEnd: 10, words: null }));
     assert.deepEqual(issues.find(issue => issue.kind === 'fast'), {
-        kind: 'fast', label: '⚡ 速い 8.1 字/秒'
+        kind: 'fast', label: '⚡ Fast 8.1 chars/sec'
     });
 });
 
@@ -65,7 +65,7 @@ test('語テキストの連結が本文と違えば karaoke-unhealthy になる'
 
 test('karaoke style で words が無ければ karaoke-missing になる', () => {
     assert.deepEqual(rowIssues(row({ words: null, style: 'karaoke' })), [
-        { kind: 'karaoke-missing', label: 'カラオケなし' }
+        { kind: 'karaoke-missing', label: 'No karaoke' }
     ]);
 });
 
@@ -78,7 +78,7 @@ test('カット行は他の条件に関係なく issue が空になる', () => {
 test('未認識 1 件は ?? 未認識 issue になる', () => {
     assert.deepEqual(rowIssues(row({ unrecognized: [{ start: 1, end: 1.1 }] }))
         .find(issue => issue.kind === 'unrecognized'), {
-        kind: 'unrecognized', label: '?? 未認識'
+        kind: 'unrecognized', label: '?? Unrecognized'
     });
 });
 
@@ -86,7 +86,7 @@ test('未認識 2 件以上は件数をラベルへ出す', () => {
     const issue = rowIssues(row({
         unrecognized: [{ start: 1, end: 1.1 }, { start: 2, end: 2.1 }]
     })).find(candidate => candidate.kind === 'unrecognized');
-    assert.equal(issue.label, '?? 未認識 ×2');
+    assert.equal(issue.label, '?? Unrecognized ×2');
 });
 
 test('カット行の未認識は QC に数えない', () => {
@@ -97,7 +97,7 @@ test('カット行の未認識は QC に数えない', () => {
 
 test('overflow は文字数予算つきの QC チップになる', () => {
     assert.deepEqual(rowIssues(row(), 10).find(issue => issue.kind === 'overflow'), {
-        kind: 'overflow', label: '10 字に収まらない'
+        kind: 'overflow', label: '10 chars do not fit'
     });
     assert.equal(rowIssues(row()).some(issue => issue.kind === 'overflow'), false);
 });

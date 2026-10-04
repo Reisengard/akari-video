@@ -12,19 +12,19 @@ export function canMergeRows(
     rows: readonly Pick<DaihonRow, 'id' | 'outStart' | 'timeDomain'>[], selectedIds: readonly string[]
 ): { ok: true; orderedIds: string[] } | { ok: false; reason: string } {
     const selected = new Set(selectedIds);
-    if (selected.size < 2) return { ok: false, reason: '隣接する行を 2 行以上選んでください。' };
-    if (selected.size !== selectedIds.length) return { ok: false, reason: '同じ行が重複して選択されています。' };
+    if (selected.size < 2) return { ok: false, reason: 'Select 2 or more adjacent lines.' };
+    if (selected.size !== selectedIds.length) return { ok: false, reason: 'The same line is selected more than once.' };
     const indexes = rows.flatMap((row, index) => selected.has(row.id) ? [index] : []);
-    if (indexes.length !== selected.size) return { ok: false, reason: '選択した行が見つかりません。' };
+    if (indexes.length !== selected.size) return { ok: false, reason: 'The selected lines were not found.' };
     if (indexes.some((index, offset) => offset > 0 && index !== indexes[offset - 1] + 1)) {
-        return { ok: false, reason: '離れた行は結合できません。隣接する行を選んでください。' };
+        return { ok: false, reason: 'Cannot merge lines that are apart. Select adjacent lines.' };
     }
     const selectedRows = indexes.map(index => rows[index]);
     if (selectedRows.some(row => row.outStart === null)) {
-        return { ok: false, reason: 'カット中の行を含むため結合できません。' };
+        return { ok: false, reason: 'Cannot merge because a selected line is already cut.' };
     }
     if (selectedRows.some(row => row.timeDomain !== selectedRows[0].timeDomain)) {
-        return { ok: false, reason: 'タイムドメインが異なる行は結合できません。' };
+        return { ok: false, reason: 'Cannot merge lines that use different time domains.' };
     }
     return { ok: true, orderedIds: selectedRows.map(row => row.id) };
 }

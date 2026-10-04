@@ -98,5 +98,7 @@ export function writeDaihonDisplayKnobs(captionsRoot: unknown, values: DaihonDis
 }
 
 export function daihonDisplayLabel(values: Pick<DaihonDisplayKnobs, 'maxLineUnits' | 'lines'>): string {
-    return `${clampDaihonMaxLineUnits(values.maxLineUnits)}字 · ${values.lines}行`;
+    const lines = values.lines;
+    const lineWord = lines === 1 ? 'line' : 'lines';
+    return `${clampDaihonMaxLineUnits(values.maxLineUnits)} chars · ${lines} ${lineWord}`;
 }

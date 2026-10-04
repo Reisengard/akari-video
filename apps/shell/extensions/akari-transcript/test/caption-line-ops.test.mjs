@@ -137,7 +137,7 @@ test('split は分割後の行が 0.2 秒を持てないとき本文を変えず
         const saved = save(project.path, ['みじ', 'かい', 'つぎ']);
         assert.deepEqual(saved.ops, [{ kind: 'split', id: 'c-0001', texts: ['みじ', 'かい'] }]);
         assert.equal(saved.result.applied, 0);
-        assert.deepEqual(saved.result.notices, ['この行は短すぎて分割できません。']);
+        assert.deepEqual(saved.result.notices, ['This line is too short to split.']);
         assert.equal(readFileSync(project.path, 'utf8'), before, '拒否したときは本文を変えない');
     } finally {
         rmSync(project.directory, { recursive: true, force: true });
@@ -154,7 +154,7 @@ test('insert は前後に隙間が無いとき拒否し、他の操作は保存�
         const rejected = save(project.path, ['ひとつめ', 'あいだ', 'ふたつめ']);
         assert.deepEqual(rejected.ops, [{ kind: 'insert', afterId: 'c-0001', text: 'あいだ' }]);
         assert.equal(rejected.result.applied, 0);
-        assert.deepEqual(rejected.result.notices, ['ここには字幕を追加できません（前後に隙間がありません）。']);
+        assert.deepEqual(rejected.result.notices, ['Cannot add a caption here (no gap before or after).']);
         assert.equal(readState(project.path).captions.length, 2);
 
         // 末尾（隙間の上限が無い）への追加は通る
@@ -207,7 +207,7 @@ test('merge は先頭行のスタイルを残し、捨てた側と食い違う�
     try {
         const saved = save(differing.path, ['まえ うしろ']);
         assert.deepEqual(saved.ops, [{ kind: 'merge', ids: ['c-0001', 'c-0002'], text: 'まえ うしろ' }]);
-        assert.deepEqual(saved.result.notices, ['結合したため 2 行目以降のスタイル指定は失われました。']);
+        assert.deepEqual(saved.result.notices, ['Style settings from the second line onward were dropped by the merge.']);
         const records = JSON.parse(readFileSync(differing.path, 'utf8'));
         assert.equal(records.length, 1);
         assert.deepEqual(records[0].text_style, { color: '#FF0000' });
@@ -237,7 +237,7 @@ test('空行は保存せず理由を返し、他の行の変更は保存する',
     try {
         const saved = save(project.path, ['ひとつめ', '', 'ふたつめ']);
         assert.equal(saved.result.applied, 0);
-        assert.deepEqual(saved.result.notices, ['空の行は字幕になりません。文字を入れると保存します。']);
+        assert.deepEqual(saved.result.notices, ['An empty line is not a caption. Add text to save it.']);
         assert.equal(readState(project.path).captions.length, 2);
     } finally {
         rmSync(project.directory, { recursive: true, force: true });
@@ -281,5 +281,5 @@ test('removeCaptionWordsLine は対象 1 行の words だけを落とし、無�
     assert.equal(stripped.split('\n').length, source.split('\n').length, '1 レコード 1 物理行のまま');
     assert.equal(removeCaptionWordsLine(stripped, 'c-0001'), stripped, '冪等');
     assert.equal(removeCaptionWordsLine(source, 'c-0002'), source, 'words の無い行は本文不変');
-    assert.throws(() => removeCaptionWordsLine(source, 'c-9999'), /字幕 c-9999 が字幕データにありません。/);
+    assert.throws(() => removeCaptionWordsLine(source, 'c-9999'), /Caption c-9999 is missing from the caption data\./);
 });

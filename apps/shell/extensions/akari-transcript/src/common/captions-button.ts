@@ -1,5 +1,5 @@
 export function captionsButtonLabel(states: readonly ('none' | 'running' | 'done')[]): string {
-    return states.some(state => state === 'done') ? '字幕を作る' : '文字起こしして字幕を作る';
+    return states.some(state => state === 'done') ? 'Create captions' : 'Transcribe and create captions';
 }
 
 export interface CaptionsApplyPreview {
@@ -20,12 +20,12 @@ export function parseCaptionsApplyPreview(value: unknown): CaptionsApplyPreview 
 }
 
 export function captionsApplyPreviewLine(preview: CaptionsApplyPreview): string {
-    const protectedPart = preview.protected > 0 ? ` · 手直し済み ${preview.protected} 行は保護` : '';
-    return `新規 ${preview.added} · 変更 ${preview.changed}${protectedPart} · 消える ${preview.removed}`;
+    const protectedPart = preview.protected > 0 ? ` · ${preview.protected} edited lines protected` : '';
+    return `New ${preview.added} · changed ${preview.changed}${protectedPart} · removed ${preview.removed}`;
 }
 
 export function captionsAppliedLine(preview: CaptionsApplyPreview): string {
-    return `台本に反映した（新規 ${preview.added} · 変更 ${preview.changed}）`;
+    return `Applied to the script (new ${preview.added} · changed ${preview.changed})`;
 }
 
 export function captionsRetimeMovedWords(value: unknown): number | undefined {
@@ -43,17 +43,17 @@ export function captionsRetimeLine(movedWords: number, value?: unknown): string 
         ? summary.clamped_pairs : 0;
     const overlapsLeft = typeof summary.overlaps_left === 'number' && Number.isFinite(summary.overlaps_left)
         ? summary.overlaps_left : 0;
-    const clampedPart = clampedPairs >= 1 ? ` · ${clampedPairs} 組の重なりを解消` : '';
-    const overlapsPart = overlapsLeft >= 1 ? ` · ${overlapsLeft} 組は重なりのまま` : '';
-    return `${movedWords} 語を動かした${clampedPart}${overlapsPart}`;
+    const clampedPart = clampedPairs >= 1 ? ` · ${clampedPairs} overlapping pairs resolved` : '';
+    const overlapsPart = overlapsLeft >= 1 ? ` · ${overlapsLeft} pairs still overlap` : '';
+    return `${movedWords} words moved${clampedPart}${overlapsPart}`;
 }
 
 export function captionsRetimeHistoryLabel(movedWords: number): string {
-    return `発話に合わせ直す（${movedWords} 語）`;
+    return `Refit to speech (${movedWords} words)`;
 }
 
 export function captionsApplyHistoryLabel(preview: CaptionsApplyPreview): string {
-    return `台本へ反映（新規 ${preview.added} · 変更 ${preview.changed}）`;
+    return `Apply to script (new ${preview.added} · changed ${preview.changed})`;
 }
 
 export interface DaihonHistoryService {

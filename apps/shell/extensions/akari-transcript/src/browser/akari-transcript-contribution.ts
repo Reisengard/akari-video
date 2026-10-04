@@ -93,7 +93,7 @@ export class AkariTranscriptContribution implements OpenHandler, CommandContribu
                     label: candidate.assetPath,
                     uri: candidate.uri
                 })),
-                { placeholder: '文字起こしを開く素材を選んでください。' }
+                { placeholder: 'Choose footage to open as a transcript.' }
             );
             if (selected) {
                 await this.open(selected.uri);
@@ -108,7 +108,7 @@ export class AkariTranscriptContribution implements OpenHandler, CommandContribu
                 return;
             }
         }
-        this.messages.info('文字起こしデータが見つかりません。素材の分析後にもう一度開いてください。');
+        this.messages.info('Transcript data was not found. Analyze the footage, then open it again.');
     }
 
     protected async findCanonicalAnalyses(root: URI): Promise<CanonicalAnalysis[]> {
