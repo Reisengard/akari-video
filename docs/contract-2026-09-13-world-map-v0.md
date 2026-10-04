@@ -1,53 +1,52 @@
-# ワールドマップ v0 契約
+**English** | [Japanese](./contract-2026-09-13-world-map-v0.ja.md)
 
-## 1. ファイルとスキーマ
+# World map v0
 
-ワールドマップはプロジェクトの `planning/world-map.json` に置く。このファイルの存在を地図 UI の表示条件とする。公開 v0 は `schemaVersion: 3` で、以後の変更は additive-only とする。旧 `schemaVersion: 2` は CLI の読み口で v3 に正規化できる。
+## 1. File and schema
 
-共通のルートは `kind`、`worlds[]`、`zones[]`、`cameraStops[]`、`edges[]`、`retainedNodes[]` からなる。`kind` は `flat` または `spatial`。flat world は `flat.bounds` と `flat.pattern`、spatial world は `spatial.c` を持つ。zone は世界内の位置、cameraStop は滞在窓とカメラ位置、edge は連続する停留所間の移動または切替を宣言する。
+The world map lives at the project's `planning/world-map.json`. The Map UI is shown only when this file exists. Public v0 is `schemaVersion: 3`. Later changes are additive only. An old `schemaVersion: 2` file can be normalized to v3 on the CLI read path.
 
-機械検査する不変条件は次のとおり。
+The shared root is `kind`, `worlds[]`, `zones[]`, `cameraStops[]`, `edges[]`, and `retainedNodes[]`. `kind` is `flat` or `spatial`. A flat world has `flat.bounds` and `flat.pattern`. A spatial world has `spatial.c`. A zone is a place inside a world. A cameraStop is a dwell window and a camera position. An edge declares a move or a switch between consecutive stops.
 
-1. world は 1 件以上で、各 world は zone を 2 件以上持つ。
-2. zones と cameraStops の id 集合は一致し、stop は `at` 昇順、`at < leave`、窓は非重複とする。
-3. edge 数は stop 数より 1 少なく、順序と `from` / `to` / `t0` / `t1` が stop 列に一致する。
-4. edge type は `move` / `portal` / `cut`。非 move は `via`、`transition`、区間内の `switchTime` が必須。
-5. 世界をまたぐ edge は空でない `carry` を持ち、その値は `retainedNodes` の部分集合とする。
-6. transition kind は `none` / `dive` / `mist` / `occluder` / `fade` / `push`。spatial では `push` を禁止する。
-7. cut の実測 `cover` は 0.4 秒以下。未測定の `null` は通常検査では警告、strict 検査ではエラーとする。portal の cover には上限を設けない。
-8. palette は 6 桁 hex、flat bounds と spatial floor size は有限かつ正とする。
-9. 同一 world 内の連続 stop 間は move とする。
+The machine checks these invariants.
 
-## 2. カメラ関数
+1. There is at least one world, and each world has at least two zones.
+2. The zone id set and the cameraStop id set match. Stops are in ascending `at`, each has `at < leave`, and the windows do not overlap.
+3. The edge count is one less than the stop count. Order, `from`, `to`, `t0`, and `t1` match the stop list.
+4. An edge type is `move`, `portal`, or `cut`. A non-move edge requires `via`, `transition`, and an in-range `switchTime`.
+5. An edge that crosses worlds has a non-empty `carry`, and that value is a subset of `retainedNodes`.
+6. A transition kind is `none`, `dive`, `mist`, `occluder`, `fade`, or `push`. `spatial` forbids `push`.
+7. A cut's measured `cover` is at most 0.4 seconds. An unmeasured `null` is a warning in a normal check and an error in a strict check. A portal's cover has no upper bound.
+8. A palette entry is 6-digit hex. Flat bounds and the spatial floor size are finite and positive.
+9. Consecutive stops inside one world use `move`.
 
-`camera(t)` は world-map だけを入力にする純関数である。stop 窓では宣言値を返し、move では両 stop 間を補間する。portal / cut では `switchTime` より前を接近、後を脱出として `via` を経由し、切替時点で world を切り替える。同一入力時刻には常に同じ値を返す。
+## 2. Camera function
 
-## 3. 描画
+`camera(t)` is a pure function whose only input is the world map. Inside a stop window it returns the declared value. On a move it interpolates between the two stops. On a portal or a cut, time before `switchTime` approaches through `via`, time after it leaves through `via`, and the world switches at the switch instant. The same input time always returns the same value.
 
-flat world は 1 個の overlay 断片で構成する。Canvas 層は背景、格子、遠景、portal、cut の覆いを描き、DOM sheet 層は素材と文字を持つ。各 world は直下の `.akari-world-sheet[data-world]`、zone はその子の `.akari-world-zone[data-zone]` とし、sheet 自身は left / top 0、zone の px は bounds 原点を引かない world 座標そのままとする。sheet の transform は authoring 時に固定せず、ランタイムが `camera(t)` から設定する。DOM と Canvas の混在出力は rasterize 経路を使う。
-素材の時計の起点は同じ zone id の stop の `at + delay`（`delay` は秒・省略 0・0 以上）とし、到着前は 0 秒で止める。
-`role: "background"` の素材を含む zone はカリングしない。role 省略時も `vars` の `world-width` / `world-height`（`--` 接頭辞も可）があれば背景として扱う。
+## 3. Drawing
 
-spatial world は `akari world build` が `assets/world/world.glb` と `overlays/world.html` の
-three 断片へ決定論的に焼く。GLB は `worlds[].spatial.floor`、`background`、`haze`、
-`zones[].c` の目印と、`camera(t)` を 60 Hz でサンプルした `TourCamera` / `Tour` clip を持つ。
-three 宣言は `model`、`camera.fromModel: "TourCamera"`、`animationClip: "Tour"` に加え、
-先頭 world の `palette.haze` / `palette.background` がある場合だけ `fog` / `background` を持つ。
-画面座標の 3D 小物とテロップは別 overlay item とする。
+A flat world is one Overlay fragment. The canvas layer draws the background, the grid, the far scenery, portals, and cut covers. The DOM sheet layer holds footage and text. Each world is a direct `.akari-world-sheet[data-world]`. A zone is its child `.akari-world-zone[data-zone]`. The sheet itself has left and top 0. A zone's px are world coordinates that do not subtract the bounds origin. The sheet transform is not fixed at authoring time. The runtime sets it from `camera(t)`. Mixed DOM and canvas output uses the rasterize path.
+
+A footage clock starts at `at + delay` on the stop with the same zone id. `delay` is seconds, defaults to 0, and is at least 0. Before arrival the clock stays at 0 seconds.
+
+A zone that contains footage with `role: "background"` is not culled. When `role` is omitted, `vars` keys `world-width` and `world-height` (a `--` prefix is also accepted) still treat the zone as background.
+
+A spatial world is baked deterministically by `akari world build` into `assets/world/world.glb` and a three fragment at `overlays/world.html`. The GLB has `worlds[].spatial.floor`, `background`, `haze`, markers for `zones[].c`, and `TourCamera` and `Tour` clips sampled from `camera(t)` at 60 Hz. The three declaration has `model`, `camera.fromModel: "TourCamera"`, and `animationClip: "Tour"`. It has `fog` and `background` only when the first world has `palette.haze` and `palette.background`. Screen-space 3D props and Captions are separate Overlay items.
 
 ## 4. CLI
 
-- `akari world check [--strict] [--migrate] [--json]`: スキーマと不変条件を検査し、必要なら v2 を v3 へ正規化する。
-- `check --migrate` はラベル文字列または `null` の `cover` と v3 語彙外の `pattern` を落として有限の暫定値へ正規化し、元の値と実測が必要な旨を注記に残す。
-- `akari world build`: flat は宣言、sheet、zone、解決済み素材断片を `overlays/world.html` に生成する。spatial は世界 GLB と three 断片を生成する。どちらも edit.json の `world` item を id 安定で upsert する。edit.json が version 2 でなければ変更せず停止するため、先に `akari migrate <project-root>` を実行する。
-- `akari world preview [--measure]`: flat / spatial とも rasterize 経路で stop と edge の代表時点を PNG と `camera-proof.json` にする。measure 時は非 move edge の全画素 RGB 標準偏差が 2 以下になる完全被覆区間を 30 Hz で測り、該当する `transition.cover` だけを書き戻す。
-- `preview --measure` は入口では C7 を問わず、実測値を書き戻した後に C7 を含む全項目を検査する。
-- `akari world overview`: `overlays/world.html` の実断片を srcdoc iframe に同じ時刻で埋め込み、全世界を収める view で並べる。ピンクの撮影枠・カメラ軌道・場面ジャンプ・拡縮パン・カメラ追従・右欄の `.akari/out` 最新 MP4 を持ち、build 前は床だけへフォールバックする。外部通信 0・`file://` 直開き可で、`--json` は生成先を返す。
-- `akari world move-stop <project-root> --stop <id> --c x,y[,scale] [--json]`: flat の停留所座標だけを更新する。元テキストの整形と他の欄を変えず、bounds 外・spatial・不変条件違反では一切書き込まない。
+- `akari world check [--strict] [--migrate] [--json]` checks the schema and the invariants, and can normalize v2 to v3.
+- `check --migrate` drops a `cover` that is a label string or `null`, and a `pattern` outside the v3 vocabulary. It normalizes them to finite placeholders and notes that the original value still needs a measurement.
+- `akari world build` writes, for flat, the declaration, the sheet, the zones, and resolved footage fragments to `overlays/world.html`. For spatial it writes the world GLB and the three fragment. Both upsert the edit.json `world` item with a stable id. If edit.json is not version 2, the command stops without changes. Run `akari migrate <project-root>` first.
+- `akari world preview [--measure]` writes PNG frames and `camera-proof.json` for representative stop and edge times, on the rasterize path, for both flat and spatial. With measure, it samples non-move edges at 30 Hz for a full-cover interval whose per-pixel RGB standard deviation is at most 2, and it writes back only the matching `transition.cover`.
+- `preview --measure` does not ask about C7 on entry. After it writes the measured values, it checks every item, including C7.
+- `akari world overview` embeds the real `overlays/world.html` fragment in a srcdoc iframe at the same time, and lays out every world in one view that fits them. It has a pink capture frame, the camera path, scene jumps, scale pans, camera follow, and the newest MP4 from `.akari/out` in the right column. Before build it falls back to the floor only. It makes no external requests, it can be opened directly as `file://`, and `--json` returns the output path.
+- `akari world move-stop <project-root> --stop <id> --c x,y[,scale] [--json]` updates only a flat stop's coordinates. It does not reformat the original text or change other fields. It writes nothing when the point is outside bounds, the world is spatial, or an invariant would break.
 
-同じ入力から得る HTML と画像は決定論的でなければならない。素材 id は asset resolver で解決し、未解決時は失敗として扱う。
+HTML and images from the same input must be deterministic. Footage ids are resolved by the asset resolver. An unresolved id is a failure.
 
-実行順は flat / spatial 共通で、プロジェクトルートに対して次のようにする。
+Flat and spatial share this order, run against the project root.
 
 ```sh
 akari world check . --migrate
@@ -57,20 +56,20 @@ akari world preview . --measure
 akari world overview .
 ```
 
-## 5. 地図 UI
+## 5. Map UI
 
-- 実装のマーカー判定は `akari-shell-strip` の ContextKey `akari.worldMap` に一元化する。
-- main の「地図」タブは `akari-world-view` が担い、`akari world overview --json` が生成した同じ HTML を webview に表示する（描画実装は 1 か所）。
-- タイムラインのワールド帯と地図インスペクターは `akari-annotations` が担う。
+- Marker detection is centralized on the `akari-shell-strip` ContextKey `akari.worldMap`.
+- The Map tab in main is `akari-world-view`. It shows the same HTML that `akari world overview --json` generated, in a webview. There is one draw implementation.
+- The timeline world band and the Map inspector are `akari-annotations`.
 
-地図 UI は 2D 俯瞰、ワールド帯、再生時刻に追従する撮影枠、選択中の stop / edge 詳細を提供する。v1 では flat の停留所の座標だけを ⌥ ドラッグで `world-map.json` へ書き戻せる。書き手は `akari world move-stop` の 1 本に限定し、bounds 外・spatial・不変条件違反では書き込まない。`world-map.json` は edit.json の履歴の外にあるため、undo / redo は未対応とする。
+The Map UI provides a 2D overhead view, the world band, a capture frame that follows the play time, and details for the selected stop or edge. In v1, only a flat stop's coordinates can be written back to `world-map.json` with an Option-drag. The only writer is `akari world move-stop`. It does not write when the point is outside bounds, the world is spatial, or an invariant would break. `world-map.json` sits outside edit.json history, so undo and redo are not supported.
 
-## 6. 制作フロー
+## 6. Production flow
 
-作り方（ブリーフ → テンプレート → 台本 → `world-map.json` → `akari world`）は無料の純正スキル `akari:design-world`（`skills/design-world/SKILL.md`）が持つ。
+The free built-in skill `akari:design-world` (`skills/design-world/SKILL.md`) owns the path from brief to template to script to `world-map.json` to `akari world`.
 
-企画と絵コンテで章を world として宣言し、モーション区間は `world-map.json` → `akari world build` → overlay → 書き出しの順に処理する。実写区間との接点は portal とカットアウェイ章に限定する。
+A plan and a storyboard declare chapters as worlds. A motion span is processed as `world-map.json`, then `akari world build`, then the Overlay, then Export. The join to live-action spans is limited to portals and cutaway chapters.
 
-## 7. 将来拡張
+## 7. Later additions
 
-生成動画を world の zone や edge へ配置する機能、world camera と別 overlay の 3D を世界座標で同期する機能、より大規模な world の間引きは v0 の外とし、後方互換な追加として導入する。
+Placing generated video on a world zone or edge, syncing a world camera with another Overlay's 3D in world coordinates, and culling a much larger world are outside v0. They are added as backward-compatible extensions.

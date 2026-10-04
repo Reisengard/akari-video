@@ -1,0 +1,91 @@
+[English](./contract-2026-09-24-style-v0.md) | **日本語**
+
+# マイスタイル v0 — 保存形と適用契約
+
+- 日付: 2026-09-24
+- 状態: v0
+
+## 1. 役割と置き場
+
+スタイルは使いどころと部品の束であり、動画単位のテンプレートとは別物。同梱の `presets/textstyle` はコードが `style_preset` で引く参照表で、マイスタイルはユーザーが保存した値である。テキストスタイルの棚では両方を並べて見せる。
+素材の `{category,id}` と `.akari/asset-references.json` は `contract-2026-09-02-asset-reference-model.md` に従う。マイスタイルの `styles/` は `contract-2026-07-13-asset-library.md` の高コスト素材の入庫基準の対象外である。
+
+ユーザー共通の保存先は `resolveAssetLibraryRoots().write` の下の `styles/<id>/style.json`。root は既存の `AKARI_LIBRARY_ROOT` → `$AKARI_HOME/library-location.json` → `$AKARI_HOME/assets` の順で解決する。プロジェクト専用の予約先は `<project>/.akari/styles/<id>/style.json`。v0 の UI はユーザー共通だけを扱う。
+
+保存は一時ファイルを書いて同一ディレクトリ内で rename する。既存 `id` が別 `uid` なら上書きを拒み、別 `id` に同じ `uid` があっても拒む。既存 `id` と `uid` が一致する更新は `revision` が後退しない場合だけ許す。名前変更は `name` と `revision` を更新し、`uid` と `id` は保つ。別の slug に改名する将来の UI でも `uid` は保つ。読めない保存形は一覧から除外し、ほかのカードを表示する。
+
+## 2. 保存形
+
+```json
+{
+  "schema": "akari-style",
+  "version": 1,
+  "revision": 1,
+  "uid": "01K5ZXY123ABCDEFGHJKMNPQRS",
+  "id": "my-variety-emphasis",
+  "name": "バラエティ強調",
+  "when_to_use": "驚きを短く強調するとき",
+  "tags": [],
+  "parts": [
+    { "kind": "look", "scope": "caption", "mode": "modify",
+      "text_style": { "color": "#ff1744", "size_px": 80, "reference_height_px": 1920,
+        "stroke": { "width_px": 0 }, "background": { "opacity": 0 },
+        "shadow": { "color": "#000000", "opacity": 0 },
+        "glow": { "color": "#000000", "density": 0 } } },
+    { "kind": "motion", "scope": "caption", "mode": "modify",
+      "animation": { "in": { "id": "fade-up", "duration_sec": 0.4 },
+        "loop": { "id": "float", "amp": 8 } } }
+  ],
+  "sample_text": "これは最高のアイデアです",
+  "created_at": "2026-09-24T00:00:00.000Z",
+  "updated_at": "2026-09-24T00:00:00.000Z",
+  "license": { "spdx": "LicenseRef-user-owned", "scope": "private-owned",
+    "attribution_required": false, "ai_training_allowed": false },
+  "visibility": "private",
+  "price": null,
+  "requires": [],
+  "provenance": {}
+}
+```
+
+`schema` は版を含まない識別子。保存形の版は整数 `version` のみで、v0 は `1`。`revision` はそのスタイルの改訂番号で `1` から始まる。`uid` は作成時の ULID で不変、`id` は人が読める slug。`author` は任意。`parts` は未知の `kind` も往復保持する開いた配列。予約語は `look`、`motion`（`animation {in,loop,out}`）、`sfx`、`fx`、`decor`、`camera`。v0 が保存・適用するのは `look`、`motion`、`sfx`、`fx`、`decor`。未知・未対応の部品は適用せず 1 行通知する。
+`sfx` / `fx` / `decor` でも v0 の attach 形に合わない部品は、スタイル全体を拒否せず、値を往復保持したまま未対応として扱う。
+
+部品の共通欄は `scope: "caption" | "run" | "clip" | "scene"`、`mode: "attach" | "modify"`、任意の `attach: { at: "in" | "out" | "whole", offset_frames: number }`。`attach` は sfx / fx / decor の相対時刻で edit.json v2 の anchor に写せる形。`mode: "attach"` は別要素をひも付け、`modify` は既存要素を変更する。camera の `modify` は字幕の下のクリップを対象とする。v0 の look と motion は `scope: "caption"`、`mode: "modify"`。motion の `animation` は `in` / `loop` / `out` の任意のスロットからなり、各スロットは既存の字幕と同じ `id`・`duration_sec`・`ease`・`amp` 等をそのまま往復する。未知のスロット名と絶対パスは受け付けない。`applies_to` は保存せず、`parts[].scope` の重複を除いた集合から導出する。
+
+依存する素材の参照は `{ "category": "…", "id": "…" }` とし、`requires[]` はフォント・素材の id と版を記録できる予約欄。スタイル全体にローカル絶対パスを含めない。`provenance` にもパスを含めない。`tags[]` はシチュエーション検索用。`license` は素材 meta.json と同じ SPDX 等のオブジェクトで、既定は私有。公開可否は別欄の `visibility: "private" | "shared"`（既定 private）で表す。`price: null` は予約値。署名は v0 で不要。
+
+任意の `thumbnail.png` は固定の `sample_text` と同じ描画条件から決定論的に生成する。無い場合は棚で `sample_text` を使うフォールバック表示にする。公開前には自己完結性、ライセンス、依存素材の利用条件を確認する。
+
+## 3. look の保存と解像度
+
+字幕または置いた文字の `default_text_style` → `style_preset` → cue の `text_style` を既存規則で解決した実効値を保存する。`look.text_style` の許可フィールドは `color`、`size_px`、`reference_height_px`、`font_family`、`font_weight`、`weight`、`line_height`、`letter_spacing_em`、`stroke`（`color`, `width_px`）、`background`（`color`, `opacity`, `radius_px`, `padding_px`, `mode`）、`shadow`（`color`, `opacity`, `blur_px`, `distance_px`, `angle_deg`）、`glow`（`color`, `density`, `spread`, `offset_x`, `offset_y`）だけ。保存時も読み込み時もこの許可リストで絞る。`animation`、`layout`、`position`、`text_anchor`、`zone` は look に含めない。
+実効値に stroke / background / shadow / glow が無いか無効なときも、省略せず無効値を保存する。既定値がある当て先でも「無し」を再現するため、順に `{width_px:0}`、`{opacity:0}`、`{color:"#000000",opacity:0}`、`{color:"#000000",density:0}` を使う。
+
+保存時に `reference_height_px` を保存元の edit.json の `output.height` で必ず埋める。適用先へ値をそのまま写す。描画時は `packages/edit-store/src/caption-display.ts` の `resolveCaptionReferenceScale` が `output.height / reference_height_px` を px 系の値に掛ける。たとえば 1920px 高の案件で作った 80px の文字は 1080px 高で 45px になる。`layout` と `reference_height_px` は既存の描画契約で排他なので、全対象の置換後の実効値（`default_text_style` + cue、`style_preset` は除去済み）を事前に調べる。1 件でも衝突すれば全件を書かず、理由を通知する。＋/ドラッグで置く文字にも同じ確認を行う。
+
+## 4. 適用、undo、利用履歴
+
+look の適用は部品単位の置換。許可フィールドの集合について当て先の値を look の値で置き換え、look に無いフィールドは当て先から削除する。`stroke` などの入れ子も部品全体を置換する。許可リスト外の位置・animation・layout・その他の値は保持する。同じ字幕ファイルへの書き込みで `style_preset` を外す。適用・undo・redo は `writeEditSnapshot` の `captionsSource` 経路でガード付き検証と書き込み通知を通す。複数選択を含め、見た目と `style_preset` は undo 1 回でともに元へ戻る。ドラッグ / ＋ の置いた文字にも同じ置換規則を使う。
+
+motion は保存元の実効の動き（`default_text_style` → `style_preset` → cue の `text_style`）がある場合だけ保存できる。保存ダイアログではその場合に既定でチェックし、無ければ無効表示にする。look と motion は片方だけでも保存でき、look に animation を混ぜない。motion を当てると、字幕の `text_style.animation` 全体を保存値に置換する。motion に無いスロットは消す。motion だけを当てる場合、見た目・位置・`style_preset` は変えない。`style_preset` を外すのは look を当てたときだけ。
+
+## 4.1 字幕にひも付ける部品
+
+タイムラインの sfx、html、filter item の「字幕にひも付ける…」は、同じ出力時刻にある字幕を選び、登場・退場・全体を `anchor.edge` / `anchor.duration` に写す。元 item に `anchor.attached_by` は付けない。保存ダイアログは保存元字幕へアンカーされた対応 item を読み、存在する種類を既定でチェックする。素材参照を持たない item は対応部品として保存できない。
+
+- `sfx`: `{kind:"sfx",scope:"caption",mode:"attach",attach:{at,offset_frames},asset:{category:"audio",id},file,duration_sec,gain_db?,in?,out?}`。`file` は素材内の相対ファイル名。音声トラックの media item とし、`anchor.duration:"own"` を使う。
+- `decor`: `{kind:"decor",scope:"caption",mode:"attach",attach:{at,offset_frames},asset:{category:"overlay",id},file,vars?,duration_sec?}`。visual トラックの html item とし、`whole` は `anchor.duration:"caption"`、それ以外は `own` を使う。
+- `fx`: `{kind:"fx",scope:"caption",mode:"attach",attach:{at,offset_frames},effect,duration_sec?}`。v0 は既存の `filter` item の語彙（invert / lut / saturation）のみを保存・適用する。`adjust.fx[]` は使わない。
+
+素材は `.akari/asset-references.json` に記帳してから宣言パス `assets/<category>/<id>/<file>` を使う。sfx は `sources[]` にも追加する。同じスタイルを同じ字幕へ当て直すと、同じ `style_uid` と字幕 id の `anchor.attached_by` を持つ旧 item を除去してから新しい item を置く。見た目・動き・部品は captions.json と edit.json の同じ書き込みと undo 1 件にまとめ、利用台帳には実際に当てた部品を記録する。字幕を削除すると印付きの item も消え、印付きの item を手で動かすと `anchor` 全体を外す。
+
+カードの「当てる」は対応部品が 2 つ以上ある場合、部品ごとのチェックを出す。未対応部品は「当てない」として無効表示し、外した対応部品は通知しない。前回外した部品はスタイルの `uid` ごとのユーザー設定に記憶し、次回の既定にする。対応部品が 1 つ以下なら即時に当てる。＋とドラッグでは対応部品をすべて当てる。選んだ全部品は captions.json と、ひも付け部品を含む場合の edit.json の 1 回の書き込み、1 件の履歴で適用し、undo 1 回で元のバイト列へ戻す。
+
+当てるたびに `<project>/.akari/style-usage.json` の `entries[]` に `{caption_ids: string[], style_uid, revision, parts: string[], applied_at}` を追記する。`parts` は実際に当てた kind の一覧。置いた文字にも追記する。この台帳は追記のみで undo では巻き戻さない。captions.json にスタイル参照を残さず、値をコピーするため別マシンでの書き出しもライブラリに依存しない。将来「元を直したら反映」は台帳を使った明示の再適用で行い、自動上書きしない。
+
+棚のチップは motion を「動き」と表示する。カードの文字はマウスを乗せたときだけ動きを 1 回再生し、ループ指定でも 1 回で止める。動きの軽減設定では再生しない。
+
+## 5. 文字範囲への引き継ぎ
+
+スタイルは文字の位置や「何文字目」を持たない。「強調した語は赤・大きく」は `look` に `scope: "run"` と `role: "emphasis"` を付けた規則として表す。captions.json の runs に `role` を持たせる変更は文字範囲の次の契約で定める。

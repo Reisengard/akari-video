@@ -1,52 +1,33 @@
+**English** | [Japanese](./contract-2026-09-03-preview-playback-rate-v1.ja.md)
+
 ---
 lifecycle: accepted
 created: 2026-09-03
 updated: 2026-09-03
 ---
 
-# プレビュー再生速度・ピッチ保持契約 v1
+# Preview playback rate and pitch hold v1
 
-## 1. UI と状態
+## 1. UI and state
 
-プレビューのトランスポート右側は pen → rate → zoom → fullscreen の順とする。rate ボタンは
-アイコンではなく現在値を `0.5×` の形式で表示し、ポップアップから
-`0.5 / 0.75 / 1 / 1.25 / 1.5 / 2 / 3` の 7 値を選ぶ。値域は 0.5 以上 3 以下である。
-スライダーとキーボードショートカットは設けない。
+The right side of the Preview transport is pen, then rate, then zoom, then fullscreen. The rate control shows the current value as `0.5×`, not an icon. The popup offers seven values: `0.5`, `0.75`, `1`, `1.25`, `1.5`, `2`, and `3`. The range is 0.5 to 3 inclusive. There is no slider and no keyboard shortcut.
 
-速度の正本は webview の `previewRate` とする。変更値は host の当該 preview widget にだけ保持し、
-インスペクター編集による incremental 更新と webview 再構築を跨いで復元する。ディスク、Theia
-preferences、edit.json には保存せず、widget を閉じた後の新しいプレビューは 1× から始める。
-raw 素材プレビューにも同じ UI と速度を適用する。
+The source of truth for speed is the webview `previewRate`. A changed value is kept only on that host Preview widget. It is restored across inspector incremental updates and webview rebuilds. It is not saved to disk, Theia preferences, or edit.json. A new Preview opened after the widget closes starts at 1×. Raw footage Preview uses the same UI and the same speed.
 
-## 2. `rate` の意味
+## 2. What `rate` means
 
-`previewRate` は「出力タイムライン秒 / 実時間秒」である。`playbackTick.rate` とレビューセッションの
-`reviewTransport` に記録する `type: "rate"` の `value` は、どちらもこの値を送る。legacy の cut に
-宣言された `segment.speed` は素材秒と出力秒の写像であり、レビューの rate イベントには送らない。
-従来の segment speed 変更イベントは廃止する。
+`previewRate` is output-timeline seconds divided by wall-clock seconds. `playbackTick.rate`, and the `value` of a review-session `reviewTransport` event with `type: "rate"`, both send this number. A legacy cut's declared `segment.speed` maps footage seconds to output seconds. It is not sent on a review rate event. The old segment-speed change event is removed.
 
-frame-engine の時計は経過実時間へ `previewRate` を掛ける。legacy の動画要素は
-`segment.speed × previewRate` で再生し、gap と静止画は壁時計へ `previewRate` を掛ける。
-freeze の実時間ホールドは宣言秒を `previewRate` で割る。速度変更時は現在位置に錨を打ち直し、
-再生ヘッドを飛ばさない。
+The frame-engine clock multiplies elapsed wall time by `previewRate`. A legacy video element plays at `segment.speed × previewRate`. Gaps and stills multiply wall-clock time by `previewRate`. A freeze's wall-clock hold divides the declared seconds by `previewRate`. A speed change drops a new anchor at the current position and does not jump the playhead.
 
-## 3. 音声とピッチ保持
+## 3. Audio and pitch hold
 
-frame-engine 経路では全音源を `PreviewAudioSupply` の master gain に集め、音源の予定時刻と
-AudioContext 時計を `previewRate` で進める。legacy 経路でも previewAudio の BGM・SFX・ナレーションを
-同じ倍率で再予定する。legacy の動画要素（台詞を含む）は `preservesPitch = true` を明示する。
+On the frame-engine path, every source sums into the `PreviewAudioSupply` master gain. Source schedule time and the AudioContext clock both advance by `previewRate`. The legacy path reschedules previewAudio BGM, SFX, and Narration by the same factor. A legacy video element, including dialogue, sets `preservesPitch = true`.
 
-1× は master gain から destination への直結である。1× 以外は共通の
-`preview-audio-worklet.js` と `akari-pitch-shift` processor を使い、速度 r で再生した全音声へ
-ratio `1 / r` のピッチ補正を掛ける。worklet の準備前は速度だけを先に反映し、準備完了後に経路へ
-差し込む。読み込み失敗または AudioWorklet 非対応時も再生を止めず、警告を 1 行出して素の速度へ
-フォールバックする。
+At 1× the master gain connects straight to the destination. Any other rate uses the shared `preview-audio-worklet.js` and the `akari-pitch-shift` processor. Audio played at speed `r` gets a pitch correction of ratio `1 / r`. Before the worklet is ready, speed applies alone. After it is ready, the node is inserted on the path. If the worklet fails to load, or AudioWorklet is missing, playback does not stop. One warning line is reported and the path falls back to uncorrected speed.
 
-frame-engine の `debug()` は `rate`、`pitchPreserved`、`stretcher` を返す。`stretcher` は
-`"worklet" | "none"`、`pitchPreserved` は 1× または worklet が実際の経路に入った場合だけ true とする。
-`attachAnalyser()` は master bus 出口へ AnalyserNode を一つだけ接続し、検収用の tap として返す。
+frame-engine `debug()` returns `rate`, `pitchPreserved`, and `stretcher`. `stretcher` is `"worklet"` or `"none"`. `pitchPreserved` is true only at 1×, or when the worklet is actually on the path. `attachAnalyser()` connects one AnalyserNode at the master-bus exit and returns it as the acceptance tap.
 
-## 4. 非目標
+## 4. Non-goals
 
-本機能はプレビュー専用である。書き出しの速度・音声処理には影響せず、edit.json の内容も変えない。
-速度の preferences 永続化、キーボードショートカット、速度スライダーは本契約の対象外とする。
+This feature is Preview only. It does not change Export speed or Export audio processing, and it does not change edit.json. Persisting speed in preferences, a keyboard shortcut, and a speed slider are out of this contract.

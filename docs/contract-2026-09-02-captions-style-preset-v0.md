@@ -1,22 +1,21 @@
-# captions.json v0 字幕スタイルプリセット参照契約
+**English** | [Japanese](./contract-2026-09-02-captions-style-preset-v0.ja.md)
 
-- 日付: 2026-09-02
+# captions.json v0 caption style-preset reference
+
+- Date: 2026-09-02
 - lifecycle: accepted
-- 位置づけ: オーナー裁定 #4「個別に凝る字幕はテロップへ寄せる」を維持した、字幕テンプレのハイブリッド保存契約
-- 裁定 #4 改訂（2026-10-02）: 裁定 #4 の語彙を textstyle v1 で広げる。overlay の残留条件は [v1 契約 §9](./contract-2026-10-02-textstyle-v1-rich.md#9-overlay-残留条件と未決事項)。以下の旧文言は v0 当時の判断として読む。
+- Place: a hybrid save contract for caption templates, keeping owner ruling 4, "a caption that is styled on its own moves toward on-screen Captions"
+- Ruling 4 revision (2026-10-02): textstyle v1 widens the ruling 4 vocabulary. What still stays on an Overlay is [v1 contract section 9](./contract-2026-10-02-textstyle-v1-rich.md#9-what-stays-on-an-overlay-and-what-is-open). The older sentences below are the v0 decision, read as history.
 
-## 0. 位置づけ
+## 0. Place
 
-字幕テンプレは、保存時には小さく安定した id を参照し、描画前に値へ解決する。プリセットの見た目を
-共通カタログで更新できる一方、個々の字幕は従来の `text_style` で必要なフィールドだけを上書きできる。
-字幕の個別 override 語彙は増やさず、より複雑な表現はテロップへ変換するという裁定 #4 を維持する。
+A caption template stores a small stable id, and that id resolves to values before draw. A shared catalog can update a preset's look, and each caption can still override only the fields it needs with the existing `text_style`. The per-caption override vocabulary does not grow. A more complex look is converted to on-screen Captions. That is ruling 4.
 
-**裁定 #4 改訂（2026-10-02）:** 上記の語彙を閉じる判断を改訂し、textstyle v1 で多層縁取り・グラデ / 柄フィル・ずらし影を字幕スタイルへ広げる。overlay に残す条件は [v1 契約 §9](./contract-2026-10-02-textstyle-v1-rich.md#9-overlay-残留条件と未決事項) に従う。`style_preset` の席、解決順、未知 id の保存形は本契約のまま維持する。
+**Ruling 4 revision (2026-10-02).** The decision to close that vocabulary is revised. textstyle v1 adds layered strokes, gradient and pattern fills, and offset shadows to caption styles. What remains on an Overlay follows [v1 contract section 9](./contract-2026-10-02-textstyle-v1-rich.md#9-what-stays-on-an-overlay-and-what-is-open). The `style_preset` seat, the resolve order, and the stored form of an unknown id stay as this contract defines them.
 
-## 1. 席
+## 1. Seat
 
-席は `captions.json` の各 `captions[]` レコードに置く任意フィールド `style_preset` である。
-配列ルートと object ルートのどちらでも、レコード内の席は同じである。
+The seat is the optional field `style_preset` on each `captions[]` record in `captions.json`. The seat inside a record is the same for an array root and for an object root.
 
 ```jsonc
 {
@@ -30,74 +29,55 @@
 }
 ```
 
-id は `^[a-z0-9][a-z0-9-]*$` に従う。`captions.json` ルートに `style_preset` の席を設けることは
-本契約のスコープ外である。
+An id matches `^[a-z0-9][a-z0-9-]*$`. A `style_preset` seat on the `captions.json` root is out of scope for this contract.
 
-## 2. 解決順とマージ規則
+## 2. Resolve order and merge
 
-実効スタイルの優先順は、低い方から次のとおりである。
+Effective style precedence, from lowest to highest:
 
-1. object ルートの `default_text_style`
-2. `style_preset` が参照するプリセットの `style`
-3. 同じ字幕レコードの `text_style`
+1. `default_text_style` on the object root
+2. `style` of the preset that `style_preset` names
+3. `text_style` on the same caption record
 
-プリセットと `text_style` はフィールド単位でマージする。`stroke` / `background` / `shadow` /
-`glow` / `position` / `animation` は 1 段内側のキー単位でマージし、`animation` の `in` / `loop` /
-`out` は各スロット単位で上書きする。未知の id は無視し、保存形を変更せず lint warning を出す。
-`style_preset` キー自体は解決後のレコードにも残す。
+A preset and `text_style` merge field by field. `stroke`, `background`, `shadow`, `glow`, `position`, and `animation` merge one level down, by key. `in`, `loop`, and `out` inside `animation` overwrite per slot. An unknown id is ignored. The stored form does not change, and lint warns. The `style_preset` key itself remains on the record after resolve.
 
-## 3. 消費側の約束
+## 3. What consumers promise
 
-`captions.json` を読む消費側は、既存の描画・スタイル merge へ渡す前に必ず
-`applyCaptionStylePresets(root, TEXTSTYLE_CATALOG)` を通す。render-cut、GPU export、OSR export、
-shell preview、edit-store inspector、preview-server の各入口がこの前処理を担う。
+A consumer that reads `captions.json` passes the root through `applyCaptionStylePresets(root, TEXTSTYLE_CATALOG)` before the existing draw and style merge. render-cut, GPU Export, OSR Export, shell Preview, the edit-store inspector, and preview-server each own that preprocess at their entry.
 
-既存の 6 つの merge 実装は変更しない。前処理は `text_style` へ解決値を写すだけで、
-`default_text_style`、原本の `style_preset`、書き戻し形式を変更しない。
+The existing six merge implementations do not change. Preprocess only copies resolved values onto `text_style`. It does not change `default_text_style`, the original `style_preset`, or the write-back form.
 
-## 4. カタログと生成物
+## 4. Catalog and generated output
 
-正本は `presets/textstyle/index.jsonl` と各 `presets/textstyle/<id>.json` である。
-`packages/edit-store/scripts/gen-textstyle-catalog.mjs` がブラウザでも使える
-`TEXTSTYLE_CATALOG` を `packages/edit-store/src/generated/textstyle-catalog.ts` に決定論的に生成する。
-生成順は id 昇順で、drift テストが正本との差を検出する。各 index 行の `style` と個別 JSON の
-`style` は一致し、個別 JSON は `format: "akari-textstyle"` を持つ。
+The source of truth is `presets/textstyle/index.jsonl` and each `presets/textstyle/<id>.json`. `packages/edit-store/scripts/gen-textstyle-catalog.mjs` deterministically generates `TEXTSTYLE_CATALOG`, which the browser can use, at `packages/edit-store/src/generated/textstyle-catalog.ts`. Generation order is ascending id. A drift test detects a difference from the source of truth. Each index row's `style` matches that id's JSON `style`. Each JSON file has `format: "akari-textstyle"`.
 
-## 5. lint
+## 5. Lint
 
-schema と validator は id の型・形式を検査するが、カタログ上の存在までは必須にしない。
-edit-lint はカタログを読める環境だけ存在検査を行い、未知 id を
-`captions.style-preset-unknown` warning として報告する。配布物にカタログが無い場合はこの存在検査を
-スキップする。
+The schema and the validator check the id's type and shape. They do not require the id to exist in the catalog. edit-lint checks existence only where it can read the catalog, and it reports an unknown id as a `captions.style-preset-unknown` warning. When a distribution has no catalog, that existence check is skipped.
 
-## 6. 無料テンプレ 3 種
+## 6. Three free templates
 
-| id | 表示名 | 役割 |
+| id | Display name | Role |
 |---|---|---|
-| `subtitle-standard` | 標準 | 白文字、黒縁、座布団・アニメなし |
-| `subtitle-variety` | ポップ | 黄文字、太い縁、影 |
-| `subtitle-news` | ニュース帯 | 白文字、赤い座布団 |
+| `subtitle-standard` | Standard | White text, black stroke, no plate, no animation |
+| `subtitle-variety` | Pop | Yellow text, a thick stroke, a shadow |
+| `subtitle-news` | News bar | White text, a red plate |
 
-## 7. 非スコープ
+## 7. Out of scope
 
-- ルートレベルの `style_preset`
-- price、購入状態、👑 プレミア、Lab 接続
-- 既存 merge 実装の統合・改修
-- テロップ契約との統合
+- A root-level `style_preset`
+- price, purchase state, a crown premiere mark, and a Lab connection
+- Merging or rewriting the existing merge implementations
+- Merging this contract with the on-screen Captions contract
 
-## 8. パネル側の約束（T6b）
+## 8. Panel promise (T6b)
 
-「台本」パネルの字幕テンプレピッカーは、行選択がある場合は選択行だけ、選択が無い場合は
-全行を適用先にする。全行適用はカード選択後の明示ボタンで確定する。
+The caption-template picker on the script panel applies to the selected rows when a row is selected, and to every row when none is selected. Apply-all is confirmed with an explicit button after the card is selected.
 
-書き戻しは `setCaptionStylePreset` RPC 1 回で対象行を一括更新し、1 回のファイル書き込みと
-1 git commit にまとめる。`text_style` は変更しない。`presetId: null` は `style_preset` キーだけを
-削除する解除操作である。同値の再適用は書き込みも commit も行わない。
+Write-back updates the target rows in one `setCaptionStylePreset` RPC, one file write, and one git commit. `text_style` does not change. `presetId: null` is the clear operation. It deletes only the `style_preset` key. Applying the same value again does not write and does not commit.
 
-各行は `🎨 <テンプレ名>` バッジで参照中のテンプレを示す。カタログに無い id は
-`🎨 <id>?` と表示し、edit-lint warning と併用して読み込みや書き出しを壊さない。
+Each row shows the referenced template as a `🎨 <template name>` badge. An id that is not in the catalog is shown as `🎨 <id>?`. Together with the edit-lint warning, that does not break load or Export.
 
-インスペクターはプリセット解決後の値を表示する。そこで個別の値を上書きすると
-`text_style` に保存され、以後そのフィールドはテンプレ更新に追従しない。
+The inspector shows values after preset resolve. Overriding one value there saves it on `text_style`, and that field no longer follows later template updates.
 
-👑、price、Lab 接続、パネル内履歴、インスペクターの「テンプレ: xxx」表示は T6c / T9 の範囲とする。
+A crown mark, price, a Lab connection, in-panel history, and an inspector line "Template: xxx" belong to T6c and T9.

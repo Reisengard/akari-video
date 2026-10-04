@@ -1,60 +1,62 @@
-# 動きの重ね方 v0
+**English** | [Japanese](./contract-2026-09-25-motion-layers-v0.ja.md)
 
-## 1. 時刻と保存
+# How motion stacks v0
 
-評価時刻 `t` は出力動画の秒。要素と親キャンバスはそれぞれ自分の `at` を引いた秒を使う。`keyframes[].t` は保存時にはその要素の開始からのフレーム。描画経路では秒またはフレームの単位を明示して評価する。`motion.in/out.duration` と `motion.loop.period` はフレームで、出力 fps で秒へ換算する。再生とプレイヘッド移動は `edit.json` を変更しない。
+## 1. Time and storage
 
-## 2. 合成
+Evaluation time `t` is seconds in the output video. An element and its parent canvas each subtract their own `at`. At save time, `keyframes[].t` is frames from that element's start. A draw path names seconds or frames when it evaluates. `motion.in/out.duration` and `motion.loop.period` are frames, converted to seconds with the output fps. Playback and playhead moves do not change `edit.json`.
 
-順序は「静的値またはキーフレームの補間値 → 要素自身の登場・強調・退場 → 内側から外側へ親キャンバスの動き」。各軸は個別に補間し、その軸に点が無ければ静的値を使う。点の前後では端点の値を保つ。
+## 2. Composite
 
-| 値 | 基礎値 | 自分の動き | 親キャンバス |
+The order is the static value or the interpolated keyframe value, then the element's own entrance, emphasis, and exit, then parent-canvas motion from the inside outward. Each axis interpolates on its own. An axis with no points uses the static value. Before the first point and after the last point, the endpoint value holds.
+
+| Value | Base | Own motion | Parent canvas |
 |---|---|---|---|
-| 位置 X・Y | 各軸の補間値または静的値 | 出力 px のずれを足す | 子の評価後に親の拡縮・回転をかけ、親の位置を足す |
-| 拡縮 | 補間値または静的値 | 倍率を掛ける | 倍率を掛ける |
-| 回転 | 補間値または静的値（度） | 角度を足す | 角度を足す |
-| 不透明度 | 補間値または静的値 | 係数を掛ける | 係数を掛け、最終値を 0〜1 に収める |
-| 見た目の切り抜き | 静的クロップ | ワイプの表示範囲 | 子の位置評価後に親を合成する |
+| Position X and Y | Interpolated value or static value on that axis | Add an offset in output px | After the child is evaluated, apply the parent's scale and rotation, then add the parent's position |
+| Scale | Interpolated value or static value | Multiply by a factor | Multiply by a factor |
+| Rotation | Interpolated value or static value, in degrees | Add an angle | Add an angle |
+| Opacity | Interpolated value or static value | Multiply by a factor | Multiply by a factor, then clamp the result to 0 to 1 |
+| Visible crop | Static crop | Wipe's visible range | Composite the parent after the child's position is evaluated |
 
-変形は列ベクトルで、要素の中心を原点として **拡縮 → 回転 → 平行移動** の順。親の位置と回転は出力キャンバスの座標系で、子の位置は親の局所座標系。親が複数なら子に近い親から順に適用する。親の静的変形を先に焼き込んでから動きだけを足すことはしない。
+The transform is a column vector. With the element center as the origin, the order is **scale, then rotation, then translation**. Parent position and rotation are in output-canvas coordinates. Child position is in the parent's local coordinates. Several parents apply from the parent nearest the child outward. The parent's static transform is not baked first and then given motion on top.
 
-## 3. 編集操作
+## 3. Edit operations
 
-「動きを描く」はドラッグした道筋を間引き、要素の X・Y のキーフレームとして保存する入力方法。独立した動きの層は増やさない。既存の X・Y の点があるときは、置換する時刻範囲を保存前に示す。ひと筆の確定は一つの undo 操作にする。
+Draw motion is an input method. It simplifies the dragged path and saves the result as the element's X and Y keyframes. It does not add a separate motion layer. When X and Y points already exist, the time range that will be replaced is shown before the save. One finished stroke is one undo step.
 
-直接ドラッグは表示位置を基準にし、親の平行移動・逆回転・逆拡縮、自分の動きの位置ずれの逆順で基礎位置へ戻してから書く。評価関数と逆算関数は宣言を変更しない。
+A direct drag uses the displayed position as its reference. It undoes parent translation, inverse rotation, and inverse scale, then undoes the element's own position offset, and writes the base position. The evaluate function and the inverse function do not change the declaration.
 
-## 4. プリセットが変える値
+## 4. Values a preset changes
 
-`in` は先頭、`out` は末尾、`loop` は表示中に繰り返す。退場は登場の進み方を末尾から逆に評価する。`amount` はその種類の距離・倍率・角度・強さを指定し、`ease` は区間内の進み方を変える。
+`in` is the start. `out` is the end. `loop` repeats while the element is visible. An exit evaluates the entrance progress backward from the end. `amount` sets that kind's distance, factor, angle, or strength. `ease` changes progress inside the interval.
 
-| 段 | 種類 | 位置（足す） | 拡縮（掛ける） | 回転（足す） | 不透明度・表示窓 |
+| Stage | Kind | Position (add) | Scale (multiply) | Rotation (add) | Opacity and visible window |
 |---|---|---|---|---|---|
-| 登場・退場 | フェード `fade` | — | — | — | 不透明度 0〜1 を掛ける |
-| 登場・退場 | 4 方向のスライド `slide-*` | 既定 40 px | — | — | — |
-| 登場・退場 | 拡縮 `scale` | — | 既定 0.8〜1 | — | — |
-| 登場・退場 | ワイプ `wipe` | — | — | — | 残る表示窓を 0〜全体へ変える |
-| 登場・退場 | ポップ `pop` | — | 既定 0.25〜1 | — | 不透明度 0〜1 を掛ける |
-| 登場・退場 | ズーム `zoom` | — | 既定 1.55〜1 | — | 不透明度 0〜1 を掛ける |
-| 登場・退場 | 回転 `twirl` | — | 0.35〜1 | 既定 −200〜0 度 | 不透明度 0〜1 を掛ける |
-| 強調 | 脈動 `pulse` | — | 正弦波の倍率 | — | — |
-| 強調 | 浮遊 `float` | Y に正弦波のずれ | — | — | — |
-| 強調 | 回り続ける `spin` | — | — | 1 周の角度 | — |
-| 強調 | 点滅 `blink` | — | — | — | 既定で 1 / 0.25 を掛ける |
-| 強調 | 小刻みな動き `jiggle` | X に短い正弦波のずれ | — | 短い正弦波の角度 | — |
+| Entrance and exit | Fade `fade` | none | none | none | Multiply opacity from 0 to 1 |
+| Entrance and exit | Four-way slide `slide-*` | 40 px by default | none | none | none |
+| Entrance and exit | Scale `scale` | none | 0.8 to 1 by default | none | none |
+| Entrance and exit | Wipe `wipe` | none | none | none | The remaining window moves from 0 to the whole frame |
+| Entrance and exit | Pop `pop` | none | 0.25 to 1 by default | none | Multiply opacity from 0 to 1 |
+| Entrance and exit | Zoom `zoom` | none | 1.55 to 1 by default | none | Multiply opacity from 0 to 1 |
+| Entrance and exit | Twirl `twirl` | none | 0.35 to 1 | -200 to 0 degrees by default | Multiply opacity from 0 to 1 |
+| Emphasis | Pulse `pulse` | none | A sine-wave factor | none | none |
+| Emphasis | Float `float` | A sine-wave offset on Y | none | none | none |
+| Emphasis | Spin `spin` | none | none | The angle of one turn | none |
+| Emphasis | Blink `blink` | none | none | none | Multiply by 1 and 0.25 by default |
+| Emphasis | Jiggle `jiggle` | A short sine-wave offset on X | none | A short sine-wave angle | none |
 
-## 5. 親子の時計と逆算
+## 5. Parent and child clocks, and the inverse
 
-子の登場は子の `at` から、キャンバスの登場はキャンバスの `at` から進む。入れ子の子の `at` は保存時には直上の親に対する相対フレームで、評価時には祖先を足した出力時刻へ直す。例: 30 fps でキャンバスが出力 2 秒から、子がその 1 秒後から始まるなら、出力 3.5 秒では子の時計は 0.5 秒、キャンバスの時計は 1.5 秒。子の登場が終わっていてもキャンバスの強調は続く。
+A child's entrance advances from the child's `at`. A canvas entrance advances from the canvas `at`. A nested child's saved `at` is frames relative to the parent directly above it. At evaluation, ancestor times are added to make an output time. Example at 30 fps: the canvas starts at output 2 seconds, and the child starts 1 second after that. At output 3.5 seconds the child clock is 0.5 seconds and the canvas clock is 1.5 seconds. Canvas emphasis continues after the child's entrance has finished.
 
-見えている位置を `V`、親の位置を `P`、親の等比倍率を `S`、親の回転を `R(θ)`、自分の動きの位置ずれを `Δ` とすると、親が 1 つのとき書き込む基礎位置は **`B = R(−θ) × (V − P) / S − Δ`**。親が複数なら外側から順に逆変形して最後に自分の `Δ` を引く。ドラッグ中は `V` を追い、確定時だけ `B` を書く。倍率が 0 の親は逆算できないので書き込みを拒む。
+Let `V` be the visible position, `P` the parent position, `S` the parent's uniform scale, `R(θ)` the parent rotation, and `Δ` the element's own position offset. With one parent, the base position to write is **`B = R(-θ) × (V - P) / S - Δ`**. With several parents, invert from the outside in, then subtract the element's own `Δ` last. During a drag, follow `V`. Write `B` only when the drag is committed. A parent whose scale is 0 cannot be inverted, so the write is refused.
 
-## 6. 道筋から点への変換
+## 6. Path to points
 
-「動きを描く」ではプレビューに道筋の線を示す。出力 px の距離による Ramer–Douglas–Peucker の間引きで最大 32 点へ収め、X・Y のキーフレームにする。時刻は描いた経過時間に従う「速さ」方式を画面の既定とし、純関数には点へ均等に割り当てる方式もある。開始はプレイヘッドから要素の開始を引いたフレーム、終点は要素の尺内に収める。
+Draw motion shows the path line on Preview. Ramer-Douglas-Peucker simplification by output-px distance keeps at most 32 points, stored as X and Y keyframes. The screen default is the speed method, where time follows how long the stroke took. A pure function can also space points evenly. The start is the playhead minus the element start, in frames. The end stays inside the element duration.
 
-既存の X・Y の点があるときは描く前にその時刻範囲を示し、描いている間は置換予定の範囲を更新する。確定時は描いた範囲内の X・Y だけを置き換え、範囲外の位置の点と回転・不透明度など他の項目を保つ。一筆の保存は一つの undo 操作。字幕は対象外。
+When X and Y points already exist, that time range is shown before drawing, and the range marked for replacement updates while drawing. On commit, only X and Y inside the drawn range are replaced. Position points outside the range, and other channels such as rotation and opacity, stay. One stroke is one undo step. Captions are out of scope.
 
-## 7. 読み取り専用の再生と全描画経路
+## 7. Read-only playback and every draw path
 
-再生・停止・プレイヘッド移動は読み取り専用。書くのは人による設定変更・直接ドラッグの確定・道筋の確定だけ。シェルと Web のプレビュー、frame-engine の動画・写真、render-cut の HTML シート、gpu-export の DOM とシートは同じ `evaluateItemMotion(item, t, parentChain)` を呼ぶ。各経路は `motionSource`、近い親から外側へ並べた `motionParents`、キーフレームの時刻単位、出力 fps を渡す。経路ごとに別の合成式を持たない。
+Play, stop, and playhead moves are read-only. Writes happen only when a person changes a setting, commits a direct drag, or commits a path. The shell Preview, the web Preview, frame-engine video and stills, the render-cut HTML sheet, and the gpu-export DOM and sheet all call the same `evaluateItemMotion(item, t, parentChain)`. Each path passes `motionSource`, `motionParents` ordered from the near parent outward, the keyframe time unit, and the output fps. No path keeps a second composite formula.

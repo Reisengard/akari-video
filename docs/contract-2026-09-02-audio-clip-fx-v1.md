@@ -1,56 +1,41 @@
-# 音声クリップ FX v1
+**English** | [Japanese](./contract-2026-09-02-audio-clip-fx-v1.ja.md)
 
-- 日付: 2026-09-02
-- 状態: 実装契約
-- 対象: legacy `audio.*`、v2 audio item、render-cut、preview-audio sidecar
+# Audio clip FX v1
 
-## 1. 宣言
+- Date: 2026-09-02
+- Status: implementation contract
+- Applies to: legacy `audio.*`, v2 audio items, render-cut, and the preview-audio sidecar
 
-| キー | 対象 | 型・範囲 | 既定 | v2 の位置 |
+## 1. Declaration
+
+| Key | Applies to | Type and range | Default | v2 location |
 |---|---|---|---|---|
-| `speed` | sfx / bgm | number `(0.25, 4]` | `1` | `item.source` |
-| `pitch_semitones` | sfx / bgm | number `[-24, 24]` | `0` | `item.source` |
-| `formant` | sfx / bgm | `preserve \| shift` | `preserve` | `item.source` |
-| `denoise` | sfx / bgm / narration | `{ method: fft \| nlm, strength: 0..1 }` | なし | item |
-| `lowcut_hz` | sfx / bgm / narration | number `[0, 400]` | `0` | item |
+| `speed` | sfx, bgm | number `(0.25, 4]` | `1` | `item.source` |
+| `pitch_semitones` | sfx, bgm | number `[-24, 24]` | `0` | `item.source` |
+| `formant` | sfx, bgm | `preserve` or `shift` | `preserve` | `item.source` |
+| `denoise` | sfx, bgm, narration | `{ method: fft or nlm, strength: 0..1 }` | absent | item |
+| `lowcut_hz` | sfx, bgm, narration | number `[0, 400]` | `0` | item |
 
-`speed` はタイムライン上の `t` を変えず、実効尺を素材窓の尺 / `speed` とする。
-`pitch_semitones` は速度を変えない。narration の `speed` / `pitch_semitones` は TTS 側の責務なので
-lint warning として無視する。legacy と v2 の投影は上表の値を往復で保持する。
+`speed` does not change timeline `t`. The effective duration is the footage window duration divided by `speed`. `pitch_semitones` does not change speed. Narration `speed` and `pitch_semitones` belong to TTS, so a lint warning ignores them. Legacy and v2 projection keep the values in the table in both directions.
 
-## 2. フィルタチェーン
+## 2. Filter chain
 
-クリップごとの順序は次で固定する。
+The per-clip order is fixed.
 
-`atrim(in/out)` → `highpass=f=<lowcut_hz>:p=2` → `highpass=f=<lowcut_hz>:p=2` → denoise →
-`rubberband=tempo=<speed>:pitch=<2^(pitch_semitones/12)>:formant=<preserved|shifted>:pitchq=quality` →
-`volume` → `afade` → envelope `amultiply` → `adelay`
+`atrim(in/out)` then `highpass=f=<lowcut_hz>:p=2` then `highpass=f=<lowcut_hz>:p=2` then denoise then `rubberband=tempo=<speed>:pitch=<2^(pitch_semitones/12)>:formant=<preserved|shifted>:pitchq=quality` then `volume` then `afade` then envelope `amultiply` then `adelay`.
 
-lowcut は同一の 2 次 highpass を 2 段カスケードし、24 dB/oct の減衰特性で L1 ゲート
-（1 oct 下で 15 dB 以上の減衰）を満たすための裁定逸脱とする。
+Lowcut cascades the same second-order highpass twice. That is an intentional exception to the earlier ruling, so the 24 dB/oct slope meets the L1 gate of at least 15 dB down one octave below.
 
-denoise は `fft` なら `afftdn=nr=<12+strength*76>:nf=-30`、`nlm` なら
-`anlmdn=s=<0.00001+strength*0.0002>` とする。rubberband は `speed != 1` または
-`pitch_semitones != 0` のときだけ作る。全キーが既定なら入力もフィルタも追加せず、従来の
-filtergraph をバイト単位で維持する。
+`fft` denoise is `afftdn=nr=<12+strength*76>:nf=-30`. `nlm` denoise is `anlmdn=s=<0.00001+strength*0.0002>`. rubberband is built only when `speed != 1` or `pitch_semitones != 0`. When every key is at its default, no input and no filter are added, and the previous filtergraph stays byte for byte.
 
-fade、envelope、duck のクリップ窓は speed 適用後の実効尺を使う。BGM は素材先頭へ戻る既存の
-ループ意味論を保ち、ループした入力に同じ clip FX を適用してタイムライン尺へ切る。
+Fade, envelope, and duck windows use the effective duration after speed. BGM keeps the existing loop rule that returns to the start of the footage. The same clip FX runs on the looped input, then the result is cut to the timeline duration.
 
-## 3. プレビューサイドカー
+## 3. Preview sidecar
 
-recipe は `preview-audio-flac-v2`。対象クリップの `[in,out)` を `atrim` し、上記と同じ
-clip-FX フィルタ生成関数で処理して 48 kHz FLAC へ焼く。cache key は source の絶対パス・size・
-mtime・in/out・pad・recipe に加え、`atrim` を含む完全なフィルタ列を含む。同一入力・同一列は
-同じ FLAC を再利用し、列が変われば別 key にする。掃除は従来どおり keep key 以外の FLAC と
-旧 `speech-atempo/*.wav` を除く。
+The recipe is `preview-audio-flac-v2`. The target clip's `[in,out)` is `atrim`med, then processed by the same clip-FX filter builder, then written as 48 kHz FLAC. The cache key includes the source absolute path, size, mtime, in, out, pad, and recipe, plus the full filter list including `atrim`. The same input and the same list reuse the same FLAC. A changed list is a different key. Cleanup still drops FLAC files whose keys are not kept, and it still drops old `speech-atempo/*.wav` files.
 
-サイドカー化された sfx / bgm / narration は Web Audio で `playbackRate = 1` とし、FLAC の実尺を
-予定表の実効尺にする。生成失敗時はプレビューを停止せず元ファイルへ退避し、書き出しとの近似が
-崩れる旨を warning 1 行で報告する。
+Sidecar sfx, bgm, and narration play in Web Audio at `playbackRate = 1`. The FLAC duration is the schedule's effective duration. If generation fails, Preview does not stop. Playback falls back to the original file, and one warning line says the Preview approximation of Export has broken.
 
-## 4. provenance と残す近似
+## 4. Provenance and the approximation that remains
 
-receipt の `provenance.audio.clip_fx` は `processed_items` と `filters` の件数を持つ。
-プレビューと書き出しで意図的に残す近似は、サイドカー FLAC の再圧縮とデコーダ／サンプル境界の
-差だけとする。
+A receipt's `provenance.audio.clip_fx` counts `processed_items` and `filters`. The only approximation Preview and Export keep on purpose is recompression of the sidecar FLAC, plus decoder and sample-boundary differences.

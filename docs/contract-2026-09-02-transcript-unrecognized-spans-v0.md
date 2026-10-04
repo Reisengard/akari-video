@@ -1,78 +1,54 @@
-# 文字起こし未認識区間（`unrecognized[]`）契約 v0
+**English** | [Japanese](./contract-2026-09-02-transcript-unrecognized-spans-v0.ja.md)
 
-- 日付: 2026-09-02
+# Unrecognized transcript spans (`unrecognized[]`) v0
+
+- Date: 2026-09-02
 - lifecycle: accepted
-- 対象: `analysis.json` の `transcript[]` と `captions.json` の字幕レコード
+- Applies to: `transcript[]` in `analysis.json` and caption records in `captions.json`
 
-## 0. 位置づけ
+## 0. Place
 
-`unrecognized[]` は、Vrew のインライン表示 `??` に対応する「音はあるが文字にできなかった区間」を記録する。
-「あー」のように語へ起こせなかった声、息継ぎ、雑音、音楽などが対象であり、無音そのものは対象外である。
-この契約はデータと検出・持ち越しだけを定め、`??` の表示や操作は T5b に委ねる。
+`unrecognized[]` records a span that has sound but did not become text, the same idea as Vrew's inline `??`. It covers a vocalization that did not become a word, a breath, noise, or music. Silence itself is out of scope. This contract defines the data, the detection, and the carry into captions. Display and editing of `??` belong to T5b.
 
-## 1. データ模型
+## 1. Data model
 
-analysis.json の各 `transcript[]` セグメントと captions.json の各字幕レコードは、任意の兄弟配列
-`unrecognized: [{ start, end }]` を持てる。`start` / `end` は非負の秒で、analysis では source 秒、
-captions では当該レコードの `time_domain` と同じ時刻ドメイン（省略時は source 秒）に従う。
+Each `transcript[]` segment in analysis.json, and each caption record in captions.json, may carry a sibling array `unrecognized: [{ start, end }]`. `start` and `end` are non-negative seconds. In analysis they are source seconds. In captions they use that record's `time_domain`. When `time_domain` is omitted, they are source seconds.
 
-各配列は `start` 昇順、区間同士が非重複でなければならない。生成側は 0 長区間を出さず、
-`words[]` のどの語区間とも重ねない。`words[]` は本文の認識語だけを保持し、未認識区間を混ぜない。
+Each array is sorted by ascending `start`, and the spans do not overlap. A producer does not emit a zero-length span, and a span does not overlap any word span in `words[]`. `words[]` keeps only recognized words from the body. Unrecognized spans are not mixed in.
 
-## 2. 検出規則
+## 2. Detection rules
 
-検出根拠は次の二つに限る。
+Detection has only two grounds.
 
-1. whisper が明示した非発話マーカー（`[inaudible]`、`[音楽]`、`[拍手]`、
-   `(unintelligible)` など）の時刻区間。`[BLANK_AUDIO]` と `[_BEG_]` / `[_TT_n]` / `[_SOT_]` /
-   `[_EOT_]` / `[_TRANSCRIPT_]` などの制御マーカーは捨てる。
-2. セグメント先頭・語間・末尾にある 0.45 秒以上の語の隙間から、ffmpeg `silencedetect` が検出した
-   無音を引き、0.3 秒以上残った各区間。silencedetect の既定値は `noise=-35dB:d=0.2` とする。
+1. The time span of a non-speech marker whisper stated explicitly, such as `[inaudible]` or `(unintelligible)`, and the same bracket forms with the spellings asserted in `packages/akari-tools/test/unrecognized-spans.test.mjs`. Control markers are dropped. Those are `[BLANK_AUDIO]`, `[_BEG_]`, `[_TT_n]`, `[_SOT_]`, `[_EOT_]`, and `[_TRANSCRIPT_]`.
+2. Each gap of at least 0.45 seconds at the segment start, between words, or at the end, after ffmpeg `silencedetect` silence is subtracted, when at least 0.3 seconds remain. The `silencedetect` default is `noise=-35dB:d=0.2`.
 
-根拠 1 は長さの閾値を適用せず、根拠 2 と重なれば結合する。境界はミリ秒へ丸める。同じ入力、語時刻、
-無音区間、オプションからは常に同じ出力を得る。
+Ground 1 has no length threshold. A span that overlaps ground 2 is merged with it. Boundaries round to milliseconds. The same input, word times, silence spans, and options always produce the same output.
 
-## 3. captions.json への持ち越し
+## 3. Carry into captions.json
 
-`fill-caption-words` は transcript セグメントの `unrecognized[]` を時間重なりで各字幕へ複製し、
-字幕の `[start, end]` へ切り詰める。空ならキーを書かない。既存の非空 `unrecognized[]` は
-`--force` 無しでは保持し、`words[]` の有無や上書き判定とは独立に扱う。
+`fill-caption-words` copies a transcript segment's `unrecognized[]` onto each caption by time overlap, and clips each span to the caption's `[start, end]`. An empty result does not write the key. An existing non-empty `unrecognized[]` is kept unless `--force` is set. That choice is independent of whether `words[]` exists and of the overwrite decision for words.
 
-## 4. lint
+## 4. Lint
 
-schema と validator は配列、要素の exact keys、有限・非負の `start` / `end`、`start <= end`、昇順、
-非重複を検査する。validator は字幕範囲外を許容する。edit-lint は同じ形の違反を
-`captions.schema` error、字幕範囲外を `captions.unrecognized-range` warning、語区間との重なりを
-`captions.unrecognized-overlaps-word` warning として報告する。
+The schema and the validator check the array, exact keys on each element, finite non-negative `start` and `end`, `start <= end`, ascending order, and no overlap. The validator allows a span outside the caption range. edit-lint reports the same shape violations as a `captions.schema` error, a span outside the caption as a `captions.unrecognized-range` warning, and an overlap with a word span as a `captions.unrecognized-overlaps-word` warning.
 
-## 5. 消費側の約束
+## 5. What consumers promise
 
-既存の `words[]` の形、`text` 非空の規律、「1 要素 = 本文の 1 語」という意味は変えない。
-カラオケ描画、語再導出カーネル、既存プレビューは `unrecognized[]` を語として消費しない。
-`??` のインライン表示、置換、カット、QC 連動は T5b の責務である。
+The shape of existing `words[]`, the rule that `text` is non-empty, and the meaning "one element is one word of the body" do not change. Karaoke drawing, the word re-derive kernel, and the existing Preview do not consume `unrecognized[]` as words. Inline `??`, replacement, cutting, and QC linkage are T5b.
 
-## 6. 非スコープ
+## 6. Out of scope
 
-confidence、低確信の認識語を示すマーカー、未認識区間の自動置換・自動カットは本契約に含めない。
-SpeechAnalyzer や cloud バックエンド固有の非発話マーカー解釈も追加せず、語間隙からの検出だけを共通適用する。
+Confidence, a marker for a low-confidence recognized word, and automatic replacement or automatic cutting of an unrecognized span are not in this contract. SpeechAnalyzer and cloud backends do not add their own non-speech marker readings. Only detection from word gaps is shared.
 
-## 7. パネル側の約束（T5b）
+## 7. Panel promise (T5b)
 
-台本パネルは各未認識区間を `??` 固定で時刻順に表示する。表示位置は `span.start >= words[i].end` を
-満たす最後の語の直後とし、該当語が無ければ行頭、最後の語より後なら行末へ置く。`words[]` が無い行では
-本文の末尾へ並べる。`??` は字幕語やカラオケの語 index には含めない。
+The script panel shows each unrecognized span as a fixed `??`, in time order. The display position is immediately after the last word that satisfies `span.start >= words[i].end`. If no such word exists, it goes at the start of the line. If it is after the last word, it goes at the end of the line. On a line with no `words[]`, the marks are placed at the end of the body. `??` is not a caption word and is not a karaoke word index.
 
-聞き取った文字への置換は、`setCaptionFields` の `text` と `unrecognized` を 1 回の書き戻しで更新する。
-本文では `??` の直前にある語の直後へ文字を挿入し、対象区間だけを `unrecognized[]` から除く。新しい語の
-時刻は共通カーネル `rederiveCaptionWords` が前後の保持語の間へ配分し、既存の他語は変更しない。
+Replacing a span with heard text updates `text` and `unrecognized` in one `setCaptionFields` write. The characters are inserted in the body immediately after the word that precedes that `??`, and only the target span is removed from `unrecognized[]`. The shared kernel `rederiveCaptionWords` places the new word's time between the kept words on either side. Other existing words do not change.
 
-映像ごとのカットは対象の `[start, end]` をパディングせず、`kind: 'unrecognized'` として
-`applyCutRanges` へ渡す。カット成功後に対象区間を `unrecognized[]` から除き、字幕側の更新に失敗した場合は
-カット前の edit.json を復元する。
+A per-picture cut passes the target `[start, end]` to `applyCutRanges` with no padding and with `kind: 'unrecognized'`. After a successful cut, the target span is removed from `unrecognized[]`. If the caption update fails, edit.json from before the cut is restored.
 
-文字起こしタブの再生成直列化器と edit-store の `insertCaptionLine` 直列化器は、どちらも非空の
-`unrecognized[]` を保全する。再生成では `edited: true` の行と対応 segment が無い行の既存値をそのまま保ち、
-`edited: false` の再生成行と新規行は analysis segment の区間を字幕の `[start, end]` へミリ秒単位で
-切り詰め、時刻順に並べて隣接・重複区間を結合して持ち越す。空になった配列は書かない。
+The transcript-tab regenerate serializer and the edit-store `insertCaptionLine` serializer both preserve a non-empty `unrecognized[]`. On regenerate, a row with `edited: true`, and a row with no matching segment, keep their existing value. A regenerated row with `edited: false`, and a new row, clip the analysis segment's spans to the caption `[start, end]` at millisecond precision, sort them by time, merge adjacent and overlapping spans, and carry them over. An array that became empty is not written.
 
-低確信の認識語を示すマーカー、1 個の `?`、および `???` の使い分けは T5b の非スコープとする。
+A marker for a low-confidence recognized word, a single `?`, and a distinct use of `???` are out of scope for T5b.

@@ -1,97 +1,84 @@
+**English** | [Japanese](./contract-2026-09-12-review-session-viewer.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-09-12
 updated: 2026-09-12
 ---
 
-# レビューセッション見返しビューア契約
+# Review-session viewer
 
-- 日付: 2026-09-12
-- 状態: draft
-- 前提: `contract-2026-08-11-review-session-ui-events.md`、
-  `contract-2026-08-23-stroke-persistence.md`
-- スコープ: 録音時計 `recT` を基準にした音声・出力プレビュー・描線・文字起こしの同期表示と、
-  録音時点の `edit.snapshot.json` と現在の `edit.json` の差分表示
+- Date: 2026-09-12
+- Status: draft
+- Depends on: `contract-2026-08-11-review-session-ui-events.md` and `contract-2026-08-23-stroke-persistence.md`
+- Scope: synchronized audio, output Preview, strokes, and transcript against the recording clock `recT`, plus a diff between `edit.snapshot.json` at record time and the current `edit.json`
 
-## 0. 版と互換
+## 0. Version and compatibility
 
-本機能は `review/sessions/s-NNNN/` の原本の形を変えず、すべて読むだけで扱う。欠けたファイル、
-壊れた行、未知フィールドは警告または情報なしへ縮退させ、既知の残りを表示する寛容リーダーとする。
-記録原本、manifest、edit.json の migration や書き戻しは行わない。
+This feature does not change the shape of the original files under `review/sessions/s-NNNN/`. It only reads them. A missing file, a broken line, or an unknown field degrades to a warning or to no information, and the known remainder is still shown. The reader is tolerant. It does not migrate or write back the recorded originals, the manifest, or edit.json.
 
-## 1. `readReviewSessionBundle` 読み出し口
+## 1. `readReviewSessionBundle`
 
-入力は次のとおり。
+Input:
 
-| フィールド | 型 | 意味 |
+| Field | Type | Meaning |
 |---|---|---|
-| `projectRootUri` | `string` | ワークスペース内のプロジェクトルート URI |
-| `sessionId` | `string` | `s-NNNN` 形式のセッション ID |
+| `projectRootUri` | `string` | Project-root URI inside the workspace |
+| `sessionId` | `string` | Session id in `s-NNNN` form |
 
-出力は次のとおり。
+Output:
 
-| フィールド | 型 | 意味 |
+| Field | Type | Meaning |
 |---|---|---|
-| `sessionId` | `string` | 読み出したセッション ID |
-| `audioUri` | `string \| null` | `audio.wav` の file URI。欠落時は `null` |
-| `audioDurationSec` | `number` | WAV ヘッダから得た録音尺。読めなければ `0` |
-| `events` | `ReviewSessionEvent[]` | 有効行を `recT` 昇順で安定ソートしたイベント |
-| `strokes` | `ReviewStroke[]` | 既存の寛容な strokes リーダーが返す描線 |
-| `transcript` | `ReviewSessionTranscriptSegment[] \| null` | 発話列。未コンパイル時は `null` |
-| `proposals` | `ReviewSessionProposalSummary[] \| null` | 対象解決の表示用要約。欠落時は `null` |
-| `editSnapshotText` | `string \| null` | 8 MiB 以下の snapshot 生テキスト |
-| `warnings` | `string[]` | 読み飛ばした原本・行の説明 |
+| `sessionId` | `string` | The session id that was read |
+| `audioUri` | `string \| null` | File URI of `audio.wav`. `null` when the file is missing |
+| `audioDurationSec` | `number` | Recording duration from the WAV header. `0` when it cannot be read |
+| `events` | `ReviewSessionEvent[]` | Valid lines, stable-sorted by ascending `recT` |
+| `strokes` | `ReviewStroke[]` | Strokes from the existing tolerant strokes reader |
+| `transcript` | `ReviewSessionTranscriptSegment[] \| null` | Utterance list. `null` when not compiled |
+| `proposals` | `ReviewSessionProposalSummary[] \| null` | Display summary of target resolution. `null` when missing |
+| `editSnapshotText` | `string \| null` | Raw snapshot text at 8 MiB or less |
+| `warnings` | `string[]` | Why an original or a line was skipped |
 
-入口の不正 ID、ワークスペース外、セッションディレクトリ不在だけは例外とする。それ以外の欠落・
-破損は残りを返し、原本へ書き込まない。
+Only an invalid id, a path outside the workspace, or a missing session directory throws. Every other gap or corruption returns the remainder and does not write the originals.
 
-## 2. `recT` から `timelineT` への写像
+## 2. Map from `recT` to `timelineT`
 
-状態は `{playing, anchorTimelineT, anchorRecT, rate}` とし、位置を次で求める。
+State is `{playing, anchorTimelineT, anchorRecT, rate}`. Position is:
 
 `playing ? anchorTimelineT + (recT - anchorRecT) * rate : anchorTimelineT`
 
-| イベント | anchor と状態の更新 |
+| Event | Anchor and state update |
 |---|---|
-| `start` | `timelineT` / `recT` を anchor、`playing` を記録値、`rate=1` |
-| `play` | 先に現位置を求め、有効な `timelineT` または現位置を anchor、`playing=true` |
-| `pause` | 有効な `timelineT` または現位置を anchor、`playing=false` |
-| `seek` | `to` を timeline anchor、イベント `recT` を rec anchor にする |
-| `rate` | 先に現位置を anchor にし、正の `value` を rate にする |
-| `tick` | イベント `timelineT` / `recT` で anchor を打ち直す |
-| `end` | 有効な `timelineT` または現位置を anchor、`playing=false` |
+| `start` | Anchor `timelineT` and `recT`, set `playing` from the recorded value, `rate=1` |
+| `play` | Compute the current position first. Anchor a valid `timelineT` or the current position. `playing=true` |
+| `pause` | Anchor a valid `timelineT` or the current position. `playing=false` |
+| `seek` | `to` becomes the timeline anchor. The event `recT` becomes the rec anchor |
+| `rate` | Anchor the current position first, then set rate from a positive `value` |
+| `tick` | Re-anchor from the event `timelineT` and `recT` |
+| `end` | Anchor a valid `timelineT` or the current position. `playing=false` |
 
-この意味論は `compile-review-session` の時刻写像と同一である。ビューアは `audio.currentTime` を
-`recT` の正本とし、出力プレビューへの seek は既存の requestAnimationFrame 経路で間引く。
+This is the same time map as `compile-review-session`. The viewer treats `audio.currentTime` as the source of truth for `recT`. Seeks into the output Preview are throttled on the existing requestAnimationFrame path.
 
-## 3. 描線の再表示
+## 3. Showing strokes again
 
-描線の寿命と薄れ方は `contract-2026-08-23-stroke-persistence.md` および
-`PEN_TUNING.visibleWindowSec` を正本とする。ビューアはセッションの描線をプレビューへ attach し、
-録音プレイヘッドを動かし、閉じると detach するだけである。描画規則や原本は変更しない。
+Stroke lifetime and fade follow `contract-2026-08-23-stroke-persistence.md` and `PEN_TUNING.visibleWindowSec`. The viewer attaches the session strokes to Preview, moves the recording playhead, and detaches on close. It does not change draw rules or the originals.
 
-## 4. 文字起こしと対象表示
+## 4. Transcript and target display
 
-`transcript.json` があれば発話単位で並べ、現在の `recT` に該当する発話を強調する。発話クリックは
-その開始 `recT` へシークする。`compile-proposals.json` は発話と同じ index で突き合わせ、
-`target`、`sourceT`、low confidence の要確認表示を添える。本票は人間が解決結果を目視確認する
-表示のみで、対象を修正する UI は次段とする。未コンパイル時の導線は定型文をコピーするだけで、
-compile 自体を実行しない。
+When `transcript.json` exists, utterances are listed and the utterance that contains the current `recT` is emphasized. A click seeks to that utterance's start `recT`. `compile-proposals.json` is matched by the same index as the utterance, and the row adds `target`, `sourceT`, and a low-confidence "needs a look" mark. This ticket only shows the resolution so a person can check it. UI that edits the target is a later step. The not-compiled path only copies a fixed sentence. It does not run compile.
 
-## 5. `edit.snapshot.json` との差分
+## 5. Diff against `edit.snapshot.json`
 
-両文書を `readInternalEdit` で読み、全 track の item と再帰的な children を ID で突き合わせる。
-表示する変化は追加、削除、`at` の移動、`duration` の尺変更、media source の `in/out` の素材区間変更の
-5 種である。1 item に複数の変化があれば別々に表示する。v0 / v1 snapshot は「旧形式のため差分を
-出せない」と明示し、migrate しない。
+Both documents are read with `readInternalEdit`. Items on every track, and recursive children, are matched by id. The shown changes are five kinds: add, delete, an `at` move, a `duration` change, and a footage-interval change of a media source's `in` and `out`. Several changes on one item are shown separately. A v0 or v1 snapshot says that the old format cannot produce a diff. It is not migrated.
 
-## 6. 映像
+## 6. Picture
 
-映像面には現在の `edit.json` の出力プレビューを使う。当時の素材や映像を探索・復元しない。
+The picture surface uses the output Preview of the current `edit.json`. It does not search for or restore the footage or the picture from record time.
 
-## 7. 非目標
+## 7. Non-goals
 
-- audio、events、strokes、snapshot、transcript、proposals の書き換え
-- compile の実行や文字起こし生成
-- compile の対象解決や注釈内容の編集
-- 当時の映像・素材の復元
+- Rewriting audio, events, strokes, the snapshot, the transcript, or proposals
+- Running compile, or generating a transcript
+- Editing compile's target resolution or annotation contents
+- Restoring the picture or the footage from record time

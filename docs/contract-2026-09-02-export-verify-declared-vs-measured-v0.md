@@ -1,47 +1,45 @@
+**English** | [Japanese](./contract-2026-09-02-export-verify-declared-vs-measured-v0.ja.md)
+
 ---
 lifecycle: draft
 created: 2026-09-02
 updated: 2026-09-02
 ---
 
-# 書き出し検証「宣言 vs 実測」契約 v0
+# Export verification, declared versus measured, v0
 
-## 1. 背景
+## 1. Background
 
-issue #45 では、長尺の書き出しが既存の ffprobe 検査をすべて通過した一方、宣言した音声が実際には
-デジタル無音で、宣言したカメラワークも出力へ反映されていなかった。尺、フレーム数、解像度、codec
-などの容器検査だけでは、宣言した内容が画・音として現れたかを判定できない。
+In issue #45, a long Export passed every existing ffprobe check, but the declared audio was digital silence and the declared camera move did not appear in the output. Container checks such as duration, frame count, resolution, and codec cannot tell whether the declared picture and sound are actually there.
 
-本契約は全 engine 共通の最終 MP4 に対する `render-cut` の `verifyArtifact` に、容器検査とは別の
-「宣言 vs 実測」層を置く。v0 の対象は音量と media cut の crop / transform keyframes である。
+This contract adds a declared-versus-measured layer to `render-cut` `verifyArtifact`, on the final MP4 shared by every engine. The layer is separate from the container checks. v0 covers loudness and crop or transform keyframes on media cuts.
 
-## 2. 原則
+## 2. Rules
 
-- 宣言を根拠に、最終 MP4 から小さく実測する。中間ファイルや engine 子側の検査を正本にしない
-- 既存の ffprobe / 全フレーム decode による 11 検査を先に実行し、その結果と順序を変えない
-- 音声を宣言したのに全サンプル区間がデジタル無音なら fail。測定不能も fail closed とする
-- カメラワークの酷似判定は誤検知の余地があるため、v0 では warning に留める
-- warning は `verdict: pass`、CLI exit 0、immutable render receipt の作成を妨げない
-- 既存 receipt が閉世界で読む `verification.measured` は変更しない。新しい結果は
-  `verification.declared` に記録し、`.akari/render.json` と render report に残す
+- Measure a small sample of the final MP4, using the declaration as the ground. An intermediate file, or a check inside an engine child, is not the source of truth.
+- Run the existing 11 ffprobe and full-frame-decode checks first. Do not change their results or their order.
+- If audio was declared and every sampled interval is digital silence, fail. A measurement that cannot be made also fails closed.
+- A "too similar" camera-move judgment can false-positive, so v0 keeps it as a warning.
+- A warning does not block `verdict: pass`, CLI exit 0, or creation of the immutable render receipt.
+- Existing receipts read `verification.measured` as a closed world. Do not change it. New results are recorded on `verification.declared`, and they remain in `.akari/render.json` and the render report.
 
-## 3. 検査表
+## 3. Check table
 
-| check | 宣言の根拠 | 測定 | severity | 記録 |
+| check | Declaration ground | Measurement | severity | Record |
 |---|---|---|---|---|
-| 既存 `verify.*` | plan の尺・fps・映像 / 音声 codec 等 | ffprobe + 全フレーム decode | 不一致は error | `verification.measured`（従来どおり） |
-| `verify.audio-level` | `plan.commands.audio_mix.hasAudibleAudio`（BGM / SFX / narration / master）または使用素材の `has_audio` | 最終 MP4 の最大 6 区間へ `volumedetect` | 宣言あり + 最大音量 < −80 dB、または測定不能は error。宣言なし + 音声ストリームありは warning。可聴なら info。音声ストリームなしは skipped | `verification.declared.audio_level` |
-| `verify.motion-static` | 2 点以上の keyframes で crop または transform が変化する cut（先頭から最大 8 cut） | 差が最大の 2 時点を 160×90 gray で抽出し NCC を計算 | NCC ≥ 0.98 は warning、それ未満は info。一様フレームは skipped | `verification.declared.motion[]` |
-| `verify.blank-frames` | `edit.overlays` / `edit.cuts` の活性区間 | 最終 MP4 の全フレームを 1 パスの `signalstats` で測り、YMAX が背景推定値 + 8 以下に 0.3 秒以上張り付く区間を抽出 | 活性 overlay / cut があれば warning、0 件なら info。error にはせず verdict を変えない | `verification.declared.blank_frames[]` |
+| Existing `verify.*` | Plan duration, fps, video and audio codec, and related fields | ffprobe plus a full-frame decode | A mismatch is an error | `verification.measured`, as before |
+| `verify.audio-level` | `plan.commands.audio_mix.hasAudibleAudio` (BGM, SFX, narration, or master) or `has_audio` on footage in use | `volumedetect` on at most 6 intervals of the final MP4 | Declared audio plus a max level below -80 dB, or a measurement that cannot be made, is an error. No declaration plus an audio stream is a warning. Audible audio is info. No audio stream is skipped | `verification.declared.audio_level` |
+| `verify.motion-static` | A cut whose crop or transform changes across 2 or more keyframes, at most 8 cuts from the start | Extract the two times with the largest difference as 160 by 90 gray, and compute NCC | NCC at or above 0.98 is a warning. Below that is info. A uniform frame is skipped | `verification.declared.motion[]` |
+| `verify.blank-frames` | Active spans of `edit.overlays` and `edit.cuts` | Measure every frame of the final MP4 in one `signalstats` pass. Extract a span where YMAX stays at or below the estimated background plus 8 for at least 0.3 seconds | A warning when an active Overlay or cut is present. Info when the count is 0. This is not an error, and it does not change the verdict | `verification.declared.blank_frames[]` |
 
-空フレーム走査は既定 ON（`--no-verify-blank` で停止）とし、背景 YMAX は出力全体の YMAX 観測値の下位 5% の中央値から推定する。`-skip_frame` と縮小は使わず全フレームを測るため、報告する最小連続長は 0.3 秒である。記録は `{start, duration, ymax_max, active_overlays[], active_cuts[], severity}` とし、既存 11 findings の内容と順序、`verification.measured` および receipt payload の閉じたキー集合は変更しない。
+The blank-frame scan is on by default. `--no-verify-blank` stops it. Background YMAX is the median of the lowest 5 percent of YMAX observations over the whole output. The scan does not use `-skip_frame` or a downscale, so the shortest reported run is 0.3 seconds. A record is `{start, duration, ymax_max, active_overlays[], active_cuts[], severity}`. The content and order of the existing 11 findings, `verification.measured`, and the closed key set of the receipt payload do not change.
 
-`verification.declared.audio_level` は次の形を持つ。
+`verification.declared.audio_level` has this shape.
 
 ```jsonc
 {
   "declared": true,
-  "reasons": ["bgm", "素材音声"],
+  "reasons": ["bgm", "footage-audio"],
   "threshold_db": -80,
   "intervals": [
     { "start": 0, "duration": 10, "mean_db": -24.1, "max_db": -3.2 }
@@ -51,13 +49,11 @@ issue #45 では、長尺の書き出しが既存の ffprobe 検査をすべて�
 }
 ```
 
-`verdict` は `pass | fail | warning | skipped`。motion の各記録は
-`{ cut, t1, t2, ncc, verdict }` を基本とし、判定不能時は `ncc: null` と
-`skipped: "uniform" | "measurement"` を残す。
+`footage-audio` names an input whose `has_audio` is true. The token `declaredAudioReasons` pushes for that case is in `packages/render-cut/src/verify-artifact.mjs`. `verdict` is `pass`, `fail`, `warning`, or `skipped`. Each motion record is basically `{ cut, t1, t2, ncc, verdict }`. When it cannot be judged, it keeps `ncc: null` and `skipped` of `"uniform"` or `"measurement"`.
 
-## 4. 音量の区間サンプリング
+## 4. Loudness interval sampling
 
-出力尺を `D` 秒とする。区間数、区間長、各開始時刻は次で決める。
+Let the output duration be `D` seconds. The interval count, the interval length, and each start are:
 
 ```text
 k = min(6, max(1, ceil(D / 300)))
@@ -65,43 +61,38 @@ L = min(30, D)
 s_i = clamp((i + 0.5) * D / k - L / 2, 0, D - L)  (i = 0..k-1)
 ```
 
-`s_i` は小数第 3 位へ丸める。各区間は別々に、入力側 seek となる
-`ffmpeg -ss <s_i> -i <out> -t <L> -vn -af volumedetect` で測る。`mean_volume` と
-`max_volume` は `-inf` も受理し、全区間の `max_volume` の最大を `max_db` とする。
-閾値は v0 固定の −80 dB であり、オプション化しない。
+`s_i` rounds to 3 decimal places. Each interval is measured on its own, with an input seek:
 
-## 5. カメラワークと NCC
+`ffmpeg -ss <s_i> -i <out> -t <L> -vn -af volumedetect`
 
-render edit の keyframe `t` は edit-store により frame から変換済みの**出力ローカル秒**である。
-未投影の frame 値らしき入力を受けた場合だけ `fps` で秒へ直す。検査時刻は
-`T = cut の出力開始秒 + t` とし、`[0, D - 1/fps]` へクランプする。
+`mean_volume` and `max_volume` accept `-inf`. `max_db` is the maximum of `max_volume` across every interval. The threshold is fixed at -80 dB in v0. It is not an option.
 
-crop の `x / y / w / h` の L1 距離が最大になる点対を選び、crop に変化がなければ transform の
-`x / y / scale / rotate` の差が最大になる点対を選ぶ。2 時点から 160×90 の gray rawvideo を抽出し、
-画素列 `a`, `b` に対して正規化相互相関を計算する。
+## 5. Camera move and NCC
+
+A render-edit keyframe `t` is **output-local seconds** already converted from frames by edit-store. Only an input that still looks like an unprojected frame value is converted to seconds with `fps`. The check time is `T = the cut's output start seconds + t`, clamped to `[0, D - 1/fps]`.
+
+Pick the point pair with the largest L1 distance across crop `x`, `y`, `w`, and `h`. If crop does not change, pick the pair with the largest difference across transform `x`, `y`, `scale`, and `rotate`. Extract 160 by 90 gray rawvideo at the two times, and compute the normalized cross-correlation of pixel columns `a` and `b`.
 
 ```text
 NCC = Σ((a - ā)(b - b̄)) / sqrt(Σ(a - ā)² * Σ(b - b̄)²)
 ```
 
-どちらかの標準偏差が 2 未満なら、一色に近く相関では判定できないため `uniform` として skip する。
-それ以外で NCC ≥ 0.98 なら、宣言した異なる画角に対して出力フレームが酷似した warning を出す。
-warning は CLI の PASS 行より前に `WARN verify.motion-static: ...` として表示する。
+If either standard deviation is below 2, the frame is close to one color and correlation cannot judge it, so skip as `uniform`. Otherwise, NCC at or above 0.98 warns that the output frames are too similar for the declared different framing. The warning is printed before the CLI PASS line as `WARN verify.motion-static: ...`.
 
-## 6. v1 候補
+## 6. v1 candidates
 
-- 字幕・オーバーレイの画素抜き取り
-- 原本との照合（原本時刻から出力時刻への写像を定義してから扱う）
-- motion の実測分布に基づく閾値と severity の再裁定
-- 閾値のオプション化
-- gpu-export / osr-export の CLI 直叩きに対する同等検査
+- Sampling pixels of Captions and Overlays
+- A check against the original, after a map from original time to output time is defined
+- A new threshold and severity ruling from the measured motion distribution
+- Making the threshold an option
+- The same checks for a direct CLI call of gpu-export or osr-export
 
-receipt payload の拡張と edit-lint の変更は、上記候補とは別の契約で扱う。
+Extending the receipt payload, and changing edit-lint, belong to a separate contract from the candidates above.
 
-## 7. 検収
+## 7. Acceptance
 
-- 音量区間計画、`-inf` を含む parser、音声の 6 判定、NCC、motion probe 選択を純関数テストで固定する
-- 可聴 tone、デジタル無音、音声ストリームなしを実 ffmpeg で確認する
-- 静止した非一様映像は motion warning、一様映像は `uniform` skip、動く映像は info になる
-- 既存 11 findings の内容と順序、`verification.measured` のキー集合、receipt payload のキー集合を不変に保つ
-- warning が verdict、exit code、receipt 作成を変えず、CLI と HTML report では黄色の行として観測できる
+- Lock the loudness interval plan, the parser that accepts `-inf`, the six audio judgments, NCC, and motion-probe selection with pure-function tests.
+- Confirm an audible tone, digital silence, and a file with no audio stream against real ffmpeg.
+- A still non-uniform picture is a motion warning. A uniform picture is a `uniform` skip. A moving picture is info.
+- Keep the content and order of the existing 11 findings, the key set of `verification.measured`, and the key set of the receipt payload unchanged.
+- A warning does not change the verdict, the exit code, or receipt creation. The CLI and the HTML report show it as a yellow row.
