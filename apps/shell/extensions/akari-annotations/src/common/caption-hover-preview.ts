@@ -79,6 +79,7 @@ export function createCaptionHoverPreview(document: Pick<Document, 'createElemen
 // 出所: akari-preview の src/browser/akari-preview-open-handler.ts の splitCaptionLines。
 // 埋め込み関数のため、静的本文用の分割規則を二重管理する（明示改行 → 句点 → 上限超過時は読点・空白・文節・上限）。
 function splitCaptionLines(text: string, maximum: number): string[] {
+    const boundaries = ['から', 'まで', 'ので', 'のに', 'けど', 'て', 'で', 'は', 'が', 'を', 'に', 'へ', 'と', 'も', 'の'];
     return text.split(/\r?\n/u).flatMap(line => {
         if (!line) return [''];
         return line.split(/(?<=。)/u).flatMap(segment => {
@@ -98,6 +99,13 @@ function splitCaptionLines(text: string, maximum: number): string[] {
                             boundary = index + 1;
                             break;
                         }
+                    }
+                }
+                if (!boundary) {
+                    const prefix = remaining.slice(0, maximum).join('');
+                    for (const phrase of boundaries) {
+                        const index = prefix.lastIndexOf(phrase);
+                        if (index >= 0) boundary = Math.max(boundary, Array.from(prefix.slice(0, index + phrase.length)).length);
                     }
                 }
                 boundary ||= maximum;
