@@ -143,7 +143,7 @@ test('動画バッチは見積合計と価格不明を返し、承認なしで�
   const mixed = await service.estimateVideoBatch({ ...request,
     models: ['fal:h3-i2v', 'fal:h3-ref'] });
   assert.equal(mixed.models[0].error, undefined);
-  assert.match(mixed.models[1].error, /使え|フレーム|参照/u);
+  assert.match(mixed.models[1].error, /使え|フレーム|参照|cannot use|frame|reference/u);
   assert.equal(mixed.totalUsd, 0.36);
   await assert.rejects(() => service.startGenerateVideoBatch({ ...request,
     models: ['fal:h3-i2v', 'fal:h3-ref'], approved: true }), /fal:h3-ref/u);

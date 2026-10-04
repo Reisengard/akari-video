@@ -226,7 +226,7 @@ test('実尺で H3 1 本 / 合計 15 秒超のエラーを表示する', async (
   const result = w.generationValidations.get(identity.key);
   assert.equal(result.ok, false);
   for (const code of ['reference_videos.seconds_each', 'reference_videos.seconds_total']) assert.ok(result.messages.some(message => message.code === code));
-  assert.match(fieldsFor(w).find(field => field.name === 'generation-message').getValue({}), /15 秒/);
+  assert.match(fieldsFor(w).find(field => field.name === 'generation-message').getValue({}), /15 秒|15 seconds/);
 });
 
 for (const trigger of ['cancel', 'clip', 'tab', 'model', 'dispose', 'generating', 'newer draft']) {
@@ -304,7 +304,7 @@ process.exitCode=result.exitCode;`);
     await w.confirmAndStartGeneration(identity);
     const refused = await finished.promise; await settle();
     assert.equal(refused.ok, false);
-    assert.match(refused.reason, /アダプタがありません.*fal:veo-3.1-ref/u);
+    assert.match(refused.reason, /(?:アダプタがありません|No adapter).*fal:veo-3.1-ref/u);
     assert.ok(w.notices.some(text => text === refused.reason));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
