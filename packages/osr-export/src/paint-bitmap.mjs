@@ -84,8 +84,8 @@ export function stampVerifyFailureMessage({
   const classification = classifyStampSamples(samples, expectedFrameNumber);
   const delta = signedStampDelta(samples[0]?.frameNumber, expectedFrameNumber, 65_536);
   const reason = {
-    stale: `${Math.abs(delta)} frames behind (drawing has not caught up)`,
-    ahead: `${delta} frames ahead`,
+    stale: `${Math.abs(delta)} frame(s) behind (drawing has not caught up)`,
+    ahead: `${delta} frame(s) ahead`,
     torn: "the three stamp-row samples disagree (the read caught a frame mid-draw)",
     color: "stamp row color is broken (a blend, filter, or color transform may be reaching the last row)",
     match: "stamp row matches",

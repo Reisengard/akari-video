@@ -29,8 +29,8 @@ export async function runCli(args, io = console) {
       Array.isArray(segment?.unrecognized) ? segment.unrecognized.filter(isUnrecognizedSpan) : [],
     );
     if (transcriptWords.length === 0 && transcriptUnrecognized.length === 0) {
-      io.log("words: 0 items, nothing to fill");
-      io.log("unrecognized: filled 0 spans into 0 captions");
+      io.log("words: 0 item(s), nothing to fill");
+      io.log("unrecognized: filled 0 span(s) into 0 caption(s)");
       return 0;
     }
 
@@ -80,8 +80,8 @@ export async function runCli(args, io = console) {
     });
 
     if (wordsFilled === 0 && unrecognizedFilled === 0) {
-      io.log(`words: ${transcriptWords.length} items, nothing to fill, skipped ${wordsSkipped} existing words`);
-      io.log(`unrecognized: filled 0 spans into 0 captions, skipped ${unrecognizedSkipped} existing unrecognized items`);
+      io.log(`words: ${transcriptWords.length} item(s), nothing to fill, skipped ${wordsSkipped} existing`);
+      io.log(`unrecognized: filled 0 span(s) into 0 caption(s), skipped ${unrecognizedSkipped} existing`);
       return 0;
     }
 
@@ -92,10 +92,10 @@ export async function runCli(args, io = console) {
       await writeFile(captionsPath, updatedSource, "utf8");
     }
     io.log(
-      `words: ${transcriptWords.length} items, filled ${copiedWords} into ${wordsFilled} captions, skipped ${wordsSkipped} existing words${options.dryRun ? " (dry-run)" : ""}`,
+      `words: ${transcriptWords.length} item(s), filled ${copiedWords} into ${wordsFilled} caption(s), skipped ${wordsSkipped} existing${options.dryRun ? " (dry-run)" : ""}`,
     );
     io.log(
-      `unrecognized: filled ${copiedUnrecognized} spans into ${unrecognizedFilled} captions, skipped ${unrecognizedSkipped} existing unrecognized items${options.dryRun ? " (dry-run)" : ""}`,
+      `unrecognized: filled ${copiedUnrecognized} span(s) into ${unrecognizedFilled} caption(s), skipped ${unrecognizedSkipped} existing${options.dryRun ? " (dry-run)" : ""}`,
     );
     return 0;
   } catch (error) {

@@ -88,7 +88,7 @@ test("stamp failure includes measurements, cause, overlays, budget and retry adv
   };
   const message = stampVerifyFailureMessage(base);
   assert.match(message, /^frame 295 stamp verify failed after 12 retries over 3012 ms \(GPU: Intel\(R\) UHD Graphics\)/);
-  for (const part of ["expected stamp 295", "x=0:294", "1 frames behind", "active overlays: warm (CSS: mix-blend-mode: soft-light)", "budget 3000 ms / 32 tries"]) {
+  for (const part of ["expected stamp 295", "x=0:294", "1 frame(s) behind", "active overlays: warm (CSS: mix-blend-mode: soft-light)", "budget 3000 ms / 32 tries"]) {
     assert.ok(message.includes(part), part);
   }
   assert.ok(message.endsWith("Run the same export again"));

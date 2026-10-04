@@ -87,7 +87,7 @@ test("existing words are skipped by default and overwritten only with --force", 
   await withFixture(analysisWith(WORDS), captions, async ({ analysisPath, captionsPath }) => {
     const skipped = run(analysisPath, captionsPath);
     assert.equal(skipped.status, 0, skipped.stderr);
-    assert.match(skipped.stdout, /skipped 1 existing words/);
+    assert.match(skipped.stdout, /^words: .*skipped 1 existing$/m);
     assert.deepEqual(JSON.parse(await readFile(captionsPath, "utf8"))[0].words, existingWords);
 
     const forced = run(analysisPath, captionsPath, ["--force"]);
@@ -102,7 +102,7 @@ test("an analysis without transcript words is a byte-preserving no-op with an ex
     const before = await readFile(captionsPath, "utf8");
     const result = run(analysisPath, captionsPath);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /words: 0 items, nothing to fill/);
+    assert.match(result.stdout, /words: 0 item\(s\), nothing to fill/);
     assert.equal(await readFile(captionsPath, "utf8"), before);
   });
 });
@@ -226,7 +226,7 @@ test("unrecognized を字幕範囲へ切り詰めて words と独立に持ち越
   await withFixture(analysisWith(undefined, spans), captions, async ({ analysisPath, captionsPath }) => {
     const result = run(analysisPath, captionsPath);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /unrecognized: filled 2 spans into 1 captions/u);
+    assert.match(result.stdout, /unrecognized: filled 2 span\(s\) into 1 caption\(s\)/u);
     const [updated] = JSON.parse(await readFile(captionsPath, "utf8"));
     assert.deepEqual(updated.unrecognized, [
       { start: 1, end: 1.2 }, { start: 1.8, end: 2 },
@@ -245,7 +245,7 @@ test("既存 unrecognized は既定で保持し --force のときだけ上書き
   await withFixture(analysisWith(undefined, incoming), captions, async ({ analysisPath, captionsPath }) => {
     const skipped = run(analysisPath, captionsPath);
     assert.equal(skipped.status, 0, skipped.stderr);
-    assert.match(skipped.stdout, /skipped 1 existing unrecognized items/u);
+    assert.match(skipped.stdout, /^unrecognized: .*skipped 1 existing$/mu);
     assert.deepEqual(JSON.parse(await readFile(captionsPath, "utf8"))[0].unrecognized, existing);
 
     const forced = run(analysisPath, captionsPath, ["--force"]);
