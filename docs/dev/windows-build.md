@@ -1,114 +1,88 @@
-# Windows 実機ビルド手順書（Tier 0）
+**English** | [Japanese](./windows-build.ja.md)
 
-AKARI Video のシェル（`apps/shell`、Theia + Electron）を Windows 実機でビルド・パッケージ・
-起動するための実行チェックリスト。上から順にコピペで実行できる。
+# Windows machine build checklist, Tier 0
 
-対象読者: Windows 実機（x64 を想定。ARM64 機の場合は各所の `x64` を `arm64` に読み替え）で
-初めてこのリポジトリをビルドする人。
+A checklist you can copy and run from top to bottom to build, package, and launch the AKARI Video shell on a Windows machine. The shell is `apps/shell`, Theia plus Electron.
 
-> 背景: ビューワーはネイティブ実装ではなく Electron/Chromium の `<video>` + WebCodecs
-> なので、**新規のネイティブビューワー実装は不要**。macOS 依存が残っているのはパッケージング
-> 周辺スクリプトのみで、本書はその上で「実際に Windows でビルドが通るか」を検証する手順。
+Use this checklist when you build this repository for the first time on a Windows machine. Assume x64. On an ARM64 machine, read each `x64` as `arm64`.
 
-## 前提チェック
+> Background. The viewer is not a new native implementation. It is Electron and Chromium `<video>` plus WebCodecs, so **you do not add a native viewer**. What still depends on macOS is the scripts around packaging. This checklist is how you check that a Windows build actually succeeds on top of that.
 
-- [ ] **Node.js**: リポジトリの実態に合わせて **26.3.0**（`.github/workflows/ci.yml` が
-      `node-version: '26.3.0'` を固定使用。ローカル開発機の実測も v26.3.0）。
-      [nodejs.org](https://nodejs.org/) の Windows x64 インストーラ、または
-      `winget install OpenJS.NodeJS` で導入
-- [ ] **git**: 通常のインストーラでよい。ただしリポジトリ直下に **git 管理の symlink が
-      複数存在する**ため、`git clone` の前に以下のいずれかを行うこと（未対応のまま clone
-      すると symlink がテキストファイル化して壊れる — 既知の未対応事項、後述）:
-      - Windows 10 1703+ で「開発者モード」を有効化してから
-        `git config --global core.symlinks true` を設定して clone、または
-      - 管理者権限のシェルで clone（symlink 作成に特権が要る環境向けの代替）
-- [ ] **Visual Studio Build Tools + Python 3.x + Spectre 軽減ライブラリ（事実上必須）**:
-      当初「基本的に不要」としていたが、Windows 実機検証で必須と確定（issue #6 / #8。
-      drivelist の prebuilt 配布が v6.4.3 で停止しており〔v11 以降は GitHub Releases の
-      assets が空〕、全 Windows 実機で node-gyp のソースビルドに落ちるため）。
-      GitHub の windows ランナーには標準搭載のため CI では顕在化しない:
-      - Visual Studio Installer →「C++ によるデスクトップ開発」ワークロード
-      - 個別コンポーネント「**MSVC v143 - VS 2022 C++ x64/x64 Spectre 軽減ライブラリ
-        （最新）**」— 無いと theia build / package が MSB8040 系で失敗する
-        （切り分けが難しい死に方をする。後述トラブルシュート参照）
-      - Python 3.x（[python.org](https://www.python.org/) または
-        `winget install Python.Python.3.12`）
-- [ ] **長いパスの有効化（推奨・issue #6）**: 管理者 PowerShell で
+## Prerequisite check
+
+- [ ] **Node.js.** Match the repository. Use **26.3.0**. `.github/workflows/ci.yml` pins `node-version: '26.3.0'`. A local development machine was also measured at v26.3.0. Install the Windows x64 installer from [nodejs.org](https://nodejs.org/), or run `winget install OpenJS.NodeJS`.
+- [ ] **git.** A normal installer is enough. The repository root contains **several git-managed symlinks**, so do one of the following before `git clone`. If you clone without that, the symlinks turn into text files and break. That failure is a known gap, covered below.
+      - On Windows 10 version 1703 or later, turn on Developer Mode, set `git config --global core.symlinks true`, and then clone. Or
+      - clone from an elevated shell. That is the alternative for a machine that requires a privilege to create a symlink.
+- [ ] **Visual Studio Build Tools, Python 3.x, and the Spectre-mitigated libraries. Treat these as required.** They were first written down as "basically unnecessary", and an on-device Windows check then showed they are required. Issues #6 and #8. drivelist stopped shipping a prebuilt at v6.4.3. From v11 on, the GitHub Releases assets are empty. Every Windows machine therefore falls through to a node-gyp source build. GitHub's Windows runners already have the tools, so CI does not show the failure.
+      - In the Visual Studio Installer, select the "Desktop development with C++" workload.
+      - Select the individual component **"MSVC v143 - VS 2022 C++ x64/x64 Spectre-mitigated libs (Latest)"**. Without it, the Theia build or package fails in the MSB8040 family. The failure is hard to separate from other errors. See the troubleshooting section below.
+      - Python 3.x, from [python.org](https://www.python.org/) or `winget install Python.Python.3.12`.
+- [ ] **Turn on long paths. Recommended. Issue #6.** From an elevated PowerShell:
       ```powershell
       New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
         -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
       ```
-      git の `core.longpaths` とは**別物**。無効のままでも正常ビルドは通り得るが、
-      依存ツリーが壊れてネストが深くなった場合に node_modules が MAX_PATH 260 を超えて
-      削除不能になる（後述トラブルシュート参照）
+      This is **not** git `core.longpaths`. A normal build can still succeed while long paths are off. If a broken dependency tree nests deeply, `node_modules` then passes the MAX_PATH limit of 260 and cannot be deleted. See the troubleshooting section below.
 
-### ネイティブモジュールの扱い（実地調査済み・2026-07-23）
+### How native modules are handled. Checked on a machine, 2026-07-23
 
-このリポジトリのネイティブ依存（`node-pty` / `drivelist` / `keytar` /
-`msgpackr-extract` / `@parcel/watcher`）は全て **prebuild-install 系または
-npm optionalDependencies 系**の仕組みで配布されている。実地確認した結果:
+The native dependencies in this repository are `node-pty`, `drivelist`, `keytar`, `msgpackr-extract`, and `@parcel/watcher`. All of them are distributed through a prebuild-install style mechanism, or through npm `optionalDependencies`. What a machine check found:
 
-| パッケージ | 用途 | win32-x64 の入手経路 |
+| Package | Role | How win32-x64 is obtained |
 |---|---|---|
-| `node-pty` | ターミナル（PTY） | npm パッケージ本体に `prebuilds/win32-x64/{conpty,conpty_console_list}.node` を**同梱**（ダウンロード不要） |
-| `drivelist` | ドライブ一覧 | `install` スクリプトが `prebuild-install --runtime napi` を先に試行するが、**v12 系に prebuilt が存在しない**（GitHub Releases の配布は v6.4.3 が最後・v11 以降 assets 空）→ **必ず node-gyp ソースビルド**（issue #6 実機確定） |
-| `keytar` | 資格情報保存 | `prebuild-install \|\| npm run build` |
-| `msgpackr-extract` | msgpack 高速化 | `node-gyp-build-optional-packages`（npm optionalDependencies 経由の prebuilt バイナリ） |
-| `@parcel/watcher` | ファイル監視（Theia が使用） | `optionalDependencies` に `@parcel/watcher-win32-x64` / `-win32-arm64` を明記。npm が自動選択 |
+| `node-pty` | Terminal, the PTY | The npm package **bundles** `prebuilds/win32-x64/{conpty,conpty_console_list}.node`. No download. |
+| `drivelist` | Drive list | The `install` script tries `prebuild-install --runtime napi` first. **The v12 line has no prebuilt.** GitHub Releases stopped at v6.4.3, and from v11 on the assets are empty. It **always falls through to a node-gyp source build**. Confirmed on a machine in issue #6. |
+| `keytar` | Credential storage | `prebuild-install \|\| npm run build` |
+| `msgpackr-extract` | Faster msgpack | `node-gyp-build-optional-packages`, a prebuilt binary through npm `optionalDependencies` |
+| `@parcel/watcher` | File watching. Theia uses it. | `optionalDependencies` names `@parcel/watcher-win32-x64` and `-win32-arm64`. npm selects one. |
 
-当初（2026-07-23 の机上調査）は「通常はコンパイラ無しで完了する見込み」としていたが、
-**Windows 実機検証（2026-07-27・issue #6）で否定された**: drivelist が必ずソースビルドに
-落ちるため、`npm install` には VS Build Tools + Python + LTO 無効化 env（ビルド手順参照）が
-事実上必須。加えて `npm run package`（@electron/rebuild の node-pty 再ビルド）には
-Spectre 軽減ライブラリも要る（issue #8）。
+A desk check on 2026-07-23 expected that a normal install would finish without a compiler. **An on-device Windows check on 2026-07-27, issue #6, refuted that.** drivelist always falls through to a source build, so `npm install` in practice requires VS Build Tools, Python, and the LTO-off environment from the build steps. In addition, `npm run package` rebuilds node-pty through `@electron/rebuild`, and that rebuild also needs the Spectre-mitigated libraries. Issue #8.
 
-**Electron 向け ABI 変換について**: `apps/shell/package.json` の `build.npmRebuild` は
-未設定（electron-builder のデフォルト `true`）のため、`npm run package`
-（= `electron-builder --dir` 経由）実行時に **`@electron/rebuild` が自動的に全ネイティブ
-モジュールを Electron 39.8.7 の ABI に合わせて検証・再取得する**（`npm install` 時点の
-ホスト Node.js の ABI とは別物）。これは electron-builder 自体の標準動作で、本タスクでの
-追加設定は不要（mac 上での cross-build 検証で `@electron/rebuild` の実行自体は確認済み。
-mac→win のクロスコンパイルは node-gyp の制約で失敗するが、これは mac 実機固有の制約で
-Windows 実機では起こらない）。
+**ABI conversion for Electron.** `build.npmRebuild` in `apps/shell/package.json` is unset, so electron-builder's default `true` applies. When `npm run package` runs, which is `electron-builder --dir`, **`@electron/rebuild` checks every native module and fetches it again for the ABI of Electron 39.8.7**. That ABI is separate from the host Node.js ABI at `npm install` time. This is standard electron-builder behavior. No extra setting is required. A cross-build check on a Mac confirmed that `@electron/rebuild` itself runs. A Mac-to-Windows cross compile fails because of a node-gyp limit. That limit is specific to the Mac machine. It does not happen on a Windows machine.
 
-## ビルド手順
+## Build steps
 
-すべて `apps/shell/` をカレントディレクトリとして実行する。
+Run every step with `apps/shell/` as the current directory.
 
 ```powershell
 cd apps\shell
 
-# 1. 依存インストール（apps/shell 単体を --no-workspaces でインストールする。
-#    apps/shell/package-lock.json は 2026-08-19 から追跡対象）
-#    （ロックファイルが無いため）。CI と異なり --ignore-scripts は付けない
-#    （実機ビルドにはネイティブモジュールの実体が必要なため）
+# 1. Install dependencies for apps/shell alone, with --no-workspaces.
+#    apps/shell/package-lock.json has been a tracked file since 2026-08-19.
+#    Unlike CI, do not pass --ignore-scripts.
+#    An on-device build needs the real native modules.
 #
-#    LTO 無効化は必須（issue #6）: Windows 公式 node.exe は ClangCL + thin LTO ビルドで、
-#    node-gyp が process.config を写すため全ネイティブアドオンのリンクに
-#    /opt:lldltojobs=2 が注入され、MSVC link.exe が LNK1117 で失敗する。drivelist は
-#    prebuilt が無く必ずソースビルドになるので、この env は全 Windows 実機で必要
-#    （CI windows-build.yml と同じ回避）
+#    Disabling LTO is required, issue #6. The official Windows node.exe is a
+#    ClangCL build with thin LTO. node-gyp copies process.config, so every
+#    native addon link is injected with /opt:lldltojobs=2, and MSVC link.exe
+#    fails with LNK1117. drivelist has no prebuilt and always builds from
+#    source, so every Windows machine needs this environment.
+#    The same workaround is in CI, windows-build.yml.
 $env:npm_config_enable_lto = 'false'
 $env:npm_config_enable_thin_lto = 'false'
 npm install --no-workspaces
 
-# 1b. electron 実体の確認と直接配置（issue #7）: Node 24 以降の Windows では electron の
-#     postinstall が zip 展開（extract-zip → yauzl）の read stream 停止により
-#     「無音 exit 0」し、node_modules\electron\dist が生成されないことがある。
-#     このまま進むと theia build が一見無関係なエラーで死ぬため、ここで dist を確認し、
-#     無ければ公式リリース zip を直接配置する（CI windows-build.yml と同じ手当て。
-#     ARM64 機は zip 名の x64 を arm64 に読み替え）
+# 1b. Check the electron binary, and place it directly if it is missing.
+#     Issue #7. On Windows with Node 24 or later, electron's postinstall can
+#     exit 0 with no output. The zip extract, extract-zip then yauzl, stops
+#     its read stream, and node_modules\electron\dist is never created.
+#     If you continue, the Theia build dies on an error that looks unrelated.
+#     Check dist here. If it is missing, place the official release zip
+#     directly. The same fix is in CI, windows-build.yml.
 #
-#     上流の状況（2026-07-28 時点・issue #7 で追跡）: 正本は yauzl#176
-#     （thejoshwolfe/yauzl#177 は duplicate として close）。yauzl 3.3.1 より前は
-#     node stream の destroy() を undefined behavior な形で使っており、新しめの Node が
-#     それを「stream callback が発火しない」形で顕在化させたもの。修正は v3 系のみで
-#     v2 系にはバックポートされない。electron の install.js は extract-zip 2.0.1 →
-#     yauzl ^2 の経路なので、上流の根治は extract-zip / electron 側の yauzl v3 バンプ待ち。
-#     したがってこの直接配置は暫定ではなく恒久の手当てとして扱う
+#     Upstream, as of 2026-07-28, tracked in issue #7. The source of truth is
+#     yauzl#176. thejoshwolfe/yauzl#177 was closed as a duplicate. Before
+#     yauzl 3.3.1, destroy() on a node stream was used in a way that is
+#     undefined behavior, and newer Node shows that as a stream callback that
+#     never fires. The fix is on the v3 line only. It is not backported to v2.
+#     electron's install.js goes through extract-zip 2.0.1 to yauzl ^2, so the
+#     upstream fix waits on extract-zip, or on electron, bumping yauzl to v3.
+#     Treat this direct placement as the lasting fix, not a temporary one.
 if (-not (Test-Path node_modules/electron/dist/electron.exe)) {
   $v = node -p "require('./node_modules/electron/package.json').version"
-  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-x64.zip"
+  $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
+  curl.exe -sSL -o electron.zip "https://github.com/electron/electron/releases/download/v$v/electron-v$v-win32-$arch.zip"
   if (Test-Path node_modules/electron/dist) { Remove-Item -Recurse -Force node_modules/electron/dist }
   Expand-Archive electron.zip -DestinationPath node_modules/electron/dist -Force
   Remove-Item electron.zip
@@ -116,148 +90,77 @@ if (-not (Test-Path node_modules/electron/dist/electron.exe)) {
 }
 node -e "require('fs').accessSync('node_modules/electron/dist/electron.exe'); console.log('electron.exe OK')"
 
-# 2. 拡張のビルド（TypeScript）
+# 2. Build the extensions. TypeScript.
 npm run build:ext
 
-# 3. Theia 本体ビルド（production mode）
+# 3. Build Theia itself. Production mode.
 npm run build
 
-# 4. パッケージング（--dir ターゲット = インストーラ無し・展開済みディレクトリのみ。
-#    NSIS 等の配布形式は第 2 陣で扱う・本書の範囲外）
+# 4. Package. The --dir target means no installer, only an unpacked directory.
+#    NSIS and other distribution forms are the second wave. They are outside
+#    this checklist.
 npm run package
 ```
 
-`npm run package` は内部で次の順に走る（`package.json` の npm ライフサイクルフック）:
-`prepackage`（`copy-native-helpers.mjs` — overlay-runtime / skills / schemas /
-project-default テンプレートの同梱。win32 では node-pty 用の追加コピーは無し・理由は
-上表のとおり `.node` ファイルのみで足りるため / `patch-ripgrep-asar-path.mjs` —
-バンドルの rgPath を asar.unpacked 対応へパッチ〔issue #5〕）→ `electron-builder --dir --win`
-（自動で `@electron/rebuild` → ファイルコピー → asar 生成）→
-`postpackage`（`verify-asar-contents.mjs` — 拡張・skills・schemas・
-project-default テンプレート・node-pty の win32 ネイティブモジュールが
-`electron-builder-out/win-unpacked/resources/app.asar` に同梱されているか、
-および ripgrep が `app.asar.unpacked` 側に unpack され rgPath パッチが適用されて
-いるか〔issue #5〕を検証。「配布はブロックしないがサイズ目安 1536MB 超で警告」も参照）。
+`npm run package` runs the following order internally. These are the npm lifecycle hooks in `package.json`. `prepackage` runs `copy-native-helpers.mjs`, which bundles overlay-runtime, skills, schemas, and the project-default template. On win32 there is no extra copy for node-pty. The table above is why. The `.node` files alone are enough. It also runs `patch-ripgrep-asar-path.mjs`, which patches the bundled rgPath so it works with asar.unpacked. Issue #5. Next is `electron-builder --dir --win`, which runs `@electron/rebuild`, then the file copy, then asar generation. Then `postpackage` runs `verify-asar-contents.mjs`. That script checks that the extensions, skills, schemas, the project-default template, and the win32 native module for node-pty are inside `electron-builder-out/win-unpacked/resources/app.asar`. It also checks that ripgrep is unpacked on the `app.asar.unpacked` side and that the rgPath patch is applied. Issue #5. The same script warns, and does not block distribution, when the size is over the 1536MB guide.
 
-成功すると `apps\shell\electron-builder-out\win-unpacked\AKARI Video.exe` ができる。
+On success you get `apps\shell\electron-builder-out\win-unpacked\AKARI Video.exe`.
 
-## Tier 0 検証チェックリスト
+## Tier 0 verification checklist
 
-- [ ] `electron-builder-out\win-unpacked\AKARI Video.exe` をダブルクリックで起動できる
-      （**未署名ビルドのため SmartScreen 警告が出る** — 既知の未対応事項、後述。
-      「詳細情報」→「実行」で続行）
-- [ ] 起動後、アプリの「はじめる」画面からプロジェクトを新規作成、または既存プロジェクト
-      フォルダを開ける（プロジェクトは単なるフォルダ + `.akari/events` 配下のイベントログ。
-      特別なインストール手順は無い）
-- [ ] 動画ファイルを 1 本読み込み、プレビューでネイティブ再生できる（Chromium `<video>` +
-      WebCodecs 経由。H.264 素材で確認。HEVC は既知の未対応事項を参照）
-- [ ] タイムラインにクリップのサムネイル・波形が表示される（`ffmpeg` 経由。表示されない場合は
-      直下の「ffmpeg 導入」を先に実施してからアプリを再起動。波形は**素材に音声ストリームが
-      ある場合**にクリップ下端の帯として描画される。audio トラック側の波形は `edit.json` の
-      `audio.sfx` に wav/mp3 を 1 本置くと確認できる。振幅がほぼ一定の素材（正弦波等）は
-      帯が一様になり視認しづらいため、確認には実写など振幅変化のある素材を推奨
-      — issue #9 の切り分け・訂正より）
-- [ ] **ffmpeg 導入**: サムネイル/波形生成・音声プレビュー変換は `ffmpeg` が **PATH 上に
-      あること**が前提（バンドルされたバイナリは無い。存在チェックのみでバージョン要件は
-      無い）。未導入の場合:
+- [ ] Double-click `electron-builder-out\win-unpacked\AKARI Video.exe` and confirm it launches. **An unsigned build shows a SmartScreen warning.** That is a known gap, covered below. On an English Windows, choose More info, then Run anyway.
+- [ ] After launch, create a new project from the app's Start screen, or open an existing project folder. A project is only a folder plus the event log under `.akari/events`. There is no separate install step.
+- [ ] Load one video file and confirm native playback in the preview. The path is Chromium `<video>` plus WebCodecs. Check it with H.264 footage. For HEVC, see the known gaps.
+- [ ] Confirm the timeline shows a clip thumbnail and a waveform. Both come through `ffmpeg`. If they do not appear, do the "Install ffmpeg" step immediately below, then restart the app. The waveform is drawn as a band along the bottom of the clip **when the footage has an audio stream**. To check the waveform on the audio-track side, put one wav or mp3 file in `audio.sfx` in `edit.json`. Footage whose amplitude is almost constant, such as a sine wave, draws a uniform band that is hard to see. For the check, use footage whose amplitude changes, such as a live recording. This correction comes from the separation work in issue #9.
+- [ ] **Install ffmpeg.** Thumbnail generation, waveform generation, and audio-preview conversion all assume `ffmpeg` is **on PATH**. There is no bundled binary. The check is only that the binary exists. There is no version requirement. If it is not installed:
       ```powershell
       winget install "Gyan.FFmpeg"
       ```
-      導入後は新しいターミナル/アプリ再起動が必要（PATH 反映のため）。`ffmpeg` が見つからない
-      場合、アプリ側は機能を静かに無効化するだけでクラッシュはしない
-      （「ffmpeg が見つからないため、サムネイルと波形は表示されません」の通知が出る設計）
+      After install, open a new terminal or restart the app, so PATH is picked up. If `ffmpeg` is not found, the app disables the feature quietly and does not crash. The design is a notice that thumbnails and waveforms stay hidden because ffmpeg was not found.
 
-## 既知の未対応事項（正直に）
+## Known gaps
 
-- **HEVC デコード**: 実機の GPU/OS コーデック拡張に依存する。Windows は「HEVC Video
-  Extensions」が既定で入っていない構成が多く、その場合は完全にデコード不能（ソフトウェア
-  フォールバックの抜け道は無い見込み）。H.264 → プロキシ変換によるフォールバックは
-  第 2 陣で設計済み・未着手（内部リポの windows-port 設計計画を参照）
-- **フォント見た目差**: テロップは現状 OS フォントフォールバック（Yu Gothic 等）に依存し、
-  Mac の見た目と差が出る。「壊れないが見た目が変わる」状態。Noto Sans JP 同梱は第 2 陣で
-  設計済み・未着手
-- **codex/claude CLI 連携（akari-partner 拡張）**: `claude` が PATH にある環境は
-  **Windows 実機で動作確認済み**（issue #9 — 右ペイン PTY で CLI の信頼確認プロンプト
-  まで到達。conpty / node-pty prebuilt で動作）。**PATH に無い環境でも起動する** —
-  bootstrap-runner は既知のインストール先（`~/.local/bin` / `~/.claude/bin` /
-  `~/.claude/local`、win32 は `claude.exe`）を絶対パスで先に探し、見つかれば再利用する
-  ため（issue #9 で Windows 実機確認済み — PATH から外しても `~\.local\bin\claude.exe`
-  が起動）。したがってインストーラを実行する bootstrap 本体に入るのは、これらの候補に
-  実体が一切無い環境のみで、**その経路は win32 分岐の実装済み・実機未検証**
-  （旧記述「win32 では例外を投げる」は bootstrap 実装前の情報で、issue #9 の実機確認を
-  受けて更新）
-- **署名なし配布 → SmartScreen 警告**: コード署名していないため、初回起動時に Windows
-  SmartScreen の警告が出る。配布用の署名・NSIS インストーラ化は「配布系」として本書のスコープ外
-  （第 2 陣以降の課題）
-- **render-cut の Chrome/Playwright 解決**: `packages/render-cut` の Chrome 実行ファイル
-  探索ロジックは darwin 判定の分岐が macOS ハードコードで、win32 は Linux 向けの分岐に
-  フォールスルーする（Playwright キャッシュのパス・バイナリ名パターンが Windows と
-  不一致になる見込み）。`CHROME_PATH` / `PUPPETEER_EXECUTABLE_PATH` 環境変数を明示すれば
-  回避できる可能性が高いが未検証。`packages/render-cut/**` は本タスクの編集禁止領域
-  （並行タスク `win-render-cut` が対応予定・現状 待機中）
-- **絶対パス判定**: 素材/音声ソースの絶対パス判定が `startsWith('/')` 前提の箇所があり、
-  `C:\...` 形式のパスでは機能しない可能性がある（`akari-preview-open-handler.ts`。
-  `apps/shell/extensions/**` は本タスクの編集禁止領域）
-- **`npm test`（`node --test test/*.mjs`）**: シェルの glob 展開に依存しており、Windows の
-  `cmd.exe` では `*` が展開されず対象 0 件になる。PowerShell からでも Node 側スクリプトの
-  呼び出し方次第で同じ問題が起き得る（未検証）。本書のビルド手順は `npm test` を経由しない
-  ため Tier 0 到達には影響しない
+- **HEVC decode.** It depends on the GPU and OS codec extension on that machine. Many Windows setups do not include "HEVC Video Extensions" by default. In that case decode fails completely. There is no expected escape through a software fallback. A fallback that converts the file to an H.264 proxy is designed for the second wave and is not started. See the windows-port design plan in the internal repo.
+- **Font look.** Captions currently depend on OS font fallback, such as Yu Gothic, so the look differs from macOS. It does not break. The look changes. Bundling Noto Sans JP is designed for the second wave and is not started.
+- **codex and claude CLI integration, the akari-partner extension.** An environment where `claude` is on PATH is **confirmed working on a Windows machine**. Issue #9. The right-pane PTY reaches the CLI's trust-confirmation prompt. It works through conpty and the node-pty prebuild. **It also starts when the tool is not on PATH.** bootstrap-runner first looks up known install locations by absolute path, and reuses a binary it finds. The locations are `~/.local/bin`, `~/.claude/bin`, and `~/.claude/local`. On win32 the file name is `claude.exe`. Issue #9 confirmed this on a Windows machine. Remove the directory from PATH and `~\.local\bin\claude.exe` still starts. The bootstrap body that runs an installer is therefore entered only when none of those candidates exist. **That path is implemented on the win32 branch and is not yet verified on a machine.** The old sentence, that win32 throws, was written before the bootstrap implementation. It was updated after the on-device check in issue #9.
+- **Unsigned distribution, and the SmartScreen warning.** The build is not code-signed, so Windows SmartScreen warns on the first launch. Signing for distribution, and an NSIS installer, are distribution work. They are outside this checklist, and they are work for the second wave or later.
+- **How render-cut resolves Chrome and Playwright.** The Chrome executable search in `packages/render-cut` has a darwin branch that is hardcoded for macOS. win32 falls through to the Linux branch. The Playwright cache path and the binary-name pattern are then likely to disagree with Windows. Setting `CHROME_PATH` or `PUPPETEER_EXECUTABLE_PATH` is a likely workaround, and it is not verified. `packages/render-cut/**` was an edit-forbidden area for the task that wrote this checklist. A parallel task, `win-render-cut`, was going to take it, and at the time of writing that task was waiting.
+- **Absolute-path checks.** Some checks for an absolute path on a footage source or an audio source assume `startsWith('/')`. A path of the form `C:\...` may not work. See `akari-preview-open-handler.ts`. `apps/shell/extensions/**` was an edit-forbidden area for the task that wrote this checklist.
+- **`npm test`, which is `node --test test/*.mjs`.** It depends on the shell expanding the glob. `cmd.exe` on Windows does not expand `*`, so the run matches zero files. The same problem can happen from PowerShell, depending on how the Node-side script is invoked. Not verified. The build steps in this checklist do not go through `npm test`, so reaching Tier 0 is unaffected.
 
-## トラブルシュート（Windows 実機で実際に踏まれた穴）
+## Troubleshooting. Holes actually hit on a Windows machine
 
-### install が一度失敗したら node_modules を消し、lock は追跡版に戻す（issue #6）
+### If install fails once, delete node_modules and put the lockfile back to the tracked copy. Issue #6
 
-失敗した `npm install` が `apps\shell\package-lock.json` を書き換え、壊れた依存ツリー
-（例: @theia/monaco-editor-core が root に hoist されず 13 箇所にネスト）を固定することが
-ある。症状例: theia build の esbuild が
-`Could not resolve "@theia/monaco-editor-core/esm/vs/editor/common/services/editorWebWorkerMain.js"`
-で失敗し続ける。
+A failed `npm install` can rewrite `apps\shell\package-lock.json` and pin a broken dependency tree. One example is `@theia/monaco-editor-core` not hoisted to the root, and nested in 13 places instead. A symptom is the Theia build's esbuild failing, and keeping on failing, with `Could not resolve "@theia/monaco-editor-core/esm/vs/editor/common/services/editorWebWorkerMain.js"`.
 
-lockfile は 2026-08-19 から追跡対象なので、**ファイルを消さずに追跡版へ戻す**（消すと固定されて
-いない lock が作り直される）。
+The lockfile has been tracked since 2026-08-19, so **put the file back to the tracked copy. Do not delete the file.** Deleting it recreates a lock that is not pinned.
 
 ```powershell
 Remove-Item -Recurse -Force node_modules
 git checkout -- package-lock.json
-# そのうえで LTO 無効化 env を設定し直して npm install --no-workspaces をやり直す
+# Then set the LTO-off environment again and rerun npm install --no-workspaces.
 ```
 
-### MSB8040（Spectre 軽減ライブラリ）で失敗する（issue #8）
+### Failure on MSB8040, the Spectre-mitigated libraries. Issue #8
 
-`error MSB8040: Spectre 軽減のライブラリは、このプロジェクトに必要です` の顕在化は 2 箇所:
+The visible form is `error MSB8040`, the project requires the Spectre-mitigated libraries. It shows up in two places.
 
-- **@vscode/windows-ca-certs**（optionalDependency）: install は exit 0 のまま**黙って**
-  パッケージが外され、後段の theia build が `Could not resolve path of module:
-  @vscode/windows-ca-certs [plugin @theia/esbuild-plugin]` で止まる（エラー文面から
-  Spectre に辿り着きにくい代表例。win32 のみ必須解決される実装のため mac/linux では出ない）
-- **node-pty**（`npm run package` 中の @electron/rebuild）: optional ではないため
-  package が確定で失敗する
+- **`@vscode/windows-ca-certs`**, an `optionalDependency`. Install still exits 0, the package is **silently** dropped, and a later Theia build stops on `Could not resolve path of module: @vscode/windows-ca-certs [plugin @theia/esbuild-plugin]`. This is the representative case where the error text does not lead you to Spectre. The implementation resolves this package only on win32, so macOS and Linux do not show it.
+- **node-pty**, during `@electron/rebuild` inside `npm run package`. It is not optional, so package fails for certain.
 
-恒久対応は前提チェックの Spectre 軽減ライブラリ導入。検証を先へ進めるだけなら
-`npx electron-builder --dir -c.npmRebuild=false` で node-pty 再ビルドを飛ばせる
-（node-pty は NAPI prebuilt 同梱のため PTY は動作する — issue #9 の Tier 0 実測どおり。
-恒久運用には非推奨）。
+The lasting fix is the Spectre-mitigated library from the prerequisite check. If you only need to move verification forward, skip the node-pty rebuild with `npx electron-builder --dir -c.npmRebuild=false`. node-pty ships a NAPI prebuild, so the PTY still works. That matches the Tier 0 measurement in issue #9. Do not use the skip as the lasting setup.
 
-### 長パスで node_modules が消せない（issue #6 補足）
+### node_modules cannot be deleted because of a long path. Supplement to issue #6
 
-LongPathsEnabled=0（Windows 既定）の環境では、ネストした node_modules が MAX_PATH 260 を
-超えると通常のツールで削除できなくなる（Python shutil.rmtree の WinError 145 等）。
-`\\?\` プレフィックス付き絶対パス（例: `cmd /c rd /s /q "\\?\C:\path\to\node_modules"`）
-なら削除できる。恒久対応は前提チェックの LongPathsEnabled 有効化。
+On a machine with `LongPathsEnabled=0`, the Windows default, a nested `node_modules` that passes MAX_PATH 260 can no longer be deleted by ordinary tools. One symptom is WinError 145 from Python `shutil.rmtree`. An absolute path with the `\\?\` prefix can still delete it, for example `cmd /c rd /s /q "\\?\C:\path\to\node_modules"`. The lasting fix is to turn on `LongPathsEnabled`, from the prerequisite check.
 
-### npm が install scripts を保留する構成の場合
+### When npm holds install scripts back
 
-CI ランナーの npm では allow-scripts ゲートが electron 等の install script を保留する挙動を
-実測している（windows-build.yml のコメント参照）。実機の npm 11.16 では警告のみで script は
-実行される観測もあり（issue #7）、挙動は環境依存。いずれの場合も electron については
-手順 1b の直接配置が決定的な回避になる。他のネイティブモジュールが保留された場合は
-`npm approve-scripts --no-workspaces <パッケージ名...>` で承認して `npm rebuild --no-workspaces`
-を実行する（CI と同じ手当て）。
+On the CI runner's npm, the allow-scripts gate has been measured holding back install scripts such as electron's. See the comment in windows-build.yml. On npm 11.16 on a machine, there is also an observation that the warning is the only effect and the script still runs. Issue #7. The behavior depends on the environment. In either case, the direct placement in step 1b is the deterministic workaround for electron. If another native module is held back, approve it with `npm approve-scripts --no-workspaces <package-name...>` and then run `npm rebuild --no-workspaces`. That is the same fix CI uses.
 
-## 参考
+## References
 
-- 設計の正本: 内部リポ（`akari-video-internal`）の windows-port 設計計画
-- Windows 実機での検証記録: issue #5（パッケージ版ファイル検索）/ #6（install 前提）/
-  #7（electron postinstall）/ #8（Spectre）/ #9（Tier 0 チェックリスト一周）
-- 本書が検証する範囲は「ビルドが通り、アプリが起動し、基本機能が動く」Tier 0 まで。
-  配布形式（NSIS 等）・コード署名・Windows 版 CI は範囲外
+- The design source of truth is the windows-port design plan in the internal repo, `akari-video-internal`.
+- On-device Windows verification records. Issue #5, packaged-build file search. Issue #6, install prerequisites. Issue #7, electron postinstall. Issue #8, Spectre. Issue #9, one pass of the Tier 0 checklist.
+- The range this checklist verifies is Tier 0. The build succeeds, the app launches, and the basic features work. Distribution forms such as NSIS, code signing, and a Windows CI job are outside that range.

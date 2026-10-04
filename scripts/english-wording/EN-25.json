@@ -1,5 +1,5 @@
 {
   "id": "EN-25",
   "glob": "{docs/notes-*.md,docs/design-2026-07-13-agent-native-architecture.md,docs/dev/windows-build.md}",
-  "max": 11480
+  "max": 0
 }
