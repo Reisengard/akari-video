@@ -1,83 +1,83 @@
-# AKARI Video プロジェクトの進め方
+# How to work in an AKARI Video project
 
-ライブラリの置き場は既定で作業場の `library/`。作業場が無いときは従来の `~/.akari/assets/` を使う。
-`akari-assets list`（または `akari assets list`）の先頭行で実際の置き場を確認する。
-以下の `<ライブラリの置き場>` はその表示先を指し、音源はその下の `audio/` に入る。
+By default the library lives in `library/` in the workspace. When there is no workspace, the older `~/.akari/assets/` is used.
+The first line of `akari-assets list` (or `akari assets list`) shows the location actually in use.
+`<library location>` below means that location. Audio goes in `audio/` under it.
 
-> **Language**: Respond in the user's language — 対話・質問・承認確認・レポートはユーザーの使用言語に合わせる（例: 英語で話しかけられたら英語で応答する）。
+> **Language**: Respond in the user's language. Match conversation, questions, approval prompts, and reports to the language the user writes in (for example, answer in Japanese when the user writes in Japanese).
 
-- `assets/` は元動画と音声を置く素材の場所。英語の名前は変えず、原本を書き換えたり削除したりしない。
-- `planning/` は企画、分析レポート、編集計画など、人が読む成果物を置く場所。
-- `exports/` は完成した動画を書き出す場所。
-- `.akari/sidecars/` は素材の分析結果、`.akari/events/` は作業の節目の記録を置く場所。
-- 素材の分析結果は `.akari/sidecars/<assets 以下の相対パス>.meta.json` に保存する。
-- レポート作成、承認、編集完了、書き出し完了の節目では、`.akari/events/` に記録を
-  1 件ずつ新しく追加する。すでにある記録は書き換えたり削除したりしない。
-- `.akari/intake.json` の `status` が `submitted` なら `tasks` / `target` / `autonomy` に
-  従って進める。`autonomy: checkpoint`（既定）なら企画承認・書き出し前などの要所で
-  利用者に確認する。`status: draft` なら進め方が未確定のため、フォームまたは対話で
-  確定させてから進める。
-- 進め方を `.akari/intake.json` に書くときは、`tasks` は決められた 5 つの id だけを使い、`target` は `duration_s` か `keep_length: true` のどちらか片方にする。
-  `status` を `submitted` にする前に lint で確認する。
-- プロジェクトルート直下に新規ファイルを作らない（`edit.json` 等の既存契約ファイルを除く）。
-  生成物は `.akari/work/`、証跡は `.akari/reports/`、キャッシュは `.akari/cache/` に置く。
-  詳しい層の定義は[公開リポの正典](https://github.com/AkariLabs/akari-video/blob/main/docs/contract-2026-07-25-project-structure-v0.md)を参照する。
-  ローカル候補は (b) `install.sh` 経路の `~/.akari/app/docs/contract-2026-07-25-project-structure-v0.md`、
-  (c) モノレポの `<repo>/docs/contract-2026-07-25-project-structure-v0.md` である。
+- `assets/` holds the footage: source video and audio. Keep the English folder name, and do not rewrite or delete the originals.
+- `planning/` holds what a person reads: plans, analysis reports, and edit plans.
+- `exports/` is where finished videos are exported.
+- `.akari/sidecars/` holds analysis results for the footage, and `.akari/events/` holds the record of milestones in the work.
+- Save the analysis result for a file in `.akari/sidecars/<path relative to assets>.meta.json`.
+- At each milestone (report written, approval, edit complete, export complete), add one new record to
+  `.akari/events/`. Do not rewrite or delete a record that already exists.
+- When `status` in `.akari/intake.json` is `submitted`, follow its `tasks` / `target` / `autonomy`.
+  With `autonomy: checkpoint` (the default), check with the user at key points such as plan approval
+  and before export. With `status: draft`, how to proceed is not settled yet, so settle it through
+  the form or in conversation before you proceed.
+- When you write how to proceed into `.akari/intake.json`, use only the five defined ids for `tasks`, and set `target` to either `duration_s` or `keep_length: true`, never both.
+  Check with lint before you set `status` to `submitted`.
+- Do not create new files directly under the project root (except existing contract files such as `edit.json`).
+  Put generated files in `.akari/work/`, evidence in `.akari/reports/`, and caches in `.akari/cache/`.
+  For the full definition of the layers, see [the canonical document in the public repo](https://github.com/AkariLabs/akari-video/blob/main/docs/contract-2026-07-25-project-structure-v0.md) (Japanese).
+  Local copies are (b) `~/.akari/app/docs/contract-2026-07-25-project-structure-v0.md` on the `install.sh` route,
+  and (c) `<repo>/docs/contract-2026-07-25-project-structure-v0.md` in the monorepo.
 
-## プレビューの確認
+## Checking the preview
 
-プレビューは既存機能を使う。提供するためだけに専用の再生 HTML・再生 UI・音声同期を
-新規実装しない（独立した再生ページを利用者が明示依頼した場合を除く）。
-アプリで対象プロジェクトの出力プレビューを開く。ブラウザ版は「メニュー」→
-「ブラウザプレビュー」から起動できる。詳しくは
-[既存プレビューの起動・確認](.claude/skills/edit-lint/preview.md) を読む。
-起動できない場合は原因と再現条件を記録する。確認済みと報告するには既存画面で
-再生・シーク・音声（ある場合）を確認し、アプリ内／既存ブラウザのどちらかを明記する。
-描画部品や別ページだけの検証を、既存プレビューの確認済みとして扱わない。
+Use the existing preview. Do not build a dedicated playback HTML page, playback UI, or audio sync
+just to provide one (unless the user explicitly asks for a standalone playback page).
+Open the output preview for the project in the app. The browser version starts from "Menu" →
+"Browser Preview". For details read
+[Starting and checking the existing preview](.claude/skills/edit-lint/preview.md).
+If it does not start, record the cause and the conditions that reproduce it. To report it as checked,
+confirm playback, seeking, and audio (when there is any) on the existing screen, and say whether that was
+in the app or in the existing browser preview.
+Checking only a rendering component or a separate page does not count as checking the existing preview.
 
-## AKARI Video の在処
+## Where AKARI Video lives
 
-- `~/.akari/cli` … CLI 本体とシム（macOS / Linux は `~/.akari/cli/bin/akari`、Windows は `~/.akari/cli/bin/akari.cmd`）。パートナー接続時に配備される。
-- `~/.akari/app` … `install.sh` 経路で入れた本体。デスクトップアプリだけを使っている場合は存在しなくてよい。
-- アプリ同梱の `<App>/Contents/Resources/packages/` … render-cut・edit-lint などの CLI 実体。Windows は `<install dir>\resources\packages\`。
-- アプリ同梱の `<App>/Contents/Resources/media-bin/` … ffmpeg・ffprobe。whisper-cli はビルドにより同梱されないことがある。Windows は `<install dir>\resources\media-bin\`。
-- `<ライブラリの置き場>` … 素材ライブラリの実体。
+- `~/.akari/cli` … the CLI and its shim (`~/.akari/cli/bin/akari` on macOS / Linux, `~/.akari/cli/bin/akari.cmd` on Windows). It is deployed when the partner connects.
+- `~/.akari/app` … AKARI Video itself on the `install.sh` route. It may be absent when only the desktop app is used.
+- `<App>/Contents/Resources/packages/` bundled with the app … the CLIs such as render-cut and edit-lint. On Windows this is `<install dir>\resources\packages\`.
+- `<App>/Contents/Resources/media-bin/` bundled with the app … ffmpeg and ffprobe. whisper-cli is not bundled in every build. On Windows this is `<install dir>\resources\media-bin\`.
+- `<library location>` … the asset library files.
 
-どれも PATH には無い前提とする。パートナー PTY 以外の端末では、macOS / Linux は `~/.akari/cli/bin/akari`、Windows は `~/.akari/cli/bin/akari.cmd` をフルパスで実行する（Windows の入口は `akari.cmd` だけであり、拡張子を省くと Git Bash では見つからない）。
+Assume none of these are on PATH. In a terminal other than the partner PTY, run `~/.akari/cli/bin/akari` on macOS / Linux or `~/.akari/cli/bin/akari.cmd` on Windows by its full path (on Windows the only entry point is `akari.cmd`; Git Bash does not find it without the extension).
 
-## 素材が足りないとき
+## When footage is short
 
-- アカウントの素材ライブラリ（無料全部 + 購入済み）は `akari assets list` で見える。
-- `akari assets fetch <id> --project .` でこのプロジェクトへ取り込む（sha256 検証込み）。
-- 有料素材は `akari store connect` 接続済みのアカウントで購入していれば使える。未購入は
-  `locked` と価格が表示される。
-- ライブラリの実体は `<ライブラリの置き場>/` に置かれる。直接編集せず、上記コマンド経由で操作する。
+- `akari assets list` shows the account's asset library (everything free plus what was purchased).
+- `akari assets fetch <id> --project .` brings an asset into this project (the sha256 is verified).
+- A paid asset can be used when the account connected with `akari store connect` has purchased it. One that is
+  not purchased shows as `locked` with its price.
+- The library files live in `<library location>/`. Do not edit them directly. Go through the commands above.
 
-## プロジェクト内のスキル
+## Skills in the project
 
-`.claude/skills/` 配下の全ディレクトリがそのまま使える。主なもの:
+Every directory under `.claude/skills/` can be used as is. The main ones:
 
-- `/analyze-footage` … 素材ごとの分析
-- `/analyze-project` … 複数素材とプロジェクト文脈の統合分析
-- `/edit-plan` … 編集計画、レポート、承認、生成
-- `/overlay-authoring` … テロップ、図、3D などの画面要素の制作
-- `/edit-lint` … 編集結果の決定的な検査と QA
-- `/render-cut` … 承認済み編集の書き出しと検証
-- `/setup-library` … 素材ライブラリの準備
-- `/address-review` … open なレビュー指摘への対応
+- `/analyze-footage` … analysis of each piece of footage
+- `/analyze-project` … combined analysis of several pieces of footage and the project context
+- `/edit-plan` … edit plan, report, approval, and generation
+- `/overlay-authoring` … making on-screen elements such as captions, diagrams, and 3D
+- `/edit-lint` … deterministic checks and QA of the edit result
+- `/render-cut` … export and verification of the approved edit
+- `/setup-library` … preparing the asset library
+- `/address-review` … handling open review comments
 
-Codex / Cursor 等のハーネスでは `.agents/skills/` / `.cursor/skills/` / `.codex/skills/`（`.claude/skills/` への symlink）から
-同じスキルが自動発見される。
+In harnesses such as Codex and Cursor, the same skills are discovered automatically from `.agents/skills/` / `.cursor/skills/` / `.codex/skills/` (symlinks to `.claude/skills/`).
 
-スキルを自動で読まない作業環境では、プロジェクト内相対パス
-`.claude/skills/<スキル名>/SKILL.md` から手順を直接読む。
-`.claude/skills/` のディレクトリ一覧が、使えるスキルの一覧そのものである。
+In an environment that does not load skills automatically, read the steps directly from the project-relative path
+`.claude/skills/<skill name>/SKILL.md`.
+The list of directories in `.claude/skills/` is the list of skills that can be used.
 
-分析結果と節目の記録の詳しい約束は
-`.claude/skills/analyze-footage/references/akari-data-contract.md` を参照する。
+For the detailed rules about analysis results and milestone records, see
+`.claude/skills/analyze-footage/references/akari-data-contract.md`.
 
-利用者へ説明するときは利用者の使用言語を使い、内部の仕組みの名前ではなく、
-「変更履歴」「企画メモ」「素材」など役割が伝わる言葉を使う。
+When you explain something to the user, use the user's language, and use words that convey the role,
+such as "version history", "planning notes", and "footage", not the names of internal mechanisms.
 
-この案内はこのプロジェクトのものです。運用に合わせて自由に書き換えて構いません。
+This guide belongs to this project. Rewrite it freely to fit how you work.
