@@ -403,7 +403,7 @@ async function requestAutoProxy(
 ): Promise<string | null> {
   if (!isCurrent()) return null;
   const path = autoProxyPath(candidate.originalUrl);
-  ui.showNotice(`プロキシ生成中…（${candidate.id}）`);
+  ui.showNotice(`Generating a proxy (${candidate.id})`);
   try {
     const start = await fetch('/api/auto-proxy', {
       method: 'POST',
@@ -496,8 +496,8 @@ async function resolveSourceChoices(
     if (!context.isCurrent()) return;
     const failed = failedProxies.values().next().value;
     const pending = pendingProxies.values().next().value;
-    if (failed) context.ui.showNotice(`プロキシを生成できませんでした（${failed}）`);
-    else if (pending) context.ui.showNotice(`プロキシ生成中…（${pending}）`);
+    if (failed) context.ui.showNotice(`Could not generate a proxy (${failed})`);
+    else if (pending) context.ui.showNotice(`Generating a proxy (${pending})`);
     else context.ui.clearNotice();
   };
   // 構図の基準（不具合メモ 第10項）。復号する URL が原本と違う（軽量版へ解決済みの
@@ -876,7 +876,7 @@ class FrameEngineRuntime {
       onWarning: message => this.showError(message, false),
       onSoftwareFallbackDenied: support => {
         if (!(choice?.support?.hw || choice?.support?.any)) {
-          this.ui.showNotice(`ソフトウェアデコード非対応: ${support.codec}`);
+          this.ui.showNotice(`Software decode is not supported: ${support.codec}`);
         }
       },
     });

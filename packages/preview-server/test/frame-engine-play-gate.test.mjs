@@ -46,7 +46,7 @@ test('Web UI は描画後のゲート位置を要求時計と表示時計に戻�
 
 test('Web UI の音声表示は degraded、gate、preparing の順で待機秒数を示す', () => {
   const status = section(app, 'function updateAudioStatus()', 'function requestAudioRefresh()');
-  for (const message of ['一部の音声を再生できません', '音声を待っています', '音声を準備中']) {
+  for (const message of ['Cannot play some audio', 'Waiting for audio', 'Preparing audio']) {
     assert.match(status, new RegExp(message, 'u'));
   }
   const degraded = status.indexOf("if (supply?.phase === 'degraded')");

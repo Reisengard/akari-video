@@ -229,7 +229,7 @@ test('video FX projection resolves LUT and source/layer chroma without mutating 
     path.join(project('inert'), '.akari', 'preview-projection'),
     project('inert'),
   );
-  assert.deepEqual(master.indicators, ['音声マスター処理']);
+  assert.deepEqual(master.indicators, ['Audio master processing']);
 });
 
 function makeAudioMasterProject() {
@@ -306,7 +306,7 @@ test('audio.master is disclosed in the indicators popup', async (t) => {
     fs.rmSync(project, { recursive: true, force: true });
   });
   await opened.page.click('#indicator-toggle');
-  assert.match(await opened.page.locator('#indicator-popup').textContent(), /音声マスター処理/);
+  assert.match(await opened.page.locator('#indicator-popup').textContent(), /Audio master processing/);
 });
 
 test('forced rail failure collapses canvases, discloses LUT and keeps playback running', async (t) => {

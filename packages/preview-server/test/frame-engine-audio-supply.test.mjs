@@ -57,8 +57,8 @@ test('音声状態の通知は runtime を作り直さず updateAudio へ渡し�
   assert.match(app, /setInterval\(updateAudioStatus, 250\)/u);
   const status = app.split('function updateAudioStatus()')[1].split('function requestAudioRefresh()')[0];
   assert.match(status, /audioDebug\(\)\.supply/u);
-  assert.match(status, /音声を準備中/u);
-  assert.match(status, /一部の音声を再生できません/u);
+  assert.match(status, /Preparing audio/u);
+  assert.match(status, /Cannot play some audio/u);
   assert.doesNotMatch(status, /frameEngineMetrics/u);
   assert.match(html, /id="audio-status" class="audio-status" role="status" aria-live="polite" hidden/u);
   assert.match(html, /href="\/style\.css"/u);

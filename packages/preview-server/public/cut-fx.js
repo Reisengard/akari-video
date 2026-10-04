@@ -96,17 +96,17 @@ export function createCutFxController(readState) {
       writeTimers.delete(key);
       writeTail = writeTail.then(async () => {
         const response = await fetch('/api/summary');
-        if (!response.ok) throw new Error(`edit.json を読めません: HTTP ${response.status}`);
+        if (!response.ok) throw new Error(`Cannot read edit.json: HTTP ${response.status}`);
         const edit = await response.json();
         const target = edit?.cuts?.[cutIndex]?.fx?.[sourceIndex];
-        if (!target || target.id !== id) throw new Error('保存対象の FX が変更されました');
+        if (!target || target.id !== id) throw new Error('The FX being saved has changed');
         target.intensity = intensity;
         const put = await fetch('/api/edit.json', {
           method: 'PUT',
           headers: { 'content-type': 'application/json', 'x-akari-preview-projection': '1' },
           body: JSON.stringify(edit),
         });
-        if (!put.ok) throw new Error(`FX の保存に失敗しました: HTTP ${put.status}`);
+        if (!put.ok) throw new Error(`Could not save the FX: HTTP ${put.status}`);
         controls.dataset.saveState = 'saved';
       }).catch((error) => {
         controls.dataset.saveState = 'error';

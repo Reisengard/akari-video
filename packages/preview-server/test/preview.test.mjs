@@ -607,7 +607,7 @@ async function main() {
     await outPage.goto(`${BASE}/?mode=output&frameEngine=0`, { waitUntil: 'load', timeout: 15000 });
 
     const outTitle = await outPage.title();
-    outTitle.includes('出力') ? ok('Output page title') : ng('Output page title', `got "${outTitle}"`);
+    outTitle.includes('output') ? ok('Output page title') : ng('Output page title', `got "${outTitle}"`);
 
     await outPage.waitForSelector('#play-toggle', { timeout: 10000 });
     const outBtn = outPage.locator('#output-preview-btn');

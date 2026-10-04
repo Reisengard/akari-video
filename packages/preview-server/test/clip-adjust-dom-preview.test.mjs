@@ -18,7 +18,7 @@ test('Web UI wheels-only indicator executes on DOM and is suppressed on frame-en
   }`, { computeAdjustCssVisual });
   for (const seat of ['cuts', 'layers', 'filters']) {
     const summary = { [seat]: [{ adjust: { wheels: { lift: { r: 0.1 } } } }] };
-    assert.deepEqual([...evaluate(summary, false)], ['色調整は近似表示']);
+    assert.deepEqual([...evaluate(summary, false)], ['Color adjustment is approximate']);
     assert.deepEqual([...evaluate(summary, true)], []);
     summary[seat][0].adjust.sections = { wheels: false };
     assert.deepEqual([...evaluate(summary, false)], []);
@@ -71,6 +71,6 @@ test('Web UI applies basic adjust only on the DOM rail and composes transition f
 });
 
 test('Web UI honest-preview indicators disclose approximation and one-LUT replacement only off-engine', () => {
-  assert.match(app, /const adjustApproximation = !frameEngineEnabled[\s\S]+色調整は近似表示/u);
-  assert.match(app, /const clipLutReplacement = !frameEngineEnabled[\s\S]+clip LUT はグローバル LUT を置換/u);
+  assert.match(app, /const adjustApproximation = !frameEngineEnabled[\s\S]+Color adjustment is approximate/u);
+  assert.match(app, /const clipLutReplacement = !frameEngineEnabled[\s\S]+Clip LUT replaces the global LUT/u);
 });

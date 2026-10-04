@@ -31,7 +31,7 @@ test('initial, update and fallback preserve independent speech and never restore
   assert.deepEqual([requests[0].inSec, requests[0].outSec], [1, 2]);
   assert.deepEqual(summary.audio.embeddedSpeech, []);
   assert.equal(summary.audio.speech.length, 1);
-  assert.equal(summary.items[0].label, '本編音声（分離）');
+  assert.equal(summary.items[0].label, 'Program audio (separated)');
   assert.equal(selectPreviewAudioItemsAt(summary.items, 2.5).length, 1);
   assert.equal(selectPreviewAudioItemsAt(summary.items, 0.5).length, 0);
   const client = previewAdapter();
