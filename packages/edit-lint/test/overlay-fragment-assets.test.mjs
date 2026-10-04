@@ -22,8 +22,8 @@ test("missing fragment asset is an error with a correction hint", async t => {
   assert.equal(findings.length, 1);
   assert.equal(findings[0].check, "overlay-fragment-asset-missing");
   assert.equal(findings[0].severity, "error");
-  assert.match(findings[0].message, /(?:の参照|reference) "\.\.\/assets\/logo\.svg" (?:が見つからない。|was not found\. )Relative to the fragment file, this points at/u);
-  for (const value of ["overlay:logo", "overlays/lower-third/fragment.html", '"../assets/logo.svg"', "`overlays/assets/logo.svg`", "change it to `../../assets/logo.svg`"]) assert.ok(findings[0].message.includes(value), findings[0].message);
+  assert.match(findings[0].message, /(?:の参照|reference) "\.\.\/assets\/logo\.svg" (?:が見つからない。|was not found\. )(?:断片ファイル基準では|Relative to the fragment file, this points at)/u);
+  for (const value of ["overlay:logo", "overlays/lower-third/fragment.html", '"../assets/logo.svg"', "`overlays/assets/logo.svg`", "`../../assets/logo.svg`"]) assert.ok(findings[0].message.includes(value), findings[0].message);
 });
 
 test("references escaping the project are errors", async t => {
