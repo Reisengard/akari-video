@@ -127,41 +127,41 @@ function isFiniteNumber(value) {
 export function validateDeclaration(declaration, { duration = null } = {}) {
     const problems = [];
     if (!declaration || typeof declaration !== 'object' || Array.isArray(declaration)) {
-        return ['宣言がオブジェクトではありません'];
+        return ['Declaration is not an object'];
     }
     const { bpm, beat_offset_s: beatOffset, time_signature: timeSignature, sections, hit_points: hitPoints } = declaration;
 
     if (bpm !== null && bpm !== undefined) {
-        if (!isFiniteNumber(bpm) || bpm < 20 || bpm > 300) problems.push(`bpm が範囲外です: ${bpm}（20〜300 または null）`);
+        if (!isFiniteNumber(bpm) || bpm < 20 || bpm > 300) problems.push(`bpm is out of range: ${bpm} (20–300, or null)`);
     }
     if (beatOffset !== null && beatOffset !== undefined) {
-        if (!isFiniteNumber(beatOffset) || beatOffset < 0) problems.push(`beat_offset_s が不正です: ${beatOffset}`);
-        else if (duration !== null && beatOffset > duration) problems.push('beat_offset_s が曲の長さを超えています');
+        if (!isFiniteNumber(beatOffset) || beatOffset < 0) problems.push(`beat_offset_s is invalid: ${beatOffset}`);
+        else if (duration !== null && beatOffset > duration) problems.push('beat_offset_s is past the end of the track');
     }
     if (timeSignature !== null && timeSignature !== undefined && !TIME_SIGNATURES.includes(timeSignature)) {
-        problems.push(`time_signature が語彙外です: ${timeSignature}（${TIME_SIGNATURES.join(' / ')}）`);
+        problems.push(`time_signature is not in the vocabulary: ${timeSignature} (${TIME_SIGNATURES.join(' / ')})`);
     }
 
     if (sections !== undefined) {
-        if (!Array.isArray(sections)) problems.push('sections が配列ではありません');
+        if (!Array.isArray(sections)) problems.push('sections is not an array');
         else {
             sections.forEach((section, index) => {
-                if (!section || typeof section !== 'object') { problems.push(`sections[${index}] がオブジェクトではありません`); return; }
-                if (!SECTION_LABELS.includes(section.label)) problems.push(`sections[${index}].label が語彙外です: ${section.label}`);
-                if (!isFiniteNumber(section.start_sec) || section.start_sec < 0) problems.push(`sections[${index}].start_sec が不正です`);
-                if (!isFiniteNumber(section.end_sec)) problems.push(`sections[${index}].end_sec が不正です`);
-                else if (section.end_sec <= section.start_sec) problems.push(`sections[${index}] の終わりが開始以下です`);
-                else if (duration !== null && section.end_sec > duration + 0.5) problems.push(`sections[${index}] が曲の長さを超えています`);
+                if (!section || typeof section !== 'object') { problems.push(`sections[${index}] is not an object`); return; }
+                if (!SECTION_LABELS.includes(section.label)) problems.push(`sections[${index}].label is not in the vocabulary: ${section.label}`);
+                if (!isFiniteNumber(section.start_sec) || section.start_sec < 0) problems.push(`sections[${index}].start_sec is invalid`);
+                if (!isFiniteNumber(section.end_sec)) problems.push(`sections[${index}].end_sec is invalid`);
+                else if (section.end_sec <= section.start_sec) problems.push(`sections[${index}] ends at or before it starts`);
+                else if (duration !== null && section.end_sec > duration + 0.5) problems.push(`sections[${index}] is past the end of the track`);
             });
         }
     }
 
     if (hitPoints !== undefined) {
-        if (!Array.isArray(hitPoints)) problems.push('hit_points が配列ではありません');
+        if (!Array.isArray(hitPoints)) problems.push('hit_points is not an array');
         else {
             hitPoints.forEach((value, index) => {
-                if (!isFiniteNumber(value) || value < 0) problems.push(`hit_points[${index}] が不正です: ${value}`);
-                else if (duration !== null && value > duration + 0.5) problems.push(`hit_points[${index}] が曲の長さを超えています`);
+                if (!isFiniteNumber(value) || value < 0) problems.push(`hit_points[${index}] is invalid: ${value}`);
+                else if (duration !== null && value > duration + 0.5) problems.push(`hit_points[${index}] is past the end of the track`);
             });
         }
     }

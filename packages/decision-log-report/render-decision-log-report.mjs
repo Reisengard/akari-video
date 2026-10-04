@@ -29,7 +29,7 @@ const DATA_PLACEHOLDER = '{"__AKARI_DECISION_LOG_REPORT_DATA__":true}';
 
 function usage() {
   return [
-    "使い方:",
+    "Usage:",
     "  node render-decision-log-report.mjs --log <decision-log.md> --out <report.html> [--project <root>]",
   ].join("\n");
 }
@@ -43,17 +43,17 @@ function parseArgs(argv) {
     if (arg === "--help" || arg === "-h") return { help: true };
     if (["--log", "--out", "--project"].includes(arg)) {
       const value = argv[index + 1];
-      if (value === undefined) throw new Error(`${arg} には値が必要です`);
+      if (value === undefined) throw new Error(`${arg} needs a value`);
       if (arg === "--log") logPath = value;
       if (arg === "--out") outPath = value;
       if (arg === "--project") projectPath = value;
       index += 1;
       continue;
     }
-    throw new Error(`未知の引数です: ${arg}`);
+    throw new Error(`Unknown argument: ${arg}`);
   }
-  if (!logPath) throw new Error("--log は必須です");
-  if (!outPath) throw new Error("--out は必須です");
+  if (!logPath) throw new Error("--log is required");
+  if (!outPath) throw new Error("--out is required");
   return { help: false, logPath, outPath, projectPath };
 }
 
@@ -408,7 +408,7 @@ function readLog(path) {
   try {
     return readFileSync(path, "utf8");
   } catch (error) {
-    throw new Error(`decision-log.md を読み込めません: ${path}\n${error.message}`);
+    throw new Error(`Could not read decision-log.md: ${path}\n${error.message}`);
   }
 }
 
@@ -416,7 +416,7 @@ function readTemplate() {
   try {
     return readFileSync(templatePath, "utf8");
   } catch (error) {
-    throw new Error(`template.html を読み込めません: ${templatePath}\n${error.message}`);
+    throw new Error(`Could not read template.html: ${templatePath}\n${error.message}`);
   }
 }
 
@@ -429,7 +429,7 @@ function writeAtomically(outPath, content) {
     renameSync(temporary, outPath);
   } catch (error) {
     rmSync(temporary, { force: true });
-    throw new Error(`レポートを書き込めません: ${outPath}\n${error.message}`);
+    throw new Error(`Could not write the report: ${outPath}\n${error.message}`);
   }
 }
 
@@ -467,7 +467,7 @@ function main() {
 
   const template = readTemplate();
   if (!template.includes(DATA_PLACEHOLDER)) {
-    throw new Error(`template.html の埋め込み用プレースホルダーが見つかりません: ${templatePath}`);
+    throw new Error(`template.html is missing the data placeholder: ${templatePath}`);
   }
   const serialized = JSON.stringify(bundle).replace(/</gu, "\\u003c");
   const rendered = template.replace(DATA_PLACEHOLDER, serialized);

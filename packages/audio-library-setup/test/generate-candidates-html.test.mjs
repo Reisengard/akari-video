@@ -35,10 +35,10 @@ test('generates a self-contained static HTML with the 13 v2 candidate cards, the
         assert.equal(result.status, 0, result.stderr);
         const html = await readFile(outPath, 'utf8');
 
-        assert.match(html, /候補カード 13 件/);
-        assert.match(html, /既定ソース: AKARI Sounds/);
+        assert.match(html, /13 candidate cards/);
+        assert.match(html, /Default source: AKARI Sounds/);
         assert.match(html, /fetch-akari-sounds\.mjs/);
-        assert.match(html, /AI はここから自動ダウンロードしません/);
+        assert.match(html, /The agent does not download these external candidates for you/);
 
         // 外部候補のリンクは必ずダウンロードページ URL。音声ファイル拡張子への直リンクを禁止する。
         const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
@@ -112,6 +112,6 @@ test('marks catalog-owned entries and reflects them dynamically (no hardcoded id
         assert.match(result.stdout, /exact-owned: 1/);
 
         const html = await readFile(outPath, 'utf8');
-        assert.match(html, /既所有（catalog: exact-owned-entry）/);
+        assert.match(html, /Already owned \(catalog: exact-owned-entry\)/);
     });
 });

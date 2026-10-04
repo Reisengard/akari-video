@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>音源の宣言づけ（AKARI Video）</title>
+<title>Declare a track (AKARI Video)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { color-scheme: dark; }
@@ -52,38 +52,38 @@
 </head>
 <body>
 <div id="side">
-  <h1>音源の宣言づけ</h1>
-  <p class="lead">曲の「サビはどこか・キメはどこか・拍はどこか」を耳で付けます。付けた宣言は編集エージェントが読み、BGM の自動提案とサビ頭出しに使います。</p>
-  <input id="filter" placeholder="絞り込み（曲名 / 済 / 未）">
+  <h1>Declare a track</h1>
+  <p class="lead">Mark the chorus, the hits, and the beat by ear. The edit agent reads the declaration for BGM suggestions and for where the chorus starts.</p>
+  <input id="filter" placeholder="Filter by id, pack, done, or open">
   <div id="list"></div>
 </div>
 <div id="main">
-  <div id="title">← 左からトラックを選択</div>
+  <div id="title">Select a track on the left</div>
   <div id="empty" hidden></div>
   <div id="controls">
-    <button id="play">▶ 再生</button>
+    <button id="play">Play</button>
     <span id="readout">0.000s</span>
-    <label>速度 <select id="rate"><option>1</option><option>0.75</option><option>0.5</option></select></label>
-    <label>拍に吸着 <input type="checkbox" id="snap" checked></label>
-    <button id="zoom-out">ー</button><button id="zoom-in">＋</button><button id="zoom-fit">全体</button>
+    <label>Speed <select id="rate"><option>1</option><option>0.75</option><option>0.5</option></select></label>
+    <label>Snap to beat <input type="checkbox" id="snap" checked></label>
+    <button id="zoom-out">−</button><button id="zoom-in">+</button><button id="zoom-fit">Fit</button>
     <span id="zoominfo"></span>
-    <button id="save" class="primary">保存</button>
+    <button id="save" class="primary">Save</button>
   </div>
   <div id="actions">
-    <span>区間の種類:</span><span id="secbuttons"></span>
-    <button id="btn-del" disabled>選択を削除</button>
-    <button id="btn-loop" disabled>選択区間をループ</button>
+    <span>Section type:</span><span id="secbuttons"></span>
+    <button id="btn-del" disabled>Delete selection</button>
+    <button id="btn-loop" disabled>Loop selection</button>
   </div>
   <div id="gridrow">
     <label>BPM <input type="number" id="bpm" step="0.1"></label>
-    <label>頭拍(s) <input type="number" id="offset" step="0.001"></label>
+    <label>Downbeat (s) <input type="number" id="offset" step="0.001"></label>
     <button data-nudge="-0.01">-10ms</button><button data-nudge="0.01">+10ms</button>
-    <button id="btn-here">今の位置を頭拍に</button>
-    <button id="btn-tap">タップでテンポ</button>
-    <button id="btn-estimate">自動推定</button>
-    <button id="btn-click">🥁 クリック音で確認</button>
-    <label>拍子 <select id="tsig"><option>4/4</option><option>3/4</option><option>6/8</option></select></label>
-    <label>グリッド <input type="checkbox" id="showgrid" checked></label>
+    <button id="btn-here">Downbeat at playhead</button>
+    <button id="btn-tap">Tap tempo</button>
+    <button id="btn-estimate">Estimate</button>
+    <button id="btn-click">Click track</button>
+    <label>Meter <select id="tsig"><option>4/4</option><option>3/4</option><option>6/8</option></select></label>
+    <label>Grid <input type="checkbox" id="showgrid" checked></label>
     <span id="estimate"></span>
   </div>
   <div id="wave-wrap">
@@ -93,31 +93,31 @@
   </div>
   <div id="status"></div>
   <div id="howto">
-    <b>使い方</b>:<br>
-    1. トラックを選ぶと <b>BPM と頭拍を自動推定</b>します（推定なので ±1〜2 ずれることがあります）。
-    <b>「🥁 クリック音で確認」を ON にして再生</b>すると、宣言した拍でクリックが鳴ります。曲のキックとズレて聞こえたら BPM / 頭拍を直してください（「タップでテンポ」で曲に合わせて 4 回以上叩く手もあります）<br>
-    2. <b>区間（サビなど）= 波形を横にドラッグ</b>。上の「区間の種類」ボタンで選んだ種類になります。<b>サビ（drop）は必ず 1 つ</b>付けてください — これが「サビ頭から敷く」の値になります<br>
-    3. <b>ピン（キメの瞬間）= 波形をダブルクリック</b>（ピンの上でもう一度ダブルクリックで削除）。多くは要りません — 写真の入れ替えを決めたい拍だけで十分です<br>
-    4. <b>拡大・移動</b>: ピンチイン/アウト（ホイール・「ー ＋ 全体」ボタン）でズーム、2 本指で横スライド、上のミニマップをクリックでジャンプ<br>
-    5. <b>調整</b>: 色帯の左右の白い持ち手をドラッグで伸縮 ／ ピンはドラッグで移動 ／ 色帯クリックで選択 → 種類変更・ループ再生・削除<br>
-    6. 「保存」で <code id="declpath">declarations.json</code> に書き込みます<br>
-    <details><summary>キーボード近道（英数入力のときだけ。日本語入力 ON だと効きません）</summary>
-      <kbd>Space</kbd> 再生/停止 ／ <kbd>Enter</kbd> or <kbd>H</kbd> 再生ヘッドにピン ／
-      <kbd>[</kbd> 区間ここから → <kbd>]</kbd> ここまで確定 ／
-      選択ピン <kbd>←</kbd><kbd>→</kbd> ±10ms（<kbd>Shift</kbd> ±1ms）／
-      <kbd>Backspace</kbd> 削除 ／ <kbd>L</kbd> ループ ／ <kbd>T</kbd> タップ
+    <b>How to mark a track</b>:<br>
+    1. Choosing a track <b>estimates BPM and the downbeat</b>. The estimate can be off by 1 or 2 BPM.
+    Turn on <b>Click track</b> and press play. Clicks sound on the declared beats. If they miss the kick, fix BPM or the downbeat. You can also press <b>Tap tempo</b> at least four times with the music.<br>
+    2. <b>A section (the chorus, and the rest) is a horizontal drag on the waveform.</b> It uses the type selected above. <b>Mark exactly one Chorus (drop).</b> That start is where the chorus can be laid in.<br>
+    3. <b>A pin (a hit) is a double-click on the waveform.</b> Double-click a pin again to delete it. A few pins are enough. Mark only the beats where a still should change.<br>
+    4. <b>Zoom and move</b>: pinch, the wheel, or − / + / Fit. Slide with two fingers. Click the overview to jump.<br>
+    5. <b>Adjust</b>: drag the white handles on a color band to resize it. Drag a pin to move it. Click a band to select it, then change its type, loop it, or delete it.<br>
+    6. Save writes <code id="declpath">declarations.json</code>.<br>
+    <details><summary>Keyboard shortcuts (Latin input only. An active IME swallows the keys.)</summary>
+      <kbd>Space</kbd> play or stop. <kbd>Enter</kbd> or <kbd>H</kbd> drop a pin at the playhead.
+      <kbd>[</kbd> starts a section and <kbd>]</kbd> ends it.
+      A selected pin moves ±10 ms with <kbd>←</kbd><kbd>→</kbd> (<kbd>Shift</kbd> is ±1 ms).
+      <kbd>Backspace</kbd> deletes. <kbd>L</kbd> loops. <kbd>T</kbd> taps.
     </details>
   </div>
 </div>
 <script>
 const $ = (s) => document.querySelector(s);
 const SEC_DEFS = [
-  ['intro', '前奏・導入', '#4f8cff'],
-  ['build', '盛り上げ', '#c77dff'],
-  ['drop', 'サビ・見せ場', '#ff5d73'],
-  ['outro', '後奏・締め', '#3ddc97'],
-  ['bridge', '間奏', '#ffd166'],
-  ['break', '静寂', '#9aa4b2'],
+  ['intro', 'Intro', '#4f8cff'],
+  ['build', 'Build', '#c77dff'],
+  ['drop', 'Chorus', '#ff5d73'],
+  ['outro', 'Outro', '#3ddc97'],
+  ['bridge', 'Bridge', '#ffd166'],
+  ['break', 'Break', '#9aa4b2'],
 ];
 const SEC_COLORS = Object.fromEntries(SEC_DEFS.map(([v, , c]) => [v, c]));
 const SEC_NAMES = Object.fromEntries(SEC_DEFS.map(([v, n]) => [v, n]));
@@ -142,9 +142,9 @@ async function boot() {
   $('#declpath').textContent = data.declarations_path;
   if (state.tracks.length === 0) {
     $('#empty').hidden = false;
-    $('#empty').innerHTML = `音源が見つかりませんでした（${data.library_root}）。<br>` +
-      '先に音源を入れてください: <code>akari sounds</code>（公式ライブラリの一括ダウンロード）、' +
-      'または自分の曲を <code>&lt;ライブラリ&gt;/&lt;曲名&gt;/&lt;曲名&gt;.mp3</code> の形で置いてください。';
+    $('#empty').innerHTML = `No sounds found (${data.library_root}).<br>` +
+      'Add sounds first: <code>akari sounds</code> downloads the official library, ' +
+      'or place your own track at <code>&lt;library&gt;/&lt;title&gt;/&lt;title&gt;.mp3</code>.';
   }
   renderList();
 }
@@ -155,13 +155,13 @@ function renderList() {
     const d = state.declarations[t.id];
     const done = Boolean(d && ((d.hit_points ?? []).length || (d.sections ?? []).length));
     const fromPack = Boolean(d && d.source && d.source !== 'declare-audio');
-    const hay = `${t.id} ${t.pack} ${done ? '済' : '未'}`;
+    const hay = `${t.id} ${t.pack} ${done ? 'done' : 'open'}`;
     if (q && !hay.includes(q)) continue;
     const div = document.createElement('div');
     div.className = 'track' + (state.current?.id === t.id ? ' active' : '');
     div.innerHTML = `<span class="id">${t.id}</span>` +
-      (done ? '<span class="badge done">宣言済</span>' : '') +
-      (fromPack ? '<span class="badge pack">パック由来</span>' : '');
+      (done ? '<span class="badge done">Declared</span>' : '') +
+      (fromPack ? '<span class="badge pack">From pack</span>' : '');
     div.onclick = () => selectTrack(t);
     list.appendChild(div);
   }
@@ -171,8 +171,8 @@ async function selectTrack(t) {
   audio.pause();
   Object.assign(state, { current: t, selPin: -1, selSec: -1, pendingStart: null, loopSec: null, drag: null, taps: [], estimated: false });
   renderList(); syncActionButtons();
-  $('#title').innerHTML = `${t.id}<small>${t.title}${t.when_to_use ? ' ／ ' + t.when_to_use : ''}</small>`;
-  setStatus('読み込み中…');
+  $('#title').innerHTML = `${t.id}<small>${t.title}${t.when_to_use ? ' / ' + t.when_to_use : ''}</small>`;
+  setStatus('Loading...');
   const d = state.declarations[t.id] ?? {};
   state.decl = {
     bpm: d.bpm ?? null,
@@ -183,7 +183,7 @@ async function selectTrack(t) {
     note: d.note ?? '',
   };
   syncGridInputsFromState();
-  $('#estimate').textContent = d.source ? `保存済み（${d.source}${d.verified_at ? ' / ' + d.verified_at.slice(0, 10) : ''}）` : '';
+  $('#estimate').textContent = d.source ? `Saved (${d.source}${d.verified_at ? ' / ' + d.verified_at.slice(0, 10) : ''})` : '';
   setDirty(false);
 
   audio.src = `/media/${t.media}`;
@@ -199,7 +199,7 @@ async function selectTrack(t) {
   if (state.decl.bpm === null) {
     estimateGrid();
   } else {
-    setStatus(`読み込み完了（${state.duration.toFixed(2)}s）— 拡大して拍が合っているか確認してください`);
+    setStatus(`Loaded (${state.duration.toFixed(2)}s). Zoom in and check that the beats line up.`);
   }
   renderBand(); draw(); updateZoomInfo();
 }
@@ -245,7 +245,7 @@ function computeMinipeaks(decoded) {
 /** オンセット包絡の自己相関から BPM と頭拍を推定する（推定であることを画面に明示する）。 */
 function estimateGrid() {
   const onset = state.onset, rate = state.onsetRate;
-  if (!onset || onset.length < rate * 4) { setStatus('推定できる長さがありません — BPM を手で入れてください'); return; }
+  if (!onset || onset.length < rate * 4) { setStatus('Not enough audio to estimate. Enter the BPM yourself.'); return; }
   // 1 拍ぶんの自己相関だけだと、キックの弱い曲（lofi 等）でピークが鈍って 2 BPM 級の
   // ずれが出る。1〜4 拍先の相関を 1/k 重みで足す櫛形にして山を立たせ、粗探索 → 微探索の
   // 2 段で詰める（粗 0.5 BPM → その周辺 ±1.5 BPM を 0.05 BPM 刻み）。
@@ -268,7 +268,7 @@ function estimateGrid() {
     const score = scoreOf(bpm);
     if (score > best.score) best = { bpm, score };
   }
-  if (!best.bpm) { setStatus('拍を推定できませんでした — BPM を手で入れてください'); return; }
+  if (!best.bpm) { setStatus('Could not estimate the beat. Enter the BPM yourself.'); return; }
   for (let bpm = best.bpm - 1.5; bpm <= best.bpm + 1.5; bpm += 0.05) {
     const score = scoreOf(bpm);
     if (score > best.score) best = { bpm: Math.round(bpm * 100) / 100, score };
@@ -284,8 +284,8 @@ function estimateGrid() {
   state.decl.beat_offset_s = Math.round(bestPhase.offset * 1000) / 1000;
   state.estimated = true;
   syncGridInputsFromState();
-  $('#estimate').textContent = `自動推定: ♩${state.decl.bpm} / 頭拍 ${state.decl.beat_offset_s}s`;
-  setStatus('BPM と頭拍を推定しました（推定です）— 拡大して、グリッド線がキックと合っているか耳で確かめてください');
+  $('#estimate').textContent = `Estimate: ♩${state.decl.bpm} / downbeat ${state.decl.beat_offset_s}s`;
+  setStatus('BPM and downbeat are estimates. Zoom in and listen for whether the grid hits the kick.');
   draw();
 }
 
@@ -326,8 +326,8 @@ function zoomAround(anchorSec, factor) {
 function updateZoomInfo() {
   if (!state.duration) { $('#zoominfo').textContent = ''; return; }
   const zoomX = state.duration / viewLen();
-  $('#zoominfo').textContent = zoomX < 1.01 ? `全体 ${state.duration.toFixed(1)}s`
-    : `×${zoomX.toFixed(1)} — ${state.view.start.toFixed(1)}〜${state.view.end.toFixed(1)}s / 全${state.duration.toFixed(1)}s`;
+  $('#zoominfo').textContent = zoomX < 1.01 ? `All ${state.duration.toFixed(1)}s`
+    : `×${zoomX.toFixed(1)} — ${state.view.start.toFixed(1)}–${state.view.end.toFixed(1)}s / ${state.duration.toFixed(1)}s total`;
 }
 $('#wave-wrap').addEventListener('wheel', (e) => {
   if (!state.decl) return;
@@ -430,12 +430,12 @@ function renderBand() {
       e.stopPropagation();
       state.selSec = idx; state.selPin = -1;
       syncActionButtons(); renderBand(); draw();
-      setStatus(`区間を選択: ${SEC_NAMES[s.label] || s.label} — 種類ボタンで変更 / 持ち手で伸縮 / ループ・削除`);
+      setStatus(`Selected section: ${SEC_NAMES[s.label] || s.label}. Change the type, drag a handle, loop, or delete.`);
     });
     for (const edge of ['start', 'end']) {
       const grip = document.createElement('div');
       grip.className = `grip ${edge === 'start' ? 'l' : 'r'}`;
-      grip.title = 'ドラッグで伸縮';
+      grip.title = 'Drag to resize';
       grip.addEventListener('mousedown', (e) => {
         e.stopPropagation(); e.preventDefault();
         state.selSec = idx; state.selPin = -1;
@@ -452,7 +452,7 @@ function setStatus(msg, isError) { const el = $('#status'); el.textContent = msg
 function setDirty(dirty) {
   state.dirty = dirty;
   $('#save').className = dirty ? 'dirty' : 'primary';
-  $('#save').textContent = dirty ? '保存（未保存あり）' : '保存';
+  $('#save').textContent = dirty ? 'Save (unsaved changes)' : 'Save';
 }
 function touch() { setDirty(true); renderBand(); draw(); }
 function syncActionButtons() {
@@ -477,7 +477,7 @@ function addPinAt(sec) {
   state.decl.hit_points.sort((a, b) => a - b);
   state.selPin = state.decl.hit_points.indexOf(t); state.selSec = -1;
   syncActionButtons(); touch();
-  setStatus(`ピンを追加: ${t.toFixed(3)}s（ドラッグで微調整 / もう一度ダブルクリックで削除）`);
+  setStatus(`Pin added at ${t.toFixed(3)}s. Drag to nudge, or double-click again to delete.`);
 }
 function addSection(a, b, label) {
   state.decl.sections.push({ label, start_sec: Math.round(a * 100) / 100, end_sec: Math.round(b * 100) / 100 });
@@ -486,15 +486,15 @@ function addSection(a, b, label) {
   // 種類ボタンを押したときに「今作った区間の種類変更」になってしまう（実機で踏んだ罠）。
   state.selSec = -1; state.selPin = -1;
   syncActionButtons(); touch();
-  setStatus(`区間を追加: ${SEC_NAMES[label]}（${a.toFixed(2)}–${b.toFixed(2)}s）— 種類を変える・ループ・削除は色帯をクリックしてから`);
+  setStatus(`Section added: ${SEC_NAMES[label]} (${a.toFixed(2)}–${b.toFixed(2)}s). Click the band to change the type, loop, or delete.`);
 }
 function actDelete() {
   if (state.selPin >= 0) {
     const t = state.decl.hit_points.splice(state.selPin, 1)[0];
-    state.selPin = -1; syncActionButtons(); touch(); setStatus(`ピンを削除: ${t}s`);
+    state.selPin = -1; syncActionButtons(); touch(); setStatus(`Pin deleted: ${t}s`);
   } else if (state.selSec >= 0) {
     const s = state.decl.sections.splice(state.selSec, 1)[0];
-    state.selSec = -1; state.loopSec = null; syncActionButtons(); touch(); setStatus(`区間を削除: ${SEC_NAMES[s.label] || s.label}`);
+    state.selSec = -1; state.loopSec = null; syncActionButtons(); touch(); setStatus(`Section deleted: ${SEC_NAMES[s.label] || s.label}`);
   }
 }
 function actLoop() {
@@ -502,17 +502,17 @@ function actLoop() {
   state.loopSec = state.loopSec === state.selSec ? null : state.selSec;
   const s = state.decl.sections[state.selSec];
   if (state.loopSec !== null) { audio.currentTime = s.start_sec; audio.play(); } else { audio.pause(); }
-  $('#btn-loop').textContent = state.loopSec !== null ? 'ループ停止' : '選択区間をループ';
-  setStatus(state.loopSec !== null ? `ループ中: ${SEC_NAMES[s.label] || s.label} ${s.start_sec}–${s.end_sec}s` : 'ループ解除');
+  $('#btn-loop').textContent = state.loopSec !== null ? 'Stop loop' : 'Loop selection';
+  setStatus(state.loopSec !== null ? `Looping: ${SEC_NAMES[s.label] || s.label} ${s.start_sec}–${s.end_sec}s` : 'Loop off');
 }
 function setCurLabel(label) {
   state.curLabel = label;
   document.querySelectorAll('.secbtn').forEach((b) => b.classList.toggle('active', b.dataset.label === label));
   if (state.selSec >= 0) {
     state.decl.sections[state.selSec].label = label;
-    touch(); setStatus(`選択中の区間を「${SEC_NAMES[label]}」に変更しました`);
+    touch(); setStatus(`Selected section is now "${SEC_NAMES[label]}".`);
   } else {
-    setStatus(`区間の種類: ${SEC_NAMES[label]} — 波形を横ドラッグするとこの種類になります`);
+    setStatus(`Section type: ${SEC_NAMES[label]}. Drag across the waveform to mark one.`);
   }
 }
 /**
@@ -525,14 +525,14 @@ function toggleClick() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   state.click = { ctx, scheduledUntil: 0, count: 0 };
   $('#btn-click').classList.add('secbtn', 'active');
-  setStatus('クリック音: ON — 再生して、曲のキックと合っているか聴いてください（ズレていたら BPM / 頭拍を直す）');
+  setStatus('Click track on. Play and listen for the kick. If it drifts, fix BPM or the downbeat.');
 }
 function stopClick() {
   if (!state.click) return;
   state.click.ctx.close();
   state.click = null;
   $('#btn-click').classList.remove('active');
-  setStatus('クリック音: OFF');
+  setStatus('Click track off');
 }
 function scheduleClicks() {
   const click = state.click;
@@ -565,17 +565,17 @@ function scheduleClicks() {
 function actTap() {
   const now = performance.now() / 1000;
   state.taps = state.taps.filter((t) => now - t < 3).concat(now);
-  if (state.taps.length < 4) { setStatus(`タップ ${state.taps.length} 回目… 曲に合わせて 4 回以上叩いてください`); return; }
+  if (state.taps.length < 4) { setStatus(`Tap ${state.taps.length}. Tap at least four times with the music.`); return; }
   const spans = state.taps.slice(1).map((t, i) => t - state.taps[i]);
   const mean = spans.reduce((a, b) => a + b, 0) / spans.length;
   const bpm = Math.round(60 / mean * 10) / 10;
-  if (bpm < 20 || bpm > 300) { setStatus('テンポを取れませんでした — もう一度', true); state.taps = []; return; }
+  if (bpm < 20 || bpm > 300) { setStatus('Could not read a tempo. Try again.', true); state.taps = []; return; }
   $('#bpm').value = bpm;
   // 最後のタップ時刻に対応する再生位置を頭拍にする（再生中のみ意味がある）
   if (!audio.paused) $('#offset').value = r3(Math.max(0, audio.currentTime % (60 / bpm)));
   syncGridInputs(); touch();
-  $('#estimate').textContent = `タップ: ♩${bpm}（${state.taps.length} 回）`;
-  setStatus(`タップからテンポを取りました: ♩${bpm}`);
+  $('#estimate').textContent = `Tap: ♩${bpm} (${state.taps.length} taps)`;
+  setStatus(`Tempo from taps: ♩${bpm}`);
 }
 
 canvas.addEventListener('mousedown', (e) => {
@@ -627,7 +627,7 @@ window.addEventListener('mouseup', () => {
     state.decl.sections.sort((x, y) => x.start_sec - y.start_sec);
     state.selSec = state.decl.sections.indexOf(s);
     syncActionButtons(); touch();
-    setStatus(`区間を調整: ${SEC_NAMES[s.label] || s.label} ${s.start_sec}–${s.end_sec}s`);
+    setStatus(`Section adjusted: ${SEC_NAMES[s.label] || s.label} ${s.start_sec}–${s.end_sec}s`);
   }
 });
 canvas.addEventListener('dblclick', (e) => {
@@ -637,7 +637,7 @@ canvas.addEventListener('dblclick', (e) => {
   const near = state.decl.hit_points.findIndex((t) => Math.abs(xOf(t) - x) < 6);
   if (near >= 0) {
     const t = state.decl.hit_points.splice(near, 1)[0];
-    state.selPin = -1; syncActionButtons(); touch(); setStatus(`ピンを削除: ${t}s`);
+    state.selPin = -1; syncActionButtons(); touch(); setStatus(`Pin deleted: ${t}s`);
     return;
   }
   addPinAt(secOf(x));
@@ -648,13 +648,13 @@ window.addEventListener('keydown', (e) => {
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
   if (e.isComposing || e.key === 'Process') {
-    setStatus('日本語入力（IME）が ON のようです — 英数に切り替えるとキーボード近道が効きます（マウス操作はそのまま使えます）');
+    setStatus('An IME looks active. Switch to Latin input for keyboard shortcuts. The mouse still works.');
     return;
   }
   if (e.code === 'Space') { e.preventDefault(); actPlayPause(); }
   else if (e.key === 'Enter' || e.key === 'h' || e.key === 'H') { e.preventDefault(); addPinAt(audio.currentTime); }
   else if (e.key === 't' || e.key === 'T') { actTap(); }
-  else if (e.key === '[') { state.pendingStart = snapSec(audio.currentTime); draw(); setStatus(`区間の開始: ${state.pendingStart.toFixed(2)}s — 終わりで ] を押すと確定`); }
+  else if (e.key === '[') { state.pendingStart = snapSec(audio.currentTime); draw(); setStatus(`Section start: ${state.pendingStart.toFixed(2)}s. Press ] at the end.`); }
   else if (e.key === ']' && state.pendingStart !== null) {
     const end = snapSec(audio.currentTime);
     if (end > state.pendingStart) addSection(state.pendingStart, end, state.curLabel);
@@ -685,7 +685,7 @@ audio.addEventListener('timeupdate', () => {
     }
     draw(); drawOverview(); scheduleClicks();
     $('#readout').textContent = `${audio.currentTime.toFixed(3)}s`;
-    $('#play').textContent = audio.paused ? '▶ 再生' : '⏸ 停止';
+    $('#play').textContent = audio.paused ? 'Play' : 'Stop';
   }
   requestAnimationFrame(tick);
 })();
@@ -701,7 +701,7 @@ wireButton('#btn-here', () => {
   if (!state.decl) return;
   $('#offset').value = r3(audio.currentTime % (60 / (Number($('#bpm').value) || 120)));
   syncGridInputs(); touch();
-  setStatus(`頭拍を現在位置に合わせました: ${$('#offset').value}s`);
+  setStatus(`Downbeat set to the playhead: ${$('#offset').value}s`);
 });
 wireButton('#zoom-in', () => zoomAround(audio.currentTime || (state.view.start + viewLen() / 2), 0.5));
 wireButton('#zoom-out', () => zoomAround(state.view.start + viewLen() / 2, 2));
@@ -737,10 +737,10 @@ $('#save').addEventListener('click', async (e) => {
     state.declarations[state.current.id] = body.declaration;
     renderList();
     const hasDrop = state.decl.sections.some((s) => s.label === 'drop');
-    setStatus(`保存しました（区間 ${state.decl.sections.length} / ピン ${state.decl.hit_points.length}）`
-      + (hasDrop ? '' : ' — サビ（drop）が未指定です。付けると「サビ頭から敷く」が使えます'));
+    setStatus(`Saved (${state.decl.sections.length} sections / ${state.decl.hit_points.length} pins)`
+      + (hasDrop ? '' : '. No Chorus (drop) yet. Add one to lay the track in from the chorus.'));
   } else {
-    setStatus(`保存できません: ${(body.problems ?? [body.error ?? '不明なエラー']).join(' / ')}`, true);
+    setStatus(`Could not save: ${(body.problems ?? [body.error ?? 'Unknown error']).join(' / ')}`, true);
   }
 });
 

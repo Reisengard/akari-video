@@ -14,49 +14,49 @@ const MIME_BY_EXTENSION = new Map([
 ]);
 
 export function buildStoryboardAnnotationText({ title, shots, overall = "" }) {
-  const lines = [`【絵コンテ注釈】${title || "リサーチプラン"}`];
+  const lines = [`[Storyboard note] ${title || "Research plan"}`];
   for (const shot of Array.isArray(shots) ? shots : []) {
     const text = String(shot?.text ?? "");
-    if (text.trim().length > 0) lines.push(`- shot ${shot.id}「${shot.label}」: ${text}`);
+    if (text.trim().length > 0) lines.push(`- shot ${shot.id} "${shot.label}": ${text}`);
   }
   const overallText = String(overall ?? "");
-  if (overallText.trim().length > 0) lines.push(`- 全体: ${overallText}`);
+  if (overallText.trim().length > 0) lines.push(`- Overall: ${overallText}`);
   lines.push("---");
-  lines.push("上の指摘を plan-comments.json（pass: structure, target_kind: shot）として1ファイルに上書き保存し、名指しされた shot だけ構成を改訂してください。");
-  lines.push("target_id は各 shot id に対応する structure.shots[] の配列インデックスを文字列で設定し、処理後は plan-comments.json を削除してください。");
+  lines.push("Save the notes above as one plan-comments.json file (pass: structure, target_kind: shot) and revise only the named shots.");
+  lines.push("Set target_id to the structure.shots[] index of each shot id, as a string, and delete plan-comments.json after you process it.");
   return lines.join("\n");
 }
 
 export function renderResearchPlanReport({ plan, planPath = "research-plan.json", generatedAt = new Date() }) {
   if (!plan || typeof plan !== "object" || Array.isArray(plan)) {
-    throw new TypeError("research-plan.json のルートは object である必要があります");
+    throw new TypeError("research-plan.json root must be an object");
   }
   const structure = plainObject(plan.structure) ? plan.structure : {};
   const chapters = Array.isArray(structure.chapters) ? structure.chapters.filter(plainObject) : [];
   const shots = Array.isArray(structure.shots) ? structure.shots.filter(plainObject) : [];
   const chapterById = new Map(chapters.map((chapter) => [chapter.id, chapter]));
-  const reportTitle = selectedTopicTitle(plan) || "リサーチプラン";
+  const reportTitle = selectedTopicTitle(plan) || "Research plan";
   const generated = generatedAt instanceof Date ? generatedAt.toISOString() : String(generatedAt);
 
   return `<!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'" />
-  <title>${escapeHtml(reportTitle)} — AKARI Video ビジュアル絵コンテ</title>
+  <title>${escapeHtml(reportTitle)} — AKARI Video visual storyboard</title>
   <style>${reportStyles()}</style>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">本文へ移動</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="report-header">
     <div class="report-header__inner">
       <p class="eyebrow">AKARI VIDEO / RESEARCH PLAN</p>
       <h1>${escapeHtml(reportTitle)}</h1>
-      <dl class="report-meta" aria-label="レポート基本情報">
-        <div><dt>レポート</dt><dd>ビジュアル絵コンテ</dd></div>
-        <div><dt>生成日時</dt><dd><time datetime="${escapeHtml(generated)}">${escapeHtml(generated)}</time></dd></div>
-        <div><dt>ショット</dt><dd>${shots.length} 件 / ${chapters.length} 章</dd></div>
+      <dl class="report-meta" aria-label="Report details">
+        <div><dt>Report</dt><dd>Visual storyboard</dd></div>
+        <div><dt>Generated</dt><dd><time datetime="${escapeHtml(generated)}">${escapeHtml(generated)}</time></dd></div>
+        <div><dt>Shots</dt><dd>${shots.length} shots / ${chapters.length} chapters</dd></div>
       </dl>
     </div>
   </header>
@@ -67,7 +67,7 @@ export function renderResearchPlanReport({ plan, planPath = "research-plan.json"
     ${renderShotListSection(plan.shot_list)}
     ${renderAnnotationSection(reportTitle)}
   </main>
-  <footer class="report-footer">research-plan.json から生成した読み取り専用レポートです。内容の変更はエージェント対話を通じて JSON へ反映します。</footer>
+  <footer class="report-footer">Read-only report generated from research-plan.json. Change the content through the agent, which writes the JSON.</footer>
   <script>${reportScript()}</script>
 </body>
 </html>\n`;
@@ -90,25 +90,25 @@ export function renderResearchPlanReportFile(inputPath, outputPath = null) {
 function renderTopicSection(topic) {
   const candidates = plainObject(topic) && Array.isArray(topic.candidates) ? topic.candidates : [];
   const rows = candidates.length
-    ? candidates.map((candidate, index) => `<tr><th scope="row">${index + 1}</th><td>${escapeHtml(candidate.title || "名称未設定")}</td><td>${escapeHtml(candidate.category || "—")}</td><td>${escapeHtml(candidate.monetization_potential || "—")}</td><td>${escapeHtml(candidate.rationale || "—")}</td></tr>`).join("")
-    : `<tr><td colspan="5" class="empty-cell">候補ネタはまだありません。</td></tr>`;
-  return `<section class="report-section" aria-labelledby="heading-topics"><span class="section-kicker">SECTION 01</span><h2 id="heading-topics">1. 候補ネタランキング</h2><div class="table-scroll" tabindex="0"><table><thead><tr><th>順位</th><th>候補</th><th>型</th><th>収益性</th><th>根拠</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+    ? candidates.map((candidate, index) => `<tr><th scope="row">${index + 1}</th><td>${escapeHtml(candidate.title || "Untitled")}</td><td>${escapeHtml(candidate.category || "—")}</td><td>${escapeHtml(candidate.monetization_potential || "—")}</td><td>${escapeHtml(candidate.rationale || "—")}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty-cell">No topic candidates yet.</td></tr>`;
+  return `<section class="report-section" aria-labelledby="heading-topics"><span class="section-kicker">SECTION 01</span><h2 id="heading-topics">1. Topic ranking</h2><div class="table-scroll" tabindex="0"><table><thead><tr><th>Rank</th><th>Candidate</th><th>Form</th><th>Revenue</th><th>Reason</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 function renderCompetitorSection(target) {
   const competitors = plainObject(target) && Array.isArray(target.competitors) ? target.competitors : [];
   const rows = competitors.length
-    ? competitors.map((competitor) => `<tr><th scope="row">${escapeHtml(competitor.name || "名称未設定")}</th><td>${escapeHtml(competitor.notes || "—")}</td><td>${escapeHtml(competitor.gap || "—")}</td></tr>`).join("")
-    : `<tr><td colspan="3" class="empty-cell">競合分析はまだありません。</td></tr>`;
+    ? competitors.map((competitor) => `<tr><th scope="row">${escapeHtml(competitor.name || "Untitled")}</th><td>${escapeHtml(competitor.notes || "—")}</td><td>${escapeHtml(competitor.gap || "—")}</td></tr>`).join("")
+    : `<tr><td colspan="3" class="empty-cell">No competitor notes yet.</td></tr>`;
   const japanNotes = plainObject(target?.japan_sns) ? target.japan_sns.notes : null;
-  return `<section class="report-section" aria-labelledby="heading-competitors"><span class="section-kicker">SECTION 02</span><h2 id="heading-competitors">2. 競合分析サマリー</h2><p class="notice"><strong>日本語 SNS:</strong> ${escapeHtml(japanNotes || "未調査")}</p><div class="table-scroll" tabindex="0"><table><thead><tr><th>競合</th><th>所見</th><th>機会</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  return `<section class="report-section" aria-labelledby="heading-competitors"><span class="section-kicker">SECTION 02</span><h2 id="heading-competitors">2. Competitor summary</h2><p class="notice"><strong>Japanese social:</strong> ${escapeHtml(japanNotes || "Not surveyed")}</p><div class="table-scroll" tabindex="0"><table><thead><tr><th>Competitor</th><th>Notes</th><th>Gap</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 function renderStoryboardSection({ chapters, shots, chapterById, planPath }) {
-  return `<section class="report-section storyboard-section" aria-labelledby="heading-storyboard"><span class="section-kicker">SECTION 03 + 04</span><h2 id="heading-storyboard">3–4. ビジュアル絵コンテ</h2><p class="section-lead">コマ面で画と要点を流し読みし、コマを押して大きい画像と全文を確認できます。構造面では主軸と「挿入して戻る」カットアウェイを確認します。</p>
-    <div class="storyboard-tabs" role="tablist" aria-label="絵コンテ表示">
-      <button type="button" role="tab" id="tab-storyboard-cards" aria-controls="storyboard-cards" aria-selected="true" data-storyboard-tab="cards">コマ面</button>
-      <button type="button" role="tab" id="tab-storyboard-structure" aria-controls="storyboard-structure" aria-selected="false" data-storyboard-tab="structure" tabindex="-1">構造面</button>
+  return `<section class="report-section storyboard-section" aria-labelledby="heading-storyboard"><span class="section-kicker">SECTION 03 + 04</span><h2 id="heading-storyboard">3–4. Visual storyboard</h2><p class="section-lead">Scan the frames and the point of each shot, then open a frame for the large image and the full text. The structure view shows the main line and the cutaways that insert and return.</p>
+    <div class="storyboard-tabs" role="tablist" aria-label="Storyboard view">
+      <button type="button" role="tab" id="tab-storyboard-cards" aria-controls="storyboard-cards" aria-selected="true" data-storyboard-tab="cards">Frames</button>
+      <button type="button" role="tab" id="tab-storyboard-structure" aria-controls="storyboard-structure" aria-selected="false" data-storyboard-tab="structure" tabindex="-1">Structure</button>
     </div>
     <div id="storyboard-cards" role="tabpanel" aria-labelledby="tab-storyboard-cards" data-storyboard-panel="cards">${renderCardView({ chapters, shots, chapterById, planPath })}</div>
     <div id="storyboard-structure" role="tabpanel" aria-labelledby="tab-storyboard-structure" data-storyboard-panel="structure" hidden>${renderStructureView({ chapters, shots, chapterById })}</div>
@@ -117,7 +117,7 @@ function renderStoryboardSection({ chapters, shots, chapterById, planPath }) {
 }
 
 function renderCardView({ chapters, shots, chapterById, planPath }) {
-  if (shots.length === 0) return `<div class="empty-state" data-card-empty>ショット情報がありません。</div>`;
+  if (shots.length === 0) return `<div class="empty-state" data-card-empty>No shot information.</div>`;
   const grouped = new Map();
   for (const chapter of chapters) grouped.set(chapter.id, []);
   grouped.set("__unassigned__", []);
@@ -130,8 +130,8 @@ function renderCardView({ chapters, shots, chapterById, planPath }) {
     .filter(([, groupShots]) => groupShots.length > 0)
     .map(([sequence, groupShots], groupIndex) => {
       const chapter = chapterById.get(sequence);
-      const title = chapter?.title || "未割当";
-      const sequenceLabel = sequence === "__unassigned__" ? "sequence なし" : sequence;
+      const title = chapter?.title || "Unassigned";
+      const sequenceLabel = sequence === "__unassigned__" ? "no sequence" : sequence;
       return `<section class="sequence-group" data-sequence-group="${escapeHtml(sequenceLabel)}" aria-labelledby="sequence-heading-${groupIndex}"><header class="sequence-band"><span>${escapeHtml(sequenceLabel)}</span><h3 id="sequence-heading-${groupIndex}">${escapeHtml(title)}</h3><small>${groupShots.length} shots</small></header><div class="shot-list">${groupShots.map((shot) => renderShotRow({ shot, shotIndex: shots.indexOf(shot), chapter, sequenceLabel, planPath })).join("")}</div></section>`;
     })
     .join("");
@@ -140,30 +140,30 @@ function renderCardView({ chapters, shots, chapterById, planPath }) {
 function renderShotRow({ shot, shotIndex, chapter, sequenceLabel, planPath }) {
   const shotId = shot.id || `shot-${shotIndex + 1}`;
   const image = imageDataUri(shot.image_path, planPath);
-  const description = shot.description || "説明なし";
-  const shotType = shot.shot_type || "shot type 未設定";
+  const description = shot.description || "No description";
+  const shotType = shot.shot_type || "shot type not set";
   const duration = durationText(shot.duration_estimate_seconds);
   const cameraLines = cameraText(shot.camera);
   const label = excerpt(description || shotType);
   const thumbnail = renderShotMedia({ image, shotType, description, detail: false });
   const detailMedia = renderShotMedia({ image, shotType, description, detail: true });
-  const cutawayBadge = shot.cutaway_of ? `<span class="cutaway-badge">↳ ${escapeHtml(shot.cutaway_of)} から挿入</span>` : "";
+  const cutawayBadge = shot.cutaway_of ? `<span class="cutaway-badge">↳ Inserted from ${escapeHtml(shot.cutaway_of)}</span>` : "";
   return `<article class="shot-row${shot.cutaway_of ? " shot-row--cutaway" : ""}" data-shot-row data-shot-id="${escapeHtml(shotId)}" data-shot-index="${shotIndex}" data-shot-label="${escapeHtml(label)}"${shot.cutaway_of ? ` data-cutaway-of="${escapeHtml(shot.cutaway_of)}"` : ""}>
-    <button class="shot-row__open" type="button" data-shot-open="${shotIndex}" aria-label="${escapeHtml(shotId)} の詳細を開く">
+    <button class="shot-row__open" type="button" data-shot-open="${shotIndex}" aria-label="Open details for ${escapeHtml(shotId)}">
       <span class="shot-row__media">${thumbnail}</span>
-      <span class="shot-row__body"><span class="shot-row__meta"><strong>${escapeHtml(shotId)}</strong><span>${escapeHtml(shotType)}</span><span>${escapeHtml(duration)}</span>${cutawayBadge}</span><span class="shot-row__description">${escapeHtml(description)}</span>${cameraLines.length ? `<span class="camera-hint">${escapeHtml(cameraLines.join(" / "))}</span>` : ""}<span class="shot-row__action">詳細を見る <span aria-hidden="true">→</span></span></span>
+      <span class="shot-row__body"><span class="shot-row__meta"><strong>${escapeHtml(shotId)}</strong><span>${escapeHtml(shotType)}</span><span>${escapeHtml(duration)}</span>${cutawayBadge}</span><span class="shot-row__description">${escapeHtml(description)}</span>${cameraLines.length ? `<span class="camera-hint">${escapeHtml(cameraLines.join(" / "))}</span>` : ""}<span class="shot-row__action">View details <span aria-hidden="true">→</span></span></span>
     </button>
     <template data-shot-detail-template="${shotIndex}">
       <div class="shot-detail" data-shot-detail="${shotIndex}" data-shot-id="${escapeHtml(shotId)}" data-shot-label="${escapeHtml(label)}">
         <div class="shot-detail__media">${detailMedia}</div>
         <div class="shot-detail__copy">
-          <p class="shot-detail__context"><span>${escapeHtml(sequenceLabel)}</span><strong>${escapeHtml(chapter?.title || "未割当")}</strong>${chapter?.notes ? `<span>${escapeHtml(chapter.notes)}</span>` : ""}</p>
+          <p class="shot-detail__context"><span>${escapeHtml(sequenceLabel)}</span><strong>${escapeHtml(chapter?.title || "Unassigned")}</strong>${chapter?.notes ? `<span>${escapeHtml(chapter.notes)}</span>` : ""}</p>
           <div class="shot-detail__meta"><span>${escapeHtml(shotType)}</span><span>${escapeHtml(duration)}</span>${cutawayBadge}</div>
           <h3>${escapeHtml(shotId)}</h3>
           <p class="shot-detail__description">${escapeHtml(description)}</p>
-          <dl class="shot-detail__facts"><div><dt>camera / movement</dt><dd>${escapeHtml(cameraLines.find((line) => line.startsWith("movement:"))?.slice(9).trim() || "—")}</dd></div><div><dt>camera / path_hint</dt><dd>${escapeHtml(cameraLines.find((line) => line.startsWith("path:"))?.slice(5).trim() || "—")}</dd></div><div><dt>章</dt><dd>${escapeHtml(chapter?.title || "未割当")}（${escapeHtml(sequenceLabel)}）</dd></div></dl>
-          <label class="annotation-label" for="shot-feedback-${shotIndex}"><strong>このコマへの注釈</strong><span>指摘は要約せず、そのまま貼り戻しテキストへ入ります。</span></label>
-          <textarea id="shot-feedback-${shotIndex}" data-shot-feedback="${shotIndex}" rows="5" placeholder="例: 手元が見える時間をもう 2 秒長くしてください"></textarea>
+          <dl class="shot-detail__facts"><div><dt>camera / movement</dt><dd>${escapeHtml(cameraLines.find((line) => line.startsWith("movement:"))?.slice(9).trim() || "—")}</dd></div><div><dt>camera / path_hint</dt><dd>${escapeHtml(cameraLines.find((line) => line.startsWith("path:"))?.slice(5).trim() || "—")}</dd></div><div><dt>Chapter</dt><dd>${escapeHtml(chapter?.title || "Unassigned")} (${escapeHtml(sequenceLabel)})</dd></div></dl>
+          <label class="annotation-label" for="shot-feedback-${shotIndex}"><strong>Note on this frame</strong><span>The note is copied as written. It is not summarized.</span></label>
+          <textarea id="shot-feedback-${shotIndex}" data-shot-feedback="${shotIndex}" rows="5" placeholder="Example: hold the hands in frame for two more seconds"></textarea>
         </div>
       </div>
     </template>
@@ -174,25 +174,25 @@ function renderShotMedia({ image, shotType, description, detail }) {
   const modifier = detail ? " shot-image--detail" : "";
   const placeholderModifier = detail ? " shot-placeholder--detail" : "";
   return image
-    ? `<img class="shot-image${modifier}" data-shot-image src="${image}" alt="${escapeHtml(description || shotType || "ショットの概念画像")}" />`
-    : `<div class="shot-placeholder${placeholderModifier}" data-shot-placeholder role="img" aria-label="概念画像なし"><strong>${escapeHtml(shotType || "shot")}</strong>${detail ? `<span>${escapeHtml(description || "画の説明なし")}</span>` : ""}</div>`;
+    ? `<img class="shot-image${modifier}" data-shot-image src="${image}" alt="${escapeHtml(description || shotType || "Shot concept image")}" />`
+    : `<div class="shot-placeholder${placeholderModifier}" data-shot-placeholder role="img" aria-label="No concept image"><strong>${escapeHtml(shotType || "shot")}</strong>${detail ? `<span>${escapeHtml(description || "No picture description")}</span>` : ""}</div>`;
 }
 
 function renderShotDialog() {
-  return `<dialog class="shot-dialog" data-shot-dialog aria-labelledby="shot-dialog-title"><div class="shot-dialog__frame"><header class="shot-dialog__header"><div><span class="section-kicker">KOMA DETAIL</span><h2 id="shot-dialog-title">コマ詳細</h2></div><div class="shot-dialog__controls"><button type="button" data-shot-previous aria-label="前のコマ">←</button><button type="button" data-shot-next aria-label="次のコマ">→</button><button type="button" data-shot-close>閉じる</button></div></header><div data-shot-dialog-body></div></div></dialog>`;
+  return `<dialog class="shot-dialog" data-shot-dialog aria-labelledby="shot-dialog-title"><div class="shot-dialog__frame"><header class="shot-dialog__header"><div><span class="section-kicker">FRAME DETAIL</span><h2 id="shot-dialog-title">Frame detail</h2></div><div class="shot-dialog__controls"><button type="button" data-shot-previous aria-label="Previous frame">←</button><button type="button" data-shot-next aria-label="Next frame">→</button><button type="button" data-shot-close>Close</button></div></header><div data-shot-dialog-body></div></div></dialog>`;
 }
 
 function renderAnnotationSection(reportTitle) {
-  return `<section class="report-section annotation-section" data-annotation-section data-report-title="${escapeHtml(reportTitle)}" aria-labelledby="heading-annotation"><span class="section-kicker">SECTION 06</span><h2 id="heading-annotation">6. 絵コンテ注釈</h2><p class="section-lead">コマ詳細の指摘と全体への指摘を、エージェントへ貼り戻せるテキストにまとめます。レポートからファイルへの書き込みや送信は行いません。</p><label class="annotation-label" for="overall-feedback"><strong>全体への注釈</strong><span>構成全体に関する指摘を逐語で入力してください。</span></label><textarea id="overall-feedback" data-overall-feedback rows="5" placeholder="例: 冒頭から本編へのテンポを速くしてください"></textarea><div class="annotation-actions"><button class="copy-button" type="button" data-copy-annotation>注釈をコピー</button><span class="copy-status" data-copy-status role="status" aria-live="polite">入力すると下に貼り戻しテキストが生成されます。</span></div><label class="annotation-label" for="annotation-output"><strong>貼り戻しテキスト（手動コピー用）</strong><span>コピーできない環境では、ここから選択してコピーしてください。</span></label><textarea id="annotation-output" class="annotation-output" data-annotation-output rows="12" readonly></textarea></section>`;
+  return `<section class="report-section annotation-section" data-annotation-section data-report-title="${escapeHtml(reportTitle)}" aria-labelledby="heading-annotation"><span class="section-kicker">SECTION 06</span><h2 id="heading-annotation">6. Storyboard notes</h2><p class="section-lead">Frame notes and an overall note become text you can paste back to the agent. This report does not write a file and does not send anything.</p><label class="annotation-label" for="overall-feedback"><strong>Overall note</strong><span>Write the note on the whole structure as you want it passed on.</span></label><textarea id="overall-feedback" data-overall-feedback rows="5" placeholder="Example: move faster from the opening into the body"></textarea><div class="annotation-actions"><button class="copy-button" type="button" data-copy-annotation>Copy notes</button><span class="copy-status" data-copy-status role="status" aria-live="polite">Notes appear below as you type.</span></div><label class="annotation-label" for="annotation-output"><strong>Paste-back text</strong><span>If copy is unavailable, select the text here.</span></label><textarea id="annotation-output" class="annotation-output" data-annotation-output rows="12" readonly></textarea></section>`;
 }
 
 function renderStructureView({ chapters, shots, chapterById }) {
   const hasStructureFields = shots.some((shot) => hasOwn(shot, "sequence") || hasOwn(shot, "cutaway_of"));
   if (!hasStructureFields) {
-    return `<div class="empty-state" data-structure-empty><strong>構造情報なし</strong><span>sequence / cutaway_of が無い旧形式です。カード面はこれまで通り表示できます。</span></div>`;
+    return `<div class="empty-state" data-structure-empty><strong>No structure</strong><span>This older form has no sequence or cutaway_of. The frame view still renders.</span></div>`;
   }
   const mainShots = shots.filter((shot) => !shot.cutaway_of);
-  if (mainShots.length === 0) return `<div class="empty-state" data-structure-empty>主軸ショットがありません。</div>`;
+  if (mainShots.length === 0) return `<div class="empty-state" data-structure-empty>No main-line shots.</div>`;
   const cutawaysByMain = new Map();
   for (const shot of shots.filter((candidate) => candidate.cutaway_of)) {
     const branch = cutawaysByMain.get(shot.cutaway_of) || [];
@@ -213,7 +213,7 @@ function renderStructureView({ chapters, shots, chapterById }) {
     const x = left + band.start * gap - 18;
     const bandWidth = (band.end - band.start) * gap + nodeWidth + 36;
     const chapter = chapterById.get(band.sequence);
-    return `<g data-flow-role="chapter-band" data-sequence="${escapeHtml(band.sequence || "unassigned")}"><rect class="chapter-band" x="${x}" y="18" width="${bandWidth}" height="52" rx="15"/><text class="chapter-band__id" x="${x + 18}" y="39">${escapeXml(band.sequence || "sequence なし")}</text><text class="chapter-band__title" x="${x + 18}" y="59">${escapeXml(chapter?.title || "未割当")}</text></g>`;
+    return `<g data-flow-role="chapter-band" data-sequence="${escapeHtml(band.sequence || "unassigned")}"><rect class="chapter-band" x="${x}" y="18" width="${bandWidth}" height="52" rx="15"/><text class="chapter-band__id" x="${x + 18}" y="39">${escapeXml(band.sequence || "no sequence")}</text><text class="chapter-band__title" x="${x + 18}" y="59">${escapeXml(chapter?.title || "Unassigned")}</text></g>`;
   }).join("");
   const axisLines = mainShots.slice(0, -1).map((_, index) => `<path class="main-line" data-flow-role="main-line" d="M ${centers[index] + nodeWidth / 2 - 7} ${mainY + 48} H ${centers[index + 1] - nodeWidth / 2 + 7}" marker-end="url(#arrow-main)"/>`).join("");
   const mainNodes = mainShots.map((shot, index) => flowNode(shot, left + index * gap, mainY, "main-node")).join("");
@@ -228,13 +228,13 @@ function renderStructureView({ chapters, shots, chapterById }) {
       return `<path class="branch-line" data-flow-role="branch-line" data-from="${escapeHtml(mainShot.id || "")}" data-to="${escapeHtml(shot.id || "")}" d="M ${centers[mainIndex]} ${mainY + 96} V ${y - 14}" marker-end="url(#arrow-branch)"/>${flowNode(shot, x, y, "cutaway-node")}<path class="return-line" data-flow-role="return-line" data-from="${escapeHtml(shot.id || "")}" data-to="${escapeHtml(mainShots[mainIndex + 1]?.id || mainShot.id || "")}" d="M ${centers[mainIndex] + nodeWidth / 2 - 4} ${y + 48} C ${centers[mainIndex] + 132} ${y + 48}, ${returnX - 68} ${returnY}, ${returnX} ${returnY}" marker-end="url(#arrow-return)"/>`;
     }).join("");
   }).join("");
-  return `<div class="flow-legend" aria-label="構造図の凡例"><span><i class="legend-main"></i>主軸</span><span><i class="legend-cutaway"></i>カットアウェイ</span><span><i class="legend-return"></i>主軸へ戻る</span></div><div class="flow-scroll" tabindex="0" role="region" aria-label="主軸ショットとカットアウェイの構造図。横にスクロールできます"><svg data-storyboard-flow viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-labelledby="flow-title flow-desc"><title id="flow-title">絵コンテ構造</title><desc id="flow-desc">主軸ショットを左から右へ並べ、カットアウェイを下へ分岐し、次の主軸へ戻る線で示します。</desc><defs><marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-main"/></marker><marker id="arrow-branch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-branch"/></marker><marker id="arrow-return" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-return"/></marker></defs>${chapterBands}${axisLines}${mainNodes}${branches}</svg></div>`;
+  return `<div class="flow-legend" aria-label="Structure legend"><span><i class="legend-main"></i>Main line</span><span><i class="legend-cutaway"></i>Cutaway</span><span><i class="legend-return"></i>Return to the main line</span></div><div class="flow-scroll" tabindex="0" role="region" aria-label="Structure of main-line shots and cutaways. Scroll sideways."><svg data-storyboard-flow viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-labelledby="flow-title flow-desc"><title id="flow-title">Storyboard structure</title><desc id="flow-desc">Main-line shots run left to right. Cutaways branch down and a line returns to the next main-line shot.</desc><defs><marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-main"/></marker><marker id="arrow-branch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-branch"/></marker><marker id="arrow-return" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-return"/></marker></defs>${chapterBands}${axisLines}${mainNodes}${branches}</svg></div>`;
 }
 
 function flowNode(shot, x, y, role) {
   const isCutaway = role === "cutaway-node";
-  const title = shot.id || "id なし";
-  const lines = wrapLabel(shot.description || shot.shot_type || "説明なし", 16, 2);
+  const title = shot.id || "no id";
+  const lines = wrapLabel(shot.description || shot.shot_type || "No description", 16, 2);
   return `<g data-flow-role="${role}" data-shot-id="${escapeHtml(shot.id || "")}"><rect class="flow-node${isCutaway ? " flow-node--cutaway" : ""}" x="${x}" y="${y}" width="174" height="96" rx="14"/><text class="flow-node__type" x="${x + 14}" y="${y + 22}">${escapeXml(shot.shot_type || (isCutaway ? "cutaway" : "main"))}</text><text class="flow-node__id" x="${x + 14}" y="${y + 43}">${escapeXml(title)}</text><text class="flow-node__description" x="${x + 14}" y="${y + 65}">${lines.map((line, index) => `<tspan x="${x + 14}" dy="${index === 0 ? 0 : 17}">${escapeXml(line)}</tspan>`).join("")}</text></g>`;
 }
 
@@ -242,8 +242,8 @@ function renderShotListSection(shotList) {
   const entries = Array.isArray(shotList) ? shotList.filter(plainObject) : [];
   const rows = entries.length
     ? entries.map((entry) => `<tr><th scope="row">${escapeHtml(entry.id || "—")}</th><td>${escapeHtml(entry.ref_shot_id || "—")}</td><td>${escapeHtml(entry.location || "—")}</td><td>${escapeHtml(Array.isArray(entry.checklist) ? entry.checklist.join(" / ") : "—")}</td><td>${escapeHtml(entry.status || "—")}</td></tr>`).join("")
-    : `<tr><td colspan="5" class="empty-cell">撮影チェックリストはまだありません。</td></tr>`;
-  return `<section class="report-section" aria-labelledby="heading-shot-list"><span class="section-kicker">SECTION 05</span><h2 id="heading-shot-list">5. 撮影チェックリスト</h2><div class="table-scroll" tabindex="0"><table><thead><tr><th>ID</th><th>ショット</th><th>場所</th><th>確認事項</th><th>状態</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+    : `<tr><td colspan="5" class="empty-cell">No shot checklist yet.</td></tr>`;
+  return `<section class="report-section" aria-labelledby="heading-shot-list"><span class="section-kicker">SECTION 05</span><h2 id="heading-shot-list">5. Shot checklist</h2><div class="table-scroll" tabindex="0"><table><thead><tr><th>ID</th><th>Shot</th><th>Place</th><th>Check</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 function contiguousChapterBands(mainShots) {
@@ -263,7 +263,7 @@ function selectedTopicTitle(plan) {
 }
 
 function durationText(value) {
-  return Number.isFinite(value) ? `${value} 秒` : "尺未定";
+  return Number.isFinite(value) ? `${value} s` : "Duration not set";
 }
 
 function cameraText(camera) {
@@ -378,7 +378,7 @@ function reportScript() {
     const output = document.querySelector('[data-annotation-output]');
     const copyButton = document.querySelector('[data-copy-annotation]');
     const copyStatus = document.querySelector('[data-copy-status]');
-    const reportTitle = document.querySelector('[data-annotation-section]')?.dataset.reportTitle || 'リサーチプラン';
+    const reportTitle = document.querySelector('[data-annotation-section]')?.dataset.reportTitle || 'Research plan';
 
     function feedbackText() {
       saveCurrentComment();
@@ -407,13 +407,13 @@ function reportScript() {
       refreshOutput();
       try {
         await navigator.clipboard.writeText(output.value);
-        copyStatus.textContent = '注釈をコピーしました。';
+        copyStatus.textContent = 'Notes copied.';
       } catch {
         output.focus();
         output.select();
         let copied = false;
         try { copied = document.execCommand('copy'); } catch {}
-        copyStatus.textContent = copied ? '注釈をコピーしました。' : '自動コピーできませんでした。下のテキストを手動でコピーしてください。';
+        copyStatus.textContent = copied ? 'Notes copied.' : 'Automatic copy failed. Select the text below.';
       }
     });
     refreshOutput();
@@ -456,7 +456,7 @@ function isMainModule() {
 if (isMainModule()) {
   const [inputPath, outputPath, extra] = process.argv.slice(2);
   if (!inputPath || extra) {
-    console.error("使い方: node packages/decision-cards/render-research-plan-report.mjs <research-plan.json> [research-plan-report.html]");
+    console.error("Usage: node packages/decision-cards/render-research-plan-report.mjs <research-plan.json> [research-plan-report.html]");
     process.exit(2);
   }
   try {

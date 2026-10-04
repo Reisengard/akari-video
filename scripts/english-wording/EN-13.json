@@ -1,5 +1,5 @@
 {
   "id": "EN-13",
   "glob": "{packages/decision-cards/**,packages/decision-log-report/**,packages/analysis-report/**,packages/audio-library-setup/**}",
-  "max": 22800
+  "max": 13056
 }

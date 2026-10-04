@@ -11,7 +11,7 @@ export async function loadCandidates(candidatesPath) {
     const raw = await readFile(candidatesPath, 'utf8');
     const data = JSON.parse(raw);
     if (!Array.isArray(data.categories)) {
-        throw new Error('candidates.json: categories 配列がありません');
+        throw new Error('candidates.json: categories is not an array');
     }
     return data;
 }

@@ -49,7 +49,7 @@ test('planFromCatalog wav variant selects wav filenames', () => {
 });
 
 test('planFromCatalog rejects a catalog without tracks[]', () => {
-    assert.throws(() => planFromCatalog({}), /tracks 配列がない/);
+    assert.throws(() => planFromCatalog({}), /no tracks array/);
 });
 
 test('zipAssetNames maps variant to the v0 release layout and rejects unknown variants', () => {

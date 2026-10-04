@@ -63,6 +63,6 @@ test('pending audio fetch stays in the legacy library without syncing new downlo
   await fs.writeFile(catalog, JSON.stringify({ tracks: [] }));
   const result = spawnSync(process.execPath, [path.join(bin, 'fetch-akari-sounds.mjs'), '--catalog', catalog, '--dry-run'], { env, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  assert.ok(result.stdout.includes(`登録先: ${path.join(home, 'assets/audio')}`));
+  assert.ok(result.stdout.includes(`Destination: ${path.join(home, 'assets/audio')}`));
   assert.equal(existsSync(root), false);
 });

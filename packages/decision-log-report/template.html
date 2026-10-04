@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,7 +7,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <title>AKARI Video 判断記録レポート</title>
+    <title>AKARI Video decision log</title>
     <!--
       AKARI 判断記録レポート 安全な差し替え規約:
       - このファイルはデータを含まない UI 正本。ログの内容は JSON ブロックだけへ埋め込む。
@@ -145,29 +145,29 @@
     </style>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">本文へ移動</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="report-header" id="section-overview">
       <div class="report-header__inner">
         <p class="eyebrow">SECTION 1 / AKARI VIDEO / READ ONLY</p>
-        <h1>1. 判断記録レポート — <span data-mount="project-name">—</span></h1>
+        <h1>1. Decision log — <span data-mount="project-name">—</span></h1>
         <p data-mount="source-path">—</p>
-        <dl class="report-meta" aria-label="判断記録の統計">
-          <div><dt>構造化した決定</dt><dd data-mount="decision-count">—</dd></div>
-          <div><dt>原文ブロック</dt><dd data-mount="block-count">—</dd></div>
-          <div><dt>画像参照</dt><dd data-mount="image-count">—</dd></div>
-          <div><dt>欠落画像</dt><dd data-mount="missing-count">—</dd></div>
+        <dl class="report-meta" aria-label="Decision log stats">
+          <div><dt>Structured decisions</dt><dd data-mount="decision-count">—</dd></div>
+          <div><dt>Source blocks</dt><dd data-mount="block-count">—</dd></div>
+          <div><dt>Image references</dt><dd data-mount="image-count">—</dd></div>
+          <div><dt>Missing images</dt><dd data-mount="missing-count">—</dd></div>
         </dl>
       </div>
     </header>
 
-    <nav class="report-nav" aria-label="章ジャンプナビ">
+    <nav class="report-nav" aria-label="Section links">
       <div class="report-nav__inner">
-        <a href="#section-overview">1. ヘッダ</a>
-        <a href="#section-current">2. いま有効な決定</a>
-        <a href="#section-history">3. チェックポイント別の履歴</a>
-        <a href="#section-images">4. 画像</a>
-        <a href="#section-original">5. 記録原文</a>
-        <a href="#section-provenance">6. 来歴</a>
+        <a href="#section-overview">1. Header</a>
+        <a href="#section-current">2. Current decisions</a>
+        <a href="#section-history">3. History by checkpoint</a>
+        <a href="#section-images">4. Images</a>
+        <a href="#section-original">5. Original record</a>
+        <a href="#section-provenance">6. Provenance</a>
       </div>
     </nav>
 
@@ -175,32 +175,32 @@
       <div data-mount="fatal"></div>
       <section class="report-section" id="section-current">
         <span class="section-kicker">SECTION 2</span>
-        <h2>2. いま有効な決定</h2>
-        <p class="section-lead">同じ category / subject では、ファイル順で最後に追記された行を表示します。</p>
+        <h2>2. Current decisions</h2>
+        <p class="section-lead">For the same category and subject, the last row in file order is the current one.</p>
         <div data-mount="current"></div>
       </section>
       <section class="report-section" id="section-history">
         <span class="section-kicker">SECTION 3</span>
-        <h2>3. チェックポイント別の履歴</h2>
+        <h2>3. History by checkpoint</h2>
         <div data-mount="history"></div>
       </section>
       <section class="report-section" id="section-images">
         <span class="section-kicker">SECTION 4</span>
-        <h2>4. 画像</h2>
+        <h2>4. Images</h2>
         <div data-mount="images"></div>
       </section>
       <section class="report-section" id="section-original">
         <span class="section-kicker">SECTION 5</span>
-        <h2>5. 記録原文</h2>
+        <h2>5. Original record</h2>
         <div data-mount="original"></div>
       </section>
       <section class="report-section" id="section-provenance">
         <span class="section-kicker">SECTION 6</span>
-        <h2>6. 来歴</h2>
+        <h2>6. Provenance</h2>
         <div data-mount="provenance"></div>
       </section>
     </main>
-    <footer class="report-footer"><p>この HTML は decision-log.md から生成した読み取り専用の派生物です。決定 UI は持ちません。</p></footer>
+    <footer class="report-footer"><p>This HTML is a read-only derivative of decision-log.md. It has no decision UI.</p></footer>
 
     <script type="application/json" id="akari-decision-log-report-data">{"__AKARI_DECISION_LOG_REPORT_DATA__":true}</script>
     <script>
@@ -260,18 +260,18 @@
         function renderHeader(data) {
           document.querySelector('[data-mount="project-name"]').textContent = data.source.projectName;
           document.querySelector('[data-mount="source-path"]').textContent = `source: ${data.source.path}`;
-          document.querySelector('[data-mount="decision-count"]').textContent = `${data.stats.decisionRows} 件`;
-          document.querySelector('[data-mount="block-count"]').textContent = `${data.stats.blockCount} 件`;
-          document.querySelector('[data-mount="image-count"]').textContent = `${data.stats.imageCount} 件`;
-          document.querySelector('[data-mount="missing-count"]').textContent = `${data.stats.missingImageCount} 件`;
+          document.querySelector('[data-mount="decision-count"]').textContent = `${data.stats.decisionRows}`;
+          document.querySelector('[data-mount="block-count"]').textContent = `${data.stats.blockCount}`;
+          document.querySelector('[data-mount="image-count"]').textContent = `${data.stats.imageCount}`;
+          document.querySelector('[data-mount="missing-count"]').textContent = `${data.stats.missingImageCount}`;
         }
 
         function appendDecisionBody(card, decision) {
-          card.append(el("div", { class: "badge-row" }, [badge(decision.category || "未分類")]));
-          card.append(el("h4", { text: decision.subject || "（subject なし）" }));
-          card.append(el("p", {}, [inline(decision.decision || "（決定内容なし）")]));
-          if (decision.reason) card.append(el("p", { class: "meta", text: `理由: ${decision.reason}` }));
-          card.append(el("p", { class: "meta", text: `${decision.at || "日時なし"} / ${decision.decider || "決定者なし"}` }));
+          card.append(el("div", { class: "badge-row" }, [badge(decision.category || "Uncategorized")]));
+          card.append(el("h4", { text: decision.subject || "(no subject)" }));
+          card.append(el("p", {}, [inline(decision.decision || "(no decision text)")]));
+          if (decision.reason) card.append(el("p", { class: "meta", text: `Reason: ${decision.reason}` }));
+          card.append(el("p", { class: "meta", text: `${decision.at || "no time"} / ${decision.decider || "no decider"}` }));
           if (decision.tone || decision.tempo) {
             const row = el("div", { class: "badge-row" });
             for (const tone of decision.tone || []) row.append(badge(tone, "tone"));
@@ -284,7 +284,7 @@
           const mount = document.querySelector('[data-mount="current"]');
           const active = data.decisions.filter((decision) => decision.supersededBy === null);
           if (active.length === 0) {
-            mount.append(emptyState(data.blocks.length === 0 ? "判断記録はまだありません" : "表形式の決定行はまだありません（記録原文を参照）"));
+            mount.append(emptyState(data.blocks.length === 0 ? "No decisions yet" : "No table rows yet. See the original record."));
             return;
           }
           const byCategory = new Map();
@@ -293,13 +293,13 @@
             byCategory.get(decision.category).push(decision);
           }
           for (const [category, decisions] of byCategory) {
-            mount.append(el("h3", { text: category || "未分類" }));
+            mount.append(el("h3", { text: category || "Uncategorized" }));
             const grid = el("div", { class: "grid" });
             for (const decision of decisions) {
               const card = el("article", { class: "card" });
               appendDecisionBody(card, decision);
               const historyCount = data.decisions.filter((row) => row.category === decision.category && row.subject === decision.subject).length - 1;
-              if (historyCount > 0) card.prepend(el("div", { class: "badge-row" }, [badge(`履歴 ${historyCount} 件`, "warn")]));
+              if (historyCount > 0) card.prepend(el("div", { class: "badge-row" }, [badge(`History ${historyCount}`, "warn")]));
               grid.append(card);
             }
             mount.append(grid);
@@ -308,29 +308,29 @@
 
         function checkpointOf(value) {
           const text = String(value || "");
-          if (/Checkpoint\s*1|方針/iu.test(text)) return "Checkpoint 1（方針）";
-          if (/Checkpoint\s*2|素材計画/iu.test(text)) return "Checkpoint 2（素材計画）";
-          if (/Checkpoint\s*3|実行/iu.test(text)) return "Checkpoint 3（実行）";
-          return "その他";
+          if (/Checkpoint\s*1|方針|Direction/iu.test(text)) return "Checkpoint 1 (Direction)";
+          if (/Checkpoint\s*2|素材計画|Footage plan/iu.test(text)) return "Checkpoint 2 (Footage plan)";
+          if (/Checkpoint\s*3|実行|Execution/iu.test(text)) return "Checkpoint 3 (Execution)";
+          return "Other";
         }
 
         function renderHistory(data) {
           const mount = document.querySelector('[data-mount="history"]');
           if (data.decisions.length === 0) {
-            mount.append(emptyState(data.blocks.length === 0 ? "判断記録はまだありません" : "表形式の決定行はまだありません（記録原文を参照）"));
+            mount.append(emptyState(data.blocks.length === 0 ? "No decisions yet" : "No table rows yet. See the original record."));
             return;
           }
-          for (const label of ["Checkpoint 1（方針）", "Checkpoint 2（素材計画）", "Checkpoint 3（実行）", "その他"]) {
+          for (const label of ["Checkpoint 1 (Direction)", "Checkpoint 2 (Footage plan)", "Checkpoint 3 (Execution)", "Other"]) {
             const rows = data.decisions.filter((decision) => checkpointOf(decision.checkpoint) === label);
             const section = el("div", { class: "checkpoint" });
             section.append(el("h3", { text: label }));
-            if (rows.length === 0) section.append(emptyState("記録なし"));
+            if (rows.length === 0) section.append(emptyState("No rows"));
             for (const decision of rows) {
               const card = el("article", { class: `card${decision.supersededBy === null ? "" : " card--superseded"}` });
               appendDecisionBody(card, decision);
               if (decision.supersededBy !== null) {
                 const next = data.decisions[decision.supersededBy];
-                card.append(el("p", { class: "meta", text: `→ 上書き: ${next?.at || "日時なし"}` }));
+                card.append(el("p", { class: "meta", text: `Superseded at ${next?.at || "no time"}` }));
               }
               section.append(card);
             }
@@ -346,15 +346,15 @@
           if (image.decisionIndex !== null) {
             const decision = data.decisions[image.decisionIndex];
             const decisionText = withoutMarkdownImages(decision?.decision || "");
-            return `${decision?.subject || "subject なし"} / ${decisionText || "決定内容なし"}`;
+            return `${decision?.subject || "no subject"} / ${decisionText || "no decision text"}`;
           }
-          return `記録原文 block ${image.blockIndex}`;
+          return `Original record block ${image.blockIndex}`;
         }
 
         function renderImages(data) {
           const mount = document.querySelector('[data-mount="images"]');
           if (data.images.length === 0) {
-            mount.append(emptyState("画像参照はありません"));
+            mount.append(emptyState("No image references"));
             return;
           }
           const grid = el("div", { class: "image-grid" });
@@ -364,7 +364,7 @@
             const caption = el("figcaption");
             caption.append(el("h3", { text: imageHeading(image, data) }));
             caption.append(el("code", { text: image.path }));
-            if (!image.exists) caption.append(el("div", { class: "badge-row" }, [badge("画像欠落", "warn")]));
+            if (!image.exists) caption.append(el("div", { class: "badge-row" }, [badge("Missing image", "warn")]));
             figure.append(caption);
             grid.append(figure);
           }
@@ -406,7 +406,7 @@
         function renderOriginal(data) {
           const mount = document.querySelector('[data-mount="original"]');
           if (data.blocks.length === 0) {
-            mount.append(emptyState(data.decisions.length === 0 ? "判断記録はまだありません" : "構造化した表以外の原文ブロックはありません"));
+            mount.append(emptyState(data.decisions.length === 0 ? "No decisions yet" : "No source blocks outside the structured table"));
             return;
           }
           for (let index = 0; index < data.blocks.length; index += 1) {
@@ -437,15 +437,15 @@
           const entries = [
             ["source.path", data.source.path],
             ["renderer", "@akari-video/decision-log-report 0.0.0"],
-            ["性質", "decision-log.md を SSOT とする読み取り専用の派生物"],
+            ["Kind", "Read-only derivative. decision-log.md is the source of truth"],
           ];
-          if (data.decisions.length === 0) entries.push(["空状態", data.blocks.length === 0 ? "判断記録はまだありません" : "表形式の決定行はまだありません（記録原文を参照）"]);
+          if (data.decisions.length === 0) entries.push(["Empty state", data.blocks.length === 0 ? "No decisions yet" : "No table rows yet. See the original record."]);
           for (const [term, value] of entries) list.append(el("li", {}, [el("dl", {}, [el("dt", { text: term }), el("dd", { text: value })])]));
           mount.append(list);
         }
 
         function fatal(message) {
-          document.querySelector('[data-mount="fatal"]').append(el("p", { class: "fatal-error", text: `レポートデータを読み込めません: ${message}`, attrs: { role: "alert" } }));
+          document.querySelector('[data-mount="fatal"]').append(el("p", { class: "fatal-error", text: `Could not read the report data: ${message}`, attrs: { role: "alert" } }));
         }
 
         function main() {
@@ -453,7 +453,7 @@
           try { data = JSON.parse(document.getElementById("akari-decision-log-report-data").textContent); }
           catch (error) { fatal(error.message); return; }
           if (!isRecord(data) || !isRecord(data.source) || !Array.isArray(data.decisions) || !Array.isArray(data.blocks) || !Array.isArray(data.images) || !isRecord(data.stats)) {
-            fatal("データの形が想定と異なります");
+            fatal("The report data is not in the expected shape");
             return;
           }
           renderHeader(data);

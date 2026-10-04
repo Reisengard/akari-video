@@ -39,7 +39,7 @@ function parseArguments(argv, env = process.env) {
     function valueAfter(index, option, example) {
         const value = argv[index + 1];
         if (value === undefined || value.startsWith('--')) {
-            console.error(`${option} には値が必要です（例: ${example}）`);
+            console.error(`${option} needs a value (example: ${example})`);
             process.exit(1);
         }
         return value;
@@ -53,13 +53,13 @@ function parseArguments(argv, env = process.env) {
         const arg = argv[i];
         if (arg === '--track') { options.track = valueAfter(i++, arg, '--track <id>'); continue; }
         if (arg === '--edit') { options.edit = path.resolve(valueAfter(i++, arg, '--edit <edit.json>')); continue; }
-        if (arg === '--timeline') { options.timeline = Number(valueAfter(i++, arg, '--timeline <秒>')); continue; }
-        if (arg === '--in') { options.in = Number(valueAfter(i++, arg, '--in <秒>')); continue; }
-        if (arg === '--track-duration') { options.trackDuration = Number(valueAfter(i++, arg, '--track-duration <秒>')); continue; }
+        if (arg === '--timeline') { options.timeline = Number(valueAfter(i++, arg, '--timeline <seconds>')); continue; }
+        if (arg === '--in') { options.in = Number(valueAfter(i++, arg, '--in <seconds>')); continue; }
+        if (arg === '--track-duration') { options.trackDuration = Number(valueAfter(i++, arg, '--track-duration <seconds>')); continue; }
         if (arg === '--snap') { options.snap = valueAfter(i++, arg, '--snap 12.3,45.6').split(',').map(Number).filter((n) => Number.isFinite(n)); continue; }
-        if (arg === '--window') { options.window = Number(valueAfter(i++, arg, '--window <秒>')); continue; }
+        if (arg === '--window') { options.window = Number(valueAfter(i++, arg, '--window <seconds>')); continue; }
         if (arg === '--every') { options.every = Number(valueAfter(i++, arg, '--every <N>')); continue; }
-        if (arg === '--fps') { options.fps = Number(valueAfter(i++, arg, '--fps <数>')); continue; }
+        if (arg === '--fps') { options.fps = Number(valueAfter(i++, arg, '--fps <number>')); continue; }
         if (arg === '--declarations') { options.declarations = valueAfter(i++, arg, '--declarations <path>'); continue; }
         if (arg === '--json') { options.json = true; continue; }
         throw new Error(`Unknown option: ${arg}`);
@@ -73,9 +73,9 @@ async function loadDeclarations(options) {
         : audioReadPath(libraryRoot(), 'declarations.json');
     if (!existsSync(candidate)) {
         throw new Error(
-            `宣言データが見つかりません: ${candidate}\n` +
-            '自分で付けるなら declare-audio（node bin/declare-helper.mjs）、' +
-            '購入済みなら akari store install sounds-declaration-pack で入ります。',
+            `Declaration data was not found: ${candidate}\n` +
+            'Declare it yourself with declare-audio (node bin/declare-helper.mjs), ' +
+            'or, if you bought it, akari store install sounds-declaration-pack.',
         );
     }
     return { declarations: (options.declarations ? JSON.parse(await readFile(candidate, 'utf8')) : readAudioDeclarations(libraryRoot())), source: candidate };
@@ -120,25 +120,25 @@ function probeDuration(filePath) {
 function formatHuman(grid, { trackId, snaps, cuts, declarationsSource }) {
     const lines = [];
     const m = grid.meta;
-    lines.push(`音楽グリッド: ${trackId}（宣言: ${declarationsSource}）`);
-    lines.push(`  ♩${m.bpm ?? '—'} / ${m.beats_per_bar}拍子 / ${m.fps}fps / 曲長 ${m.track_duration}s / in ${m.bgm_in}s / timeline ${m.timeline_frames}f（${m.loops} 周）`);
-    lines.push(`  拍 ${grid.beats.length} 個 / 小節頭 ${grid.downbeats.length} / キメ ${grid.hits.length}${grid.seams.length ? ` / ループ継ぎ目 ${grid.seams.join(', ')}f` : ''}`);
-    if (grid.hits.length) lines.push(`  キメ（timeline frame）: ${grid.hits.slice(0, 12).join(', ')}${grid.hits.length > 12 ? ' …' : ''}`);
+    lines.push(`Music grid: ${trackId} (declaration: ${declarationsSource})`);
+    lines.push(`  ♩${m.bpm ?? '—'} / ${m.beats_per_bar} beats / ${m.fps}fps / length ${m.track_duration}s / in ${m.bgm_in}s / timeline ${m.timeline_frames}f (${m.loops} loops)`);
+    lines.push(`  beats ${grid.beats.length} / downbeats ${grid.downbeats.length} / hits ${grid.hits.length}${grid.seams.length ? ` / loop seams ${grid.seams.join(', ')}f` : ''}`);
+    if (grid.hits.length) lines.push(`  Hits (timeline frame): ${grid.hits.slice(0, 12).join(', ')}${grid.hits.length > 12 ? ' …' : ''}`);
     for (const section of grid.sections) {
-        lines.push(`  構成: ${section.label} ${section.start_frame}–${section.end_frame}f`);
+        lines.push(`  Section: ${section.label} ${section.start_frame}–${section.end_frame}f`);
     }
     if (cuts.length) {
-        lines.push(`  カット候補（${cuts.length} 点）: ${cuts.slice(0, 12).join(', ')}${cuts.length > 12 ? ' …' : ''}`);
+        lines.push(`  Cut candidates (${cuts.length}): ${cuts.slice(0, 12).join(', ')}${cuts.length > 12 ? ' …' : ''}`);
     }
     if (snaps.length) {
-        lines.push('  スナップ:');
+        lines.push('  Snap:');
         for (const snap of snaps) {
             lines.push(snap.snapped
-                ? `    ${snap.from}f → ${snap.t}f（${snap.kind} / ${snap.delta > 0 ? '+' : ''}${snap.delta}f）`
-                : `    ${snap.from}f → 動かさない（窓内にグリッドなし）`);
+                ? `    ${snap.from}f → ${snap.t}f (${snap.kind} / ${snap.delta > 0 ? '+' : ''}${snap.delta}f)`
+                : `    ${snap.from}f → unchanged (no grid point inside the window)`);
         }
     }
-    lines.push('  ※ 発火位置の採用は素材計画・実行の承認ゲートで決めてください（これは候補の提示まで）');
+    lines.push('  Choose firing points at the footage-plan and execution approval gates. This only lists candidates.');
     return lines.join('\n');
 }
 
@@ -149,25 +149,25 @@ async function main() {
 
     if (options.edit) {
         const edit = await readEdit(options.edit);
-        if (!edit.bgmPath) throw new Error('edit.json に audio.bgm がありません');
+        if (!edit.bgmPath) throw new Error('edit.json has no audio.bgm');
         bgmFile = path.resolve(edit.editDir, edit.bgmPath);
         trackId = trackId ?? trackIdFromPath(edit.bgmPath);
         bgmIn = bgmIn ?? edit.bgmIn;
         timelineDuration = timelineDuration ?? edit.timelineFromCuts;
         fps = fps ?? edit.outputFps;
     }
-    if (!trackId) throw new Error('--track か --edit を指定してください');
+    if (!trackId) throw new Error('Pass --track or --edit');
     if (!Number.isFinite(timelineDuration) || timelineDuration <= 0) {
-        throw new Error('--timeline（タイムライン全長・秒）を指定してください（edit.json の cuts から求まらない場合）');
+        throw new Error('Pass --timeline (timeline length in seconds) when edit.json cuts do not imply it');
     }
     if (!Number.isFinite(fps) || fps <= 0) {
-        throw new Error('--fps（出力 fps）を指定してください（edit.json の output.fps から求まらない場合）');
+        throw new Error('Pass --fps (output fps) when edit.json has no output.fps');
     }
 
     const { declarations, source } = await loadDeclarations(options);
     const declaration = declarations[trackId];
     if (!declaration) {
-        throw new Error(`宣言がありません: ${trackId}（declare-audio で付けるか、宣言パックを導入してください）`);
+        throw new Error(`No declaration for ${trackId}. Add one with declare-audio, or install a declaration pack.`);
     }
 
     if (!Number.isFinite(trackDuration)) {
@@ -177,7 +177,7 @@ async function main() {
         }
         trackDuration = bgmFile ? probeDuration(bgmFile) : null;
         if (!trackDuration) {
-            throw new Error('BGM の長さが分かりません。--track-duration <秒> を渡してください（ffprobe が使えない場合）');
+            throw new Error('BGM length is unknown. Pass --track-duration <seconds> when ffprobe cannot measure it.');
         }
     }
 

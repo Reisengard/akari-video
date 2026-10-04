@@ -82,7 +82,7 @@ test("(b) 自由記述は見出し・ネストリストを blocks に保ち、�
     assert.ok(data.blocks.some((block) => block.type === "heading"));
     assert.ok(data.blocks.some((block) => block.type === "list" && block.depth === 1));
     assert.ok(data.blocks.some((block) => block.type === "table"));
-    assert.match(html, /表形式の決定行はまだありません（記録原文を参照）/u);
+    assert.match(html, /No table rows yet\. See the original record\./u);
   } finally {
     rmSync(project.root, { recursive: true, force: true });
   }
@@ -114,7 +114,7 @@ test("(d) 空ファイルは空状態を描画して exit 0 になる", () => {
     assert.equal(data.stats.blockCount, 0);
     assert.equal(data.decisions.length, 0);
     assert.equal(data.blocks.length, 0);
-    assert.match(html, /判断記録はまだありません/u);
+    assert.match(html, /No decisions yet/u);
   } finally {
     rmSync(project.root, { recursive: true, force: true });
   }
@@ -126,7 +126,7 @@ test("(e) --log 不在は exit 1 で出力を作らない", () => {
     const outPath = join(root, "reports", "report.html");
     const result = run(["--log", join(root, "missing.md"), "--out", outPath], root);
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /読み込めません/u);
+    assert.match(result.stderr, /Could not read decision-log\.md/u);
     assert.equal(existsSync(outPath), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -156,7 +156,7 @@ test("(g) HTML は CSP と固定 title を持ち、外部 URL・data 画像・�
     const result = run(["--log", project.logPath, "--out", project.outPath, "--project", project.root], project.root);
     assert.equal(result.status, 0, result.stderr);
     const html = readFileSync(project.outPath, "utf8");
-    assert.match(html, /<title>AKARI Video 判断記録レポート<\/title>/u);
+    assert.match(html, /<title>AKARI Video decision log<\/title>/u);
     assert.match(html, /http-equiv="Content-Security-Policy"/u);
     assert.doesNotMatch(html, /data:image|http:\/\/|https:\/\//u);
     assert.doesNotMatch(html, /<(?:button|input|select|textarea|form)\b/iu);

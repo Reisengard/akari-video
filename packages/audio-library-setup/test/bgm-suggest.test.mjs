@@ -164,9 +164,9 @@ test('suggestBgm: 宣言データ合流 — 実測 BPM 置換・耳検証ボー�
 });
 
 test('suggestBgm: 語彙外の tone / tempo・tone 未指定は明示エラー', () => {
-  assert.throws(() => suggestBgm(FIXTURE, { tones: ['楽しい'] }), /語彙に無い値/);
-  assert.throws(() => suggestBgm(FIXTURE, { tones: [] }), /tone を 1 つ以上/);
-  assert.throws(() => suggestBgm(FIXTURE, { tones: ['勢い'], tempo: '爆速' }), /語彙に無い値/);
+  assert.throws(() => suggestBgm(FIXTURE, { tones: ['楽しい'] }), /not in the vocabulary/);
+  assert.throws(() => suggestBgm(FIXTURE, { tones: [] }), /at least one tone/);
+  assert.throws(() => suggestBgm(FIXTURE, { tones: ['勢い'], tempo: '爆速' }), /not in the vocabulary/);
 });
 
 test('CLI: --catalog + --json で機械可読出力、path は AKARI_HOME のライブラリを指す', async () => {
@@ -211,8 +211,8 @@ test('CLI: --declarations で宣言合流の出力（宣言行 + JSON フィー�
     const human = spawnSync(process.execPath, [
       cliPath, '--tone', '親しみ', '--catalog', catalogPath, '--declarations', declPath,
     ], { encoding: 'utf8', env: { ...process.env, AKARI_HOME: path.join(root, '.akari') } });
-    assert.match(human.stdout, /サビ頭 20\.5s/);
-    assert.match(human.stdout, /耳検証済み \+1/);
+    assert.match(human.stdout, /chorus at 20\.5s/);
+    assert.match(human.stdout, /ear-checked \+1/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

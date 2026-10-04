@@ -81,7 +81,7 @@ test('suggestSfx: 宣言順のまま返し、カタログに無い id は absent
   assert.equal(result.first[1].id, 'sfx-chime-success');
   assert.equal(result.first[2].absent, true, 'フィクスチャに無い sfx-correct-tone は absent');
 
-  assert.throws(() => suggestSfx(FIXTURE, { meaning: '爆発' }), /語彙に無い値/);
+  assert.throws(() => suggestSfx(FIXTURE, { meaning: '爆発' }), /not in the vocabulary/);
 });
 
 test('suggestSfx: 外部補完だけの意味（拍手・祝福）も返せる', () => {
@@ -138,8 +138,8 @@ test('CLI review-sfx-mapping: 全 14 意味の節を持つ自己完結 HTML を�
     for (const meaning of MEANING_VOCABULARY) {
       assert.ok(html.includes(`data-meaning="${meaning}"`), `意味の節が無い: ${meaning}`);
     }
-    assert.match(html, /未取得/);
-    assert.match(html, /判定を保存/);
+    assert.match(html, /Not fetched/);
+    assert.match(html, /Save judgment/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

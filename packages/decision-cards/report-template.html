@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,7 +7,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <title>AKARI Video 編集判断レポート</title>
+    <title>AKARI Video edit decisions</title>
     <!--
     AKARI 安全な差し替え規約:
     - data-field の値は HTML として挿入せず、必ずエスケープ済みテキストとして差し替える。
@@ -860,23 +860,23 @@
     </style>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">本文へ移動</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <header class="report-header">
       <div class="report-header__inner">
         <p class="eyebrow">AKARI VIDEO / EDIT DECISION REPORT</p>
         <h1 data-field="report-title" data-placeholder="true">
-          編集判断レポート — タイトル未入力
+          Edit decisions — title not set
         </h1>
-        <dl class="report-meta" aria-label="レポート基本情報">
+        <dl class="report-meta" aria-label="Report details">
           <div>
-            <dt>対象プロジェクト</dt>
+            <dt>Project</dt>
             <dd data-field="project-name" data-placeholder="true">
-              プロジェクト名未入力
+              Project name not set
             </dd>
           </div>
           <div>
-            <dt>生成日時</dt>
+            <dt>Generated</dt>
             <dd>
               <time
                 datetime="2026-07-13T00:00:00+09:00"
@@ -887,9 +887,9 @@
             </dd>
           </div>
           <div>
-            <dt>対象素材</dt>
+            <dt>Footage</dt>
             <dd data-field="source-count" data-placeholder="true">
-              0 本（差し替え必須）
+              0 files (replace this)
             </dd>
           </div>
         </dl>
@@ -902,18 +902,18 @@
         aria-labelledby="heading-decision-cards"
       >
         <span class="section-kicker">DECISION CARDS</span>
-        <h2 id="heading-decision-cards">編集前に決めること</h2>
+        <h2 id="heading-decision-cards">Decide before the edit</h2>
         <p class="section-lead">
-          AI 推奨は選択済みです。直したいカードだけ操作し、最後に 1
-          画面の要約を確認して確定します。
+          The AI recommendation is already selected. Change only the cards you want, then confirm the
+          one-screen summary.
         </p>
         <p class="notice notice--warning">
-          下のカードは data 属性規約を示すテンプレートです。実レポートではカードと
-          decisions.json の id・answer を対にして、質問と選択肢を差し替える。
+          The cards below show the data-attribute contract. A real report pairs each card with
+          the id and answer in decisions.json, and replaces the question and the options.
         </p>
 
         <p class="decision-runtime-message" role="status" aria-live="polite">
-          ヘルパー経由で開くと回答できます。チャットでの回答も可能です
+          Open this through the helper to answer. You can also answer in chat.
         </p>
         <p class="decision-runtime-error" role="alert" hidden></p>
 
@@ -923,18 +923,18 @@
           data-action="accept-all"
           disabled
         >
-          すべておまかせで確認
+          Accept all recommendations
         </button>
 
         <div class="decision-card-stack">
           <article
             class="decision-card"
             data-card="decision-1"
-            data-question="最初の判断はどの案にしますか？"
+            data-question="Which option is the first decision?"
             data-placeholder="true"
           >
             <p class="decision-card__question">
-              最初の判断はどの案にしますか？
+              Which option is the first decision?
             </p>
             <div class="decision-options">
               <button
@@ -944,7 +944,7 @@
                 data-default="true"
                 disabled
               >
-                AI 推奨案
+                AI recommendation
               </button>
               <button
                 class="decision-option"
@@ -952,7 +952,7 @@
                 data-option="alternative"
                 disabled
               >
-                対案
+                Alternative
               </button>
             </div>
             <div class="decision-card__extras">
@@ -962,31 +962,31 @@
                 data-check="requestMore"
                 disabled
               >
-                別案も依頼する
+                Ask for another option
               </button>
             </div>
             <label>
-              補足
+              Note
               <textarea
                 data-note
                 disabled
-                placeholder="任意の補足を入力"
+                placeholder="Optional note"
               ></textarea>
             </label>
             <details>
-              <summary>根拠・証拠を見る</summary>
-              <p>推奨理由と参照した根拠をここへ記入する。</p>
+              <summary>Show the evidence</summary>
+              <p>Write the reason and the evidence here.</p>
             </details>
           </article>
 
           <article
             class="decision-card"
             data-card="decision-2"
-            data-question="次の判断はどの案にしますか？"
+            data-question="Which option is the next decision?"
             data-placeholder="true"
           >
             <p class="decision-card__question">
-              次の判断はどの案にしますか？
+              Which option is the next decision?
             </p>
             <div class="decision-options">
               <button
@@ -996,7 +996,7 @@
                 data-default="true"
                 disabled
               >
-                標準
+                Standard
               </button>
               <button
                 class="decision-option"
@@ -1004,7 +1004,7 @@
                 data-option="strong"
                 disabled
               >
-                強め
+                Strong
               </button>
               <button
                 class="decision-option"
@@ -1012,22 +1012,22 @@
                 data-option="light"
                 disabled
               >
-                控えめ
+                Light
               </button>
             </div>
             <details>
-              <summary>根拠・証拠を見る</summary>
-              <p>比較した案とトレードオフをここへ記入する。</p>
+              <summary>Show the evidence</summary>
+              <p>Write the options you compared and the tradeoff.</p>
             </details>
           </article>
 
           <article
             class="decision-card"
             data-card="direction"
-            data-question="演出はどの方向と強度にしますか？"
+            data-question="Which direction and intensity?"
           >
             <p class="decision-card__question">
-              演出はどの方向と強度にしますか？
+              Which direction and intensity?
             </p>
             <div class="decision-options">
               <button
@@ -1038,8 +1038,8 @@
                 data-default="true"
                 disabled
               >
-                <strong>長尺標準（AI 推奨）</strong><br />
-                冒頭フックあり・見せ場は要所のみ・落ち着いた密度
+                <strong>Long-form standard (AI recommendation)</strong><br />
+                An opening hook, highlights only where they matter, and a calm density
               </button>
               <button
                 class="decision-option"
@@ -1048,8 +1048,8 @@
                 data-answer-key="preset"
                 disabled
               >
-                <strong>ショート向け高密度</strong><br />
-                発火多め・強い文字演出
+                <strong>Dense short</strong><br />
+                More hits and strong text motion
               </button>
               <button
                 class="decision-option"
@@ -1058,12 +1058,12 @@
                 data-answer-key="preset"
                 disabled
               >
-                <strong>落ち着き解説</strong><br />
-                SE 控えめ・儀式最小限
+                <strong>Calm explainer</strong><br />
+                Light sound effects and almost no ceremony
               </button>
             </div>
             <div class="decision-range">
-              <label for="direction-intensity">演出の強度</label>
+              <label for="direction-intensity">Intensity</label>
               <output data-range-value="intensity" for="direction-intensity">50</output>
               <input
                 id="direction-intensity"
@@ -1078,20 +1078,20 @@
               />
             </div>
             <fieldset class="decision-means">
-              <legend>許可する表現手段</legend>
+              <legend>Allowed means</legend>
               <div class="decision-card__extras">
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="実写 B ロール" data-default="true" disabled>実写 B ロール</button>
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="スクリーン録画・資料" data-default="true" disabled>スクリーン録画・資料</button>
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="ストック素材" data-default="true" disabled>ストック素材</button>
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="AI 生成" data-default="true" disabled>AI 生成</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="実写 B ロール" data-default="true" disabled>Live-action B-roll</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="スクリーン録画・資料" data-default="true" disabled>Screen recording or slides</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="ストック素材" data-default="true" disabled>Stock footage</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="AI 生成" data-default="true" disabled>AI generated</button>
                 <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="3D" data-default="true" disabled>3D</button>
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="HTML 図解" data-default="true" disabled>HTML 図解</button>
-                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="文字演出" data-default="true" disabled>文字演出</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="HTML 図解" data-default="true" disabled>HTML diagram</button>
+                <button class="decision-check" type="button" data-array-check="allowed_means" data-array-value="文字演出" data-default="true" disabled>Text motion</button>
               </div>
             </fieldset>
             <details>
-              <summary>根拠・証拠を見る</summary>
-              <p>素材の読みと狙う見せ場に照らした推奨理由をここへ記入する。</p>
+              <summary>Show the evidence</summary>
+              <p>Write why this fits the footage reading and the highlight you want.</p>
             </details>
           </article>
         </div>
@@ -1102,7 +1102,7 @@
           data-action="accept-all"
           disabled
         >
-          確認へ
+          Review
         </button>
 
         <section
@@ -1111,7 +1111,7 @@
           aria-labelledby="heading-decision-summary"
           hidden
         >
-          <h3 id="heading-decision-summary">確定内容の要約</h3>
+          <h3 id="heading-decision-summary">Summary to confirm</h3>
           <dl class="decision-summary__list"></dl>
           <button
             class="decision-action"
@@ -1119,7 +1119,7 @@
             data-action="commit"
             disabled
           >
-            この内容で確定
+            Confirm this
           </button>
           <p class="decision-summary__status" role="status" aria-live="polite"></p>
         </section>
@@ -1131,15 +1131,15 @@
         aria-labelledby="heading-thumbnails"
       >
         <span class="section-kicker">SECTION 01</span>
-        <h2 id="heading-thumbnails">1. サムネイル案</h2>
+        <h2 id="heading-thumbnails">1. Thumbnail options</h2>
         <p class="section-lead">
-          CTR に直結する判断を先頭で確認する。3
-          経路を比較し、タイトル文字の候補まで含めて承認する。
+          Confirm the click-through choice first. Compare the three
+          routes, including the title-text options, and approve one.
         </p>
         <p class="notice">
-          下の画像はテンプレート内蔵の安全なプレースホルダー。実レポートでは生成済み静止画を
-          <code>data:image/*</code> として埋め込み、各 provenance
-          を必ず差し替える。
+          The images below are safe placeholders built into the template. A real report embeds the generated stills as
+          <code>data:image/*</code> and replaces each provenance
+          field.
         </p>
 
         <div class="card-grid">
@@ -1148,37 +1148,37 @@
             <img
               class="thumbnail-image"
               src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20360'%3E%3Crect%20width='640'%20height='360'%20fill='%2317223b'/%3E%3Ccircle%20cx='520'%20cy='70'%20r='145'%20fill='%23304ffe'/%3E%3Ctext%20x='48'%20y='188'%20font-size='56'%20font-family='sans-serif'%20font-weight='700'%20fill='white'%3EROUTE%20A%3C/text%3E%3Ctext%20x='50'%20y='235'%20font-size='20'%20font-family='sans-serif'%20fill='%23dbe2ff'%3EREAL%20FRAME%20%2B%20HTML%20TYPE%3C/text%3E%3C/svg%3E"
-              alt="経路A、実フレームとHTML文字組のサムネイル案プレースホルダー"
+              alt="Route A placeholder: a real frame with HTML type"
               width="640"
               height="360"
             />
             <div class="card__body">
-              <span class="route-label">経路 A</span>
+              <span class="route-label">Route A</span>
               <h3 data-field="thumbnail-a-name" data-placeholder="true">
-                実フレーム + HTML 文字組
+                Real frame plus HTML type
               </h3>
               <p data-field="thumbnail-a-rationale" data-placeholder="true">
-                根拠フレームの具体性と、日本語タイポグラフィの再現性を優先する案。
+                Prefer a concrete evidence frame and type you can set exactly.
               </p>
-              <strong>タイトル文字バリエーション</strong>
+              <strong>Title options</strong>
               <ol class="title-variants">
                 <li data-field="thumbnail-a-title-1" data-placeholder="true">
-                  タイトル案 A-1
+                  Title option A-1
                 </li>
                 <li data-field="thumbnail-a-title-2" data-placeholder="true">
-                  タイトル案 A-2
+                  Title option A-2
                 </li>
               </ol>
-              <dl class="provenance" aria-label="経路Aのprovenance">
-                <dt>手</dt>
+              <dl class="provenance" aria-label="Route A provenance">
+                <dt>Method</dt>
                 <dd data-field="thumbnail-a-tool" data-placeholder="true">
-                  ffmpeg 実フレーム + ローカル HTML
+                  ffmpeg frame plus local HTML
                 </dd>
-                <dt>プロンプト</dt>
+                <dt>Prompt</dt>
                 <dd data-field="thumbnail-a-prompt" data-placeholder="true">
-                  文字組指示を入力
+                  Type instructions
                 </dd>
-                <dt>日時</dt>
+                <dt>When</dt>
                 <dd>
                   <time
                     datetime="2026-07-13T00:00:00+09:00"
@@ -1196,37 +1196,37 @@
             <img
               class="thumbnail-image"
               src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20360'%3E%3Crect%20width='640'%20height='360'%20fill='%232b173d'/%3E%3Ccircle%20cx='110'%20cy='50'%20r='150'%20fill='%23b445e8'/%3E%3Ctext%20x='48'%20y='188'%20font-size='56'%20font-family='sans-serif'%20font-weight='700'%20fill='white'%3EROUTE%20B%3C/text%3E%3Ctext%20x='50'%20y='235'%20font-size='20'%20font-family='sans-serif'%20fill='%23f0dcff'%3ECODEX%20IMAGE%20GENERATION%3C/text%3E%3C/svg%3E"
-              alt="経路B、Codex画像生成のサムネイル案プレースホルダー"
+              alt="Route B placeholder: a Codex-generated thumbnail"
               width="640"
               height="360"
             />
             <div class="card__body">
-              <span class="route-label">経路 B</span>
+              <span class="route-label">Route B</span>
               <h3 data-field="thumbnail-b-name" data-placeholder="true">
-                Codex 画像生成
+                Codex image
               </h3>
               <p data-field="thumbnail-b-rationale" data-placeholder="true">
-                実写にない構図や象徴表現を作り、視認性の高い一枚絵にする案。
+                A composed still for a frame the shoot does not have.
               </p>
-              <strong>タイトル文字バリエーション</strong>
+              <strong>Title options</strong>
               <ol class="title-variants">
                 <li data-field="thumbnail-b-title-1" data-placeholder="true">
-                  タイトル案 B-1
+                  Title option B-1
                 </li>
                 <li data-field="thumbnail-b-title-2" data-placeholder="true">
-                  タイトル案 B-2
+                  Title option B-2
                 </li>
               </ol>
-              <dl class="provenance" aria-label="経路Bのprovenance">
-                <dt>手</dt>
+              <dl class="provenance" aria-label="Route B provenance">
+                <dt>Method</dt>
                 <dd data-field="thumbnail-b-tool" data-placeholder="true">
-                  Codex 画像生成
+                  Codex image
                 </dd>
-                <dt>プロンプト</dt>
+                <dt>Prompt</dt>
                 <dd data-field="thumbnail-b-prompt" data-placeholder="true">
-                  画像生成プロンプトを入力
+                  Image prompt
                 </dd>
-                <dt>日時</dt>
+                <dt>When</dt>
                 <dd>
                   <time
                     datetime="2026-07-13T00:00:00+09:00"
@@ -1244,43 +1244,43 @@
             <img
               class="thumbnail-image"
               src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20360'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20x2='1'%3E%3Cstop%20stop-color='%231a3d36'/%3E%3Cstop%20offset='1'%20stop-color='%23224d78'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='640'%20height='360'%20fill='url(%23g)'/%3E%3Ccircle%20cx='520'%20cy='290'%20r='145'%20fill='%2323a77a'/%3E%3Ctext%20x='48'%20y='188'%20font-size='56'%20font-family='sans-serif'%20font-weight='700'%20fill='white'%3EMIXED%3C/text%3E%3Ctext%20x='50'%20y='235'%20font-size='20'%20font-family='sans-serif'%20fill='%23d8fff1'%3EGENERATED%20BG%20%2B%20HTML%20TYPE%3C/text%3E%3C/svg%3E"
-              alt="混成経路、生成背景とHTML文字組のサムネイル案プレースホルダー"
+              alt="Mixed-route placeholder: a generated background with HTML type"
               width="640"
               height="360"
             />
             <div class="card__body">
-              <span class="route-label">混成</span>
+              <span class="route-label">Mixed</span>
               <h3 data-field="thumbnail-mixed-name" data-placeholder="true">
-                生成背景 + HTML 文字組
+                Generated background plus HTML type
               </h3>
               <p data-field="thumbnail-mixed-rationale" data-placeholder="true">
-                生成背景の構図自由度と、日本語文字組の正確さを両立する案。
+                A generated background with type you can set exactly.
               </p>
-              <strong>タイトル文字バリエーション</strong>
+              <strong>Title options</strong>
               <ol class="title-variants">
                 <li
                   data-field="thumbnail-mixed-title-1"
                   data-placeholder="true"
                 >
-                  タイトル案 混成-1
+                  Title option Mixed-1
                 </li>
                 <li
                   data-field="thumbnail-mixed-title-2"
                   data-placeholder="true"
                 >
-                  タイトル案 混成-2
+                  Title option Mixed-2
                 </li>
               </ol>
-              <dl class="provenance" aria-label="混成経路のprovenance">
-                <dt>手</dt>
+              <dl class="provenance" aria-label="Mixed route provenance">
+                <dt>Method</dt>
                 <dd data-field="thumbnail-mixed-tool" data-placeholder="true">
-                  Codex 画像生成 + ローカル HTML
+                  Codex image plus local HTML
                 </dd>
-                <dt>プロンプト</dt>
+                <dt>Prompt</dt>
                 <dd data-field="thumbnail-mixed-prompt" data-placeholder="true">
-                  背景生成と文字組の指示を入力
+                  Background and type instructions
                 </dd>
-                <dt>日時</dt>
+                <dt>When</dt>
                 <dd>
                   <time
                     datetime="2026-07-13T00:00:00+09:00"
@@ -1301,27 +1301,27 @@
         aria-labelledby="heading-analysis"
       >
         <span class="section-kicker">SECTION 02</span>
-        <h2 id="heading-analysis">2. 分析サマリ</h2>
+        <h2 id="heading-analysis">2. Analysis summary</h2>
         <p class="section-lead">
-          素材ごとの要点と、判断の根拠になったキーフレーム・文字起こしを同じ文書内で追跡する。
+          Track each piece of footage, and the keyframe and transcript evidence for the decision, in this same document.
         </p>
 
         <div
           class="table-scroll"
           tabindex="0"
           role="region"
-          aria-label="素材別分析サマリ表。横にスクロールできます"
+          aria-label="Footage analysis summary. Scroll sideways."
         >
           <table>
             <caption>
-              素材別の分析結果と内部根拠リンク
+              Footage analysis and links to the evidence in this document
             </caption>
             <thead>
               <tr>
-                <th scope="col">素材</th>
-                <th scope="col">要点</th>
-                <th scope="col">尺・品質</th>
-                <th scope="col">根拠フレーム</th>
+                <th scope="col">Footage</th>
+                <th scope="col">Point</th>
+                <th scope="col">Duration and quality</th>
+                <th scope="col">Evidence frame</th>
                 <th scope="col">transcript</th>
               </tr>
             </thead>
@@ -1333,22 +1333,22 @@
                   data-field="source-name"
                   data-placeholder="true"
                 >
-                  素材名未入力
+                  Footage name not set
                 </th>
                 <td data-field="source-summary" data-placeholder="true">
-                  素材の要点を入力
+                  Point of this footage
                 </td>
                 <td data-field="source-quality" data-placeholder="true">
-                  尺・映像・音声の所見を入力
+                  Notes on duration, picture, and sound
                 </td>
-                <td><a href="#evidence-frame-001">フレーム KF-001</a></td>
-                <td><a href="#evidence-transcript-001">発話 T-001</a></td>
+                <td><a href="#evidence-frame-001">Frame KF-001</a></td>
+                <td><a href="#evidence-transcript-001">Utterance T-001</a></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="evidence-grid" aria-label="根拠詳細">
+        <div class="evidence-grid" aria-label="Evidence detail">
           <!-- AKARI_REPEAT: keyframe-evidence -->
           <figure
             class="evidence-card"
@@ -1358,7 +1358,7 @@
             <img
               class="evidence-image"
               src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20360'%3E%3Crect%20width='640'%20height='360'%20fill='%2325314e'/%3E%3Cpath%20d='M80%20280L220%20140L315%20230L400%20110L570%20280Z'%20fill='%236f86cc'/%3E%3Ccircle%20cx='500'%20cy='85'%20r='40'%20fill='%23f3c858'/%3E%3Ctext%20x='40'%20y='52'%20font-size='22'%20font-family='sans-serif'%20fill='white'%3EKEYFRAME%20EVIDENCE%3C/text%3E%3C/svg%3E"
-              alt="根拠キーフレームのプレースホルダー。実レポートでは素材の該当フレームに差し替える"
+              alt="Evidence keyframe placeholder. A real report swaps in the matching frame."
               width="640"
               height="360"
             />
@@ -1367,7 +1367,7 @@
                 >KF-001 / 00:00:00.000</strong
               ><br />
               <span data-field="keyframe-note" data-placeholder="true"
-                >フレーム所見を入力</span
+                >Frame note</span
               >
             </figcaption>
           </figure>
@@ -1382,16 +1382,16 @@
               T-001 / 00:00:00.000–00:00:00.000
             </h3>
             <blockquote data-field="transcript-text" data-placeholder="true">
-              文字起こしの根拠発話をエスケープ済みテキストで入力
+              Escaped transcript evidence
             </blockquote>
-            <dl class="provenance" aria-label="文字起こし根拠情報">
+            <dl class="provenance" aria-label="Transcript evidence">
               <dt>speaker</dt>
               <dd data-field="transcript-speaker" data-placeholder="true">
-                未設定
+                Not set
               </dd>
               <dt>source</dt>
               <dd data-field="transcript-source" data-placeholder="true">
-                analysis.json の相対パス
+                Relative path of analysis.json
               </dd>
             </dl>
           </article>
@@ -1404,56 +1404,56 @@
         aria-labelledby="heading-policy"
       >
         <span class="section-kicker">SECTION 03</span>
-        <h2 id="heading-policy">3. 編集方針</h2>
+        <h2 id="heading-policy">3. Edit direction</h2>
         <p class="section-lead">
-          推奨する方向性と理由を示し、成立する別案の利点・欠点も並べて判断可能にする。
+          Show the recommended direction and why, and set a workable alternative's advantages and drawbacks beside it.
         </p>
 
         <div class="policy-grid">
           <article class="policy-card policy-card--recommended">
-            <span class="route-label">推奨案</span>
+            <span class="route-label">Recommendation</span>
             <h3 data-field="policy-primary-title" data-placeholder="true">
-              推奨方針の名称
+              Name of the recommended direction
             </h3>
             <p data-field="policy-primary-description" data-placeholder="true">
-              方針の具体内容を入力
+              What the direction actually is
             </p>
             <p>
-              <strong>理由:</strong>
+              <strong>Reason:</strong>
               <span data-field="policy-primary-reason" data-placeholder="true"
-                >分析根拠に基づく理由を入力</span
+                >Reason from the analysis</span
               >
             </p>
             <p>
-              <strong>留意点:</strong>
+              <strong>Watch-outs:</strong>
               <span data-field="policy-primary-risk" data-placeholder="true"
-                >弱点・コスト・失うものを入力</span
+                >Weakness, cost, and what you give up</span
               >
             </p>
           </article>
           <article class="policy-card">
-            <span class="route-label">対案</span>
+            <span class="route-label">Alternative</span>
             <h3 data-field="policy-alternative-title" data-placeholder="true">
-              対案の名称
+              Name of the alternative
             </h3>
             <p
               data-field="policy-alternative-description"
               data-placeholder="true"
             >
-              対案の具体内容を入力
+              What the alternative actually is
             </p>
             <p>
-              <strong>利点:</strong>
+              <strong>Advantage:</strong>
               <span
                 data-field="policy-alternative-benefit"
                 data-placeholder="true"
-                >対案が優れる条件を入力</span
+                >When the alternative is the better choice</span
               >
             </p>
             <p>
-              <strong>欠点:</strong>
+              <strong>Drawback:</strong>
               <span data-field="policy-alternative-cost" data-placeholder="true"
-                >対案の弱点を入力</span
+                >Drawback of the alternative</span
               >
             </p>
           </article>
@@ -1465,14 +1465,14 @@
           data-checkpoint="policy"
         >
           <div>
-            <h3 id="checkpoint-policy-title">チェックポイント 1 — 方針</h3>
+            <h3 id="checkpoint-policy-title">Checkpoint 1 — Direction</h3>
             <p>
-              推奨案・対案・理由を確認し、人間が明示承認した事実を decision_log
-              へ追記するまで 素材計画の確定へ進まない。
+              Confirm the recommendation, the alternative, and the reason. Append that approval to decision_log
+              before the footage plan is locked.
             </p>
           </div>
-          <span class="status status--pending" aria-label="承認状態、保留"
-            >承認待ち</span
+          <span class="status status--pending" aria-label="Approval status, pending"
+            >Waiting for approval</span>
           >
         </aside>
       </section>
@@ -1483,28 +1483,28 @@
         aria-labelledby="heading-cuts"
       >
         <span class="section-kicker">SECTION 04</span>
-        <h2 id="heading-cuts">4. カット判断一覧</h2>
+        <h2 id="heading-cuts">4. Cut decisions</h2>
         <p class="section-lead">
-          keep / drop の判断を source 時間で示し、各行から根拠 event または
-          transcript を追跡する。
+          Show each keep or drop against source time, and link the row to the evidence event or the
+          transcript.
         </p>
 
         <div
           class="table-scroll"
           tabindex="0"
           role="region"
-          aria-label="カット判断一覧表。横にスクロールできます"
+          aria-label="Cut decisions. Scroll sideways."
         >
           <table>
             <caption>
-              source 時間に基づく keep / drop 判断
+              Keep and drop decisions by source time
             </caption>
             <thead>
               <tr>
-                <th scope="col">素材</th>
-                <th scope="col">source 範囲</th>
-                <th scope="col">判断</th>
-                <th scope="col">根拠</th>
+                <th scope="col">Footage</th>
+                <th scope="col">Source range</th>
+                <th scope="col">Decision</th>
+                <th scope="col">Evidence</th>
                 <th scope="col">event / evidence</th>
               </tr>
             </thead>
@@ -1512,7 +1512,7 @@
               <!-- AKARI_REPEAT: cut-decision-row -->
               <tr data-repeat="cut-decision-row">
                 <th scope="row" data-field="cut-source" data-placeholder="true">
-                  素材名未入力
+                  Footage name not set
                 </th>
                 <td data-field="cut-range" data-placeholder="true">
                   00:00:00.000–00:00:00.000
@@ -1525,13 +1525,13 @@
                   >
                 </td>
                 <td data-field="cut-reason" data-placeholder="true">
-                  判断理由を入力
+                  Reason for the decision
                 </td>
                 <td><a href="#evidence-transcript-001">event / T-001</a></td>
               </tr>
               <tr data-repeat="cut-decision-row">
                 <th scope="row" data-field="cut-source" data-placeholder="true">
-                  素材名未入力
+                  Footage name not set
                 </th>
                 <td data-field="cut-range" data-placeholder="true">
                   00:00:00.000–00:00:00.000
@@ -1544,7 +1544,7 @@
                   >
                 </td>
                 <td data-field="cut-reason" data-placeholder="true">
-                  判断理由を入力
+                  Reason for the decision
                 </td>
                 <td><a href="#evidence-frame-001">event / KF-001</a></td>
               </tr>
@@ -1552,9 +1552,8 @@
           </table>
         </div>
         <p class="notice notice--warning">
-          edit.json v0 は単一 source のみ。複数素材を分析した場合も、実行対象の
-          source を黙って統合せず、 承認済みの単一 source に対応する keep-range
-          だけを出力する。
+          edit.json v0 has one source. When several pieces of footage were analyzed, do not quietly merge the
+          sources. Output keep-ranges only for the single approved source.
         </p>
       </section>
 
@@ -1564,54 +1563,54 @@
         aria-labelledby="heading-assets"
       >
         <span class="section-kicker">SECTION 05</span>
-        <h2 id="heading-assets">5. 素材計画</h2>
+        <h2 id="heading-assets">5. Footage plan</h2>
         <p class="section-lead">
-          全体適用の BGM と、シーン単位の SFX・B
-          ロール・テロップ・特殊表現を分ける。 各行で「あれば提案 / なければ生成
-          / 使わない」の選択状態を明示する。
+          Separate the BGM for the whole piece from scene-level sound effects, B-roll,
+          captions, and special treatment. Each row shows Propose if it exists, Generate if missing,
+          or Do not use.
         </p>
 
         <div
           class="table-scroll"
           tabindex="0"
           role="region"
-          aria-label="全体BGM計画表。横にスクロールできます"
+          aria-label="Whole-piece BGM plan. Scroll sideways."
         >
           <table>
             <caption>
-              全体で使う素材 — BGM
+              Footage for the whole piece — BGM
             </caption>
             <thead>
               <tr>
-                <th scope="col">対象</th>
-                <th scope="col">役割</th>
-                <th scope="col">三択判断</th>
-                <th scope="col">提案・生成・非採用の詳細</th>
+                <th scope="col">Subject</th>
+                <th scope="col">Role</th>
+                <th scope="col">Three-way choice</th>
+                <th scope="col">Proposal, generation, or why it was dropped</th>
               </tr>
             </thead>
             <tbody>
               <!-- AKARI_REPEAT: global-bgm-row -->
               <tr data-repeat="global-bgm-row">
-                <th scope="row">全体 BGM</th>
+                <th scope="row">Whole-piece BGM</th>
                 <td data-field="bgm-purpose" data-placeholder="true">
-                  テンポ・感情・音量方針を入力
+                  Tempo, mood, and level
                 </td>
                 <td>
-                  <div class="choice-set" aria-label="BGMの三択判断">
+                  <div class="choice-set" aria-label="BGM three-way choice">
                     <span
                       class="choice"
                       aria-current="true"
                       data-choice="propose"
-                      >あれば提案</span
+                      >Propose if it exists</span
                     >
                     <span class="choice" data-choice="generate"
-                      >なければ生成</span
+                      >Generate if missing</span
                     >
-                    <span class="choice" data-choice="unused">使わない</span>
+                    <span class="choice" data-choice="unused">Do not use</span>
                   </div>
                 </td>
                 <td data-field="bgm-detail" data-placeholder="true">
-                  ライブラリ候補、ライセンス確認先、プレビュー情報を入力
+                  Library candidate, where to check the license, and a preview
                 </td>
               </tr>
             </tbody>
@@ -1622,137 +1621,137 @@
           class="table-scroll"
           tabindex="0"
           role="region"
-          aria-label="シーン単位素材計画表。横にスクロールできます"
+          aria-label="Scene footage plan. Scroll sideways."
         >
           <table>
             <caption>
-              シーン単位で使う素材・表現
+              Footage and treatment per scene
             </caption>
             <thead>
               <tr>
-                <th scope="col">シーン / 種別</th>
-                <th scope="col">役割</th>
-                <th scope="col">三択判断</th>
-                <th scope="col">提案・生成・非採用の詳細</th>
+                <th scope="col">Scene / kind</th>
+                <th scope="col">Role</th>
+                <th scope="col">Three-way choice</th>
+                <th scope="col">Proposal, generation, or why it was dropped</th>
               </tr>
             </thead>
             <tbody>
               <tr data-repeat="scene-sfx-row">
-                <th scope="row">シーン 01 / SFX</th>
+                <th scope="row">Scene 01 / Sound effects</th>
                 <td data-field="sfx-purpose" data-placeholder="true">
-                  強調点とタイミングを入力
+                  What to emphasize, and when
                 </td>
                 <td>
-                  <div class="choice-set" aria-label="SFXの三択判断">
-                    <span class="choice" data-choice="propose">あれば提案</span>
+                  <div class="choice-set" aria-label="Sound-effect three-way choice">
+                    <span class="choice" data-choice="propose">Propose if it exists</span>
                     <span class="choice" data-choice="generate"
-                      >なければ生成</span
+                      >Generate if missing</span
                     >
                     <span
                       class="choice"
                       aria-current="true"
                       data-choice="unused"
-                      >使わない</span
+                      >Do not use</span
                     >
                   </div>
                 </td>
                 <td data-field="sfx-detail" data-placeholder="true">
-                  使わない理由を入力
+                  Why this is unused
                 </td>
               </tr>
               <tr data-repeat="scene-broll-row">
-                <th scope="row">シーン 02 / B ロール</th>
+                <th scope="row">Scene 02 / B-roll</th>
                 <td data-field="broll-purpose" data-placeholder="true">
-                  補足する情報・構図を入力
+                  What the shot adds, and the framing
                 </td>
                 <td>
-                  <div class="choice-set" aria-label="Bロールの三択判断">
-                    <span class="choice" data-choice="propose">あれば提案</span>
+                  <div class="choice-set" aria-label="B-roll three-way choice">
+                    <span class="choice" data-choice="propose">Propose if it exists</span>
                     <span
                       class="choice"
                       aria-current="true"
                       data-choice="generate"
-                      >なければ生成</span
+                      >Generate if missing</span
                     >
-                    <span class="choice" data-choice="unused">使わない</span>
+                    <span class="choice" data-choice="unused">Do not use</span>
                   </div>
                 </td>
                 <td data-field="broll-detail" data-placeholder="true">
-                  生成プロンプトと下の静止画プレビューを参照
+                  See the generation prompt and the still preview below
                 </td>
               </tr>
               <tr data-repeat="scene-telop-row">
-                <th scope="row">シーン 03 / テロップ</th>
+                <th scope="row">Scene 03 / Captions</th>
                 <td data-field="telop-purpose" data-placeholder="true">
-                  情報階層と強調内容を入力
+                  Information hierarchy and what to emphasize
                 </td>
                 <td>
-                  <div class="choice-set" aria-label="テロップの三択判断">
+                  <div class="choice-set" aria-label="Caption three-way choice">
                     <span
                       class="choice"
                       aria-current="true"
                       data-choice="propose"
-                      >あれば提案</span
+                      >Propose if it exists</span
                     >
                     <span class="choice" data-choice="generate"
-                      >なければ生成</span
+                      >Generate if missing</span
                     >
-                    <span class="choice" data-choice="unused">使わない</span>
+                    <span class="choice" data-choice="unused">Do not use</span>
                   </div>
                 </td>
                 <td data-field="telop-detail" data-placeholder="true">
-                  既存 authoring パターンの提案を入力
+                  A proposal from an existing authoring pattern
                 </td>
               </tr>
               <tr data-repeat="scene-special-row">
-                <th scope="row">シーン 04 / 特殊表現</th>
+                <th scope="row">Scene 04 / Special treatment</th>
                 <td data-field="special-purpose" data-placeholder="true">
-                  狙いと必要性を入力
+                  Intent, and why it is needed
                 </td>
                 <td>
-                  <div class="choice-set" aria-label="特殊表現の三択判断">
-                    <span class="choice" data-choice="propose">あれば提案</span>
+                  <div class="choice-set" aria-label="Special-treatment three-way choice">
+                    <span class="choice" data-choice="propose">Propose if it exists</span>
                     <span class="choice" data-choice="generate"
-                      >なければ生成</span
+                      >Generate if missing</span
                     >
                     <span
                       class="choice"
                       aria-current="true"
                       data-choice="unused"
-                      >使わない</span
+                      >Do not use</span
                     >
                   </div>
                 </td>
                 <td data-field="special-detail" data-placeholder="true">
-                  無理に埋めない理由を入力
+                  Why this stays empty
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="asset-preview-grid" aria-label="素材プレビュー">
+        <div class="asset-preview-grid" aria-label="Footage preview">
           <article class="asset-preview" data-repeat="library-preview">
-            <h3>ライブラリ提案プレビュー — BGM</h3>
+            <h3>Library proposal preview — BGM</h3>
             <div
               class="audio-placeholder"
               role="img"
-              aria-label="BGM候補の波形プレビュー用プレースホルダー"
+              aria-label="Placeholder for the BGM candidate waveform"
             >
               <strong data-field="bgm-preview-name" data-placeholder="true"
-                >BGM 候補名 / preview 未入力</strong
+                >BGM candidate / preview not set</strong
               >
             </div>
-            <dl class="provenance" aria-label="BGM提案の出典情報">
-              <dt>手 / 出典</dt>
+            <dl class="provenance" aria-label="BGM proposal provenance">
+              <dt>Method / source</dt>
               <dd data-field="bgm-source" data-placeholder="true">
-                検索手とライブラリ名を入力
+                How it was found, and the library name
               </dd>
-              <dt>検索条件</dt>
+              <dt>Query</dt>
               <dd data-field="bgm-query" data-placeholder="true">
-                検索語と絞り込み条件を入力
+                Search words and filters
               </dd>
-              <dt>日時</dt>
+              <dt>When</dt>
               <dd>
                 <time
                   datetime="2026-07-13T00:00:00+09:00"
@@ -1765,24 +1764,24 @@
           </article>
 
           <article class="asset-preview" data-repeat="generated-image-preview">
-            <h3>生成案プレビュー — B ロール静止画</h3>
+            <h3>Generation preview — B-roll still</h3>
             <img
               class="asset-image"
               src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20360'%3E%3Crect%20width='640'%20height='360'%20fill='%231c3440'/%3E%3Crect%20x='80'%20y='80'%20width='480'%20height='200'%20rx='24'%20fill='%232b6070'/%3E%3Ctext%20x='320'%20y='170'%20text-anchor='middle'%20font-size='28'%20font-family='sans-serif'%20font-weight='700'%20fill='white'%3EGENERATED%20STILL%3C/text%3E%3Ctext%20x='320'%20y='215'%20text-anchor='middle'%20font-size='18'%20font-family='sans-serif'%20fill='%23d7f5ff'%3EAPPROVE%20BEFORE%20I2V%3C/text%3E%3C/svg%3E"
-              alt="Bロール生成静止画のプレースホルダー。i2v前にこの静止画を承認する"
+              alt="Placeholder for the generated B-roll still. Approve this still before image-to-video."
               width="640"
               height="360"
             />
-            <dl class="provenance" aria-label="Bロール生成画像のprovenance">
-              <dt>手</dt>
+            <dl class="provenance" aria-label="Provenance of the generated B-roll image">
+              <dt>Method</dt>
               <dd data-field="broll-tool" data-placeholder="true">
-                Codex 画像生成
+                Codex image
               </dd>
-              <dt>プロンプト</dt>
+              <dt>Prompt</dt>
               <dd data-field="broll-prompt" data-placeholder="true">
-                生成プロンプトを入力
+                Generation prompt
               </dd>
-              <dt>日時</dt>
+              <dt>When</dt>
               <dd>
                 <time
                   datetime="2026-07-13T00:00:00+09:00"
@@ -1796,8 +1795,8 @@
         </div>
 
         <p class="notice notice--warning">
-          画像はこのレポートへ埋め込む。i2v・アバター・その他の高コスト動画生成は、
-          対応する静止画が明示承認されるまで実行しない。
+          Embed the still in this report. Do not run image-to-video, an avatar, or any other expensive video generation
+          until the matching still is explicitly approved.
         </p>
 
         <aside
@@ -1806,14 +1805,14 @@
           data-checkpoint="assets"
         >
           <div>
-            <h3 id="checkpoint-assets-title">チェックポイント 2 — 素材計画</h3>
+            <h3 id="checkpoint-assets-title">Checkpoint 2 — Footage plan</h3>
             <p>
-              三択、プレビュー、プロンプト、非採用理由を確認し、人間が明示承認した事実を
-              decision_log へ追記するまで実行計画を確定しない。
+              Confirm the three-way choice, the preview, the prompt, and any reason for dropping an item. Append that approval to
+              decision_log before the execution plan is locked.
             </p>
           </div>
-          <span class="status status--pending" aria-label="承認状態、保留"
-            >承認待ち</span
+          <span class="status status--pending" aria-label="Approval status, pending"
+            >Waiting for approval</span>
           >
         </aside>
       </section>
@@ -1826,16 +1825,16 @@
         <span class="section-kicker">SECTION 06</span>
         <h2 id="heading-decision-log">6. decision_log</h2>
         <p class="section-lead">
-          方針、素材、生成手、承認、非採用を監査できる時系列記録。 同じ
-          (category, subject) の変更も過去行を編集せず、新しい行として追加する。
+          A timeline you can audit: direction, footage, how something was made, approval, and what was dropped. A change to the same
+          (category, subject) is a new row. Past rows stay as they are.
         </p>
 
         <div class="log-rule">
-          <strong>追記専用ルール</strong>
+          <strong>Append-only rule</strong>
           <span>
-            行の上書き・削除・並べ替えは禁止。訂正は同じ複合キー
+            Do not overwrite, delete, or reorder rows. A correction appends a new sequence number on the same compound key
             <code>(category, subject)</code>
-            で新しい連番を追記し、理由に旧決定との関係を書く。
+            and the reason says how it relates to the earlier decision.
           </span>
         </div>
 
@@ -1843,21 +1842,21 @@
           class="table-scroll"
           tabindex="0"
           role="region"
-          aria-label="追記専用decision log表。横にスクロールできます"
+          aria-label="Append-only decision log. Scroll sideways."
         >
           <table data-append-only="true">
             <caption>
-              追記専用 decision_log — 複合キーは (category, subject)
+              Append-only decision_log. The compound key is (category, subject)
             </caption>
             <thead>
               <tr>
-                <th scope="col">連番</th>
-                <th scope="col">日時</th>
+                <th scope="col">#</th>
+                <th scope="col">When</th>
                 <th scope="col">category</th>
                 <th scope="col">subject</th>
-                <th scope="col">決定</th>
-                <th scope="col">理由・併記した選択肢</th>
-                <th scope="col">記録者 / provenance</th>
+                <th scope="col">Decision</th>
+                <th scope="col">Reason and the options named with it</th>
+                <th scope="col">Recorder / provenance</th>
               </tr>
             </thead>
             <tbody>
@@ -1876,16 +1875,16 @@
                     2026-07-13T00:00:00+09:00
                   </time>
                 </td>
-                <td data-field="decision-category">サムネイル</td>
-                <td data-field="decision-subject">生成経路</td>
+                <td data-field="decision-category">Thumbnail</td>
+                <td data-field="decision-subject">Generation route</td>
                 <td data-field="decision-value">
-                  A / B / 混成を比較対象にする
+                  Compare A, B, and mixed
                 </td>
                 <td data-field="decision-reason">
-                  実フレームの具体性、生成構図の自由度、日本語文字組の正確さを両論併記
+                  State both sides: how concrete a real frame is, how free a generated composition is, and how accurate the type is
                 </td>
                 <td data-field="decision-actor">
-                  edit-plan / テンプレート初期記録
+                  edit-plan / initial template record
                 </td>
               </tr>
             </tbody>
@@ -1898,15 +1897,15 @@
           data-checkpoint="execution"
         >
           <div>
-            <h3 id="checkpoint-execution-title">チェックポイント 3 — 実行</h3>
+            <h3 id="checkpoint-execution-title">Checkpoint 3 — Execution</h3>
             <p>
-              実行対象、使用する手、理由、費用・負荷、代替案を確認し、人間の明示承認を
-              decision_log へ追記した後にだけ edit.json v0 と最終オーバーレイ
-              HTML を生成する。
+              Confirm what will run, the method, the reason, the cost and the load, and the alternative. Only after that approval is appended to
+              decision_log, generate edit.json v0 and the final overlay
+              HTML.
             </p>
           </div>
-          <span class="status status--pending" aria-label="承認状態、保留"
-            >承認待ち</span
+          <span class="status status--pending" aria-label="Approval status, pending"
+            >Waiting for approval</span>
           >
         </aside>
       </section>
@@ -1914,9 +1913,9 @@
 
     <footer class="report-footer">
       <p>
-        この HTML は外部 CSS・JavaScript・画像を参照しない自己完結レポートです。
-        決定カードの回答は localhost ヘルパー経由で対になる decisions.json
-        へ保存され、ヘルパーへ接続できない場合は閲覧専用になります。
+        This HTML is self-contained. It does not reference external CSS, JavaScript, or images.
+        Decision-card answers are saved through the localhost helper to the paired decisions.json.
+        Without the helper, the page is view-only.
       </p>
     </footer>
     <script>
@@ -2046,7 +2045,7 @@
           if (declaredDefaults.length !== 1) {
             addCardWarning(
               card,
-              "AI 推奨の指定が 1 件ではないため、先頭の選択肢を既定値として扱います。",
+              "Exactly one AI recommendation is not marked, so the first option is the default.",
             );
           }
 
@@ -2176,7 +2175,7 @@
 
           if (discarded) {
             showRuntimeError(
-              "対応するカードを特定できない不正な回答を除外し、他のカードを表示しています。",
+              "An answer that matches no card was dropped. The other cards are shown.",
             );
           }
 
@@ -2192,8 +2191,8 @@
               addCardWarning(
                 context.card,
                 invalidCardIds.has(context.id)
-                  ? "回答データが不正なため、このカードだけ既定値として扱います。"
-                  : "回答データがないため、このカードだけ既定値として扱います。",
+                  ? "This card falls back to the default because its answer is invalid."
+                  : "This card falls back to the default because it has no answer.",
               );
               continue;
             }
@@ -2205,7 +2204,7 @@
               context.decision.answeredAt = null;
               addCardWarning(
                 context.card,
-                "回答の形がカード宣言と一致しないため、このカードだけ既定値として扱います。",
+                "This card falls back to the default because the answer shape does not match the card.",
               );
             }
           }
@@ -2219,7 +2218,7 @@
             .map((decision) => decision.id);
           if (unknownIds.length > 0) {
             showRuntimeError(
-              "カード宣言のない回答は変更せず保持し、宣言済みカードだけ表示しています。",
+              "Answers with no card declaration are kept as-is. Only declared cards are shown.",
             );
           }
         }
@@ -2372,7 +2371,7 @@
                 body: JSON.stringify(snapshot),
               });
               if (!response.ok) {
-                throw new Error(`回答を保存できませんでした（${response.status}）`);
+                throw new Error(`Could not save the answer (${response.status})`);
               }
               const saved = await response.json();
               if (isRecord(saved)) {
@@ -2385,7 +2384,7 @@
               }
             })
             .catch((error) => {
-              showRuntimeError(error.message || "回答を保存できませんでした。");
+              showRuntimeError(error.message || "Could not save the answer.");
               throw error;
             });
 
@@ -2497,14 +2496,14 @@
           );
           if (commitButton) commitButton.disabled = true;
           summaryStatus.className = "decision-summary__status";
-          summaryStatus.textContent = "回答を保存しています…";
+          summaryStatus.textContent = "Saving the answer…";
 
           try {
             await saveQueue;
           } catch {
             summaryStatus.classList.add("decision-runtime-error");
             summaryStatus.textContent =
-              "回答を保存できないため確定できません。ヘルパーを確認してください。";
+              "Could not confirm because the answer did not save. Check the helper.";
             if (commitButton) commitButton.disabled = false;
             return;
           }
@@ -2513,12 +2512,12 @@
             const response = await fetch("/api/commit", { method: "POST" });
             if (!response.ok) {
               if (response.status === 409) {
-                throw new Error("この回答はすでに確定されています（409）。");
+                throw new Error("This answer is already confirmed (409).");
               }
               if (response.status === 404) {
-                throw new Error("回答ファイルが見つかりません（404）。");
+                throw new Error("The answer file was not found (404).");
               }
-              throw new Error(`確定できませんでした（${response.status}）。`);
+              throw new Error(`Could not confirm (${response.status}).`);
             }
 
             const committed = await response.json();
@@ -2527,12 +2526,12 @@
             }
             summaryStatus.classList.add("decision-runtime-success");
             summaryStatus.textContent =
-              "確定しました。エージェントが編集を開始します";
+              "Confirmed. The agent will start the edit.";
             setInteractive(false);
           } catch (error) {
             summaryStatus.classList.add("decision-runtime-error");
             summaryStatus.textContent =
-              error.message || "確定できませんでした。";
+              error.message || "Could not confirm.";
             if (commitButton) commitButton.disabled = false;
           }
         }
@@ -2605,7 +2604,7 @@
               renderSummary();
               if (summaryView) summaryView.hidden = false;
               if (summaryStatus) {
-                summaryStatus.textContent = "この回答は確定済みです。";
+                summaryStatus.textContent = "This answer is already confirmed.";
               }
               setInteractive(false);
               return;

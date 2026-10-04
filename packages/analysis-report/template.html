@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,7 +7,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <title>AKARI Video 分析レポート</title>
+    <title>AKARI Video analysis report</title>
     <!--
     AKARI 分析レポート 安全な差し替え規約:
     - このファイルは UI 正本（不変）。データは一切含まない。
@@ -820,41 +820,41 @@
     </style>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">本文へ移動</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <header class="report-header">
       <div class="report-header__inner">
-        <p class="eyebrow">AKARI VIDEO / ANALYSIS REPORT（読み取り専用）</p>
-        <h1 id="report-title" data-mount="report-title">分析レポート</h1>
-        <dl class="report-meta" aria-label="レポート基本情報">
+        <p class="eyebrow">AKARI VIDEO / ANALYSIS REPORT (read only)</p>
+        <h1 id="report-title" data-mount="report-title">Analysis report</h1>
+        <dl class="report-meta" aria-label="Report details">
           <div>
-            <dt>生成日時</dt>
+            <dt>Generated</dt>
             <dd data-mount="meta-generated-at">—</dd>
           </div>
           <div>
-            <dt>対象素材</dt>
+            <dt>Footage</dt>
             <dd data-mount="meta-asset-count">—</dd>
           </div>
           <div>
-            <dt>検出イベント数</dt>
+            <dt>Events found</dt>
             <dd data-mount="meta-event-count">—</dd>
           </div>
           <div>
-            <dt>取材台帳</dt>
+            <dt>Question log</dt>
             <dd data-mount="meta-question-count">—</dd>
           </div>
         </dl>
       </div>
     </header>
 
-    <nav class="report-nav" aria-label="章ジャンプナビ">
+    <nav class="report-nav" aria-label="Section links">
       <div class="report-nav__inner">
-        <a href="#section-timeline">1. タイムライン</a>
-        <a href="#section-transcript">2. 文字起こし</a>
-        <a href="#section-facts">3. 素材別事実カード</a>
-        <a href="#section-relations">4. 関係・浮いた素材（解釈）</a>
-        <a href="#section-questions">5. 取材台帳（解釈）</a>
-        <a href="#section-provenance">6. 来歴</a>
+        <a href="#section-timeline">1. Timeline</a>
+        <a href="#section-transcript">2. Transcript</a>
+        <a href="#section-facts">3. Footage fact cards</a>
+        <a href="#section-relations">4. Relations and unplaced footage (reading)</a>
+        <a href="#section-questions">5. Question log (reading)</a>
+        <a href="#section-provenance">6. Provenance</a>
       </div>
     </nav>
 
@@ -867,11 +867,12 @@
         aria-labelledby="heading-timeline"
       >
         <span class="section-kicker">SECTION 1</span>
-        <h2 id="heading-timeline">1. 素材タイムライン帯</h2>
+        <h2 id="heading-timeline">1. Footage timeline</h2>
         <p class="section-lead">
-          素材ごとの章・トラブル・フィラー・見どころ区間を帯として俯瞰する。事実層（analysis.json
-          の events / keyframes）のみで構成する。バーとキーフレームの chip は元の秒数を
-          <code>data-seek</code> に保持する（プレビュー連動は別タスクのスコープ）。
+          Chapters, trouble, filler, and hooks for each piece of footage, as bands.
+          Built only from the fact layer (events and keyframes in analysis.json).
+          Bars and keyframe chips keep the original time in <code>data-seek</code>.
+          Preview sync is a separate task.
         </p>
         <div data-mount="timeline"></div>
       </section>
@@ -882,10 +883,10 @@
         aria-labelledby="heading-transcript"
       >
         <span class="section-kicker">SECTION 2</span>
-        <h2 id="heading-transcript">2. 文字起こし</h2>
+        <h2 id="heading-transcript">2. Transcript</h2>
         <p class="section-lead">
-          章単位で折りたたんだ transcript（事実層）。各行は発話区間の開始秒を
-          <code>data-seek</code> として保持する。
+          The fact-layer transcript, folded by chapter. Each line keeps the
+          utterance start in <code>data-seek</code>.
         </p>
         <div data-mount="transcript"></div>
       </section>
@@ -896,13 +897,13 @@
         aria-labelledby="heading-facts"
       >
         <span class="section-kicker">SECTION 3</span>
-        <h2 id="heading-facts">3. 素材別 事実カード</h2>
+        <h2 id="heading-facts">3. Footage fact cards</h2>
         <p class="section-lead">
-          events（trouble / filler / hook / highlight）の要約と tracks
-          の検出状況。各素材カードの先頭には解釈層の「素材の読み」（role /
-          summary、章単位の sections があれば併記）を表示する。本筋内で起きたトラブル実況は、
-          対応する解釈層の <code>trouble_overlap</code> フラグをこの節で併記する
-          （節 5「浮いた素材」には出さない）。
+          A summary of events (trouble, filler, hook, highlight) and what the
+          tracks detected. Each card starts with the reading layer (role, summary,
+          and per-chapter sections when they exist). Trouble that happens inside
+          the main line is marked here with the reading-layer
+          <code>trouble_overlap</code> flag. It does not appear under unplaced footage.
         </p>
         <div data-mount="facts"></div>
       </section>
@@ -913,12 +914,12 @@
         aria-labelledby="heading-relations"
       >
         <span class="section-kicker">SECTION 4</span>
-        <h2 id="heading-relations">4. 解釈: 素材間関係・浮いた素材</h2>
+        <h2 id="heading-relations">4. Reading: relations and unplaced footage</h2>
         <p class="section-lead">
-          同一人物・同一場所・同一時間帯・内容の重複など、素材の読みとして客観的に特定できる
-          関係（relations）と、orphan / unclear の検出結果を示す（構成の提案はここでは行わない
-          — 方向性はチャットで判断する）。本筋内トラブル（trouble_overlap）はここには出さない
-          （節 3 を参照）。
+          Relations a reading can point at (same person, place, time, or repeated
+          content) and the orphan / unclear results. This section does not propose
+          a structure. Direction is decided in chat. Trouble inside the main line
+          (trouble_overlap) stays in section 3.
         </p>
         <div data-mount="relations"></div>
       </section>
@@ -929,9 +930,10 @@
         aria-labelledby="heading-questions"
       >
         <span class="section-kicker">SECTION 5</span>
-        <h2 id="heading-questions">5. 取材台帳</h2>
+        <h2 id="heading-questions">5. Question log</h2>
         <p class="section-lead">
-          open_questions の状態表示のみ。質問行為自体はチャットで行う — このレポートは台帳。
+          Status of open_questions only. The questions themselves happen in chat.
+          This report is the log.
         </p>
         <div data-mount="questions"></div>
       </section>
@@ -942,10 +944,10 @@
         aria-labelledby="heading-provenance"
       >
         <span class="section-kicker">SECTION 6</span>
-        <h2 id="heading-provenance">6. 来歴</h2>
+        <h2 id="heading-provenance">6. Provenance</h2>
         <p class="section-lead">
-          2 パス目に与えた文脈の全記録（interpretation.inputs）。analysis.json
-          は変更していない。
+          The full context given on the second pass (interpretation.inputs).
+          analysis.json is unchanged.
         </p>
         <div data-mount="provenance"></div>
       </section>
@@ -953,8 +955,8 @@
 
     <footer class="report-footer">
       <p>
-        この HTML は外部 CSS・JavaScript・画像・ネットワーク接続を一切参照しない自己完結の読み取り専用レポートです。
-        決定 UI は持ちません。方向性の判断はチャットで行ってください。
+        This HTML is a self-contained read-only report. It loads no external CSS, JavaScript, images, or network.
+        It has no decision UI. Decide direction in chat.
       </p>
     </footer>
 
@@ -969,16 +971,16 @@
         "use strict";
 
         const FLAG_LABELS = {
-          orphan: "浮き（orphan）",
-          unclear: "不明瞭（unclear）",
-          trouble_overlap: "本筋内トラブル（trouble_overlap）",
+          orphan: "Orphan",
+          unclear: "Unclear",
+          trouble_overlap: "Trouble inside the main line (trouble_overlap)",
         };
 
         const EVENT_LABELS = {
-          trouble: "トラブル",
-          filler: "フィラー",
-          hook: "見どころ",
-          highlight: "ハイライト",
+          trouble: "Trouble",
+          filler: "Filler",
+          hook: "Hook",
+          highlight: "Highlight",
         };
 
         // #akari-analysis-report-blocks から読み込む blocks マニフェスト（main() で設定）。
@@ -1024,11 +1026,11 @@
 
         function badge(kind) {
           if (kind === "fact") {
-            return el("span", { class: "badge badge--fact", text: "事実" });
+            return el("span", { class: "badge badge--fact", text: "Fact" });
           }
           return el("span", {
             class: "badge badge--interpretation",
-            text: "解釈",
+            text: "Reading",
           });
         }
 
@@ -1097,7 +1099,7 @@
             ),
           );
           mount.firstChild.textContent =
-            "レポートデータの読み込みに失敗しました: " + message;
+            "Could not read the report data: " + message;
         }
 
         function renderHeader(bundle) {
@@ -1112,23 +1114,23 @@
           if (assets.length === 1) {
             titleNode.textContent = assets[0].ref;
           } else if (assets.length > 1) {
-            titleNode.textContent = `複数素材プロジェクト（${assets.length} 件）`;
+            titleNode.textContent = `Footage project (${assets.length})`;
           } else {
-            titleNode.textContent = "分析レポート";
+            titleNode.textContent = "Analysis report";
           }
 
           document.querySelector('[data-mount="meta-generated-at"]').textContent =
             bundle.generatedAt || "—";
           document.querySelector('[data-mount="meta-asset-count"]').textContent =
-            `${assets.length} 本`;
+            `${assets.length} files`;
           document.querySelector('[data-mount="meta-event-count"]').textContent =
-            `${eventCount} 件`;
+            `${eventCount} events`;
 
           const answered = questions.filter((q) => q.status === "answered").length;
           document.querySelector('[data-mount="meta-question-count"]').textContent =
             questions.length === 0
-              ? "0 件（取材事項なし）"
-              : `${questions.length} 件（${answered} 件回答済み）`;
+              ? "0 (nothing to ask)"
+              : `${questions.length} (${answered} answered)`;
         }
 
         // --- Section 1: タイムライン帯 ---
@@ -1161,7 +1163,7 @@
               bar.append(
                 el("div", {
                   class: "timeline-segment",
-                  text: "章情報なし",
+                  text: "No chapters",
                 }),
               );
             }
@@ -1174,7 +1176,7 @@
                   attrs: {
                     style: `flex-grow:${span}`,
                     "data-seek": chapter.start,
-                    title: `${chapter.title}（${formatRange(chapter.start, chapter.end)}）`,
+                    title: `${chapter.title} (${formatRange(chapter.start, chapter.end)})`,
                   },
                 },
                 [
@@ -1207,7 +1209,7 @@
                   attrs: {
                     style: `left:${Math.min(Math.max(left, 0), 100)}%`,
                     "data-seek": evStart,
-                    title: `${EVENT_LABELS[event.type] || event.type}（${formatTime(evStart)}）`,
+                    title: `${EVENT_LABELS[event.type] || event.type} (${formatTime(evStart)})`,
                   },
                 });
                 segment.append(marker);
@@ -1221,19 +1223,19 @@
               el("div", { class: "timeline-legend" }, [
                 el("span", {}, [
                   el("i", { attrs: { style: "background:#d1495b" } }),
-                  document.createTextNode("トラブル"),
+                  document.createTextNode("Trouble"),
                 ]),
                 el("span", {}, [
                   el("i", { attrs: { style: "background:#8b93a7" } }),
-                  document.createTextNode("フィラー"),
+                  document.createTextNode("Filler"),
                 ]),
                 el("span", {}, [
                   el("i", { attrs: { style: "background:#d99a1b" } }),
-                  document.createTextNode("見どころ"),
+                  document.createTextNode("Hook"),
                 ]),
                 el("span", {}, [
                   el("i", { attrs: { style: "background:#2f9e6b" } }),
-                  document.createTextNode("ハイライト"),
+                  document.createTextNode("Highlight"),
                 ]),
               ]),
             );
@@ -1253,7 +1255,7 @@
                     el("img", {
                       attrs: {
                         src: kf.imageSrc,
-                        alt: `${formatTime(kf.t)} のキーフレーム`,
+                        alt: `${formatTime(kf.t)} keyframe`,
                         loading: "lazy",
                         "data-block-id": blocksManifest.byRef[asset.ref]?.images?.[kf.path],
                       },
@@ -1273,7 +1275,7 @@
                     el("figcaption", { class: "keyframe-chip__note-only" }, [
                       el("span", {
                         class: "keyframe-chip__time",
-                        text: formatTime(kf.t) + "・画像なし: ",
+                        text: formatTime(kf.t) + " · no image: ",
                       }),
                       document.createTextNode(kf.note),
                     ]),
@@ -1310,10 +1312,10 @@
 
             if (chapters.length === 0) {
               if (transcript.length === 0) {
-                block.append(emptyState("transcript が空です。"));
+                block.append(emptyState("The transcript is empty."));
               } else {
                 const details = buildTranscriptDetails(
-                  "（章情報なし）",
+                  "(no chapter)",
                   0,
                   durationOf(analysis),
                   transcript,
@@ -1354,13 +1356,13 @@
               document.createTextNode(title + " "),
               el("span", {
                 class: "transcript-chapter__range",
-                text: `（${formatRange(start, end)}・${segments.length} 発話）`,
+                text: `(${formatRange(start, end)} · ${segments.length} utterances)`,
               }),
             ]),
           );
 
           if (segments.length === 0) {
-            details.append(emptyState("この章に対応する発話はありません。"));
+            details.append(emptyState("This chapter has no utterances."));
           } else {
             const list = el("ul", { class: "transcript-list" });
             for (const seg of segments) {
@@ -1392,7 +1394,7 @@
         // （構成案は引き続き非表示 — A2.1 改訂）。
         function renderAssetReading(interpAsset) {
           const card = el("div", { class: "fact-card" });
-          card.append(el("h4", { text: "素材の読み（role / summary）" }));
+          card.append(el("h4", { text: "Footage reading (role / summary)" }));
           card.append(
             el("div", { class: "badge-row" }, [
               badge("interpretation"),
@@ -1403,7 +1405,7 @@
 
           const sections = interpAsset.sections || [];
           if (sections.length > 0) {
-            card.append(el("h5", { text: "章単位の読み（sections）" }));
+            card.append(el("h5", { text: "Per-chapter reading (sections)" }));
             for (const section of sections) {
               const chip = el("div", {
                 class: "event-chip",
@@ -1414,14 +1416,14 @@
                   badge("interpretation"),
                   el("strong", { text: section.title }),
                   el("span", {
-                    text: `${section.role}・${formatRange(section.start, section.end)}`,
+                    text: `${section.role} · ${formatRange(section.start, section.end)}`,
                   }),
                 ]),
               );
               const evidenceDetails = el("details", {
                 class: "evidence-toggle",
               });
-              evidenceDetails.append(el("summary", { text: "根拠を見る" }));
+              evidenceDetails.append(el("summary", { text: "Show evidence" }));
               evidenceDetails.append(
                 el("blockquote", { text: section.evidence }),
               );
@@ -1450,7 +1452,7 @@
             const highlightEvents = events.filter((e) => e.type === "highlight");
             const tracks = analysis.tracks || {};
             const personMatte = tracks.person_matte;
-            const personMatteState = personMatte ? "人物マット: あり" : "人物マット: なし";
+            const personMatteState = personMatte ? "Person matte: yes" : "Person matte: no";
             const interpAsset = interpAssetsByRef.get(asset.ref);
             const troubleOverlapFlags = interpAsset
               ? (interpAsset.flags || []).filter(
@@ -1473,29 +1475,29 @@
 
             block.append(
               el("div", { class: "fact-tally" }, [
-                el("span", { text: `章: ${chapterCount}` }),
-                el("span", { text: `トラブル: ${troubleEvents.length}` }),
-                el("span", { text: `フィラー: ${fillerEvents.length}` }),
-                el("span", { text: `見どころ: ${hookEvents.length}` }),
-                el("span", { text: `ハイライト: ${highlightEvents.length}` }),
+                el("span", { text: `Chapters: ${chapterCount}` }),
+                el("span", { text: `Trouble: ${troubleEvents.length}` }),
+                el("span", { text: `Filler: ${fillerEvents.length}` }),
+                el("span", { text: `Hooks: ${hookEvents.length}` }),
+                el("span", { text: `Highlights: ${highlightEvents.length}` }),
                 el("span", {
-                  text: `話者トラック: ${(tracks.speakers || []).length} / 顔トラック: ${(tracks.faces || []).length} / ${personMatteState}`,
+                  text: `Speaker tracks: ${(tracks.speakers || []).length} / Face tracks: ${(tracks.faces || []).length} / ${personMatteState}`,
                 }),
                 ...(personMatte && typeof personMatte === "object" && personMatte.quality
-                  ? [el("span", { text: `人物マット品質: ${personMatte.quality}` })]
+                  ? [el("span", { text: `Person matte quality: ${personMatte.quality}` })]
                   : []),
                 ...(personMatte && typeof personMatte === "object" && personMatte.mask_path
                   ? [el("span", {
-                      text: `マスク併産: あり（${personMatte.mask_format || "形式未記録"}）`,
+                      text: `Mask sidecar: yes (${personMatte.mask_format || "format not recorded"})`,
                     })]
                   : []),
               ]),
             );
 
             const card = el("div", { class: "fact-card" });
-            card.append(el("h4", { text: "トラブル（events[trouble]）" }));
+            card.append(el("h4", { text: "Trouble (events[trouble])" }));
             if (troubleEvents.length === 0) {
-              card.append(emptyState("トラブルイベントはありません。"));
+              card.append(emptyState("No trouble events."));
             } else {
               for (const trouble of troubleEvents) {
                 const chip = el("div", { class: "event-chip" });
@@ -1518,7 +1520,7 @@
                   overlay.append(
                     el("div", { class: "event-chip__meta" }, [
                       badge("interpretation"),
-                      el("span", { text: "本筋内トラブル（trouble_overlap）" }),
+                      el("span", { text: "Trouble inside the main line (trouble_overlap)" }),
                     ]),
                   );
                   overlay.append(el("p", { text: flag.note || "" }));
@@ -1526,7 +1528,7 @@
                     class: "evidence-toggle",
                   });
                   evidenceDetails.append(
-                    el("summary", { text: "根拠を見る" }),
+                    el("summary", { text: "Show evidence" }),
                   );
                   evidenceDetails.append(
                     el("blockquote", { text: flag.evidence }),
@@ -1540,9 +1542,9 @@
             block.append(card);
 
             const fillerCard = el("div", { class: "fact-card" });
-            fillerCard.append(el("h4", { text: "フィラー（events[filler]）" }));
+            fillerCard.append(el("h4", { text: "Filler (events[filler])" }));
             if (fillerEvents.length === 0) {
-              fillerCard.append(emptyState("フィラーイベントはありません。"));
+              fillerCard.append(emptyState("No filler events."));
             } else {
               for (const filler of fillerEvents) {
                 fillerCard.append(
@@ -1568,7 +1570,7 @@
 
             if (hookEvents.length > 0 || highlightEvents.length > 0) {
               const hookCard = el("div", { class: "fact-card" });
-              hookCard.append(el("h4", { text: "見どころ・ハイライト" }));
+              hookCard.append(el("h4", { text: "Hooks and highlights" }));
               for (const hook of hookEvents) {
                 const scoreText = hook.score
                   ? Object.entries(hook.score)
@@ -1586,7 +1588,7 @@
                       el("div", { class: "event-chip__meta" }, [
                         badge("fact"),
                         el("span", {
-                          text: `見どころ ${formatRange(hook.start, hook.end)}`,
+                          text: `Hook ${formatRange(hook.start, hook.end)}`,
                         }),
                       ]),
                       el("p", { text: scoreText }),
@@ -1606,7 +1608,7 @@
                       el("div", { class: "event-chip__meta" }, [
                         badge("fact"),
                         el("span", {
-                          text: `ハイライト ${formatRange(highlight.start, highlight.end)}`,
+                          text: `Highlight ${formatRange(highlight.start, highlight.end)}`,
                         }),
                       ]),
                       el("blockquote", { text: highlight.quote }),
@@ -1627,16 +1629,16 @@
           const mount = document.querySelector('[data-mount="relations"]');
           const interpAssets = bundle.interpretation.assets || [];
 
-          const relationsHeading = el("h3", { text: "素材間関係" });
+          const relationsHeading = el("h3", { text: "Relations between footage" });
           mount.append(relationsHeading);
           const totalRelations = interpAssets.reduce(
             (sum, a) => sum + (a.relations || []).length,
             0,
           );
           if (interpAssets.length === 1) {
-            mount.append(emptyState("単一素材のため素材間関係はありません"));
+            mount.append(emptyState("One piece of footage, so there are no relations"));
           } else if (totalRelations === 0) {
-            mount.append(emptyState("複数素材間の関係: 走査済み・該当なし"));
+            mount.append(emptyState("Relations across footage: scanned, none found"));
           } else {
             for (const asset of interpAssets) {
               for (const relation of asset.relations || []) {
@@ -1647,7 +1649,7 @@
                   el("div", { class: "badge-row" }, [
                     badge("interpretation"),
                     el("strong", {
-                      text: `${asset.ref} → ${relation.target}（${relation.kind}）`,
+                      text: `${asset.ref} → ${relation.target} (${relation.kind})`,
                     }),
                   ]),
                 );
@@ -1655,7 +1657,7 @@
                 const evidenceDetails = el("details", {
                   class: "evidence-toggle",
                 });
-                evidenceDetails.append(el("summary", { text: "根拠を見る" }));
+                evidenceDetails.append(el("summary", { text: "Show evidence" }));
                 evidenceDetails.append(
                   el("blockquote", { text: relation.evidence }),
                 );
@@ -1665,7 +1667,7 @@
             }
           }
 
-          mount.append(el("h3", { text: "浮いた素材（orphan / unclear）" }));
+          mount.append(el("h3", { text: "Unplaced footage (orphan / unclear)" }));
           const orphanFlags = [];
           for (const asset of interpAssets) {
             for (const flag of asset.flags || []) {
@@ -1674,7 +1676,7 @@
             }
           }
           if (orphanFlags.length === 0) {
-            mount.append(emptyState("浮いた素材: 走査済み・該当なし"));
+            mount.append(emptyState("Unplaced footage: scanned, none found"));
           } else {
             for (const { asset, flag } of orphanFlags) {
               const card = el("div", { class: "relation-card" });
@@ -1693,7 +1695,7 @@
               const evidenceDetails = el("details", {
                 class: "evidence-toggle",
               });
-              evidenceDetails.append(el("summary", { text: "根拠を見る" }));
+              evidenceDetails.append(el("summary", { text: "Show evidence" }));
               evidenceDetails.append(
                 el("blockquote", { text: flag.evidence }),
               );
@@ -1715,7 +1717,7 @@
           if (questions.length === 0) {
             mount.append(
               emptyState(
-                "取材事項なし — 素材の文脈だけで根拠付きで筋が通りました",
+                "No open questions. The footage context already supports the story.",
               ),
             );
             return;
@@ -1724,11 +1726,11 @@
           const wrapper = el("div", { class: "table-scroll" });
           const table = el("table");
           table.append(
-            el("caption", { text: "取材台帳（open_questions）" }),
+            el("caption", { text: "Question log (open_questions)" }),
           );
           const thead = el("thead");
           const headRow = el("tr");
-          for (const label of ["状態", "質問", "埋める情報", "回答"]) {
+          for (const label of ["Status", "Question", "Gap", "Answer"]) {
             headRow.append(el("th", { attrs: { scope: "col" }, text: label }));
           }
           thead.append(headRow);
@@ -1742,9 +1744,9 @@
               question.status === "answered"
                 ? el("span", {
                     class: "badge badge--fact",
-                    text: "回答済み",
+                    text: "Answered",
                   })
-                : el("span", { class: "badge badge--warn", text: "未回答" });
+                : el("span", { class: "badge badge--warn", text: "Unanswered" });
             row.append(el("td", {}, [statusBadge]));
             row.append(el("td", { text: question.question }));
             row.append(el("td", { text: question.fills }));
@@ -1764,7 +1766,7 @@
           const analyses = inputs.analyses || [];
           const context = inputs.context;
 
-          mount.append(el("h3", { text: "参照した事実層（analyses）" }));
+          mount.append(el("h3", { text: "Fact layer used (analyses)" }));
           mount.append(
             el("div", { class: "badge-row" }, [badge("fact")]),
           );
@@ -1783,13 +1785,13 @@
           }
           mount.append(analysesList);
 
-          mount.append(el("h3", { text: "2 パス目に与えた文脈（context）" }));
+          mount.append(el("h3", { text: "Context given on the second pass" }));
           mount.append(
             el("div", { class: "badge-row" }, [badge("interpretation")]),
           );
 
           if (!context) {
-            mount.append(emptyState("context の記録はありません。"));
+            mount.append(emptyState("No context was recorded."));
             return;
           }
 
@@ -1802,7 +1804,7 @@
                 el("dd", {
                   text: context.intake
                     ? JSON.stringify(context.intake)
-                    : "該当なし（本プロジェクトに intake.json なし）",
+                    : "None (this project has no intake.json)",
                 }),
               ]),
             ]),
@@ -1815,7 +1817,7 @@
                 el("dd", {
                   text:
                     (context.past_projects || []).length === 0
-                      ? "参照なし"
+                      ? "No references"
                       : context.past_projects
                           .map((p) => `${p.ref}: ${p.notes}`)
                           .join(" / "),
@@ -1831,10 +1833,10 @@
                 el("dd", {
                   text:
                     (context.interview || []).length === 0
-                      ? "取材実績なし"
+                      ? "No interviews recorded"
                       : context.interview
                           .map((qa) => `Q: ${qa.q} / A: ${qa.a}`)
-                          .join(" ｜ "),
+                          .join(" | "),
                 }),
               ]),
             ]),
@@ -1865,7 +1867,7 @@
           try {
             bundle = JSON.parse(dataScript.textContent);
           } catch (error) {
-            renderFatalError("JSON の解析に失敗しました（" + error.message + "）");
+            renderFatalError("Could not parse JSON (" + error.message + ")");
             return;
           }
 
@@ -1875,7 +1877,7 @@
             !Array.isArray(bundle.assets)
           ) {
             renderFatalError(
-              "データの形が想定と異なります（bundle.interpretation / bundle.assets が必要です）",
+              "The report data is not in the expected shape (bundle.interpretation and bundle.assets are required)",
             );
             return;
           }
@@ -1884,14 +1886,14 @@
             blocksManifest = JSON.parse(blocksScript.textContent);
           } catch (error) {
             renderFatalError(
-              "block-id マニフェストの解析に失敗しました（" + error.message + "）",
+              "Could not parse the block-id manifest (" + error.message + ")",
             );
             return;
           }
 
           if (!isRecord(blocksManifest) || !isRecord(blocksManifest.byRef)) {
             renderFatalError(
-              "block-id マニフェストの形が想定と異なります（byRef が必要です）",
+              "The block-id manifest is not in the expected shape (byRef is required)",
             );
             return;
           }
@@ -2002,7 +2004,7 @@
             const pin = document.createElement("span");
             pin.className = "akari-annotation-pin";
             pin.dataset.status = typeof entry.status === "string" ? entry.status : "open";
-            pin.title = "注釈あり（クリックで選択）";
+            pin.title = "Has an annotation (click to select)";
             pin.textContent = "📌";
             pin.addEventListener("click", (event) => {
               event.stopPropagation();

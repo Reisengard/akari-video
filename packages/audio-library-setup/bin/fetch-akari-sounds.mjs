@@ -45,16 +45,16 @@ const repoRoot = path.resolve(here, '..', '..', '..');
 const validateAssetScript = path.join(repoRoot, 'packages', 'schemas', 'bin', 'validate-asset.mjs');
 
 export const usage = `Usage: node bin/fetch-akari-sounds.mjs [options]
-  --variant mp3|wav   取得する形式（既定: mp3）
-  --pack <id>         指定したパックだけ登録する
-  --tag <tag>         Release タグ（既定: v0）
-  --dest <dir>        登録先ライブラリルート（既定: <ライブラリの置き場>/audio）
-  --catalog <path>    catalog.json をローカルファイルから読む（オフライン・検証用）
-  --zips-dir <path>   Release zip をローカルディレクトリから読む（オフライン・検証用）
-  --dry-run           取得せずプランだけ表示する
-  --force             既存ファイルが揃っていても再取得する
-  -y, --yes           受理する（対話プロンプトがないため動作は変わらない）
-  -h, --help          このヘルプを表示する`;
+  --variant mp3|wav   Format to fetch (default: mp3)
+  --pack <id>         Register only this pack
+  --tag <tag>         Release tag (default: v0)
+  --dest <dir>        Library root to register into (default: <library>/audio)
+  --catalog <path>    Read catalog.json from a local file (offline, for checks)
+  --zips-dir <path>   Read release zips from a local directory (offline, for checks)
+  --dry-run           Show the plan and do not fetch
+  --force             Fetch again even when the files are already there
+  -y, --yes           Accept (no prompt, so this changes nothing)
+  -h, --help          Show this help`;
 
 export function parseArguments(argv) {
     const options = {
@@ -102,7 +102,7 @@ async function loadCatalog(options) {
     const url = rawFileUrl('catalog.json', options.tag);
     const res = await fetch(url);
     if (!res.ok) {
-        throw new Error(`catalog.json の取得に失敗: ${url} → HTTP ${res.status}`);
+        throw new Error(`Could not fetch catalog.json: ${url} → HTTP ${res.status}`);
     }
     return res.json();
 }
@@ -135,7 +135,7 @@ async function computeMissing(plan, dest) {
 async function downloadToFile(url, destPath) {
     const res = await fetch(url);
     if (!res.ok || !res.body) {
-        throw new Error(`ダウンロード失敗: ${url} → HTTP ${res.status}`);
+        throw new Error(`Download failed: ${url} → HTTP ${res.status}`);
     }
     await pipeline(Readable.fromWeb(res.body), createWriteStream(destPath));
 }
@@ -174,25 +174,25 @@ export async function main() {
     const plan = { ...fullPlan, packs, totalFiles: packs.reduce((sum, pack) => sum + pack.files.length, 0) };
     const zipNames = zipAssetNames(options.variant);
 
-    console.log(`AKARI Sounds 一括取得（${plan.library} ${plan.version ?? ''} / ${options.variant} / tag ${options.tag}）`);
+    console.log(`AKARI Sounds bulk fetch (${plan.library} ${plan.version ?? ''} / ${options.variant} / tag ${options.tag})`);
     for (const pack of plan.packs) {
-        console.log(`  ${pack.id}: ${pack.trackCount} トラック / ${pack.takeCount} テイク`);
+        console.log(`  ${pack.id}: ${pack.trackCount} tracks / ${pack.takeCount} takes`);
     }
-    console.log(`  登録先: ${options.dest}`);
+    console.log(`  Destination: ${options.dest}`);
 
     const missingBefore = await computeMissing(plan, options.dest);
     const totalMissing = [...missingBefore.values()].reduce((n, list) => n + list.length, 0);
 
     if (options.dryRun) {
         for (const name of zipNames) {
-            console.log(`  取得予定 zip: ${options.zipsDir ? path.join(options.zipsDir, name) : releaseAssetUrl(name, options.tag)}`);
+            console.log(`  Zip to fetch: ${options.zipsDir ? path.join(options.zipsDir, name) : releaseAssetUrl(name, options.tag)}`);
         }
-        console.log(`dry-run: 未取得 ${totalMissing} / ${plan.totalFiles} ファイル。ここで終了（ダウンロードなし）`);
+        console.log(`dry-run: ${totalMissing} / ${plan.totalFiles} files are missing. Stop here (no download).`);
         return;
     }
 
     if (totalMissing === 0 && !options.force) {
-        console.log('全ファイル取得済み。ダウンロードをスキップし meta.json だけ更新します（再取得は --force）');
+        console.log('Every file is already fetched. Skip the download and update meta.json only (pass --force to fetch again).');
     } else {
         const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'akari-sounds-fetch-'));
         try {
@@ -205,7 +205,7 @@ export async function main() {
                 } else {
                     zipPath = path.join(tempRoot, name);
                     const url = releaseAssetUrl(name, options.tag);
-                    console.log(`  ダウンロード中: ${url}`);
+                    console.log(`  Downloading: ${url}`);
                     await downloadToFile(url, zipPath);
                 }
                 unzipInto(zipPath, extractDir);
@@ -229,7 +229,7 @@ export async function main() {
                         placed += 1;
                     }
                 }
-                console.log(`  ${pack.id}: ${placed} ファイル配置${notInZip.length ? ` / zip 内に見つからず ${notInZip.length} 件: ${notInZip.slice(0, 5).join(', ')}${notInZip.length > 5 ? ' …' : ''}` : ''}`);
+                console.log(`  ${pack.id}: ${placed} files placed${notInZip.length ? ` / missing from the zip, ${notInZip.length}: ${notInZip.slice(0, 5).join(', ')}${notInZip.length > 5 ? ' …' : ''}` : ''}`);
             }
         } finally {
             await rm(tempRoot, { recursive: true, force: true });
@@ -253,10 +253,10 @@ export async function main() {
             const representative = pack.files.find((name) => name);
             const previewResult = representative
                 ? generateWaveformPreview(path.join(packDir, representative), previewPath)
-                : { ok: false, reason: 'パックにファイルがありません' };
+                : { ok: false, reason: 'The pack has no files' };
             if (!previewResult.ok) {
                 previewSkipped.set(pack.id, previewResult.reason);
-                console.error(`  preview.png 未生成 ${pack.id}: ${previewResult.reason}`);
+                console.error(`  preview.png was not generated for ${pack.id}: ${previewResult.reason}`);
             }
         }
     }
@@ -268,7 +268,7 @@ export async function main() {
         const absent = missingAfter.get(pack.id) ?? [];
         if (absent.length > 0) {
             incomplete += absent.length;
-            console.error(`  欠品 ${pack.id}: ${absent.length} 件（例: ${absent.slice(0, 5).join(', ')}）`);
+            console.error(`  Missing ${pack.id}: ${absent.length} (for example ${absent.slice(0, 5).join(', ')})`);
         }
         const result = spawnSync(process.execPath, [validateAssetScript, path.join(options.dest, pack.id)], { encoding: 'utf8' });
         if (result.status !== 0) {
@@ -280,20 +280,20 @@ export async function main() {
             if (onlyPreviewMissing) {
                 // 音源の実体は揃っている。preview は正直スキップ済みなので致命扱いにしない
                 // （register-drop-folder の「honestly skipped」と同じ扱い）
-                console.error(`  検証注記 ${pack.id}: preview.png 未生成のため validate-asset は不合格（${previewSkipped.get(pack.id)}）。音源は配置済み — ffmpeg 導入後に --force で再生成できます`);
+                console.error(`  Note ${pack.id}: validate-asset failed because preview.png was not generated (${previewSkipped.get(pack.id)}). The audio is in place. Install ffmpeg and pass --force to regenerate it.`);
             } else {
                 incomplete += 1;
-                console.error(`  validate-asset 失敗 ${pack.id}: ${output}`);
+                console.error(`  validate-asset failed for ${pack.id}: ${output}`);
             }
         }
     }
 
     if (incomplete > 0) {
-        console.error(`未完了: ${incomplete} 件の欠品/検証失敗があります`);
+        console.error(`Incomplete: ${incomplete} missing files or validation failures`);
         process.exitCode = 1;
         return;
     }
-    console.log(`完了: ${plan.totalFiles} ファイル / ${plan.packs.length} パックを登録済み（${options.dest}）`);
+    console.log(`Done: registered ${plan.totalFiles} files / ${plan.packs.length} packs (${options.dest})`);
 }
 
 if (process.argv[1]

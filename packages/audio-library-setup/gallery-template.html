@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>音源 試聴ギャラリー（AKARI Video）</title>
+<title>Sound preview gallery (AKARI Video)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { color-scheme: light dark; }
@@ -43,15 +43,15 @@
 </style>
 </head>
 <body>
-  <h1>音源 試聴ギャラリー</h1>
+  <h1>Sound preview gallery</h1>
   <div id="toolbar">
-    <input type="text" id="filter-input" placeholder="id / タイトルで絞り込み...">
-    <button id="copy-keep-btn" type="button">keep 一覧をコピー</button>
-    <span id="copy-feedback">コピーしました</span>
+    <input type="text" id="filter-input" placeholder="Filter by id or title...">
+    <button id="copy-keep-btn" type="button">Copy keep list</button>
+    <span id="copy-feedback">Copied</span>
   </div>
-  <div id="status-line">読み込み中...</div>
+  <div id="status-line">Loading...</div>
   <div id="list"></div>
-  <p id="empty" hidden>登録済みの音源がまだありません。先にドロップフォルダの登録を実行してください。</p>
+  <p id="empty" hidden>No sounds are registered yet. Register the drop folder first.</p>
 
 <script>
 async function fetchJson(url, options) {
@@ -88,7 +88,7 @@ async function render() {
   try {
     data = await fetchJson('/api/entries');
   } catch (error) {
-    statusLine.textContent = `読み込み失敗: ${error.message}`;
+    statusLine.textContent = `Could not load: ${error.message}`;
     return;
   }
   latestData = data;
@@ -96,7 +96,7 @@ async function render() {
   const { entries, decisions } = data;
   const keepCount = Object.values(decisions).filter((d) => d.decision === 'keep').length;
   const dropCount = Object.values(decisions).filter((d) => d.decision === 'drop').length;
-  statusLine.textContent = `登録 ${entries.length} 件 / keep ${keepCount} 件 / drop ${dropCount} 件`;
+  statusLine.textContent = `${entries.length} registered / ${keepCount} keep / ${dropCount} drop`;
 
   if (entries.length === 0) {
     empty.hidden = false;
@@ -126,10 +126,10 @@ async function render() {
     badges.className = 'entry-badges';
     if (entry.license) {
       badges.appendChild(entry.license.attribution_required
-        ? badge('要クレジット', 'badge-attr')
-        : badge('クレジット不要', 'badge-noattr'));
+        ? badge('Credit required', 'badge-attr')
+        : badge('No credit required', 'badge-noattr'));
       if (entry.license.ai_training_allowed === false) {
-        badges.appendChild(badge('AI学習禁止', 'badge-noai'));
+        badges.appendChild(badge('No AI training', 'badge-noai'));
       }
     }
     for (const m of entry.mood ?? []) badges.appendChild(badge(m, 'badge-mood'));

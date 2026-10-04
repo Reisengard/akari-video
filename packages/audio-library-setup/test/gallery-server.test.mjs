@@ -34,7 +34,7 @@ test('GET / serves the gallery template', async () => {
         const res = await fetch(`${baseUrl}/`);
         assert.equal(res.status, 200);
         const text = await res.text();
-        assert.match(text, /試聴ギャラリー/);
+        assert.match(text, /Sound preview gallery/);
     });
 });
 

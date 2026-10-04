@@ -13,13 +13,13 @@ const HOST = '127.0.0.1';
 function parseArguments(argv, env = process.env) {
     if (argv.includes('--help') || argv.includes('-h')) {
         console.log(`Usage: node bin/declare-helper.mjs [--library-root <path>] [--port <N>]
-  -h, --help  このヘルプを表示する`);
+  -h, --help  Show this help`);
         process.exit(0);
     }
     function valueAfter(index, option, example) {
         const value = argv[index + 1];
         if (value === undefined || value.startsWith('--')) {
-            console.error(`${option} には値が必要です（例: ${example}）`);
+            console.error(`${option} needs a value (example: ${example})`);
             process.exit(1);
         }
         return value;
@@ -44,5 +44,5 @@ server.listen(options.port, HOST, () => {
     const address = server.address();
     console.log(`HELPER: http://localhost:${address.port}/`);
     console.log(`library-root: ${options.libraryRoot}`);
-    console.log(`保存先: ${declarationsPathFor(options.libraryRoot)}`);
+    console.log(`Save to: ${declarationsPathFor(options.libraryRoot)}`);
 });

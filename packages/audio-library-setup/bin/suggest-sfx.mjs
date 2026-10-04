@@ -47,8 +47,8 @@ async function loadCatalog(options, libraryRoot) {
     }
   }
   throw new Error(
-    'AKARI Sounds が未導入です（.origin-catalog.json が見つかりません）。\n' +
-    '先に `akari sounds` で公式音源ライブラリを一括ダウンロードしてください。',
+    'AKARI Sounds is not installed (.origin-catalog.json was not found).\n' +
+    'Run `akari sounds` first to download the official audio library.',
   );
 }
 
@@ -72,27 +72,27 @@ function attachPaths(result, libraryRoot) {
 }
 
 function formatHuman(result) {
-  const lines = [`「${result.meaning}」の音候補（優先順）`];
+  const lines = [`Sound candidates for "${result.meaning}" (priority order)`];
   result.first.forEach((c, index) => {
     if (c.absent) {
-      lines.push(`${index + 1}. ${c.id} — カタログに見当たらず（Release 取り下げの可能性。対応表の更新を検討）`);
+      lines.push(`${index + 1}. ${c.id} — not in the catalog (it may have left the release. Consider updating the map)`);
       return;
     }
-    lines.push(`${index + 1}. ${c.id} — ${c.title}（${c.kind}）`);
+    lines.push(`${index + 1}. ${c.id} — ${c.title} (${c.kind})`);
     for (const take of c.takes) {
-      lines.push(`   ${take.exists ? 'path' : '未取得'}: ${take.path}${take.duration_sec ? `（${take.duration_sec}s）` : ''}`);
+      lines.push(`   ${take.exists ? 'path' : 'not fetched'}: ${take.path}${take.duration_sec ? ` (${take.duration_sec}s)` : ''}`);
     }
   });
   if (result.external.length > 0) {
-    lines.push('外部補完（AKARI Sounds に無い系統。実体は各自取得 = catalog/audio 参照）:');
+    lines.push('External fill-in (families AKARI Sounds does not have. Fetch the files yourself. See catalog/audio):');
     for (const entry of result.external) {
-      lines.push(`- ${entry.id} — ${entry.note} ${entry.owned ? `[取得済み: ${entry.library_dir}]` : '[未取得: catalog/audio/' + entry.id + ' か候補リストから]'}`);
+      lines.push(`- ${entry.id} — ${entry.note} ${entry.owned ? `[fetched: ${entry.library_dir}]` : '[not fetched: catalog/audio/' + entry.id + ' or the candidate list]'}`);
     }
   }
   if (result.first.length === 0 && result.external.length === 0) {
-    lines.push('候補なし（宣言表の行が空です）');
+    lines.push('No candidates (that row of the map is empty)');
   }
-  lines.push('発火タイミングは beat-sync、採用は素材計画（Checkpoint 2）の承認で決めてください。');
+  lines.push('beat-sync places the hit. Approve the choice at the footage plan (Checkpoint 2).');
   return lines.join('\n');
 }
 
@@ -103,7 +103,7 @@ async function main() {
     return;
   }
   if (!options.meaning) {
-    throw new Error(`--meaning を指定してください（一覧は --list。使える値: ${MEANING_VOCABULARY.join(' / ')}）`);
+    throw new Error(`Pass --meaning (see --list). Allowed values: ${MEANING_VOCABULARY.join(' / ')}`);
   }
   const libraryRoot = resolveLibraryRoot();
   const { catalog, source } = await loadCatalog(options, libraryRoot);
