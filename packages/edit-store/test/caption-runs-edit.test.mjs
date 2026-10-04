@@ -10,7 +10,7 @@ test('書記素の範囲を更新し、同じ範囲の run は増やさず重な
     const second = setCaptionRunRole(text, first, 1, 2, 'emphasis');
     const third = setCaptionRunStyle(text, second, 1, 2, { scale: 1.3 });
     assert.deepEqual(third, [{ from: 1, to: 2, role: 'emphasis', style: { color: '#ff0000', scale: 1.3 } }]);
-    assert.throws(() => setCaptionRunStyle(text, third, 1, 4, { italic: true }), /文字範囲/);
+    assert.throws(() => setCaptionRunStyle(text, third, 1, 4, { italic: true }), /character range/);
     assert.deepEqual(removeCaptionRun(third, 0), []);
 });
 
@@ -41,9 +41,9 @@ test('文字編集の結果に外れた範囲が含まれる', () => {
     const result = updateCaptionFieldsInSourceWithReport(source, 'a', { text: 'これはです' });
     assert.equal(result.removedRuns.length, 1);
     assert.deepEqual(result.removedEmphasis, []);
-    assert.deepEqual(captionEditNotices(result, 'これは最高です'), ['文字範囲 1 件（「最高」）が外れました']);
+    assert.deepEqual(captionEditNotices(result, 'これは最高です'), ['Removed 1 character range(s) ("最高")']);
     assert.equal(captionEmphasisRemovedNotice([{ id: 'e1', word: '最高', t_start: 1, t_end: 2 }]),
-        '強調 1 件（「最高」）が外れました');
+        'Removed 1 emphasis span(s) ("最高")');
 });
 
 test('インスペクター用の読み取りでも display_text と runs を保持する', () => {

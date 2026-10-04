@@ -41,9 +41,9 @@ test("trimSfxInSource with null removes in/out (undo back to implicit 省略時�
 });
 
 test("trimSfxInSource rejects invalid or too-short ranges", () => {
-  assert.throws(() => trimSfxInSource(sfxSource, 0, 0, 0.05), /短すぎます/u);
-  assert.throws(() => trimSfxInSource(sfxSource, 0, -1, 2), /in が不正/u);
-  assert.throws(() => trimSfxInSource(sfxSource, 0, 0, 0), /out が不正/u);
+  assert.throws(() => trimSfxInSource(sfxSource, 0, 0, 0.05), /too short/u);
+  assert.throws(() => trimSfxInSource(sfxSource, 0, -1, 2), /in is invalid/u);
+  assert.throws(() => trimSfxInSource(sfxSource, 0, 0, 0), /out is invalid/u);
 });
 
 const multiTrackAudioSource = JSON.stringify({

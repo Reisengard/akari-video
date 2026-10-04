@@ -223,7 +223,7 @@ test('v2 shape overlay rejects HTML-specific writes', () => {
   };
   assert.throws(() => resolvePreviewItemWrite(JSON.stringify(value), {
     kind: 'overlay', itemId: 'shape-1', patch: { html: '<svg></svg>' },
-  }), /図形アイテムには/);
+  }), /onto a shape item/);
 });
 
 test('legacy v0/v1 documents stay on their existing collection route', () => {
@@ -250,7 +250,7 @@ test('legacy v0/v1 documents stay on their existing collection route', () => {
       itemId: 'legacy-title',
       patch: { transform: { x: 9 } },
     }),
-    /overlays が配列ではありません/,
+    /overlays is not an array/,
   );
 });
 

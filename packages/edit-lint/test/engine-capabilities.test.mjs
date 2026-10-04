@@ -252,7 +252,7 @@ test("v1 input returns the same execution error with and without --engine", asyn
     assert.equal(withoutEngine.exitCode, 2);
     assert.equal(withEngine.exitCode, 2);
     assert.deepEqual(withEngine.output, withoutEngine.output);
-    assert.match(withEngine.output.errors.join("\n"), /このプロジェクトは古い形式です（edit\.json version 1）/u);
+    assert.match(withEngine.output.errors.join("\n"), /This project uses an older format \(edit\.json version 1\)/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

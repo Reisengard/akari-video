@@ -5,204 +5,204 @@
 export declare const TRANSITION_VOCABULARY: readonly [{
     readonly id: "dissolve";
     readonly xfadeName: "dissolve";
-    readonly labelJa: "ディゾルブ";
-    readonly category: "フェード";
+    readonly labelJa: "Dissolve";
+    readonly category: "Fade";
     readonly previewKind: "dissolve";
     readonly glyph: "D";
 }, {
     readonly id: "fade";
     readonly xfadeName: "fade";
-    readonly labelJa: "クロスフェード";
-    readonly category: "フェード";
+    readonly labelJa: "Crossfade";
+    readonly category: "Fade";
     readonly previewKind: "fade";
     readonly glyph: "F";
 }, {
     readonly id: "fade-black";
     readonly xfadeName: "fadeblack";
-    readonly labelJa: "黒フェード";
-    readonly category: "フェード";
+    readonly labelJa: "Fade to black";
+    readonly category: "Fade";
     readonly previewKind: "fade-black";
     readonly glyph: "B";
 }, {
     readonly id: "fade-white";
     readonly xfadeName: "fadewhite";
-    readonly labelJa: "白フェード";
-    readonly category: "フェード";
+    readonly labelJa: "Fade to white";
+    readonly category: "Fade";
     readonly previewKind: "fade-white";
     readonly glyph: "W";
 }, {
     readonly id: "fade-grays";
     readonly xfadeName: "fadegrays";
-    readonly labelJa: "モノクロフェード";
-    readonly category: "フェード";
+    readonly labelJa: "Fade to gray";
+    readonly category: "Fade";
     readonly previewKind: "fade-grays";
     readonly glyph: "G";
 }, {
     readonly id: "wipe-left";
     readonly xfadeName: "wipeleft";
-    readonly labelJa: "ワイプ（左へ）";
-    readonly category: "ワイプ";
+    readonly labelJa: "Wipe left";
+    readonly category: "Wipe";
     readonly previewKind: "wipe-left";
     readonly glyph: "←";
 }, {
     readonly id: "wipe-right";
     readonly xfadeName: "wiperight";
-    readonly labelJa: "ワイプ（右へ）";
-    readonly category: "ワイプ";
+    readonly labelJa: "Wipe right";
+    readonly category: "Wipe";
     readonly previewKind: "wipe-right";
     readonly glyph: "→";
 }, {
     readonly id: "wipe-up";
     readonly xfadeName: "wipeup";
-    readonly labelJa: "ワイプ（上へ）";
-    readonly category: "ワイプ";
+    readonly labelJa: "Wipe up";
+    readonly category: "Wipe";
     readonly previewKind: "wipe-up";
     readonly glyph: "↑";
 }, {
     readonly id: "wipe-down";
     readonly xfadeName: "wipedown";
-    readonly labelJa: "ワイプ（下へ）";
-    readonly category: "ワイプ";
+    readonly labelJa: "Wipe down";
+    readonly category: "Wipe";
     readonly previewKind: "wipe-down";
     readonly glyph: "↓";
 }, {
     readonly id: "radial";
     readonly xfadeName: "radial";
-    readonly labelJa: "時計ワイプ";
-    readonly category: "ワイプ";
+    readonly labelJa: "Clock wipe";
+    readonly category: "Wipe";
     readonly previewKind: "radial";
     readonly glyph: "◷";
 }, {
     readonly id: "slide-left";
     readonly xfadeName: "slideleft";
-    readonly labelJa: "スライド（左へ）";
-    readonly category: "スライド";
+    readonly labelJa: "Slide left";
+    readonly category: "Slide";
     readonly previewKind: "slide-left";
     readonly glyph: "←";
 }, {
     readonly id: "slide-right";
     readonly xfadeName: "slideright";
-    readonly labelJa: "スライド（右へ）";
-    readonly category: "スライド";
+    readonly labelJa: "Slide right";
+    readonly category: "Slide";
     readonly previewKind: "slide-right";
     readonly glyph: "→";
 }, {
     readonly id: "slide-up";
     readonly xfadeName: "slideup";
-    readonly labelJa: "スライド（上へ）";
-    readonly category: "スライド";
+    readonly labelJa: "Slide up";
+    readonly category: "Slide";
     readonly previewKind: "slide-up";
     readonly glyph: "↑";
 }, {
     readonly id: "slide-down";
     readonly xfadeName: "slidedown";
-    readonly labelJa: "スライド（下へ）";
-    readonly category: "スライド";
+    readonly labelJa: "Slide down";
+    readonly category: "Slide";
     readonly previewKind: "slide-down";
     readonly glyph: "↓";
 }, {
     readonly id: "cover-left";
     readonly xfadeName: "coverleft";
-    readonly labelJa: "カバー（左へ）";
-    readonly category: "カバー";
+    readonly labelJa: "Cover left";
+    readonly category: "Cover";
     readonly previewKind: "cover-left";
     readonly glyph: "←";
 }, {
     readonly id: "cover-right";
     readonly xfadeName: "coverright";
-    readonly labelJa: "カバー（右へ）";
-    readonly category: "カバー";
+    readonly labelJa: "Cover right";
+    readonly category: "Cover";
     readonly previewKind: "cover-right";
     readonly glyph: "→";
 }, {
     readonly id: "cover-up";
     readonly xfadeName: "coverup";
-    readonly labelJa: "カバー（上へ）";
-    readonly category: "カバー";
+    readonly labelJa: "Cover up";
+    readonly category: "Cover";
     readonly previewKind: "cover-up";
     readonly glyph: "↑";
 }, {
     readonly id: "cover-down";
     readonly xfadeName: "coverdown";
-    readonly labelJa: "カバー（下へ）";
-    readonly category: "カバー";
+    readonly labelJa: "Cover down";
+    readonly category: "Cover";
     readonly previewKind: "cover-down";
     readonly glyph: "↓";
 }, {
     readonly id: "reveal-left";
     readonly xfadeName: "revealleft";
-    readonly labelJa: "リビール（左へ）";
-    readonly category: "リビール";
+    readonly labelJa: "Reveal left";
+    readonly category: "Reveal";
     readonly previewKind: "reveal-left";
     readonly glyph: "←";
 }, {
     readonly id: "reveal-right";
     readonly xfadeName: "revealright";
-    readonly labelJa: "リビール（右へ）";
-    readonly category: "リビール";
+    readonly labelJa: "Reveal right";
+    readonly category: "Reveal";
     readonly previewKind: "reveal-right";
     readonly glyph: "→";
 }, {
     readonly id: "reveal-down";
     readonly xfadeName: "revealdown";
-    readonly labelJa: "上からリビール";
-    readonly category: "リビール";
+    readonly labelJa: "Reveal from top";
+    readonly category: "Reveal";
     readonly previewKind: "reveal-down";
     readonly glyph: "↓";
 }, {
     readonly id: "reveal-up";
     readonly xfadeName: "revealup";
-    readonly labelJa: "下からリビール";
-    readonly category: "リビール";
+    readonly labelJa: "Reveal from bottom";
+    readonly category: "Reveal";
     readonly previewKind: "reveal-up";
     readonly glyph: "↑";
 }, {
     readonly id: "circle-open";
     readonly xfadeName: "circleopen";
-    readonly labelJa: "サークル（開く）";
-    readonly category: "形状";
+    readonly labelJa: "Circle open";
+    readonly category: "Shape";
     readonly previewKind: "circle-open";
     readonly glyph: "○";
 }, {
     readonly id: "circle-close";
     readonly xfadeName: "circleclose";
-    readonly labelJa: "サークル（閉じる）";
-    readonly category: "形状";
+    readonly labelJa: "Circle close";
+    readonly category: "Shape";
     readonly previewKind: "circle-close";
     readonly glyph: "●";
 }, {
     readonly id: "zoom-in";
     readonly xfadeName: "zoomin";
-    readonly labelJa: "ズームイン";
-    readonly category: "変形";
+    readonly labelJa: "Zoom in";
+    readonly category: "Transform";
     readonly previewKind: "zoom-in";
     readonly glyph: "＋";
 }, {
     readonly id: "squeeze-h";
     readonly xfadeName: "squeezeh";
-    readonly labelJa: "スクイーズ（縦つぶし）";
-    readonly category: "変形";
+    readonly labelJa: "Squeeze vertical";
+    readonly category: "Transform";
     readonly previewKind: "squeeze-h";
     readonly glyph: "↕";
 }, {
     readonly id: "squeeze-v";
     readonly xfadeName: "squeezev";
-    readonly labelJa: "スクイーズ（横つぶし）";
-    readonly category: "変形";
+    readonly labelJa: "Squeeze horizontal";
+    readonly category: "Transform";
     readonly previewKind: "squeeze-v";
     readonly glyph: "↔";
 }, {
     readonly id: "blur";
     readonly xfadeName: "hblur";
-    readonly labelJa: "ブラー";
-    readonly category: "質感";
+    readonly labelJa: "Blur";
+    readonly category: "Texture";
     readonly previewKind: "blur";
     readonly glyph: "B";
 }, {
     readonly id: "pixelize";
     readonly xfadeName: "pixelize";
-    readonly labelJa: "ピクセレート";
-    readonly category: "質感";
+    readonly labelJa: "Pixelate";
+    readonly category: "Texture";
     readonly previewKind: "pixelize";
     readonly glyph: "P";
 }];

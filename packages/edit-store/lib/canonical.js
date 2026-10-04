@@ -206,7 +206,7 @@ function frameOf(value) {
 }
 function requireRecord(value, label) {
     if (!isRecord(value))
-        throw new Error(`${label} は object である必要があります。`);
+        throw new Error(`${label} must be an object.`);
     return value;
 }
 function isRecord(value) {

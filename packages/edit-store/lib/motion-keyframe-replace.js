@@ -4,13 +4,13 @@ exports.replaceXYKeyframes = replaceXYKeyframes;
 /** Replace X/Y only inside the drawn span, retaining every unrelated keyframe channel. */
 function replaceXYKeyframes(existing, drawn, duration) {
     if (drawn.length < 2 || !Number.isInteger(duration) || duration < 1) {
-        throw new Error('道筋には 2 点以上必要です。');
+        throw new Error('A path needs at least two points.');
     }
     const sorted = drawn.slice().sort((a, b) => a.t - b.t);
     if (sorted.some(point => !Number.isInteger(point.t) || point.t < 0 || point.t > duration
         || !Number.isFinite(point.transform.x) || !Number.isFinite(point.transform.y))
         || sorted.some((point, index) => index > 0 && point.t === sorted[index - 1].t)) {
-        throw new Error('道筋の時刻または位置が正しくありません。');
+        throw new Error('The path time or position is invalid.');
     }
     const first = sorted[0].t, last = sorted[sorted.length - 1].t;
     const byTime = new Map();

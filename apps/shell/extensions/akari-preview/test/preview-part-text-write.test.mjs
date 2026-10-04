@@ -66,7 +66,7 @@ test('part html is rejected before the host can overwrite the shared card', asyn
   await host.handleOverlayWrite(widget, request({ html: '<div data-akari-part-mask="C">bad</div>' }));
   assert.equal(writes.length, 0);
   assert.equal(responses[0].ok, false);
-  assert.match(responses[0].error, /部品の文字は source.text に保存します/u);
+  assert.match(responses[0].error, /Part text is stored on source\.text/u);
 });
 test('failed text lint writes neither edit.json nor HTML', async () => {
   const { host, widget, writes, responses } = hostFixture();

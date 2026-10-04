@@ -73,9 +73,9 @@ test('retime は audio item の duration: 0 未解決センチネルを保持す
 });
 
 test('retime は v2 と 1 以上の整数 fps だけを受け付ける', () => {
-    assert.throws(() => retime(baseEdit([]), 23.976), /1 以上の整数/);
-    assert.throws(() => retime(baseEdit([]), 0), /1 以上の整数/);
-    assert.throws(() => retime({ version: 1, cuts: [] }, 30), /v0\/v1 は対象外/);
+    assert.throws(() => retime(baseEdit([]), 23.976), /integer of 1 or greater/);
+    assert.throws(() => retime(baseEdit([]), 0), /integer of 1 or greater/);
+    assert.throws(() => retime({ version: 1, cuts: [] }, 30), /v0 and v1 are out of scope/);
 });
 
 test('retime は量子化を伴う非可逆変換である', () => {

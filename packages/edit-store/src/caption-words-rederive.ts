@@ -494,7 +494,7 @@ export function applyCaptionTextEdit<T extends CaptionTextEditRecord>(
 ): { record: T; rederive?: RederiveResult; removedRuns?: CaptionRun[] } {
     const normalizedText = newText.normalize('NFC').trim();
     if (!normalizedText) {
-        throw new Error('字幕のテキストは空にできません。');
+        throw new Error('Caption text cannot be empty.');
     }
     if (normalizedText === record.text) {
         return { record };

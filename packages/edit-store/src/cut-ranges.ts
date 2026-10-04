@@ -37,7 +37,7 @@ const LEGACY_EDGE_SECONDS = 0.15;
 export function detectEditVersion(source: string): 0 | 1 | 2 {
     const version = (JSON.parse(source) as { version?: unknown }).version;
     if (typeof version !== 'number' || !new Set<number>([0, 1, 2]).has(version)) {
-        throw new Error('edit.json.version は 0・1・2 のいずれかである必要があります。');
+        throw new Error('edit.json.version must be 0, 1, or 2.');
     }
     return version as 0 | 1 | 2;
 }
@@ -100,7 +100,7 @@ function applyLegacy(
                 source = annotateLegacySegments(source, cut, effectiveIn, effectiveOut, range);
             }
         }
-        if (!matched) warnings.push(`カット対象が見つかりません: ${range.in}–${range.out}`);
+        if (!matched) warnings.push(`The cut target was not found: ${range.in}-${range.out}`);
     }
 
     // deleteCutInSource は後続の暗黙 at を凍結する。対象トラックだけ暗黙カーソルへ
@@ -148,7 +148,7 @@ function applyV2(
                 track.items.splice(index, 1, ...replacement.items);
             }
         }
-        if (!matched) warnings.push(`カット対象が見つかりません: ${range.in}–${range.out}`);
+        if (!matched) warnings.push(`The cut target was not found: ${range.in}-${range.out}`);
     }
 
     // performCompactCuts と同じく、対象となった visual track の media items だけを
@@ -248,7 +248,7 @@ function readLegacyCuts(source: string): { cuts: EditCut[]; segments: ReturnType
 function normalizeRanges(ranges: readonly CutRange[]): CutRange[] {
     return ranges.map(range => {
         if (!Number.isFinite(range.in) || !Number.isFinite(range.out) || range.in < 0 || range.out <= range.in) {
-            throw new Error('カット範囲が不正です。');
+            throw new Error('The cut range is invalid.');
         }
         return { ...range };
     }).sort((left, right) => right.in - left.in || right.out - left.out);
@@ -263,7 +263,7 @@ function validSpeed(speed: number | undefined): number {
 }
 
 function requireFps(value: number): number {
-    if (!Number.isFinite(value) || value <= 0) throw new Error('fps が不正です。');
+    if (!Number.isFinite(value) || value <= 0) throw new Error('The fps value is invalid.');
     return value;
 }
 

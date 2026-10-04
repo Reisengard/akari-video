@@ -15,7 +15,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -59,7 +59,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -106,7 +106,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -140,7 +140,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -174,7 +174,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -214,13 +214,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -250,13 +250,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -286,13 +286,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -346,13 +346,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -386,13 +386,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -432,13 +432,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -474,13 +474,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -516,13 +516,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -558,13 +558,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -600,13 +600,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -636,13 +636,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -678,13 +678,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -720,13 +720,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -766,13 +766,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -802,13 +802,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         }
       ],
@@ -838,7 +838,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -876,7 +876,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -914,7 +914,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -950,7 +950,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "cuts-order": {
       "exit_code": 0,
@@ -959,7 +959,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -993,7 +993,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1031,7 +1031,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1069,7 +1069,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1124,7 +1124,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1162,13 +1162,13 @@
         {
           "severity": "error",
           "check": "cuts.track-transition-unsupported",
-          "message": "映像トラック 1 の transition_out は、PiP または複数トラックを合成する方式では書き出せません。トランジションを削除するか、映像を単一の cuts トラックへ戻してください。",
+          "message": "transition_out on picture track 1 cannot be exported when the path composites PiP or several tracks. Remove the transition, or move the picture back to a single cuts track.",
           "path": "edit.json#cuts[1]"
         },
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1206,13 +1206,13 @@
         {
           "severity": "error",
           "check": "cuts.track-transition-unsupported",
-          "message": "映像トラック 0 の transition_out は、PiP または複数トラックを合成する方式では書き出せません。トランジションを削除するか、映像を単一の cuts トラックへ戻してください。",
+          "message": "transition_out on picture track 0 cannot be exported when the path composites PiP or several tracks. Remove the transition, or move the picture back to a single cuts track.",
           "path": "edit.json#cuts[0]"
         },
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1250,7 +1250,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1288,7 +1288,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1326,7 +1326,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1364,7 +1364,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1400,21 +1400,21 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "cuts-transform-scale-invalid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "cuts-transform-unknown-key-invalid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "data-mismatch": {
       "exit_code": 1,
@@ -1423,7 +1423,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1473,7 +1473,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "edit-v2-cut-audio-link-duplicate-invalid": {
       "exit_code": 1,
@@ -1521,7 +1521,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1559,7 +1559,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1593,13 +1593,13 @@
         {
           "severity": "warning",
           "check": "decision-log.predict-missing",
-          "message": "decision-log.md に機械の予測行（決定者 machine:director）がありません。提案つき / そのままモードでは、入れた物 1 件ごとに予測 1 行を追記してください（判子は一回 契約 §10）（decision-log.md が見つかりません）",
+          "message": "decision-log.md has no machine prediction row (decider machine:director). In With suggestions or As is mode, append one prediction row for each inserted item (one stamp, contract section 10). (decision-log.md was not found)",
           "path": "decision-log.md"
         },
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1635,7 +1635,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1677,7 +1677,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1719,7 +1719,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1755,13 +1755,13 @@
         {
           "severity": "warning",
           "check": "decision-log.predict-missing",
-          "message": "decision-log.md に機械の予測行（決定者 machine:director）がありません。提案つき / そのままモードでは、入れた物 1 件ごとに予測 1 行を追記してください（判子は一回 契約 §10）（decision-log.md が見つかりません）",
+          "message": "decision-log.md has no machine prediction row (decider machine:director). In With suggestions or As is mode, append one prediction row for each inserted item (one stamp, contract section 10). (decision-log.md was not found)",
           "path": "decision-log.md"
         },
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1791,7 +1791,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1852,7 +1852,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1896,7 +1896,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -1949,7 +1949,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -1989,7 +1989,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2021,7 +2021,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "narration-valid": {
       "exit_code": 0,
@@ -2030,7 +2030,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2062,14 +2062,14 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "outputs-duration-max-gaps-warning": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlay-range": {
       "exit_code": 0,
@@ -2078,13 +2078,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "info",
           "check": "timeline.duration-derived",
-          "message": "尺を overlays / 字幕 / 音声の終端 11 秒から導出した",
+          "message": "Duration was derived from the overlay, caption, and audio end at 11 seconds.",
           "path": "edit.json#tracks"
         }
       ],
@@ -2118,7 +2118,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2150,35 +2150,35 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlays-background-role-invalid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlays-background-transform-invalid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlays-background-valid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlays-background-vars-locked-invalid": {
       "exit_code": 2,
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "overlays-reserved-css-var-file": {
       "exit_code": 0,
@@ -2187,7 +2187,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2225,7 +2225,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 0）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 0). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "render-basics-valid": {
       "exit_code": 0,
@@ -2234,7 +2234,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2268,7 +2268,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2308,7 +2308,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2342,7 +2342,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2382,7 +2382,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2422,7 +2422,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2456,13 +2456,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "error",
           "check": "review.version",
-          "message": "review.json version 1 は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください",
+          "message": "review.json version 1 is too new to check. This file uses a newer format. Update the skill or the app.",
           "path": "review.json#version"
         }
       ],
@@ -2510,7 +2510,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2563,7 +2563,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2631,7 +2631,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2681,7 +2681,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2727,7 +2727,7 @@
         {
           "severity": "info",
           "check": "audio.sfx.track-overlap",
-          "message": "効果音 audio.sfx[1] が同じ track 0・同じ時刻 3 秒に別素材と重なっています。書き出しのミックスは track を見ずに両方鳴らします。重ねるつもりなら track を分けてください（NLE 書き出しは track を NLE のトラック単位にするため、同じトラックに重なります）。",
+          "message": "Sound effect audio.sfx[1] overlaps different footage on track 0 at 3 seconds. Export plays both and ignores track. Put them on separate tracks if the overlap is intended. An NLE export maps a track to an NLE track, so they overlap there too.",
           "path": "edit.json#audio.sfx[1]",
           "range": {
             "start": 3,
@@ -2737,7 +2737,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2775,13 +2775,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "info",
           "check": "timeline.duration-derived",
-          "message": "尺を overlays / 字幕 / 音声の終端 12 秒から導出した",
+          "message": "Duration was derived from the overlay, caption, and audio end at 12 seconds.",
           "path": "edit.json#tracks"
         }
       ],
@@ -2813,7 +2813,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "timeline-tracks-declared-valid": {
       "exit_code": 1,
@@ -2822,7 +2822,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2866,7 +2866,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2910,7 +2910,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -2954,7 +2954,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -2992,7 +2992,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
@@ -3004,13 +3004,13 @@
         {
           "severity": "warning",
           "check": "v2.captions-content-deprecated",
-          "message": "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+          "message": "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
           "path": "edit.json#tracks[3].content"
         },
         {
           "severity": "warning",
           "check": "v2.captions-content-deprecated",
-          "message": "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+          "message": "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
           "path": "edit.json#tracks[4].content"
         }
       ],
@@ -3046,7 +3046,7 @@
       "verdict": null,
       "findings": [],
       "skipped": [],
-      "execution_error": "このプロジェクトは古い形式です（edit.json version 1）。`akari migrate <dir>` で変換してから開いてください。将来本体から変換器が外れた後は `npx akari-migrate@<版> <dir>` を使います。"
+      "execution_error": "This project uses an older format (edit.json version 1). Convert it with `akari migrate <dir>` before opening. After the converter leaves the app, use `npx akari-migrate@<version> <dir>`."
     },
     "v1-source-sources-exclusive": {
       "exit_code": 0,
@@ -3055,7 +3055,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3093,7 +3093,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3137,7 +3137,7 @@
         {
           "severity": "info",
           "check": "timeline.duration-derived",
-          "message": "尺を overlays / 字幕 / 音声の終端 2 秒から導出した",
+          "message": "Duration was derived from the overlay, caption, and audio end at 2 seconds.",
           "path": "edit.json#tracks"
         }
       ],
@@ -3181,7 +3181,7 @@
         {
           "severity": "info",
           "check": "timeline.duration-derived",
-          "message": "尺を overlays / 字幕 / 音声の終端 2 秒から導出した",
+          "message": "Duration was derived from the overlay, caption, and audio end at 2 seconds.",
           "path": "edit.json#tracks"
         }
       ],
@@ -3236,7 +3236,7 @@
         {
           "severity": "error",
           "check": "cuts.transition-out.non-adjacent",
-          "message": "transition_out の次のクリップとの間にすき間があります。すき間を詰めるか、トランジションを削除してください。",
+          "message": "There is a gap before the clip after transition_out. Close the gap, or remove the transition.",
           "path": "edit.json#cuts[0].transition_out",
           "range": {
             "start": 2,
@@ -3246,7 +3246,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3297,7 +3297,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3341,13 +3341,13 @@
         {
           "severity": "warning",
           "check": "v2.item-duration-short",
-          "message": "item same の duration は 10 フレーム（0.33 秒）です。at / duration の単位はフレームです。10 秒のつもりなら 300 フレームにしてください（×fps = 30）。",
+          "message": "Item same duration is 10 frames (0.33 seconds). at and duration are in frames. If you meant 10 seconds, use 300 frames (x fps = 30).",
           "path": "edit.json#tracks[0].items[0].duration"
         },
         {
           "severity": "warning",
           "check": "v2.item-duration-short",
-          "message": "item same の duration は 10 フレーム（0.33 秒）です。at / duration の単位はフレームです。10 秒のつもりなら 300 フレームにしてください（×fps = 30）。",
+          "message": "Item same duration is 10 frames (0.33 seconds). at and duration are in frames. If you meant 10 seconds, use 300 frames (x fps = 30).",
           "path": "edit.json#tracks[0].items[1].duration"
         }
       ],
@@ -3373,7 +3373,7 @@
         {
           "severity": "warning",
           "check": "v2.captions-content-deprecated",
-          "message": "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+          "message": "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
           "path": "edit.json#tracks[0].content"
         },
         {
@@ -3411,7 +3411,7 @@
         {
           "severity": "warning",
           "check": "cuts.transition-out.layer-evacuated",
-          "message": "このクリップは他トラックのアイテム（bg-1）と重なっているため PiP 経路へ退避され、宣言したトランジションは書き出されません。重なりを解消するか、トランジションを削除してください。",
+          "message": "This clip overlaps an item on another track (bg-1), so it was sent down the PiP path and the declared transition is not exported. Resolve the overlap, or remove the transition.",
           "path": "edit.json#tracks[1].items[0].source.transition_out",
           "range": {
             "start": 3,
@@ -3421,7 +3421,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3459,7 +3459,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3497,13 +3497,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-track-undeclared",
-          "message": "captions.json に描画対象 cue がありますが字幕トラックが未宣言です。現状は暗黙補完で表示自体はされています。visual トラックの items[] に { \"id\": \"captions\", \"name\": \"字幕\", \"at\": 0, \"duration\": <出力尺>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] } を追加してください。",
+          "message": "captions.json has cues to draw, but no caption track is declared. Playback still fills one in. Add this to the visual track items[]: { \"id\": \"captions\", \"name\": \"Captions\", \"at\": 0, \"duration\": <output duration>, \"source\": { \"kind\": \"captions\", \"path\": \"captions.json\" }, \"items\": [] }.",
           "path": "edit.json#tracks"
         },
         {
@@ -3543,7 +3543,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3598,13 +3598,13 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         },
         {
           "severity": "warning",
           "check": "v2.captions-content-deprecated",
-          "message": "tracks[].content は deprecated です。visual トラックの items[] に字幕の袋グループ item を置いてください（akari migrate で正規化できます）。",
+          "message": "tracks[].content is deprecated. Put a caption container group in the visual track items[]. `akari migrate` can normalize this.",
           "path": "edit.json#tracks[2].content"
         }
       ],
@@ -3642,7 +3642,7 @@
         {
           "severity": "warning",
           "check": "cuts.transition-out.zero-overlap",
-          "message": "トランジションを宣言していますが、のりしろにできる素材の余りがないため効きません。素材のトリムを調整するか、トランジションを削除してください。",
+          "message": "A transition is declared, but there is no spare footage for the overlap, so it has no effect. Adjust the footage trim, or remove the transition.",
           "path": "edit.json#cuts[0].transition_out",
           "range": {
             "start": 2,
@@ -3652,7 +3652,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3690,7 +3690,7 @@
         {
           "severity": "warning",
           "check": "geometry.fit-compat",
-          "message": "fit 互換モードで描画中。`normalize-geometry` で実寸基準へ移行できます",
+          "message": "Drawing in fit-compat mode. `normalize-geometry` can migrate this to source-sized geometry.",
           "path": "edit.json#output.geometry"
         }
       ],
@@ -3724,7 +3724,7 @@
         {
           "severity": "error",
           "check": "edit.version",
-          "message": "edit.json version 3 は新しすぎるため検証できません。このファイルは新しい形式です。スキル / アプリを更新してください",
+          "message": "edit.json version 3 is too new to check. This file uses a newer format. Update the skill or the app.",
           "path": "edit.json#version"
         }
       ],

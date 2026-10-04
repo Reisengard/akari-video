@@ -13,7 +13,7 @@ for (const [name, adjust, path, check] of invalidAdjustCases) {
       // requireExactKeys uses the owning object's path and lists unknown keys.
       const owner = check === 'unknown-key' ? path.slice(0, path.lastIndexOf('.')) : path;
       return error.message.includes('tracks[0].items[0].adjust.' + owner)
-        && (check !== 'unknown-key' || error.message.includes('未定義キーを使用できません: ' + path.slice(path.lastIndexOf('.') + 1)));
+        && (check !== 'unknown-key' || error.message.includes('Cannot use an undefined key: ' + path.slice(path.lastIndexOf('.') + 1)));
     });
   });
 }

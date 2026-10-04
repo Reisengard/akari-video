@@ -9,12 +9,12 @@ import { AudioMediaItemV2, EditV2, ItemV2, readEditV2 } from './edit-v2';
  */
 export function retime(source: string | unknown, fpsNew: number): EditV2 {
     if (!Number.isInteger(fpsNew) || fpsNew < 1) {
-        throw new Error(`fpsNew は 1 以上の整数である必要があります: ${String(fpsNew)}`);
+        throw new Error(`fpsNew must be an integer of 1 or greater: ${String(fpsNew)}`);
     }
     const parsed = typeof source === 'string' ? JSON.parse(source) as unknown : source;
     if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
         && (parsed as Record<string, unknown>).version !== 2) {
-        throw new Error('retime は edit.json v2 専用です（v0/v1 は対象外です）。');
+        throw new Error('retime is edit.json v2 only. v0 and v1 are out of scope.');
     }
     const edit = readEditV2(parsed);
     const ratio = fpsNew / edit.output.fps;

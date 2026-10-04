@@ -182,7 +182,7 @@ const LAYER_BLEND_MODES: readonly LayerBlendMode[] = [
 export function findMatchingBracket(source: string, openIndex: number): number {
     const opening = source[openIndex];
     if (opening !== '[' && opening !== '{') {
-        throw new Error('対応する括弧を探す開始位置が不正です。');
+        throw new Error('The start position for matching brackets is invalid.');
     }
     const stack: string[] = [opening];
     let inString = false;
@@ -206,14 +206,14 @@ export function findMatchingBracket(source: string, openIndex: number): number {
         } else if (character === ']' || character === '}') {
             const expected = character === ']' ? '[' : '{';
             if (stack.pop() !== expected) {
-                throw new Error('JSON の括弧の対応を確認できません。');
+                throw new Error('The JSON brackets do not match.');
             }
             if (stack.length === 0) {
                 return index;
             }
         }
     }
-    throw new Error('JSON の閉じ括弧が見つかりません。');
+    throw new Error('The JSON closing bracket was not found.');
 }
 
 export function splitTopLevelElements(innerText: string): SourceElement[] {
@@ -302,15 +302,15 @@ export function trimCutInSource(
 ): string {
     if (maxOutSeconds !== undefined) {
         if (!Number.isFinite(maxOutSeconds) || maxOutSeconds < 0) {
-            throw new Error('クリップの実尺が不正です。');
+            throw new Error('The clip duration is invalid.');
         }
         nextOut = Math.min(nextOut, maxOutSeconds);
     }
     if (!Number.isFinite(nextIn) || !Number.isFinite(nextOut) || nextIn < 0 || nextOut < 0) {
-        throw new Error('クリップの時刻が不正です。');
+        throw new Error('Clip time is invalid.');
     }
     if (nextOut - nextIn < 0.15) {
-        throw new Error('クリップが短すぎます（0.15 秒未満にはできません）');
+        throw new Error('The clip is too short. It cannot be under 0.15 seconds.');
     }
     const before = readCutsForSurgery(source);
     source = freezeNextImplicitCutAt(source, cutIndex, before);
@@ -320,7 +320,7 @@ export function trimCutInSource(
             ? before.cuts[cutIndex].speed! : 1;
         const nextAt = segment.at + (nextIn - before.cuts[cutIndex].in) / speed;
         if (nextAt < 0) {
-            throw new Error('クリップの出力位置は 0 以上にしてください。');
+            throw new Error('The clip output position must be 0 or greater.');
         }
         source = writeCutAtProperty(source, cutIndex, nextAt);
     }
@@ -328,9 +328,9 @@ export function trimCutInSource(
     const elements = splitTopLevelElements(array.inner);
     const element = elements[cutIndex];
     if (!element) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
-    const label = `クリップ ${cutIndex + 1}`;
+    const label = `Clip ${cutIndex + 1}`;
     const currentIn = readNumberProperty(element.text, 'in', label);
     const currentOut = readNumberProperty(element.text, 'out', label);
     let nextText = element.text;
@@ -358,25 +358,25 @@ export function slipCutInSource(
 ): string {
     if (maxOutSeconds !== undefined) {
         if (!Number.isFinite(maxOutSeconds) || maxOutSeconds < 0) {
-            throw new Error('クリップの実尺が不正です。');
+            throw new Error('The clip duration is invalid.');
         }
         if (nextOut > maxOutSeconds) {
-            throw new Error('クリップの out が実尺を超えています。');
+            throw new Error('The clip out point is past the footage duration.');
         }
     }
     if (!Number.isFinite(nextIn) || !Number.isFinite(nextOut) || nextIn < 0 || nextOut < 0) {
-        throw new Error('クリップの時刻が不正です。');
+        throw new Error('Clip time is invalid.');
     }
     if (nextOut - nextIn < 0.15) {
-        throw new Error('クリップが短すぎます（0.15 秒未満にはできません）');
+        throw new Error('The clip is too short. It cannot be under 0.15 seconds.');
     }
     const array = locateArray(source, 'cuts');
     const elements = splitTopLevelElements(array.inner);
     const element = elements[cutIndex];
     if (!element) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
-    const label = `クリップ ${cutIndex + 1}`;
+    const label = `Clip ${cutIndex + 1}`;
     const currentIn = readNumberProperty(element.text, 'in', label);
     const currentOut = readNumberProperty(element.text, 'out', label);
     let nextText = element.text;
@@ -391,15 +391,15 @@ export function slipCutInSource(
 
 export function setCutSpeedInSource(source: string, cutIndex: number, speed: number | null): string {
     if (speed !== null && (!Number.isFinite(speed) || speed <= 0)) {
-        throw new Error('speed は正の数で指定してください。');
+        throw new Error('speed must be a positive number.');
     }
-    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'クリップ', element => {
+    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'Clip', element => {
         const hasSpeed = hasTopLevelProperty(element, 'speed');
         if (speed === null) {
             return hasSpeed ? removeObjectProperty(element, 'speed') : element;
         }
         return hasSpeed
-            ? replacePropertyValue(element, 'speed', speed, `クリップ ${cutIndex + 1}`)
+            ? replacePropertyValue(element, 'speed', speed, `Clip ${cutIndex + 1}`)
             : appendNumberProperty(element, 'speed', speed);
     });
 }
@@ -411,21 +411,21 @@ export function updateCutTransformInSource(
 ): string {
     if (updates.x === undefined && updates.y === undefined
         && updates.scale === undefined && updates.scaleX === undefined && updates.scaleY === undefined && updates.rotate === undefined) {
-        throw new Error('変更する transform フィールドを指定してください。');
+        throw new Error('Specify the transform fields to change.');
     }
     for (const property of ['x', 'y', 'rotate'] as const) {
         const value = updates[property];
         if (value !== undefined && value !== null && !Number.isFinite(value)) {
-            throw new Error(`transform.${property} は有限数で指定してください。`);
+            throw new Error(`transform.${property} must be a finite number.`);
         }
     }
     for (const key of ['scale', 'scaleX', 'scaleY'] as const) {
         const value = updates[key];
         if (value !== undefined && value !== null && (!Number.isFinite(value) || value <= 0)) {
-            throw new Error(`transform.${key} は正の数で指定してください。`);
+            throw new Error(`transform.${key} must be a positive number.`);
         }
     }
-    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'クリップ', element => {
+    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'Clip', element => {
         const hasTransform = hasTopLevelProperty(element, 'transform');
         if (!hasTransform) {
             const transform = Object.fromEntries(
@@ -447,7 +447,7 @@ export function updateCutTransformInSource(
             transform = value === null
                 ? (hasProperty ? removeObjectProperty(transform, property) : transform)
                 : (hasProperty
-                    ? replacePropertyValue(transform, property, value, `クリップ ${cutIndex + 1} の transform`)
+                    ? replacePropertyValue(transform, property, value, `transform of clip ${cutIndex + 1}`)
                     : appendNumberProperty(transform, property, value));
         }
         if (Object.keys(JSON.parse(transform) as Record<string, unknown>).length === 0) {
@@ -459,15 +459,15 @@ export function updateCutTransformInSource(
 
 export function updateCutOpacityInSource(source: string, cutIndex: number, opacity: number | null): string {
     if (opacity !== null && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-        throw new Error('opacity は 0〜1 の範囲で指定してください。');
+        throw new Error('opacity must be from 0 to 1.');
     }
-    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'クリップ', element => {
+    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'Clip', element => {
         const hasOpacity = hasTopLevelProperty(element, 'opacity');
         if (opacity === null) {
             return hasOpacity ? removeObjectProperty(element, 'opacity') : element;
         }
         return hasOpacity
-            ? replaceTopLevelPropertyValue(element, 'opacity', opacity, `クリップ ${cutIndex + 1}`)
+            ? replaceTopLevelPropertyValue(element, 'opacity', opacity, `Clip ${cutIndex + 1}`)
             : appendNumberProperty(element, 'opacity', opacity);
     });
 }
@@ -482,13 +482,13 @@ export function setCutTransitionOutInSource(
 ): string {
     if (transitionOut !== null) {
         if (!isTransitionType(transitionOut.type)) {
-            throw new Error('トランジションの種別が不正です。');
+            throw new Error('The transition type is invalid.');
         }
         if (!Number.isFinite(transitionOut.duration) || transitionOut.duration <= 0) {
-            throw new Error('トランジションの尺は正の数で指定してください。');
+            throw new Error('Transition duration must be a positive number.');
         }
     }
-    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'クリップ', element => {
+    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'Clip', element => {
         const hasTransitionOut = hasTopLevelProperty(element, 'transition_out');
         if (transitionOut === null) {
             return hasTransitionOut ? removeObjectProperty(element, 'transition_out') : element;
@@ -525,14 +525,14 @@ export function removeV2TransitionOutWithHandleRetractInSource(
 ): string {
     const raw = JSON.parse(source) as { version?: unknown };
     if (raw.version !== 2) {
-        throw new Error('v2 へ変換してから編集してください。');
+        throw new Error('Convert to v2 before editing.');
     }
     if (!input.itemId) {
-        throw new Error('トランジション対象のアイテム id が空です。');
+        throw new Error('The transition item id is empty.');
     }
     if (!Number.isInteger(input.retractFrames) || input.retractFrames <= 0
         || !Number.isFinite(input.fps) || input.fps <= 0) {
-        throw new Error('のりしろの復元量が不正です。');
+        throw new Error('The overlap restore amount is invalid.');
     }
 
     const tracks = locateArray(source, 'tracks');
@@ -555,29 +555,29 @@ export function removeV2TransitionOutWithHandleRetractInSource(
     }
     if (matches.length !== 1) {
         throw new Error(matches.length === 0
-            ? `アイテム ${input.itemId} が見つかりません`
-            : `アイテム ${input.itemId} が複数あります`);
+            ? `Item ${input.itemId} was not found.`
+            : `Item ${input.itemId} appears more than once.`);
     }
 
     const match = matches[0];
-    const label = `アイテム ${input.itemId}`;
+    const label = `Item ${input.itemId}`;
     const durationFrames = readNumberProperty(match.item.text, 'duration', label);
     if (!Number.isInteger(durationFrames) || durationFrames < input.retractFrames) {
-        throw new Error(`${label} の duration を安全に復元できません。`);
+        throw new Error(`${label} duration cannot be restored safely.`);
     }
     const mediaSource = locateTopLevelObjectProperty(match.item.text, 'source');
     if (readStringProperty(mediaSource.text, 'kind') !== 'media') {
-        throw new Error(`${label} は映像素材ではありません。`);
+        throw new Error(`${label} is not picture footage.`);
     }
     const sourceIn = readNumberProperty(mediaSource.text, 'in', label);
     const sourceOut = readNumberProperty(mediaSource.text, 'out', label);
     const speed = (sourceOut - sourceIn) / (durationFrames / input.fps);
     if (!Number.isFinite(speed) || speed <= 0) {
-        throw new Error(`${label} の speed を安全に復元できません。`);
+        throw new Error(`${label} speed cannot be restored safely.`);
     }
     const nextOut = sourceOut - (input.retractFrames / input.fps) * speed;
     if (!Number.isFinite(nextOut) || nextOut < sourceIn) {
-        throw new Error(`${label} の out を安全に復元できません。`);
+        throw new Error(`${label} out cannot be restored safely.`);
     }
     let nextMediaSource = removeObjectProperty(mediaSource.text, 'transition_out');
     nextMediaSource = replaceNumberProperty(nextMediaSource, 'out', nextOut, label);
@@ -599,7 +599,7 @@ export function reorderCutsInSource(source: string, fromIndex: number, toIndex: 
     const elements = splitTopLevelElements(array.inner);
     if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)
         || fromIndex < 0 || fromIndex >= elements.length || toIndex < 0 || toIndex >= elements.length) {
-        throw new Error('クリップの並べ替え位置が範囲外です。');
+        throw new Error('The clip reorder position is out of range.');
     }
     if (fromIndex === toIndex) {
         return source;
@@ -622,19 +622,19 @@ export function reorderCutsInSource(source: string, fromIndex: number, toIndex: 
 
 export function splitCutInSource(source: string, cutIndex: number, atSeconds: number): string {
     if (!Number.isFinite(atSeconds)) {
-        throw new Error('分割位置の時刻が不正です。');
+        throw new Error('The split time is invalid.');
     }
     const array = locateArray(source, 'cuts');
     const elements = splitTopLevelElements(array.inner);
     const element = elements[cutIndex];
     if (!element) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
-    const label = `クリップ ${cutIndex + 1}`;
+    const label = `Clip ${cutIndex + 1}`;
     const currentIn = readNumberProperty(element.text, 'in', label);
     const currentOut = readNumberProperty(element.text, 'out', label);
     if (atSeconds < currentIn + 0.15 || atSeconds > currentOut - 0.15) {
-        throw new Error('分割位置がクリップの端に近すぎます（両側 0.15 秒以上必要です）');
+        throw new Error('The split is too close to a clip edge. Each side needs at least 0.15 seconds.');
     }
     const firstText = replaceNumberProperty(element.text, 'out', atSeconds, label);
     let secondText = replaceNumberProperty(element.text, 'in', atSeconds, label);
@@ -663,7 +663,7 @@ function removeArrayElementByIndex(source: string, key: string, index: number): 
     const elements = splitTopLevelElements(array.inner);
     const element = elements[index];
     if (!element) {
-        throw new Error(`${key} の ${index + 1} 番目の要素が見つかりません`);
+        throw new Error(`Item ${index + 1} of ${key} was not found.`);
     }
     const innerOffset = array.openIndex + 1;
     let removeStart: number;
@@ -706,7 +706,7 @@ function insertArrayElementByIndex(source: string, key: string, index: number, e
     }
     const target = elements[index];
     if (!target) {
-        throw new Error(`${key} の ${index + 1} 番目の挿入位置が不正です`);
+        throw new Error(`The insert position ${index + 1} on ${key} is invalid.`);
     }
     const insertAt = innerOffset + target.start;
     return source.slice(0, insertAt) + elementText + separator + source.slice(insertAt);
@@ -719,7 +719,7 @@ export function deleteLayerByIdInSource(
     const elements = splitTopLevelElements(array.inner);
     const layerIndex = elements.findIndex(element => readStringProperty(element.text, 'id') === layerId);
     if (layerIndex < 0) {
-        throw new Error(`素材 ${layerId} が見つかりません`);
+        throw new Error(`Footage ${layerId} was not found.`);
     }
     return { ...removeArrayElementByIndex(source, 'layers', layerIndex), layerIndex };
 }
@@ -748,23 +748,23 @@ export function moveCutInSource(
     trackState?: Record<string, number | null>
 ): string {
     if (!Number.isFinite(nextAt) || nextAt < 0) {
-        throw new Error('クリップの開始時刻が不正です。');
+        throw new Error('Clip start time is invalid.');
     }
     if (nextTrack !== undefined && nextTrack !== null && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-        throw new Error('クリップのトラックが不正です。');
+        throw new Error('Clip track is invalid.');
     }
     const before = readCutsForSurgery(source);
     if (!before.cuts[cutIndex]) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
     let updated = freezeNextImplicitCutAt(source, cutIndex, before);
     updated = writeCutAtProperty(updated, cutIndex, nextAt);
     if (trackState) {
-        updated = applyIndexedTrackState(updated, 'cuts', trackState, 'クリップ');
+        updated = applyIndexedTrackState(updated, 'cuts', trackState, 'Clip');
     } else if (nextTrack === null
         || (nextTrack !== undefined && normalizeTrack(before.cuts[cutIndex].track) !== nextTrack)) {
-        updated = updateArrayElementByIndex(updated, 'cuts', cutIndex, 'クリップ', element =>
-            writeTrackProperty(element, nextTrack, `クリップ ${cutIndex + 1}`));
+        updated = updateArrayElementByIndex(updated, 'cuts', cutIndex, 'Clip', element =>
+            writeTrackProperty(element, nextTrack, `Clip ${cutIndex + 1}`));
     }
     assertMovedCutDoesNotOverlap(updated, cutIndex);
     return updated;
@@ -812,7 +812,7 @@ export function setCutAtValuesInSource(
     const updates = new Map(entries.map(entry => [entry.cutIndex, entry.at]));
     for (const [index, value] of updates) {
         if (!Number.isInteger(index) || index < 0 || (value !== null && (!Number.isFinite(value) || value < 0))) {
-            throw new Error('クリップの詰め位置が不正です。');
+            throw new Error('The clip pack position is invalid.');
         }
     }
     const array = locateArray(source, 'cuts');
@@ -826,7 +826,7 @@ export function setCutAtValuesInSource(
         return at === null
             ? (hasAt ? removeObjectProperty(element.text, 'at') : element.text)
             : (hasAt
-                ? replacePropertyValue(element.text, 'at', at, `クリップ ${index + 1}`)
+                ? replacePropertyValue(element.text, 'at', at, `Clip ${index + 1}`)
                 : appendNumberProperty(element.text, 'at', at));
     });
     return rebuildArrayElements(source, array, elements, texts);
@@ -837,7 +837,7 @@ export function updateLayerInSource(
     layerId: string,
     updates: { t?: number; duration?: number; track?: number }
 ): string {
-    return updateArrayElementById(source, 'layers', layerId, '素材', element => {
+    return updateArrayElementById(source, 'layers', layerId, 'Footage', element => {
         let next = element;
         for (const property of ['t', 'duration', 'track'] as const) {
             const value = updates[property];
@@ -849,7 +849,7 @@ export function updateLayerInSource(
                 continue;
             }
             next = hasProperty
-                ? replacePropertyValue(next, property, value, `素材 ${layerId}`)
+                ? replacePropertyValue(next, property, value, `Footage ${layerId}`)
                 : appendNumberProperty(next, property, value);
         }
         return next;
@@ -863,21 +863,21 @@ export function updateLayerTransformInSource(
 ): string {
     if (updates.x === undefined && updates.y === undefined
         && updates.scale === undefined && updates.scaleX === undefined && updates.scaleY === undefined && updates.rotate === undefined) {
-        throw new Error('変更する transform フィールドを指定してください。');
+        throw new Error('Specify the transform fields to change.');
     }
     for (const property of ['x', 'y', 'rotate'] as const) {
         const value = updates[property];
         if (value !== undefined && value !== null && !Number.isFinite(value)) {
-            throw new Error(`transform.${property} は有限数で指定してください。`);
+            throw new Error(`transform.${property} must be a finite number.`);
         }
     }
     for (const key of ['scale', 'scaleX', 'scaleY'] as const) {
         const value = updates[key];
         if (value !== undefined && value !== null && (!Number.isFinite(value) || value <= 0)) {
-            throw new Error(`transform.${key} は正の数で指定してください。`);
+            throw new Error(`transform.${key} must be a positive number.`);
         }
     }
-    return updateArrayElementById(source, 'layers', layerId, '素材', element => {
+    return updateArrayElementById(source, 'layers', layerId, 'Footage', element => {
         const hasTransform = hasTopLevelProperty(element, 'transform');
         if (!hasTransform) {
             const transform = Object.fromEntries(
@@ -899,7 +899,7 @@ export function updateLayerTransformInSource(
             transform = value === null
                 ? (hasProperty ? removeObjectProperty(transform, property) : transform)
                 : (hasProperty
-                    ? replacePropertyValue(transform, property, value, `素材 ${layerId} の transform`)
+                    ? replacePropertyValue(transform, property, value, `transform of footage ${layerId}`)
                     : appendNumberProperty(transform, property, value));
         }
         if (Object.keys(JSON.parse(transform) as Record<string, unknown>).length === 0) {
@@ -911,30 +911,30 @@ export function updateLayerTransformInSource(
 
 export function updateLayerOpacityInSource(source: string, layerId: string, opacity: number | null): string {
     if (opacity !== null && (!Number.isFinite(opacity) || opacity < 0 || opacity > 1)) {
-        throw new Error('opacity は 0〜1 の範囲で指定してください。');
+        throw new Error('opacity must be from 0 to 1.');
     }
-    return updateArrayElementById(source, 'layers', layerId, '素材', element => {
+    return updateArrayElementById(source, 'layers', layerId, 'Footage', element => {
         const hasOpacity = hasTopLevelProperty(element, 'opacity');
         if (opacity === null) {
             return hasOpacity ? removeObjectProperty(element, 'opacity') : element;
         }
         return hasOpacity
-            ? replaceTopLevelPropertyValue(element, 'opacity', opacity, `素材 ${layerId}`)
+            ? replaceTopLevelPropertyValue(element, 'opacity', opacity, `Footage ${layerId}`)
             : appendNumberProperty(element, 'opacity', opacity);
     });
 }
 
 export function updateLayerBlendInSource(source: string, layerId: string, blend: string | null): string {
     if (blend !== null && !LAYER_BLEND_MODES.includes(blend as LayerBlendMode)) {
-        throw new Error('blend の値が不正です。');
+        throw new Error('The blend value is invalid.');
     }
-    return updateArrayElementById(source, 'layers', layerId, '素材', element => {
+    return updateArrayElementById(source, 'layers', layerId, 'Footage', element => {
         const hasBlend = hasTopLevelProperty(element, 'blend');
         if (blend === null) {
             return hasBlend ? removeObjectProperty(element, 'blend') : element;
         }
         return hasBlend
-            ? replaceTopLevelPropertyValue(element, 'blend', blend, `素材 ${layerId}`)
+            ? replaceTopLevelPropertyValue(element, 'blend', blend, `Footage ${layerId}`)
             : appendJsonProperty(element, 'blend', blend);
     });
 }
@@ -948,16 +948,16 @@ export function moveLayerInSource(
     trackState?: Record<string, number | null>
 ): string {
     if (!Number.isFinite(nextT) || nextT < 0 || !Number.isFinite(nextDuration) || nextDuration < 0.15) {
-        throw new Error('素材の時刻または尺が不正です。');
+        throw new Error('Footage time or duration is invalid.');
     }
     if (nextTrack !== undefined && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-        throw new Error('素材のトラックが不正です。');
+        throw new Error('Footage track is invalid.');
     }
     const beforeArray = locateArray(source, 'layers');
     const beforeElements = splitTopLevelElements(beforeArray.inner);
     const beforeIndex = beforeElements.findIndex(element => readStringProperty(element.text, 'id') === layerId);
     if (beforeIndex < 0) {
-        throw new Error(`素材 ${layerId} が見つかりません`);
+        throw new Error(`Footage ${layerId} was not found.`);
     }
     const currentTrack = normalizeTrack(readOptionalNumberProperty(beforeElements[beforeIndex].text, 'track'));
     const updated = updateLayerInSource(source, layerId, {
@@ -967,7 +967,7 @@ export function moveLayerInSource(
             ? { track: nextTrack } : {})
     });
     if (trackState) {
-        return applyIdTrackState(updated, 'layers', trackState, '素材');
+        return applyIdTrackState(updated, 'layers', trackState, 'Footage');
     }
     return updated;
 }
@@ -980,16 +980,16 @@ export function moveSfxInSource(
     trackState?: Record<string, number | null>
 ): string {
     if (!Number.isFinite(nextT) || nextT < 0) {
-        throw new Error('SE の開始時刻が不正です。');
+        throw new Error('SE start time is invalid.');
     }
     if (nextTrack !== undefined && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-        throw new Error('SE のトラックが不正です。');
+        throw new Error('SE track is invalid.');
     }
     const beforeArray = locateArray(source, 'sfx');
     const beforeElements = splitTopLevelElements(beforeArray.inner);
     const currentElement = beforeElements[sfxIndex];
     if (!currentElement) {
-        throw new Error(`SE ${sfxIndex + 1} が見つかりません`);
+        throw new Error(`SE ${sfxIndex + 1} was not found.`);
     }
     const currentTrack = normalizeTrack(readOptionalNumberProperty(currentElement.text, 'track'));
     const updated = updateArrayElementByIndex(source, 'sfx', sfxIndex, 'SE', element => {
@@ -1021,16 +1021,16 @@ export function trimSfxInSource(
     nextT?: number
 ): string {
     if (nextIn !== null && (!Number.isFinite(nextIn) || nextIn < 0)) {
-        throw new Error('SE の in が不正です。');
+        throw new Error('SE in is invalid.');
     }
     if (nextOut !== null && (!Number.isFinite(nextOut) || nextOut <= 0)) {
-        throw new Error('SE の out が不正です。');
+        throw new Error('SE out is invalid.');
     }
     if (nextIn !== null && nextOut !== null && nextOut - nextIn < 0.1) {
-        throw new Error('SE が短すぎます（0.1 秒未満にはできません）');
+        throw new Error('The sound effect is too short. It cannot be under 0.1 seconds.');
     }
     if (nextT !== undefined && (!Number.isFinite(nextT) || nextT < 0)) {
-        throw new Error('SE の開始時刻が不正です。');
+        throw new Error('SE start time is invalid.');
     }
     return updateArrayElementByIndex(source, 'sfx', sfxIndex, 'SE', element => {
         const label = `SE ${sfxIndex + 1}`;
@@ -1060,7 +1060,7 @@ export function trimSfxInSource(
 
 export function setSfxGainDbInSource(source: string, sfxIndex: number, gainDb: number | null): string {
     if (gainDb !== null && (!Number.isFinite(gainDb) || gainDb < -60 || gainDb > 12)) {
-        throw new Error('gain_db は -60〜12 の範囲で指定してください。');
+        throw new Error('gain_db must be from -60 to 12.');
     }
     return updateArrayElementByIndex(source, 'sfx', sfxIndex, 'SE', element => {
         const hasGain = hasTopLevelProperty(element, 'gain_db');
@@ -1079,22 +1079,22 @@ export function updateBgmInSource(
 ): string {
     if (updates.gainDb === undefined && updates.fadeIn === undefined
         && updates.fadeOut === undefined && updates.ducking === undefined) {
-        throw new Error('変更する BGM フィールドを指定してください。');
+        throw new Error('Specify the BGM fields to change.');
     }
     if (updates.gainDb !== undefined && updates.gainDb !== null
         && (!Number.isFinite(updates.gainDb) || updates.gainDb < -60 || updates.gainDb > 12)) {
-        throw new Error('gain_db は -60〜12 の範囲で指定してください。');
+        throw new Error('gain_db must be from -60 to 12.');
     }
     if (updates.fadeIn !== undefined && updates.fadeIn !== null
         && (!Number.isFinite(updates.fadeIn) || updates.fadeIn < 0)) {
-        throw new Error('fadeIn は 0 以上で指定してください。');
+        throw new Error('fadeIn must be 0 or greater.');
     }
     if (updates.fadeOut !== undefined && updates.fadeOut !== null
         && (!Number.isFinite(updates.fadeOut) || updates.fadeOut < 0)) {
-        throw new Error('fadeOut は 0 以上で指定してください。');
+        throw new Error('fadeOut must be 0 or greater.');
     }
     if (updates.ducking !== undefined && updates.ducking !== null && typeof updates.ducking !== 'boolean') {
-        throw new Error('ducking は boolean で指定してください。');
+        throw new Error('ducking must be a boolean.');
     }
     const audio = locateTopLevelObjectProperty(source, 'audio');
     const located = locateTopLevelObjectProperty(audio.text, 'bgm');
@@ -1128,16 +1128,16 @@ export function moveOverlayInSource(
     trackState?: Record<string, number | null>
 ): string {
     if (!Number.isFinite(nextStart)) {
-        throw new Error('オーバーレイの開始時刻が不正です。');
+        throw new Error('Overlay start time is invalid.');
     }
     if (nextTrack !== undefined && nextTrack !== null && (!Number.isInteger(nextTrack) || nextTrack < 0)) {
-        throw new Error('オーバーレイのトラックが不正です。');
+        throw new Error('Overlay track is invalid.');
     }
     const updated = updateOverlay(source, overlayId, element => {
-        let next = replaceNumberProperty(element, 'start', nextStart, `オーバーレイ ${overlayId}`);
+        let next = replaceNumberProperty(element, 'start', nextStart, `Overlay ${overlayId}`);
         if (!trackState && (nextTrack === null || (nextTrack !== undefined
             && normalizeTrack(readOptionalNumberProperty(element, 'track')) !== nextTrack))) {
-            next = writeTrackProperty(next, nextTrack, `オーバーレイ ${overlayId}`);
+            next = writeTrackProperty(next, nextTrack, `Overlay ${overlayId}`);
         }
         return next;
     });
@@ -1149,10 +1149,10 @@ export function moveOverlayInSource(
 
 export function resizeOverlayInSource(source: string, overlayId: string, nextDuration: number): string {
     if (!Number.isFinite(nextDuration) || nextDuration <= 0) {
-        throw new Error('オーバーレイの尺は正の値にしてください。');
+        throw new Error('Overlay duration must be a positive number.');
     }
     return updateOverlay(source, overlayId, element =>
-        replaceNumberProperty(element, 'duration', nextDuration, `オーバーレイ ${overlayId}`));
+        replaceNumberProperty(element, 'duration', nextDuration, `Overlay ${overlayId}`));
 }
 
 export function insertOverlayInSource(source: string, overlay: Record<string, unknown>): string {
@@ -1161,12 +1161,12 @@ export function insertOverlayInSource(source: string, overlay: Record<string, un
     const duration = overlay.duration;
     if (typeof id !== 'string' || !id || typeof start !== 'number' || !Number.isFinite(start)
         || typeof duration !== 'number' || !Number.isFinite(duration) || duration <= 0) {
-        throw new Error('追加するオーバーレイの形式が不正です。');
+        throw new Error('The overlay to add is not in a recognized format.');
     }
     const array = locateArray(source, 'overlays');
     const elements = splitTopLevelElements(array.inner);
     if (elements.some(element => readStringProperty(element.text, 'id') === id)) {
-        throw new Error(`オーバーレイ ${id} は既にあります。`);
+        throw new Error(`Overlay ${id} already exists.`);
     }
     const serialized = serializeLikeExistingElement(overlay, array.inner, elements);
     const trailingStart = elements.length > 0 ? elements[elements.length - 1].end : 0;
@@ -1188,7 +1188,7 @@ export function removeOverlayInSource(source: string, overlayId: string): string
     const elements = splitTopLevelElements(array.inner);
     const index = elements.findIndex(element => readStringProperty(element.text, 'id') === overlayId);
     if (index < 0) {
-        throw new Error(`オーバーレイ ${overlayId} が見つかりません`);
+        throw new Error(`Overlay ${overlayId} was not found.`);
     }
     let nextInner: string;
     if (elements.length === 1) {
@@ -1233,7 +1233,7 @@ function locateArray(source: string, key: string): {
 } {
     const match = new RegExp(`"${key}"\\s*:\\s*\\[`).exec(source);
     if (!match) {
-        throw new Error(`edit.json に ${key} 配列がありません。`);
+        throw new Error(`edit.json has no ${key} array.`);
     }
     const openIndex = source.indexOf('[', match.index);
     const closeIndex = findMatchingBracket(source, openIndex);
@@ -1267,12 +1267,12 @@ function hasTopLevelProperty(scopeText: string, key: string): boolean {
 function locateTopLevelObjectProperty(scopeText: string, key: string): { start: number; end: number; text: string } {
     const property = locateTopLevelProperty(scopeText, key);
     if (!property) {
-        throw new Error(`"${key}" が見つかりません。`);
+        throw new Error(`"${key}" was not found.`);
     }
     const colonIndex = property.text.indexOf(':');
     const openIndex = scopeText.indexOf('{', property.start + colonIndex + 1);
     if (openIndex < 0 || openIndex >= property.end) {
-        throw new Error(`"${key}" が object ではありません。`);
+        throw new Error(`"${key}" is not an object.`);
     }
     const closeIndex = findMatchingBracket(scopeText, openIndex);
     return { start: openIndex, end: closeIndex + 1, text: scopeText.slice(openIndex, closeIndex + 1) };
@@ -1281,7 +1281,7 @@ function locateTopLevelObjectProperty(scopeText: string, key: string): { start: 
 function locateObjectProperty(scopeText: string, key: string): { start: number; end: number; text: string } {
     const match = new RegExp(`"${key}"\\s*:\\s*\\{`).exec(scopeText);
     if (!match) {
-        throw new Error(`"${key}" が見つかりません。`);
+        throw new Error(`"${key}" was not found.`);
     }
     const openIndex = scopeText.indexOf('{', match.index);
     const closeIndex = findMatchingBracket(scopeText, openIndex);
@@ -1291,16 +1291,16 @@ function locateObjectProperty(scopeText: string, key: string): { start: number; 
 function readCutsForSurgery(source: string): { cuts: EditCut[]; segments: CutTrackSegment[]; rawCuts: unknown[] } {
     const value = JSON.parse(source) as { cuts?: unknown[] };
     if (!Array.isArray(value.cuts)) {
-        throw new Error('edit.json に cuts 配列がありません。');
+        throw new Error('edit.json has no cuts array.');
     }
     const cuts = value.cuts.map((raw, index) => {
         if (!raw || typeof raw !== 'object') {
-            throw new Error(`クリップ ${index + 1} の形式が不正です。`);
+            throw new Error(`Clip ${index + 1} is not in a recognized format.`);
         }
         const cut = raw as Record<string, unknown>;
         if (typeof cut.in !== 'number' || !Number.isFinite(cut.in)
             || typeof cut.out !== 'number' || !Number.isFinite(cut.out) || cut.out <= cut.in) {
-            throw new Error(`クリップ ${index + 1} の時刻が不正です。`);
+            throw new Error(`Clip ${index + 1} time is invalid.`);
         }
         return {
             in: cut.in,
@@ -1322,7 +1322,7 @@ function freezeNextImplicitCutAt(
 ): string {
     const target = before.segments[cutIndex];
     if (!target) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
     for (let index = cutIndex + 1; index < before.cuts.length; index++) {
         if (before.segments[index].track !== target.track) {
@@ -1336,9 +1336,9 @@ function freezeNextImplicitCutAt(
 }
 
 function writeCutAtProperty(source: string, cutIndex: number, at: number): string {
-    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'クリップ', element =>
+    return updateArrayElementByIndex(source, 'cuts', cutIndex, 'Clip', element =>
         hasTopLevelProperty(element, 'at')
-            ? replacePropertyValue(element, 'at', at, `クリップ ${cutIndex + 1}`)
+            ? replacePropertyValue(element, 'at', at, `Clip ${cutIndex + 1}`)
             : appendNumberProperty(element, 'at', at));
 }
 
@@ -1350,13 +1350,13 @@ export function updateArrayElementByIndex(
     update: (element: string) => string
 ): string {
     if (!Number.isInteger(index) || index < 0) {
-        throw new Error(`${label}のインデックスが不正です。`);
+        throw new Error(`The ${label} index is invalid.`);
     }
     const array = locateArray(source, key);
     const elements = splitTopLevelElements(array.inner);
     const element = elements[index];
     if (!element) {
-        throw new Error(`${label} ${index + 1} が見つかりません`);
+        throw new Error(`${label} ${index + 1} was not found.`);
     }
     return replaceElement(source, array.openIndex + 1, element, update(element.text));
 }
@@ -1372,7 +1372,7 @@ function updateArrayElementById(
     const elements = splitTopLevelElements(array.inner);
     const matches = elements.filter(element => readStringProperty(element.text, 'id') === id);
     if (matches.length !== 1) {
-        throw new Error(matches.length === 0 ? `${label} ${id} が見つかりません` : `${label} ${id} が複数あります`);
+        throw new Error(matches.length === 0 ? `${label} ${id} was not found.` : `${label} ${id} appears more than once.`);
     }
     return replaceElement(source, array.openIndex + 1, matches[0], update(matches[0].text));
 }
@@ -1433,7 +1433,7 @@ function applyIdTrackState(
 
 function writeTrackProperty(source: string, track: number | null, label: string): string {
     if (track !== null && (!Number.isInteger(track) || track < 0)) {
-        throw new Error(`${label} のトラックが不正です。`);
+        throw new Error(`${label} track is invalid.`);
     }
     const hasTrack = hasTopLevelProperty(source, 'track');
     if (track === null) {
@@ -1449,23 +1449,23 @@ function assertMovedCutDoesNotOverlap(source: string, cutIndex: number): void {
     const { segments } = readCutsForSurgery(source);
     const moved = segments[cutIndex];
     if (!moved) {
-        throw new Error(`クリップ ${cutIndex + 1} が見つかりません`);
+        throw new Error(`Clip ${cutIndex + 1} was not found.`);
     }
     if (segments.some(segment => segment.index !== cutIndex && segment.track === moved.track
         && moved.at < segment.end && segment.at < moved.end)) {
-        throw new Error('同じクリップトラック内で区間が重なっています。');
+        throw new Error('Spans overlap on the same clip track.');
     }
 }
 
 function replaceNumberProperty(source: string, property: string, value: number, label: string): string {
     const located = locateTopLevelProperty(source, property);
     if (!located) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^("${escapedProperty}"\\s*:\\s*)${JSON_NUMBER}$`);
     if (!pattern.test(located.text)) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
     return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -1474,7 +1474,7 @@ function replaceNumberProperty(source: string, property: string, value: number, 
 function readNumberProperty(source: string, property: string, label: string): number {
     const value = readOptionalNumberProperty(source, property);
     if (value === undefined) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     return value;
 }
@@ -1500,7 +1500,7 @@ function appendNumberProperty(source: string, property: string, value: number | 
 function appendJsonProperty(source: string, property: string, value: unknown): string {
     const closeIndex = source.lastIndexOf('}');
     if (closeIndex < 0) {
-        throw new Error('オーバーレイのオブジェクトを特定できません。');
+        throw new Error('Cannot locate the overlay object.');
     }
     const beforeClose = source.slice(0, closeIndex);
     const trailingWhitespace = beforeClose.match(/\s*$/)?.[0] ?? '';
@@ -1524,14 +1524,14 @@ function replacePropertyValue(
 ): string {
     const located = locateTopLevelProperty(source, property);
     if (!located) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(
         `^("${escapedProperty}"\\s*:\\s*)(?:${JSON_NUMBER}|"(?:\\\\.|[^"\\\\])*"|true|false|null)$`
     );
     if (!pattern.test(located.text)) {
-        throw new Error(`${label} の ${property} を特定できません。`);
+        throw new Error(`Cannot locate ${label} ${property}.`);
     }
     const updated = located.text.replace(pattern, (_match, prefix) => `${prefix}${JSON.stringify(value)}`);
     return source.slice(0, located.start) + updated + source.slice(located.end);
@@ -1550,7 +1550,7 @@ function removeObjectProperty(source: string, property: string): string {
     const openIndex = source.indexOf('{');
     const closeIndex = openIndex >= 0 ? findMatchingBracket(source, openIndex) : -1;
     if (openIndex < 0 || closeIndex < 0) {
-        throw new Error('オーバーレイのオブジェクトを特定できません。');
+        throw new Error('Cannot locate the overlay object.');
     }
     const inner = source.slice(openIndex + 1, closeIndex);
     const elements = splitTopLevelElements(inner);
@@ -1581,13 +1581,13 @@ function applyOverlayTrackState(source: string, trackState: Record<string, numbe
         }
         const track = trackState[id];
         if (track !== null && (!Number.isInteger(track) || track < 0)) {
-            throw new Error(`オーバーレイ ${id} のトラックが不正です。`);
+            throw new Error(`Overlay ${id} track is invalid.`);
         }
         const hasTrack = hasTopLevelProperty(element.text, 'track');
         const nextText = track === null
             ? (hasTrack ? removeObjectProperty(element.text, 'track') : element.text)
             : (hasTrack
-                ? replacePropertyValue(element.text, 'track', track, `オーバーレイ ${id}`)
+                ? replacePropertyValue(element.text, 'track', track, `Overlay ${id}`)
                 : appendNumberProperty(element.text, 'track', track));
         nextInner = nextInner.slice(0, element.start) + nextText + nextInner.slice(element.end);
     }
@@ -1600,8 +1600,8 @@ function updateOverlay(source: string, overlayId: string, update: (element: stri
     const matches = elements.filter(element => readStringProperty(element.text, 'id') === overlayId);
     if (matches.length !== 1) {
         throw new Error(matches.length === 0
-            ? `オーバーレイ ${overlayId} が見つかりません`
-            : `オーバーレイ ${overlayId} が複数あります`);
+            ? `Overlay ${overlayId} was not found.`
+            : `Overlay ${overlayId} appears more than once.`);
     }
     const element = matches[0];
     return replaceElement(source, array.openIndex + 1, element, update(element.text));
@@ -1614,19 +1614,19 @@ export function updateOverlayVarInSource(
     nextValue: string
 ): string {
     if (!overlayId || !varName || typeof nextValue !== 'string') {
-        throw new Error('オーバーレイのパラメータ更新値が不正です。');
+        throw new Error('The overlay parameter update is invalid.');
     }
-    return updateArrayElementById(source, 'overlays', overlayId, 'オーバーレイ', element => {
+    return updateArrayElementById(source, 'overlays', overlayId, 'Overlay', element => {
         const vars = locateTopLevelObjectProperty(element, 'vars');
         const hasVar = hasTopLevelProperty(vars.text, varName);
         if (!hasVar) {
-            throw new Error(`オーバーレイ ${overlayId} のパラメータ ${varName} が見つかりません。`);
+            throw new Error(`Parameter ${varName} of overlay ${overlayId} was not found.`);
         }
         const nextVarsText = replacePropertyValue(
             vars.text,
             varName,
             nextValue,
-            `オーバーレイ ${overlayId} の ${varName}`
+            `${varName} of overlay ${overlayId}`
         );
         return element.slice(0, vars.start) + nextVarsText + element.slice(vars.end);
     });

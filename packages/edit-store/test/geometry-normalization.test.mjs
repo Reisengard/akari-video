@@ -170,7 +170,7 @@ test('1 点だけの keyframe を持つ文書は v2 検証で止まる（1 点 k
     dimensions({ main: { width: 3840, height: 2160 } }),
   );
   assert.ok('blockers' in result);
-  assert.match(result.blockers[0], /keyframes.*2 要素以上/u);
+  assert.match(result.blockers[0], /keyframes.*at least two items/u);
 });
 
 test('寸法が取れない素材があると blockers を返し、マーカーも立てない（部分適用禁止）', () => {

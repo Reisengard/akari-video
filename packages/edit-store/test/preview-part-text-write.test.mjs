@@ -38,12 +38,12 @@ for (const id of ['s01.C', 's01.B', 's01#A']) {
   }
   for (const patch of [{ html: '<div data-akari-part-mask="A">damaged</div>' }, { html: '', text: 'safe?' }]) {
     test(`${id}: refuses html even alongside text`, () => {
-      assert.throws(() => write(id, patch), /部品の文字は source.text に保存します/u);
+      assert.throws(() => write(id, patch), /Part text is stored on source\.text/u);
     });
   }
   for (const text of [null, 123, {}, [], undefined]) {
     test(`${id}: rejects non-string text ${JSON.stringify(text)}`, () => {
-      assert.throws(() => write(id, { text }), /text は文字列/u);
+      assert.throws(() => write(id, { text }), /text must be a string/u);
     });
   }
 }
@@ -53,11 +53,11 @@ test('plain HTML retains its exact file-write resolution', () => {
 });
 for (const id of ['plain', 's01', 'g1', 'g1.first']) {
   test(`${id}: a non-part item refuses text, including empty text`, () => {
-    for (const text of ['new', '']) assert.throws(() => write(id, { text }), /部品でないアイテム/u);
+    for (const text of ['new', '']) assert.throws(() => write(id, { text }), /an item that is not a part/u);
   });
 }
 test('shape also refuses a text patch', () => {
   const doc = JSON.parse(fixture);
   item(doc, 'plain').source = { kind: 'shape', shape: 'rect' };
-  assert.throws(() => write('plain', { text: 'new' }, JSON.stringify(doc)), /部品でないアイテム/u);
+  assert.throws(() => write('plain', { text: 'new' }, JSON.stringify(doc)), /an item that is not a part/u);
 });

@@ -24,30 +24,30 @@ function readEditV2(json) {
     requireRecord(parsed, 'edit.json');
     requireExactKeys(parsed, new Set(['version', 'output', 'sources', 'tracks', 'audio', 'captions', 'thumbnail']), 'edit.json');
     if (parsed.version !== 2) {
-        throw invalid('edit.json.version', '2 である必要があります（v0/v1 はこの reader の対象外です）');
+        throw invalid('edit.json.version', 'Must be 2. This reader does not accept v0 or v1.');
     }
     validateOutput(parsed.output);
     if (!Array.isArray(parsed.sources)) {
-        throw invalid('edit.json.sources', '配列である必要があります');
+        throw invalid('edit.json.sources', 'Must be an array.');
     }
     if (!Array.isArray(parsed.tracks)) {
-        throw invalid('edit.json.tracks', '配列である必要があります');
+        throw invalid('edit.json.tracks', 'Must be an array.');
     }
     if (hasOwn(parsed, 'audio')) {
         requireRecord(parsed.audio, 'edit.json.audio');
         if (hasOwn(parsed.audio, 'duck_keys')) {
             if (!Array.isArray(parsed.audio.duck_keys))
-                throw invalid('edit.json.audio.duck_keys', '配列である必要があります');
+                throw invalid('edit.json.audio.duck_keys', 'Must be an array.');
             const keys = parsed.audio.duck_keys;
             if (keys.some(key => key !== 'narration' && key !== 'speech')) {
-                throw invalid('edit.json.audio.duck_keys', 'narration/speech のみ指定できます');
+                throw invalid('edit.json.audio.duck_keys', 'Only narration or speech can be specified.');
             }
             if (new Set(keys).size !== keys.length)
-                throw invalid('edit.json.audio.duck_keys', '重複できません');
+                throw invalid('edit.json.audio.duck_keys', 'Must not contain duplicates.');
         }
     }
     if (hasOwn(parsed, 'captions') && !Array.isArray(parsed.captions)) {
-        throw invalid('edit.json.captions', '配列である必要があります');
+        throw invalid('edit.json.captions', 'Must be an array.');
     }
     if (hasOwn(parsed, 'thumbnail'))
         requireRecord(parsed.thumbnail, 'edit.json.thumbnail');
@@ -94,7 +94,7 @@ function parseInput(json) {
         return JSON.parse(json);
     }
     catch (error) {
-        throw invalid('edit.json', `JSON として読めません: ${messageOf(error)}`);
+        throw invalid('edit.json', `Not valid JSON: ${messageOf(error)}`);
     }
 }
 function validateOutput(value) {
@@ -109,7 +109,7 @@ function validateEditSource(value, index, ids) {
     requireExactKeys(value, new Set(['id', 'path', 'proxy', 'chroma_key']), path);
     requireText(value.id, `${path}.id`);
     if (ids.has(value.id))
-        throw invalid(`${path}.id`, `source id が重複しています: ${value.id}`);
+        throw invalid(`${path}.id`, `Duplicate source id: ${value.id}`);
     ids.add(value.id);
     requireText(value.path, `${path}.path`);
     if (hasOwn(value, 'proxy') && value.proxy !== null)
@@ -124,25 +124,25 @@ function validateTrack(value, index, trackIds, itemIds, sourceIds) {
     requireExactKeys(value, new Set(['id', 'lane', 'name', 'muted', 'items', 'content']), path);
     requireText(value.id, `${path}.id`);
     if (trackIds.has(value.id))
-        throw invalid(`${path}.id`, `track id が重複しています: ${value.id}`);
+        throw invalid(`${path}.id`, `Duplicate track id: ${value.id}`);
     trackIds.add(value.id);
     if (value.lane !== 'visual' && value.lane !== 'audio') {
-        throw invalid(`${path}.lane`, 'visual または audio である必要があります');
+        throw invalid(`${path}.lane`, 'Must be visual or audio.');
     }
     if (hasOwn(value, 'name') && typeof value.name !== 'string') {
-        throw invalid(`${path}.name`, '文字列である必要があります');
+        throw invalid(`${path}.name`, 'Must be a string.');
     }
     if (hasOwn(value, 'muted') && typeof value.muted !== 'boolean') {
-        throw invalid(`${path}.muted`, 'boolean である必要があります');
+        throw invalid(`${path}.muted`, 'Must be a boolean.');
     }
     const hasItems = hasOwn(value, 'items');
     const hasContent = hasOwn(value, 'content');
     if (hasItems === hasContent) {
-        throw invalid(path, 'items と content のどちらか一方だけが必要です');
+        throw invalid(path, 'Specify either items or content, not both.');
     }
     if (hasItems) {
         if (!Array.isArray(value.items))
-            throw invalid(`${path}.items`, '配列である必要があります');
+            throw invalid(`${path}.items`, 'Must be an array.');
         value.items.forEach((item, itemIndex) => {
             const itemPath = `${path}.items[${itemIndex}]`;
             if (value.lane === 'audio')
@@ -155,7 +155,7 @@ function validateTrack(value, index, trackIds, itemIds, sourceIds) {
     requireRecord(value.content, `${path}.content`);
     requireExactKeys(value.content, new Set(['from']), `${path}.content`);
     if (value.content.from !== 'captions.json') {
-        throw invalid(`${path}.content.from`, 'captions.json である必要があります');
+        throw invalid(`${path}.content.from`, 'Must be captions.json.');
     }
 }
 function validateAudioItem(value, path, ids, sourceIds) {
@@ -163,7 +163,7 @@ function validateAudioItem(value, path, ids, sourceIds) {
     requireExactKeys(value, AUDIO_ITEM_KEYS, path);
     requireText(value.id, `${path}.id`);
     if (ids.has(value.id))
-        throw invalid(`${path}.id`, `item id が重複しています: ${value.id}`);
+        throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
     ids.add(value.id);
     validateItemMetadata(value, path);
     if (hasOwn(value, 'anchor'))
@@ -171,12 +171,12 @@ function validateAudioItem(value, path, ids, sourceIds) {
     requireInteger(value.at, 0, `${path}.at`);
     requireInteger(value.duration, 0, `${path}.duration`);
     if (hasOwn(value, 'role') && value.role !== 'sfx' && value.role !== 'narration' && value.role !== 'bgm' && value.role !== 'speech') {
-        throw invalid(`${path}.role`, 'sfx/narration/bgm/speech のいずれかである必要があります');
+        throw invalid(`${path}.role`, 'Must be one of sfx, narration, bgm, speech.');
     }
     if (hasOwn(value, 'link'))
         requireText(value.link, `${path}.link`);
     if (hasOwn(value, 'mute') && typeof value.mute !== 'boolean') {
-        throw invalid(`${path}.mute`, 'boolean である必要があります');
+        throw invalid(`${path}.mute`, 'Must be a boolean.');
     }
     if (hasOwn(value, 'gain_db'))
         requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
@@ -191,7 +191,7 @@ function validateAudioItem(value, path, ids, sourceIds) {
     if (hasOwn(value, 'fade_out'))
         requireNonNegativeNumber(value.fade_out, `${path}.fade_out`);
     if (hasOwn(value, 'ducking') && typeof value.ducking !== 'boolean') {
-        throw invalid(`${path}.ducking`, 'boolean である必要があります');
+        throw invalid(`${path}.ducking`, 'Must be a boolean.');
     }
     if (hasOwn(value, 'duck_db'))
         requireRange(value.duck_db, -40, 0, `${path}.duck_db`);
@@ -200,13 +200,13 @@ function validateAudioItem(value, path, ids, sourceIds) {
     if (hasOwn(value, 'duck_release'))
         requireRange(value.duck_release, 0, 5, `${path}.duck_release`);
     if (hasOwn(value, 'script') && typeof value.script !== 'string') {
-        throw invalid(`${path}.script`, 'string である必要があります');
+        throw invalid(`${path}.script`, 'Must be a string.');
     }
     if (hasOwn(value, 'reading') && typeof value.reading !== 'string') {
-        throw invalid(`${path}.reading`, 'string である必要があります');
+        throw invalid(`${path}.reading`, 'Must be a string.');
     }
     if (hasOwn(value, 'caption_ref') && (typeof value.caption_ref !== 'string' || !/^c-\d{4}$/.test(value.caption_ref))) {
-        throw invalid(`${path}.caption_ref`, '字幕 id が必要です');
+        throw invalid(`${path}.caption_ref`, 'A caption id is required.');
     }
     if (hasOwn(value, 'provenance'))
         validateNarrationProvenance(value.provenance, `${path}.provenance`);
@@ -217,46 +217,46 @@ function validateNarrationProvenance(value, path) {
     requireText(value.provider, `${path}.provider`);
     for (const key of ['engine', 'voice', 'credit', 'generated_at']) {
         if (hasOwn(value, key) && typeof value[key] !== 'string') {
-            throw invalid(`${path}.${key}`, 'string である必要があります');
+            throw invalid(`${path}.${key}`, 'Must be a string.');
         }
     }
     if (value.provider === 'voicevox' && (!hasOwn(value, 'credit')
         || typeof value.credit !== 'string' || value.credit.trim().length === 0)) {
-        throw invalid(`${path}.credit`, 'provider が voicevox のときは空でない文字列が必要です');
+        throw invalid(`${path}.credit`, 'When provider is voicevox, a non-empty string is required.');
     }
 }
 function validateAudioMediaSource(value, path, sourceIds) {
     requireRecord(value, path);
     requireExactKeys(value, new Set(['kind', 'src', 'in', 'out', 'speed', 'pitch_semitones', 'formant']), path);
     if (value.kind !== 'media')
-        throw invalid(`${path}.kind`, 'media である必要があります');
+        throw invalid(`${path}.kind`, 'Must be media.');
     requireText(value.src, `${path}.src`);
     if (!sourceIds.has(value.src))
-        throw invalid(`${path}.src`, `sources[].id に存在しません: ${value.src}`);
+        throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
     if (hasOwn(value, 'in'))
         requireNonNegativeNumber(value.in, `${path}.in`);
     if (hasOwn(value, 'out')) {
         requireNonNegativeNumber(value.out, `${path}.out`);
         const inSeconds = hasOwn(value, 'in') ? value.in : 0;
         if (value.out <= inSeconds)
-            throw invalid(path, 'audio media source は out > in である必要があります');
+            throw invalid(path, 'An audio media source needs out > in.');
     }
     if (hasOwn(value, 'speed')) {
         requireRange(value.speed, 0.25, 4, `${path}.speed`);
         if (value.speed === 0.25)
-            throw invalid(`${path}.speed`, '0.25 より大きい必要があります');
+            throw invalid(`${path}.speed`, 'Must be greater than 0.25.');
     }
     if (hasOwn(value, 'pitch_semitones'))
         requireRange(value.pitch_semitones, -24, 24, `${path}.pitch_semitones`);
     if (hasOwn(value, 'formant') && value.formant !== 'preserve' && value.formant !== 'shift') {
-        throw invalid(`${path}.formant`, 'preserve/shift のいずれかである必要があります');
+        throw invalid(`${path}.formant`, 'Must be preserve or shift.');
     }
 }
 function validateAudioClipDenoise(value, path) {
     requireRecord(value, path);
     requireExactKeys(value, new Set(['method', 'strength']), path);
     if (value.method !== 'fft' && value.method !== 'nlm') {
-        throw invalid(`${path}.method`, 'fft/nlm のいずれかである必要があります');
+        throw invalid(`${path}.method`, 'Must be fft or nlm.');
     }
     requireRange(value.strength, 0, 1, `${path}.strength`);
 }
@@ -265,7 +265,7 @@ function validateItem(value, path, ids, sourceIds) {
     requireExactKeys(value, ITEM_KEYS, path);
     requireText(value.id, `${path}.id`);
     if (ids.has(value.id))
-        throw invalid(`${path}.id`, `item id が重複しています: ${value.id}`);
+        throw invalid(`${path}.id`, `Duplicate item id: ${value.id}`);
     ids.add(value.id);
     validateItemMetadata(value, path);
     if (hasOwn(value, 'anchor'))
@@ -277,7 +277,7 @@ function validateItem(value, path, ids, sourceIds) {
     if (hasOwn(value, 'opacity'))
         requireRange(value.opacity, 0, 1, `${path}.opacity`);
     if (hasOwn(value, 'blend') && !BLEND_MODES.has(value.blend)) {
-        throw invalid(`${path}.blend`, '未対応の blend mode です');
+        throw invalid(`${path}.blend`, 'Unsupported blend mode.');
     }
     if (hasOwn(value, 'crop'))
         validateCrop(value.crop, `${path}.crop`);
@@ -298,31 +298,31 @@ function validateItem(value, path, ids, sourceIds) {
         const transforms = [value.transform, ...(Array.isArray(value.keyframes) ? value.keyframes.map(point => point.transform) : [])];
         for (const transform of transforms) {
             if (transform !== null && typeof transform === 'object' && (hasOwn(transform, 'scaleX') || hasOwn(transform, 'scaleY'))) {
-                throw invalid(`${path}.transform`, 'group は scaleX / scaleY を指定できません');
+                throw invalid(`${path}.transform`, 'A group cannot set scaleX or scaleY.');
             }
         }
     }
     if (hasOwn(value, 'audio')) {
         if (value.source.kind !== 'media')
-            throw invalid(`${path}.audio`, 'media item だけが指定できます');
+            throw invalid(`${path}.audio`, 'Only a media item can be specified.');
         if (value.audio !== false)
-            throw invalid(`${path}.audio`, 'false である必要があります');
+            throw invalid(`${path}.audio`, 'Must be false.');
     }
     if (hasOwn(value, 'mask')) {
         if (value.source.kind !== 'media')
-            throw invalid(`${path}.mask`, 'media item だけが指定できます');
+            throw invalid(`${path}.mask`, 'Only a media item can be specified.');
         requireText(value.mask, `${path}.mask`);
         if (!sourceIds.has(value.mask))
-            throw invalid(`${path}.mask`, `sources[].id に存在しません: ${value.mask}`);
+            throw invalid(`${path}.mask`, `Not in sources[].id: ${value.mask}`);
     }
     if (hasOwn(value, 'maskFeather')) {
         if (value.source.kind !== 'media')
-            throw invalid(`${path}.maskFeather`, 'media item だけが指定できます');
+            throw invalid(`${path}.maskFeather`, 'Only a media item can be specified.');
         requireRange(value.maskFeather, 0, 100, `${path}.maskFeather`);
     }
     if (hasOwn(value, 'regions')) {
         if (value.source.kind !== 'media' || !Array.isArray(value.regions) || value.regions.length > 32)
-            throw invalid(`${path}.regions`, 'media item の 32 個以下の配列である必要があります');
+            throw invalid(`${path}.regions`, 'Must be an array of at most 32 media items.');
         const regionIds = new Set();
         value.regions.forEach((region, index) => {
             const at = `${path}.regions[${index}]`;
@@ -332,14 +332,14 @@ function validateItem(value, path, ids, sourceIds) {
             if (hasOwn(region, 'name'))
                 requireText(region.name, `${at}.name`);
             if (regionIds.has(region.id))
-                throw invalid(`${at}.id`, '重複しています');
+                throw invalid(`${at}.id`, 'This is a duplicate.');
             regionIds.add(region.id);
             requireText(region.maskRef, `${at}.maskRef`);
             if (!sourceIds.has(region.maskRef))
-                throw invalid(`${at}.maskRef`, `sources[].id に存在しません: ${region.maskRef}`);
+                throw invalid(`${at}.maskRef`, `Not in sources[].id: ${region.maskRef}`);
             for (const key of ['invert', 'enabled'])
                 if (hasOwn(region, key) && typeof region[key] !== 'boolean')
-                    throw invalid(`${at}.${key}`, 'boolean である必要があります');
+                    throw invalid(`${at}.${key}`, 'Must be a boolean.');
             if (hasOwn(region, 'adjust')) {
                 requireRecord(region.adjust, `${at}.adjust`);
                 requireExactKeys(region.adjust, new Set(['basic']), `${at}.adjust`);
@@ -364,18 +364,18 @@ function validateItem(value, path, ids, sourceIds) {
     }
     if (hasOwn(value, 'erase')) {
         if (value.source.kind !== 'media' || !Array.isArray(value.erase))
-            throw invalid(`${path}.erase`, 'media item の配列である必要があります');
+            throw invalid(`${path}.erase`, 'Must be an array on a media item.');
         value.erase.forEach((stroke, index) => {
             const at = `${path}.erase[${index}]`;
             requireRecord(stroke, at);
             requireExactKeys(stroke, new Set(['mode', 'points', 'size', 'hardness']), at);
             if (stroke.mode !== 'erase' && stroke.mode !== 'restore')
-                throw invalid(`${at}.mode`, 'erase または restore が必要です');
+                throw invalid(`${at}.mode`, 'Must be erase or restore.');
             if (!Array.isArray(stroke.points) || stroke.points.length === 0)
-                throw invalid(`${at}.points`, '点が必要です');
+                throw invalid(`${at}.points`, 'At least one point is required.');
             stroke.points.forEach((point, pointIndex) => {
                 if (!Array.isArray(point) || point.length !== 2)
-                    throw invalid(`${at}.points[${pointIndex}]`, '2 座標が必要です');
+                    throw invalid(`${at}.points[${pointIndex}]`, 'Two coordinates are required.');
                 requireRange(point[0], 0, 1, `${at}.points[${pointIndex}][0]`);
                 requireRange(point[1], 0, 1, `${at}.points[${pointIndex}][1]`);
             });
@@ -385,46 +385,46 @@ function validateItem(value, path, ids, sourceIds) {
     }
     if (hasOwn(value, 'flip')) {
         if (value.source.kind !== 'media')
-            throw invalid(`${path}.flip`, 'media item だけが指定できます');
+            throw invalid(`${path}.flip`, 'Only a media item can be specified.');
         requireRecord(value.flip, `${path}.flip`);
         requireExactKeys(value.flip, new Set(['h', 'v']), `${path}.flip`);
         for (const axis of ['h', 'v'])
             if (hasOwn(value.flip, axis) && typeof value.flip[axis] !== 'boolean')
-                throw invalid(`${path}.flip.${axis}`, 'boolean である必要があります');
+                throw invalid(`${path}.flip.${axis}`, 'Must be a boolean.');
     }
     if (hasOwn(value, 'items')) {
         if (!Array.isArray(value.items))
-            throw invalid(`${path}.items`, '配列である必要があります');
+            throw invalid(`${path}.items`, 'Must be an array.');
         value.items.forEach((child, index) => validateItem(child, `${path}.items[${index}]`, ids, sourceIds));
     }
 }
 function validateItemMetadata(value, path) {
     if (hasOwn(value, 'name') && typeof value.name !== 'string')
-        throw invalid(`${path}.name`, '文字列である必要があります');
+        throw invalid(`${path}.name`, 'Must be a string.');
     for (const key of ['hidden', 'locked']) {
         if (hasOwn(value, key) && typeof value[key] !== 'boolean')
-            throw invalid(`${path}.${key}`, 'boolean である必要があります');
+            throw invalid(`${path}.${key}`, 'Must be a boolean.');
     }
 }
 function validateItemAnchor(value, path) {
     requireRecord(value, path);
     requireExactKeys(value, new Set(['caption', 'range', 'offset', 'edge', 'duration', 'attached_by']), path);
     if (typeof value.caption !== 'string' || !/^c-\d{4}$/.test(value.caption))
-        throw invalid(`${path}.caption`, '字幕 id が必要です');
+        throw invalid(`${path}.caption`, 'A caption id is required.');
     if (hasOwn(value, 'range')) {
         requireRecord(value.range, `${path}.range`);
         requireExactKeys(value.range, new Set(['start', 'end']), `${path}.range`);
         requireNonNegativeNumber(value.range.start, `${path}.range.start`);
         requireNonNegativeNumber(value.range.end, `${path}.range.end`);
         if (value.range.end <= value.range.start)
-            throw invalid(`${path}.range`, 'end > start が必要です');
+            throw invalid(`${path}.range`, 'end must be greater than start.');
     }
     if (hasOwn(value, 'offset') && !Number.isInteger(value.offset))
-        throw invalid(`${path}.offset`, '整数が必要です');
+        throw invalid(`${path}.offset`, 'Must be an integer.');
     if (hasOwn(value, 'edge') && value.edge !== 'start' && value.edge !== 'end')
-        throw invalid(`${path}.edge`, 'start/end が必要です');
+        throw invalid(`${path}.edge`, 'Must be start or end.');
     if (hasOwn(value, 'duration') && value.duration !== 'caption' && value.duration !== 'own')
-        throw invalid(`${path}.duration`, 'caption/own が必要です');
+        throw invalid(`${path}.duration`, 'Must be caption or own.');
     if (hasOwn(value, 'attached_by'))
         validateAttachedBy(value.attached_by, `${path}.attached_by`);
 }
@@ -433,7 +433,7 @@ function validateAttachedBy(value, path) {
     requireExactKeys(value, new Set(['style_uid', 'caption']), path);
     requireText(value.style_uid, `${path}.style_uid`);
     if (typeof value.caption !== 'string' || !/^c-\d{4}$/.test(value.caption))
-        throw invalid(`${path}.caption`, '字幕 id が必要です');
+        throw invalid(`${path}.caption`, 'A caption id is required.');
 }
 function validateItemSource(value, path, sourceIds) {
     requireRecord(value, path);
@@ -444,23 +444,23 @@ function validateItemSource(value, path, sourceIds) {
             ]), path);
             requireText(value.src, `${path}.src`);
             if (!sourceIds.has(value.src))
-                throw invalid(`${path}.src`, `sources[].id に存在しません: ${value.src}`);
+                throw invalid(`${path}.src`, `Not in sources[].id: ${value.src}`);
             requireNonNegativeNumber(value.in, `${path}.in`);
             requireNonNegativeNumber(value.out, `${path}.out`);
             if (value.out <= value.in)
-                throw invalid(path, 'media source は out > in である必要があります');
+                throw invalid(path, 'A media source needs out > in.');
             for (const key of ['framing', 'transition_out', 'freeze', 'chroma_key']) {
                 if (hasOwn(value, key) && value[key] !== null)
                     requireRecord(value[key], `${path}.${key}`);
             }
             if (hasOwn(value, 'fx') && !Array.isArray(value.fx))
-                throw invalid(`${path}.fx`, '配列である必要があります');
+                throw invalid(`${path}.fx`, 'Must be an array.');
             if (hasOwn(value, 'speed'))
                 requirePositiveNumber(value.speed, `${path}.speed`);
             if (hasOwn(value, 'gain_db'))
                 requireRange(value.gain_db, -60, 12, `${path}.gain_db`);
             if (hasOwn(value, 'mute') && typeof value.mute !== 'boolean')
-                throw invalid(`${path}.mute`, 'boolean である必要があります');
+                throw invalid(`${path}.mute`, 'Must be a boolean.');
             return;
         case 'html':
             requireExactKeys(value, new Set(['kind', 'path', 'part', 'style', 'text', 'exclude', 'derivedFrom', 'vars', 'params']), path);
@@ -469,7 +469,7 @@ function validateItemSource(value, path, sourceIds) {
                 if (hasOwn(value, key))
                     requireText(value[key], `${path}.${key}`);
             if (hasOwn(value, 'text') && typeof value.text !== 'string')
-                throw invalid(`${path}.text`, '文字列である必要があります');
+                throw invalid(`${path}.text`, 'Must be a string.');
             if (hasOwn(value, 'style'))
                 validateStringMap(value.style, `${path}.style`);
             if (hasOwn(value, 'exclude'))
@@ -480,7 +480,7 @@ function validateItemSource(value, path, sourceIds) {
                 requireRecord(value.params, `${path}.params`);
                 for (const [name, text] of Object.entries(value.params)) {
                     if (typeof text !== 'string')
-                        throw invalid(`${path}.params.${name}`, '文字列である必要があります');
+                        throw invalid(`${path}.params.${name}`, 'Must be a string.');
                 }
             }
             return;
@@ -507,55 +507,55 @@ function validateItemSource(value, path, sourceIds) {
                 requireRecord(value.canvas, `${path}.canvas`);
                 requireExactKeys(value.canvas, new Set(['origin', 'durationMode', 'intent', 'background']), `${path}.canvas`);
                 if (value.canvas.origin !== 'user' && value.canvas.origin !== 'plan')
-                    throw invalid(`${path}.canvas.origin`, 'user / plan を指定してください');
+                    throw invalid(`${path}.canvas.origin`, 'Must be user or plan.');
                 if (value.canvas.durationMode !== 'fixed')
-                    throw invalid(`${path}.canvas.durationMode`, 'fixed を指定してください');
+                    throw invalid(`${path}.canvas.durationMode`, 'Must be fixed.');
                 if (hasOwn(value.canvas, 'intent') && typeof value.canvas.intent !== 'string')
-                    throw invalid(`${path}.canvas.intent`, '文字列である必要があります');
+                    throw invalid(`${path}.canvas.intent`, 'Must be a string.');
                 if (hasOwn(value.canvas, 'background')) {
                     requireRecord(value.canvas.background, `${path}.canvas.background`);
                     requireExactKeys(value.canvas.background, new Set(['type', 'color']), `${path}.canvas.background`);
                     if (value.canvas.background.type === 'color') {
                         if (typeof value.canvas.background.color !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(value.canvas.background.color))
-                            throw invalid(`${path}.canvas.background.color`, '#RRGGBB で指定してください');
+                            throw invalid(`${path}.canvas.background.color`, 'Must be #RRGGBB.');
                     }
                     else if (value.canvas.background.type !== 'none' || hasOwn(value.canvas.background, 'color'))
-                        throw invalid(`${path}.canvas.background`, 'none または color を指定してください');
+                        throw invalid(`${path}.canvas.background`, 'Must be none or color.');
                 }
             }
             return;
         case 'captions':
             requireExactKeys(value, new Set(['kind', 'path', 'exclude']), path);
             if (value.path !== 'captions.json')
-                throw invalid(`${path}.path`, 'captions.json である必要があります');
+                throw invalid(`${path}.path`, 'Must be captions.json.');
             if (hasOwn(value, 'exclude'))
                 validateStringList(value.exclude, `${path}.exclude`);
             return;
         case 'caption':
             requireExactKeys(value, new Set(['kind', 'path', 'id']), path);
             if (value.path !== 'captions.json')
-                throw invalid(`${path}.path`, 'captions.json である必要があります');
+                throw invalid(`${path}.path`, 'Must be captions.json.');
             requireText(value.id, `${path}.id`);
             return;
         default:
-            throw invalid(`${path}.kind`, 'media/html/telop/filter/group/captions/caption のいずれかである必要があります');
+            throw invalid(`${path}.kind`, 'Must be media, html, telop, filter, group, captions, or caption.');
     }
 }
 function validateStringMap(value, path) {
     requireRecord(value, path);
     for (const [key, entry] of Object.entries(value)) {
         if (typeof entry !== 'string')
-            throw invalid(`${path}.${key}`, '文字列である必要があります');
+            throw invalid(`${path}.${key}`, 'Must be a string.');
     }
 }
 function validateStringList(value, path) {
     if (!Array.isArray(value))
-        throw invalid(path, '配列である必要があります');
+        throw invalid(path, 'Must be an array.');
     const seen = new Set();
     value.forEach((entry, index) => {
         requireText(entry, `${path}[${index}]`);
         if (seen.has(entry))
-            throw invalid(path, `値が重複しています: ${entry}`);
+            throw invalid(path, `Duplicate value: ${entry}`);
         seen.add(entry);
     });
 }
@@ -576,7 +576,7 @@ function validateFilter(value, path) {
             requireRange(value.value, 0, 3, `${path}.value`);
             return;
         default:
-            throw invalid(`${path}.type`, 'invert/lut/saturation のいずれかである必要があります');
+            throw invalid(`${path}.type`, 'Must be one of invert, lut, saturation.');
     }
 }
 function validateTransform(value, path) {
@@ -598,14 +598,14 @@ function validateCrop(value, path) {
     for (const key of ['w', 'h']) {
         requireRange(value[key], 0, 1, `${path}.${key}`);
         if (value[key] === 0)
-            throw invalid(`${path}.${key}`, '0 より大きい必要があります');
+            throw invalid(`${path}.${key}`, 'Must be greater than 0.');
     }
     if (hasOwn(value, 'rotate'))
         requireRange(value.rotate, -45, 45, `${path}.rotate`);
 }
 function validatePhotoFrame(value, path, source) {
     if (!source || typeof source !== 'object' || source.kind !== 'media') {
-        throw invalid(path, 'media item だけが指定できます');
+        throw invalid(path, 'Only a media item can be specified.');
     }
     requireRecord(value, path);
     requireExactKeys(value, new Set(['stroke', 'cornerRadius']), path);
@@ -615,7 +615,7 @@ function validatePhotoFrame(value, path, source) {
         requireRecord(value.stroke, `${path}.stroke`);
         requireExactKeys(value.stroke, new Set(['color', 'width']), `${path}.stroke`);
         if (typeof value.stroke.color !== 'string' || !/^#[0-9a-fA-F]{6}$/u.test(value.stroke.color)) {
-            throw invalid(`${path}.stroke.color`, '#RRGGBB である必要があります');
+            throw invalid(`${path}.stroke.color`, 'Must be #RRGGBB.');
         }
         requireRange(value.stroke.width, 0, 100, `${path}.stroke.width`);
     }
@@ -670,7 +670,7 @@ function validateAdjust(value, path) {
         for (const [channel, points] of Object.entries(channels)) {
             const channelPath = `${sectionPath}.${channel}`;
             if (!Array.isArray(points) || points.length < minimum || points.length > 16) {
-                throw invalid(channelPath, `${minimum} から 16 点の配列である必要があります`);
+                throw invalid(channelPath, `Must be an array of ${minimum} to 16 points.`);
             }
             let previous = -Infinity;
             for (const [index, point] of points.entries()) {
@@ -680,7 +680,7 @@ function validateAdjust(value, path) {
                 requireRange(point[axis], 0, 1, `${pointPath}.${axis}`);
                 requireRange(point[output], 0, 1, `${pointPath}.${output}`);
                 if (point[axis] <= previous)
-                    throw invalid(`${pointPath}.${axis}`, '狭義単調増加である必要があります');
+                    throw invalid(`${pointPath}.${axis}`, 'Must be strictly increasing.');
                 previous = point[axis];
             }
         }
@@ -724,7 +724,7 @@ function validateAdjust(value, path) {
         requireExactKeys(value.sections, sectionKeys, `${path}.sections`);
         for (const key of sectionKeys) {
             if (hasOwn(value.sections, key) && typeof value.sections[key] !== 'boolean') {
-                throw invalid(`${path}.sections.${key}`, 'boolean である必要があります');
+                throw invalid(`${path}.sections.${key}`, 'Must be a boolean.');
             }
         }
     }
@@ -738,7 +738,7 @@ const CUBIC_BEZIER = /^cubic-bezier\(\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*-?(?:\d+
 function validateEasing(value, path) {
     const validateOne = (entry, entryPath) => {
         if (typeof entry !== 'string' || (!EASINGS.has(entry) && !CUBIC_BEZIER.test(entry))) {
-            throw invalid(entryPath, '未対応の easing です');
+            throw invalid(entryPath, 'Unsupported easing.');
         }
     };
     if (typeof value === 'string')
@@ -753,19 +753,19 @@ function validateKeyframes(value, path, audio = false) {
         requireExactKeys(value, new Set(['path', 'count']), path);
         requireText(value.path, `${path}.path`);
         if (!/^motion\/.+\.json$/.test(value.path))
-            throw invalid(`${path}.path`, 'motion/ 配下の JSON である必要があります');
+            throw invalid(`${path}.path`, 'Must be JSON under motion/.');
         requireInteger(value.count, 2, `${path}.count`);
         return;
     }
     if (!Array.isArray(value) || value.length < 2)
-        throw invalid(path, '2 要素以上の配列である必要があります');
+        throw invalid(path, 'Must be an array of at least two items.');
     value.forEach((entry, index) => {
         const itemPath = `${path}[${index}]`;
         requireRecord(entry, itemPath);
         requireInteger(entry.t, 0, `${itemPath}.t`);
         if (audio) {
             if (!hasOwn(entry, 'gain_db'))
-                throw invalid(`${itemPath}.gain_db`, 'audio keyframe に必要です');
+                throw invalid(`${itemPath}.gain_db`, 'Required on an audio keyframe.');
             requireRange(entry.gain_db, -60, 12, `${itemPath}.gain_db`);
         }
         if (hasOwn(entry, 'transform'))
@@ -811,16 +811,16 @@ function validateMotion(value, path) {
 }
 function validateAnimators(value, path) {
     if (!Array.isArray(value))
-        throw invalid(path, '配列である必要があります');
+        throw invalid(path, 'Must be an array.');
     value.forEach((entry, index) => {
         const entryPath = `${path}[${index}]`;
         requireRecord(entry, entryPath);
         requireExactKeys(entry, new Set(['id', 'basis', 'shape', 'start', 'end', 'offset', 'randomize', 'amount', 'ease']), entryPath);
         requireText(entry.id, `${entryPath}.id`);
         if (!['chars', 'words', 'lines', 'segments'].includes(String(entry.basis)))
-            throw invalid(`${entryPath}.basis`, '未対応の basis です');
+            throw invalid(`${entryPath}.basis`, 'Unsupported basis.');
         if (!['ramp', 'triangle', 'round', 'smooth', 'square', 'ramp-down'].includes(String(entry.shape)))
-            throw invalid(`${entryPath}.shape`, '未対応の shape です');
+            throw invalid(`${entryPath}.shape`, 'Unsupported shape.');
         requireRange(entry.start, 0, 1, `${entryPath}.start`);
         requireRange(entry.end, 0, 1, `${entryPath}.end`);
         requireRange(entry.offset, -1, 1, `${entryPath}.offset`);
@@ -828,7 +828,7 @@ function validateAnimators(value, path) {
             requireRecord(entry.randomize, `${entryPath}.randomize`);
             requireExactKeys(entry.randomize, new Set(['seed']), `${entryPath}.randomize`);
             if (!Number.isInteger(entry.randomize.seed))
-                throw invalid(`${entryPath}.randomize.seed`, '整数である必要があります');
+                throw invalid(`${entryPath}.randomize.seed`, 'Must be an integer.');
         }
         requireRecord(entry.amount, `${entryPath}.amount`);
         requireExactKeys(entry.amount, new Set(['x', 'y', 'scale', 'rotate', 'opacity', 'letterSpacing', 'blur']), `${entryPath}.amount`);
@@ -844,55 +844,55 @@ function validateAnimators(value, path) {
 }
 function requireRecord(value, path) {
     if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-        throw invalid(path, 'object である必要があります');
+        throw invalid(path, 'Must be an object.');
     }
 }
 function hasOwn(value, key) {
     return Object.prototype.hasOwnProperty.call(value, key);
 }
 const UNKNOWN_KEY_GUIDANCE = {
-    emphasis_words: '語レベル演出は captions.json のトップレベル emphasis_words[] へ移してください（契約 contract-2026-08-23-captions-emphasis-words-v0.md）',
+    emphasis_words: 'Move word-level emphasis to top-level emphasis_words[] in captions.json (contract-2026-08-23-captions-emphasis-words-v0.md).',
 };
-const DEFAULT_UNKNOWN_KEY_GUIDANCE = 'このキーは v2 の語彙にありません。手で編集した場合は取り除くか、.akari/backup/ の原本から復元してください';
+const DEFAULT_UNKNOWN_KEY_GUIDANCE = 'This key is not in the v2 vocabulary. If it was edited by hand, remove it or restore the original from .akari/backup/.';
 function requireExactKeys(value, allowed, path) {
     const unknown = Object.keys(value).filter(key => !allowed.has(key));
     if (unknown.length > 0) {
         const guidance = unknown
             .map(key => `${key}: ${UNKNOWN_KEY_GUIDANCE[key] ?? DEFAULT_UNKNOWN_KEY_GUIDANCE}`)
             .join(' / ');
-        throw invalid(path, `未定義キーを使用できません: ${unknown.join(', ')}。案内: ${guidance}`);
+        throw invalid(path, `Cannot use an undefined key: ${unknown.join(', ')}. Guidance: ${guidance}`);
     }
 }
 function requireText(value, path) {
     if (typeof value !== 'string' || value.trim().length === 0)
-        throw invalid(path, '空でない文字列である必要があります');
+        throw invalid(path, 'Must be a non-empty string.');
 }
 function requireNumber(value, path) {
     if (typeof value !== 'number' || !Number.isFinite(value))
-        throw invalid(path, '有限数である必要があります');
+        throw invalid(path, 'Must be a finite number.');
 }
 function requirePositiveNumber(value, path) {
     requireNumber(value, path);
     if (value <= 0)
-        throw invalid(path, '0 より大きい必要があります');
+        throw invalid(path, 'Must be greater than 0.');
 }
 function requireNonNegativeNumber(value, path) {
     requireNumber(value, path);
     if (value < 0)
-        throw invalid(path, '0 以上である必要があります');
+        throw invalid(path, 'Must be 0 or greater.');
 }
 function requireInteger(value, minimum, path) {
     if (!Number.isInteger(value) || value < minimum) {
-        throw invalid(path, `${minimum} 以上の整数である必要があります`);
+        throw invalid(path, `Must be an integer greater than or equal to ${minimum}.`);
     }
 }
 function requireRange(value, minimum, maximum, path) {
     requireNumber(value, path);
     if (value < minimum || value > maximum)
-        throw invalid(path, `${minimum}..${maximum} の範囲である必要があります`);
+        throw invalid(path, `Must be from ${minimum} to ${maximum}.`);
 }
 function invalid(path, message) {
-    return new Error(`edit.json v2 が不正です (${path}): ${message}`);
+    return new Error(`edit.json v2 is invalid (${path}): ${message}`);
 }
 function messageOf(error) {
     return error instanceof Error ? error.message : String(error);

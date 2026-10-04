@@ -32,7 +32,7 @@ function v2(items = [media('main-1', 0, 300, 0, 10)], extraTracks = []) {
 test('detectEditVersion は v0 を返す', () => assert.equal(detectEditVersion(legacy(0)), 0));
 test('detectEditVersion は v1 を返す', () => assert.equal(detectEditVersion(legacy(1)), 1));
 test('detectEditVersion は v2 を返す', () => assert.equal(detectEditVersion(v2()), 2));
-test('detectEditVersion は未知版を拒否する', () => assert.throws(() => detectEditVersion('{"version":3}'), /0・1・2/));
+test('detectEditVersion は未知版を拒否する', () => assert.throws(() => detectEditVersion('{"version":3}'), /0, 1, or 2/));
 
 test('legacy v0 の中央レンジを二分割して除去する', () => {
   const result = applyCutRanges(legacy(0), [range([3, 5])], { fps: 30 });
@@ -118,7 +118,7 @@ test('空レンジは入力バイトをそのまま返す', () => {
 });
 
 test('不正レンジは拒否する', () => {
-  assert.throws(() => applyCutRanges(legacy(), [range([3, 3])], { fps: 30 }), /不正/);
+  assert.throws(() => applyCutRanges(legacy(), [range([3, 3])], { fps: 30 }), /cut range is invalid/);
 });
 
 test('v2 の中央レンジは source と duration を同じ比率で二分する', () => {

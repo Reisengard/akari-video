@@ -105,10 +105,10 @@ test('未知種別は汎用クロス + type 文字列ラベルへ落ちる', () 
   const result = computeTransitionVisual('fallback', 0.25, 'future-transition');
   assert.equal(result.outgoingOpacity, 0.75);
   assert.equal(result.incomingOpacity, 0.25);
-  assert.equal(result.fallbackLabel, 'future-transition — プレビュー近似なし');
+  assert.equal(result.fallbackLabel, 'future-transition — no preview approximation');
 
   const nonCanonical = computeTransitionVisual('future-transition-x', 0.25);
   assert.equal(nonCanonical.outgoingOpacity, 0.75);
   assert.equal(nonCanonical.incomingOpacity, 0.25);
-  assert.equal(nonCanonical.fallbackLabel, 'future-transition-x — プレビュー近似なし');
+  assert.equal(nonCanonical.fallbackLabel, 'future-transition-x — no preview approximation');
 });

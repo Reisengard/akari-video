@@ -14,7 +14,7 @@ const { TRANSITION_CATEGORIES, TRANSITION_VOCABULARY } = createRequire(import.me
 test('トランジション選択 UI は正準 29 種と 8 カテゴリから導出する', () => {
   assert.equal(TRANSITION_VOCABULARY.length, 29);
   assert.deepEqual(TRANSITION_CATEGORIES, [
-    'フェード', 'ワイプ', 'スライド', 'カバー', 'リビール', '形状', '変形', '質感'
+    'Fade', 'Wipe', 'Slide', 'Cover', 'Reveal', 'Shape', 'Transform', 'Texture'
   ]);
   assert.match(source, /const TRANSITION_TYPE_OPTIONS = TRANSITION_VOCABULARY\.map/u);
   assert.match(source, /for \(const category of TRANSITION_CATEGORIES\)/u);
@@ -24,9 +24,9 @@ test('トランジション選択 UI は正準 29 種と 8 カテゴリから導
 
 test('既存 5 種のボタン文言は維持する', () => {
   const labels = Object.fromEntries(TRANSITION_VOCABULARY.map(entry => [entry.id, entry.labelJa]));
-  assert.equal(labels.dissolve, 'ディゾルブ');
-  assert.equal(labels['fade-black'], '黒フェード');
-  assert.equal(labels['fade-white'], '白フェード');
-  assert.equal(labels['reveal-down'], '上からリビール');
-  assert.equal(labels['reveal-up'], '下からリビール');
+  assert.equal(labels.dissolve, 'Dissolve');
+  assert.equal(labels['fade-black'], 'Fade to black');
+  assert.equal(labels['fade-white'], 'Fade to white');
+  assert.equal(labels['reveal-down'], 'Reveal from top');
+  assert.equal(labels['reveal-up'], 'Reveal from bottom');
 });

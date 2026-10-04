@@ -93,7 +93,7 @@ test('legacy v0/v1 の cut へ crop を書こうとすると v2 が必要だと�
       legacyIndex: 0,
       patch: { crop: { x: 0, y: 0.25, w: 1, h: 0.75 }, transform: { scale: 0.5 } },
     }),
-    /カットの crop 書き戻しには edit\.json version 2 が必要です/,
+    /Writing a cut crop back requires edit\.json version 2/,
   );
 
   // 拒否は crop のときだけ。transform 単独の legacy 経路は無変更。

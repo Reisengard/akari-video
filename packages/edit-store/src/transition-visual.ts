@@ -156,6 +156,6 @@ export function computeTransitionVisual(
 
     return {
         ...cross(),
-        fallbackLabel: `${fallbackName || previewKind} — プレビュー近似なし`
+        fallbackLabel: `${fallbackName || previewKind} — no preview approximation`
     };
 }

@@ -9,15 +9,15 @@ export type CutAudioSplitBlocker =
     | 'speed' | 'freeze' | 'transition-crossfade' | 'already-split' | 'no-audio';
 
 const BLOCKER_MESSAGES: Record<CutAudioSplitBlocker, string> = {
-    'not-found': 'カットが見つかりません',
-    'not-visual-media': '映像トラックの素材カットだけ音声を分離できます',
-    nested: '入れ子のカットはまだ音声を分離できません',
-    anchored: '字幕に固定したカットはまだ音声を分離できません',
-    speed: '速度を変えたカットはまだ音声を分離できません',
-    freeze: '静止区間を持つカットはまだ音声を分離できません',
-    'transition-crossfade': 'トランジションを持つカットはまだ音声を分離できません',
-    'already-split': 'このカットの音声はすでに分離されています',
-    'no-audio': 'この素材には音声がありません',
+    'not-found': 'The cut was not found.',
+    'not-visual-media': 'Only a footage cut on a picture track can split audio.',
+    nested: 'Nested cuts cannot split audio yet.',
+    anchored: 'Cuts locked to captions cannot split audio yet.',
+    speed: 'Speed-changed cuts cannot split audio yet.',
+    freeze: 'Cuts with a freeze cannot split audio yet.',
+    'transition-crossfade': 'Cuts with a transition cannot split audio yet.',
+    'already-split': 'Audio for this cut is already split.',
+    'no-audio': 'This footage has no audio.',
 };
 
 // These tree helpers only access tracks/items; no Project methods are needed.
@@ -133,13 +133,13 @@ export function unlinkCutAudio(doc: EditV2Document, options: { audioItemId: stri
 export function moveLinkedCutAudio(
     doc: EditV2Document, options: { cutId: string; deltaFrames: number }
 ): EditV2Document {
-    if (!Number.isInteger(options.deltaFrames)) throw new Error('移動量は整数フレームで指定してください');
+    if (!Number.isInteger(options.deltaFrames)) throw new Error('Specify the move amount as an integer frame count.');
     const document = structuredClone(doc);
     const cut = requireCut(document, options.cutId);
     const audioId = linkedAudioItemIdOf(document, options.cutId);
     const locations = [cut, ...(audioId === undefined ? [] : [requireAudio(document, audioId)])];
     if (locations.some(location => location.item.at + options.deltaFrames < 0)) {
-        throw new Error('カットまたは音声がタイムラインの先頭より前になるため移動できません');
+        throw new Error('Cannot move because the cut or audio would start before the timeline.');
     }
     for (const location of locations) location.item.at += options.deltaFrames;
     return document;
@@ -149,18 +149,18 @@ export function removeCutAudioLinked(doc: EditV2Document, options: {
     target: 'pair' | 'audio-only' | 'cut-only'; cutId?: string; audioItemId?: string;
 }): EditV2Document {
     const document = structuredClone(doc);
-    if (!['pair', 'audio-only', 'cut-only'].includes(options.target)) throw new Error('削除対象が不正です');
-    if (options.cutId === undefined && options.audioItemId === undefined) throw new Error('削除対象を指定してください');
+    if (!['pair', 'audio-only', 'cut-only'].includes(options.target)) throw new Error('The delete target is invalid.');
+    if (options.cutId === undefined && options.audioItemId === undefined) throw new Error('Specify the delete target.');
     let cut = options.cutId === undefined ? undefined : requireCut(document, options.cutId);
     let audio = options.audioItemId === undefined ? undefined : requireAudio(document, options.audioItemId);
-    if (cut && audio && audio.item.link !== cut.item.id) throw new Error('指定された映像と音声はリンクしていません');
+    if (cut && audio && audio.item.link !== cut.item.id) throw new Error('The named picture and audio are not linked.');
     if (!cut && typeof audio?.item.link === 'string') cut = requireCut(document, audio.item.link);
     if (!audio && cut) {
         const audioId = linkedAudioItemIdOf(document, cut.item.id);
         if (audioId !== undefined) audio = requireAudio(document, audioId);
     }
-    if (options.target === 'audio-only' && !audio) throw new Error('リンクされた音声が見つかりません');
-    if (options.target === 'cut-only' && !cut) throw new Error('リンクされたカットが見つかりません');
+    if (options.target === 'audio-only' && !audio) throw new Error('The linked audio was not found.');
+    if (options.target === 'cut-only' && !cut) throw new Error('The linked cut was not found.');
     if (options.target !== 'audio-only' && cut) removeLocation(cut);
     if (options.target !== 'cut-only' && audio) removeLocation(audio);
     if (options.target === 'cut-only' && audio) delete audio.item.link;
@@ -170,14 +170,14 @@ export function removeCutAudioLinked(doc: EditV2Document, options: {
 function requireCut(doc: EditV2Document, id: string): ItemLocation {
     const location = locate(tree(doc), id);
     if (!location || location.track.lane !== 'visual' || location.item.source.kind !== 'media') {
-        throw new Error('映像の素材カットが見つかりません');
+        throw new Error('The picture footage cut was not found.');
     }
     return location;
 }
 
 function requireAudio(doc: EditV2Document, id: string): ItemLocation {
     const location = locate(tree(doc), id);
-    if (!location || location.track.lane !== 'audio') throw new Error('音声が見つかりません');
+    if (!location || location.track.lane !== 'audio') throw new Error('The audio was not found.');
     return location;
 }
 

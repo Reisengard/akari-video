@@ -164,7 +164,7 @@ test('fade-black は共有カーネルの非対称 plate カーブをそのま�
 test('未知種別は共有カーネルと同文言の日本語フォールバックを表示する', () => {
   const f = fixture();
   f.apply('future-transition-x', 0.25);
-  assert.equal(f.fallbackLabel.textContent, 'future-transition-x — プレビュー近似なし');
+  assert.equal(f.fallbackLabel.textContent, 'future-transition-x — no preview approximation');
   assert.equal(f.fallbackLabel.style.display, 'block');
   assert.equal(f.fallbackLabel.dataset.akariTransitionFallback, 'future-transition-x');
 });

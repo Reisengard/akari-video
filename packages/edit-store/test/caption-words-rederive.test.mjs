@@ -180,7 +180,7 @@ test('変わらない語は実測時刻を丸めず schema の三フィールド
 test('空文字への編集は拒否する', () => {
   assert.throws(
     () => applyCaptionTextEdit({ text: 'before', start: 0, end: 1 }, ' \n '),
-    /空にできません/,
+    /cannot be empty/,
   );
 });
 

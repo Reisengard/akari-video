@@ -218,7 +218,7 @@ function frameOf(value: unknown): number {
 }
 
 function requireRecord(value: unknown, label: string): JsonRecord {
-    if (!isRecord(value)) throw new Error(`${label} は object である必要があります。`);
+    if (!isRecord(value)) throw new Error(`${label} must be an object.`);
     return value;
 }
 

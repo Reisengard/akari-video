@@ -123,7 +123,7 @@ test("legacy --write は実 edit-lint の古い形式 error で reject され by
   const before = fs.readFileSync(editPath);
   await assert.rejects(
     audioLevelProject(directory, { write: true, measureRunner }),
-    /古い形式/u,
+    /older format/u,
   );
   assert.deepEqual(fs.readFileSync(editPath), before);
 });

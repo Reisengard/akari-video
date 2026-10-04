@@ -23,7 +23,7 @@ test("slipCutInSource shifts in/out by the same amount and leaves at untouched (
 });
 
 test("slipCutInSource clamps out against maxOutSeconds and rejects an out beyond it", () => {
-  assert.throws(() => slipCutInSource(cutSource, 0, 10, 20, 15), /実尺を超えています/u);
+  assert.throws(() => slipCutInSource(cutSource, 0, 10, 20, 15), /past the footage duration/u);
   const updated = slipCutInSource(cutSource, 0, 8, 13, 15);
   const parsed = JSON.parse(updated);
   assert.equal(parsed.cuts[0].in, 8);
@@ -31,9 +31,9 @@ test("slipCutInSource clamps out against maxOutSeconds and rejects an out beyond
 });
 
 test("slipCutInSource rejects invalid or too-short ranges", () => {
-  assert.throws(() => slipCutInSource(cutSource, 0, -1, 4), /時刻が不正/u);
-  assert.throws(() => slipCutInSource(cutSource, 0, 0, 0.1), /短すぎます/u);
-  assert.throws(() => slipCutInSource(cutSource, 99, 0, 1), /見つかりません/u);
+  assert.throws(() => slipCutInSource(cutSource, 0, -1, 4), /time is invalid/u);
+  assert.throws(() => slipCutInSource(cutSource, 0, 0, 0.1), /too short/u);
+  assert.throws(() => slipCutInSource(cutSource, 99, 0, 1), /was not found/u);
 });
 
 test("slipCutInSource preserves the exact duration (out−in) across a shift", () => {

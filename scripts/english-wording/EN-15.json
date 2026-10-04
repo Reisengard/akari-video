@@ -1,5 +1,5 @@
 {
   "id": "EN-15",
   "glob": "{packages/edit-store/**,packages/edit-lint/**,packages/frame-engine/**,packages/word-book/**,packages/pen-visuals/**}",
-  "max": 44774
+  "max": 24327
 }

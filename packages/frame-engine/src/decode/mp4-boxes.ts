@@ -77,12 +77,12 @@ export function describeIndexParseFailure(
   const isArrayLength = cause instanceof RangeError
     || /invalid array length|invalid typed array length/iu.test(cause.message);
   const hint = isArrayLength
-    ? ' 巨大なサンプル表を配列へ展開できていない可能性がある'
-      + '（非映像 trak は videoOnlyIndexHeader で隠しているので、映像 trak 自体のサンプル数か'
-      + ' ヘッダーの破損を疑う）。'
+    ? ' A huge sample table may have failed to expand into an array'
+      + ' (non-picture traks are hidden by videoOnlyIndexHeader, so suspect the picture trak sample count or'
+      + ' a corrupt header).'
     : '';
   const wrapped = new Error(
-    `${stage} の構築に失敗しました（ヘッダー ${headerByteLength} バイト）: ${cause.message}.${hint}`,
+    `${stage} failed to build (header ${headerByteLength} bytes): ${cause.message}.${hint}`,
     { cause },
   );
   // 元のスタックを失わない（第1項でスタックが採れなかったことが調査を止めた）。

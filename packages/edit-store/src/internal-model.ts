@@ -222,11 +222,11 @@ export interface InternalReadOptions {
 export function readInternalEdit(source: string | unknown, options?: InternalReadOptions): InternalEdit {
     const text = typeof source === 'string' ? source : JSON.stringify(source);
     if (typeof text !== 'string') {
-        throw new Error('編集データの形式を確認できません。');
+        throw new Error('The edit data is not in a recognized format.');
     }
     const raw = JSON.parse(text) as unknown;
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-        throw new Error('編集データの形式を確認できません。');
+        throw new Error('The edit data is not in a recognized format.');
     }
     const record = raw as Record<string, unknown>;
     if (record.version !== 2) {

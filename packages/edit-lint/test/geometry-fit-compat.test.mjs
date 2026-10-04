@@ -77,7 +77,7 @@ test("v0 では出ない（v0 はそもそも lint の入口で止まる）", as
   await withProject(v0Edit(), async (root) => {
     await assert.rejects(
       lintProject(root, { checkedAt: "2000-01-01T00:00:00.000Z", writeReports: false }),
-      /古い形式です/u,
+      /older format/u,
     );
   });
 });

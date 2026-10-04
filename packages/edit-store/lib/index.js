@@ -116,15 +116,15 @@ function newerSavedByVersion(text, currentVersion) {
 }
 function isUnknownKeyEditError(error) {
     const message = error instanceof Error ? error.message : String(error);
-    return /edit\.json[^\n]*未定義キーを使用できません/.test(message);
+    return /edit\.json[^\n]*(?:未定義キーを使用できません|Cannot use an undefined key)/.test(message);
 }
 function newerVersionOpenNotice(savedVersion, currentVersion) {
-    return `このプロジェクトは新しい版の AKARI Video（v${savedVersion}）で保存されています。`
-        + `いまの版（v${currentVersion}）では開けない機能が使われています。AKARI Video を更新してください。`;
+    return `This project was saved by a newer AKARI Video (v${savedVersion}). `
+        + `This file uses a feature this version (v${currentVersion}) cannot open. Update AKARI Video.`;
 }
 function newerVersionLintPrefix(savedVersion) {
-    return `このプロジェクトは新しい版（v${savedVersion}）で保存されています。`
-        + 'いまの版の検証は新しい機能を知らないため、誤ってエラーを出すことがあります。';
+    return `This project was saved by a newer version (v${savedVersion}). `
+        + 'This version\'s checks do not know newer features, so they can report a false error.';
 }
 function withNewerVersionLintPrefix(message, savedVersion) {
     return savedVersion ? `${newerVersionLintPrefix(savedVersion)} ${message}` : message;

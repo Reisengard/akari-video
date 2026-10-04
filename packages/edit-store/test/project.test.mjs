@@ -248,7 +248,7 @@ test('ungroup は transform / opacity / at を式どおり焼き込み、焼け�
     { id: 'bag-html', at: 20, duration: 20, source: { kind: 'html', path: 'overlays/bag.html' }, items: [] },
   ]) {
     p.edit.insert('v1', bag);
-    assert.throws(() => p.edit.ungroup(bag.id), /袋グループ/u);
+    assert.throws(() => p.edit.ungroup(bag.id), /container group/u);
   }
 });
 
@@ -286,7 +286,7 @@ test('group は異なる場所の混在を拒み、離れた段では最前面�
   ])));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const p = await openProject(root);
-  assert.throws(() => p.edit.group(['inside', 'a']), /同じ場所/u);
+  assert.throws(() => p.edit.group(['inside', 'a']), /share a place/u);
   const result = p.edit.group(['a', 'b']);
   assert.equal(p.edit.tracks[2].items.some(item => item.id === result.group.id), true);
   assert.deepEqual(result.changedOrderIds.sort(), ['between', 'nested']);

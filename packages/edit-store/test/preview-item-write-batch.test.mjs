@@ -28,7 +28,7 @@ test('mid-batch failure exposes no partial document and leaves input and command
   assert.equal(text, fixture()); assert.equal(JSON.stringify(commands), before);
 });
 test('empty batch and external HTML writes are refused', () => {
-  assert.throws(() => resolvePreviewItemWriteBatch(fixture(), []), /空/);
+  assert.throws(() => resolvePreviewItemWriteBatch(fixture(), []), /write batch is empty/);
   assert.throws(() => resolvePreviewItemWriteBatch(fixture(), [command('flat', { x: 2 }),
     { kind: 'overlay', itemId: 'flat', patch: { html: '<b>text</b>' } }]), /HTML/);
 });
