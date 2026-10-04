@@ -67,7 +67,7 @@ test('sequential preview patches resolve against the latest document without los
   const start = source.indexOf("id: 'akari.annotations.commitPreviewTransform'");
   const end = source.indexOf('this.toDispose.push(this.contextKeys.onDidChange', start);
   const handler = source.slice(start, end);
-  assert.match(handler, /commitEditMutation\('プレビューで変形を変更', doc =>/u);
+  assert.match(handler, /commitEditMutation\('Change transform in preview', doc =>/u);
   assert.match(handler, /resolvePreviewItemWrite\(source, command\)/u);
   assert.doesNotMatch(handler, /expectedBefore|JSON\.stringify\(doc\) !==/u);
 });

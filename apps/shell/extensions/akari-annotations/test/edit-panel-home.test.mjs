@@ -42,10 +42,10 @@ test('ホームは作る・直すの棚を分けて描く', () => withDom(() => 
     const root = new Node();
     appendAiTiles(root, [
         { group: 'make', tiles: [{ id: 'still', label: '静止画', image: 'still', enabled: true }] },
-        { group: 'refine', tiles: [{ id: 'transcribe', label: '文字起こし', image: 'transcribe', enabled: false, reason: '声のある素材で使えます' }] }
+        { group: 'refine', tiles: [{ id: 'transcribe', label: '文字起こし', image: 'transcribe', enabled: false, reason: 'Works on footage with speech' }] }
     ], () => {});
-    assert.ok(find(root, node => node.textContent === '作る'));
-    assert.ok(find(root, node => node.textContent === '直す'));
+    assert.ok(find(root, node => node.textContent === 'Create'));
+    assert.ok(find(root, node => node.textContent === 'Refine'));
 }));
 
 test('整える: 映像の四つの近道と音声の一つの近道', () => {
@@ -80,7 +80,7 @@ test('整える: 押せないタブは理由つきグレー、押しても移動
         assert.equal(find(disabled, node => node.className.includes('akari-inspector-cloud')), undefined);
         assert.match(disabled.className, /akari-inspector-ai-disabled/u);
         assert.equal(disabled.attributes.get('aria-disabled'), 'true');
-        assert.equal(find(disabled, node => node.className === 'akari-inspector-ai-reason').textContent, '映像の素材で使えます');
+        assert.equal(find(disabled, node => node.className === 'akari-inspector-ai-reason').textContent, 'Available for video footage');
         disabled.click();
         assert.deepEqual(targets, []);
         find(root, node => node.attributes.get('data-akari-home-tune') === 'position').click();
@@ -98,7 +98,7 @@ test('素材のホームタブは単一タイルの専用パネルを保つ', ()
         onView: view => changed.push(['view', view]), onDialogResult: () => {}
     });
     const home = find(root, node => node.attributes.get('data-akari-inspector-ai-tab') === 'generation');
-    assert.equal(home.textContent, 'ホーム');
+    assert.equal(home.textContent, 'Home');
     home.click();
     assert.deepEqual(changed, [['tab', 'generation'], ['view', 'transcribe']]);
 }));
@@ -107,8 +107,8 @@ test('画像 AI と widget の近日専用節を描かない', () => withDom(() 
     const root = new Node();
     appendImageAiPanel(root, { projectRootUri: 'file:///fixture', itemId: 'photo-1',
         state: { itemId: 'photo-1', phase: 'closed' }, service: {}, openSettings: () => {}, adopt: async () => ({ ok: true }) });
-    assert.ok(find(root, node => node.textContent === '高画質化'));
-    assert.equal(find(root, node => node.textContent.includes('近日')), undefined);
+    assert.ok(find(root, node => node.textContent === 'Enhance quality'));
+    assert.equal(find(root, node => node.textContent.includes('Coming soon')), undefined);
     const source = readFileSync(new URL('../src/browser/akari-inspector-widget.ts', import.meta.url), 'utf8');
     const ast = ts.createSourceFile('widget.ts', source, ts.ScriptTarget.Latest, true);
     const widget = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AkariInspectorWidget');
@@ -117,6 +117,6 @@ test('画像 AI と widget の近日専用節を描かない', () => withDom(() 
     const Harness = new Function(`${code}; return Harness;`)();
     const instance = new Harness();
     instance.body = new Node();
-    instance.appendAdjustPreviewSection({ id: 'preview', label: '近日', build: () => new Node() }, 'cut');
+    instance.appendAdjustPreviewSection({ id: 'preview', label: 'Coming soon', build: () => new Node() }, 'cut');
     assert.equal(instance.body.children.length, 0);
 }));

@@ -46,7 +46,7 @@ test('同じ語の強調は上書きし、無関係の強調と既存 id を保�
 });
 
 test('words[] の無い字幕と output 時刻の字幕では強調を書かない', () => {
-    assert.throws(() => upsertCaptionEmphasis(JSON.stringify([{ ...cue, words: [] }]), cue.id, 0, 'positive'), /語/u);
+    assert.throws(() => upsertCaptionEmphasis(JSON.stringify([{ ...cue, words: [] }]), cue.id, 0, 'positive'), /Select a word/u);
     assert.throws(() => upsertCaptionEmphasis(JSON.stringify([{ ...cue, time_domain: 'output' }]),
         cue.id, 0, 'positive'), /source/u);
 });
@@ -78,18 +78,18 @@ test('編集パネルは語の表示と強調の保存先、カラオケ未終�
     assert.match(widget, /captionsSource = upsertCaptionEmphasis/u);
     assert.match(widget, /layerAudioService\.writeEditSnapshot\(/u);
     assert.match(panel, /kind: 'caption-style-color'/u);
-    assert.match(panel, /歌い終わった文字の色/u);
-    assert.match(panel, /1 文字ずつ/u);
-    assert.match(panel, /開始位置/u);
+    assert.match(panel, /Color of sung characters/u);
+    assert.match(panel, /Per character/u);
+    assert.match(panel, /Start position/u);
     assert.match(panel, /#fb923c.*#ffd94a.*#f87171.*#4ade80.*#60a5fa/u);
     assert.match(panel, /button\.akari-caption-motion-swatch\{[^}]*width:22px;height:22px/u);
     assert.match(panel, /button\.akari-caption-motion-swatch\[aria-pressed=[^\]]+\]\{outline:2px solid/u);
     assert.match(panel, /swatch\.className = 'akari-caption-motion-swatch'/u);
-    assert.match(panel, /現在: 語ごとに色がじわっと変わります/u);
+    assert.match(panel, /Current: color fades in word by word\./u);
     assert.match(panel, /setKaraoke\(\{ done_color: '#fb923c', fill: 'char' \}, true\)/u);
     assert.match(panel, /play\('karaoke', 'word-style'\)/u);
-    assert.doesNotMatch(panel, /固定の黄色/u);
-    assert.match(panel, /語の時刻（words\[\]）がない字幕/u);
+    assert.doesNotMatch(panel, /fixed yellow/u);
+    assert.match(panel, /captions without word timings \(words\[\]\)/u);
 });
 
 test('inspector のカラオケは 1 操作 1 履歴で undo/redo でき、外部変更を拒否する', async () => {
@@ -145,7 +145,7 @@ test('inspector のカラオケは 1 操作 1 履歴で undo/redo でき、外�
     assert.equal(JSON.parse(calls[2][1].captionsSource).captions[0].style, 'karaoke');
     const after = captionSource;
     assert.equal(pushed.length, 1);
-    assert.equal(pushed[0].label, 'カラオケの選択');
+    assert.equal(pushed[0].label, 'Select karaoke');
     assert.equal(pushed[0].before, before);
     assert.equal(pushed[0].after, after);
     await instance.history.undo();
@@ -155,11 +155,11 @@ test('inspector のカラオケは 1 操作 1 履歴で undo/redo でき、外�
     assert.deepEqual(renders, [before, after]);
     assert.deepEqual(await services.setKaraoke({ fill: 'smooth' }), { ok: true });
     assert.equal(pushed.length, 2);
-    assert.equal(pushed[1].label, 'カラオケの設定の変更');
+    assert.equal(pushed[1].label, 'Change karaoke settings');
     await instance.history.undo();
     assert.equal(captionSource, after);
     captionSource = 'external edit\n';
-    await assert.rejects(instance.history.undo(), /字幕ファイルが後から変更されています/u);
+    await assert.rejects(instance.history.undo(), /The caption file has been modified since/u);
     assert.equal(captionSource, 'external edit\n');
     assert.equal(renders.length, 3);
     assert.equal((await services.readOwner()).durationFrames, 60);

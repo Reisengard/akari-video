@@ -223,7 +223,7 @@ test('OFF shows the name and loading line, requests one priority-zero full frame
   f.w.visualThumbnails.request = job => { jobs.push(job); return request(job); };
   f.render(); f.enter();
   await until(() => f.w.visualHover);
-  assert.deepEqual(f.w.visualHover.children.filter(child => child.tagName !== 'img').map(child => child.textContent), ['TITLE', '撮影中…']);
+  assert.deepEqual(f.w.visualHover.children.filter(child => child.tagName !== 'img').map(child => child.textContent), ['TITLE', 'Capturing...']);
   assert.equal(f.popupImage().style.display, 'none');
   assert.equal(jobs[0].priority, 0); assert.equal(jobs[0].wanted(), true);
   release(); await until(() => f.popupImage()?.src === 'FULL');
@@ -561,7 +561,7 @@ for (const reason of ['missing edit URI', 'missing capture API', 'unavailable re
     if (reason === 'missing edit URI') f.w.location = {};
     if (reason === 'unavailable result') f.w.visualThumbnails.request = () => null;
     f.render(); f.enter(); t.mock.timers.tick(2000);
-    assert.equal(f.w.visualHover.children.at(-1).textContent, '撮影できません');
+    assert.equal(f.w.visualHover.children.at(-1).textContent, 'Could not capture');
     assert.equal(f.element.querySelector('image'), undefined);
     assert.equal(f.element.style.backgroundImage, '');
     assert.equal(f.captures.length, 0);

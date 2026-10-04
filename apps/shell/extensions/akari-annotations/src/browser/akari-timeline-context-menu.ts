@@ -25,7 +25,7 @@ export function withAudioTrimMenuItem(
     const insertAt = deleteIndex >= 0 ? deleteIndex : items.length;
     return [
         ...items.slice(0, insertAt),
-        { id: 'audio-trim', label: 'トリム（in/out）' },
+        { id: 'audio-trim', label: 'Trim (in/out)' },
         ...items.slice(insertAt)
     ];
 }

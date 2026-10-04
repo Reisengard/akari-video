@@ -187,7 +187,7 @@ test('LUT はカタログ 10 本だけを提示し、選択・強度・なしを
   assert.equal(updateInspectorAdjust(adjust, 'adjust.lut.lut', null), null);
   assert.throws(
     () => updateInspectorAdjust(undefined, 'adjust.lut.intensity', 0.5),
-    /LUT を選択/u
+    /Select a LUT/u
   );
 });
 
@@ -276,7 +276,7 @@ test('adjust item-field は crop と同じネスト分岐で更新し、v1 は�
   assert.match(itemFieldBranch, /patch = \{[\s\S]{0,220}adjust:/u);
   assert.match(
     timelineSource,
-    /return \{ ok: false, message: 'この項目の編集は edit\.json v2 のみ対応です。' \}/u
+    /return \{ ok: false, message: 'Editing this item is only supported in edit\.json v2\.' \}/u
   );
 });
 
@@ -310,11 +310,11 @@ test('ホイールの部分更新はゼロを疎辞書に正規化し、範囲�
   for (const [wheel, range] of [['lift', 0.25], ['gamma', 0.5], ['gain', 0.5], ['offset', 0.1]]) {
     assert.deepEqual(updateInspectorAdjust(undefined, `adjust.wheels.${wheel}`, { r: range, b: -range }), { wheels: { [wheel]: { r: range, b: -range } } });
     for (const value of [range + 0.00001, -range - 0.00001, NaN, Infinity, '1']) {
-      assert.throws(() => updateInspectorAdjust(undefined, `adjust.wheels.${wheel}`, { r: value }), /範囲/u);
+      assert.throws(() => updateInspectorAdjust(undefined, `adjust.wheels.${wheel}`, { r: value }), /must be between/u);
     }
   }
-  assert.throws(() => updateInspectorAdjust(adjust, 'adjust.wheels.lift', { x: 0 }), /未対応/u);
-  assert.throws(() => updateInspectorAdjust(adjust, 'adjust.wheels.lift', []), /オブジェクト/u);
+  assert.throws(() => updateInspectorAdjust(adjust, 'adjust.wheels.lift', { x: 0 }), /Unsupported wheel channel/u);
+  assert.throws(() => updateInspectorAdjust(adjust, 'adjust.wheels.lift', []), /RGB object/u);
 });
 
 test('不正なカーブを保存せず未知キーは identity 判定で保持する', () => {
@@ -324,9 +324,9 @@ test('不正なカーブを保存せず未知キーは identity 判定で保持�
     for (const invalid of [[], Array.from({ length: 17 }, (_, i) => point(i / 16, 0.2)),
       [point(0, 0), point(0, 1)], [point(0, NaN)], [point(0, Infinity)],
       [{ ...point(0, 0), extra: 1 }], [point('0', 1)], [null]]) {
-      assert.throws(() => updateInspectorAdjust(undefined, path, invalid), /カーブ/u);
+      assert.throws(() => updateInspectorAdjust(undefined, path, invalid), /Curve /u);
     }
-    if (min === 2) assert.throws(() => updateInspectorAdjust(undefined, path, [point(0, 0)]), /点数/u);
+    if (min === 2) assert.throws(() => updateInspectorAdjust(undefined, path, [point(0, 0)]), /Curve points/u);
     assert.equal(isInspectorAdjustIdentity({ [section]: { future: [point(0, 0.5)] } }), false);
   }
   assert.equal(isInspectorAdjustIdentity({ wheels: { lift: { future: 0 } } }), false);

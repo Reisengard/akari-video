@@ -118,7 +118,7 @@ test('静止尺 0 / null は freeze 全体を除去する', () => {
 test('freeze 不在時の静止時刻書き込みを案内文付きで拒否する', () => {
   assert.throws(() => updateCutFreeze(undefined, {
     kind: 'cut-freeze-at', index: 0, value: 1
-  }, 1, 5), /先に静止尺を設定してください。/u);
+  }, 1, 5), /Set the freeze duration first\./u);
 });
 
 test('v0 の明示 at / track はフリーズ対象として拒否する', () => {
@@ -126,7 +126,7 @@ test('v0 の明示 at / track はフリーズ対象として拒否する', () =>
   assert.equal(isExplicitV0CutTimeline({ in: 0, out: 5, track: 0 }, 0), true);
   assert.equal(isExplicitV0CutTimeline({ in: 0, out: 5 }, 0), false);
   assert.equal(isExplicitV0CutTimeline({ in: 0, out: 5, at: 2 }, 1), false);
-  assert.match(timelineSource, /明示 at\/track を使う edit\.json v0 ではフリーズを設定できません。/u);
+  assert.match(timelineSource, /Freeze cannot be set in edit\.json v0 with explicit at\/track\./u);
 });
 
 test('v1 書き込みは cuts[].freeze を生成・除去する専用経路を持つ', () => {
@@ -136,8 +136,8 @@ test('v1 書き込みは cuts[].freeze を生成・除去する専用経路を�
 });
 
 test('UI は 2 数値行の単位・step・範囲・リセットを配線する', () => {
-  assert.match(inspectorSource, /name: 'freeze-at', label: '静止時刻', unit: '秒'/u);
-  assert.match(inspectorSource, /name: 'freeze-duration', label: '静止尺', unit: '秒', removable: true/u);
+  assert.match(inspectorSource, /name: 'freeze-at', label: 'Freeze time', unit: 'sec'/u);
+  assert.match(inspectorSource, /name: 'freeze-duration', label: 'Freeze duration', unit: 'sec', removable: true/u);
   assert.match(inspectorSource, /scrubStep: 0\.01, min: 0, max: duration/u);
   assert.match(inspectorSource, /scrubStep: 0\.01, min: 0/u);
   assert.match(inspectorSource, /createCutFreezeWriteRequest\(snapshot\.index, 'duration', null\)/u);

@@ -16,7 +16,7 @@ import { getAdapter } from '../../../../../packages/generate/src/adapters/index.
 const catalog = JSON.parse(await readFile(new URL('../../../../../packages/schemas/gen-models.json', import.meta.url), 'utf8')).models.filter(row => row.kind === 'video');
 const { generationFields } = generation;
 const kinds = ['reference_images', 'reference_videos', 'reference_audios'];
-const labels = ['画像', '動画', '音声'];
+const labels = ['Image', 'Video', 'Audio'];
 const bothInputs = () => ({ prompt: 'Move @画像1 beside @画像2.', first_frame: { path: 'first.png' }, last_frame: { path: 'last.png' },
   reference_images: [{ path: 'one.png' }, { path: 'two.png' }], reference_videos: [{ path: 'motion.mp4', range_s: [0, 7] }], reference_audios: [{ path: 'voice.wav', range_s: [0, 4] }] });
 const draftFor = model => ({ modelId: model.id, inputs: { ...bothInputs(), ...(generationFields.modelSide(model) ? { frames_or_refs: generationFields.modelSide(model) } : {}) },
@@ -92,15 +92,15 @@ for (const model of catalog) {
       assert.deepEqual(grid.entries.map(entry => entry.badge), ['@画像1', '@画像2', '@動画1', '@音声1']);
       for (const slot of kinds) {
         const label = labels[kinds.indexOf(slot)];
-        assert.equal(grid.notes.includes(`${label}: 上限はモデル側に記載なし`), model.inputs[slot].max === null);
+        assert.equal(grid.notes.includes(`${label}: no limit listed by the model`), model.inputs[slot].max === null);
         assert.equal(grid.entries.filter(entry => entry.slot === slot).every(entry => entry.unsupported), model.inputs[slot].max === 0);
-        assert.equal(grid.notes.some(note => note.includes(`このモデルは${label}の参照を使えません`)), model.inputs[slot].max === 0);
+        assert.equal(grid.notes.some(note => note.includes(`This model cannot use ${label.toLowerCase()} references`)), model.inputs[slot].max === 0);
       }
     }
     if (paired) {
       const before = structuredClone(w.generationDrafts.get(identity.key).inputs);
       const other = generationFields.modelSide(model) === 'references' ? 'frames' : 'references';
-      await fields.find(field => field.generationMode).write({}, other === 'references' ? '参照' : '最初 / 最後');
+      await fields.find(field => field.generationMode).write({}, other === 'references' ? 'References' : 'First / last');
       const after = w.generationDrafts.get(identity.key);
       const target = catalog.find(row => row.family === model.family && generationFields.modelSide(row) === other);
       assert.equal(after.modelId, target.id); assert.equal(after.inputs.frames_or_refs, other);
@@ -112,7 +112,7 @@ for (const model of catalog) {
 }
 
 test('実カタログ全 video 行: 参照の送り方の未実装注記は Veo reference だけに出る', () => {
-  const note = 'このモデルの参照の送り方はまだ用意されていません。送ると止まります。';
+  const note = 'References are not supported for this model yet. Sending will stop.';
   for (const model of catalog) {
     const current = draftFor(model);
     current.inputs.reference_videos = []; current.inputs.reference_audios = [];
@@ -160,7 +160,7 @@ test('カウンタ・秒数は validator の返り値を表示し、UI で再集
   validation.references.reference_images.count = 7;
   validation.references.reference_videos.seconds_total = 14;
   const grid = generationFields({ ...defaultsFor(current), validation }).find(field => field.generationReferences).generationReferences;
-  assert.match(grid.counter, /画像 7 \/ 9/u); assert.ok(grid.notes.includes('動画 14 / 15 秒'));
+  assert.match(grid.counter, /Image 7 \/ 9/u); assert.ok(grid.notes.includes('Video 14 / 15 sec'));
 });
 
 test('受けない音声: Kling は validate error と送信 disabled、frames 側は send_side で除外', async () => {
@@ -195,7 +195,7 @@ async function renderPicker({ state, slot = 'reference_images' } = {}) {
 test('＋追加は既存選択と総上限を渡し、配列順・種類ごとの札・挿入順・× を保持する', async () => {
   const { w, pending, add } = await renderPicker(); add.listeners.get('click')();
   assert.deepEqual(w.pickCalls[0], [mirror.GENERATION_PICK_INTO_COMMAND_ID, {
-    slot: 'reference_images', label: '参照画像', accepts: ['image'], multi: true, selected: ['one.png', 'two.png'], max: 9
+    slot: 'reference_images', label: 'Reference image', accepts: ['image'], multi: true, selected: ['one.png', 'two.png'], max: 9
   }]);
   pending.resolve({ status: 'picked', paths: ['one.png', 'two.png', 'three.png'] }); await waitPick(w);
   const gridField = fieldsFor(w).find(field => field.generationReferences);
@@ -266,7 +266,7 @@ test('H3 first + 画像2枚 → 参照 → validateGenerationInputs → next →
       sources: [{ id: 's', path: 'first.png' }], tracks: [{ id: 'v', lane: 'visual', items: [{ id: 'clip-a', at: 0, duration: 180, source: { kind: 'media', src: 's', in: 0, out: 6 } }] }], audio: { narration: [], sfx: [] } }));
     for (const name of ['first.png', 'last.png', 'one.png', 'two.png']) await copyFile(new URL('../../../../../packages/generate/test/fixtures/cli-video/assets/stills/start.png', import.meta.url), path.join(root, name));
     await writeFile(path.join(root, 'first.png.meta.json'), JSON.stringify({ version: 1, kind: 'still', status: 'done' }));
-    await fieldsFor(w).find(field => field.generationMode).write({}, '参照');
+    await fieldsFor(w).find(field => field.generationMode).write({}, 'References');
     assert.equal(w.calls.at(-1).modelId, 'fal:h3-ref'); assert.equal(w.calls.at(-1).inputs.frames_or_refs, 'references');
     const validation = w.generationValidations.get(identity.key);
     assert.equal(validation.ok, true); assert.equal(validation.send_side, 'references');
@@ -333,7 +333,7 @@ test('受け側から違う種類が返ったら下書きを変更せずエラ�
   const { w, pending, add } = await renderPicker(); const before = structuredClone(w.generationDrafts.get(identity.key));
   add.listeners.get('click')(); pending.resolve({ status: 'picked', paths: ['unexpected.mp4'] }); await waitPick(w);
   assert.deepEqual(w.generationDrafts.get(identity.key), before);
-  assert.match(w.generationFramePickMessage.text, /選べない素材/);
+  assert.match(w.generationFramePickMessage.text, /This footage cannot be chosen/);
 });
 
 test('duration RPC の処理中にモデルを切り替えても遅延結果を保存しない', async () => {

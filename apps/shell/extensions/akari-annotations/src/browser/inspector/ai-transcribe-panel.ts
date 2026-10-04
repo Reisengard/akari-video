@@ -80,14 +80,14 @@ export function appendAiTranscribePanel(parent: HTMLElement, options: {
     if (!target) {
         const reason = document.createElement('p');
         reason.className = 'akari-inspector-ai-transcribe-reason';
-        reason.textContent = 'このクリップの素材が見つかりません。';
+        reason.textContent = 'The footage for this clip was not found.';
         panel.appendChild(reason);
         parent.appendChild(panel);
         return;
     }
     const detail = document.createElement('p');
     detail.className = 'akari-inspector-ai-transcribe-detail';
-    detail.textContent = `${target.name} · ${target.duration.toFixed(1)} 秒`;
+    detail.textContent = `${target.name} · ${target.duration.toFixed(1)} sec`;
     panel.appendChild(detail);
     const button = (label: string, action: () => void): HTMLButtonElement => {
         const element = document.createElement('button');
@@ -107,9 +107,9 @@ export function appendAiTranscribePanel(parent: HTMLElement, options: {
             const duration = [options.mediaDuration, target.duration].find(value =>
                 typeof value === 'number' && Number.isFinite(value) && value > 0);
             const cost = duration === undefined
-                ? `$${selected.hourlyUsd.toFixed(2)} / 時（尺未取得）`
-                : `$${(duration * selected.hourlyUsd / 3600).toFixed(4)}（長さ ${duration.toFixed(1)} 秒 × $${selected.hourlyUsd.toFixed(2)} / 時）`;
-            const approved = await options.confirm?.(`${selected.label} に音声を送ります。約 ${cost}`);
+                ? `$${selected.hourlyUsd.toFixed(2)} / hour (length unknown)`
+                : `$${(duration * selected.hourlyUsd / 3600).toFixed(4)} (${duration.toFixed(1)} sec × $${selected.hourlyUsd.toFixed(2)} / hour)`;
+            const approved = await options.confirm?.(`Audio will be sent to ${selected.label}. About ${cost}`);
             if (!approved) return;
         }
         const result = await options.commands.executeCommand<'opened' | 'running' | 'cancelled'>(
@@ -120,7 +120,7 @@ export function appendAiTranscribePanel(parent: HTMLElement, options: {
     if (options.summary.state === 'done' && !options.redo) {
         const heading = document.createElement('h4');
         heading.className = 'akari-inspector-ai-transcribe-status';
-        heading.textContent = `文字起こし済み · ${options.summary.total} 行`;
+        heading.textContent = `Transcribed · ${options.summary.total} lines`;
         panel.appendChild(heading);
         const list = document.createElement('div');
         list.className = 'akari-inspector-ai-transcribe-list';
@@ -137,20 +137,20 @@ export function appendAiTranscribePanel(parent: HTMLElement, options: {
             list.appendChild(row);
         }
         panel.appendChild(list);
-        panel.appendChild(button('台本で開く', () => {
+        panel.appendChild(button('Open in script', () => {
             void options.commands.executeCommand('akari.daihon.open', { atSeconds: target.atSeconds });
         }));
-        panel.appendChild(button('やり直す', () => options.onRedo?.()));
+        panel.appendChild(button('Redo', () => options.onRedo?.()));
     } else if (options.running) {
         const status = document.createElement('p');
         status.className = 'akari-inspector-ai-transcribe-status';
-        status.textContent = '文字起こし中です';
+        status.textContent = 'Transcribing…';
         panel.appendChild(status);
     } else {
         if (engines === undefined) {
             const status = document.createElement('p');
             status.className = 'akari-inspector-ai-transcribe-status';
-            status.textContent = '確認中…';
+            status.textContent = 'Checking…';
             panel.appendChild(status);
         } else {
             if (options.engineError) {
@@ -185,7 +185,7 @@ export function appendAiTranscribePanel(parent: HTMLElement, options: {
                 list.appendChild(row);
             }
             panel.appendChild(list);
-            const start = button('文字起こしする', () => { void dialog(); });
+            const start = button('Transcribe', () => { void dialog(); });
             start.disabled = !selected;
             panel.appendChild(start);
         }

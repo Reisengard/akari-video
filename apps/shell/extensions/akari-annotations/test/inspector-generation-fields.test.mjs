@@ -41,9 +41,9 @@ test('比較モードでも指示文を先頭に出し、通常モードでは�
 test('generationFields はモデル能力・見積・エラーを表駆動で欄へ反映する', () => {
   const cases = [
     { model: models[0], has: ['first-frame', 'generation-audio-always'], lacks: ['negative-prompt', 'reference_images'], estimate: '$0.36' },
-    { model: models[1], has: ['negative-prompt', 'reference_images'], lacks: ['generation-audio-always'], estimate: '見積不可' },
+    { model: models[1], has: ['negative-prompt', 'reference_images'], lacks: ['generation-audio-always'], estimate: 'Estimate unavailable' },
     { model: models[2], has: ['negative-prompt', 'last_frame'], lacks: ['reference_images'], estimate: '$1.20', rounded: true },
-    { model: models[3], has: ['generation-message'], lacks: ['last_frame', 'negative-prompt'], estimate: '見積不可', error: true }
+    { model: models[3], has: ['generation-message'], lacks: ['last_frame', 'negative-prompt'], estimate: 'Estimate unavailable', error: true }
   ];
   for (const row of cases) {
     const validation = {
@@ -56,7 +56,7 @@ test('generationFields はモデル能力・見積・エラーを表駆動で欄
     for (const name of row.has) assert.ok(names(fields).includes(name), `${row.model.id}: ${name}`);
     for (const name of row.lacks) assert.ok(!names(fields).includes(name), `${row.model.id}: ${name}`);
     assert.match(fields.find(field => field.name === 'generation-estimate').getValue({}), new RegExp(row.estimate.replace('$', '\\$')));
-    if (row.rounded) assert.equal(fields.find(field => field.name === 'generation-duration').getValue({}), '6 秒 → 8 秒');
+    if (row.rounded) assert.equal(fields.find(field => field.name === 'generation-duration').getValue({}), '6 sec → 8 sec');
     if (row.model.id.includes('kling')) assert.ok(fields.find(field => field.generationReferences).generationReferences.kinds.some(kind => kind.slot === 'reference_images' && kind.max === null));
   }
 });
@@ -67,7 +67,7 @@ test('長さの行は小数 1 桁、整数はそのまま表示する', () => {
     current.output.duration_s = seconds;
     const fields = generationFields({ snapshot: {}, catalogRow: models[0], draft: current,
       validation: { rounded: { duration_s: { from: seconds, to: 5 } } }, defaults: { catalog: models }, actions });
-    assert.equal(fields.find(field => field.name === 'generation-duration').getValue({}), `${expected} 秒 → 5 秒`);
+    assert.equal(fields.find(field => field.name === 'generation-duration').getValue({}), `${expected} sec → 5 sec`);
   }
 });
 
@@ -102,17 +102,17 @@ test('実カタログ 4 行で欄・見積・エラー・尺丸めを検証す�
     },
     {
       id: 'fal:kling-v3-standard-i2v', resolution: null, duration: 6,
-      has: ['negative-prompt', 'reference_images'], lacks: ['generation-audio-always'], estimate: '見積不可',
+      has: ['negative-prompt', 'reference_images'], lacks: ['generation-audio-always'], estimate: 'Estimate unavailable',
       counterless: true
     },
     {
       id: 'fal:veo-3.1-flf', resolution: '720p', duration: '6',
       has: ['negative-prompt', 'last_frame', 'generation-message'], lacks: ['reference_images'],
-      estimate: '$3.20', rounded: '6 秒 → 8 秒', error: true
+      estimate: '$3.20', rounded: '6 sec → 8 sec', error: true
     },
     {
       id: 'fal:grok-imagine-i2v', resolution: '720p', duration: 6,
-      has: ['generation-message'], lacks: ['last_frame', 'negative-prompt'], estimate: '見積不可', error: true,
+      has: ['generation-message'], lacks: ['last_frame', 'negative-prompt'], estimate: 'Estimate unavailable', error: true,
       unsupportedLast: true
     }
   ];
@@ -145,9 +145,9 @@ test('generating は「動画にする」を disabled、stale は「再取得」
   });
   const generating = fieldsFor('generating').find(field => field.name === 'generation-actions').actions;
   assert.equal(generating.find(action => action.name === 'generate').disabled, true);
-  assert.match(generating.find(action => action.name === 'generate').label, /生成中/u);
+  assert.match(generating.find(action => action.name === 'generate').label, /Generating/u);
   const stale = fieldsFor('stale').find(field => field.name === 'generation-actions').actions;
-  assert.equal(stale.find(action => action.name === 'resume').label, '再取得');
+  assert.equal(stale.find(action => action.name === 'resume').label, 'Refetch');
 });
 
 import { GENERATION_CAMERA_MOVES, generationCameraValue, generationVariety } from '../lib/browser/inspector/generation-fields.js';
@@ -173,7 +173,7 @@ test('実カタログ 5 モデル × 最初・最後・参照・カメラ・音�
 
 test('種類 1 行と外すは枠の実入力から決まる・近道は利用可能な画像だけ', async () => {
   const model = actualVideoModels.find(row => row.id === 'fal:h3-i2v');
-  for (const [first, last, label] of [[null, null, 'プロンプトだけ'], [{ path: 'a.png' }, null, '画像から'], [{ path: 'a.png' }, { path: 'b.png' }, '最初→最後']]) {
+  for (const [first, last, label] of [[null, null, 'Prompt only'], [{ path: 'a.png' }, null, 'From image'], [{ path: 'a.png' }, { path: 'b.png' }, 'First → last']]) {
     const current = draft(model.id); current.inputs.first_frame = first; current.inputs.last_frame = last;
     const updates = [];
     const fields = generationFields({ snapshot: {}, catalogRow: model, draft: current, defaults: { catalog: actualVideoModels, currentImage: 'self.png', nextImage: 'next.png' }, actions: { ...actions, update: async (...args) => { updates.push(args); return { ok: true }; } } });
@@ -191,22 +191,22 @@ test('種類 1 行と外すは枠の実入力から決まる・近道は利用�
     await lastActions.find(action => action.name === 'next').action({});
     assert.deepEqual(updates[1], ['inputs.last_frame', { path: 'next.png' }]);
   }
-  assert.equal(generationVariety({ ...draft(model.id), inputs: { frames_or_refs: 'references' } }), '参照から');
+  assert.equal(generationVariety({ ...draft(model.id), inputs: { frames_or_refs: 'references' } }), 'From references');
 });
 
 test('カメラ 6 ボタン × bracket/prose 対応表のスナップショット', () => {
   assert.deepEqual(GENERATION_CAMERA_MOVES, [
-    { label: '寄る', bracket: '[Push in]', prose: 'The camera pushes in.' },
-    { label: '引く', bracket: '[Pull out]', prose: 'The camera pulls out.' },
-    { label: '左へ振る', bracket: '[Pan left]', prose: 'The camera pans left.' },
-    { label: '右へ振る', bracket: '[Pan right]', prose: 'The camera pans right.' },
-    { label: '追いかける', bracket: '[Tracking shot]', prose: 'The camera tracks the subject.' },
-    { label: '固定', bracket: '[Static shot]', prose: 'The camera stays static.' },
+    { label: 'Push in', bracket: '[Push in]', prose: 'The camera pushes in.' },
+    { label: 'Pull out', bracket: '[Pull out]', prose: 'The camera pulls out.' },
+    { label: 'Pan left', bracket: '[Pan left]', prose: 'The camera pans left.' },
+    { label: 'Pan right', bracket: '[Pan right]', prose: 'The camera pans right.' },
+    { label: 'Track subject', bracket: '[Tracking shot]', prose: 'The camera tracks the subject.' },
+    { label: 'Static', bracket: '[Static shot]', prose: 'The camera stays static.' },
   ]);
   for (const move of GENERATION_CAMERA_MOVES) for (const notation of ['bracket', 'prose']) {
     assert.deepEqual(generationCameraValue(move.label, notation), { notation, value: move[notation], from_annotation: null });
   }
-  assert.equal(generationCameraValue('なし', 'bracket'), null);
+  assert.equal(generationCameraValue('None', 'bracket'), null);
   const model = { ...models[0], inputs: { ...models[0].inputs, camera: null } };
   assert.equal(names(generationFields({ snapshot: {}, catalogRow: model, draft: draft(model.id), defaults: { catalog: [model] }, actions })).includes('camera'), false);
 });
@@ -214,6 +214,6 @@ test('カメラ 6 ボタン × bracket/prose 対応表のスナップショッ�
 test('失敗と応答なしの操作は同じ入力でもう一度', () => {
   for (const state of ['failed', 'stale']) {
     const fields = generationFields({ snapshot: {}, catalogRow: models[0], draft: draft(models[0].id), defaults: { catalog: models, state }, actions });
-    assert.equal(fields.find(row => row.name === 'generation-actions').actions.find(action => action.name === 'retry').label, '同じ入力でもう一度');
+    assert.equal(fields.find(row => row.name === 'generation-actions').actions.find(action => action.name === 'retry').label, 'Retry with same input');
   }
 });

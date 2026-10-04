@@ -35,5 +35,5 @@ export function classifyEditLoadFailure(error: unknown, context?: {
     if (newerVersion && context?.currentVersion) {
         return { kind: 'invalid', notice: newerVersionOpenNotice(newerVersion, context.currentVersion), updateAvailable: true };
     }
-    return { kind: 'invalid', notice: `edit.json を読み込めませんでした: ${message}` };
+    return { kind: 'invalid', notice: `Could not load edit.json: ${message}` };
 }

@@ -73,7 +73,7 @@ test('有料 2 エンジンは合計 1 回だけ承認し、拒否は送信 0、
   const denied = startWidget(['gemini-tts', 'fal-qwen3'], false);
   await denied.widget.startAiNarration('key', 'frame', 0);
   assert.equal(denied.dialogs.length, 1);
-  assert.match(denied.dialogs[0].msg, /Gemini.*\$0\.040.*Qwen.*\$0\.200.*合計 \$0\.240/su);
+  assert.match(denied.dialogs[0].msg, /Gemini.*\$0\.040.*Qwen.*\$0\.200.*Total \$0\.240/su);
   assert.equal(denied.batches.length, 0);
   const approved = startWidget(['gemini-tts', 'fal-qwen3']);
   await approved.widget.startAiNarration('key', 'frame', 0);
@@ -141,19 +141,19 @@ test('既定は使えるいつもの 1 件、使えない・未設定は従来�
 });
 
 test('行ごとの見積もりは無料・従量・見積不可を区別する', () => {
-  assert.equal(narrationRowEstimate(engines[0], 'あ'.repeat(1000)), '無料');
-  assert.equal(narrationRowEstimate(engines[1], 'あ'.repeat(1000)), '無料');
-  assert.equal(narrationRowEstimate(engines[2], 'あ'.repeat(1000)), '見積 $0.040');
-  assert.equal(narrationRowEstimate(engines[2], 'あ'.repeat(2000)), '見積 $0.080');
-  assert.equal(narrationRowEstimate({ ...engines[2], price: undefined }, 'あ'), '見積不可');
+  assert.equal(narrationRowEstimate(engines[0], 'あ'.repeat(1000)), 'Free');
+  assert.equal(narrationRowEstimate(engines[1], 'あ'.repeat(1000)), 'Free');
+  assert.equal(narrationRowEstimate(engines[2], 'あ'.repeat(1000)), 'Estimate $0.040');
+  assert.equal(narrationRowEstimate(engines[2], 'あ'.repeat(2000)), 'Estimate $0.080');
+  assert.equal(narrationRowEstimate({ ...engines[2], price: undefined }, 'あ'), 'Estimate unavailable');
 });
 
 test('候補行は声の表示名と尺・作成の札を使い、名前が無いときだけ id を出す', () => {
   const candidate = { route: 'voicevox', voice: '2', ok: true, durationSeconds: 0.55, elapsedSeconds: 19.6, costUsd: 0 };
   assert.equal(narrationCandidateLabel(candidate, engines, { voicevox: [
     { id: '2', label: 'ずんだもん（ノーマル）' }
-  ] }), 'VOICEVOX · ずんだもん（ノーマル） · 尺 0.6 秒 · 作成 20 秒 · $0.000');
-  assert.match(narrationCandidateLabel(candidate, engines), /VOICEVOX · 2 · 尺 0\.6 秒 · 作成 20 秒/u);
+  ] }), 'VOICEVOX · ずんだもん（ノーマル） · Length 0.6 sec · Took 20 sec · $0.000');
+  assert.match(narrationCandidateLabel(candidate, engines), /VOICEVOX · 2 · Length 0\.6 sec · Took 20 sec/u);
 });
 
 test('失敗候補は分かる声の表示名だけを添え、欠けた尺・作成・料金を出さない', () => {
@@ -162,7 +162,7 @@ test('失敗候補は分かる声の表示名だけを添え、欠けた尺・�
     'Gemini · Leda（明るい声）');
   const unknown = narrationCandidateLabel(failed, engines);
   assert.equal(unknown, 'Gemini');
-  assert.doesNotMatch(unknown, /声|\?|\$0\.000|尺|作成/u);
+  assert.doesNotMatch(unknown, /声|\?|\$0\.000|Length|Took/u);
   assert.equal(narrationCandidateLabel({ ...failed, ok: true }, engines, {}), 'Gemini · Leda');
 });
 

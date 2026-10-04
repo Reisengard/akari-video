@@ -65,8 +65,8 @@ test('表示できる 9 書体だけを検索・複数タグ AND フィルター
     assert.ok(filterCaptionFonts(available, 'Noto', new Set()).every(row => row.title.includes('Noto')));
     assert.ok(!available.some(row => row.id === 'ab-kirigirisu'));
     assert.equal(faces.get('noto-sans-jp'), CAPTION_FONT_FAMILY);
-    assert.match(captionFontRowDetail(['latin']), /日本語は代わりの書体で表示/u);
-    assert.doesNotMatch(captionFontRowDetail(['japanese']), /代わりの書体/u);
+    assert.match(captionFontRowDetail(['latin']), /Japanese uses a substitute font/u);
+    assert.doesNotMatch(captionFontRowDetail(['japanese']), /substitute font/u);
 });
 
 test('日本語表示名と英字名の両方で同じ書体を検索できる', () => {
@@ -165,10 +165,10 @@ test('フォント行・フィルターチップ・追加ボタンは安定し�
     assert.equal(nodes.filter(node => node.attributes['data-akari-font-row'] === 'ab-kirigirisu').length, 0);
     const multiple = nodes.find(node => node.attributes['data-akari-font-row'] === 'biz-udgothic');
     assert.equal(multiple.children[0].attributes['aria-expanded'], 'false');
-    assert.match(multiple.children[0].attributes['aria-label'], /太さを開く/u);
+    assert.match(multiple.children[0].attributes['aria-label'], /Expand weights/u);
     multiple.children[0].fire('click');
     const expanded = descendants(createCaptionPanel(document, 'font', panelState, [], faces, actions))
         .find(node => node.attributes['data-akari-font-row'] === 'biz-udgothic');
     assert.equal(expanded.children[0].attributes['aria-expanded'], 'true');
-    assert.match(expanded.children[0].attributes['aria-label'], /太さを閉じる/u);
+    assert.match(expanded.children[0].attributes['aria-label'], /Collapse weights/u);
 });

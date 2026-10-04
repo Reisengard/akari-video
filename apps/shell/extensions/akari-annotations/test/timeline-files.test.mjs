@@ -53,7 +53,7 @@ test('presets and orientation defaults cover portrait, landscape, square and una
 });
 
 test('tab labels prefer title and IDs preserve the canonical widget', () => {
-    assert.equal(timelineDisplayName(undefined), 'タイムライン');
+    assert.equal(timelineDisplayName(undefined), 'Timeline');
     assert.equal(timelineDisplayName('portrait'), 'portrait');
     assert.equal(timelineDisplayName('portrait', '縦長版'), '縦長版');
     assert.equal(timelineDisplayName(undefined, '本編'), '本編');

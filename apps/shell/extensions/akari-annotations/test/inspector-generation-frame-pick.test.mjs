@@ -75,7 +75,7 @@ test('frame click invokes pickInto once with the mirrored request and exposes pe
   const { frame, result, calls } = setup();
   assert.equal(frame.getAttribute('role'), 'button'); assert.equal(frame.tabIndex, 0);
   frame.listeners.get('click')();
-  assert.deepEqual(calls, [[mirror.GENERATION_PICK_INTO_COMMAND_ID, { slot: 'first_frame', label: '最初の絵', accepts: ['image'], multi: false }]]);
+  assert.deepEqual(calls, [[mirror.GENERATION_PICK_INTO_COMMAND_ID, { slot: 'first_frame', label: 'First frame', accepts: ['image'], multi: false }]]);
   assert.equal(frame.getAttribute('aria-pressed'), 'true');
   result.resolve({ status: 'cancelled' }); await settle();
   assert.equal(frame.getAttribute('aria-pressed'), 'false');
@@ -93,7 +93,7 @@ test('picked updates inputs.first_frame and the existing debounced writeGenerati
 test('last frame carries selected as an array and writes the last slot', async () => {
   const { w, result, calls } = setup();
   const picking = w.pickGenerationFrame(identity, 'last_frame', 'assets/old.png');
-  assert.deepEqual(calls[0][1], { slot: 'last_frame', label: '最後の絵', accepts: ['image'], multi: false, selected: ['assets/old.png'] });
+  assert.deepEqual(calls[0][1], { slot: 'last_frame', label: 'Last frame', accepts: ['image'], multi: false, selected: ['assets/old.png'] });
   result.resolve({ status: 'picked', paths: ['assets/last.png'] }); await picking; await saved(w);
   assert.deepEqual(w.generationDrafts.get('a').inputs.last_frame, { path: 'assets/last.png' });
 });
@@ -137,7 +137,7 @@ test('unregistered command opens single image dialog and writes a project-relati
   await w.pickGenerationFrame(identity, 'first_frame', ''); await saved(w);
   assert.equal(calls.length, 0); assert.equal(dialogs.length, 1);
   assert.equal(dialogs[0][0].canSelectMany, false); assert.equal(dialogs[0][0].canSelectFolders, false);
-  assert.ok(dialogs[0][0].filters['画像'].includes('png'));
+  assert.ok(dialogs[0][0].filters['Images'].includes('png'));
   assert.deepEqual(writes[0].inputs.first_frame, { path: 'assets/chosen.png' });
 });
 
@@ -146,7 +146,7 @@ for (const selected of ['file:///outside.png', 'file:///project-other/a.png', 'f
     const { w, writes } = setup({ registered: false, selected }); const before = structuredClone([...w.generationDrafts]);
     await w.pickGenerationFrame(identity, 'first_frame', '');
     assert.deepEqual([...w.generationDrafts], before); assert.equal(writes.length, 0);
-    if (selected) assert.match(w.generationFramePickMessage.text, /画像/);
+    if (selected) assert.match(w.generationFramePickMessage.text, /image/i);
     else assert.equal(w.generationFramePickMessage, undefined);
   });
 }
@@ -198,14 +198,14 @@ for (const cancelRegistered of [true, false]) {
     w.appendRow(w.body, {
       name: 'generation-references', label: '参照', getValue: () => '',
       generationReferences: { entries: [], counter: '画像 0 / 9', notes: [],
-        kinds: [{ slot: 'reference_images', kind: 'image', label: '画像', max: 9 }] }
+        kinds: [{ slot: 'reference_images', kind: 'image', label: 'Image', max: 9 }] }
     }, w.model.snapshot, 'cut');
     const all = element => element.children.flatMap(child => [child, ...all(child)]);
     const add = all(w.body).find(element => element.getAttribute('data-akari-generation-reference-add'));
     assert.ok(add);
     add.listeners.get('click')();
     assert.equal(w.generationFramePick.slot, 'reference_images');
-    assert.deepEqual(calls[0][1], { slot: 'reference_images', label: '参照画像', accepts: ['image'], multi: true, selected: [], max: 9 });
+    assert.deepEqual(calls[0][1], { slot: 'reference_images', label: 'Reference image', accepts: ['image'], multi: true, selected: [], max: 9 });
     add.listeners.get('click')();
     assert.equal(w.generationFramePick, undefined);
     assert.deepEqual(calls.map(([id]) => id), [mirror.GENERATION_PICK_INTO_COMMAND_ID,

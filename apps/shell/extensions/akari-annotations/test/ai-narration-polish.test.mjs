@@ -75,7 +75,7 @@ test('自声は available のときだけ AI カタログに有料で現れる',
       .find(action => action.id === 'narration');
     const route = row.routes.find(item => item.id === 'fal-qwen3');
     assert.equal(!!route, availability === 'available');
-    if (route) assert.deepEqual([route.cost, route.label], ['paid', '自声 · 有料 · $0.2 / 1000 字']);
+    if (route) assert.deepEqual([route.cost, route.label], ['paid', 'Own voice · paid · $0.2 / 1000 chars']);
   }
 });
 
@@ -88,7 +88,7 @@ test('自声の費用承認を断ると生成しない', async () => {
     atSeconds: 1, fps: 30, confirm: async value => { message = value; return false; },
     service: { generateNarration: async () => { generated++; throw new Error('unexpected'); } },
     commit: async () => { throw new Error('unexpected'); } });
-  assert.match(message.msg, /\$0\.001.*6 字/u);
+  assert.match(message.msg, /6 chars.*\$0\.001/u);
   assert.equal(generated, 0);
 });
 
@@ -227,7 +227,7 @@ test('widget: 古い edit キャッシュがあっても置き先が直後に出
     && widget.narrationPlacementNotice.sourcePath === widget.narrationSourcePath;
   assert.equal(widget.narrationPlacementNotice?.sourcePath, 'out/narration/n-0001.wav');
   assert.equal(placementVisible(), true);
-  assert.match(widget.narrationPlacementNotice.label, /ずらして/u);
+  assert.match(widget.narrationPlacementNotice.label, /Shifted later clips/u);
   changed({ changes: [{ resource: { toString: () => 'edit.json' } }] });
   await widget.pendingVerify;
   assert.equal(placementVisible(), true);

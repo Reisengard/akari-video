@@ -4,19 +4,19 @@ import { Command } from '@theia/core/lib/common';
 /** ウィジェット同士の循環 import を避けるため、コマンド定義はここに置く。 */
 export const OPEN_AKARI_ANNOTATIONS: Command = {
     id: 'akari.annotations.open',
-    label: 'タイムラインを開く'
+    label: 'Open timeline'
 };
 
 export const OPEN_AKARI_REVIEW_PANEL: Command = {
     id: 'akari.review.open',
-    label: '注釈を開く'
+    label: 'Open annotations'
 };
 
 export const OPEN_AKARI_REVIEW_PANEL_ID = OPEN_AKARI_REVIEW_PANEL.id;
 
 export const OPEN_AKARI_INSPECTOR: Command = {
     id: 'akari.inspector.open',
-    label: 'インスペクターを開く'
+    label: 'Open inspector'
 };
 
 export const OPEN_AKARI_INSPECTOR_ID = OPEN_AKARI_INSPECTOR.id;
@@ -39,27 +39,27 @@ export const CLOSE_AKARI_INSPECTOR_COLOR_PANEL: Command = {
 
 export const OPEN_AKARI_REVIEW_BOARD: Command = {
     id: 'akari.review.board.open',
-    label: 'レビューボードを開く'
+    label: 'Open review board'
 };
 
 export const OPEN_AKARI_REVIEW_BOARD_ID = OPEN_AKARI_REVIEW_BOARD.id;
 
 export const OPEN_AKARI_SESSION_VIEWER: Command = {
     id: 'akari.sessionViewer.open',
-    label: 'AKARI: 録音セッションを見返す'
+    label: 'AKARI: Replay recording session'
 };
 
 /** キャンバス面（contract-2026-07-26-canvas-surface）を新規に開く。 */
 export const OPEN_AKARI_CANVAS: Command = {
     id: 'akari.canvas.open',
-    label: 'キャンバスを開く'
+    label: 'Open canvas'
 };
 
 export const OPEN_AKARI_CANVAS_ID = OPEN_AKARI_CANVAS.id;
 
-export const CREATE_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.create', label: 'キャンバスを作る' };
-export const PUT_INTO_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.put', label: 'キャンバスへ入れる' };
-export const TAKE_OUT_OF_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.takeOut', label: 'キャンバスから出す' };
+export const CREATE_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.create', label: 'Create canvas' };
+export const PUT_INTO_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.put', label: 'Put into canvas' };
+export const TAKE_OUT_OF_TIMELINE_CANVAS: Command = { id: 'akari.timeline.canvas.takeOut', label: 'Take out of canvas' };
 
 /**
  * akari-preview から動画オープン時に呼ばれる内部コマンド。label なし = コマンドパレット非表示
@@ -123,6 +123,6 @@ export const ADD_MATERIAL_AT_POINT: Command = {
     id: 'akari.timeline.addMaterialAtPoint'
 };
 
-export const PLACE_TEXT: Command = { id: PLACE_TEXT_COMMAND_ID, label: '文字を置く', category: 'タイムライン' };
-export const READ_ALOUD: Command = { id: 'akari.caption.readAloud', label: '読み上げ' };
-export const VOICE_CREATE: Command = { id: 'akari.voice.create', label: '自分の声をつくる…' };
+export const PLACE_TEXT: Command = { id: PLACE_TEXT_COMMAND_ID, label: 'Place text', category: 'Timeline' };
+export const READ_ALOUD: Command = { id: 'akari.caption.readAloud', label: 'Read aloud' };
+export const VOICE_CREATE: Command = { id: 'akari.voice.create', label: 'Create my voice...' };

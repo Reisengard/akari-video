@@ -19,19 +19,19 @@ test('動画の作り方は採用 meta の実入力だけを全行へ写し、ne
   assert.equal(values.model, 'H3（画像から）');
   assert.equal(values.prompt, 'full\ntext');
   assert.equal(values['negative-prompt'], 'blur');
-  assert.equal(values.camera, '引く');
+  assert.equal(values.camera, 'Pull out');
   assert.equal(values.first_frame, 'start.png');
   assert.equal(values.last_frame, 'end.png');
   assert.equal(values['reference_images-0'], 'example.png');
-  assert.equal(values.duration, '6 秒');
-  assert.equal(values['actual-duration'], '6.5 秒');
+  assert.equal(values.duration, '6 sec');
+  assert.equal(values['actual-duration'], '6.5 sec');
   assert.equal(values.resolution, '768P');
-  assert.equal(values['audio-out'], 'あり');
-  assert.equal(values.cost, '見積 $0.36 · as_of 2026-09-12');
+  assert.equal(values['audio-out'], 'Yes');
+  assert.equal(values.cost, 'Estimate $0.36 · as_of 2026-09-12');
   const created = new Date(video.provenance.created_at);
   const pad = value => String(value).padStart(2, '0');
   assert.equal(values.created, `${created.getFullYear()}-${pad(created.getMonth() + 1)}-${pad(created.getDate())} ${pad(created.getHours())}:${pad(created.getMinutes())}`);
-  assert.equal(values.elapsed, '24 秒');
+  assert.equal(values.elapsed, '24 sec');
   assert.equal(generationDraftFromDone(video).inputs.prompt, 'full\ntext');
 });
 
@@ -47,9 +47,9 @@ test('作った日時は端末の現地時刻で分まで表示し、読めな�
 
 test('所要秒だけ整数に丸め、1 秒未満を区別する', () => {
   const value = meta => generationProvenance(meta).rows.find(row => row.key === 'elapsed').value;
-  assert.equal(value({ ...video, result: { elapsed_s: 12.241 } }), '12 秒');
-  assert.equal(value({ ...video, result: { elapsed_s: 0.7 } }), '1 秒未満');
-  assert.equal(value({ ...video, result: {}, job: { elapsed_s: 1.8 } }), '2 秒');
+  assert.equal(value({ ...video, result: { elapsed_s: 12.241 } }), '12 sec');
+  assert.equal(value({ ...video, result: { elapsed_s: 0.7 } }), 'under 1 sec');
+  assert.equal(value({ ...video, result: {}, job: { elapsed_s: 1.8 } }), '2 sec');
 });
 
 test('声はナレーションパネルの声一覧から表示名を引き、未知の id は残す', () => {
@@ -72,7 +72,7 @@ test('静止画とナレーションも記録のある行だけ出す', () => {
     inputs: { prompt: 'hello' }, voice: 'speaker-3', job: { elapsed_s: 2 } });
   assert.equal(audio.kind, 'audio');
   assert.deepEqual(audio.rows.map(row => row.key), ['model', 'prompt', 'elapsed', 'voice']);
-  assert.equal(audio.rows.find(row => row.key === 'prompt').label, '原稿');
+  assert.equal(audio.rows.find(row => row.key === 'prompt').label, 'Script');
 });
 
 test('meta が無い・完成していない item に作り方を作らない', () => {

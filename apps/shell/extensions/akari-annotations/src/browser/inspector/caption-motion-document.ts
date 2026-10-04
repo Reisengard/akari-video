@@ -1,18 +1,18 @@
 export const CAPTION_WORD_STYLES = [
-    { id: 'karaoke', label: 'カラオケ' }, { id: 'pop', label: 'ポップ' },
-    { id: 'reveal', label: '1 行ずつ' }, { id: 'reveal-word', label: '1 語ずつ' }
+    { id: 'karaoke', label: 'Karaoke' }, { id: 'pop', label: 'Pop' },
+    { id: 'reveal', label: 'Line by line' }, { id: 'reveal-word', label: 'Word by word' }
 ] as const;
 
 export const CAPTION_EMPHASIS_STYLES = [
-    { id: 'one-char-bang', label: '1 文字ドン', emotion: 'surprise' },
-    { id: 'one-char-jumble', label: 'ごちゃ混ぜ', emotion: 'disgust' },
-    { id: 'size-pulse', label: '大きさの脈動', emotion: 'emphasis' },
-    { id: 'color-accent', label: '色の強調', emotion: 'emphasis' },
-    { id: 'color-only', label: '色だけ', emotion: 'emphasis' },
-    { id: 'outline-bold', label: '縁取り太字', emotion: 'emphasis' },
-    { id: 'danger', label: '危険', emotion: 'anger' },
-    { id: 'positive', label: '肯定', emotion: 'joy' },
-    { id: 'highlight', label: 'ハイライト', emotion: 'emphasis' }
+    { id: 'one-char-bang', label: 'One-char slam', emotion: 'surprise' },
+    { id: 'one-char-jumble', label: 'Jumble', emotion: 'disgust' },
+    { id: 'size-pulse', label: 'Size pulse', emotion: 'emphasis' },
+    { id: 'color-accent', label: 'Color accent', emotion: 'emphasis' },
+    { id: 'color-only', label: 'Color only', emotion: 'emphasis' },
+    { id: 'outline-bold', label: 'Bold outline', emotion: 'emphasis' },
+    { id: 'danger', label: 'Danger', emotion: 'anger' },
+    { id: 'positive', label: 'Positive', emotion: 'joy' },
+    { id: 'highlight', label: 'Highlight', emotion: 'emphasis' }
 ] as const;
 
 export interface CaptionMotionWord { text: string; start: number; end: number }
@@ -37,9 +37,9 @@ export function upsertCaptionKaraoke(source: string, captionId: string,
     settings: CaptionKaraokeSettings, selectStyle = false): string {
     const raw = JSON.parse(source) as unknown;
     const rows = Array.isArray(raw) ? raw : object(raw) ? raw.captions : undefined;
-    if (!Array.isArray(rows)) throw new Error('字幕データを読み取れません。');
+    if (!Array.isArray(rows)) throw new Error('Could not read the caption data.');
     const row = rows.find(item => object(item) && item.id === captionId);
-    if (!object(row)) throw new Error('字幕が見つかりません。');
+    if (!object(row)) throw new Error('Caption not found.');
     if (selectStyle) row.style = 'karaoke';
     const style = object(row.text_style) ? row.text_style : {};
     const current = object(style.karaoke) ? style.karaoke : {};
@@ -55,9 +55,9 @@ function object(value: unknown): value is Record<string, unknown> {
 export function readCaptionMotionCue(source: string, captionId: string): CaptionMotionCue {
     const document = JSON.parse(source) as unknown;
     const rows = Array.isArray(document) ? document : object(document) ? document.captions : undefined;
-    if (!Array.isArray(rows)) throw new Error('字幕データを読み取れません。');
+    if (!Array.isArray(rows)) throw new Error('Could not read the caption data.');
     const raw = rows.find(row => object(row) && row.id === captionId);
-    if (!object(raw)) throw new Error('字幕が見つかりません。');
+    if (!object(raw)) throw new Error('Caption not found.');
     const inherited = object(document) && object(document.default_text_style) ? document.default_text_style : {};
     const own = object(raw.text_style) ? raw.text_style : {};
     const inheritedKaraoke = object(inherited.karaoke) ? inherited.karaoke : undefined;
@@ -81,11 +81,11 @@ export function readCaptionMotionCue(source: string, captionId: string): Caption
 export function upsertCaptionEmphasis(source: string, captionId: string, wordIndex: number,
     style: typeof CAPTION_EMPHASIS_STYLES[number]['id']): string {
     const cue = readCaptionMotionCue(source, captionId);
-    if (cue.time_domain === 'output') throw new Error('出力時間軸の字幕は語の source 時刻を確定できません。');
+    if (cue.time_domain === 'output') throw new Error('Captions on the output timeline cannot set source times for words.');
     const word = cue.words[wordIndex];
-    if (!word) throw new Error('強調する語を選んでください。');
+    if (!word) throw new Error('Select a word to emphasize.');
     const definition = CAPTION_EMPHASIS_STYLES.find(item => item.id === style);
-    if (!definition) throw new Error('強調の種類を選んでください。');
+    if (!definition) throw new Error('Select an emphasis type.');
     const raw = JSON.parse(source) as unknown;
     const document: Record<string, unknown> = Array.isArray(raw) ? { captions: raw } : raw as Record<string, unknown>;
     const entries = Array.isArray(document.emphasis_words) ? [...document.emphasis_words] : [];
@@ -102,7 +102,7 @@ export function upsertCaptionEmphasis(source: string, captionId: string, wordInd
             if (!used.has(candidate)) { id = candidate; break; }
         }
     }
-    if (typeof id !== 'string') throw new Error('強調の ID を採番できません。');
+    if (typeof id !== 'string') throw new Error('Could not assign an emphasis ID.');
     const next = { ...(existing ?? {}), id, word: word.text, t_start: word.start, t_end: word.end,
         ...(cue.src ? { src: cue.src } : {}), emotion: definition.emotion, style_hint: style };
     if (index >= 0) entries[index] = next;
@@ -127,7 +127,7 @@ export function readOwnerMotion(editSource: string, ownerId: string, fallbackSec
     };
     const tracks = Array.isArray(document.tracks) ? document.tracks : [];
     const item = tracks.map(track => object(track) ? find(track.items) : undefined).find(Boolean);
-    if (!item) throw new Error('字幕の袋が見つかりません。');
+    if (!item) throw new Error('Caption container not found.');
     const output = object(document.output) ? document.output : {};
     const fps = Number(output.fps ?? 30);
     const duration = Number(item.duration ?? fallbackSeconds);

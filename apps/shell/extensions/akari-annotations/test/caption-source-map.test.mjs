@@ -47,8 +47,8 @@ test("複数 source で src が無い字幕だけを数え、必要な修正を 
 
   assert.equal(
     warning,
-    "出自を特定できない字幕 2 件を表示していません。"
-      + "複数 source のプロジェクトでは captions.json の各字幕に src が必要です。",
+    "2 caption(s) with unknown source are hidden. "
+      + "In a project with multiple sources, each caption in captions.json needs an src.",
   );
 });
 

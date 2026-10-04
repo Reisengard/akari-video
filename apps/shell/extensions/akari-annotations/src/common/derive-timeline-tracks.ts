@@ -114,7 +114,7 @@ export function withPlacedTextDisplayTrack(
     if (!hasPlacedText) return next;
     const captionIndex = next.findIndex(track => track.kind === 'captions');
     next.splice(captionIndex < 0 ? next.length : captionIndex + 1, 0, {
-        id: PLACED_TEXT_TRACK_ID, kind: 'captions', label: '文字'
+        id: PLACED_TEXT_TRACK_ID, kind: 'captions', label: 'Text'
     });
     return next;
 }

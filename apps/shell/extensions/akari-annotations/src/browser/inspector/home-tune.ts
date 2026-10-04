@@ -13,16 +13,16 @@ export interface HomeTuneTile {
 export function homeTuneTiles(kind: InspectorTabKind, tabs: readonly InspectorTabDef[]): HomeTuneTile[] {
     if (!['cut', 'layer', 'overlay', 'item', 'audio'].includes(kind)) return [];
     const choices: Omit<HomeTuneTile, 'enabled' | 'reason'>[] = kind === 'audio'
-        ? [{ id: 'volume', label: '音量', tabId: 'audio' }]
+        ? [{ id: 'volume', label: 'Volume', tabId: 'audio' }]
         : [
-            { id: 'position', label: '位置と大きさ', tabId: 'video', sectionId: 'transform' },
-            { id: 'color', label: '色', tabId: 'adjust' },
-            { id: 'volume', label: '音量', tabId: 'audio' },
-            { id: 'motion', label: '動き', tabId: 'motion' }
+            { id: 'position', label: 'Position and size', tabId: 'video', sectionId: 'transform' },
+            { id: 'color', label: 'Color', tabId: 'adjust' },
+            { id: 'volume', label: 'Volume', tabId: 'audio' },
+            { id: 'motion', label: 'Motion', tabId: 'motion' }
         ];
     return choices.map(choice => {
         const enabled = tabs.find(tab => tab.id === choice.tabId)?.enabled === true;
-        return { ...choice, enabled, ...(!enabled ? { reason: '映像の素材で使えます' } : {}) };
+        return { ...choice, enabled, ...(!enabled ? { reason: 'Available for video footage' } : {}) };
     });
 }
 
@@ -34,7 +34,7 @@ export function appendHomeTuneTiles(parent: HTMLElement, tiles: readonly HomeTun
     section.setAttribute('data-akari-ui', 'section:inspector-home-tune');
     const heading = document.createElement('h3');
     heading.className = 'akari-inspector-section-header akari-inspector-ai-heading';
-    heading.textContent = '整える';
+    heading.textContent = 'Tune';
     const grid = document.createElement('div');
     grid.className = 'akari-inspector-section-body akari-inspector-ai-grid';
     for (const tile of tiles) {

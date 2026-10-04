@@ -49,12 +49,12 @@ test("setSfxFadeInSource with null removes the field (undo back to implicit 省�
 });
 
 test("setSfxFadeInSource rejects negative values", () => {
-  assert.throws(() => setSfxFadeInSource(sfxSource, 0, { fadeIn: -1 }), /fade_in は 0 以上/u);
-  assert.throws(() => setSfxFadeInSource(sfxSource, 0, { fadeOut: -1 }), /fade_out は 0 以上/u);
+  assert.throws(() => setSfxFadeInSource(sfxSource, 0, { fadeIn: -1 }), /fade_in must be 0 or more/u);
+  assert.throws(() => setSfxFadeInSource(sfxSource, 0, { fadeOut: -1 }), /fade_out must be 0 or more/u);
 });
 
 test("setSfxFadeInSource requires at least one field", () => {
-  assert.throws(() => setSfxFadeInSource(sfxSource, 0, {}), /変更する fade フィールドを指定/u);
+  assert.throws(() => setSfxFadeInSource(sfxSource, 0, {}), /Specify the fade field to change/u);
 });
 
 test("setSfxFadeInSource only touches the targeted sfx index (sibling items untouched)", () => {

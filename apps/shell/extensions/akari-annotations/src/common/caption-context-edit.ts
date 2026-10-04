@@ -54,7 +54,7 @@ export async function applyCaptionContextPreset(id: string, presetId: string, ta
     const result = await deps.setPreset(ids, presetId);
     if (result.changed === 0) return { ok: true };
     const after = await deps.readSource();
-    deps.recordHistory({ label: '字幕のスタイルを変更',
+    deps.recordHistory({ label: 'Change caption style',
         undo: async () => { await deps.writeSource(before); await deps.reload(); },
         redo: async () => { await deps.writeSource(after); await deps.reload(); } });
     await deps.reload();
@@ -112,7 +112,7 @@ function replaceCueField(source: string, id: string, field: string, value: unkno
     const captions = /"captions"\s*:\s*\[/u.exec(source);
     const arrayStart = source.trimStart().startsWith('[') ? source.indexOf('[')
         : captions ? captions.index + captions[0].length - 1 : -1;
-    if (arrayStart < 0) throw new Error('captions 配列がありません。');
+    if (arrayStart < 0) throw new Error('No captions array.');
     const start = arrayStart + 1;
     const end = valueEnd(source, start - 1);
     let at = start;
@@ -130,7 +130,7 @@ function replaceCueField(source: string, id: string, field: string, value: unkno
             }
             const styleStart = at + locatedStyle.start;
             const styleEnd = at + locatedStyle.end;
-            if (source[styleStart] !== '{') throw new Error(`字幕 ${id} の text_style はオブジェクトではありません。`);
+            if (source[styleStart] !== '{') throw new Error(`The text_style of caption ${id} is not an object.`);
             const style = source.slice(styleStart, styleEnd);
             const old = topLevelField(style, field);
             if (old) {
@@ -142,7 +142,7 @@ function replaceCueField(source: string, id: string, field: string, value: unkno
         }
         at = cueEnd;
     }
-    throw new Error(`字幕 ${id} がありません。`);
+    throw new Error(`Caption ${id} not found.`);
 }
 
 export async function applyCaptionContextField(id: string, field: string, value: unknown, targetIds: readonly string[], deps: {
@@ -165,7 +165,7 @@ export async function applyCaptionContextField(id: string, field: string, value:
     for (const targetId of ids) after = replaceCueField(after, targetId, field, value);
     if (after === before) return { ok: true };
     await deps.writeSource(after);
-    deps.recordHistory({ label: '字幕の文字を変更',
+    deps.recordHistory({ label: 'Change caption text',
         undo: async () => { await deps.writeSource(before); await deps.reload(); },
         redo: async () => { await deps.writeSource(after); await deps.reload(); } });
     await deps.reload();

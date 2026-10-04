@@ -26,10 +26,10 @@ test('LUT import validates inputs, preserves bytes and never overwrites', async 
       ['late.cube', '\n'.repeat(64) + 'LUT_3D_SIZE 2']]) {
       const invalid = join(root, name);
       await writeFile(invalid, text);
-      await assert.rejects(service.importAdjustLut({ projectRootUri, sourcePath: invalid }), /[ぁ-んァ-ヶ一-龠]/u);
+      await assert.rejects(service.importAdjustLut({ projectRootUri, sourcePath: invalid }), /Select a \.cube file|8 MB or smaller|LUT_3D_SIZE 2-65 is required/u);
     }
-    await assert.rejects(service.importAdjustLut({ projectRootUri, sourcePath: 'relative.cube' }), /絶対パス/u);
-    await assert.rejects(service.importAdjustLut({ projectRootUri: '', sourcePath }), /ルート/u);
+    await assert.rejects(service.importAdjustLut({ projectRootUri, sourcePath: 'relative.cube' }), /Specify the absolute path of the LUT/u);
+    await assert.rejects(service.importAdjustLut({ projectRootUri: '', sourcePath }), /Specify the project root/u);
     await writeFile(join(project, 'assets/luts/Z.CUBE'), data);
     await writeFile(join(project, 'assets/luts/skip.txt'), data);
     await mkdir(join(project, 'assets/luts/folder.cube'));
@@ -50,6 +50,6 @@ test('LUT import rejects a project assets junction escaping the root', async () 
     await writeFile(sourcePath, 'LUT_3D_SIZE 2');
     await assert.rejects(new AkariAnnotationsServiceImpl().importAdjustLut({
       projectRootUri: pathToFileURL(project).toString(), sourcePath
-    }), /プロジェクト外/u);
+    }), /Cannot save the LUT outside the project/u);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

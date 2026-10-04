@@ -18,7 +18,7 @@ test('開始を含み終了を含まず、重なる区間では上のキャン�
     assert.equal(canvasAtFrame(targets, 360, true), undefined);
     assert.equal(canvasAtFrame(targets, 420)?.id, 'lower');
     assert.equal(canvasAtFrame(targets, 450), undefined);
-    assert.equal(canvasDropLabel(targets, targets[0]), 'キャンバス 1');
+    assert.equal(canvasDropLabel(targets, targets[0]), 'Canvas 1');
     assert.equal(canvasDropLabel(targets, targets[1]), '上の絵');
 });
 

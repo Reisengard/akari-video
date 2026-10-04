@@ -35,7 +35,7 @@ test('plus offers closed timelines and a new timeline, then opens the selected v
     const fixture = setup();
     const widget = await fixture.harness.openOrCreateTimeline();
     assert.deepEqual(fixture.choices().map(item => [item.label, item.description]), [
-        ['v20', 'edit.v20.json'], ['新しいタイムライン', undefined]
+        ['v20', 'edit.v20.json'], ['New timeline', undefined]
     ]);
     assert.equal(widget.id, 'edit.v20.json');
     assert.deepEqual(fixture.activated, ['edit.v20.json']);

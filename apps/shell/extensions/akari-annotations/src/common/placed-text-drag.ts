@@ -53,9 +53,9 @@ export function planPlacedTextMove(input: {
             : destination.kind === 'track' || destination.kind === 'placed-text' || overlap
                 ? `${row!.top}px` : input.originalTop,
         destination,
-        ...(destination.kind === 'rejected' ? { reason: overlap ? '同じトラックの区間と重なります'
+        ...(destination.kind === 'rejected' ? { reason: overlap ? 'Overlaps a segment on the same track'
             : row?.lane === 'audio'
-            ? '音のトラックには置けません' : row?.lane === 'caption-bag'
-                ? '字幕の段には置けません' : 'ここには置けません' } : {})
+            ? 'Cannot be placed on an audio track' : row?.lane === 'caption-bag'
+                ? 'Cannot be placed on a caption lane' : 'Cannot be placed here' } : {})
     };
 }

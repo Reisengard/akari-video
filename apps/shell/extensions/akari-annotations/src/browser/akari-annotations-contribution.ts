@@ -271,7 +271,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
     onWillStop(): OnWillStopAction | undefined {
         const owner = this.materialSwapOwner;
         if (!owner?.hasMaterialSwap) return undefined;
-        return { reason: 'お試し中の素材を元に戻す', action: async () => {
+        return { reason: 'Revert footage being tried', action: async () => {
             await owner.finishMaterialSwap(false);
             return true;
         } };
@@ -413,7 +413,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
             isVisible: widget => isOutputPreviewWidgetId(widget?.id),
             onDidChange: this.timelineVisibilityChanged.event,
             render: () => {
-                const label = this.timelineHidden ? 'タイムラインを出す（⌘⇧L）' : 'タイムラインを隠す（⌘⇧L）';
+                const label = this.timelineHidden ? 'Show timeline (⌘⇧L)' : 'Hide timeline (⌘⇧L)';
                 return React.createElement('button', {
                     type: 'button', className: 'theia-button secondary',
                     title: label, 'aria-label': label, 'aria-pressed': this.timelineHidden,
@@ -463,7 +463,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
 
     registerCommands(commands: CommandRegistry): void {
         this.getShortcutKeybindings().registerCommands(commands);
-        commands.registerCommand({ id: 'akari.timeline.toggleVisibility', label: 'タイムラインを隠す / 出す', category: 'タイムライン' }, {
+        commands.registerCommand({ id: 'akari.timeline.toggleVisibility', label: 'Hide / show timeline', category: 'Timeline' }, {
             execute: () => this.setTimelineHidden(!this.timelineHidden),
             isToggled: () => this.timelineHidden
         });
@@ -490,7 +490,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
             execute: async (options: { avatar?: string } = {}) => {
                 const { avatars } = await this.annotationsService.voiceAvatars();
                 const avatar = voiceDefaultAvatar(avatars, options.avatar);
-                if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(avatar)) throw new Error('アバター ID が不正です。');
+                if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(avatar)) throw new Error('Invalid avatar ID.');
                 return new AkariVoiceCloneDialog(this.annotationsService, this.fileService, this.preferences,
                     avatar, avatars.find(item => item.id === avatar)?.displayName).open();
             }
@@ -501,7 +501,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
                 const widget = editUri ? (location ? await this.configureQuietTimeline(location) : undefined)
                     : this.getShortcutKeybindings().shortcutTimelineWidget() ?? await this.attach();
                 if (!widget) {
-                    this.messages.warn('タイムラインを開いてから文字を置いてください。');
+                    this.messages.warn('Open the timeline before placing text.');
                     return;
                 }
                 return widget.placeText(options);
@@ -594,7 +594,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
                     : this.getShortcutKeybindings().shortcutTimelineWidget() ?? await this.attach();
                 if (!widget) {
                     this.messages.warn(typeof editUri === 'string'
-                        ? 'プロジェクトを特定できません。' : 'タイムラインを開いてから図形を置いてください。');
+                        ? 'Could not identify the project.' : 'Open the timeline before placing a shape.');
                     return undefined;
                 }
                 return widget.addShapeAt(request);
@@ -631,7 +631,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
                 transform?: { x: number; y: number }; editUri?: string;
                 outsideCanvas?: boolean; canvasAware?: boolean; sourceWidth?: number }) => {
                 const location = request?.editUri ? await this.findProjectLocation(request.editUri) : undefined;
-                if (!location) { this.messages.warn('プロジェクトを特定できません。'); return undefined; }
+                if (!location) { this.messages.warn('Could not identify the project.'); return undefined; }
                 const widget = await this.configureQuietTimeline(location);
                 // 置いた要素の id を返す。取り寄せに失敗した楽観配置を消すのに要る。
                 return widget.addMaterialAtOutputPoint(request?.relativePath ?? '', request?.kind ?? '', request?.t ?? NaN,
@@ -662,19 +662,19 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
         commands.registerCommand({ id: 'akari.timeline.applyLibraryItem' }, {
             execute: async (request: { payload?: import('./library-apply-plan').ApplyPayload;
                 target?: import('./library-apply-plan').ApplyTarget; editUri?: string }) => {
-                if (!request?.payload) { this.messages.info('当てるものを読み取れませんでした。'); return false; }
+                if (!request?.payload) { this.messages.info('Could not read what to apply.'); return false; }
                 try {
                     const location = request.editUri
                         ? this.findProjectLocation ? await this.findProjectLocation(request.editUri)
                             : (await this.locateAll()).find(item => item.editUri?.toString() === request.editUri)
                         : undefined;
-                    if (request.editUri && !location) { this.messages.warn('プロジェクトを特定できません。'); return false; }
+                    if (request.editUri && !location) { this.messages.warn('Could not identify the project.'); return false; }
                     const widget = request.editUri ? await this.configureQuietTimeline(location!)
                         : this.getShortcutKeybindings().shortcutTimelineWidget() ?? await this.attach();
-                    if (!widget) { this.messages.info('タイムラインを開いてから当ててください。'); return false; }
+                    if (!widget) { this.messages.info('Open the timeline before applying.'); return false; }
                     return await widget.applyLibraryItem(request.payload, request.target);
                 } catch (error) {
-                    this.messages.warn(`当てられませんでした: ${error instanceof Error ? error.message : String(error)}`);
+                    this.messages.warn(`Could not apply: ${error instanceof Error ? error.message : String(error)}`);
                     return false;
                 }
             }
@@ -687,7 +687,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
                 const widget = request?.editUri
                     ? (location ? await this.configureQuietTimeline(location) : undefined)
                     : this.getShortcutKeybindings().shortcutTimelineWidget() ?? await this.attach();
-                if (!widget) { this.messages.warn('プロジェクトを特定できません。'); return undefined; }
+                if (!widget) { this.messages.warn('Could not identify the project.'); return undefined; }
                 return widget.addOverlayAtOutputPoint(location?.editUri
                     ? { ...request, editUri: location.editUri.toString() } : request);
             }
@@ -944,7 +944,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
             return;
         }
         const dialog = new AkariImageAnnotationDialog(
-            { title: '画像に注釈', mode: 'create', imageUri, relativePath: relative.toString(), maxWidth: 960 },
+            { title: 'Annotate image', mode: 'create', imageUri, relativePath: relative.toString(), maxWidth: 960 },
             this.fileService,
             this.review
         );
@@ -1060,8 +1060,8 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
                             label: candidate.displayName ?? timelineDisplayName(candidate.slug),
                             description: candidate.editUri!.path.base
                         })),
-                        { id: 'new', label: '新しいタイムライン' }
-                    ], { title: 'タイムラインを開く' });
+                        { id: 'new', label: 'New timeline' }
+                    ], { title: 'Open timeline' });
                     if (!picked) return undefined;
                     location = picked.id === 'new' ? await this.createTimeline(locations)
                         : closed.find(candidate => candidate.editUri?.toString() === picked.id);
@@ -1086,7 +1086,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
         const { aspect } = await this.resolveCanvasAspect(current);
         const taken = locations.flatMap(location => location.slug ? [location.slug] : []);
         const result = await new AkariTimelineCreateDialog({
-            title: 'タイムラインを作成', defaultTitle: 'タイムライン',
+            title: 'Create timeline', defaultTitle: 'Timeline',
             defaultAspect: { width: aspect.w, height: aspect.h },
             takenSlugs: taken, firstTimeline: !first.editUri
         }).open();
@@ -1130,7 +1130,7 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
         const kind = typeof payload?.kind === 'string' ? payload.kind : '';
         const widget = await this.openCurrentTimeline();
         if (!widget) {
-            this.messages.warn('プロジェクトを特定できません。タイムラインを開いてから追加してください。');
+            this.messages.warn('Could not identify the project. Open the timeline, then add the footage.');
             return;
         }
         await widget.addMaterialAtPlayhead(relativePath, kind);
@@ -1152,12 +1152,12 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
         const clientY = payload?.clientY;
         if (typeof clientX !== 'number' || !Number.isFinite(clientX)
             || typeof clientY !== 'number' || !Number.isFinite(clientY)) {
-            this.messages.warn('素材を追加できません（ドロップ位置が不正です）。');
+            this.messages.warn('Could not add footage (invalid drop position).');
             return;
         }
         const widget = await this.openCurrentTimeline();
         if (!widget) {
-            this.messages.warn('プロジェクトを特定できません。タイムラインを開いてから追加してください。');
+            this.messages.warn('Could not identify the project. Open the timeline, then add the footage.');
             return;
         }
         await widget.addMaterialAtPoint(relativePath, kind, clientX, clientY);
@@ -1372,20 +1372,20 @@ export class AkariAnnotationsContribution implements CommandContribution, Fronte
     protected async openCanvas(): Promise<void> {
         const location = await this.locate();
         if (!location) {
-            this.messages.error('プロジェクトを特定できません。タイムラインを開いてから開いてください。');
+            this.messages.error('Could not identify the project. Open the timeline first.');
             return;
         }
         this.review.location = location;
         const { aspect, aspectSource } = await this.resolveCanvasAspect(location);
         const dialog = new AkariCanvasDialog(
-            { title: 'キャンバスを開く', mode: 'create', aspect, aspectSource, maxWidth: 1200 },
+            { title: 'Open canvas', mode: 'create', aspect, aspectSource, maxWidth: 1200 },
             this.fileService,
             this.review,
             this.fileDialogService
         );
         const id = await dialog.open();
         if (id) {
-            this.messages.info(`キャンバスを記録しました: ${id}（コンパイルすると review.json の注釈として着地します）`);
+            this.messages.info(`Canvas saved: ${id} (compile to add it to review.json as an annotation)`);
         }
     }
 

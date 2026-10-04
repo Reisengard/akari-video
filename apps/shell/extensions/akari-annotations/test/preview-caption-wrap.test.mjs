@@ -18,7 +18,7 @@ test('invalid width and missing cue are rejected', () => {
   assert.throws(() => writePreviewCaptionWrap('[]', { captionId: 'x', wrapWidthPct: 0,
     anchor: 'tl', position: { x: 0, y: 0 } }));
   assert.throws(() => writePreviewCaptionWrap('[]', { captionId: 'x', wrapWidthPct: 20,
-    anchor: 'tl', position: { x: 0, y: 0 } }), /文字が見つかりません/u);
+    anchor: 'tl', position: { x: 0, y: 0 } }), /Text not found/u);
 });
 
 test('placed text duplicate keeps the source and gives its copy a new id and position', () => {

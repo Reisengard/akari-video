@@ -5,7 +5,7 @@ export function replaceVideoCandidateItem<T extends { id: string; source: { kind
     const cutsDurationSeconds = item.source.out - item.source.in;
     if (!Number.isFinite(actualDurationSeconds) || actualDurationSeconds < 0
         || !Number.isFinite(cutsDurationSeconds) || cutsDurationSeconds <= 0 || item.source.kind !== 'media') {
-        throw new Error('差し替え尺は有限の正数である必要があります');
+        throw new Error('The replacement duration must be a finite positive number.');
     }
     const round = (value: number): number => Number(value.toFixed(6));
     const shorter = actualDurationSeconds < cutsDurationSeconds;

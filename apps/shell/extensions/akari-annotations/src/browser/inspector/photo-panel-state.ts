@@ -2,7 +2,7 @@ export interface PanelRegion { id: string; name?: string; [key: string]: unknown
 
 export function regionDisplayName(region: PanelRegion, index: number): string {
     return typeof region.name === 'string' && region.name.trim()
-        ? region.name.trim() : region.id.startsWith('background-') ? '背景' : `エリア ${index + 1}`;
+        ? region.name.trim() : region.id.startsWith('background-') ? 'Background' : `Area ${index + 1}`;
 }
 
 export function appendAdoptedRegion(regions: readonly PanelRegion[], region: PanelRegion): {

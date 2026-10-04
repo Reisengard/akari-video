@@ -14,6 +14,6 @@ test('drag preview rejects frame overlap but allows touching edges, self and new
 });
 test('routine track-created notices are silent while actionable warnings remain',()=>{
  const messages=[];const w=Object.assign(new Widget(),{notice:{setMessage:m=>messages.push(m)}});
- w.showNotice('V1 を追加しました');w.showNotice('A2 を追加しました');w.showNotice('素材を読み込めません');
+ w.showNotice('V1 added');w.showNotice('A2 added');w.showNotice('素材を読み込めません');
  assert.deepEqual(messages,['素材を読み込めません']);
 });

@@ -71,7 +71,7 @@ export function updateInspectorCrop(
     value: number | null
 ): InspectorCrop | null {
     if (value !== null && !Number.isFinite(value)) {
-        throw new Error('クロップ値は有限数で指定してください。');
+        throw new Error('Crop values must be finite numbers.');
     }
     const next = normalizeInspectorCrop(current);
     const requested = value ?? INSPECTOR_CROP_DEFAULT[axis];

@@ -31,7 +31,7 @@ test('字幕ドラッグは move / start / end のすべてで隣の字幕への
 
 test('止まったことはドラッグ表示に出し、ゴーストは赤にしない', () => {
     const branch = between(widget, "let timeDomain: 'source' | 'output' = state.originalTimeDomain ?? 'source';", "if (state.kind === 'layer') {");
-    assert.match(branch, /（隣の字幕で止まりました）/);
+    assert.match(branch, /\(stopped by adjacent caption\)/);
     assert.doesNotMatch(branch, /setGhostRejected\(state\.ghost, (true|blockedByNeighbor)\)/);
     assert.match(branch, /this\.setGhostSnapped\(state\.ghost, snapped && !blockedByNeighbor\)/);
 });

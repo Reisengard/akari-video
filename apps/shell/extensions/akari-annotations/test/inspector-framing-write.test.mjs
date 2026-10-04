@@ -89,10 +89,10 @@ test('KF 配列は時刻順へ正規化し、重複時刻・不正倍率を拒�
   ]);
   assert.throws(() => normalizeCutFramingKeyframes([
     { t: 1, scale: 1 }, { t: 1, scale: 2 }
-  ]), /時刻は重複できません/u);
+  ]), /Zoom keyframe times must be unique/u);
   assert.throws(() => normalizeCutFramingKeyframes([
     { t: 0, scale: 0 }, { t: 1, scale: 2 }
-  ]), /倍率は 0 より大きい/u);
+  ]), /scale of zoom keyframe 1 must be a finite number greater than 0/u);
 });
 
 test('KF 削除で残り 1 点なら配列全体を除去する', () => {
@@ -121,18 +121,18 @@ test('既存 KF への追加は直近倍率を継承し、衝突を +0.1 秒ず�
   ]);
   assert.throws(() => addCutFramingKeyframe([
     { t: 0, scale: 1 }, { t: 5, scale: 1.5 }
-  ], 5, 5), /0\.1 秒ずらしても追加できません/u);
+  ], 5, 5), /cannot be added even when shifted by 0\.1 sec/u);
 });
 
 test('UI は KF 配列丸ごと write・削除メニュー・無効窓タイトルを配線する', () => {
   assert.match(inspectorSource, /kind: 'cut-framing-keyframes'/u);
-  assert.match(inspectorSource, /label: 'この KF を削除'/u);
-  assert.match(inspectorSource, /ズーム KF があるときは窓は無視されます/u);
-  assert.match(inspectorSource, /actionLabel: '＋ ズーム KF を追加'/u);
-  for (const label of ['時刻', '倍率']) {
-    assert.equal(inspectorSource.includes(`label: \`KF \${index + 1} ${label}\``), true, label);
+  assert.match(inspectorSource, /label: 'Delete this keyframe'/u);
+  assert.match(inspectorSource, /The crop window is ignored while zoom keyframes exist/u);
+  assert.match(inspectorSource, /actionLabel: '\+ Add zoom keyframe'/u);
+  for (const label of ['time', 'scale']) {
+    assert.equal(inspectorSource.includes(`label: \`Keyframe \${index + 1} ${label}\``), true, label);
   }
-  assert.match(inspectorSource, /label: `KF \$\{index \+ 1\} 中心 \$\{axis === 'cx' \? 'X' : 'Y'\}`/u);
+  assert.match(inspectorSource, /label: `Keyframe \$\{index \+ 1\} center \$\{axis === 'cx' \? 'X' : 'Y'\}`/u);
   assert.match(inspectorSource, /scrubStep: 0\.01, min: 0, max: duration/u);
   assert.match(inspectorSource, /scrubStep: 0\.01, min: 1, max: 10/u);
   assert.match(inspectorSource, /scrubStep: 0\.005, min: 0, max: 1/u);

@@ -56,8 +56,8 @@ test('トラックが 0 本（trackKind undefined）の空タイムラインで�
 test('拒否は必ず理由文字列を伴う（無言 no-op を作らない）', () => {
     const video = dropOutcome('video', { trackKind: 'audio' });
     assert.equal(video.placed, false);
-    assert.match(video.reason, /映像は映像の段へ/);
+    assert.match(video.reason, /Drop video on a video lane/);
     const audio = dropOutcome('audio', { trackKind: 'layers' });
     assert.equal(audio.placed, false);
-    assert.match(audio.reason, /音は音の段へ/);
+    assert.match(audio.reason, /audio on an audio lane/);
 });

@@ -6,5 +6,5 @@ export function isTrackLocked(
 }
 
 export function lockedTrackMessage(trackName: string): string {
-    return `「${trackName}」はロック中です（鍵を外すと編集できます）`;
+    return `"${trackName}" is locked (unlock it to edit)`;
 }

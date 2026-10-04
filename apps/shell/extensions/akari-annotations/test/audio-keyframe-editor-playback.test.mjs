@@ -86,7 +86,7 @@ test('裁定1: close と accept 共通の detach で Audio 停止と AudioContex
 
 test('裁定1: 非対応コーデックは指定の1行だけを再生状態へ表示する', () => {
   const failed = section(dialog, 'protected readonly playbackFailed', 'protected async togglePlayback()');
-  assert.match(failed, /textContent = 'この形式は再生未対応'/u);
+  assert.match(failed, /textContent = 'This format cannot be played'/u);
   assert.doesNotMatch(failed, /ffmpeg/iu);
 });
 

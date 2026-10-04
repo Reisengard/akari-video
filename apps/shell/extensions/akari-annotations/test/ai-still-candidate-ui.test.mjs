@@ -94,8 +94,8 @@ test('有料を含む複数案は合計を一度だけ承認し、拒否では�
   instance.layerAudioService = { startGenerateStillBatch: () => { throw new Error('送信してはいけません'); } };
   await instance.startStillGeneration({ key: 'clip-1', itemId: 'clip-1', sourcePath: 'old.png' });
   assert.equal(confirmations, 1);
-  assert.match(message, /2 案/u);
-  assert.match(message, /合計見積もり \$0\.053/u);
+  assert.match(message, /2 candidates/u);
+  assert.match(message, /Total estimate \$0\.053/u);
   assert.equal(state.running, false);
 });
 
@@ -164,7 +164,7 @@ test('実行中のチェックは選択を示したまま無効になり、完�
       ?.attributes.get('data-akari-inspector-ai-progress-running'), 'true');
     assert.equal(nodes.filter(node => node.attributes.has('data-akari-inspector-ai-progress-thumbnail')).length, 1);
     assert.equal(nodes.find(node => node.attributes.has('data-akari-inspector-ai-cropped'))?.textContent,
-      '9:16 を頼んで正方形 → 切りそろえました');
+      'Requested 9:16, got a square → cropped to fit');
   } finally { if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document; }
 });
 

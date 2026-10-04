@@ -45,19 +45,19 @@ export function aiActionPlacement(action: AiAction, target: AiTargetKind): AiAct
 /** Video routes use the generation model catalog; transcription delegates engine choice to the daihon dialog. */
 export function aiActionCatalog(models: readonly AiCatalogModel[], narrationEngines?: readonly NarrationEngine[]): AiAction[] {
     return [{
-        id: 'still', group: 'make', label: '静止画', image: 'still',
+        id: 'still', group: 'make', label: 'Still', image: 'still',
         visibleFor: ['empty-frame', 'still', 'video', 'generated-video', 'gap'],
         accepts: ['empty-frame', 'still', 'gap'],
-        reasonWhenDisabled: '空の枠か静止画で使えます', output: 'image', placement: 'replace',
+        reasonWhenDisabled: 'Works on an empty slot or a still', output: 'image', placement: 'replace',
         routes: [{ id: 'codex', modelId: 'codex:image', label: 'ChatGPT（Codex）', maker: 'openai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 4 } } },
             { id: 'antigravity', modelId: 'still:antigravity', label: 'Antigravity', maker: 'google', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 0 } } },
-            { id: 'grok', modelId: 'still:grok', label: 'Grok', maker: 'xai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 1, note: '参照は縮めて送られます' } } },
+            { id: 'grok', modelId: 'still:grok', label: 'Grok', maker: 'xai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 1, note: 'References are downscaled before sending' } } },
             { id: 'fal', modelId: 'fal:gpt-image-2.5-flare', label: 'fal · GPT Image 2.5 Flare', maker: 'openai', kind: 'api', cost: 'paid', inputs: { reference_images: { max: 16 } } }]
     }, {
-        id: 'video', group: 'make', label: '動画にする', image: 'video',
+        id: 'video', group: 'make', label: 'Generate video', image: 'video',
         visibleFor: ['still', 'empty-frame', 'video', 'generated-video', 'gap', 'material-image'],
         accepts: ['still', 'empty-frame', 'generated-video', 'gap', 'material-image'],
-        reasonWhenDisabled: '静止画か空の枠で使えます', output: 'video', placement: 'replace',
+        reasonWhenDisabled: 'Works on a still or an empty slot', output: 'video', placement: 'replace',
         placementFor: { 'material-image': 'new-material' },
         routes: models.filter(row => row.kind === 'video').map(row => ({
             id: row.id, label: row.family || row.id,
@@ -66,36 +66,36 @@ export function aiActionCatalog(models: readonly AiCatalogModel[], narrationEngi
             cost: row.price ? 'paid' : 'free'
         }))
     }, ...(narrationEngines ? [{
-        id: 'narration', group: 'make', label: 'ナレーション', image: 'narration',
+        id: 'narration', group: 'make', label: 'Narration', image: 'narration',
         visibleFor: ['empty-audio-frame', 'audio'] as AiTargetKind[], accepts: ['empty-audio-frame'] as AiTargetKind[],
-        reasonWhenDisabled: '空いている音声の枠で使えます', output: 'audio' as const, placement: 'replace' as const,
+        reasonWhenDisabled: 'Works on an empty audio slot', output: 'audio' as const, placement: 'replace' as const,
         routes: narrationEngines.filter(engine => ['voicevox', 'gemini-tts', 'irodori'].includes(engine.id)
             || engine.id === 'fal-qwen3' && engine.availability.state === 'available')
             .map(engine => ({ id: engine.id, label: engine.id === 'fal-qwen3'
-                ? `自声 · 有料 · $${engine.price?.usd_per_1000_chars ?? 0} / 1000 字` : engine.label,
+                ? `Own voice · paid · $${engine.price?.usd_per_1000_chars ?? 0} / 1000 chars` : engine.label,
                 kind: engine.place === 'cloud' ? 'api' as const : 'local' as const,
                 cost: (engine.price?.usd_per_1000_chars ?? 0) > 0 || engine.place === 'cloud'
                     ? 'paid' as const : 'free' as const }))
     } as AiAction] : []), {
-        id: 'cutout', group: 'refine', label: '背景を消す', image: 'cutout',
+        id: 'cutout', group: 'refine', label: 'Remove background', image: 'cutout',
         visibleFor: ['still', 'empty-frame', 'video', 'generated-video'],
         accepts: ['still', 'video', 'generated-video'],
-        reasonWhenDisabled: '写真で使えます', output: 'image', placement: 'replace',
-        routes: [{ id: 'on-device', label: 'この Mac', kind: 'local', cost: 'free' }]
+        reasonWhenDisabled: 'Works on a photo', output: 'image', placement: 'replace',
+        routes: [{ id: 'on-device', label: 'This Mac', kind: 'local', cost: 'free' }]
     }, {
-        id: 'eraser', group: 'refine', label: '消しゴム', image: 'eraser',
+        id: 'eraser', group: 'refine', label: 'Eraser', image: 'eraser',
         visibleFor: ['still', 'empty-frame', 'video', 'generated-video'],
         accepts: ['still', 'video', 'generated-video'],
-        reasonWhenDisabled: '写真で使えます', output: 'image', placement: 'replace',
-        routes: [{ id: 'on-device', label: 'この Mac', kind: 'local', cost: 'free' }]
+        reasonWhenDisabled: 'Works on a photo', output: 'image', placement: 'replace',
+        routes: [{ id: 'on-device', label: 'This Mac', kind: 'local', cost: 'free' }]
     }, {
-        id: 'transcribe', group: 'refine', label: '文字起こし', image: 'transcribe',
+        id: 'transcribe', group: 'refine', label: 'Transcribe', image: 'transcribe',
         visibleFor: ['audio', 'video', 'generated-video', 'still', 'empty-frame', 'empty-audio-frame',
             'material-audio', 'material-video'],
         accepts: ['audio', 'video', 'material-audio', 'material-video'],
-        reasonWhenDisabled: '声の入った音声か動画で使えます',
+        reasonWhenDisabled: 'Works on audio or video with speech',
         output: 'captions', placement: 'captions',
-        routes: [{ id: 'transcript', label: '台本パネルのエンジン', kind: 'local', cost: 'free' }]
+        routes: [{ id: 'transcript', label: 'Script panel engine', kind: 'local', cost: 'free' }]
     }];
 }
 

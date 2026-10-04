@@ -38,12 +38,12 @@ export function aiTabViewFor(options: {
 export function photoToolAvailabilityFor(options: {
     photo: boolean; emptyFrame: boolean; generationState?: string;
 }): { enabled: boolean; reason?: string } {
-    if (!options.photo) return { enabled: false, reason: '写真で使えます' };
+    if (!options.photo) return { enabled: false, reason: 'Available for photos' };
     if (options.emptyFrame || options.generationState === 'planned') {
-        return { enabled: false, reason: '空の枠では使えません' };
+        return { enabled: false, reason: 'Not available for empty slots' };
     }
     if (['generating', 'stale', 'failed'].includes(options.generationState ?? '')) {
-        return { enabled: false, reason: '生成が終わると使えます' };
+        return { enabled: false, reason: 'Available once generation finishes' };
     }
     return { enabled: true };
 }
@@ -61,7 +61,7 @@ export const images: Record<AiImage | 'position' | 'color' | 'volume' | 'motion'
 };
 
 export function appendAiTiles(parent: HTMLElement, groups: readonly AiTileGroup[], open: (id: string) => void,
-    transcriptDone = false, emptyMessage = 'この要素で使える別案はまだありません'): HTMLElement {
+    transcriptDone = false, emptyMessage = 'No alternatives are available for this item yet'): HTMLElement {
     const list = document.createElement('div');
     list.className = 'akari-inspector-ai-list';
     let tileGrid: HTMLElement | undefined;
@@ -72,7 +72,7 @@ export function appendAiTiles(parent: HTMLElement, groups: readonly AiTileGroup[
             ? 'section:inspector-edit-alternatives' : 'section:inspector-edit-refine');
         const heading = document.createElement('h3');
         heading.className = 'akari-inspector-section-header akari-inspector-ai-heading';
-        heading.textContent = group.group === 'make' ? '作る' : '直す';
+        heading.textContent = group.group === 'make' ? 'Create' : 'Refine';
         section.appendChild(heading);
         const grid = document.createElement('div');
         if (group.group === 'refine' || !tileGrid) tileGrid = grid;
@@ -102,14 +102,14 @@ export function appendAiTiles(parent: HTMLElement, groups: readonly AiTileGroup[
             title.textContent = tile.label;
             const cloud = createInspectorIcon('cloud');
             cloud.className += ' akari-inspector-cloud';
-            cloud.setAttribute('title', '時間や料金がかかる処理');
+            cloud.setAttribute('title', 'Takes time and may cost money');
             titleRow.appendChild(title);
             if (tile.id !== 'cutout' && tile.id !== 'eraser') titleRow.appendChild(cloud);
             button.append(image, titleRow);
             if (tile.id === 'transcribe' && transcriptDone && tile.enabled) {
                 const badge = document.createElement('span');
                 badge.className = 'akari-inspector-ai-done-badge';
-                badge.textContent = '済み';
+                badge.textContent = 'Done';
                 button.appendChild(badge);
             }
             if (!tile.enabled && tile.reason) {
@@ -134,7 +134,7 @@ export function appendAiBack(parent: HTMLElement, title: string, back: () => voi
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'akari-inspector-ai-back';
-    button.textContent = '← ホーム';
+    button.textContent = '← Home';
     button.addEventListener('click', back);
     const heading = document.createElement('h3');
     heading.className = 'akari-inspector-ai-panel-title';

@@ -26,7 +26,7 @@ test('BGM とナレーションはコピー・切り取り・複製を出さな�
 
 test('字幕だけ「音声を作る…」を注釈の直前へ出す', () => {
     const caption = buildTimelineClipMenuItems('caption', false);
-    assert.equal(caption.find(item => item.id === 'narrate')?.label, '音声を作る…');
+    assert.equal(caption.find(item => item.id === 'narrate')?.label, 'Create audio...');
     assert.equal(caption.findIndex(item => item.id === 'narrate') + 1, caption.findIndex(item => item.id === 'annotate'));
     for (const kind of ['cut', 'overlay', 'layer', 'audio']) assert.ok(!ids(kind, false).includes('narrate'));
 });
@@ -46,7 +46,7 @@ test('木アイテムにはキャンバスの出し入れ・折りたたみ・�
         canToggleCollapse: true, collapsed: false, hasParent: true
     });
     assert.deepEqual(items.map(item => item.label), [
-        'コピー', '切り取り', '貼り付け', '複製', 'キャンバスから出す', 'キャンバスにする', 'キャンバスをほどく', '折りたたむ', '親を選択', '注釈…', '削除'
+        'Copy', 'Cut', 'Paste', 'Duplicate', 'Move out of canvas', 'Group into canvas', 'Ungroup canvas', 'Collapse', 'Select parent', 'Annotate...', 'Delete'
     ]);
 });
 

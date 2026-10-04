@@ -20,7 +20,7 @@ test('forwarded iframe keys are ignored by the context bar while caption edit ow
 });
 
 test('caption textarea keeps original newlines on blur and saves added newlines', async () => {
-    assert.match(inspector, /name: 'caption-text', label: 'テキスト', inputKind: 'caption-text'/);
+    assert.match(inspector, /name: 'caption-text', label: 'Text', inputKind: 'caption-text'/);
     assert.match(inspector, /field\.inputKind === 'caption-text'\) \{\s*const textarea = document\.createElement\('textarea'\)/);
     assert.match(inspector, /textarea\.rows = 2;\s*textarea\.value = editValue;/);
     assert.match(inspector, /textarea\.addEventListener\('input', fit\)/);

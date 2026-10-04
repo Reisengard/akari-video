@@ -53,10 +53,10 @@ test('書き込みブリッジは HTML を含め animator 配列を保存し、n
         const request = { kind: 'item-field', id: 'visual-1', path: 'animator', value: animators };
         assert.deepEqual(await handleWrite.call(state, request), { ok: true });
         assert.deepEqual(state.rawKeyframeItem().animator, animators);
-        assert.equal(state.label, 'クリップのアニメーターを変更');
+        assert.equal(state.label, 'Change clip animator');
         assert.deepEqual(await handleWrite.call(state, { ...request, value: null }), { ok: true });
         assert.equal(Object.hasOwn(state.rawKeyframeItem(), 'animator'), false);
-        assert.equal(state.label, 'クリップのアニメーターを変更');
+        assert.equal(state.label, 'Change clip animator');
         assert.equal(state.commits, 2);
     }
 });

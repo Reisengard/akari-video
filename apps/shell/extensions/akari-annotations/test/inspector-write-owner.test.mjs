@@ -171,12 +171,12 @@ test('write failures show a field notice and one MessageService error per repeat
     const request = { kind: 'caption-style-color', id: 'c-0001', value: '#123456' };
     assert.equal((await inspector.commitWrite(request)).ok, false);
     await inspector.commitWrite(request);
-    assert.deepEqual(errors, ['書き込み機能が利用できません。']);
+    assert.deepEqual(errors, ['Writing is not available.']);
     assert.equal(notices.length, 2);
     inspector.model.requestWrite = async () => ({ ok: false, message: '字幕 c-0001 が見つかりません。' });
     await inspector.commitWrite(request);
     await inspector.commitWrite(request);
-    assert.deepEqual(errors, ['書き込み機能が利用できません。', '字幕 c-0001 が見つかりません。']);
+    assert.deepEqual(errors, ['Writing is not available.', '字幕 c-0001 が見つかりません。']);
     inspector.model.requestWrite = async () => { throw new Error('保存できません。'); };
     await inspector.commitWrite(request);
     assert.equal(errors.at(-1), '保存できません。');

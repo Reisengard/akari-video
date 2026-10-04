@@ -91,7 +91,7 @@ export class AkariEditHistoryService {
     pushPreviewCaptionWrite(change: PreviewCaptionWrite, io: PreviewCaptionHistoryIO): HistoryEntry {
         const restore = async (expected: string, content: string): Promise<void> => {
             if (await io.read(change.captionsUri) !== expected) {
-                throw new Error('字幕ファイルが後から変更されています');
+                throw new Error('The caption file has been modified since.');
             }
             await io.write(change, content);
         };

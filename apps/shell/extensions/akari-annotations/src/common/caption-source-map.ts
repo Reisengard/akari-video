@@ -53,8 +53,8 @@ export function computeCaptionSourceMappingWarning(
     if (hiddenCount === 0) {
         return undefined;
     }
-    return `出自を特定できない字幕 ${hiddenCount} 件を表示していません。`
-        + '複数 source のプロジェクトでは captions.json の各字幕に src が必要です。';
+    return `${hiddenCount} caption(s) with unknown source are hidden.`
+        + ' In a project with multiple sources, each caption in captions.json needs an src.';
 }
 
 /** 同じ射影不能状態の再読込・再描画で、同じ警告を繰り返さない。 */

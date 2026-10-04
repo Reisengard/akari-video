@@ -80,10 +80,10 @@ async function invoke(kind, value, captions, targets, source = sourceFor(caption
 
 test('ライブラリから当てた動き・スタイルと既存マイスタイルは履歴・足元の言葉を分ける', async () => {
   for (const [applyKind, label, footer] of [
-    ['textanim', '動きを当てる', '動きを当てました。'],
-    ['textstyle', 'スタイルを当てる', 'スタイルを当てました。'],
-    [undefined, 'マイスタイルを当てる', 'マイスタイルを当てました。'],
-    ['mystyle', 'マイスタイルを当てる', 'マイスタイルを当てました。']
+    ['textanim', 'Apply motion', 'Motion applied.'],
+    ['textstyle', 'Apply style', 'Style applied.'],
+    [undefined, 'Apply my style', 'My style applied.'],
+    ['mystyle', 'Apply my style', 'My style applied.']
   ]) {
     const result = await invoke('caption-style-my-style', { parts: [{ kind: 'look', text_style: { color: '#fff' } }] },
       [caption('one')], undefined, undefined, undefined, true, undefined, applyKind);
@@ -96,12 +96,12 @@ test('ライブラリから当てた動き・スタイルと既存マイスタ�
 test('ライブラリのフォントだけ履歴・足元をフォントの言葉にし、インスペクターは従来どおり', async () => {
   const fromLibrary = await invoke('caption-style-font-family', 'Dela Gothic One', [caption('one')],
     undefined, undefined, undefined, true, undefined, 'font');
-  assert.equal(fromLibrary.history[0].label, 'フォントを変える');
-  assert.equal(fromLibrary.footer, 'フォントを変えました。');
+  assert.equal(fromLibrary.history[0].label, 'Change font');
+  assert.equal(fromLibrary.footer, 'Font changed.');
   assert.equal(fromLibrary.calls.length, 1);
   const inspector = await invoke('caption-style-font-family', 'Dela Gothic One', [caption('one')]);
-  assert.equal(inspector.history[0].label, '字幕のスタイルを変更');
-  assert.equal(inspector.footer, '字幕のスタイルを更新しました。');
+  assert.equal(inspector.history[0].label, 'Change caption style');
+  assert.equal(inspector.footer, 'Caption style updated.');
 });
 
 test('太さは font_weight と weight を同値で書き、undo で両方戻す', async () => {
@@ -203,7 +203,7 @@ test('既定 layout と基準高さが衝突する複数選択は RPC 前に全�
   const targets = captions.map(item => ({ kind: 'caption', id: item.id }));
   const result = await invoke('caption-style-my-style', { parts: [{ kind: 'look', text_style: { color: '#f00', reference_height_px: 1920 } }] },
     captions, targets, source, source, false);
-  assert.match(result.result.message, /layout.*基準高さ/);
+  assert.match(result.result.message, /layout.*base height/);
   assert.equal(result.writes.length, 0);
 });
 

@@ -73,7 +73,7 @@ async function fixture(t, captions) {
 
 test('command defaults center the plate with tc and omitted x, and use the shared caption id generator', () => {
     assert.deepEqual(placeTextCaption({}, 4, 20, ['c-0002', 'c-0012']), {
-        id: 'c-0013', start: 4, end: 7, text: 'テキストを入力', timeDomain: 'output',
+        id: 'c-0013', start: 4, end: 7, text: 'Enter text', timeDomain: 'output',
         sourceRef: null, edited: true, speaker: null, textStyle: { position: { y: .4625 }, textAnchor: 'tc' }
     });
     // Preview tc treats y as the top; half of a default 38px × 1.42 line on 720px is 0.03747.
@@ -82,10 +82,10 @@ test('command defaults center the plate with tc and omitted x, and use the share
     assert.equal(placeTextCaption({}, 8, 10, []).end, 10);
     assert.equal(placeTextCaption({}, 0, 0, []).end, 3);
     assert.equal(nextDaihonCaptionId(['c-9999']), 'c-10000');
-    assert.throws(() => placeTextCaption({}, 10, 10, []), /時刻/);
-    assert.throws(() => placeTextCaption({ start: NaN }, 0, 10, []), /時刻/);
-    assert.throws(() => placeTextCaption({ position: { x: 2, y: 0 } }, 0, 10, []), /位置/);
-    assert.throws(() => placeTextCaption({ position: { x: NaN, y: 0 } }, 0, 10, []), /位置/);
+    assert.throws(() => placeTextCaption({}, 10, 10, []), /start and end times/);
+    assert.throws(() => placeTextCaption({ start: NaN }, 0, 10, []), /start and end times/);
+    assert.throws(() => placeTextCaption({ position: { x: 2, y: 0 } }, 0, 10, []), /position/);
+    assert.throws(() => placeTextCaption({ position: { x: NaN, y: 0 } }, 0, 10, []), /position/);
 });
 
 test('missing captions.json: one insertion includes preset, selects/seeks, one undo removes file, redo restores all fields', async t => {
@@ -94,7 +94,7 @@ test('missing captions.json: one insertion includes preset, selects/seeks, one u
     assert.equal(id, 'c-0001', f.warnings.join(' / '));
     const after = await readFile(f.captionsPath, 'utf8');
     assert.deepEqual(JSON.parse(after).captions[0], {
-        id, start: 2, end: 5, text: 'テキストを入力', speaker: null, sourceRef: null, edited: true,
+        id, start: 2, end: 5, text: 'Enter text', speaker: null, sourceRef: null, edited: true,
         time_domain: 'output', text_style: { position: { y: .4625 }, text_anchor: 'tc' }, style_preset: 'title-impact'
     });
     assert.equal(f.service.writes.length, 1);
@@ -115,7 +115,7 @@ test('プレビュー中心指定は保存時に左端 x と mc アンカーへ�
     assert.equal(id, 'c-0001', f.warnings.join(' / '));
     const caption = JSON.parse(await readFile(f.captionsPath, 'utf8')).captions[0];
     assert.equal(caption.text_style.text_anchor, 'mc');
-    assert.deepEqual(caption.text_style.position, { x: (640 - (7 * 56 + 32) / 2) / 1280, y: .4 });
+    assert.deepEqual(caption.text_style.position, { x: (640 - ([...'Enter text'].reduce((width, character) => width + 56 * (character === ' ' ? 0.35 : 0.55), 0) + 32) / 2) / 1280, y: .4 });
     assert.equal(caption.style_preset, 'subtitle-news');
     assert.equal(f.history.length, 1);
 });
@@ -246,8 +246,8 @@ test('置いた文字は既定 layout との衝突を挿入前に通知し、字
     const id = await f.widget.placeText({ myStyle: { uid: '01K5ZXY1234ABCDEFGHJKMNPQRS', revision: 1,
         parts: [{ kind: 'look', text_style: { color: '#f00', reference_height_px: 1920 } }] } });
     assert.equal(id, undefined);
-    assert.match(f.warnings.join(' / '), /layout.*基準高さ/);
-    assert.match(f.notices.join(' / '), /layout.*基準高さ/);
+    assert.match(f.warnings.join(' / '), /layout.*base height/);
+    assert.match(f.notices.join(' / '), /layout.*base height/);
     assert.equal(await readFile(f.captionsPath, 'utf8'), before);
     assert.equal(f.service.writes.length, 0);
     assert.equal(f.history.length, 0);

@@ -106,10 +106,10 @@ test('empty keyframe arrays remove the key', () => {
 });
 
 test('duck and gain contracts reject out-of-range values', () => {
-  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckDb: -40.1 }), /-40〜0/u);
-  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckAttack: 2.01 }), /0〜2/u);
-  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckRelease: 5.01 }), /0〜5/u);
-  assert.throws(() => normalizeAudioKeyframes([{ t: 0, gain_db: 12.1 }]), /-60〜12/u);
+  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckDb: -40.1 }), /duck_db must be between -40 and 0/u);
+  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckAttack: 2.01 }), /duck_attack must be between 0 and 2/u);
+  assert.throws(() => setAudioDuckInSource(source, { kind: 'bgm' }, { duckRelease: 5.01 }), /duck_release must be between 0 and 5/u);
+  assert.throws(() => normalizeAudioKeyframes([{ t: 0, gain_db: 12.1 }]), /gain_db must be between -60 and 12/u);
 });
 
 const v2 = {
@@ -130,7 +130,7 @@ test('v2 item keyframe patch sorts integer frames and null deletes the key', () 
   assert.equal('keyframes' in removed.tracks[0].items[0], false);
   assert.throws(() => updateAudioItemEnvelope(v2, {
     itemId: 'bed', patch: { keyframes: [{ t: 0.5, gain_db: 0 }] }
-  }), /整数フレーム/u);
+  }), /must be an integer frame number/u);
 });
 
 test('v2 legacy audio.sfx patch carries duck and keyframe keys through the whitelist', () => {

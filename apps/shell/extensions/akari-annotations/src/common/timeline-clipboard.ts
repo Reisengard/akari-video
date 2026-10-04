@@ -75,7 +75,7 @@ export function parseTimelineFragment(source: string): TimelineFragment | undefi
 
 export function serializeTimelineFragment(fragment: TimelineFragment): string {
     const source = JSON.stringify(fragment);
-    if (!parseTimelineFragment(source)) throw new Error('コピーする断片の形式が不正です。');
+    if (!parseTimelineFragment(source)) throw new Error('The clip fragment to copy is invalid.');
     return source;
 }
 
@@ -85,7 +85,7 @@ export function planPaste(options: {
 }): PastePlan {
     const { fragment, playhead, tracks, target } = options;
     if (!time(playhead) || !parseTimelineFragment(JSON.stringify(fragment))) {
-        return { ok: false, reason: '貼り付ける時刻または断片が不正です。' };
+        return { ok: false, reason: 'Invalid paste time or fragment.' };
     }
     const placements: PastePlacement[] = [];
     const newTracks: PasteNewTrack[] = [];
@@ -119,12 +119,12 @@ export function planPaste(options: {
             }
             destination = destinations.get(index)!;
         }
-        if (!destination) return { ok: false, reason: '元のトラックが見つかりません。' };
-        if (destination.locked) return { ok: false, reason: '貼り先のトラックはロック中です。' };
+        if (!destination) return { ok: false, reason: 'Original track not found.' };
+        if (destination.locked) return { ok: false, reason: 'The destination track is locked.' };
         const accepts = (kind: ClipboardKind): boolean => destination.kind === kind
             || (!!destination.emptyVisual && kind !== 'sfx' && kind !== 'captions');
         if (items.some(item => !accepts(item.kind))) {
-            return { ok: false, reason: '種別が違うトラックには貼り付けできません。' };
+            return { ok: false, reason: 'Cannot paste onto a track of a different type.' };
         }
         const starts = items.map(item => playhead + item.t - fragment.anchor);
         if (first.kind === 'cuts' && options.mode !== 'duplicate') {
@@ -256,7 +256,7 @@ export function cutTimelineFragment(before: TimelineClipboardSnapshot, options: 
     for (const track of doc.tracks as Array<Record<string, any>>) {
         for (const item of track.items ?? []) {
             if (typeof item.link !== 'string' || !removedIds.has(item.link) || remaining.has(item.link)) continue;
-            if (isTrackLocked(String(track.id))) throw new Error('リンク先の音声トラックはロック中です。');
+            if (isTrackLocked(String(track.id))) throw new Error('The linked audio track is locked.');
             doc = updateV2Item(doc, { itemId: String(item.id), patch: { link: null } });
         }
     }

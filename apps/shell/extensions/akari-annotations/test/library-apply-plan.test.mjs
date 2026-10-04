@@ -48,9 +48,9 @@ test('置く帯は文字を置く種類だけで、かける専用カードに�
 });
 
 test('文字へかけた種類ごとの履歴と足元の言葉を返し、既存のマイスタイルには割り込まない', () => {
-    assert.deepEqual(captionLibraryApplyFeedback('textanim'), { history: '動きを当てる', footer: '動きを当てました。' });
-    assert.deepEqual(captionLibraryApplyFeedback('textstyle'), { history: 'スタイルを当てる', footer: 'スタイルを当てました。' });
-    assert.deepEqual(captionLibraryApplyFeedback('font'), { history: 'フォントを変える', footer: 'フォントを変えました。' });
+    assert.deepEqual(captionLibraryApplyFeedback('textanim'), { history: 'Apply motion', footer: 'Motion applied.' });
+    assert.deepEqual(captionLibraryApplyFeedback('textstyle'), { history: 'Apply style', footer: 'Style applied.' });
+    assert.deepEqual(captionLibraryApplyFeedback('font'), { history: 'Change font', footer: 'Font changed.' });
     assert.equal(captionLibraryApplyFeedback('mystyle'), undefined);
     assert.equal(captionLibraryApplyFeedback(undefined), undefined);
 });

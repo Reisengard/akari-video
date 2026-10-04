@@ -19,10 +19,10 @@ export function planCompileHandoff(
     sessions: readonly CompileSessionCandidate[], sessionId?: string
 ): CompileSessionPlan {
     if (sessionId && !sessions.some(session => session.id === sessionId)) {
-        return { kind: 'notice', notice: `指定した録音セッションが見つかりません: ${sessionId}` };
+        return { kind: 'notice', notice: `Recording session not found: ${sessionId}` };
     }
     if (sessions.length === 0) {
-        return { kind: 'notice', notice: '録音済みセッションがありません。先に録音してください。' };
+        return { kind: 'notice', notice: 'No recorded sessions. Record one first.' };
     }
     const session = sessionId
         ? sessions.find(candidate => candidate.id === sessionId)!
@@ -38,13 +38,13 @@ export function planCompileHandoff(
 }
 
 export function compileCopiedMessage(prompt: string): string {
-    return `「${prompt}」をクリップボードにコピーしました。パートナーへ貼り付けてください。`;
+    return `Copied "${prompt}" to the clipboard. Paste it to your partner.`;
 }
 
 export function compileClipboardFailureNotice(detail: string): string {
-    return `クリップボードにコピーできません: ${detail}`;
+    return `Could not copy to the clipboard: ${detail}`;
 }
 
 export function compileClipboardFailureFooter(prompt: string): string {
-    return `クリップボードにコピーできません。次の定型文を手動でコピーしてください: ${prompt}`;
+    return `Could not copy to the clipboard. Copy this text manually: ${prompt}`;
 }

@@ -34,14 +34,14 @@ test('id 指定時は最新以外の録音セッションをコピー対象に�
 test('未知の id 指定は notice にする', () => {
     assert.deepEqual(planCompileHandoff(sessions, 's-9999'), {
         kind: 'notice',
-        notice: '指定した録音セッションが見つかりません: s-9999'
+        notice: 'Recording session not found: s-9999'
     });
 });
 
 test('録音セッションが空なら notice にする', () => {
     assert.deepEqual(planCompileHandoff([]), {
         kind: 'notice',
-        notice: '録音済みセッションがありません。先に録音してください。'
+        notice: 'No recorded sessions. Record one first.'
     });
 });
 
@@ -49,13 +49,13 @@ test('コピー成功時の footer とトースト文言を返す', () => {
     const prompt = 'review セッション s-0002 をコンパイルして';
     assert.equal(
         compileCopiedMessage(prompt),
-        `「${prompt}」をクリップボードにコピーしました。パートナーへ貼り付けてください。`
+        `Copied "${prompt}" to the clipboard. Paste it to your partner.`
     );
 });
 
 test('クリップボード失敗時は notice と定型文で終わる footer を返す', () => {
     const prompt = 'review セッション s-0002 をコンパイルして';
-    assert.equal(compileClipboardFailureNotice('denied'), 'クリップボードにコピーできません: denied');
+    assert.equal(compileClipboardFailureNotice('denied'), 'Could not copy to the clipboard: denied');
     assert.equal(compileClipboardFailureFooter(prompt).endsWith(prompt), true);
 });
 

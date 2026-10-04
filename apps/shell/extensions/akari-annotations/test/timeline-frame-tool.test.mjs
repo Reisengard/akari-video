@@ -60,7 +60,7 @@ test('PNG failure leaves edit and undo stack unchanged', async () => {
   await f.widget.commitEmptyFrame('v', { at: 30, duration: 75 }, 30);
   assert.equal(JSON.stringify(f.doc), f.before);
   assert.equal(f.history.length, 0);
-  assert.deepEqual(f.notices, ['空の枠を置けません: PNG failed']);
+  assert.deepEqual(f.notices, ['Could not place empty slot: PNG failed']);
   assert.equal(f.commands.length, 0);
 });
 test('PNG resolves before a single mutation; undo removes item and source together', async () => {
@@ -80,7 +80,7 @@ test('successful frame selects the item before revealing inspector without attac
   const f = commitFixture({ createEmptyGenerationFrame: async () => ({ relativePath: 'assets/generated/frame.png' }) });
   await f.widget.commitEmptyFrame('v', { at: 30, duration: 75 }, 30);
   assert.deepEqual(f.commands, [{ id: 'akari.inspector.open', options: undefined, selection: { kind: 'cut', index: 0 } }]);
-  assert.deepEqual(f.notices, ['空の枠を置きました。']);
+  assert.deepEqual(f.notices, ['Empty slot placed.']);
 });
 test('new frame above occupied video carries half-scale centered transform in edit v2', async () => {
   const f = commitFixture({ createEmptyGenerationFrame: async () => ({ relativePath: 'assets/generated/frame.png' }) }, [

@@ -134,9 +134,9 @@ const RAW_PREVIEW_ANNOTATION_STATE_EVENT = 'akari.preview.rawAnnotationState';
 // ショートカット 1=select / 2=pen / 3=rect / Esc=neutral をボタンの補助表示にも使う。
 type ReviewToolMode = 'neutral' | 'pen' | 'rect' | 'select';
 const REVIEW_TOOL_MODE_BUTTONS: ReadonlyArray<{ mode: ReviewToolMode; label: string; key: string }> = [
-    { mode: 'select', label: '選択', key: '1' },
-    { mode: 'pen', label: 'ペン', key: '2' },
-    { mode: 'rect', label: '四角', key: '3' }
+    { mode: 'select', label: 'Select', key: '1' },
+    { mode: 'pen', label: 'Pen', key: '2' },
+    { mode: 'rect', label: 'Rectangle', key: '3' }
 ];
 
 interface ReviewSessionSummary {
@@ -179,9 +179,9 @@ type RawPreviewAnnotationState = RawPreviewAnnotationStateSnapshot;
 type RawSourceSelection = RawSourceSelectionSnapshot;
 
 const STATUS_LABELS: Record<Annotation['status'], string> = {
-    open: '未対応',
-    addressed: '対応済み',
-    resolved: '確認済み'
+    open: 'Open',
+    addressed: 'Addressed',
+    resolved: 'Resolved'
 };
 const STATUS_COLORS: Record<Annotation['status'], string> = {
     open: 'var(--theia-charts-blue)',
@@ -277,14 +277,14 @@ export class AkariReviewPanelWidget extends BaseWidget {
     @postConstruct()
     protected init(): void {
         this.id = AkariReviewPanelWidget.FACTORY_ID;
-        this.title.label = '注釈';
-        this.title.caption = '注釈（レビューコメント）';
+        this.title.label = 'Annotations';
+        this.title.caption = 'Annotations (review comments)';
         this.title.iconClass = 'akari-rail-icon akari-rail-icon-review';
         this.title.closable = false; // 右ドック常設。閉じたいときは右ドックごと畳む。
         this.node.classList.add('akari-review-panel-widget');
         // docs/contract-2026-08-11-review-session-ui-events.md #2: panel:<id> opt-in target.
         this.node.setAttribute('data-akari-ui', 'panel:review');
-        this.node.setAttribute('data-akari-ui-label', '注釈パネル');
+        this.node.setAttribute('data-akari-ui-label', 'Annotations panel');
         Object.assign(this.node.style, {
             display: 'grid',
             gridTemplateRows: 'auto auto auto auto minmax(0, 1fr) auto',
@@ -303,9 +303,9 @@ export class AkariReviewPanelWidget extends BaseWidget {
         heading.style.width = '2em';
         heading.style.flexShrink = '0';
         heading.style.marginRight = 'auto';
-        this.filterSelect.setAttribute('aria-label', '状態で絞り込み');
+        this.filterSelect.setAttribute('aria-label', 'Filter by status');
         const filterOptions: Array<[AnnotationStatusFilter, string]> = [
-            ['all', 'すべて'], ['open', '未対応'], ['addressed', '対応済み'], ['resolved', '確認済み']
+            ['all', 'All'], ['open', 'Open'], ['addressed', 'Addressed'], ['resolved', 'Resolved']
         ];
         for (const [value, label] of filterOptions) {
             const option = document.createElement('option');
@@ -318,9 +318,9 @@ export class AkariReviewPanelWidget extends BaseWidget {
         });
         this.openBoardButton.type = 'button';
         this.openBoardButton.className = 'theia-button secondary';
-        this.openBoardButton.textContent = 'ボードを開く';
+        this.openBoardButton.textContent = 'Open board';
         this.openBoardButton.setAttribute('data-review-open-board', '');
-        this.openBoardButton.title = 'かんばん形式のレビューボードをタブで開く';
+        this.openBoardButton.title = 'Open the kanban-style review board in a tab';
         this.openBoardButton.addEventListener('click', () => void this.commands.executeCommand(OPEN_AKARI_REVIEW_BOARD.id));
         this.toolbar.append(heading, this.filterSelect, this.openBoardButton);
 
@@ -332,7 +332,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         Object.assign(this.timeLabel.style, {
             fontVariantNumeric: 'tabular-nums', color: 'var(--theia-descriptionForeground)', fontSize: '11px'
         });
-        this.timeLabel.title = 'タイムラインをクリックすると、この時刻が変わります。';
+        this.timeLabel.title = 'Clicking the timeline changes this time.';
         this.docSelectionChip.setAttribute('data-review-doc-selection-chip', '');
         Object.assign(this.docSelectionChip.style, {
             display: 'none', alignItems: 'center', gap: '5px', fontSize: '11px',
@@ -342,8 +342,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.docSelectionLabel.setAttribute('data-review-doc-selection-label', '');
         this.docSelectionClear.type = 'button';
         this.docSelectionClear.textContent = '✕';
-        this.docSelectionClear.title = '選択を解除して動画注釈に戻す';
-        this.docSelectionClear.setAttribute('aria-label', 'レポートのブロック選択を解除');
+        this.docSelectionClear.title = 'Clear selection and return to video annotations';
+        this.docSelectionClear.setAttribute('aria-label', 'Clear report block selection');
         Object.assign(this.docSelectionClear.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             color: 'inherit'
@@ -359,8 +359,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.clipSelectionLabel.setAttribute('data-review-clip-selection-label', '');
         this.clipSelectionClear.type = 'button';
         this.clipSelectionClear.textContent = '✕';
-        this.clipSelectionClear.title = 'クリップの選択を解除して動画注釈に戻す';
-        this.clipSelectionClear.setAttribute('aria-label', 'クリップの選択を解除');
+        this.clipSelectionClear.title = 'Clear clip selection and return to video annotations';
+        this.clipSelectionClear.setAttribute('aria-label', 'Clear clip selection');
         Object.assign(this.clipSelectionClear.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit', color: 'inherit'
         });
@@ -376,8 +376,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.uiSelectionLabel.setAttribute('data-review-ui-selection-label', '');
         this.uiSelectionClear.type = 'button';
         this.uiSelectionClear.textContent = '✕';
-        this.uiSelectionClear.title = '選択を解除して動画注釈に戻す';
-        this.uiSelectionClear.setAttribute('aria-label', 'UI 要素の選択を解除');
+        this.uiSelectionClear.title = 'Clear selection and return to video annotations';
+        this.uiSelectionClear.setAttribute('aria-label', 'Clear UI element selection');
         Object.assign(this.uiSelectionClear.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             color: 'inherit'
@@ -393,8 +393,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.rawSourceLabel.setAttribute('data-review-raw-source-label', '');
         this.rawSourceClear.type = 'button';
         this.rawSourceClear.textContent = '✕';
-        this.rawSourceClear.title = '素材の選択を解除して出力タイムライン注釈に戻す';
-        this.rawSourceClear.setAttribute('aria-label', 'raw preview 素材の選択を解除');
+        this.rawSourceClear.title = 'Clear footage selection and return to output timeline annotations';
+        this.rawSourceClear.setAttribute('aria-label', 'Clear raw preview footage selection');
         Object.assign(this.rawSourceClear.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             color: 'inherit'
@@ -402,8 +402,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.rawSourceClear.addEventListener('click', () => this.clearRawSourceSelection());
         this.rawSourceChip.append(this.rawSourceLabel, this.rawSourceClear);
         this.textInput.type = 'text';
-        this.textInput.placeholder = 'コメントを入力';
-        this.textInput.setAttribute('aria-label', 'コメントを入力');
+        this.textInput.placeholder = 'Enter a comment';
+        this.textInput.setAttribute('aria-label', 'Enter a comment');
         Object.assign(this.textInput.style, { flex: '1', minWidth: '0' });
         this.textInput.addEventListener('keydown', event => {
             if (event.key === 'Enter') {
@@ -413,7 +413,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         });
         this.addButton.type = 'button';
         this.addButton.className = 'theia-button main';
-        this.addButton.textContent = '追加';
+        this.addButton.textContent = 'Add';
         this.addButton.addEventListener('click', () => void this.submitAnnotation());
         this.composerRow.append(
             this.timeLabel,
@@ -433,11 +433,11 @@ export class AkariReviewPanelWidget extends BaseWidget {
         const recordingHeading = document.createElement('div');
         Object.assign(recordingHeading.style, { display: 'flex', alignItems: 'center', gap: '7px' });
         const recordingTitle = document.createElement('strong');
-        recordingTitle.textContent = '録音セッション';
+        recordingTitle.textContent = 'Recording session';
         recordingTitle.style.fontSize = '12px';
         this.recordingIndicator.className = 'akari-review-recording-indicator';
         this.recordingIndicator.textContent = '●';
-        this.recordingIndicator.setAttribute('aria-label', '録音停止中');
+        this.recordingIndicator.setAttribute('aria-label', 'Not recording');
         Object.assign(this.recordingIndicator.style, { color: 'var(--theia-descriptionForeground)', fontSize: '11px' });
         Object.assign(this.recordingElapsed.style, {
             marginLeft: 'auto', fontVariantNumeric: 'tabular-nums', fontSize: '12px'
@@ -447,7 +447,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
 
         const recordingHint = document.createElement('div');
         recordingHint.setAttribute('data-review-sessions-hint', '');
-        recordingHint.textContent = '喋りながら描いた記録。コンパイルすると下のコメント（チケット）になります';
+        recordingHint.textContent = 'Drawings and speech captured together. Compile to turn them into the comments (tickets) below';
         Object.assign(recordingHint.style, {
             color: 'var(--theia-descriptionForeground)', fontSize: '11px', lineHeight: '1.4'
         });
@@ -457,18 +457,18 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.recordingButton.type = 'button';
         this.recordingButton.setAttribute('data-review-recording-toggle', '');
         this.recordingButton.className = 'theia-button main';
-        this.recordingButton.textContent = '録音開始';
+        this.recordingButton.textContent = 'Start recording';
         this.recordingButton.addEventListener('click', () => this.toggleRecording());
         this.openSessionsButton.type = 'button';
         this.openSessionsButton.setAttribute('data-review-sessions-open', '');
         this.openSessionsButton.className = 'theia-button secondary';
-        this.openSessionsButton.textContent = '保存先を開く';
+        this.openSessionsButton.textContent = 'Open save location';
         this.openSessionsButton.addEventListener('click', () => this.openSessionsFolder());
         this.compileButton.type = 'button';
         this.compileButton.setAttribute('data-review-compile', '');
         this.compileButton.className = 'theia-button secondary';
-        this.compileButton.textContent = 'コンパイル';
-        this.compileButton.title = '最新の録音セッションのコンパイル依頼文をクリップボードへコピーする（パートナーへ貼り付けて使う）';
+        this.compileButton.textContent = 'Compile';
+        this.compileButton.title = 'Copy a compile request for the latest recording session to the clipboard (paste it to the partner)';
         this.compileButton.addEventListener('click', () => void this.compileLatestSession());
         recordingControls.append(this.recordingButton, this.openSessionsButton, this.compileButton);
 
@@ -482,7 +482,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             button.className = 'theia-button secondary';
             button.setAttribute('data-review-tool-mode-button', mode);
             button.setAttribute('aria-pressed', 'false');
-            button.title = `${label}（${key}）`;
+            button.title = `${label} (${key})`;
             Object.assign(button.style, {
                 display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 9px', fontSize: '12px'
             });
@@ -504,7 +504,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.recordingLevelMeter.setAttribute('data-review-level-meter', '');
         this.recordingLevelMeter.setAttribute('data-review-level', '0');
         this.recordingLevelMeter.setAttribute('role', 'meter');
-        this.recordingLevelMeter.setAttribute('aria-label', 'マイク入力レベル');
+        this.recordingLevelMeter.setAttribute('aria-label', 'Microphone input level');
         this.recordingLevelMeter.setAttribute('aria-valuemin', '0');
         this.recordingLevelMeter.setAttribute('aria-valuemax', '1');
         Object.assign(this.recordingLevelMeter.style, {
@@ -516,7 +516,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             background: 'var(--theia-charts-green)', transition: 'width 120ms linear'
         });
         this.recordingLevelMeter.appendChild(this.recordingLevelFill);
-        this.silenceWarningNotice.textContent = '入力が無音です — マイク設定を確認してください';
+        this.silenceWarningNotice.textContent = 'No input signal — check your microphone settings';
         Object.assign(this.silenceWarningNotice.style, {
             display: 'none', color: AKARI_WARNING_TEXT_COLOR, fontSize: '11px', lineHeight: '1.4'
         });
@@ -543,7 +543,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             borderTop: '1px solid var(--theia-widget-border)', color: 'var(--theia-descriptionForeground)',
             fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
         });
-        this.footer.textContent = 'タイムラインで時刻を選び、ここにコメントを書きます。';
+        this.footer.textContent = 'Pick a time on the timeline and write your comment here.';
 
         this.toDispose.push(this.notice);
         this.node.append(
@@ -688,7 +688,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             this.rawSourceChip.style.display = 'none';
             this.timeLabel.style.display = '';
             this.timeLabel.textContent = this.formatTimestamp(this.model.selectedSourceT);
-            this.textInput.placeholder = 'コメントを入力';
+            this.textInput.placeholder = 'Enter a comment';
             return;
         }
         this.timeLabel.style.display = 'none';
@@ -697,9 +697,9 @@ export class AkariReviewPanelWidget extends BaseWidget {
             this.clipSelectionChip.style.display = 'none';
             this.uiSelectionChip.style.display = 'none';
             this.rawSourceChip.style.display = 'none';
-            this.docSelectionLabel.textContent = `📄 ${this.reportBaseName(selection.path)} を選択中`;
+            this.docSelectionLabel.textContent = `📄 ${this.reportBaseName(selection.path)} selected`;
             this.docSelectionLabel.title = `${selection.path}#${selection.blockId}`;
-            this.textInput.placeholder = 'このブロックについてコメント';
+            this.textInput.placeholder = 'Comment on this block';
             return;
         }
         if (clipSelection) {
@@ -707,9 +707,9 @@ export class AkariReviewPanelWidget extends BaseWidget {
             this.clipSelectionChip.style.display = 'inline-flex';
             this.uiSelectionChip.style.display = 'none';
             this.rawSourceChip.style.display = 'none';
-            this.clipSelectionLabel.textContent = `🎛️ ${clipSelection.label} を選択中`;
+            this.clipSelectionLabel.textContent = `🎛️ ${clipSelection.label} selected`;
             this.clipSelectionLabel.title = `ui:${clipSelection.target}`;
-            this.textInput.placeholder = 'このクリップについてコメント';
+            this.textInput.placeholder = 'Comment on this clip';
             return;
         }
         if (uiSelection) {
@@ -717,9 +717,9 @@ export class AkariReviewPanelWidget extends BaseWidget {
             this.clipSelectionChip.style.display = 'none';
             this.uiSelectionChip.style.display = 'inline-flex';
             this.rawSourceChip.style.display = 'none';
-            this.uiSelectionLabel.textContent = `🎛️ ${uiSelection.label} を選択中`;
+            this.uiSelectionLabel.textContent = `🎛️ ${uiSelection.label} selected`;
             this.uiSelectionLabel.title = uiSelection.target;
-            this.textInput.placeholder = 'この UI 要素についてコメント';
+            this.textInput.placeholder = 'Comment on this UI element';
             return;
         }
         this.docSelectionChip.style.display = 'none';
@@ -728,7 +728,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         this.rawSourceChip.style.display = 'inline-flex';
         this.rawSourceLabel.textContent = `🎞 ${rawSelection!.src}`;
         this.rawSourceLabel.title = `${rawSelection!.mediaUri} @ ${this.formatTimestamp(rawSelection!.sourceT)}`;
-        this.textInput.placeholder = 'この素材の現在位置についてコメント';
+        this.textInput.placeholder = 'Comment on the current position of this footage';
     }
 
     protected handleRawPreviewAnnotationState(state: RawPreviewAnnotationState | undefined): void {
@@ -845,13 +845,13 @@ export class AkariReviewPanelWidget extends BaseWidget {
         const active = state?.active === true;
         this.recordingButton.disabled = !location?.editUri || busy;
         this.recordingButton.textContent = state?.status === 'starting'
-            ? '準備中…'
+            ? 'Preparing...'
             : state?.status === 'stopping'
-                ? '保存中…'
-                : active ? '録音終了' : '録音開始';
+                ? 'Saving...'
+                : active ? 'Stop recording' : 'Start recording';
         this.recordingButton.className = active ? 'theia-button secondary' : 'theia-button main';
         this.recordingIndicator.classList.toggle('is-recording', active);
-        this.recordingIndicator.setAttribute('aria-label', active ? '録音中' : '録音停止中');
+        this.recordingIndicator.setAttribute('aria-label', active ? 'Recording' : 'Not recording');
         this.recordingElapsed.textContent = this.formatSessionDuration(state?.elapsedSec ?? 0);
         this.compileButton.disabled = !location || (state?.sessions.length ?? 0) === 0;
         const level = active ? Math.max(0, Math.min(1, state?.level ?? 0)) : 0;
@@ -880,7 +880,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         const sessions = state?.sessions ?? [];
         if (sessions.length === 0) {
             const empty = document.createElement('div');
-            empty.textContent = '録音済みセッションはありません。';
+            empty.textContent = 'No recorded sessions.';
             empty.style.color = 'var(--theia-descriptionForeground)';
             this.sessionList.appendChild(empty);
             return;
@@ -918,8 +918,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
             const viewer = document.createElement('button');
             viewer.type = 'button';
             viewer.className = 'theia-button secondary';
-            viewer.textContent = '見返す';
-            viewer.title = `${session.id} を音・描線・文字起こしで見返す`;
+            viewer.textContent = 'Replay';
+            viewer.title = `Replay ${session.id} with audio, strokes and transcript`;
             viewer.setAttribute('data-review-session-viewer', session.id);
             viewer.addEventListener('click', () => void this.openSessionViewer(session.id));
             row.append(id, started, duration, badgeElement, viewer);
@@ -972,7 +972,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         const location = this.model.location;
         const editUri = location?.editUri?.normalizePath().toString();
         if (!location || !editUri) {
-            this.recordingNotice.textContent = '出力プレビューを開いてから録音を開始してください。';
+            this.recordingNotice.textContent = 'Open the output preview before starting a recording.';
             this.recordingNotice.style.display = 'block';
             return;
         }
@@ -1030,8 +1030,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
         if (filtered.length === 0) {
             const empty = document.createElement('div');
             empty.textContent = this.model.annotations.length === 0
-                ? 'まだ注釈はありません。'
-                : '該当する注釈はありません。';
+                ? 'No annotations yet.'
+                : 'No matching annotations.';
             empty.style.color = 'var(--theia-descriptionForeground)';
             empty.style.padding = '8px 2px';
             this.listContainer.appendChild(empty);
@@ -1065,11 +1065,11 @@ export class AkariReviewPanelWidget extends BaseWidget {
             borderBottom: '1px solid var(--theia-widget-border)'
         });
         const message = document.createElement('span');
-        message.textContent = '消しました';
+        message.textContent = 'Deleted';
         const undoButton = document.createElement('button');
         undoButton.type = 'button';
         undoButton.className = 'theia-button secondary';
-        undoButton.textContent = '元に戻す';
+        undoButton.textContent = 'Undo';
         undoButton.addEventListener('click', () => void this.undoDeleteAnnotation(annotation.id));
         row.append(message, undoButton);
         return row;
@@ -1115,7 +1115,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             const time = document.createElement('button');
             time.type = 'button';
             time.textContent = this.formatTimestamp(annotation.sourceT);
-            time.title = 'この時刻へジャンプ';
+            time.title = 'Jump to this time';
             Object.assign(time.style, {
                 fontVariantNumeric: 'tabular-nums', background: 'none', border: 'none', padding: '0',
                 color: 'var(--theia-textLink-foreground)', cursor: 'pointer', font: 'inherit'
@@ -1135,7 +1135,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         head.appendChild(badge);
         if (this.sentAnnotationIds.has(annotation.id)) {
             const sentBadge = document.createElement('span');
-            sentBadge.textContent = '送信済み';
+            sentBadge.textContent = 'Sent';
             sentBadge.setAttribute('data-sent-annotation', annotation.id);
             Object.assign(sentBadge.style, {
                 color: 'var(--theia-descriptionForeground)', fontSize: '11px',
@@ -1169,8 +1169,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
             const strokeButton = document.createElement('button');
             strokeButton.type = 'button';
             strokeButton.textContent = '✏️';
-            strokeButton.title = 'ペン描画を表示';
-            strokeButton.setAttribute('aria-label', 'ペン描画を表示');
+            strokeButton.title = 'Show pen strokes';
+            strokeButton.setAttribute('aria-label', 'Show pen strokes');
             Object.assign(strokeButton.style, {
                 background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit'
             });
@@ -1195,7 +1195,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             const resolveButton = document.createElement('button');
             resolveButton.type = 'button';
             resolveButton.className = 'theia-button secondary';
-            resolveButton.textContent = '確認済みにする';
+            resolveButton.textContent = 'Mark resolved';
             resolveButton.setAttribute('data-resolve-button', annotation.id);
             resolveButton.addEventListener('click', () => void this.resolveAnnotationById(annotation.id));
             actions.appendChild(resolveButton);
@@ -1203,14 +1203,14 @@ export class AkariReviewPanelWidget extends BaseWidget {
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'theia-button secondary';
-        deleteButton.textContent = '消す';
+        deleteButton.textContent = 'Delete';
         deleteButton.setAttribute('data-delete-button', annotation.id);
         deleteButton.addEventListener('click', () => void this.deleteAnnotationById(annotation.id));
         actions.appendChild(deleteButton);
         const sendButton = document.createElement('button');
         sendButton.type = 'button';
         sendButton.className = 'theia-button secondary';
-        sendButton.textContent = 'AI に送る';
+        sendButton.textContent = 'Send to AI';
         sendButton.setAttribute('data-send-button', annotation.id);
         sendButton.addEventListener('click', () => void this.sendAnnotationToAgent(annotation));
         actions.appendChild(sendButton);
@@ -1223,7 +1223,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             const response = document.createElement('div');
             response.style.color = 'var(--theia-descriptionForeground)';
             response.style.fontSize = '12px';
-            response.textContent = `対応（${annotation.response.action === 'edited' ? '編集しました' : '見送りました'}）: ${annotation.response.summary}`;
+            response.textContent = `Response (${annotation.response.action === 'edited' ? 'edited' : 'skipped'}): ${annotation.response.summary}`;
             row.appendChild(response);
         }
         return row;
@@ -1236,7 +1236,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         if (label instanceof HTMLButtonElement) label.type = 'button';
         label.setAttribute('data-review-ui-target', uiTarget.id);
         label.textContent = `🎛️ ${row.label}`;
-        label.title = row.revealable ? `${row.title} — クリックで該当クリップを選択` : row.title;
+        label.title = row.revealable ? `${row.title} — click to select the clip` : row.title;
         Object.assign(label.style, {
             fontSize: '11px',
             color: row.revealable ? 'var(--theia-textLink-foreground)' : 'var(--theia-descriptionForeground)',
@@ -1262,7 +1262,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         button.type = 'button';
         button.setAttribute('data-review-doc-target', `${docTarget.path}#${docTarget.blockId}`);
         button.textContent = `📄 ${this.reportBaseName(docTarget.path)}`;
-        button.title = `${docTarget.path}#${docTarget.blockId} — クリックでレポートを開く`;
+        button.title = `${docTarget.path}#${docTarget.blockId} — click to open the report`;
         Object.assign(button.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             color: 'var(--theia-textLink-foreground)'
@@ -1273,12 +1273,12 @@ export class AkariReviewPanelWidget extends BaseWidget {
                 return;
             }
             if (health === 'path-missing') {
-                button.title = `${docTarget.path} が見つかりません（ピン表示は不可。注釈自体は有効です）`;
+                button.title = `${docTarget.path} not found (cannot pin; the annotation itself is still valid)`;
                 button.textContent = `📄⚠️ ${this.reportBaseName(docTarget.path)}`;
             } else if (health === 'block-missing') {
                 const lost = document.createElement('span');
-                lost.textContent = '（対象消失）';
-                lost.title = `block-id が現在のレポートにありません: ${docTarget.blockId}`;
+                lost.textContent = '(target missing)';
+                lost.title = `block-id is not in the current report: ${docTarget.blockId}`;
                 Object.assign(lost.style, { color: AKARI_WARNING_TEXT_COLOR, fontSize: '11px', marginLeft: '4px' });
                 button.after(lost);
             }
@@ -1299,7 +1299,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
                 opened.sendMessage({ type: 'akari-doc-annotation-reveal', blockId: docTarget.blockId });
             }
         } catch (error) {
-            this.messages.error(`レポートを開けません: ${this.errorMessage(error)}`);
+            this.messages.error(`Could not open the report: ${this.errorMessage(error)}`);
         }
     }
 
@@ -1315,7 +1315,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         button.type = 'button';
         button.setAttribute('data-review-image-target', imageTarget.path);
         button.textContent = `🖼️ ${this.reportBaseName(imageTarget.path)}`;
-        button.title = `${imageTarget.path} — クリックでポップアップを再表示`;
+        button.title = `${imageTarget.path} — click to reopen the popup`;
         Object.assign(button.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             fontSize: '11px', color: 'var(--theia-textLink-foreground)'
@@ -1326,7 +1326,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
                 return;
             }
             if (health === 'path-missing') {
-                button.title = `${imageTarget.path} が見つかりません（再表示は不可。注釈自体は有効です）`;
+                button.title = `${imageTarget.path} not found (cannot reopen; the annotation itself is still valid)`;
                 button.textContent = `🖼️⚠️ ${this.reportBaseName(imageTarget.path)}`;
                 button.style.color = 'var(--theia-descriptionForeground)';
             }
@@ -1350,14 +1350,14 @@ export class AkariReviewPanelWidget extends BaseWidget {
         }
         const imageUri = location.root.resolve(path);
         if (!await this.fileService.exists(imageUri)) {
-            this.messages.warn(`${path} が見つからないため、ポップアップを再表示できません。`);
+            this.messages.warn(`Could not reopen the popup: ${path} not found.`);
             return;
         }
         const imageRectStrokes = (strokes ?? []).filter(
             (stroke): stroke is Extract<AnnotationStroke, { space: 'image-rect' }> => stroke.space === 'image-rect'
         );
         const dialog = new AkariImageAnnotationDialog(
-            { title: '画像の注釈', mode: 'view', imageUri, relativePath: path, existingStrokes: imageRectStrokes, maxWidth: 960 },
+            { title: 'Image annotation', mode: 'view', imageUri, relativePath: path, existingStrokes: imageRectStrokes, maxWidth: 960 },
             this.fileService,
             this.model
         );
@@ -1376,7 +1376,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         button.type = 'button';
         button.setAttribute('data-review-canvas-target', canvasTarget.id);
         button.textContent = `🎨 ${canvasTarget.id}`;
-        button.title = `${canvasTarget.id} — クリックでキャンバスを再表示`;
+        button.title = `${canvasTarget.id} — click to reopen the canvas`;
         Object.assign(button.style, {
             background: 'none', border: 'none', padding: '0', cursor: 'pointer', font: 'inherit',
             fontSize: '11px', color: 'var(--theia-textLink-foreground)'
@@ -1387,7 +1387,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
                 return;
             }
             if (health === 'dir-missing') {
-                button.title = `review/canvas/${canvasTarget.id} が見つかりません（再表示は不可。注釈自体は有効です）`;
+                button.title = `review/canvas/${canvasTarget.id} not found (cannot reopen; the annotation itself is still valid)`;
                 button.textContent = `🎨⚠️ ${canvasTarget.id}`;
                 button.style.color = 'var(--theia-descriptionForeground)';
             }
@@ -1412,7 +1412,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         }
         const canvasJsonUri = location.root.resolve(`review/canvas/${id}/canvas.json`);
         if (!await this.fileService.exists(canvasJsonUri)) {
-            this.messages.warn(`review/canvas/${id} が見つからないため、キャンバスを再表示できません。`);
+            this.messages.warn(`Could not reopen the canvas: review/canvas/${id} not found.`);
             return;
         }
         let aspect = { w: 1920, h: 1080 };
@@ -1441,7 +1441,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
                 backgroundUri = candidate;
             } else {
                 // 契約 §6: background の ref が存在しない → strokes だけで表示（warning）。
-                backgroundWarning = `背景画像（${backgroundRef}）が見つからないため、ペン描画のみ表示します。`;
+                backgroundWarning = `Background image (${backgroundRef}) not found; showing pen strokes only.`;
             }
         }
 
@@ -1451,7 +1451,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
 
         const dialog = new AkariCanvasDialog(
             {
-                title: `キャンバスの表示（${id}）`, mode: 'view', aspect, backgroundUri, backgroundWarning,
+                title: `Canvas view (${id})`, mode: 'view', aspect, backgroundUri, backgroundWarning,
                 existingStrokes, maxWidth: 1200
             },
             this.fileService,
@@ -1560,7 +1560,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
             return;
         }
         if (!this.model.location) {
-            this.showNotice('プロジェクトを特定できません。タイムラインを開いてから追加してください。');
+            this.showNotice('Could not identify the project. Open the timeline, then add the annotation.');
             return;
         }
         const docSelection = this.model.docSelection;
@@ -1592,12 +1592,12 @@ export class AkariReviewPanelWidget extends BaseWidget {
             }
             this.hideNotice();
             this.footer.textContent = result.committed
-                ? '注釈を追加しました。変更を記録しました。'
-                : '注釈を追加しました。';
+                ? 'Annotation added. Change recorded.'
+                : 'Annotation added.';
         } catch (error) {
             const detail = this.errorMessage(error);
-            this.showNotice(`注釈を追加できません: ${detail}`);
-            this.messages.error(`注釈を追加できません: ${detail}`);
+            this.showNotice(`Could not add annotation: ${detail}`);
+            this.messages.error(`Could not add annotation: ${detail}`);
         } finally {
             this.addButton.disabled = false;
         }
@@ -1630,11 +1630,11 @@ export class AkariReviewPanelWidget extends BaseWidget {
         try {
             await this.model.resolveAnnotation(id);
             this.hideNotice();
-            this.footer.textContent = '注釈を確認済みにしました。';
+            this.footer.textContent = 'Annotation marked resolved.';
         } catch (error) {
             const detail = this.errorMessage(error);
-            this.showNotice(`更新できません: ${detail}`);
-            this.messages.error(`更新できません: ${detail}`);
+            this.showNotice(`Could not update: ${detail}`);
+            this.messages.error(`Could not update: ${detail}`);
         }
     }
 
@@ -1655,8 +1655,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
             this.pendingUndo.delete(id);
             this.renderList();
             const detail = this.errorMessage(error);
-            this.showNotice(`削除できません: ${detail}`);
-            this.footer.textContent = `削除できません: ${detail}`;
+            this.showNotice(`Could not delete: ${detail}`);
+            this.footer.textContent = `Could not delete: ${detail}`;
         }
     }
 
@@ -1676,8 +1676,8 @@ export class AkariReviewPanelWidget extends BaseWidget {
             }, ANNOTATION_UNDO_TIMEOUT_MS);
             this.pendingUndo.set(id, { annotation: entry.annotation, timer });
             const detail = this.errorMessage(error);
-            this.showNotice(`元に戻せません: ${detail}`);
-            this.footer.textContent = `元に戻せません: ${detail}`;
+            this.showNotice(`Could not undo: ${detail}`);
+            this.footer.textContent = `Could not undo: ${detail}`;
         } finally {
             this.renderList();
         }
@@ -1741,7 +1741,7 @@ export class AkariReviewPanelWidget extends BaseWidget {
         if (sent === true) {
             await this.markAnnotationSent(annotation.id);
         } else if (sent === undefined) {
-            this.footer.textContent = 'パートナーを開いてから送ってください。';
+            this.footer.textContent = 'Open the partner first, then send.';
         }
     }
 

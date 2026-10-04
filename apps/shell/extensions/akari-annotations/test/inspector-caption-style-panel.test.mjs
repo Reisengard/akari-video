@@ -81,7 +81,7 @@ test('折り返し幅はテキストタブの文字カードで表示・編集�
     })], async () => ({ ok: true }), {});
     assert.equal(field(mixed, 'caption-wrap-width').getValue(), '—');
     assert.equal(field(captionSections(caption('plain'), async () => ({ ok: true })),
-        'caption-wrap-width').getValue(), '自動');
+        'caption-wrap-width').getValue(), 'Auto');
 });
 
 test('袋がない字幕にも動きのカードを開ける', () => {
@@ -98,18 +98,18 @@ test('字幕の全種類と複数選択に同じ五枚のスタイルカード�
         caption('preset', { stylePreset: 'sample', effectiveTextStyle: { sizePx: 56 } })
     ]) {
         assert.deepEqual(cards(captionSections(snapshot, async () => ({ ok: true }))).map(section => section.label),
-            ['文字', '縁取り', '座布団', '効果', '位置']);
+            ['Text style', 'Stroke', 'Background', 'Effect', 'Position']);
     }
     assert.deepEqual(cards(multiCaptionSections([caption('one'), caption('two')],
         async () => ({ ok: true }), {})).map(section => section.label),
-        ['文字', '縁取り', '座布団', '効果', '位置']);
+        ['Text style', 'Stroke', 'Background', 'Effect', 'Position']);
     assert.match(field(captionSections(caption('plain'), async () => ({ ok: true })),
-        'caption-size').getValue(), /（既定）/u);
+        'caption-size').getValue(), / [(]default[)]/u);
     const plain = captionSections(caption('plain'), async () => ({ ok: true }));
-    assert.equal(field(plain, 'caption-font-weight').getValue(), '700（既定）');
+    assert.equal(field(plain, 'caption-font-weight').getValue(), '700 (default)');
     assert.equal(field(plain, 'caption-font-weight').getEditValue(), '700');
-    assert.equal(field(plain, 'caption-line-height').getValue(), '1.42（既定）');
-    assert.equal(field(plain, 'caption-letter-spacing').getValue(), '0（既定）');
+    assert.equal(field(plain, 'caption-line-height').getValue(), '1.42 (default)');
+    assert.equal(field(plain, 'caption-letter-spacing').getValue(), '0 (default)');
     assert.match(css, /\.akari-caption-effect-choices\s*\{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/u);
     assert.match(source, /case 'caption':\s+sections = CAPTION_SECTIONS/u);
     assert.match(source, /sections = MULTI_CAPTION_SECTIONS/u);
@@ -127,7 +127,7 @@ test('保存した runs が実際の文字カードに並び、選択と外す�
     const row = field(captionSections(current, async request => {
         writes.push(request); return { ok: true };
     }), 'caption-run-0');
-    assert.equal(row.actions[0].label, '4〜5文字目 「最高」 強調');
+    assert.equal(row.actions[0].label, 'Characters 4-5 "最高" Emphasis');
     const originalWindow = globalThis.window;
     const originalCustomEvent = globalThis.CustomEvent;
     const events = [];
@@ -191,9 +191,9 @@ test('単体と複数選択で短い欄ラベルと明示した単位を使う',
         multiCaptionSections(snapshots, async () => ({ ok: true }), {})
     ]) {
         assert.deepEqual(cards(sections).map(card => card.fields.map(entry => entry.label)), [
-            ['色', '大きさ', '折り返し幅', '太さ', '行間', '字間'], ['色', '太さ'],
-            ['表示', '形', '色', '不透明度', '余白', '角丸'],
-            ['種類', '縁の色', '縁の太さ'], ['位置']
+            ['Color', 'Size', 'Wrap width', 'Weight', 'Line spacing', 'Letter spacing'], ['Color', 'Width'],
+            ['Show', 'Shape', 'Color', 'Opacity', 'Padding', 'Corner radius'],
+            ['Type', 'Stroke color', 'Stroke width'], ['Position']
         ]);
         for (const [name, unit] of [
             ['caption-size', 'px'], ['caption-stroke-width', 'px'],
@@ -201,7 +201,7 @@ test('単体と複数選択で短い欄ラベルと明示した単位を使う',
             ['caption-effect-adjust-stroke-widthPx', 'px']
         ]) assert.equal(field(sections, name)?.unit, unit);
     }
-    assert.match(source, /角丸を最大にすると文字に沿った丸い座布団（カプセル）になる/u);
+    assert.match(source, /Setting the corner radius to the maximum makes a capsule-shaped background that follows the text/u);
     assert.match(source, /valueGroup\.append\(number, unit, defaultNote\)/u);
     assert.match(css, /\.akari-caption-slider-value\s*\{[^}]*display: inline-flex;[^}]*white-space: nowrap;/u);
 });
@@ -254,7 +254,7 @@ test('座布団の敷く操作と効果は書ける項目だけを更新する',
     await field(multi, 'caption-style-bg-enabled').write(caption('one'), 'true');
     await field(multi, 'caption-style-effect').write(caption('one'), 'outline');
     assert.ok(multiWrites.every(write => write.targets?.length === 2));
-    assert.match(source, /\['per-line', '行ごと'\], \['block', 'まとめて'\]/u);
+    assert.match(source, /\['per-line', 'Per line'\], \['block', 'Together'\]/u);
 });
 
 test('帯の効果を外すと帯の不透明度も一操作で消す', async () => {

@@ -74,7 +74,7 @@ for (const kind of ['traversal', 'absolute', 'source-symlink', 'assets-symlink',
       const link = join(f.root, kind === 'assets-symlink' ? 'assets' : 'assets/captures');
       await rm(link, { recursive: true, force: true }); await symlink(outside, link);
     }
-    await assert.rejects(f.service.extractSourceFrame(f.request), /プロジェクト/);
+    await assert.rejects(f.service.extractSourceFrame(f.request), /project/);
     assert.deepEqual(await readdir(outside), ['outside.mp4']);
   });
 }

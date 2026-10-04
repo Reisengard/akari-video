@@ -7,7 +7,7 @@ test('軸ごとの点・プリセット・親キャンバスの印を重ねる',
     keyframes: [{ t: 0, transform: { x: 10 }, opacity: 0.5 }],
     motion: { in: { preset: 'fade', duration: 12 } }, canvasMotion: true
   };
-  assert.deepEqual(itemMotionMarks(item, 'transform.x'), ['キーフレーム', '入り・抜き', 'キャンバス']);
-  assert.deepEqual(itemMotionMarks(item, 'transform.y'), ['入り・抜き', 'キャンバス']);
-  assert.deepEqual(itemMotionMarks(item, 'opacity'), ['キーフレーム', '入り・抜き', 'キャンバス']);
+  assert.deepEqual(itemMotionMarks(item, 'transform.x'), ['Keyframe', 'In/out', 'Canvas']);
+  assert.deepEqual(itemMotionMarks(item, 'transform.y'), ['In/out', 'Canvas']);
+  assert.deepEqual(itemMotionMarks(item, 'opacity'), ['Keyframe', 'In/out', 'Canvas']);
 });

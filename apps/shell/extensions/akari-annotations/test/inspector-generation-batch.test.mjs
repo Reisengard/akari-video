@@ -26,24 +26,24 @@ test('動画予定2 + 画像のまま + 空の枠 + 生成済み: 合計・順�
   const batch = buildGenerationBatch(data);
   assert.equal(batch.count, 2);
   assert.equal(batch.total, .3 + .36);
-  assert.equal(batch.summary, '動画にするもの: 2 本 · 合計 $0.66');
+  assert.equal(batch.summary, 'Videos to generate: 2 · total $0.66');
   assert.equal(batch.asOf, '2026-09-12');
   assert.deepEqual(batch.rows.map(row => [row.itemId, row.badge]), [
-    ['first', '動画にする · $0.30'], ['second', '動画にする · $0.36'],
-    ['still', '画像のまま（対象外）'], ['empty', '空の枠（prompt なし）'], ['done', '生成済み']
+    ['first', 'Generate video · $0.30'], ['second', 'Generate video · $0.36'],
+    ['still', 'Kept as image (not eligible)'], ['empty', 'Empty slot (no prompt)'], ['done', 'Generated']
   ]);
   assert.deepEqual(data, original);
 });
 
 for (const [name, patch, eligible, badge] of [
-  ['入力エラー', { validation: { ok: false, messages: [{ level: 'error', text: '最後の絵は使えません\n別のモデルを選択' }] } }, false, '入力エラー（最後の絵は使えません 別のモデルを選択）'],
-  ['生成中', { state: 'generating' }, false, '生成中'],
-  ['応答なし', { state: 'stale' }, false, '応答なし（対象外）'],
-  ['失敗で next が残る', { state: 'failed' }, true, 'もう一度 · $0.30'],
-  ['字幕・音声', { visual: false }, false, '対象外'],
-  ['未検証', { validation: undefined }, false, '見積を確認中'],
-  ['next なし', { meta: undefined }, false, '画像のまま（対象外）'],
-  ['素材不一致', { state: 'orphan' }, false, '入力エラー（素材が一致しません）'],
+  ['入力エラー', { validation: { ok: false, messages: [{ level: 'error', text: '最後の絵は使えません\n別のモデルを選択' }] } }, false, 'Input error (最後の絵は使えません 別のモデルを選択)'],
+  ['生成中', { state: 'generating' }, false, 'Generating'],
+  ['応答なし', { state: 'stale' }, false, 'No response (not eligible)'],
+  ['失敗で next が残る', { state: 'failed' }, true, 'Retry · $0.30'],
+  ['字幕・音声', { visual: false }, false, 'Not eligible'],
+  ['未検証', { validation: undefined }, false, 'Checking estimate…'],
+  ['next なし', { meta: undefined }, false, 'Kept as image (not eligible)'],
+  ['素材不一致', { state: 'orphan' }, false, 'Input error (footage does not match)'],
 ]) test(`対象判定: ${name}`, () => {
   const row = buildGenerationBatch([{ ...planned('a'), ...patch }]).rows[0];
   assert.equal(row.eligible, eligible);
@@ -54,7 +54,7 @@ test('文字カードの空 prompt は next があっても空の枠', () => {
   const item = planned('a');
   item.meta.status = 'planned';
   item.meta.next.inputs.prompt = '  ';
-  assert.equal(buildGenerationBatch([item]).rows[0].badge, '空の枠（prompt なし）');
+  assert.equal(buildGenerationBatch([item]).rows[0].badge, 'Empty slot (no prompt)');
   assert.equal(buildGenerationBatch([item]).count, 0);
 });
 
@@ -65,8 +65,8 @@ for (const estimate of [null, undefined, NaN, Infinity, -1]) test(`見積不可 
   assert.equal(batch.count, 2);
   assert.equal(batch.total, .3);
   assert.equal(batch.unknown, true);
-  assert.match(batch.summary, /一部見積不可/);
-  assert.match(batch.rows[1].badge, /見積不可/);
+  assert.match(batch.summary, /some estimates unavailable/);
+  assert.match(batch.rows[1].badge, /Estimate unavailable/);
 });
 
 test('0円は見積可能・as_of は複数日を保持', () => {
@@ -104,7 +104,7 @@ test('承認1回・対象N本・タイムライン順・終了待ちの間は同
   assert.equal(peak, 1);
   assert.equal(active, 0);
   assert.ok(calls.every(c => c.approved === true && c.projectRootUri === 'file:///project'));
-  assert.deepEqual(progress, [['first', '待ち'], ['second', '待ち'], ['first', '生成中'], ['first', '完了'], ['second', '生成中'], ['second', '完了']]);
+  assert.deepEqual(progress, [['first', 'Waiting'], ['second', 'Waiting'], ['first', 'Generating'], ['first', 'Done'], ['second', 'Generating'], ['second', 'Done']]);
 });
 
 for (const approved of [false, undefined]) test(`未承認 ${approved} は起動も待機も0回`, async () => {
@@ -126,8 +126,8 @@ for (const failure of ['start throws', 'wait rejects', 'ok false']) test(`失敗
     wait: async id => { if (id === 'first' && failure === 'wait rejects') throw Error('wait'); return { ok: id !== 'first' }; },
     stopped: () => false, progress: (id, state) => progress.push([id, state]) });
   assert.deepEqual(calls, ['first', 'second']);
-  assert.ok(progress.some(([id, state]) => id === 'first' && state === '失敗'));
-  assert.deepEqual(progress.at(-1), ['second', '完了']);
+  assert.ok(progress.some(([id, state]) => id === 'first' && state === 'Failed'));
+  assert.deepEqual(progress.at(-1), ['second', 'Done']);
 });
 
 test('残りをやめる: 実行中1本は終了まで待ち、以降0回', async () => {
@@ -140,7 +140,7 @@ test('残りをやめる: 実行中1本は終了まで待ち、以降0回', asyn
   assert.equal(ended, false);
   finish.resolve({ ok: true }); await run;
   assert.deepEqual(calls, ['first']);
-  assert.deepEqual(progress.slice(-2), [['first', '完了'], ['second', '中止']]);
+  assert.deepEqual(progress.slice(-2), [['first', 'Done'], ['second', 'Stopped']]);
 });
 
 // Exercise the compiled approval method without loading Theia's browser runtime.
@@ -177,8 +177,8 @@ for (const approved of [false, true]) test(`パネル費用承認 ${approved}: 1
   });
   await widget.confirmGenerationBatch(batch, 'file:///approved-project');
   assert.equal(dialogs.length, 1);
-  assert.equal(dialogs[0].title, '費用承認');
-  assert.equal(dialogs[0].msg, '2 本を合計 $0.60（as_of 2026-09-12）で送ります。費用承認しますか');
+  assert.equal(dialogs[0].title, 'Approve cost');
+  assert.equal(dialogs[0].msg, 'Sending 2 clips: Total $0.60 (as_of 2026-09-12). Approve the cost?');
   assert.deepEqual(errors, []);
   assert.equal(writes.length, approved ? 2 : 0);
   assert.equal(calls.length, approved ? 2 : 0);

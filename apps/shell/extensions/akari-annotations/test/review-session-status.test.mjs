@@ -8,16 +8,16 @@ import {
 
 test('状態バッジをライフサイクルへ写像し orphaned を優先する', () => {
     assert.deepEqual(reviewSessionBadge({ id: 's-1', startedAt: '', status: 'recorded' }), {
-        key: 'recorded', label: '録音済み', hint: 'まだチケットになっていません — コンパイルでチケット化'
+        key: 'recorded', label: 'Recorded', hint: 'Not a ticket yet — compile to create tickets'
     });
     assert.deepEqual(reviewSessionBadge({ id: 's-2', startedAt: '', status: 'transcribed' }), {
-        key: 'transcribed', label: '文字起こし済み'
+        key: 'transcribed', label: 'Transcribed'
     });
     assert.deepEqual(reviewSessionBadge({ id: 's-3', startedAt: '', status: 'compiled' }), {
-        key: 'compiled', label: 'コンパイル済み'
+        key: 'compiled', label: 'Compiled'
     });
     assert.deepEqual(reviewSessionBadge({ id: 's-4', startedAt: '', status: 'compiled', orphaned: true }), {
-        key: 'orphaned', label: '未完了'
+        key: 'orphaned', label: 'Incomplete'
     });
     assert.equal(reviewSessionBadge({ id: 's-5', startedAt: '' }).key, 'recorded');
     assert.equal(reviewSessionBadge({ id: 's-6', startedAt: '', status: 'future-status' }).key, 'recorded');

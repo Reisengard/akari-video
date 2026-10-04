@@ -69,11 +69,11 @@ test('cue 文脈のアニメーター節は袋の見出しを表示し、追加�
     const section = animatorSection(owner.id, `袋 ${owner.id} のアニメーター（全 cue に効く）`, owner.animator,
         async request => { writes.push(request); return { ok: true }; });
     assert.equal(section.id, 'animator');
-    assert.equal(section.label, '詳細設定（上級）: 袋 captions-bag のアニメーター（全 cue に効く）');
+    assert.equal(section.label, 'Advanced settings: 袋 captions-bag のアニメーター（全 cue に効く）');
     assert.equal(section.collapsedByDefault, true);
     const add = section.fields.find(field => field.name === 'animator-add');
-    assert.equal(add.label, 'アニメーターを追加');
-    assert.deepEqual(await add.write(snapshot, 'アニメーター'), { ok: true });
+    assert.equal(add.label, 'Add animator');
+    assert.deepEqual(await add.write(snapshot, 'Animator'), { ok: true });
     assert.deepEqual(writes, [{ kind: 'item-field', id: 'captions-bag', path: 'animator', value: [animator()] }]);
 });
 
@@ -83,7 +83,7 @@ test('cue 文脈からの追加は袋の既存 animator を維持する', async 
     const writes = [];
     const section = animatorSection(owner.id, `袋 ${owner.id} のアニメーター（全 cue に効く）`, owner.animator,
         async request => { writes.push(request); return { ok: true }; });
-    await section.fields.find(field => field.name === 'animator-add').write({ kind: 'caption', id: 'cue-1' }, 'アニメーター');
+    await section.fields.find(field => field.name === 'animator-add').write({ kind: 'caption', id: 'cue-1' }, 'Animator');
     assert.deepEqual(writes, [{
         kind: 'item-field', id: 'captions-bag', path: 'animator', value: [existing, animator('a2')]
     }]);

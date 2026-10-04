@@ -26,11 +26,11 @@ export function shapeLiveParams(
     const next: Record<string, unknown> = { ...params };
     if (key === 'fillMode' || key === 'strokeMode') {
         const paintKey = key === 'fillMode' ? 'fill' : 'stroke';
-        if (rawValue === 'なし') {
+        if (rawValue === 'None') {
             next[paintKey] = 'none';
             return next;
         }
-        if (rawValue !== '色') return undefined;
+        if (rawValue !== 'Color') return undefined;
         if (paintKey === 'fill') next.fill = shape === 'bubble' ? '#ffffff' : '#a6a6a6';
         else {
             next.stroke = '#000000';

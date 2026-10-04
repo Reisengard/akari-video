@@ -73,7 +73,7 @@ test('音の空の枠は DOM と title から名前を消し、チップだけ�
   instance.applyAudioGenerationChip(element, 'assets/generated/frame-audio-secret.wav');
   assert.doesNotMatch(element.textContent, /frame-1|frame-audio-secret/u);
   assert.doesNotMatch(element.title, /frame-1|frame-audio-secret/u);
-  assert.match(element.textContent, /空の枠（音）/u);
+  assert.match(element.textContent, /Empty slot [(]audio[)]/u);
   assert.equal(element.querySelector('.akari-annotations-segment-label'), null);
   assert.equal(element.classList.contains('akari-generation-planned-audio'), true);
 }));

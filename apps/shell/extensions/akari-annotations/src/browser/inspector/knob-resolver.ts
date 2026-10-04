@@ -36,7 +36,7 @@ export function parseInspectorKnobs(value: unknown): InspectorKnob[] {
         return [{
             name,
             type: knob.type as InspectorKnobType,
-            group: typeof knob.group === 'string' && knob.group.trim() ? knob.group : 'ツマミ',
+            group: typeof knob.group === 'string' && knob.group.trim() ? knob.group : 'Controls',
             ...(typeof knob.label === 'string' ? { label: knob.label } : {}),
             ...(typeof knob.min === 'number' ? { min: knob.min } : {}),
             ...(typeof knob.max === 'number' ? { max: knob.max } : {}),

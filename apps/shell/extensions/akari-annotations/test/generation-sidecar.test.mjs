@@ -8,17 +8,17 @@ import {
 
 const startedAt = Date.parse('2026-09-13T00:00:00.000Z');
 const cases = [
-  ['none', undefined, startedAt, 'none', '静止画'],
-  ['empty', { kind: 'still', status: 'planned' }, startedAt, 'planned', '空の枠'],
-  ['planned', { kind: 'still', status: 'planned', inputs: { prompt: '朝の海' } }, startedAt, 'planned', '予定'],
+  ['none', undefined, startedAt, 'none', 'Still'],
+  ['empty', { kind: 'still', status: 'planned' }, startedAt, 'planned', 'Empty slot'],
+  ['planned', { kind: 'still', status: 'planned', inputs: { prompt: '朝の海' } }, startedAt, 'planned', 'Planned'],
   ['generating', { kind: 'still', status: 'generating', progress: 62,
     job: { started_at: '2026-09-13T00:00:00.000Z', stale_after_s: 900 } }, startedAt + 1000,
-  'generating', '生成中 62%'],
+  'generating', 'Generating 62%'],
   ['stale', { kind: 'still', status: 'generating',
     job: { started_at: '2026-09-13T00:00:00.000Z', stale_after_s: 900 } }, startedAt + 901000,
-  'stale', '応答なし・再取得'],
-  ['done', { kind: 'video', status: 'done' }, startedAt, 'done', '生成'],
-  ['failed', { kind: 'still', status: 'failed' }, startedAt, 'failed', '失敗']
+  'stale', 'No response · retry'],
+  ['done', { kind: 'video', status: 'done' }, startedAt, 'done', 'Generated'],
+  ['failed', { kind: 'still', status: 'failed' }, startedAt, 'failed', 'Failed']
 ];
 
 test('6 状態を契約語彙と表示文言へ写像する', () => {
@@ -41,33 +41,33 @@ test('stale は stale_after_s を超えたときだけ成立する', () => {
 
 test('progress が無い generating は不定バー用に undefined を返す', () => {
   const description = describeGenerationChip('generating', { status: 'generating' });
-  assert.equal(description.badge, '生成中');
+  assert.equal(description.badge, 'Generating');
   assert.equal(description.progress, undefined);
 });
 
 test('候補の札は進捗と完了数を示す', () => {
   assert.equal(describeGenerationChip('generating', { job: { provider: 'compare', routes: ['codex', 'grok', 'fal'], completed: 1 } }).badge,
-    '3 案作成中 · 1/3');
+    '3 options · 1/3');
   assert.match(describeGenerationChip('generating', { job: { provider: 'fal', routes: ['a', 'b'],
-    started_at: '2026-09-13T00:00:00.000Z' } }, startedAt + 1000).badge, /生成中 · 1 秒/u);
+    started_at: '2026-09-13T00:00:00.000Z' } }, startedAt + 1000).badge, /Generating · 1s/u);
   assert.equal(describeGenerationChip('planned', { job: { routes: ['codex', 'grok', 'fal'], candidates: 2 } }).badge,
-    '候補 2');
+    'Candidates: 2');
 });
 
 test('札は幅に応じて全文・記号と数・記号だけにし、400% では全文を戻す', () => {
-  const progress = '3 案作成中 · 1/3';
+  const progress = '3 options · 1/3';
   assert.equal(generationChipLabel(progress, 101), progress);
   assert.equal(generationChipLabel(progress, 64), '✦ 1/3');
   assert.equal(generationChipLabel(progress, 25.2), '✦');
-  assert.equal(generationChipLabel('候補 3', 101), '候補 3');
-  assert.equal(generationChipLabel('候補 3', 25.2), '✦');
-  assert.equal(generationChipLabel('生成中 · 12 秒', 64), '✦ 12 秒');
+  assert.equal(generationChipLabel('Candidates: 3', 101), 'Candidates: 3');
+  assert.equal(generationChipLabel('Candidates: 3', 25.2), '✦');
+  assert.equal(generationChipLabel('Generating · 12s', 64), '✦ 12s');
 });
 
 test('planned は空白だけ・欠落・不正型の prompt でも空の枠、文字があれば予定', () => {
   for (const prompt of [undefined, null, '', ' \n\t　', 42, {}, ' 朝の海 ']) {
     const meta = { kind: 'still', status: 'planned', inputs: { prompt } };
-    assert.equal(describeGenerationChip('planned', meta).badge, prompt === ' 朝の海 ' ? '予定' : '空の枠');
+    assert.equal(describeGenerationChip('planned', meta).badge, prompt === ' 朝の海 ' ? 'Planned' : 'Empty slot');
   }
 });
 
@@ -100,20 +100,20 @@ test('binding 不一致は orphan、binding 一致と省略は素の状態にな
 test('orphan は専用の見た目になり none とは異なる', () => {
   const description = describeGenerationChip('orphan');
   assert.deepEqual(description, {
-    badge: '孤児',
+    badge: 'Orphaned',
     className: 'akari-generation-orphan',
-    title: '素材が変わりました（meta の sha256 と一致しません）'
+    title: 'The footage changed (does not match the sha256 in meta)'
   });
   assert.notDeepEqual(description, describeGenerationChip('none'));
 });
 
-for (const [name, variety] of [['next-first-last', '最初→最後'], ['next-first', '画像から'], ['next-prompt', 'プロンプトだけ'], ['next-narrow', '画像から']]) {
+for (const [name, variety] of [['next-first-last', 'first to last'], ['next-first', 'from image'], ['next-prompt', 'prompt only'], ['next-narrow', 'from image']]) {
   test(`${name}: 動画予定の class / badge / title`, async () => {
     const meta = JSON.parse(await readFile(new URL(`./fixtures/generation-states/assets/generated/${name}.png.meta.json`, import.meta.url)));
     const state = resolveGenerationState(meta, startedAt);
     assert.equal(state, 'planned-video');
     assert.deepEqual(describeGenerationChip(state, meta), {
-      className: 'akari-generation-planned-video', badge: '▶ 動画予定', title: `動画予定（${variety}）`
+      className: 'akari-generation-planned-video', badge: '▶ Planned video', title: `Planned video (${variety})`
     });
   });
 }
@@ -121,7 +121,7 @@ for (const [name, variety] of [['next-first-last', '最初→最後'], ['next-fi
 test('next なしの静止画は完成品、title に仮枠を付けない', () => {
   for (const meta of [undefined, { version: 1, kind: 'still', status: 'done' }]) {
     const description = describeGenerationChip(resolveGenerationState(meta, startedAt), meta);
-    assert.equal(description.badge, '静止画');
-    assert.equal(description.title, '静止画');
+    assert.equal(description.badge, 'Still');
+    assert.equal(description.title, 'Still');
   }
 });

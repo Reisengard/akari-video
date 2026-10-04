@@ -19,11 +19,11 @@ function inside(root: string, target: string): boolean {
 
 function declaredParts(declared: string): string[] {
     if (typeof declared !== 'string' || !declared || isAbsolute(declared) || /^[a-z]:/iu.test(declared)) {
-        throw new Error('素材パスがプロジェクトの外を指しています');
+        throw new Error('The footage path points outside the project');
     }
     const parts = declared.replace(/\\/gu, '/').split('/');
     if (parts.some(part => !part || part === '.' || part === '..')) {
-        throw new Error('素材パスがプロジェクトの外を指しています');
+        throw new Error('The footage path points outside the project');
     }
     return parts;
 }
@@ -51,7 +51,7 @@ function loadModules(): Promise<{ resolver: AssetResolverModule; references: Pro
             ]);
             return { resolver, references, roots };
         }
-        throw new Error('素材の参照 resolver が見つかりません');
+        throw new Error('The footage reference resolver was not found');
     })();
     return modules;
 }
@@ -89,14 +89,14 @@ export async function resolveProjectMediaFile(project: string, declared: string,
     const root = await fs.realpath(project);
     const { resolver, roots } = await loadModules();
     const actual = await resolver.resolveProjectAssetPath(root, declared, env).catch(error => {
-        if (error instanceof Error && error.message.includes('プロジェクトの外')) {
-            throw new Error('素材はプロジェクト内で指定してください。');
+        if (error instanceof Error && (error.message.includes('outside the project') || error.message.includes('プロジェクトの外'))) {
+            throw new Error('Specify footage inside the project.');
         }
         throw error;
     });
-    if (!actual) throw Object.assign(new Error(`素材が見つかりません: ${declared}`), { code: 'ENOENT' });
+    if (!actual) throw Object.assign(new Error(`Footage not found: ${declared}`), { code: 'ENOENT' });
     if (inside(root, actual)) return actual;
-    if (parts[0] !== 'assets' || parts.length < 4) throw new Error('素材パスがプロジェクトの外を指しています');
+    if (parts[0] !== 'assets' || parts.length < 4) throw new Error('The footage path points outside the project');
     for (const library of roots.resolveAssetLibraryRoots(env).read) {
         try {
             const libraryRoot = await fs.realpath(library);
@@ -106,7 +106,7 @@ export async function resolveProjectMediaFile(project: string, declared: string,
             if (inside(idDirectory, actual)) return actual;
         } catch { /* try the next configured library */ }
     }
-    throw new Error('素材パスがプロジェクトの外を指しています');
+    throw new Error('The footage path points outside the project');
 }
 
 /** Validate a project-local destination, creating only its parent directories. */
@@ -119,11 +119,11 @@ export async function projectOutputPath(project: string, declared: string): Prom
         try { await fs.mkdir(directory); } catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
         }
-        if (!inside(root, await fs.realpath(directory))) throw new Error('保存先はプロジェクト内で指定してください。');
+        if (!inside(root, await fs.realpath(directory))) throw new Error('The save location must be inside the project.');
     }
     const target = join(directory, parts[parts.length - 1]);
     try {
-        if (!inside(root, await fs.realpath(target))) throw new Error('保存先はプロジェクト内で指定してください。');
+        if (!inside(root, await fs.realpath(target))) throw new Error('The save location must be inside the project.');
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }

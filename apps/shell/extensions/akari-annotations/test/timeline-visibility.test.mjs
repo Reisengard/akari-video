@@ -43,14 +43,14 @@ test('タブバーの項目は出力プレビューだけに出て、状態で�
     assert.equal(item.isVisible({ id: 'plugin-webview:akari-output-preview-1ue46pv' }), true);
     assert.equal(item.isVisible({ id: 'plugin-webview:akari-preview-other' }), false);
     let button = item.render();
-    assert.match(button.props.title, /タイムラインを隠す/);
+    assert.match(button.props.title, /Hide timeline/);
     assert.equal(button.props['aria-pressed'], false);
     assert.match(button.children[0].props.className, /codicon-layout-panel$/);
     button.props.onClick({ preventDefault() {}, stopPropagation() {} });
     assert.deepEqual(calls, ['akari.timeline.toggleVisibility']);
     controller.timelineHidden = true;
     button = item.render();
-    assert.match(button.props.title, /タイムラインを出す/);
+    assert.match(button.props.title, /Show timeline/);
     assert.equal(button.props['aria-pressed'], true);
     assert.match(button.children[0].props.className, /codicon-layout-panel-off$/);
 });

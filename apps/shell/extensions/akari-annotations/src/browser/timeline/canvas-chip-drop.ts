@@ -2,7 +2,7 @@
 export function canvasChipDropPatch(
     item: { at: number; duration: number }, deltaFrames: number, edge: 'body' | 'right'
 ): { at: number } | { duration: number } {
-    if (!Number.isInteger(deltaFrames)) throw new Error('移動量は整数フレームで指定してください。');
+    if (!Number.isInteger(deltaFrames)) throw new Error('Specify the move amount as a whole number of frames.');
     return edge === 'right'
         ? { duration: Math.max(1, item.duration + deltaFrames) }
         : { at: Math.max(0, item.at + deltaFrames) };

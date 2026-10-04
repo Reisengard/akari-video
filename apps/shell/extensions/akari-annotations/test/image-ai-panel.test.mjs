@@ -38,10 +38,10 @@ test('missing key offers settings while a restored alternative remains adoptable
         openSettings: () => { settingsOpened++; },
         adopt: async result => { adopted = result; return { ok: true }; } });
     panel.open(); await tick();
-    assert.equal(findButton(parent, '送って高画質化').disabled, true);
-    findButton(parent, '設定を開く').click();
+    assert.equal(findButton(parent, 'Send and enhance').disabled, true);
+    findButton(parent, 'Open settings').click();
     assert.equal(settingsOpened, 1);
-    findButton(parent, 'この案にする').click(); await tick();
+    findButton(parent, 'Use this one').click(); await tick();
     assert.equal(adopted, alternative);
 }));
 
@@ -54,7 +54,7 @@ test('invalid key offers settings from the failure state', async () => withDom(a
             imageAiUpscale: async () => { throw Error('キーが無効です。'); } },
         openSettings: () => { settingsOpened++; }, adopt: async () => ({ ok: true }) });
     panel.open(); await tick();
-    findButton(parent, '送って高画質化').click(); await tick();
-    findButton(parent, '設定を開く').click();
+    findButton(parent, 'Send and enhance').click(); await tick();
+    findButton(parent, 'Open settings').click();
     assert.equal(settingsOpened, 1);
 }));

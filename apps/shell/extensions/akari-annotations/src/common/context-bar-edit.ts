@@ -220,7 +220,7 @@ export function pasteItemClipboard(doc: EditV2Document, envelope: ItemClipboardE
         sources.push({ ...clone(incoming), id: next });
     }
     const missing = referencedSourceIds(envelope.item).filter(id => !remap.has(id) && !sourceIds.has(id));
-    if (missing.length) throw new Error(`貼り付ける素材が見つかりません: ${missing.join(', ')}`);
+    if (missing.length) throw new Error(`Footage to paste not found: ${missing.join(', ')}`);
     const taken = allIds(value);
     const item = clone(envelope.item);
     const rewrite = (node: JsonRecord, top: boolean): void => {
@@ -252,7 +252,7 @@ export function pasteItemClipboard(doc: EditV2Document, envelope: ItemClipboardE
 export function duplicateItem(doc: EditV2Document, itemId: string, offset: { x: number; y: number }): PasteResult {
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, itemId);
-    if (!place) throw new Error(`複製する要素が見つかりません: ${itemId}`);
+    if (!place) throw new Error(`Element to duplicate not found: ${itemId}`);
     const taken = allIds(value);
     const copy = clone(place.item);
     const fresh = (node: JsonRecord): void => {
@@ -339,7 +339,7 @@ export function applyStyleClip(doc: EditV2Document, targetId: string, clip: Styl
     atFrame?: number): EditV2Document {
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, targetId);
-    if (!place) throw new Error(`スタイルを当てる要素が見つかりません: ${targetId}`);
+    if (!place) throw new Error(`Element to style not found: ${targetId}`);
     for (const { path, value: next } of styleWrites(clip, targetKind)) {
         // v0 の rect は角の丸みを持てない（描画に効かない）ので写さない
         if (path === 'source.params.cornerRadius' && place.item.source?.shape !== 'path' && place.item.source?.shape !== 'rounded-rect') continue;
@@ -378,7 +378,7 @@ export function lockedItemIds(doc: EditV2Document): string[] {
 export function setItemLocked(doc: EditV2Document, id: string, locked: boolean): EditV2Document {
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, id);
-    if (!place) throw new Error(`要素が見つかりません: ${id}`);
+    if (!place) throw new Error(`Element not found: ${id}`);
     if (locked) place.item.locked = true; else delete place.item.locked;
     return value;
 }
@@ -387,7 +387,7 @@ export function setItemLocked(doc: EditV2Document, id: string, locked: boolean):
 export function swapLineEnds(doc: EditV2Document, id: string): EditV2Document {
     const value = clone(doc) as JsonRecord;
     const params = findItemPlace(value, id)?.item.source?.params;
-    if (!isRecord(params)) throw new Error('ラインを選んでください。');
+    if (!isRecord(params)) throw new Error('Select a line.');
     const pairs: Array<[string, string]> = [['startCap', 'endCap'], ['startCapFilled', 'endCapFilled']];
     for (const [a, b] of pairs) {
         const first = params[a];
@@ -415,7 +415,7 @@ export function hasCorners(item: JsonRecord | undefined): boolean {
 export function setCornerRadius(doc: EditV2Document, id: string, percent: number): EditV2Document {
     const value = clone(doc) as JsonRecord;
     const item = findItemPlace(value, id)?.item;
-    if (!item || !hasCorners(item)) throw new Error('角のある図形を選んでください。');
+    if (!item || !hasCorners(item)) throw new Error('Select a shape with corners.');
     const source = item.source;
     const params: JsonRecord = isRecord(source.params) ? source.params : (source.params = {});
     const next = Math.max(0, Math.min(100, Math.round(percent)));
@@ -473,7 +473,7 @@ export function fitItemToScreen(doc: EditV2Document, id: string, atFrame?: numbe
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, id);
     const item = place?.item;
-    if (!place || !item) throw new Error(`要素が見つかりません: ${id}`);
+    if (!place || !item) throw new Error(`Element not found: ${id}`);
     const output = isRecord(value.output) ? value.output : {};
     const W = Number(output.width) || 1920;
     const H = Number(output.height) || 1080;
@@ -502,7 +502,7 @@ export function nudgeItem(doc: EditV2Document, id: string, dx: number, dy: numbe
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, id);
     const item = place?.item;
-    if (!place || !item) throw new Error(`要素が見つかりません: ${id}`);
+    if (!place || !item) throw new Error(`Element not found: ${id}`);
     const frame = animatedFrame(place, atFrame);
     if (frame !== undefined) {
         const pose = evaluatedItemTransform(item as never, frame);
@@ -525,7 +525,7 @@ export function resizeShapeTo(doc: EditV2Document, id: string,
     const value = clone(doc) as JsonRecord;
     const place = findItemPlace(value, id);
     const item = place?.item;
-    if (!place || !item || item.source?.kind !== 'shape') throw new Error('図形を選んでください。');
+    if (!place || !item || item.source?.kind !== 'shape') throw new Error('Select a shape.');
     const output = isRecord(value.output) ? value.output : {};
     const cx = (Number(output.width) || 1920) / 2;
     const cy = (Number(output.height) || 1080) / 2;
@@ -584,7 +584,7 @@ export interface LayerList {
 }
 
 const KIND_NAME: Record<ContextBarKind, string> = {
-    shape: '図形', line: 'ライン', photo: '写真', text: '文字', caption: '字幕', canvas: 'キャンバス', other: '素材'
+    shape: 'Shape', line: 'Line', photo: 'Photo', text: 'Text', caption: 'Caption', canvas: 'Canvas', other: 'Footage'
 };
 
 /**
@@ -598,7 +598,7 @@ export function layerListAt(doc: EditV2Document, selectedId: string, playheadFra
     const row = (item: JsonRecord, absoluteAt: number): LayerRow => {
         const kind = contextBarKind(item, isRecord(item.source) && typeof item.source.src === 'string' ? sourcePath(item.source.src) : undefined);
         const duration = Number.isFinite(item.duration) ? item.duration as number : 0;
-        return { id: String(item.id), name: typeof item.name === 'string' && item.name ? item.name : `${KIND_NAME[kind]}（${item.id}）`,
+        return { id: String(item.id), name: typeof item.name === 'string' && item.name ? item.name : `${KIND_NAME[kind]} (${item.id})`,
             kind, start: absoluteAt / fps, end: (absoluteAt + duration) / fps, locked: item.locked === true,
             hidden: item.hidden === true, selected: item.id === selectedId };
     };
@@ -608,7 +608,7 @@ export function layerListAt(doc: EditV2Document, selectedId: string, playheadFra
         const rows = place.list.filter(isRecord).map(item => ({ item, at: parentAt + (Number(item.at) || 0) }))
             .filter(({ item, at }) => item.id === selectedId || covers(at, item))
             .map(({ item, at }) => row(item, at)).reverse();
-        return { parent: { id: String(place.parent.id), name: typeof place.parent.name === 'string' && place.parent.name ? place.parent.name : 'キャンバス' }, rows };
+        return { parent: { id: String(place.parent.id), name: typeof place.parent.name === 'string' && place.parent.name ? place.parent.name : 'Canvas' }, rows };
     }
     const rows: LayerRow[] = [];
     for (const { track } of visualTracks(doc)) {
@@ -629,9 +629,9 @@ export function moveLayer(doc: EditV2Document, id: string, targetId: string): Ed
     if (id === targetId) return doc;
     const place = findItemPlace(doc, id);
     const target = findItemPlace(doc, targetId);
-    if (!place || !target) throw new Error('並べ替える要素が見つかりません。');
+    if (!place || !target) throw new Error('Element to reorder not found.');
     if (place.parent || target.parent) {
-        if (!place.parent || !target.parent || place.parent.id !== target.parent.id) throw new Error('同じキャンバスの中でだけ並べ替えられます。');
+        if (!place.parent || !target.parent || place.parent.id !== target.parent.id) throw new Error('Elements can only be reordered within the same canvas.');
         return moveTreeV2Item(doc, id, { parent: String(place.parent.id), index: target.index }).document;
     }
     // 相手のすぐ上（前面へ動かすとき）/ すぐ下（背面へ動かすとき）に空のトラックを作って移す。

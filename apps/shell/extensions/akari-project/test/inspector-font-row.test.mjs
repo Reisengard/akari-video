@@ -41,7 +41,7 @@ test('Captions and placed text font rows show font names and link to font panel 
         const row = captionFontFamilyField(snapshot, async () => {
             calls.push(['akari.captionPanel.toggle', { panel: 'font' }]); return true;
         });
-        assert.match(row.label, /^フォント$/u);
+        assert.equal(row.label, 'Font');
         assert.equal(row.getValue(), 'Noto Serif JP');
         assert.equal(row.actionLabel, 'Noto Serif JP  ›');
         assert.deepEqual(await row.action(snapshot), { ok: true });

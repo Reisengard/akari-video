@@ -6,12 +6,12 @@ import { MOTION_DURATION_DEFAULTS, MOTION_IN_OUT_PRESETS, MOTION_LOOP_PRESETS,
     type InspectorMotion, type InspectorMotionSlot } from './motion-fields';
 
 export const CAPTION_MOTION_COMBOS = [
-    { id: 'simple', label: 'シンプル', in: 'fade', out: 'fade' },
-    { id: 'smart', label: 'スマート', in: 'slide-up', loop: 'float', out: 'slide-up' },
-    { id: 'fun', label: 'ファン', in: 'pop', loop: 'pulse', out: 'pop' },
-    { id: 'corp', label: 'コーポレート', in: 'wipe', out: 'wipe' },
-    { id: 'relax', label: 'リラックス', in: 'fade', loop: 'float', out: 'fade' },
-    { id: 'typewriter', label: 'タイプライター', in: 'typewriter', out: 'fade' }
+    { id: 'simple', label: 'Simple', in: 'fade', out: 'fade' },
+    { id: 'smart', label: 'Smart', in: 'slide-up', loop: 'float', out: 'slide-up' },
+    { id: 'fun', label: 'Fun', in: 'pop', loop: 'pulse', out: 'pop' },
+    { id: 'corp', label: 'Corporate', in: 'wipe', out: 'wipe' },
+    { id: 'relax', label: 'Relaxed', in: 'fade', loop: 'float', out: 'fade' },
+    { id: 'typewriter', label: 'Typewriter', in: 'typewriter', out: 'fade' }
 ] as const;
 
 const textAnimationId = (id: string): string => ({

@@ -22,13 +22,13 @@ test('パネルはプロジェクトルート基準で状態を受け取りラ�
     assert.match(attach, /super\.onAfterAttach\(msg\)/);
     assert.match(attach, /this\.refreshReviewSessionContext\(\)/);
     assert.match(panelSource, /data-review-sessions-hint/);
-    assert.match(panelSource, /喋りながら描いた記録。コンパイルすると下のコメント（チケット）になります/);
+    assert.match(panelSource, /Drawings and speech captured together\. Compile to turn them into the comments \(tickets\) below/);
 });
 
 test('ボードは共通の状態語彙と未コンパイル操作を表示する', () => {
-    assert.match(boardSource, /title: '未対応'/);
-    assert.match(boardSource, /title: '対応済み'/);
-    assert.match(boardSource, /title: '確認済み'/);
+    assert.match(boardSource, /title: 'Open'/);
+    assert.match(boardSource, /title: 'Addressed'/);
+    assert.match(boardSource, /title: 'Resolved'/);
     assert.match(boardSource, /data-board-sessions/);
     assert.match(boardSource, /data-board-session-compile/);
     assert.match(boardSource, /planCompileHandoff\(this\.reviewSessions, sessionId\)/);

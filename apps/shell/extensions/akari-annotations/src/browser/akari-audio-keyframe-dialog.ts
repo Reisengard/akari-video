@@ -187,7 +187,7 @@ export class AkariAudioKeyframeDialog extends AbstractDialog<AkariAudioKeyframeD
             position: 'absolute', inset: '0', width: '100%', height: '100%',
             cursor: 'crosshair', touchAction: 'none'
         });
-        this.canvas.setAttribute('aria-label', '音量キーフレーム波形エディタ');
+        this.canvas.setAttribute('aria-label', 'Volume keyframe waveform editor');
         this.stage.appendChild(this.canvas);
         this.contentNode.appendChild(this.stage);
 
@@ -195,8 +195,8 @@ export class AkariAudioKeyframeDialog extends AbstractDialog<AkariAudioKeyframeD
             display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr auto',
             alignItems: 'end', gap: '8px', marginTop: '10px'
         });
-        this.configureNumberInput(this.overallGainInput, '全体ゲイン', '0.5');
-        this.configureNumberInput(this.timeInput, 't 秒', '0.001');
+        this.configureNumberInput(this.overallGainInput, 'Overall gain', '0.5');
+        this.configureNumberInput(this.timeInput, 't (sec)', '0.001');
         this.configureNumberInput(this.gainInput, 'gain_db', '0.1');
         this.overallGainInput.min = String(AUDIO_KEYFRAME_MIN_DB);
         this.overallGainInput.max = String(AUDIO_KEYFRAME_MAX_DB);
@@ -214,11 +214,11 @@ export class AkariAudioKeyframeDialog extends AbstractDialog<AkariAudioKeyframeD
         }
         this.deleteButton.type = 'button';
         this.deleteButton.className = 'theia-button secondary';
-        this.deleteButton.textContent = '選択点を削除';
+        this.deleteButton.textContent = 'Delete selected point';
         this.deleteButton.addEventListener('click', () => this.deleteSelectedPoint());
         this.editorRow.append(
-            this.labeledControl('全体ゲイン (dB)', this.overallGainInput),
-            this.labeledControl('t 秒', this.timeInput),
+            this.labeledControl('Overall gain (dB)', this.overallGainInput),
+            this.labeledControl('t (sec)', this.timeInput),
             this.labeledControl('gain_db', this.gainInput),
             this.labeledControl('easing', this.easingInput),
             this.deleteButton
@@ -245,8 +245,8 @@ export class AkariAudioKeyframeDialog extends AbstractDialog<AkariAudioKeyframeD
         this.easingInput.addEventListener('change', () => this.commitEasingInput());
         this.wirePointerEvents();
         this.syncSelectedControls();
-        this.appendAcceptButton('適用');
-        this.appendCloseButton('キャンセル');
+        this.appendAcceptButton('Apply');
+        this.appendCloseButton('Cancel');
     }
 
     protected override onAfterAttach(message: Message): void {
@@ -716,7 +716,7 @@ export class AkariAudioKeyframeDialog extends AbstractDialog<AkariAudioKeyframeD
     protected readonly playbackFailed = (): void => {
         this.stopPlaybackFrame();
         this.audio.pause();
-        this.playbackStatus.textContent = 'この形式は再生未対応';
+        this.playbackStatus.textContent = 'This format cannot be played';
         this.playbackStatus.style.display = 'block';
     };
 

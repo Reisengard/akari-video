@@ -250,7 +250,7 @@ test("updateStatusLine は同一 id が複数あるとき安全側に倒して�
     version: 0,
     annotations: [baseAnnotation({ id: "a-0001", status: "addressed" }), baseAnnotation({ id: "a-0001", status: "open" })],
   });
-  assert.throws(() => updateStatusLine(duplicated, "a-0001", ["addressed"], "resolved"), /複数/);
+  assert.throws(() => updateStatusLine(duplicated, "a-0001", ["addressed"], "resolved"), /appears more than once/);
 });
 
 test("removeAnnotationLine は先頭・中間・末尾・唯一の注釈を削除して読み直せる", () => {
@@ -288,7 +288,7 @@ test("removeAnnotationLine は整形済み review.json から対象だけを削�
 
 test("removeAnnotationLine は存在しない id を拒否する", () => {
   const source = appendAnnotationLine(emptyReviewSource(), baseAnnotation());
-  assert.throws(() => removeAnnotationLine(source, "a-9999"), /ありません/);
+  assert.throws(() => removeAnnotationLine(source, "a-9999"), /is not in the review data/);
 });
 
 // contract-2026-07-26-doc-image-annotations §1/§2: doc:<path>#<block-id> / image:<path> target は
@@ -320,7 +320,7 @@ test("sourceT: null かつ doc:/image: 以外の target は表示は残すが警
   const parsed = parseReview(source);
   assert.equal(parsed.annotations.length, 1, "無言で捨てず注釈は残す");
   assert.equal(parsed.annotations[0].sourceT, null);
-  assert.match(parsed.warnings.join(" "), /sourceT が null ですが target が doc: \/ image: 形式ではありません/);
+  assert.match(parsed.warnings.join(" "), /has a null sourceT but its target is not in doc: \/ image: form/);
 });
 
 test("動画面の注釈（target null・sourceT 数値）は無退行で従来どおり round-trip できる", () => {

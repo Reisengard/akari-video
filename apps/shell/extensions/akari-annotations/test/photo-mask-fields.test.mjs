@@ -24,10 +24,10 @@ test('generated photo masks have numbered Japanese labels while their ids and ma
   const options = maskSourceOptionsForSources(sources, true);
   assert.deepEqual(options, [
     { id: 'manual', label: 'chosen.png' },
-    { id: `mask-${firstHash}`, label: '背景を消したマスク' },
-    { id: `mask-${secondHash}`, label: '背景を消したマスク 2' },
+    { id: `mask-${firstHash}`, label: 'Background-removed mask' },
+    { id: `mask-${secondHash}`, label: 'Background-removed mask 2' },
     { id: `mask-${'c'.repeat(64)}`, label: 'manual.png' }
   ]);
-  assert.equal(maskSourceIdForLabel(options, '背景を消したマスク 2'), `mask-${secondHash}`);
+  assert.equal(maskSourceIdForLabel(options, 'Background-removed mask 2'), `mask-${secondHash}`);
   assert.deepEqual(maskSourceOptionsForSources(sources), [{ id: 'movie', label: 'chosen.mov' }]);
 });

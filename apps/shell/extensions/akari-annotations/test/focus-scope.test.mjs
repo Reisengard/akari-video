@@ -20,7 +20,7 @@ const rows = [
 test('フォーカスは部分木・パンくず・対象 span を返す', () => {
   const state = enterFocusScope(rows, 'h');
   assert.deepEqual(state, {
-    rootId: 'h', breadcrumbs: ['全体', 'フック', '見出し'], span: { at: 20, duration: 40 }
+    rootId: 'h', breadcrumbs: ['All', 'フック', '見出し'], span: { at: 20, duration: 40 }
   });
   assert.deepEqual(rowsInFocusScope(rows, state).map(row => [row.id, row.depth]), [['h', 0], ['part', 1]]);
 });
@@ -45,5 +45,5 @@ test('全体スコープは全行の最小開始から最大終端までを span
 });
 
 test('存在しないフォーカス対象は黙って空表示にせずエラーにする', () => {
-  assert.throws(() => enterFocusScope(rows, 'missing'), /見つかりません/);
+  assert.throws(() => enterFocusScope(rows, 'missing'), /Focus target not found/);
 });

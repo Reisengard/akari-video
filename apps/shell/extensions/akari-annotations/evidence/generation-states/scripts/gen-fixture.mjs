@@ -57,14 +57,14 @@ const EXTRA_SOURCES = [
   { id: 'orphan', file: 'orphan.png', color: '#555555' }
 ];
 const LAYOUT_STATES = [
-  { id: 'empty', src: 'planned', state: 'planned', badge: '空の枠' },
-  { id: 'planned', src: 'planned-prompt', state: 'planned', badge: '予定' },
-  { id: 'generating', src: 'generating', state: 'generating', badge: '生成中 62%' },
-  { id: 'stale', src: 'stale', state: 'stale', badge: '応答なし・再取得' },
-  { id: 'failed', src: 'failed', state: 'failed', badge: '失敗' },
-  { id: 'orphan', src: 'orphan', state: 'orphan', badge: '孤児' },
-  { id: 'done', src: 'done', state: 'done', badge: '生成' },
-  { id: 'still', src: 'still', state: 'none', badge: '静止画' }
+  { id: 'empty', src: 'planned', state: 'planned', badge: 'Empty slot' },
+  { id: 'planned', src: 'planned-prompt', state: 'planned', badge: 'Planned' },
+  { id: 'generating', src: 'generating', state: 'generating', badge: 'Generating 62%' },
+  { id: 'stale', src: 'stale', state: 'stale', badge: 'No response · retry' },
+  { id: 'failed', src: 'failed', state: 'failed', badge: 'Failed' },
+  { id: 'orphan', src: 'orphan', state: 'orphan', badge: 'Orphaned' },
+  { id: 'done', src: 'done', state: 'done', badge: 'Generated' },
+  { id: 'still', src: 'still', state: 'none', badge: 'Still' }
 ];
 
 await rm(FIXTURE_ROOT, { recursive: true, force: true });

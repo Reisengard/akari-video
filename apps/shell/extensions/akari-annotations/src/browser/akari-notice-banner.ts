@@ -89,8 +89,8 @@ export function createAkariNoticeBanner(options: AkariNoticeBannerOptions = {}):
     const close = document.createElement('button');
     close.type = 'button';
     close.textContent = '×';
-    close.title = '閉じる';
-    close.setAttribute('aria-label', '閉じる');
+    close.title = 'Close';
+    close.setAttribute('aria-label', 'Close');
     close.setAttribute('data-akari-notice-close', '');
     Object.assign(close.style, {
         flex: 'none', border: 'none', background: 'transparent', color: 'inherit',

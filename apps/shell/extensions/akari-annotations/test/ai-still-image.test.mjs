@@ -22,7 +22,7 @@ test('カタログの順序と対象ごとの押下可否', () => {
   assert.deepEqual(catalog[0].routes, [
     { id: 'codex', modelId: 'codex:image', label: 'ChatGPT（Codex）', maker: 'openai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 4 } } },
     { id: 'antigravity', modelId: 'still:antigravity', label: 'Antigravity', maker: 'google', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 0 } } },
-    { id: 'grok', modelId: 'still:grok', label: 'Grok', maker: 'xai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 1, note: '参照は縮めて送られます' } } },
+    { id: 'grok', modelId: 'still:grok', label: 'Grok', maker: 'xai', kind: 'cli', cost: 'free', inputs: { reference_images: { max: 1, note: 'References are downscaled before sending' } } },
     { id: 'fal', modelId: 'fal:gpt-image-2.5-flare', label: 'fal · GPT Image 2.5 Flare', maker: 'openai', kind: 'api', cost: 'paid', inputs: { reference_images: { max: 16 } } }
   ]);
   for (const target of ['empty-frame', 'still']) {
@@ -30,7 +30,7 @@ test('カタログの順序と対象ごとの押下可否', () => {
   }
   for (const target of ['video', 'generated-video']) {
     assert.deepEqual(describeAiTiles(catalog, target)[0].tiles[0], {
-      id: 'still', label: '静止画', image: 'still', enabled: false, reason: '空の枠か静止画で使えます'
+      id: 'still', label: 'Still', image: 'still', enabled: false, reason: 'Works on an empty slot or a still'
     });
   }
 });
@@ -39,13 +39,13 @@ test('画角選択と寸法違いの案内', () => {
   assert.equal(nearestStillAspect(1920, 1080), '16:9');
   assert.equal(nearestStillAspect(1080, 1920), '9:16');
   assert.equal(nearestStillAspect(1000, 1000), '1:1');
-  assert.equal(stillDimensionMismatch('16:9', { ok: true, width: 1024, height: 1024 }), '頼んだ 16:9 と違う 1024×1024 でできました');
+  assert.equal(stillDimensionMismatch('16:9', { ok: true, width: 1024, height: 1024 }), 'Requested 16:9 but got 1024×1024');
   assert.equal(stillDimensionMismatch('16:9', { ok: true, width: 160, height: 90 }), undefined);
 });
 
 test('寸法違いは同じ枠の一覧だけに出て、別の枠を選ぶと消える', () => {
   const a = { prompt: '', aspect: '16:9', probing: false, running: false,
-    mismatch: '頼んだ 16:9 と違う 1024×1024 でできました' };
+    mismatch: 'Requested 16:9 but got 1024×1024' };
   const states = new Map([['clip-a', a]]);
   assert.equal(stillMismatchNotice(states, 'clip-a', 'key-a', 'key-a'), a.mismatch);
   assert.equal(stillMismatchNotice(states, 'clip-b', 'key-a', 'key-b'), undefined);
@@ -54,8 +54,8 @@ test('寸法違いは同じ枠の一覧だけに出て、別の枠を選ぶと�
 });
 
 test('確認の打ち切りは未確認の札と案内を出し、未導入と呼ばない', () => {
-  const route = { id: 'codex', state: 'missing', detail: '確かめられませんでした（5 秒で打ち切り）' };
-  assert.equal(imageRouteBadgeText(route, false), '確かめられませんでした');
+  const route = { id: 'codex', state: 'missing', detail: 'Could not check (timed out after 5 sec)' };
+  assert.equal(imageRouteBadgeText(route, false), 'Could not check');
   assert.equal(imageRouteNextText(route), route.detail);
 });
 
@@ -76,7 +76,7 @@ test('状態確認は ready / signed-out / missing / 5 秒打ち切りで秘密�
     const started = Date.now();
     const timed = (await manager.probeImageRoutes())[0];
     assert.equal(timed.state, 'missing');
-    assert.match(timed.detail, /確かめられませんでした/u);
+    assert.match(timed.detail, /Could not check/u);
     assert.ok(Date.now() - started >= 4900);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

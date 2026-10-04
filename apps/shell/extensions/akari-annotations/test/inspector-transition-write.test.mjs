@@ -8,17 +8,29 @@ import { updateItem as updateV2Item } from '../lib/common/edit-v2-mutations.js';
 import { formatTransitionSeconds, roundTransitionDurationForWrite } from '../lib/common/transition-duration.js';
 import { transitionFields, cutSnapshot, timelineMethod, timelineSource } from './helpers/perspective-transition-fixture.mjs';
 
+const TRANSITION_LABEL_EN = {
+    dissolve: 'Dissolve', fade: 'Crossfade', 'fade-black': 'Fade through black', 'fade-white': 'Fade through white',
+    'fade-grays': 'Fade through gray', 'wipe-left': 'Wipe left', 'wipe-right': 'Wipe right', 'wipe-up': 'Wipe up',
+    'wipe-down': 'Wipe down', radial: 'Clock wipe', 'slide-left': 'Slide left', 'slide-right': 'Slide right',
+    'slide-up': 'Slide up', 'slide-down': 'Slide down', 'cover-left': 'Cover left', 'cover-right': 'Cover right',
+    'cover-up': 'Cover up', 'cover-down': 'Cover down', 'reveal-left': 'Reveal left', 'reveal-right': 'Reveal right',
+    'reveal-down': 'Reveal from above', 'reveal-up': 'Reveal from below', 'circle-open': 'Circle open',
+    'circle-close': 'Circle close', 'zoom-in': 'Zoom in', 'squeeze-h': 'Squeeze vertical',
+    'squeeze-v': 'Squeeze horizontal', blur: 'Blur', pixelize: 'Pixelate'
+};
+
 test('transition select は「なし」+ 正準語彙の labelJa 配列順を使用する', () => {
     const [row] = transitionFields(cutSnapshot(), () => {});
     assert.equal(row.inputKind, 'select');
     assert.equal(row.options.length, TRANSITION_VOCABULARY.length + 1);
-    assert.deepEqual(row.options, ['なし', ...TRANSITION_VOCABULARY.map(entry => entry.labelJa)]);
-    assert.equal(row.getValue(), 'なし');
-    for (const { id, labelJa } of TRANSITION_VOCABULARY) {
-        assert.equal(transitionOptionLabel(id), labelJa);
-        assert.equal(transitionTypeForLabel(labelJa), id);
+    assert.deepEqual(row.options, ['None', ...TRANSITION_VOCABULARY.map(entry => TRANSITION_LABEL_EN[entry.id])]);
+    assert.equal(row.getValue(), 'None');
+    for (const { id } of TRANSITION_VOCABULARY) {
+        const label = TRANSITION_LABEL_EN[id];
+        assert.equal(transitionOptionLabel(id), label);
+        assert.equal(transitionTypeForLabel(label), id);
     }
-    assert.equal(transitionTypeForLabel('なし'), null);
+    assert.equal(transitionTypeForLabel('None'), null);
     assert.equal(transitionTypeForLabel('unknown'), undefined);
 });
 
@@ -29,7 +41,7 @@ test('transition の未知種別は raw id を末尾に表示し、書き込み�
     assert.equal(row.getValue(), 'future-transition');
     assert.equal((await row.write(snapshot, 'future-transition')).ok, false);
     assert.equal((await duration.write(snapshot, '1.2')).ok, false);
-    assert.equal(createCutTransitionWriteRequest(snapshot, 'transition-type', 'なし').value, null);
+    assert.equal(createCutTransitionWriteRequest(snapshot, 'transition-type', 'None').value, null);
 });
 
 test('ディゾルブ選択は既定尺0.5、既存の尺があればその値を保持する', async () => {
@@ -37,7 +49,7 @@ test('ディゾルブ選択は既定尺0.5、既存の尺があればその値�
     for (const duration of [undefined, 1.2]) {
         const snapshot = cutSnapshot({ index: 2, ...(duration ? { transitionOut: { type: 'fade', duration } } : {}) });
         const [row] = transitionFields(snapshot, async request => { requests.push(request); return { ok: true }; });
-        assert.deepEqual(await row.write(snapshot, 'ディゾルブ'), { ok: true });
+        assert.deepEqual(await row.write(snapshot, 'Dissolve'), { ok: true });
         assert.deepEqual(requests.at(-1), {
             kind: 'cut-transition-out', index: 2, value: { type: 'dissolve', duration: duration ?? 0.5 }
         });
@@ -51,7 +63,7 @@ test('transition 尺は1.2を書き、resetは0.5、「なし」はnullを書く
     assert.deepEqual([duration.min, duration.max, duration.scrubStep, duration.displayPrecision, duration.unit], [0.1, 3, 0.05, 2, 's']);
     await duration.write(snapshot, '1.2');
     await duration.reset(snapshot);
-    await select.write(snapshot, 'なし');
+    await select.write(snapshot, 'None');
     assert.deepEqual(requests.map(request => request.value), [
         { type: 'dissolve', duration: 1.2 }, { type: 'dissolve', duration: 0.5 }, null
     ]);
@@ -61,7 +73,7 @@ test('transitionOut 未設定では尺だけ disabled、blocked なら両行 dis
     const rows = transitionFields(cutSnapshot(), () => {});
     assert.equal(rows[0].disabled, false);
     assert.equal(rows[1].disabled, true);
-    assert.equal(rows[1].title, 'トランジションを選ぶと変更できます');
+    assert.equal(rows[1].title, 'Choose a transition to change this');
     for (const transitionOut of [undefined, { type: 'dissolve', duration: 0.5 }]) {
         const snapshot = cutSnapshot({ transitionOut, transitionOutBlocked: '非隣接のため変更できません' });
         const fields = transitionFields(snapshot, async () => assert.fail('blocked write'));
@@ -79,7 +91,7 @@ test('transition 尺の範囲外と非有限入力は ok:false で、境界値�
     const row = transitionFields(snapshot, async request => { requests.push(request); return { ok: true }; })[1];
     for (const input of ['0', '0.09', '3.01', '-1', 'NaN', 'Infinity', '']) {
         assert.deepEqual(await row.write(snapshot, input), {
-            ok: false, message: 'トランジション尺は 0.1〜3 秒の範囲で入力してください。'
+            ok: false, message: 'Enter a transition duration from 0.1 to 3 seconds.'
         });
     }
     assert.equal(requests.length, 0);
@@ -88,7 +100,7 @@ test('transition 尺の範囲外と非有限入力は ok:false で、境界値�
 
 const handleWrite = timelineMethod('handleInspectorWrite');
 test('cut-transition-out は applyTransitionOut に委譲し、成功・拒否・通知をそのまま返す', async () => {
-    const request = createCutTransitionWriteRequest(cutSnapshot(), 'transition-type', 'ディゾルブ');
+    const request = createCutTransitionWriteRequest(cutSnapshot(), 'transition-type', 'Dissolve');
     for (const result of [{ ok: true }, { ok: false, message: 'blocked' }, { ok: true, message: 'clamped' }]) {
         const calls = [];
         const context = { location: {}, editDocument: { tracks: [] },
@@ -97,7 +109,7 @@ test('cut-transition-out は applyTransitionOut に委譲し、成功・拒否�
         assert.deepEqual(calls, [[request.index, request.value]]);
     }
     assert.deepEqual(await handleWrite.call({ location: {}, legacyReadOnly: true }, request), {
-        ok: false, message: 'この項目の編集は edit.json v2 のみ対応です。'
+        ok: false, message: 'Editing this item is only supported in edit.json v2.'
     });
     assert.deepEqual(await handleWrite.call({ location: {}, editDocument: { tracks: [] },
         async applyTransitionOut() { throw new Error('save failed'); } }, request), { ok: false, message: 'save failed' });

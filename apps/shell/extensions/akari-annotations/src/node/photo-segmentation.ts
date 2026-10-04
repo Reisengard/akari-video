@@ -28,7 +28,7 @@ async function cacheFolder(projectRoot: string, hash: string): Promise<string> {
     for (const directory of [join(root, '.akari'), join(root, '.akari', 'cache'),
         join(root, '.akari', 'cache', 'photo-masks'), folder]) {
         await fs.mkdir(directory, { recursive: true });
-        if (!(await fs.realpath(directory)).startsWith(root + sep)) throw new Error('プロジェクト外には保存できません');
+        if (!(await fs.realpath(directory)).startsWith(root + sep)) throw new Error('Cannot save outside the project.');
     }
     return folder;
 }
@@ -37,7 +37,7 @@ async function candidatesFrom(folder: string, values: Array<{ id: string; label?
     inputSha256: string): Promise<PhotoCandidates> {
     const candidates: PhotoCandidate[] = [];
     for (const value of values) {
-        if (!/^[a-z0-9-]+\.png$/u.test(value.file)) throw new Error('候補の保存名が不正です');
+        if (!/^[a-z0-9-]+\.png$/u.test(value.file)) throw new Error('Invalid candidate file name.');
         const png = await fs.readFile(join(folder, value.file));
         candidates.push({ id: value.id, label: value.label ?? value.id,
             png: png.toString('base64'), ...(value.area === undefined ? {} : { area: value.area }),
@@ -49,7 +49,7 @@ async function candidatesFrom(folder: string, values: Array<{ id: string; label?
 export async function visionCandidates(projectRoot: string, input: string, helper: string | undefined,
     mode: 'foreground' | 'people'): Promise<PhotoCandidates> {
     if (!helper || !await fs.stat(helper).then(value => value.isFile()).catch(() => false))
-        return { ok: false, message: 'この Mac では使えません' };
+        return { ok: false, message: 'Not available on this Mac.' };
     const hash = await sourceHash(input);
     const folder = await cacheFolder(projectRoot, hash);
     const target = join(folder, `vision-${mode}`);
@@ -62,13 +62,13 @@ export async function visionCandidates(projectRoot: string, input: string, helpe
         values = JSON.parse(stdout.trim()).instances;
         await fs.writeFile(manifest, JSON.stringify({ instances: values }));
     }
-    if (await sourceHash(input) !== hash) return { ok: false, message: '処理中に写真が変わりました' };
+    if (await sourceHash(input) !== hash) return { ok: false, message: 'The photo changed while processing.' };
     return candidatesFrom(target, values.map(value => ({ ...value, id: `vision-${mode}--${value.id}` })), hash);
 }
 
 export async function ensurePhotoModels(onProgress?: (done: number, total: number) => void,
     root = photoModelDirectory()): Promise<string> {
-    if (process.platform !== 'darwin') throw new Error('この Mac では使えません');
+    if (process.platform !== 'darwin') throw new Error('Not available on this Mac.');
     let done = 0;
     for (const name of MODEL_NAMES) for (const relative of MODEL_FILES) {
         const target = join(root, `SAM2_1Tiny${name}FLOAT16.mlpackage`, relative);
@@ -76,7 +76,7 @@ export async function ensurePhotoModels(onProgress?: (done: number, total: numbe
             await fs.mkdir(resolve(target, '..'), { recursive: true });
             const url = `${MODEL_BASE}/SAM2_1Tiny${name}FLOAT16.mlpackage/${relative}`;
             const response = await fetch(url);
-            if (!response.ok || !response.body) throw new Error('モデルを取得できませんでした');
+            if (!response.ok || !response.body) throw new Error('Could not download the model.');
             const temp = `${target}.${randomUUID()}.download`;
             try {
                 await pipeline(Readable.fromWeb(response.body as any) as any,
@@ -102,7 +102,7 @@ class SamConnection {
             this.child = child;
             const timer = setTimeout(() => {
                 child.kill();
-                rejectStart(new Error('モデルの準備が終わりませんでした'));
+                rejectStart(new Error('The model did not finish preparing.'));
             }, 60_000);
             child.stdout.setEncoding('utf8');
             child.stdout.on('data', chunk => {
@@ -120,14 +120,14 @@ class SamConnection {
             child.on('error', error => { clearTimeout(timer); rejectStart(error); this.pending.splice(0).forEach(p => p.reject(error)); this.child = undefined; });
             child.on('exit', () => {
                 clearTimeout(timer);
-                const error = new Error('この Mac では使えません');
+                const error = new Error('Not available on this Mac.');
                 rejectStart(error); this.pending.splice(0).forEach(p => p.reject(error)); this.child = undefined;
             });
         }).finally(() => { this.startPromise = undefined; });
         return this.startPromise;
     }
     request(value: Record<string, unknown>): Promise<any> {
-        if (!this.child) return Promise.reject(new Error('この Mac では使えません'));
+        if (!this.child) return Promise.reject(new Error('Not available on this Mac.'));
         return new Promise((resolveRequest, reject) => {
             this.pending.push({ resolve: resolveRequest, reject });
             this.child!.stdin.write(JSON.stringify(value) + '\n');
@@ -141,7 +141,7 @@ let preparingHash = '';
 let preparing: Promise<{ ok: boolean; message?: string; inputSha256?: string }> | undefined;
 export async function preparePhotoClick(input: string, helper: string | undefined): Promise<{ ok: boolean; message?: string; inputSha256?: string }> {
     if (!helper || !await fs.stat(helper).then(value => value.isFile()).catch(() => false))
-        return { ok: false, message: 'この Mac では使えません' };
+        return { ok: false, message: 'Not available on this Mac.' };
     const hash = await sourceHash(input);
     if (preparedHash === hash) return { ok: true, inputSha256: hash };
     if (preparingHash === hash && preparing) return preparing;
@@ -151,10 +151,10 @@ export async function preparePhotoClick(input: string, helper: string | undefine
             const models = await ensurePhotoModels();
             await sam.start(helper, models);
             const result = await sam.request({ op: 'prepare', input, hash });
-            if (!result.ok || await sourceHash(input) !== hash) return { ok: false, message: '処理中に写真が変わりました' };
+            if (!result.ok || await sourceHash(input) !== hash) return { ok: false, message: 'The photo changed while processing.' };
             preparedHash = hash;
             return { ok: true, inputSha256: hash };
-        } catch { return { ok: false, message: 'この Mac では使えません' }; }
+        } catch { return { ok: false, message: 'Not available on this Mac.' }; }
     })();
     const result = await preparing;
     if (preparingHash === hash) { preparing = undefined; preparingHash = ''; }
@@ -164,28 +164,28 @@ export async function preparePhotoClick(input: string, helper: string | undefine
 export async function clickPhoto(projectRoot: string, input: string, x: number, y: number,
     helper: string | undefined): Promise<PhotoCandidates> {
     if (![x, y].every(value => Number.isFinite(value) && value >= 0 && value <= 1))
-        return { ok: false, message: '写真の上を押してください' };
+        return { ok: false, message: 'Click on the photo.' };
     const hash = await sourceHash(input);
     if (preparedHash !== hash) {
         const ready = await preparePhotoClick(input, helper);
-        if (!ready.ok) return { ok: false, message: ready.message ?? 'この Mac では使えません' };
+        if (!ready.ok) return { ok: false, message: ready.message ?? 'Not available on this Mac.' };
     }
     const folder = join(await cacheFolder(projectRoot, hash), `sam-${randomUUID()}`);
     const result = await sam.request({ op: 'click', hash, x, y, output: folder });
-    if (!result.ok || await sourceHash(input) !== hash) return { ok: false, message: '処理中に写真が変わりました' };
+    if (!result.ok || await sourceHash(input) !== hash) return { ok: false, message: 'The photo changed while processing.' };
     const values = (result.candidates as Array<{ id: string; file: string; area: number; score: number }>).sort((a, b) => a.area - b.area);
     return candidatesFrom(folder, values.map((value, index) => ({ ...value, id: `${folder.split('/').pop()}--${value.id}`,
-        label: ['狭く', '中間', '広く'][index]! })), hash);
+        label: ['Narrow', 'Medium', 'Wide'][index]! })), hash);
 }
 
 export async function adoptPhotoCandidate(projectRoot: string, input: string, candidate: string,
     inputSha256: string, engine: 'apple-vision' | 'sam2.1-tiny'): Promise<Awaited<ReturnType<typeof commitPhotoMask>>> {
     if (!/^[a-z0-9-]+$/u.test(candidate) || !/^[a-f0-9]{64}$/u.test(inputSha256))
-        return { ok: false, message: '候補が見つかりません' };
+        return { ok: false, message: 'Candidate not found.' };
     const folder = await cacheFolder(projectRoot, inputSha256);
     const files = candidateCachePath(folder, candidate);
     const path = (await Promise.all(files.map(async file => await fs.stat(file).then(() => file).catch(() => undefined)))).find(Boolean);
-    if (!path) return { ok: false, message: '候補が見つかりません' };
+    if (!path) return { ok: false, message: 'Candidate not found.' };
     const png = await fs.readFile(path);
     const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
     return commitPhotoMask(projectRoot, input, png,
@@ -196,14 +196,14 @@ export async function adoptPhotoCandidates(projectRoot: string, input: string, c
     inputSha256: string, engine: 'apple-vision' | 'sam2.1-tiny', helper: string | undefined,
     invert = false): Promise<Awaited<ReturnType<typeof commitPhotoMask>>> {
     if (!helper || !candidates.length || candidates.length > 32 || !/^[a-f0-9]{64}$/u.test(inputSha256))
-        return { ok: false, message: 'この Mac では使えません' };
+        return { ok: false, message: 'Not available on this Mac.' };
     const folder = await cacheFolder(projectRoot, inputSha256);
     const paths: string[] = [];
     for (const candidate of candidates) {
-        if (!/^[a-z0-9-]+$/u.test(candidate)) return { ok: false, message: '候補が見つかりません' };
+        if (!/^[a-z0-9-]+$/u.test(candidate)) return { ok: false, message: 'Candidate not found.' };
         const possible = candidateCachePath(folder, candidate);
         const found = (await Promise.all(possible.map(async path => await fs.stat(path).then(() => path).catch(() => undefined)))).find(Boolean);
-        if (!found) return { ok: false, message: '候補が見つかりません' };
+        if (!found) return { ok: false, message: 'Candidate not found.' };
         paths.push(found);
     }
     const output = join(folder, `combined-${randomUUID()}.png`);

@@ -46,15 +46,15 @@ export interface KeyframeItemLike {
 }
 
 const LABELS: Record<KeyframeProperty, string> = {
-    'transform.x': '位置',
+    'transform.x': 'Position',
     'transform.y': 'Y',
-    'transform.scale': '大きさ',
-    'transform.scaleX': '幅',
-    'transform.scaleY': '高さ',
-    'transform.rotate': '回転',
-    opacity: '不透明度',
-    crop: 'クロップ',
-    perspective: 'パース'
+    'transform.scale': 'Size',
+    'transform.scaleX': 'Width',
+    'transform.scaleY': 'Height',
+    'transform.rotate': 'Rotation',
+    opacity: 'Opacity',
+    crop: 'Crop',
+    perspective: 'Perspective'
 };
 
 export function deriveTimelineKeyframeRows(

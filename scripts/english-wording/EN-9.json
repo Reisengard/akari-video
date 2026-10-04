@@ -1,5 +1,8 @@
 {
   "id": "EN-9",
   "glob": "apps/shell/extensions/akari-annotations/**",
-  "max": 79833
+  "exclude": [
+    "apps/shell/extensions/akari-annotations/lib/**"
+  ],
+  "max": 43220
 }

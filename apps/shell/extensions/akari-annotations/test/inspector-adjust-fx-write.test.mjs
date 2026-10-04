@@ -18,26 +18,26 @@ const { updateInspectorAdjust, readInspectorAdjustSnapshot, isInspectorAdjustIde
 test('効果語彙とパラメータは契約の範囲・既定・表示単位を持つ', () => {
     assert.deepEqual(INSPECTOR_ADJUST_FX.map(({ id, label, params }) => [id, label,
         params.map(p => [p.key, p.min, p.max, p.default, p.step, p.unit, p.displayScale])]), [
-        ['vignette', 'ビネット', [
+        ['vignette', 'Vignette', [
             ['amount', -1, 1, 0.5, 0.05, '%', 100], ['midpoint', 0, 1, 0.5, 0.01, '%', 100],
             ['roundness', -1, 1, 0, 0.01, '%', 100], ['feather', 0, 1, 0.5, 0.01, '%', 100]
         ]],
-        ['blur', 'ぼかし', [['px', 0, 50, 8, 1, 'px', 1]]],
-        ['grain', 'フィルムグレイン', [['amount', 0, 1, 0.3, 0.01, '%', 100], ['size', 0.5, 4, 1, 0.1, '倍', 1]]],
-        ['sharpen', 'シャープ', [['amount', 0, 1, 0.5, 0.01, '%', 100]]],
-        ['glow', 'グロー', [
+        ['blur', 'Blur', [['px', 0, 50, 8, 1, 'px', 1]]],
+        ['grain', 'Film grain', [['amount', 0, 1, 0.3, 0.01, '%', 100], ['size', 0.5, 4, 1, 0.1, 'x', 1]]],
+        ['sharpen', 'Sharpen', [['amount', 0, 1, 0.5, 0.01, '%', 100]]],
+        ['glow', 'Glow', [
             ['intensity', 0, 1, 0.5, 0.01, '%', 100],
             ['radius', 0, 100, 20, 1, 'px', 1],
             ['threshold', 0, 1, 0.7, 0.01, '%', 100],
             ['warmth', -1, 1, 0, 0.01, '%', 100]
         ]],
-        ['clarity', '明瞭度', [
+        ['clarity', 'Clarity', [
             ['amount', -1, 1, 0.3, 0.01, '%', 100],
             ['radius', 1, 50, 10, 1, 'px', 1]
         ]],
-        ['dehaze', 'かすみ除去', [['amount', -1, 1, 0.3, 0.01, '%', 100]]],
-        ['denoise', 'ノイズ除去', [['amount', 0, 1, 0.3, 0.01, '%', 100]]],
-        ['motion_blur', 'モーションブラー', [
+        ['dehaze', 'Dehaze', [['amount', -1, 1, 0.3, 0.01, '%', 100]]],
+        ['denoise', 'Denoise', [['amount', 0, 1, 0.3, 0.01, '%', 100]]],
+        ['motion_blur', 'Motion blur', [
             ['px', 0, 100, 10, 1, 'px', 1],
             ['angle', -180, 180, 0, 1, '°', 1]
         ]]
@@ -64,12 +64,12 @@ test('追加は id だけを保存し重複・9 個目・未知 id を拒否す�
         const next = addInspectorAdjustFx(list, id);
         assert.deepEqual(list, previous);
         assert.deepEqual(next.at(-1), { id });
-        assert.throws(() => addInspectorAdjustFx([{ id }], id), /同じ効果は 1 つまでです/u);
+        assert.throws(() => addInspectorAdjustFx([{ id }], id), /Each effect can be added only once/u);
         list = next;
     }
-    assert.throws(() => addInspectorAdjustFx(Array.from({ length: 8 }, () => ({ id: 'blur' })), 'grain'), /8 個まで/u);
-    assert.throws(() => addInspectorAdjustFx(list, INSPECTOR_ADJUST_FX[8].id), /8 個まで/u);
-    assert.throws(() => addInspectorAdjustFx([], 'nonexistent_fx'), /一覧から/u);
+    assert.throws(() => addInspectorAdjustFx(Array.from({ length: 8 }, () => ({ id: 'blur' })), 'grain'), /Up to 8 effects/u);
+    assert.throws(() => addInspectorAdjustFx(list, INSPECTOR_ADJUST_FX[8].id), /Up to 8 effects/u);
+    assert.throws(() => addInspectorAdjustFx([], 'nonexistent_fx'), /from the list/u);
 });
 
 test('並べ替え・削除は入力を変更せずパラメータと適用順を保持する', () => {
@@ -83,10 +83,10 @@ test('並べ替え・削除は入力を変更せずパラメータと適用順�
     assert.equal(isInspectorAdjustFxIdentity(removeInspectorAdjustFx([list[0]], 0)), true);
     assert.equal(isInspectorAdjustFxIdentity([{ id: 'blur', px: 0 }]), false);
     for (const index of [-1, 2, 0.5, NaN]) {
-        assert.throws(() => removeInspectorAdjustFx(list, index), /効果を選択/u);
-        assert.throws(() => moveInspectorAdjustFx(list, index, 1), /効果を選択/u);
+        assert.throws(() => removeInspectorAdjustFx(list, index), /Select an effect/u);
+        assert.throws(() => moveInspectorAdjustFx(list, index, 1), /Select an effect/u);
     }
-    assert.throws(() => moveInspectorAdjustFx(list, 0, 2), /上か下/u);
+    assert.throws(() => moveInspectorAdjustFx(list, 0, 2), /up or down/u);
 });
 
 test('全パラメータの境界・null・既定値を検証し未知キーと不正値を拒否する', () => {
@@ -100,13 +100,13 @@ test('全パラメータの境界・null・既定値を検証し未知キーと�
                 assert.deepEqual(updateInspectorAdjustFxParam(result, 0, param.key, param.default), list);
             }
             for (const value of [param.min - 0.01, param.max + 0.01, NaN, Infinity, '0']) {
-                assert.throws(() => updateInspectorAdjustFxParam(list, 0, param.key, value), /範囲/u);
+                assert.throws(() => updateInspectorAdjustFxParam(list, 0, param.key, value), /must be between/u);
             }
             assert.deepEqual(list, [{ id: effect.id }]);
         }
     }
-    assert.throws(() => updateInspectorAdjustFxParam([{ id: 'blur' }], 0, 'amount', null), /未対応/u);
-    assert.throws(() => updateInspectorAdjustFxParam([], 0, 'px', 20), /効果を選択/u);
+    assert.throws(() => updateInspectorAdjustFxParam([{ id: 'blur' }], 0, 'amount', null), /not supported/u);
+    assert.throws(() => updateInspectorAdjustFxParam([], 0, 'px', 20), /Select an effect/u);
 });
 
 test('adjust.fx は正規化した配列で置換し空なら fx と identity adjust を除去する', () => {
@@ -120,7 +120,7 @@ test('adjust.fx は正規化した配列で置換し空なら fx と identity ad
     assert.equal(isInspectorAdjustIdentity({ fx: [], sections: { fx: false } }), true);
     assert.equal(isInspectorAdjustIdentity({ fx: [{ id: 'blur', px: 0 }] }), false);
     assert.equal(isInspectorAdjustIdentity({ fx: [{ id: 'future' }] }), false);
-    assert.throws(() => updateInspectorAdjust(undefined, 'adjust.fx', 'blur'), /配列/u);
+    assert.throws(() => updateInspectorAdjust(undefined, 'adjust.fx', 'blur'), /array/u);
 });
 
 test('sections.fx は効果を保持して無効化し ON と null で疎辞書へ戻す', () => {
@@ -166,18 +166,18 @@ test('全 visual 選択で実働 6 セクションと追加 select が同じ adj
         assert.deepEqual(f.all().map(section => section.label), ACTIVE_ADJUST_SECTIONS);
         const row = f.row('add');
         assert.equal(row.inputKind, 'select');
-        assert.deepEqual(row.options, ['選択…', 'ビネット', 'ぼかし', 'フィルムグレイン', 'シャープ', 'グロー', '明瞭度', 'かすみ除去', 'ノイズ除去', 'モーションブラー']);
-        assert.equal(row.getValue(), '選択…');
-        assert.equal((await row.write(f.snapshot(), 'ビネット')).ok, true);
+        assert.deepEqual(row.options, ['Select...', 'Vignette', 'Blur', 'Film grain', 'Sharpen', 'Glow', 'Clarity', 'Dehaze', 'Denoise', 'Motion blur']);
+        assert.equal(row.getValue(), 'Select...');
+        assert.equal((await row.write(f.snapshot(), 'Vignette')).ok, true);
         assert.deepEqual(f.writes, [{ kind: 'item-field', id: 'clip', path: 'adjust.fx', value: [{ id: 'vignette' }] }]);
-        assert.deepEqual(await f.row('add').write(f.snapshot(), 'ビネット'), { ok: false, message: '同じ効果は 1 つまでです' });
+        assert.deepEqual(await f.row('add').write(f.snapshot(), 'Vignette'), { ok: false, message: 'Each effect can be added only once.' });
         assert.equal(f.writes.length, 1);
     }
 });
 
 test('UI は量 80%・ぼかし 20px・並べ替え・リセット・全削除を配列一括で書く', async () => {
     const f = fixture();
-    await f.row('add').write(f.snapshot(), 'ビネット');
+    await f.row('add').write(f.snapshot(), 'Vignette');
     const amount = f.row('vignette-amount');
     assert.equal(amount.inputKind, 'scrub-number');
     assert.equal(amount.displayScale, 100);
@@ -185,12 +185,12 @@ test('UI は量 80%・ぼかし 20px・並べ替え・リセット・全削除�
     assert.equal(amount.getEditValue(), '0.5');
     await amount.write(f.snapshot(), '0.8');
     assert.deepEqual(f.writes.at(-1).value, [{ id: 'vignette', amount: 0.8 }]);
-    await f.row('add').write(f.snapshot(), 'ぼかし');
+    await f.row('add').write(f.snapshot(), 'Blur');
     await f.row('blur-px').write(f.snapshot(), '20');
     assert.deepEqual(f.value().fx, [{ id: 'vignette', amount: 0.8 }, { id: 'blur', px: 20 }]);
     assert.equal(f.row('vignette').actions[0].disabled, true);
     assert.equal(f.row('blur').actions[1].disabled, true);
-    assert.deepEqual(f.row('blur').actions.map(action => action.label), ['↑', '↓', '削除']);
+    assert.deepEqual(f.row('blur').actions.map(action => action.label), ['↑', '↓', 'Delete']);
     await f.row('blur').actions[0].action(f.snapshot());
     assert.deepEqual(f.value().fx, [{ id: 'blur', px: 20 }, { id: 'vignette', amount: 0.8 }]);
     await f.row('vignette-amount').reset(f.snapshot());
@@ -207,7 +207,7 @@ test('OFF は追加・並べ替え・削除・数値・リセットを無効化�
     for (const field of f.section().fields) {
         assert.equal(field.disabled, true);
         assert.equal(field.keyframeDisabled, true);
-        if (field.write) assert.equal((await field.write(f.snapshot(), 'ぼかし')).ok, false);
+        if (field.write) assert.equal((await field.write(f.snapshot(), 'Blur')).ok, false);
         if (field.reset) assert.equal((await field.reset(f.snapshot())).ok, false);
         for (const action of field.actions ?? []) assert.equal((await action.action(f.snapshot())).ok, false);
     }
@@ -223,7 +223,7 @@ test('UI は不正入力を日本語の ok:false で返して書き込まない'
     for (const value of ['', 'NaN', '51']) {
         const result = await f.row('blur-px').write(f.snapshot(), value);
         assert.equal(result.ok, false);
-        assert.match(result.message, /範囲/u);
+        assert.match(result.message, /must be between/u);
     }
     assert.deepEqual(f.writes, []);
 });
@@ -299,9 +299,9 @@ test('実際の数値行は 80% を 0.8 に変換し、5% 刻みと disabled を
 test('小見出しはラベルと 3 ボタンを同じ行に描画しクリックで削除する', async () => withRows(async render => {
     const f = fixture('item', { fx: [{ id: 'blur' }] });
     const row = render(f.row('blur'), f.snapshot());
-    assert.equal(row.children[0].textContent, 'ぼかし');
+    assert.equal(row.children[0].textContent, 'Blur');
     const buttons = row.children[1].children;
-    assert.deepEqual(buttons.map(button => button.textContent), ['↑', '↓', '削除']);
+    assert.deepEqual(buttons.map(button => button.textContent), ['↑', '↓', 'Delete']);
     assert.deepEqual(buttons.map(button => button.disabled), [true, true, false]);
     buttons[2].emit('click');
     await new Promise(resolve => setImmediate(resolve));

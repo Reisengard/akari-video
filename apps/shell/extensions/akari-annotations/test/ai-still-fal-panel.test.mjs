@@ -20,7 +20,7 @@ test('still sections follow route declarations and keyless fal shows a settings 
     const routes = aiActionCatalog([]).find(action => action.id === 'still').routes;
     assert.deepEqual(stillRouteGroups.free.map(row => row.id), routes.filter(row => row.cost === 'free').map(row => row.id));
     assert.deepEqual(stillRouteGroups.paid.map(row => row.id), routes.filter(row => row.cost === 'paid').map(row => row.id));
-    assert.equal(imageRouteBadgeText({ id: 'fal', state: 'ready', detail: 'キーを設定済み' }, false), '使える');
+    assert.equal(imageRouteBadgeText({ id: 'fal', state: 'ready', detail: 'キーを設定済み' }, false), 'Available');
     const parent = new Node('root');
     let settings = 0;
     appendAiStillPanel(parent, { prompt: 'garden', aspect: '1:1', routeId: 'fal', selectedRoutes: new Set(['fal']), probing: false, running: false,
@@ -30,7 +30,7 @@ test('still sections follow route declarations and keyless fal shows a settings 
       openConnections() { settings++; } });
     const nodes = walk(parent);
     const fal = nodes.find(row => row.attributes.get('data-akari-inspector-ai-route') === 'fal');
-    assert.equal(walk(fal).find(row => row.className === 'akari-inspector-ai-still-badge').textContent, 'キーが未設定');
+    assert.equal(walk(fal).find(row => row.className === 'akari-inspector-ai-still-badge').textContent, 'Key not set');
     assert.deepEqual(nodes.filter(row => row.attributes.has('data-akari-inspector-ai-route-group'))
       .map(row => row.attributes.get('data-akari-inspector-ai-route-group')), ['free', 'paid']);
     const link = nodes.find(row => row.attributes.has('data-akari-inspector-ai-fal-settings'));
@@ -38,8 +38,8 @@ test('still sections follow route declarations and keyless fal shows a settings 
     link.listeners.get('click')({ preventDefault() {} });
     assert.equal(settings, 1);
     assert.equal(nodes.find(row => row.attributes.get('data-akari-inspector-ai-create') === 'true').disabled, true);
-    assert.ok(nodes.some(row => row.textContent?.includes('見積もり $0.123 / 枚')));
-    assert.ok(nodes.some(row => row.textContent?.includes('2026-10-01 時点')));
+    assert.ok(nodes.some(row => row.textContent?.includes('Estimate $0.123 / image')));
+    assert.ok(nodes.some(row => row.textContent?.includes('as of 2026-10-01')));
     assert.ok(nodes.some(row => row.attributes.has('data-akari-inspector-ai-fal-quality')));
     assert.equal(stillMakerBadge('qwen').textContent, 'Q');
     assert.match(stillMakerBadge('fal', true).style.cssText, /margin-left:8px/);

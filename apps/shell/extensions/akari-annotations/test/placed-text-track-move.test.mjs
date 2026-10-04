@@ -57,8 +57,8 @@ test('行の中央はその映像段、境目だけ新規段、字幕袋と音�
   assert.deepEqual(plan(182, { top: 182, insertIndex: 2, rejected: false }).destination,
     { kind: 'new-track', insertIndex: 2 });
   assert.equal(plan(119, { top: 100, insertIndex: 1, rejected: false }).reason,
-    '字幕の段には置けません');
-  assert.equal(plan(245, { top: 226, rejected: true }).reason, '音のトラックには置けません');
+    'Cannot be placed on a caption lane');
+  assert.equal(plan(245, { top: 226, rejected: true }).reason, 'Cannot be placed on an audio track');
 });
 
 const photoRowMove = (items, movingItemId) => planPlacedTextMove({
@@ -72,7 +72,7 @@ const photoRowMove = (items, movingItemId) => planPlacedTextMove({
 test('写真と時間が重なる映像段は理由付きで拒否する', () => {
   const plan = photoRowMove([{ trackId: 'v-photo', id: 'photo-1', at: 0, duration: 360 }]);
   assert.deepEqual(plan.destination, { kind: 'rejected' });
-  assert.equal(plan.reason, '同じトラックの区間と重なります');
+  assert.equal(plan.reason, 'Overlaps a segment on the same track');
   assert.equal(plan.top, '100px');
 });
 

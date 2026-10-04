@@ -61,7 +61,7 @@ test('image endpoints use source path and zero time; unsupported endpoints remai
 });
 test('gap confirmation stores both paths and first-last next before one mutation, sends nothing, undo removes item + source', async () => {
   const f = fixture(); await f.widget.gapSnapshot().createFrame();
-  assert.equal(f.history.length, 1); assert.equal(f.history[0].label, 'あいだを生成の枠を置く');
+  assert.equal(f.history.length, 1); assert.equal(f.history[0].label, 'Place generate-between frame');
   const meta = f.writes[0].meta;
   assert.equal(meta.next.inputs.first_frame.path, 'assets/captures/last.png');
   assert.equal(meta.next.inputs.last_frame.path, 'assets/captures/first.png');
@@ -79,7 +79,7 @@ for (const fail of ['last', 'first', 'card', 'defaults', 'read', 'write', 'commi
   test(`failure at ${fail} keeps edit byte-identical and has no undo or paid call`, async () => {
     const f = fixture(fail); await f.widget.gapSnapshot().createFrame();
     assert.equal(JSON.stringify(f.doc), f.before); assert.equal(f.history.length, 0); assert.equal(f.paidCalls, 0);
-    assert.match(f.notices[0], /枠を置けません/); assert.equal(f.widget.gapCommitting, false);
+    assert.match(f.notices[0], /Could not place a frame in the gap/); assert.equal(f.widget.gapCommitting, false);
   });
 }
 test('both endpoints without pictures produce a prompt-only draft', async () => {
@@ -132,7 +132,7 @@ test('unsupported last frame stays in draft: first-last label, validation error,
   const fields = generationFields({ snapshot: {}, catalogRow: model,
     draft: { modelId: model.id, inputs: next.inputs, output: next.output }, validation, defaults: { catalog },
     actions: Object.fromEntries(['update', 'generate', 'copyAdjacent', 'resume', 'retry'].map(k => [k, async () => ({ ok: true })])) });
-  assert.equal(fields.find(f => f.name === 'generation-variety').getValue(), '最初→最後');
+  assert.equal(fields.find(f => f.name === 'generation-variety').getValue(), 'First → last');
   assert.ok(!fields.some(f => f.name === 'last_frame')); assert.equal(f.paidCalls, 0);
 });
 test('model duration rounding is available to existing validator without stretching the gap item', async () => {

@@ -9,11 +9,11 @@ const BUNDLED_LUT_NAMES: Readonly<Record<string, string>> = {
 };
 
 export function lutOptionLabel(value: string | undefined): string {
-    return value?.startsWith('assets/luts/') ? `${value.slice('assets/luts/'.length)}（プロジェクト）`
-        : value ? BUNDLED_LUT_NAMES[value] ?? value : 'なし';
+    return value?.startsWith('assets/luts/') ? `${value.slice('assets/luts/'.length)} (project)`
+        : value ? BUNDLED_LUT_NAMES[value] ?? value : 'None';
 }
 
 export function buildLutOptions(projectRefs: readonly string[]): { label: string; value: string | null }[] {
-    return [{ label: 'なし', value: null }, ...[...INSPECTOR_LUT_PRESET_IDS, ...projectRefs]
+    return [{ label: 'None', value: null }, ...[...INSPECTOR_LUT_PRESET_IDS, ...projectRefs]
         .map(value => ({ label: lutOptionLabel(value), value }))];
 }

@@ -5,15 +5,15 @@ export function captionRunRows(displayText: string, runs: readonly CaptionRun[])
 }> {
     const chars = captionGraphemes(displayText);
     const styleLabels: Record<string, string> = {
-        color: '色', font_weight: '太さ', scale: '大きさ', baseline_shift_em: '上下',
-        rotate_deg: '回転', letter_spacing_em: '字間', stroke: '縁取り',
-        italic: '斜体', underline: '下線'
+        color: 'Color', font_weight: 'Weight', scale: 'Size', baseline_shift_em: 'Vertical offset',
+        rotate_deg: 'Rotation', letter_spacing_em: 'Letter spacing', stroke: 'Stroke',
+        italic: 'Italic', underline: 'Underline'
     };
     return runs.map(run => ({
         from: run.from,
         to: run.to,
         text: chars.slice(run.from, run.to).join(''),
-        chip: run.role ? ({ emphasis: '強調', keyword: 'キーワード', aside: '補足' }[run.role] ?? run.role)
-            : Object.keys(run.style ?? {}).map(key => styleLabels[key] ?? '見た目').join('・')
+        chip: run.role ? ({ emphasis: 'Emphasis', keyword: 'Keyword', aside: 'Aside' }[run.role] ?? run.role)
+            : Object.keys(run.style ?? {}).map(key => styleLabels[key] ?? 'Style').join(', ')
     }));
 }

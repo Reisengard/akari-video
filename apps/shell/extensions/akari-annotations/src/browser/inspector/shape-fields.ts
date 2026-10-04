@@ -11,19 +11,19 @@ export interface ShapeField {
 
 export interface ShapeControlGroup { id: 'appearance' | 'bubble'; fields: ShapeField[] }
 
-const capOptions = ['なし', '三角', '山形', '棒', '四角', '丸', 'ひし形'] as const;
+const capOptions = ['None', 'Triangle', 'Chevron', 'Bar', 'Square', 'Circle', 'Diamond'] as const;
 const capValues = ['none', 'triangle', 'chevron', 'bar', 'square', 'circle', 'diamond'] as const;
-const dashOptions = ['実線', '破線', '点線'] as const;
+const dashOptions = ['Solid', 'Dashed', 'Dotted'] as const;
 const dashValues = ['solid', 'dash', 'dot'] as const;
-const bubbleOptions = ['楕円', '角丸', '四角', 'ギザギザ', '爆発', 'もくもく', '震え'] as const;
+const bubbleOptions = ['Ellipse', 'Rounded', 'Rectangle', 'Jagged', 'Burst', 'Cloud', 'Wobble'] as const;
 const bubbleValues = ['ellipse', 'rounded', 'rect', 'jagged', 'burst', 'cloud', 'wobble'] as const;
-const tailOptions = ['とがった', '小さな丸', 'なし'] as const;
+const tailOptions = ['Pointed', 'Small dots', 'None'] as const;
 const tailValues = ['point', 'dots', 'none'] as const;
 
 const optionSets: Record<string, readonly [readonly string[], readonly string[]]> = {
     dash: [dashOptions, dashValues], startCap: [capOptions, capValues], endCap: [capOptions, capValues],
     style: [bubbleOptions, bubbleValues], tail: [tailOptions, tailValues],
-    lineCap: [['なし', '丸く'], ['butt', 'round']]
+    lineCap: [['None', 'Rounded'], ['butt', 'round']]
 };
 
 export function shapeOptionLabel(key: string, raw: unknown): string {
@@ -69,30 +69,30 @@ export function shapeControlGroups(shape: string | undefined, params: Record<str
     const select = (key: string, label: string, fallback: string, options: readonly string[]) =>
         field(key, label, 'select', fallback, options);
     const paint = (key: 'fill' | 'stroke', label: string, fallback: string): ShapeField[] => [
-        { key: `${key}Mode`, label, kind: 'select', value: params[key] === 'none' ? 'なし' : '色', options: ['色', 'なし'] },
-        ...(params[key] === 'none' ? [] : [field(key, `${label}の色`, 'color', fallback)])
+        { key: `${key}Mode`, label, kind: 'select', value: params[key] === 'none' ? 'None' : 'Color', options: ['Color', 'None'] },
+        ...(params[key] === 'none' ? [] : [field(key, `${label} color`, 'color', fallback)])
     ];
     if (shape === 'line' || shape === 'arrow') return [{ id: 'appearance', fields: [
-        field('stroke', '線の色', 'color', '#000000'), number('strokeWidth', '太さ', 4, 1, 100),
-        select('dash', '線種', 'solid', dashOptions), select('lineCap', '端を丸く', 'butt', ['なし', '丸く']),
-        select('startCap', '始点のパーツ', 'none', capOptions), select('endCap', '終点のパーツ',
+        field('stroke', 'Line color', 'color', '#000000'), number('strokeWidth', 'Width', 4, 1, 100),
+        select('dash', 'Line style', 'solid', dashOptions), select('lineCap', 'Round ends', 'butt', ['None', 'Rounded']),
+        select('startCap', 'Start cap', 'none', capOptions), select('endCap', 'End cap',
             shape === 'arrow' ? 'triangle' : 'none', capOptions)
     ] }];
     const appearance: ShapeControlGroup = { id: 'appearance', fields: [
-        ...paint('fill', '塗り', shape === 'bubble' ? '#ffffff' : '#a6a6a6'),
-        ...paint('stroke', '枠', shape === 'bubble' ? '#000000' : '#000000'),
-        number('strokeWidth', '枠の太さ', shape === 'bubble' ? 5 : 0, 0, 100)
+        ...paint('fill', 'Fill', shape === 'bubble' ? '#ffffff' : '#a6a6a6'),
+        ...paint('stroke', 'Stroke', shape === 'bubble' ? '#000000' : '#000000'),
+        number('strokeWidth', 'Stroke width', shape === 'bubble' ? 5 : 0, 0, 100)
     ] };
     if (shape === 'rounded-rect' || shape === 'path' && shapeHasStraightCorner(params.path)) {
-        appearance.fields.push(number('cornerRadius', '角の丸み', 0, 0, 100));
+        appearance.fields.push(number('cornerRadius', 'Corner radius', 0, 0, 100));
     }
     if (shape !== 'bubble') return [appearance];
     return [appearance, { id: 'bubble', fields: [
-        select('style', '形の種類', 'ellipse', bubbleOptions), number('count', '山やトゲの数', 12, 4, 48),
-        number('depth', '深さ', 20, 0, 100), number('jitter', 'ばらつき', 0, 0, 100),
-        select('dash', '枠の線種', 'solid', dashOptions), select('tail', 'しっぽ', 'point', tailOptions),
-        number('tailAngle', 'しっぽの向き', 0, 0, 360), number('tailLength', 'しっぽの長さ', 30, 0, 100),
-        number('tailWidth', 'しっぽの太さ', 20, 0, 100), number('tailCurve', 'しっぽの曲がり', 0, -100, 100)
+        select('style', 'Shape', 'ellipse', bubbleOptions), number('count', 'Points', 12, 4, 48),
+        number('depth', 'Depth', 20, 0, 100), number('jitter', 'Jitter', 0, 0, 100),
+        select('dash', 'Stroke style', 'solid', dashOptions), select('tail', 'Tail', 'point', tailOptions),
+        number('tailAngle', 'Tail angle', 0, 0, 360), number('tailLength', 'Tail length', 30, 0, 100),
+        number('tailWidth', 'Tail width', 20, 0, 100), number('tailCurve', 'Tail curve', 0, -100, 100)
     ] }];
 }
 

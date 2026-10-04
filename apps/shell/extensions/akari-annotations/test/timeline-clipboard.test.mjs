@@ -108,7 +108,7 @@ test('(c) 貼り先指定は一番下を基準にし、選択していない中�
     const rejected = planPaste({ fragment: fragment(item()), playhead: 10,
         tracks: [track('v1'), track('a1', 'sfx')], target: ['a1'] });
     assert.equal(rejected.ok, false);
-    assert.match(rejected.reason, /種別/);
+    assert.match(rejected.reason, /different type/);
 });
 
 test('(c) 上段不足なら新トラックを追加して相対位置を保持する', () => {

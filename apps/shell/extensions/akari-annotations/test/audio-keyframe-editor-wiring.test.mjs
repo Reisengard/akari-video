@@ -15,8 +15,8 @@ function section(source, startNeedle, endNeedle) {
 
 test('専用画面は既存流儀どおり AbstractDialog を継承し適用・キャンセルを持つ', () => {
   assert.match(dialog, /extends AbstractDialog<AkariAudioKeyframeDialogValue>/u);
-  assert.match(dialog, /this\.appendAcceptButton\('適用'\)/u);
-  assert.match(dialog, /this\.appendCloseButton\('キャンセル'\)/u);
+  assert.match(dialog, /this\.appendAcceptButton\('Apply'\)/u);
+  assert.match(dialog, /this\.appendCloseButton\('Cancel'\)/u);
 });
 
 test('波形背景は T9 の source 秒窓スライスと BGM ループタイルを再利用する', () => {
@@ -49,7 +49,7 @@ test('点ドラッグは移動元を除外した同一 t 判定を行い衝突�
 });
 
 test('点クリック選択は t 秒・gain_db・easing の入力欄へ同期する', () => {
-  assert.match(dialog, /this\.configureNumberInput\(this\.timeInput, 't 秒'/u);
+  assert.match(dialog, /this\.configureNumberInput\(this\.timeInput, 't \(sec\)'/u);
   assert.match(dialog, /this\.configureNumberInput\(this\.gainInput, 'gain_db'/u);
   assert.match(dialog, /const EASING_VALUES = \['linear', 'hold', 'ease-in-out'\]/u);
   assert.match(dialog, /this\.selectPoint\(hitIndex\)/u);
@@ -89,11 +89,11 @@ test('呼び出し側はダイアログ結果を既存 audio-keyframes write へ
 });
 
 test('全体ゲイン欄はdB範囲と0.5刻みを持ち未設定を0表示する', () => {
-  assert.match(dialog, /configureNumberInput\(this\.overallGainInput, '全体ゲイン', '0\.5'\)/u);
+  assert.match(dialog, /configureNumberInput\(this\.overallGainInput, 'Overall gain', '0\.5'\)/u);
   assert.match(dialog, /this\.overallGainInput\.min = String\(AUDIO_KEYFRAME_MIN_DB\)/u);
   assert.match(dialog, /this\.overallGainInput\.max = String\(AUDIO_KEYFRAME_MAX_DB\)/u);
   assert.match(dialog, /this\.overallGainDb = normalizeAudioKeyframeGainDb\(props\.gainDb\)/u);
-  assert.match(dialog, /this\.labeledControl\('全体ゲイン \(dB\)', this\.overallGainInput\)/u);
+  assert.match(dialog, /this\.labeledControl\('Overall gain \(dB\)', this\.overallGainInput\)/u);
 });
 
 test('全体ゲイン入力はinputイベントごとに波形を即時再描画する', () => {
@@ -131,8 +131,8 @@ test('widgetはkeyframes成功後に変更された全体ゲインだけを書�
 
 test('widgetはkeyframesと全体ゲインの失敗を別々の通知で示す', () => {
   const open = section(widget, 'protected async openAudioKeyframeEditor(', 'protected exitAudioTrimmerMode(');
-  assert.match(open, /音量キーフレームの書き込みに失敗しました:/u);
-  assert.match(open, /全体ゲインの書き込みに失敗しました:/u);
+  assert.match(open, /Could not save volume keyframes:/u);
+  assert.match(open, /Could not save overall gain:/u);
   assert.match(open, /if \(!keyframeResult\.ok\) \{[\s\S]*return;/u);
 });
 
@@ -149,7 +149,7 @@ test('BGM と narration のダブルクリックも専用エディタを開く',
 
 test('SFX のコンテキストメニューは削除前にトリム（in\/out）を合成する', () => {
   assert.match(menu, /export function withAudioTrimMenuItem\(/u);
-  assert.match(menu, /\{ id: 'audio-trim', label: 'トリム（in\/out）' \}/u);
+  assert.match(menu, /\{ id: 'audio-trim', label: 'Trim \(in\/out\)' \}/u);
   assert.match(menu, /items\.findIndex\(item => item\.id === 'delete'\)/u);
   assert.match(widget, /withAudioTrimMenuItem\(/u);
 });

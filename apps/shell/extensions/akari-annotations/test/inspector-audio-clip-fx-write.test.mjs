@@ -49,7 +49,7 @@ test('数値の境界と小数ピッチを許可し、範囲外・非有限値�
     ]) {
         for (const value of accepted) assert.doesNotThrow(() => assertAudioClipFxValue(field, value));
         for (const value of [...rejected, NaN, Infinity, -Infinity, '1', undefined]) {
-            assert.throws(() => assertAudioClipFxValue(field, value), /範囲/);
+            assert.throws(() => assertAudioClipFxValue(field, value), /must be/);
         }
     }
 });
@@ -58,7 +58,7 @@ test('ナレーションの速度・ピッチ・フォルマントは reset も�
     for (const [field, value] of [['speed', 2], ['pitch_semitones', 7], ['formant', 'shift']]) {
         for (const input of [value, null]) {
             assert.throws(() => buildAudioClipFxPatch('narration', field, input),
-                /ナレーションの速度・ピッチは TTS 側で調整します/);
+                /Narration speed and pitch are adjusted in the TTS settings/);
         }
     }
     assert.doesNotThrow(() => buildAudioClipFxPatch('narration', 'lowcut_hz', 120));
@@ -80,7 +80,7 @@ test('denoise は常に対で書き、method 既定 fft / strength 既定 0.5 �
         { method: 'fft', strength: 2 }, { method: 'fft', strength: 0.5, extra: true }, []]) {
         assert.throws(() => buildAudioClipFxPatch('sfx', 'denoise', invalid));
     }
-    assert.throws(() => buildAudioClipFxPatch('sfx', 'formant', 'bad'), /フォルマント/);
+    assert.throws(() => buildAudioClipFxPatch('sfx', 'formant', 'bad'), /Formant must be/);
 });
 
 for (const audioKind of ['sfx', 'bgm', 'narration']) {
@@ -144,7 +144,7 @@ test('実働行は値・reset を単一 audio-clip-fx kind に対応付ける', 
         .flatMap(section => section.fields);
     for (const [name, input, field, value] of [
         ['audio-speed', '2', 'speed', 2], ['audio-pitch', '7', 'pitch_semitones', 7],
-        ['audio-formant', '移動', 'formant', 'shift'],
+        ['audio-formant', 'Shift', 'formant', 'shift'],
         ['audio-denoise-method', 'FFT', 'denoise', { method: 'fft', strength: 0.5 }],
         ['audio-lowcut', '120', 'lowcut_hz', 120]
     ]) {
@@ -159,7 +159,7 @@ test('実働行は値・reset を単一 audio-clip-fx kind に対応付ける', 
     assert.equal(rows.find(row => row.name === 'audio-denoise-strength').disabled, true);
     const invalid = await rows.find(row => row.name === 'audio-lowcut').write(snapshot, '500');
     assert.equal(invalid.ok, false);
-    assert.match(invalid.message, /0〜400/);
+    assert.match(invalid.message, /0 to 400/);
     assert.equal(rows.some(row => row.name === 'audio-voice-isolation'), false);
 });
 
@@ -205,7 +205,7 @@ test('handler は v2 では既存 commitEditMutation を使い、不正値と re
     assert.equal(commits, 1);
     assert.equal(context.getDocument().tracks[0].items[0].source.speed, 2);
     for (const [change, message] of [
-        [{ field: 'lowcut_hz', value: 500 }, /0〜400/],
+        [{ field: 'lowcut_hz', value: 500 }, /0 to 400/],
         [{ audioKind: 'narration' }, /TTS/]
     ]) {
         const result = await handleAudioClipFxWrite.call(context, { ...request, ...change });
@@ -215,7 +215,7 @@ test('handler は v2 では既存 commitEditMutation を使い、不正値と re
     context.legacyReadOnly = true;
     const result = await handleAudioClipFxWrite.call(context, request);
     assert.equal(result.ok, false);
-    assert.match(result.message, /古い edit.json を読み取り専用/);
+    assert.match(result.message, /the older edit.json is open read-only/);
     assert.equal(commits, 1);
     assert.match(timelineSource, /request.kind === 'audio-clip-fx'[\s\S]{0,180}handleAudioClipFxWrite/);
 });

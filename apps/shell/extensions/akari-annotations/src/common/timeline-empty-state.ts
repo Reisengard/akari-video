@@ -1,6 +1,6 @@
 /** edit.json がまだ無いときだけ表示する、タイムラインの開始案内。 */
 export function timelineEmptyStateMessage(hasEdit: boolean): string | undefined {
-    return hasEdit ? undefined : '素材をここへドラッグ＆ドロップするか、パートナーに話しかけて始めてください';
+    return hasEdit ? undefined : 'Drag and drop footage here, or start by talking to your partner';
 }
 
 /** 同じ scheme / authority の正規化済み URI パスから、edit.json 基準の素材参照を作る。 */

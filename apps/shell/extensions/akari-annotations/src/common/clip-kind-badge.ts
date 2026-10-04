@@ -24,17 +24,17 @@ export function clipKindBadge(
         case 'media': {
             const path = context.path ?? item?.source?.src ?? '';
             const extension = /\.([^./\\]+)$/.exec(path)?.[1].toLowerCase() ?? '';
-            text = context.lane === 'audio' ? '音声'
-                : MEDIA_EXTENSIONS.image.has(extension) ? '画像'
-                    : MEDIA_EXTENSIONS.audio.has(extension) ? '音声' : '動画';
+            text = context.lane === 'audio' ? 'Audio'
+                : MEDIA_EXTENSIONS.image.has(extension) ? 'Image'
+                    : MEDIA_EXTENSIONS.audio.has(extension) ? 'Audio' : 'Video';
             break;
         }
         case 'scene3d': text = '3D'; break;
-        case 'video': text = '動画'; break;
-        case 'image': text = '画像'; break;
-        case 'audio': text = '音声'; break;
-        case 'caption': text = '字幕'; break;
+        case 'video': text = 'Video'; break;
+        case 'image': text = 'Image'; break;
+        case 'audio': text = 'Audio'; break;
+        case 'caption': text = 'Caption'; break;
         default: return undefined;
     }
-    return { text, title: `種別: ${text}` };
+    return { text, title: `Type: ${text}` };
 }

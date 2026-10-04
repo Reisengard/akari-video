@@ -24,31 +24,31 @@ export function assertAudioClipFxValue(field: AudioClipFxField | 'strength', val
     if (value === null) return;
     if (field === 'formant') {
         if (value !== 'preserve' && value !== 'shift') {
-            throw new Error('フォルマントは preserve / shift で指定してください。');
+            throw new Error('Formant must be preserve or shift.');
         }
         return;
     }
     if (field === 'denoise') {
         if (value === 'off') return;
         if (!value || typeof value !== 'object' || Array.isArray(value)) {
-            throw new Error('ノイズ除去は method と strength を対で指定してください。');
+            throw new Error('Denoise requires both method and strength.');
         }
         const denoise = value as Record<string, unknown>;
         if ((denoise.method !== 'fft' && denoise.method !== 'nlm')
             || typeof denoise.strength !== 'number'
             || Object.keys(denoise).some(key => key !== 'method' && key !== 'strength')) {
-            throw new Error('ノイズ除去は method（fft / nlm）と strength を対で指定してください。');
+            throw new Error('Denoise requires both method (fft / nlm) and strength.');
         }
         assertAudioClipFxValue('strength', denoise.strength);
         return;
     }
     const range = AUDIO_CLIP_FX_RANGES[field];
-    const label = field === 'speed' ? '速度' : field === 'pitch_semitones' ? 'ピッチ'
-        : field === 'strength' ? 'ノイズ除去の強さ' : 'ローカット';
+    const label = field === 'speed' ? 'Speed' : field === 'pitch_semitones' ? 'Pitch'
+        : field === 'strength' ? 'Denoise strength' : 'Low cut';
     if (typeof value !== 'number' || !Number.isFinite(value) || value > range.max
         || (field === 'speed' ? value <= range.min : value < range.min)) {
-        const bounds = field === 'speed' ? '0.25 より大きく 4 以下' : `${range.min}〜${range.max}`;
-        throw new Error(`${label}は ${bounds} の範囲で入力してください。`);
+        const bounds = field === 'speed' ? 'above 0.25 and up to 4' : `${range.min} to ${range.max}`;
+        throw new Error(`${label} must be ${bounds}.`);
     }
 }
 
@@ -59,7 +59,7 @@ export function buildAudioClipFxPatch(
 ): { itemPatch: Record<string, unknown>; legacyPatch: Record<string, unknown> } {
     const sourceField = field === 'speed' || field === 'pitch_semitones' || field === 'formant';
     if (audioKind === 'narration' && sourceField) {
-        throw new Error('ナレーションの速度・ピッチは TTS 側で調整します');
+        throw new Error('Narration speed and pitch are adjusted in the TTS settings.');
     }
     assertAudioClipFxValue(field, value);
     const normalized = value === AUDIO_CLIP_FX_RANGES[field].default
@@ -129,11 +129,11 @@ export function updateAudioClipFxDocument(doc: EditV2Document, request: AudioCli
     const itemId = Array.isArray(doc.tracks) ? findAudioItemIdByRole(doc, 'bgm') : undefined;
     if (itemId !== undefined) return updateV2Item(doc, { itemId, patch: itemPatch });
     if (!doc.audio || typeof doc.audio !== 'object' || Array.isArray(doc.audio)) {
-        throw new Error('edit.json.audio.bgm が見つかりません。');
+        throw new Error('edit.json.audio.bgm was not found.');
     }
     const audio = doc.audio as Record<string, unknown>;
     if (!audio.bgm || typeof audio.bgm !== 'object' || Array.isArray(audio.bgm)) {
-        throw new Error('edit.json.audio.bgm が見つかりません。');
+        throw new Error('edit.json.audio.bgm was not found.');
     }
     const bgm = { ...audio.bgm as Record<string, unknown> };
     for (const [key, next] of Object.entries(legacyPatch)) {

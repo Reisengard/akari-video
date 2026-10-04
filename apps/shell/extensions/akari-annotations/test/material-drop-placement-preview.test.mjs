@@ -101,7 +101,7 @@ test('音は映像行からも音行へ案内し、音行が無ければ新設�
         handler.updateMaterialGhost(30, y);
         const target = handler.resolveMaterialDropTarget('audio', y);
         assert.equal(handler.materialGhost.style.top, `${14 + target.top}px`);
-        assert.equal(handler.materialDropBadge.textContent, '音の行に入ります');
+        assert.equal(handler.materialDropBadge.textContent, 'Goes into the audio row');
         assert.deepEqual(handler.materialGhost.range, [3, 6]);
         assert.equal(target.createAudioTrack === true, tracks.length === 1);
         if (target.createAudioTrack) assert.equal(handler.trackInsertIndicator.style.display, 'block');
@@ -151,7 +151,7 @@ test('文字は指定行の帯と札を示し、同じ時刻へ置く', () => {
     handler.updateTextStyleDropGhost(30, 16);
     assert.deepEqual(handler.materialGhost.range, [13, 16]);
     assert.equal(handler.materialGhost.style.top, '114px');
-    assert.equal(handler.materialDropBadge.textContent, '文字の行に入ります');
+    assert.equal(handler.materialDropBadge.textContent, 'Goes into the text row');
     handler.handleMaterialDrop(dragEvent(30, 16));
     assert.equal(placed.at(-1).start, 13);
 });

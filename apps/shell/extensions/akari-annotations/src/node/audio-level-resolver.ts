@@ -122,11 +122,11 @@ export function measureAudioModuleInWorker(
         const timer = setTimeout(() => finish(new Error('timeout')), timeoutMs);
         worker.once('message', (message: { ok: boolean; measured?: UnknownRecord; reason?: string }) => {
             if (message.ok) finish(undefined, message.measured);
-            else finish(new Error(message.reason ?? '音声レベル計測に失敗しました'));
+            else finish(new Error(message.reason ?? 'Audio level measurement failed'));
         });
         worker.once('error', error => finish(error instanceof Error ? error : new Error(String(error))));
         worker.once('exit', code => {
-            if (!settled && code !== 0) finish(new Error(`音声レベル計測 worker が終了しました (${code})`));
+            if (!settled && code !== 0) finish(new Error(`The audio level measurement worker exited (${code})`));
         });
     });
 }
@@ -138,7 +138,7 @@ export async function measureAudioForLevel(
     try {
         if (!request || typeof request.projectRoot !== 'string' || !request.projectRoot.trim()
             || typeof request.audioPath !== 'string' || !request.audioPath.trim()) {
-            return { ok: false, reason: 'projectRoot と audioPath が必要です' };
+            return { ok: false, reason: 'projectRoot and audioPath are required' };
         }
         const resourcesPath = options.resourcesPath
             ?? (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
@@ -153,11 +153,11 @@ export async function measureAudioForLevel(
         const insertLevelPath = buildPackageModuleCandidates(INSERT_LEVEL_RELATIVE_PATH, candidateOptions)
             .find(fileExists);
         if (!measurePath || !insertLevelPath) {
-            return { ok: false, reason: '音声レベル計測モジュールを解決できませんでした' };
+            return { ok: false, reason: 'Could not resolve the audio level measurement module' };
         }
         const ffmpegPath = await (options.resolveFfmpeg
             ? options.resolveFfmpeg() : resolveAudioLevelFfmpeg(resourcesPath));
-        if (!ffmpegPath) return { ok: false, reason: 'ffmpeg が見つかりませんでした' };
+        if (!ffmpegPath) return { ok: false, reason: 'ffmpeg was not found' };
         const audioPath = isAbsolute(request.audioPath)
             ? request.audioPath : resolve(request.projectRoot, request.audioPath);
         const measure = options.measure ?? measureAudioModuleInWorker;
@@ -174,7 +174,7 @@ export async function measureAudioForLevel(
             (specifier: string) => Promise<unknown>);
         const insertLevel = await importModule(pathToFileURL(insertLevelPath).toString()) as InsertLevelModule;
         if (typeof insertLevel.roleForClip !== 'function' || typeof insertLevel.computeInsertLevel !== 'function') {
-            return { ok: false, reason: '自動レベル計算モジュールが不正です' };
+            return { ok: false, reason: 'The auto level module is invalid' };
         }
         const durationSec = Number.isFinite(request.durationSec)
             ? request.durationSec : typeof measured.duration_sec === 'number' ? measured.duration_sec : undefined;

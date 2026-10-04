@@ -9,20 +9,20 @@ export class MaterialTrialHistory {
         if (this.entry === entry) this.entry = undefined;
     }
     set(entry: TrialEntry): void {
-        if (this.entry) throw new Error('前のお試しを巻き戻してください。');
+        if (this.entry) throw new Error('Roll back the previous trial first.');
         this.entry = entry;
     }
     /** 最初の before を保ったまま仮の 1 手を置換する。中間状態は保存しない。 */
     replace(entry: TrialEntry): void {
         if (!this.entry || this.entry.before === undefined || entry.before !== this.entry.before) {
-            throw new Error('お試し前のスナップショットが一致しません。');
+            throw new Error('The pre-trial snapshot does not match.');
         }
         this.entry = entry;
     }
     confirm(push: (entry: TrialEntry) => void): void {
         if (!this.entry) return;
         const entry = this.entry;
-        entry.label = '素材の入れ替え';
+        entry.label = 'Replace footage';
         this.entry = undefined;
         push(entry);
     }

@@ -19,8 +19,8 @@ test('voice RPC は C1 の引数を渡し、有償操作は承認なしで spawn
       queueMicrotask(() => { child.stdout.emit('data', JSON.stringify({ status: 'ok', profile: 'p', engine: 'irodori' })); child.emit('close', 0); });
       return child;
     });
-    await assert.rejects(manager.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /費用承認/u);
-    await assert.rejects(manager.voiceTry({ profile: 'p', engine: 'fal-qwen3', text: 'こんにちは' }), /費用承認/u);
+    await assert.rejects(manager.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /Cost approval is required/u);
+    await assert.rejects(manager.voiceTry({ profile: 'p', engine: 'fal-qwen3', text: 'こんにちは' }), /Cost approval is required/u);
     assert.equal(calls.length, 0);
     await manager.voiceCopy({ profile: 'p', engine: 'irodori', irodoriUrl: 'http://127.0.0.1:9000' });
     await manager.voiceCopy({ profile: 'p', engine: 'fal-qwen3', approved: true });
@@ -43,15 +43,15 @@ test('録音は分割チャンクで一時ファイルに保存し、voiceDiscar
   const incompletePath = service.voiceRecordings.get(unfinished.token).path;
   await service.voiceAbortRecording(unfinished.token);
   await assert.rejects(access(incompletePath), /ENOENT/u);
-  await assert.rejects(service.voiceBeginRecording('evil'), /不正/u);
+  await assert.rejects(service.voiceBeginRecording('evil'), /Invalid recording format/u);
 });
 
 test('service も fal の費用承認前には CLI を呼ばない', async () => {
   const service = new AkariAnnotationsServiceImpl();
   let calls = 0;
   service.narrationCli = { voiceCopy: async () => { calls++; }, voiceTry: async () => { calls++; } };
-  await assert.rejects(service.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /費用承認/u);
-  await assert.rejects(service.voiceTry({ profile: 'p', engine: 'fal-qwen3', text: 'こんにちは' }), /費用承認/u);
+  await assert.rejects(service.voiceCopy({ profile: 'p', engine: 'fal-qwen3' }), /Cost approval is required/u);
+  await assert.rejects(service.voiceTry({ profile: 'p', engine: 'fal-qwen3', text: 'こんにちは' }), /Cost approval is required/u);
   assert.equal(calls, 0);
 });
 

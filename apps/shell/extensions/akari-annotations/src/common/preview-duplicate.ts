@@ -52,5 +52,5 @@ export function duplicatePreviewItem(source: string, request: PreviewDuplicateRe
         }
         return `${JSON.stringify(doc, undefined, 2)}\n`;
     }
-    throw new Error(`複製する要素が見つかりません: ${request.itemId}`);
+    throw new Error(`Element to duplicate not found: ${request.itemId}`);
 }

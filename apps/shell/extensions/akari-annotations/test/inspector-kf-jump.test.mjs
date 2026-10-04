@@ -52,7 +52,7 @@ test('KF の4つ目の SVG ボタンから reveal メニューを開いて既存
     assert.equal(menu.children.length, 1, 'only the implemented reveal action belongs in this menu');
     const jump = menu.children[0];
     assert.equal(jump.disabled, false);
-    assert.equal(jump.title, 'タイムラインのキーフレーム行を開く');
+    assert.equal(jump.title, 'Open keyframe row in timeline');
     assert.equal(jump.attributes.get('data-akari-ui'), 'inspector-kf-jump:transform-x');
     assert.equal(jump.children[1].textContent, jump.title);
     jump.emit('click');
@@ -68,7 +68,7 @@ test('KF がない行もメニューを開けるが reveal は無効、非対応
     const jump = document.body.children[0].children[0];
     assert.equal(jump.attributes.get('data-akari-ui'), 'inspector-kf-jump:opacity');
     assert.equal(jump.disabled, true);
-    assert.equal(jump.title, 'キーフレームがありません');
+    assert.equal(jump.title, 'No keyframes');
     jump.emit('click');
     assert.equal(reveals, 0);
     empty.children[3].emit('click');

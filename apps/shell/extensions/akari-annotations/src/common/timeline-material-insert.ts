@@ -50,7 +50,7 @@ export function materialDropDecision(
         if (trackKind === 'audio' || trackKind === undefined) {
             return { accept: true, zone: 'audio' };
         }
-        return { accept: false, reason: '音は音の段へドロップしてください。' };
+        return { accept: false, reason: 'Drop audio on an audio lane.' };
     }
     if (trackKind === 'layers' || trackKind === undefined) {
         return { accept: true, zone: 'layers' };
@@ -60,7 +60,7 @@ export function materialDropDecision(
     }
     return {
         accept: false,
-        reason: '映像は映像の段へ、音は音の段へドロップしてください。'
+        reason: 'Drop video on a video lane and audio on an audio lane.'
     };
 }
 
@@ -101,9 +101,9 @@ export interface MaterialGhostVisibility {
 
 /** 枠には短い案内だけを出す。詳細な拒否理由はフッターへ渡す。 */
 export function materialGhostRejectLabel(reason: string): string {
-    if (reason.includes('ロック中')) return 'ロック中';
-    if (reason.includes('レーン') || reason.includes('段へ')) return 'レーン違い';
-    return '置けません';
+    if (reason.includes('ロック中') || /\block(ed)?\b/i.test(reason)) return 'Locked';
+    if (reason.includes('レーン') || reason.includes('段へ') || /\blane\b/i.test(reason)) return 'Wrong lane';
+    return 'Cannot place';
 }
 
 /**

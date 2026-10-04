@@ -51,14 +51,14 @@ test('作り方の読み口は project 外パスと sidecar の symlink 逃げ�
     await writeFile(path.join(outside, 'outside.meta.json'), '{}');
     const service = new AkariAnnotationsServiceImpl();
     const projectRootUri = pathToFileURL(root).href;
-    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath: '../outside.wav' }), /相対パス/u);
+    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath: '../outside.wav' }), /relative path/u);
     await symlink(path.join(outside, 'outside.meta.json'), path.join(root, `${sourcePath}.meta.json`));
-    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath }), /プロジェクトの外/u);
+    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath }), /outside the project/u);
     await rm(path.join(root, `${sourcePath}.meta.json`));
     await rm(path.join(root, sourcePath));
     await writeFile(path.join(outside, 'outside.wav'), 'outside audio');
     await symlink(path.join(outside, 'outside.wav'), path.join(root, sourcePath));
-    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath }), /プロジェクトの外/u);
+    await assert.rejects(service.readGenerationProvenance({ projectRootUri, sourcePath }), /outside the project/u);
   } finally {
     await rm(root, { recursive: true, force: true });
     await rm(outside, { recursive: true, force: true });

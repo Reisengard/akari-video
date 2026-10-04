@@ -21,17 +21,17 @@ export function placeTextCaption(options: PlaceTextOptions, playhead: number, du
     const start = options.start ?? playhead;
     const end = options.end ?? (duration > 0 ? Math.min(start + 3, duration) : start + 3);
     if (!Number.isFinite(start) || start < 0 || !Number.isFinite(end) || end <= start) {
-        throw new Error('文字を置く開始・終了時刻を確認してください。');
+        throw new Error('Check the start and end times for the text.');
     }
     // tc uses top = y. At the default 38px / 1.42 line height on a 720px output,
     // half a line is 0.0375 of the frame, so this puts the plate center near 0.5.
     const position = options.position ?? { y: 0.4625 };
     if ((position.x !== undefined && (!Number.isFinite(position.x) || position.x < 0 || position.x > 1))
         || !Number.isFinite(position.y) || position.y < 0 || position.y > 1) {
-        throw new Error('文字の位置は 0〜1 の範囲で指定してください。');
+        throw new Error('The text position must be between 0 and 1.');
     }
     return {
-        id: nextDaihonCaptionId(existingIds), start, end, text: options.text ?? 'テキストを入力',
+        id: nextDaihonCaptionId(existingIds), start, end, text: options.text ?? 'Enter text',
         timeDomain: 'output', sourceRef: null, edited: true, speaker: null,
         textStyle: { position, textAnchor: options.textAnchor ?? 'tc' },
         ...(options.stylePreset === undefined ? {} : { stylePreset: options.stylePreset })

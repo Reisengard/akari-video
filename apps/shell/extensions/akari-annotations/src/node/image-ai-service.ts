@@ -70,9 +70,9 @@ function imageDimensions(bytes: Buffer, mime: string): { width: number; height: 
 }
 
 function safeQueueUrl(value: unknown): string {
-    if (typeof value !== 'string') throw new Error('送信先の応答を確認できません。課金状況はサービスの利用履歴で確認してください。');
+    if (typeof value !== 'string') throw new Error('Could not verify the service response. Check the service usage history for billing.');
     const url = new URL(value);
-    if (url.protocol !== 'https:' || url.hostname !== 'queue.fal.run') throw new Error('送信先の応答が不正です。');
+    if (url.protocol !== 'https:' || url.hostname !== 'queue.fal.run') throw new Error('Invalid service response.');
     return url.toString();
 }
 
@@ -88,12 +88,12 @@ export class FalImageAiProvider implements ImageAiProvider {
             let response: Response;
             try { response = await this.fetchImpl(url, { ...init, headers, signal }); }
             catch {
-                if (signal.aborted) throw new Error('取り消しました。既に処理が始まった場合は課金されることがあります。');
-                throw new Error('接続が途切れました。課金状況はサービスの利用履歴で確認してください。再試行できます。');
+                if (signal.aborted) throw new Error('Cancelled. If processing had already started, you may still be billed.');
+                throw new Error('The connection was lost. Check the service usage history for billing. You can retry.');
             }
             if (!response.ok) {
-                if (response.status === 401 || response.status === 403) throw new Error('キーが無効です。設定でキーを確かめてください。課金は確認できません。');
-                throw new Error(`サービスから HTTP ${response.status} が返りました。課金状況は利用履歴で確認してください。再試行できます。`);
+                if (response.status === 401 || response.status === 403) throw new Error('The key is invalid. Check the key in settings. Billing could not be confirmed.');
+                throw new Error(`The service returned HTTP ${response.status}. Check the usage history for billing. You can retry.`);
             }
             return response.json();
         };
@@ -105,31 +105,31 @@ export class FalImageAiProvider implements ImageAiProvider {
             setCancel(async () => { await this.fetchImpl(cancelUrl, { method: 'PUT', headers }).catch(() => undefined); });
         }
         for (let attempt = 0; attempt < 180; attempt++) {
-            if (signal.aborted) throw new Error('取り消しました。既に処理が始まった場合は課金されることがあります。');
+            if (signal.aborted) throw new Error('Cancelled. If processing had already started, you may still be billed.');
             const status = await request(statusUrl);
             if (status.status === 'COMPLETED') break;
             if (status.status !== 'IN_QUEUE' && status.status !== 'IN_PROGRESS') {
-                throw new Error('処理を完了できませんでした。課金状況はサービスの利用履歴で確認してください。再試行できます。');
+                throw new Error('Could not complete processing. Check the service usage history for billing. You can retry.');
             }
-            if (attempt === 179) throw new Error('待ち時間を超えました。課金状況はサービスの利用履歴で確認してください。');
+            if (attempt === 179) throw new Error('Timed out. Check the service usage history for billing.');
             await this.pause(1000);
         }
         const output = await request(responseUrl);
         const image = output.image ?? output.images?.[0];
-        if (typeof image?.url !== 'string') throw new Error('結果画像を取得できませんでした。課金状況はサービスの利用履歴で確認してください。');
+        if (typeof image?.url !== 'string') throw new Error('Could not get the result image. Check the service usage history for billing.');
         const imageUrl = new URL(image.url);
         if (imageUrl.protocol !== 'https:' || !/(^|\.)fal\.media$/.test(imageUrl.hostname)
-            && imageUrl.hostname !== 'storage.googleapis.com') throw new Error('結果画像の送信元が不正です。');
+            && imageUrl.hostname !== 'storage.googleapis.com') throw new Error('The result image source is invalid.');
         const downloaded = await this.fetchImpl(imageUrl.toString(), { signal }).catch(() => {
-            throw new Error('結果画像を取得できませんでした。課金状況はサービスの利用履歴で確認してください。再試行できます。');
+            throw new Error('Could not get the result image. Check the service usage history for billing. You can retry.');
         });
-        if (!downloaded.ok) throw new Error('結果画像を保存できませんでした。課金状況はサービスの利用履歴で確認してください。');
+        if (!downloaded.ok) throw new Error('Could not save the result image. Check the service usage history for billing.');
         const contentType = (downloaded.headers.get('content-type') ?? image.content_type ?? '').split(';')[0];
         const extension = contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg'
             : contentType === 'image/webp' ? '.webp' : '';
-        if (!extension) throw new Error('結果画像の形式を確認できません。');
+        if (!extension) throw new Error('Could not verify the result image format.');
         const bytes = Buffer.from(await downloaded.arrayBuffer());
-        if (!bytes.length || bytes.length > MAX_RESULT_BYTES) throw new Error('結果画像の大きさを確認できません。');
+        if (!bytes.length || bytes.length > MAX_RESULT_BYTES) throw new Error('Could not verify the result image size.');
         return { bytes, extension, model };
     }
 
@@ -141,7 +141,7 @@ export class FalImageAiProvider implements ImageAiProvider {
     }
 
     generateBackground(input: Parameters<ImageAiProvider['generateBackground']>[0]): ReturnType<ImageAiProvider['generateBackground']> {
-        if (!input.mask) throw new Error('背景を選ぶマスクが必要です。');
+        if (!input.mask) throw new Error('A mask selecting the background is required.');
         return this.run(IMAGE_AI_MODELS.generateBackground, {
             image_url: `data:${input.mime};base64,${input.bytes.toString('base64')}`,
             prompt: input.prompt,
@@ -163,7 +163,7 @@ export class ImageAiService {
         }) {}
 
     private root(uri: string): string {
-        if (!uri.startsWith('file:')) throw new Error('プロジェクトの場所が不正です。');
+        if (!uri.startsWith('file:')) throw new Error('Invalid project location.');
         return fileURLToPath(uri);
     }
     private async input(projectRootUri: string, itemId: string, editUri?: string): Promise<{
@@ -177,17 +177,17 @@ export class ImageAiService {
         };
         let found: any;
         for (const track of edit.tracks ?? []) { if (track.lane === 'visual') found = visit(track.items ?? []); if (found) break; }
-        if (found?.source?.kind !== 'media') throw new Error('写真を選んでください。');
+        if (found?.source?.kind !== 'media') throw new Error('Select a photo.');
         const sourcePath = edit.sources?.find((row: any) => row.id === found.source.src)?.path;
-        if (typeof sourcePath !== 'string') throw new Error('素材の場所が不正です。');
+        if (typeof sourcePath !== 'string') throw new Error('Invalid footage location.');
         const file = await resolveProjectMediaFile(root, sourcePath);
         const mime = MIME[path.extname(file).toLowerCase()];
-        if (!mime) throw new Error('この写真形式には対応していません。');
+        if (!mime) throw new Error('This photo format is not supported.');
         const stat = await fs.stat(file);
-        if (stat.size < 1 || stat.size > MAX_INPUT_BYTES) throw new Error('送れる画像は 16 MB までです。');
+        if (stat.size < 1 || stat.size > MAX_INPUT_BYTES) throw new Error('Images up to 16 MB can be sent.');
         const bytes = await fs.readFile(file);
         const editVersion = imageAiEditVersion(edit, itemId);
-        if (!editVersion) throw new Error('写真を選んでください。');
+        if (!editVersion) throw new Error('Select a photo.');
         return { root, path: file, bytes, mime, binding: {
             itemId, sourcePath, inputSha256: sha256(bytes), editVersion
         } };
@@ -229,16 +229,16 @@ export class ImageAiService {
 
     async upscale(request: { projectRootUri: string; editUri?: string; binding: ImageAiBinding; jobId: string }): Promise<ImageAiResult> {
         const key = await this.readKey();
-        if (!key) throw new Error('キーを設定すると使えます。');
+        if (!key) throw new Error('Set a key to use this.');
         const input = await this.input(request.projectRootUri, request.binding.itemId, request.editUri);
-        if (JSON.stringify(input.binding) !== JSON.stringify(request.binding)) throw new Error('編集が変わりました。写真を選び直してください。');
-        if (!/^[a-zA-Z0-9-]{1,100}$/.test(request.jobId) || this.running.has(request.jobId)) throw new Error('処理の番号が不正です。');
+        if (JSON.stringify(input.binding) !== JSON.stringify(request.binding)) throw new Error('The edit changed. Select the photo again.');
+        if (!/^[a-zA-Z0-9-]{1,100}$/.test(request.jobId) || this.running.has(request.jobId)) throw new Error('Invalid job number.');
         const running: { abort: AbortController; cancel?: () => Promise<void> } = { abort: new AbortController() };
         this.running.set(request.jobId, running);
         try {
             const output = await this.provider.upscale({ bytes: input.bytes, mime: input.mime, key,
                 signal: running.abort.signal, setCancel: cancel => { running.cancel = cancel; } });
-            if (running.abort.signal.aborted) throw new Error('取り消しました。既に処理が始まった場合は課金されることがあります。');
+            if (running.abort.signal.aborted) throw new Error('Cancelled. If processing had already started, you may still be billed.');
             const hash = sha256(output.bytes);
             const relativePath = `assets/generated/${hash}${output.extension}`;
             const destination = await projectOutputPath(input.root, relativePath);
@@ -263,10 +263,10 @@ export class ImageAiService {
 
     async generateBackground(request: { projectRootUri: string; editUri?: string; itemId: string; prompt: string; maskPath?: string }): Promise<ImageAiResult> {
         const key = await this.readKey();
-        if (!key) throw new Error('キーを設定すると使えます。');
+        if (!key) throw new Error('Set a key to use this.');
         const input = await this.input(request.projectRootUri, request.itemId, request.editUri);
         if (!request.maskPath || path.isAbsolute(request.maskPath) || request.maskPath.startsWith('..')) {
-            throw new Error('背景を選ぶマスクが必要です。');
+            throw new Error('A mask selecting the background is required.');
         }
         const maskFile = await resolveProjectMediaFile(input.root, request.maskPath);
         const mask = await fs.readFile(maskFile);

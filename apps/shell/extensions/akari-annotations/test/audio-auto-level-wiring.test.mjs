@@ -77,7 +77,7 @@ test('reason は改行を含まない 1 行へ正規化する', () => {
 
 test('不正 request は例外を投げず ok:false を返す', async () => {
   assert.deepEqual(await measureAudioForLevel({ projectRoot: '', audioPath: '' }), {
-    ok: false, reason: 'projectRoot と audioPath が必要です'
+    ok: false, reason: 'projectRoot and audioPath are required'
   });
 });
 
@@ -87,7 +87,7 @@ test('module 解決失敗は例外を投げず ok:false を返す', async () => 
     { startDirectory: resolve('nowhere'), maxDepth: 2, fileExists: () => false }
   );
   assert.equal(result.ok, false);
-  assert.match(result.reason, /モジュールを解決できません/u);
+  assert.match(result.reason, /Could not resolve the audio level measurement module/u);
 });
 
 test('ffmpeg 解決失敗は module 解決後も ok:false を返す', async () => {
@@ -98,7 +98,7 @@ test('ffmpeg 解決失敗は module 解決後も ok:false を返す', async () =
       resolveFfmpeg: async () => undefined
     }
   );
-  assert.deepEqual(result, { ok: false, reason: 'ffmpeg が見つかりませんでした' });
+  assert.deepEqual(result, { ok: false, reason: 'ffmpeg was not found' });
 });
 
 test('service helper は計測値を roleForClip と computeInsertLevel へ渡す', async () => {
@@ -176,18 +176,18 @@ test('計測失敗時も挿入 snapshot を保存してから history を 1 件�
   const start = widgetSource.indexOf("if (kind === 'audio')");
   const end = widgetSource.indexOf("\n            const sources = Array.isArray(value.sources)", start);
   const block = widgetSource.slice(start, end);
-  assert.match(block, /自動レベルを適用できませんでした/u);
+  assert.match(block, /Could not apply auto level/u);
   assert.match(block, /editAfter \?\?= stringifyEditV2\(value\)/u);
   assert.ok(block.indexOf('writeTimelineSnapshots(editAfter)') < block.indexOf('this.pushHistory({'));
   assert.equal((block.match(/this\.pushHistory\(\{/gu) ?? []).length, 1);
 });
 
 test('成功通知は gain・basis・role を 1 行で表示する', () => {
-  assert.match(widgetSource, /自動レベル: \$\{measured\.gain_db\.toFixed\(1\)\} dB（\$\{measured\.basis\}・\$\{measured\.role\}）/u);
+  assert.match(widgetSource, /Auto level: \$\{measured\.gain_db\.toFixed\(1\)\} dB \(\$\{measured\.basis\} \/ \$\{measured\.role\}\)/u);
 });
 
 test('インスペクタは自動レベル actionLabel を音声 write bridge へ配線する', () => {
-  assert.match(inspectorSource, /actionLabel: '自動レベル'/u);
+  assert.match(inspectorSource, /actionLabel: 'Auto level'/u);
   assert.match(inspectorSource, /kind: 'audio-auto-level', id: snapshot\.id, audioKind: snapshot\.audioKind/u);
   assert.match(widgetSource, /return this\.handleAudioAutoLevelWrite\(request\)/u);
 });
@@ -198,5 +198,5 @@ test('インスペクタ自動レベルは gain_db だけを書き fade を変�
   const block = widgetSource.slice(start, end);
   assert.match(block, /patch: \{ gain_db: measured\.gain_db \}/u);
   assert.doesNotMatch(block, /fade_in|fade_out/u);
-  assert.match(block, /commitEditMutation\('自動レベル'/u);
+  assert.match(block, /commitEditMutation\('Auto level'/u);
 });

@@ -127,7 +127,7 @@ test('fal の費用承認を断ると稼働中のスタブに submit しない',
     const result = await manager(dir, stub.url).startGenerateStill(dir, { itemId: 'clip-1', prompt: 'A garden',
       aspect: '1:1', route: 'fal', approved: false });
     assert.equal(result.ok, false);
-    assert.match(result.reason, /費用承認/u);
+    assert.match(result.reason, /Cost approval/u);
     assert.equal(stub.requests.filter(entry => entry.method === 'POST').length, 0);
   } finally { await stub.close(); await rm(dir, { recursive: true, force: true }); }
 });
