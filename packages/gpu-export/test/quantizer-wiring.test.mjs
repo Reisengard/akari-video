@@ -34,7 +34,7 @@ test("page runtime resolves rate control once and records visible fallback evide
   const source = await readFile(new URL("../src/page-runtime.js", import.meta.url), "utf8");
   assert.match(source, /rateControlResolution = await FE\.WebCodecsH264Encoder\.resolveRateControl\(encoderOptions\)/u);
   assert.match(source, /fallbackReason: "forced-fixed-bitrate"/u);
-  assert.match(source, /await bridge\.log\(`WARN WebCodecs の quantizer レート制御が使えないため固定ビットレート/u);
+  assert.match(source, /await bridge\.log\(`WARN WebCodecs quantizer rate control is unavailable, so this switched to a fixed bitrate/u);
   assert.equal(
     [...source.matchAll(/rateControlFallbackReason: rateControlResolution\?\.fallbackReason \?\? null/gu)].length,
     2,

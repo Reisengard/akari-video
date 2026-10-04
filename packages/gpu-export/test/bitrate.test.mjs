@@ -17,7 +17,7 @@ test("GPU quality uses the existing VideoToolbox bitrate presets", () => {
 });
 
 test("GPU master quality requires an explicit bitrate", () => {
-  assert.throws(() => resolveGpuEncoding({ quality: "master" }), /master は GPU 出口では --bitrate の明示が必要/);
+  assert.throws(() => resolveGpuEncoding({ quality: "master" }), /master requires an explicit --bitrate on the GPU exit/);
 });
 
 test("an explicit bitrate overrides every quality preset including master", () => {

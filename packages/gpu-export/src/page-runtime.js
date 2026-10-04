@@ -498,7 +498,7 @@
         onLayerFailure(layerId, error) {
           const reason = error && error.message ? error.message : String(error);
           // OSR へ逃がす理由（FALLBACK_REASONS）には含めない: 入力の不備なので OSR でも同じく描けない。
-          throw new Error(`layer ${layerId} を描けないため書き出しを中止します（層を抜いた出力は作りません）: ${reason}`);
+          throw new Error(`layer ${layerId} cannot be drawn, so the export stopped (a frame with that layer omitted is not written): ${reason}`);
         },
       });
     }
@@ -2513,7 +2513,7 @@
           }
           if (!state.warned) {
             state.warned = true;
-            const message = `WARN overlay ${state.overlayId}: preserve-3d の子同士が画面上で重なり、奥行き順と DOM 順が食い違っています。GPU 経路の遮蔽順は DOM 順になるため OSR と絵が変わります。子同士を重ねない構成にするか --engine osr で書き出してください`;
+            const message = `WARN overlay ${state.overlayId}: preserve-3d children overlap on screen, and depth order disagrees with DOM order. The GPU path occludes in DOM order, so the picture differs from OSR. Keep the children from overlapping, or export with --engine osr`;
             try { await bridge?.log?.(message); } catch {}
             console.warn(message);
           }
@@ -3085,7 +3085,7 @@
         // 無言のフォールバック禁止（裁定 3）: stderr に 1 行（WARN 接頭辞が main で stderr へ回る）。
         if (rateControlResolution.fallbackReason !== null) {
           try {
-            await bridge.log(`WARN WebCodecs の quantizer レート制御が使えないため固定ビットレート（${config.bitrate}bps）へ切り替えました（quality=${config.quality} codec=${config.codec ?? "h264"} reason=${rateControlResolution.fallbackReason}）`);
+            await bridge.log(`WARN WebCodecs quantizer rate control is unavailable, so this switched to a fixed bitrate (${config.bitrate} bps) (quality=${config.quality} codec=${config.codec ?? "h264"} reason=${rateControlResolution.fallbackReason})`);
           } catch {}
         }
         encoder = new FE.WebCodecsH264Encoder({

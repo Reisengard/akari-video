@@ -77,7 +77,7 @@ test("PNG video and PCM audio args are fixed", () => {
 for (const codec of ["prores422", "png"]) {
   test(`${codec} refuses explicit GPU direct export`, () => {
     assert.throws(() => assertCodecEngine(codec, "gpu"), error => error instanceof RefusalError
-      && error.message === "この形式は GPU 直結では出せません");
+      && error.message === "this format cannot be written on the direct GPU path");
     assert.doesNotThrow(() => assertCodecEngine(codec, "auto"));
   });
 }

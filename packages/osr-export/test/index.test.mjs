@@ -51,7 +51,7 @@ test("Electron が exit 0 でも出力しない経路は mux 前に launcher エ
       launcherRunner: (launcher, options) => launchElectronExport(launcher, options, { spawnImpl }),
     }), (error) => {
       assert.match(error.message, /osr-export error: OSR Electron/);
-      assert.match(error.message, /単一インスタンスロック/);
+      assert.match(error.message, /single-instance lock/);
       assert.doesNotMatch(error.message, /ffmpeg mux exited/);
       return true;
     });

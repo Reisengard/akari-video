@@ -33,7 +33,7 @@ export function resolveGpuEncoding({ quality = "high", bitrate = undefined, widt
   if (codecFactor === undefined) throw new Error(`GPU codec must be h264|hevc, got: ${codec}`);
   const preset = QUALITY_PRESETS[quality]?.videotoolboxBitrate ?? null;
   if (preset === null) {
-    throw new Error("master は GPU 出口では --bitrate の明示が必要です");
+    throw new Error("master requires an explicit --bitrate on the GPU exit");
   }
   const presetQuantizer = codec === "hevc"
     ? QUALITY_PRESETS[quality].webcodecsHevcQuantizer

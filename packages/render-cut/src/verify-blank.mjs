@@ -291,7 +291,7 @@ export function annotateBlankIntervals(intervals, edit, { fps } = {}) {
 
 export function blankFrameFindings(intervals, { backgroundYmax, spreadTolerance } = {}) {
   const thresholdDetails = Number.isFinite(backgroundYmax) && Number.isFinite(spreadTolerance)
-    ? `; background_ymax ${formatSeconds(backgroundYmax)}; spread 許容 ${formatSeconds(spreadTolerance)}`
+    ? `; background_ymax ${formatSeconds(backgroundYmax)}; spread tolerance ${formatSeconds(spreadTolerance)}`
     : "";
   return (Array.isArray(intervals) ? intervals : []).map((interval) => {
     const active = [
@@ -301,12 +301,12 @@ export function blankFrameFindings(intervals, { backgroundYmax, spreadTolerance 
     const fades = Array.isArray(interval.declared_fades) ? interval.declared_fades : [];
     const listed = fades.map(({ kind, id, via }) => `${kind}:${id}(${via})`).join(", ");
     const declaredDetails = fades.length === 0 ? "" : interval.declared_blank === true
-      ? `; 宣言済みの暗転 ${listed} の窓に収まる（意図した暗転として info）`
-      : `; 宣言済みの暗転 ${listed} と一部だけ重なる`;
+      ? `; falls inside the declared black frame ${listed} (recorded as an intended black, info)`
+      : `; overlaps the declared black frame ${listed} only in part`;
     return {
       severity: interval.severity,
       check: "verify.blank-frames",
-      message: `空フレーム候補 ${formatSeconds(interval.start)}s–${formatSeconds(interval.start + interval.duration)}s（${formatSeconds(interval.duration)} 秒、YMAX 最大 ${formatSeconds(interval.ymax_max)}）${active.length > 0 ? `; 活性 ${active.join(", ")}` : "; 活性 overlay/cut なし"}${declaredDetails}${thresholdDetails}`,
+      message: `blank-frame candidate ${formatSeconds(interval.start)}s-${formatSeconds(interval.start + interval.duration)}s (${formatSeconds(interval.duration)} s, YMAX max ${formatSeconds(interval.ymax_max)})${active.length > 0 ? `; active ${active.join(", ")}` : "; no active overlay or cut"}${declaredDetails}${thresholdDetails}`,
     };
   });
 }

@@ -72,7 +72,7 @@ test("失敗メッセージは requested / measured / primary display / work are
   assert.match(message, /measured 1920x1032/u);
   assert.match(message, /primary display 1920x1080/u);
   assert.match(message, /work area 1920x1032/u);
-  assert.match(message, /setContentSize 適用 \/ device emulation 適用/u);
+  assert.match(message, /setContentSize applied \/ device emulation applied/u);
   assert.doesNotMatch(message, /--force-device-scale-factor/u);
   // readPaintBitmap は settle 結果（run.json と同形 + devicePixelRatio / resized）を受けて同じ文言で投げる
   assert.throws(
@@ -89,7 +89,7 @@ test("DPR ≠ 1 のときだけ --force-device-scale-factor=1 の案内が付く
     frame: 3, requested: osrPageSize(1920, 1080), measured: { width: 3840, height: 2162 }, display, workArea, devicePixelRatio: 2,
   });
   assert.match(withDpr, /requested 1920x1081, measured 3840x2162, primary display 1920x1080, work area 1920x1032/u);
-  assert.match(withDpr, /devicePixelRatio 2 — Electron の実プロセスへ --force-device-scale-factor=1 を渡してください$/u);
+  assert.match(withDpr, /devicePixelRatio 2\. Pass --force-device-scale-factor=1 to the real Electron process$/u);
   assert.throws(
     () => readPaintBitmap(image(3840, 2162), 1920, 1080, 3, { display, work_area: workArea, devicePixelRatio: 2 }),
     /--force-device-scale-factor=1/u,
@@ -98,7 +98,7 @@ test("DPR ≠ 1 のときだけ --force-device-scale-factor=1 の案内が付く
     () => readPaintBitmap(image(8, 8), 4, 3, 1),
     (error) => {
       assert.match(error.message, /^frame 1 bitmap size 8x8, expected 4x4; requested 4x4, measured 8x8, primary display unknown, work area unknown; /u);
-      assert.match(error.message, /setContentSize 未適用 \/ device emulation 未適用/u);
+      assert.match(error.message, /setContentSize not applied \/ device emulation not applied/u);
       assert.doesNotMatch(error.message, /--force-device-scale-factor/u);
       return true;
     },

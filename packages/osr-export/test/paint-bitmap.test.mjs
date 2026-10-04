@@ -75,7 +75,7 @@ test("(b) 予算 2000 ms に達したら throw し、文言に回数・ms・GPU 
     frame: 0, width: 4, height: 3,
     capture: h.capture, settle: h.settle, now: h.now,
     activeDevice: "Intel(R) UHD Graphics",
-  }), { message: "frame 0: offscreen paint returned an empty bitmap 7 times over 2100 ms（GPU: Intel(R) UHD Graphics）" });
+  }), { message: "frame 0: offscreen paint returned an empty bitmap 7 times over 2100 ms (GPU: Intel(R) UHD Graphics)" });
   assert.deepEqual(h.counts(), { captures: 7, settles: 6, time: 2100 });
 });
 
@@ -83,7 +83,7 @@ test("(b') settle の所要も予算に含める（capture 0 ms・settle 500 ms 
   const h = harness({ captureMs: 0, settleMs: 500, frames: [image(4, 4, 0)] });
   await assert.rejects(() => captureNonEmptyBitmap({
     frame: 3, width: 4, height: 3, capture: h.capture, settle: h.settle, now: h.now, emptyPaintBudgetMs: 2000,
-  }), { message: "frame 3: offscreen paint returned an empty bitmap 5 times over 2000 ms（GPU: unknown）" });
+  }), { message: "frame 3: offscreen paint returned an empty bitmap 5 times over 2000 ms (GPU: unknown)" });
   assert.deepEqual(h.counts(), { captures: 5, settles: 4, time: 2000 });
 });
 
@@ -92,7 +92,7 @@ test("(c) 時計が進まないときは 64 回で throw する（GPU 不明は 
   let empties = 0;
   await assert.rejects(() => captureNonEmptyBitmap({
     frame: 12, width: 4, height: 3, capture: h.capture, settle: h.settle, now: h.now, onEmpty: () => { empties += 1; },
-  }), { message: "frame 12: offscreen paint returned an empty bitmap 64 times over 0 ms（GPU: unknown）" });
+  }), { message: "frame 12: offscreen paint returned an empty bitmap 64 times over 0 ms (GPU: unknown)" });
   assert.deepEqual(h.counts(), { captures: 64, settles: 63, time: 0 });
   assert.equal(empties, 64);
 });
@@ -108,9 +108,9 @@ test("maximumEmptyAttempts を 8 に下げれば従来どおり 8 回で throw �
 test("emptyPaintFailureMessage は ms を整数に丸め、GPU 名が無ければ unknown", () => {
   assert.equal(
     emptyPaintFailureMessage({ frame: 0, attempts: 9, elapsedMs: 2003.6, activeDevice: "NVIDIA GeForce RTX 5060 Laptop GPU" }),
-    "frame 0: offscreen paint returned an empty bitmap 9 times over 2004 ms（GPU: NVIDIA GeForce RTX 5060 Laptop GPU）",
+    "frame 0: offscreen paint returned an empty bitmap 9 times over 2004 ms (GPU: NVIDIA GeForce RTX 5060 Laptop GPU)",
   );
-  assert.equal(emptyPaintFailureMessage({ frame: 1, attempts: 2, elapsedMs: 10 }), "frame 1: offscreen paint returned an empty bitmap 2 times over 10 ms（GPU: unknown）");
+  assert.equal(emptyPaintFailureMessage({ frame: 1, attempts: 2, elapsedMs: 10 }), "frame 1: offscreen paint returned an empty bitmap 2 times over 10 ms (GPU: unknown)");
 });
 
 test("(e) emptyPaints[] は { frame, attempts, elapsed_ms } で、同じ frame の再 capture は attempts / elapsed_ms を足し込む", () => {

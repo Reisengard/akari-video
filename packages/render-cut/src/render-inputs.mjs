@@ -109,7 +109,7 @@ export async function enumerateDeclaredRenderInputs({
         addInput(`${role}:fragment-asset`, reference.path);
       } catch (error) {
         if (error instanceof RenderInputError) {
-          error.message = `${role} fragment ${overlaySourcePath(overlay)} の参照 "${reference.raw}": ${error.message}`;
+          error.message = `${role} fragment ${overlaySourcePath(overlay)} reference "${reference.raw}": ${error.message}`;
         }
         throw error;
       }

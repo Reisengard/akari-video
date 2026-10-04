@@ -63,7 +63,7 @@ export function buildPlan({
   const normalizedInternalEdit = internalEdit ?? readRenderEdit(edit, temporaryDirectory).internal;
   if (isPositiveNumber(fpsOverride) && fpsOverride !== edit.output.fps) {
     throw new Error(
-      "v2 の出力 fps は宣言が正本です。fps を変えるときは retime（全体再スケール）を通してください。",
+      "v2 output fps comes from the declaration. Change fps through retime (a full rescale).",
     );
   }
   const fps = isPositiveNumber(fpsOverride) ? fpsOverride : edit.output.fps;

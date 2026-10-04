@@ -15,7 +15,7 @@ test("render-cut --engine accepts auto/gpu/osr and rejects the retired value", (
   }
   assert.throws(
     () => parseArguments(["proj", "--engine", "legacy"]),
-    (error) => error instanceof RefusalError && error.exitCode === 2 && /廃止/.test(error.message),
+    (error) => error instanceof RefusalError && error.exitCode === 2 && /has been removed/.test(error.message),
   );
 });
 
@@ -40,7 +40,7 @@ test("tier 3 refusal names all three Electron acquisition paths", () => {
     () => assertOsrLauncherAvailable({ tier: 3, reason: "missing" }),
     (error) => error instanceof RefusalError
       && error.exitCode === 2
-      && /インストール済み AKARI Video/.test(error.message)
+      && /installed AKARI Video/.test(error.message)
       && /npm install electron/.test(error.message)
       && /AKARI_OSR_ELECTRON=<path>/.test(error.message),
   );

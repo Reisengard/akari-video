@@ -21,15 +21,15 @@ export function buildSrt(model, captions) {
   if (captions.some((caption) => caption.style || caption.text_style || caption.words)) {
     dropped.push({
       field: "captions[].style / text_style / words",
-      reason: "SRT はプレーンテキストのみ。カラオケ演出・座布団・語タイミングは落ちる",
-      hint: "見た目込みが必要なら AKARI レンダ（焼き込み）を使う",
+      reason: "SRT is plain text only. Karaoke, plates, and word timing are dropped",
+      hint: "Use an AKARI render (burned in) when the look has to travel with the text",
     });
   }
   const cues = [];
   for (const caption of captions) {
     const source = typeof caption.src === "string" && caption.src !== "" ? caption.src : null;
     if (source === null && model.sources.length > 1) {
-      warnings.push(`captions.json ${caption.id ?? "(unknown)"} はマルチソース編集で src がないためスキップ`);
+      warnings.push(`captions.json ${caption.id ?? "(unknown)"} is skipped because a multi-source edit has no src`);
       continue;
     }
     const text = typeof caption.display_text === "string" ? caption.display_text : caption.text;

@@ -72,9 +72,9 @@ export function contactSheetGridDimensions(count) {
 // 13 コマを 12+1 にせず 7+6 にするため、必要なシート数を先に確定して均等配分する。
 // media/capture 共用の純関数。各要素は 1..perSheet、総和は count になる。
 export function splitContactSheetCounts(count, perSheet = CONTACT_SHEET_MAX_FRAMES) {
-  if (!Number.isInteger(count) || count < 0) throw new Error("count は 0 以上の整数で指定してください");
+  if (!Number.isInteger(count) || count < 0) throw new Error("count must be an integer of 0 or more");
   if (!Number.isInteger(perSheet) || perSheet < 1 || perSheet > CONTACT_SHEET_MAX_FRAMES) {
-    throw new Error(`perSheet は 1〜${CONTACT_SHEET_MAX_FRAMES} の整数で指定してください`);
+    throw new Error(`perSheet must be an integer from 1 to ${CONTACT_SHEET_MAX_FRAMES}`);
   }
   if (count === 0) return [];
   const sheetCount = Math.ceil(count / perSheet);

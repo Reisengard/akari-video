@@ -42,7 +42,7 @@ test("CLI: --no-probe --json で 3 形式 + レポートを書き出し exit 0",
   assert.equal(report.written.length, 3);
   assert.ok(report.dropped.some((entry) => entry.field === "audio.bgm.ducking"));
   // プレースホルダ尺の warning が出ている（黙って推測しない）
-  assert.ok(report.warnings.some((warning) => warning.includes("実尺が不明")));
+  assert.ok(report.warnings.some((warning) => warning.includes("duration is unknown")));
 
   const outDir = join(root, "exports", "nle");
   const name = root.split("/").pop();

@@ -172,7 +172,7 @@ test("GPU export refuses master without bitrate before resolving a launcher", as
     quality: "master",
     eligibility: { eligible: true, entries: [] },
     launcherResolver: async () => { resolved = true; return { tier: 2 }; },
-  }), /master は GPU 出口では --bitrate の明示が必要/);
+  }), /master requires an explicit --bitrate on the GPU exit/);
   assert.equal(resolved, false);
 });
 
@@ -316,7 +316,7 @@ test("GPU export records and reports a silent carrier when an explicit source ha
     assert.deepEqual(result.run.audio, expectedAudio);
     assert.deepEqual(result.receipt.audio, expectedAudio);
     assert.deepEqual(errors, [
-      "gpu-export: 音声ソースに音声ストリームが無いため無音トラック（契約 §5 の carrier）を付けました: mute.mp4",
+      "gpu-export: the audio source has no audio stream, so a silent track was added (carrier in contract section 5): mute.mp4",
     ]);
     const persistentRun = JSON.parse(await readFile(join(projectRoot, ".akari", "gpu-run.json"), "utf8"));
     assert.deepEqual(persistentRun.audio, expectedAudio);
@@ -432,7 +432,7 @@ test("GPU export replaces the hardware-encoder failure message with the Japanese
       caught = error;
     }
     assert.equal(caught.originalMessage, "OSR Electron exited 1 (no signal)");
-    assert.equal(caught.message, "ハードウェア H.264 エンコーダが使えません。書き出しプロセスは内蔵 GPU（Intel(R) UHD Graphics）で動作しています。高パフォーマンス GPU（NVIDIA GeForce RTX 5060 Laptop GPU）への自動切り替えが off です。AKARI_EXPORT_GPU_PREFERENCE=auto で再実行してください（原因: WebCodecs H.264 config is unsupported: prefer-hardware (avc1.640028 1280x720@30fps 6000000bps) renderer=ANGLE (Intel, Intel(R) UHD Graphics Direct3D11)）");
+    assert.equal(caught.message, "The hardware H.264 encoder is unavailable. The export process is running on the integrated GPU (Intel(R) UHD Graphics). Automatic switch to the high-performance GPU (NVIDIA GeForce RTX 5060 Laptop GPU) is off. Rerun with AKARI_EXPORT_GPU_PREFERENCE=auto (cause: WebCodecs H.264 config is unsupported: prefer-hardware (avc1.640028 1280x720@30fps 6000000bps) renderer=ANGLE (Intel, Intel(R) UHD Graphics Direct3D11))");
     assert.doesNotMatch(caught.message, /[\r\n]/u);
     assert.equal(caught.gpuFailureRunPath, ".akari/gpu-run-failed.json");
     const persisted = JSON.parse(await readFile(join(projectRoot, caught.gpuFailureRunPath), "utf8"));

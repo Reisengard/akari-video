@@ -120,7 +120,7 @@ test("real signalstats scan lowers declared dark transition and keeps undeclared
     assert.equal(declared.declared_blank, true);
     assert.deepEqual(declared.declared_fades.map(({ via }) => via),
       ["transition_out:fade-black", "keyframes.opacity"]);
-    assert.match(result.findings[0].message, /宣言済みの暗転/u);
+    assert.match(result.findings[0].message, /declared black frame/u);
     assert.equal(result.intervals[1].severity, "warning");
     assert.equal(result.intervals[1].declared_blank, false);
     const control = structuredClone(edit);
@@ -160,8 +160,8 @@ test("report renders declared fade evidence and legacy intervals", () => {
 
 test("findings preserve their prefix and append full or partial declaration evidence", () => {
   const base = { start: 1, duration: 0.5, ymax_max: 16, active_overlays: ["title"], active_cuts: [], severity: "warning" };
-  const prefix = "空フレーム候補 1s–1.5s（0.5 秒、YMAX 最大 16）; 活性 overlay:title";
-  const details = "; background_ymax 16; spread 許容 16";
+  const prefix = "blank-frame candidate 1s-1.5s (0.5 s, YMAX max 16); active overlay:title";
+  const details = "; background_ymax 16; spread tolerance 16";
   const fades = [{ kind: "cut", id: "c1", via: "transition_out:fade-black" }];
   const messages = blankFrameFindings([
     { ...base, declared_fades: fades, declared_blank: true },
@@ -169,8 +169,8 @@ test("findings preserve their prefix and append full or partial declaration evid
     base,
   ], { backgroundYmax: 16, spreadTolerance: 16 }).map(({ message }) => message);
   assert.deepEqual(messages, [
-    `${prefix}; 宣言済みの暗転 cut:c1(transition_out:fade-black) の窓に収まる（意図した暗転として info）${details}`,
-    `${prefix}; 宣言済みの暗転 cut:c1(transition_out:fade-black) と一部だけ重なる${details}`,
+    `${prefix}; falls inside the declared black frame cut:c1(transition_out:fade-black) (recorded as an intended black, info)${details}`,
+    `${prefix}; overlaps the declared black frame cut:c1(transition_out:fade-black) only in part${details}`,
     `${prefix}${details}`,
   ]);
   assert.equal(blankIntervalSeverity({ ...base, declared_blank: true }), "info");
@@ -536,8 +536,8 @@ test("findings append background_ymax and spread tolerance without changing the 
     backgroundYmax: 16,
     spreadTolerance: BLANK_FRAME_SPREAD_TOLERANCE,
   })[0].message;
-  assert.equal(legacyMessage, "空フレーム候補 1s–1.5s（0.5 秒、YMAX 最大 16）; 活性 overlay:title");
-  assert.equal(message, `${legacyMessage}; background_ymax 16; spread 許容 16`);
+  assert.equal(legacyMessage, "blank-frame candidate 1s-1.5s (0.5 s, YMAX max 16); active overlay:title");
+  assert.equal(message, `${legacyMessage}; background_ymax 16; spread tolerance 16`);
 });
 
 test("a detected blank-frame warning does not change verifyArtifact's pass verdict", () => {

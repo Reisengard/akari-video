@@ -16,10 +16,10 @@ export async function runCli(args, io = console) {
     const analysis = parseJson(analysisSource, analysisPath);
     const captions = parseJson(captionsSource, captionsPath);
     if (!Array.isArray(analysis?.transcript)) {
-      throw new Error("analysis.json の transcript は配列である必要があります。");
+      throw new Error("analysis.json transcript must be an array.");
     }
     if (!Array.isArray(captions)) {
-      throw new Error("captions.json のルートは配列である必要があります。");
+      throw new Error("captions.json root must be an array.");
     }
 
     const transcriptWords = analysis.transcript.flatMap((segment) =>
@@ -29,8 +29,8 @@ export async function runCli(args, io = console) {
       Array.isArray(segment?.unrecognized) ? segment.unrecognized.filter(isUnrecognizedSpan) : [],
     );
     if (transcriptWords.length === 0 && transcriptUnrecognized.length === 0) {
-      io.log("words 0 件・充填対象なし");
-      io.log("未認識 0 区間を 0 字幕へ充填");
+      io.log("words: 0 items, nothing to fill");
+      io.log("unrecognized: filled 0 spans into 0 captions");
       return 0;
     }
 
@@ -80,8 +80,8 @@ export async function runCli(args, io = console) {
     });
 
     if (wordsFilled === 0 && unrecognizedFilled === 0) {
-      io.log(`words ${transcriptWords.length} 件・充填対象なし・既存 words ${wordsSkipped} 件をスキップ`);
-      io.log(`未認識 0 区間を 0 字幕へ充填・既存 unrecognized ${unrecognizedSkipped} 件をスキップ`);
+      io.log(`words: ${transcriptWords.length} items, nothing to fill, skipped ${wordsSkipped} existing words`);
+      io.log(`unrecognized: filled 0 spans into 0 captions, skipped ${unrecognizedSkipped} existing unrecognized items`);
       return 0;
     }
 
@@ -92,10 +92,10 @@ export async function runCli(args, io = console) {
       await writeFile(captionsPath, updatedSource, "utf8");
     }
     io.log(
-      `words ${transcriptWords.length} 件・${copiedWords} 件を ${wordsFilled} 字幕へ充填・既存 words ${wordsSkipped} 件をスキップ${options.dryRun ? "（dry-run）" : ""}`,
+      `words: ${transcriptWords.length} items, filled ${copiedWords} into ${wordsFilled} captions, skipped ${wordsSkipped} existing words${options.dryRun ? " (dry-run)" : ""}`,
     );
     io.log(
-      `未認識 ${copiedUnrecognized} 区間を ${unrecognizedFilled} 字幕へ充填・既存 unrecognized ${unrecognizedSkipped} 件をスキップ${options.dryRun ? "（dry-run）" : ""}`,
+      `unrecognized: filled ${copiedUnrecognized} spans into ${unrecognizedFilled} captions, skipped ${unrecognizedSkipped} existing unrecognized items${options.dryRun ? " (dry-run)" : ""}`,
     );
     return 0;
   } catch (error) {
@@ -138,7 +138,7 @@ function parseArguments(args) {
     if (argument === "--analysis" || argument === "--captions") {
       const value = args[index + 1];
       if (!value || value.startsWith("--")) {
-        throw new Error(`${argument} にファイルを指定してください。`);
+        throw new Error(`${argument} requires a file.`);
       }
       options[argument.slice(2)] = value;
       index += 1;
@@ -147,11 +147,11 @@ function parseArguments(args) {
     } else if (argument === "--force") {
       options.force = true;
     } else {
-      throw new Error(`不明な引数です: ${argument}`);
+      throw new Error(`unknown argument: ${argument}`);
     }
   }
   if (!options.analysis || !options.captions) {
-    throw new Error("使い方: fill-caption-words --analysis <analysis.json> --captions <captions.json> [--dry-run] [--force]");
+    throw new Error("Usage: fill-caption-words --analysis <analysis.json> --captions <captions.json> [--dry-run] [--force]");
   }
   return options;
 }
@@ -160,7 +160,7 @@ function parseJson(source, path) {
   try {
     return JSON.parse(source);
   } catch (error) {
-    throw new Error(`${path} を JSON として読み取れません: ${error.message}`);
+    throw new Error(`${path} is not valid JSON: ${error.message}`);
   }
 }
 
@@ -224,7 +224,7 @@ function roundMs(value) {
 }
 
 function renderDifference(before, after, captionsPath) {
-  if (before === after) return "差分なし";
+  if (before === after) return "no differences";
   const beforeLines = before.replace(/\n$/u, "").split("\n");
   const afterLines = after.replace(/\n$/u, "").split("\n");
   return [

@@ -97,8 +97,8 @@ export function buildFcpxml(model, { durations, frameDur, totalDuration }) {
           if (boundary.type !== "dissolve") {
             dropped.push({
               field: `tracks[${track.id}].items[${cut.id}].source.transition_out.type`,
-              reason: `${boundary.type} は FCPXML の既定トランジション（cross dissolve）で近似する`,
-              hint: "書き出し先で dip to color へ差し替える",
+              reason: `${boundary.type} is approximated with the FCPXML default transition (cross dissolve)`,
+              hint: "Replace it with dip to color in the destination",
             });
           }
         }
@@ -112,8 +112,8 @@ export function buildFcpxml(model, { durations, frameDur, totalDuration }) {
         if (clip.transition_out) {
           dropped.push({
             field: `tracks[${track.id}].items[${clip.id}].source.transition_out`,
-            reason: "同一トラックが storyline にできない配置のためトランジションを書き出さない",
-            hint: "書き出し先で手動でトランジションを追加する",
+            reason: "transition is not exported because the clips cannot share one storyline",
+            hint: "Add the transition by hand in the destination",
           });
         }
         gapChildren.push(cutClipNode(
@@ -270,7 +270,7 @@ function mapAnchorsToCuts(model, warnings, dropped) {
     const cut = model.cuts.find((candidate) =>
       (src === null || candidate.src === src) && anchorStart >= candidate.in && anchorStart < candidate.out);
     if (!cut) {
-      dropped.push({ field, reason: "アンカーがどのカットにも含まれない", hint: "カット範囲外のマーカーは書き出されない" });
+      dropped.push({ field, reason: "the anchor is not inside any cut", hint: "markers outside the cut range are not exported" });
       return;
     }
     if (!targets.has(cut.id)) targets.set(cut.id, []);
@@ -314,7 +314,7 @@ function emitBgmClips(model, gapChildren, { durations, t, totalDuration, bgmLane
       first = false;
     }
   } else {
-    warnings.push(`bgm の実尺が不明（ffprobe 不使用/失敗）— ループ展開せず全体尺 1 クリップで書き出す: ${bgm.path}`);
+    warnings.push(`bgm duration is unknown (ffprobe skipped or failed). Writing one clip for the whole timeline instead of unrolling the loop: ${bgm.path}`);
     pieces.push({ offset: 0, start: inPoint, duration: totalDuration });
   }
   pieces.forEach((piece, index) => {
@@ -381,7 +381,7 @@ function blendNode(opacity, blendMode, warnings) {
   const hasMode = typeof blendMode === "string" && blendMode !== "normal";
   if (!hasOpacity && !hasMode) return null;
   if (hasMode) {
-    warnings?.push(`blend mode "${blendMode}" は FCPXML の mode 名へそのまま書く（未検証・取り込み側で無視される可能性あり）`);
+    warnings?.push(`blend mode "${blendMode}" is written through as an FCPXML mode name (unverified; the importer may ignore it)`);
   }
   return element("adjust-blend", {
     amount: hasOpacity ? String(opacity) : "1",
@@ -416,6 +416,6 @@ function fallbackAssetDuration(model, ref, totalDuration) {
 }
 
 function placeholderDuration(path, role, warnings) {
-  warnings.push(`${role} の実尺が不明（ffprobe 不使用/失敗）— ${PLACEHOLDER_AUDIO_SECONDS}s のプレースホルダ尺で書き出す: ${path}`);
+  warnings.push(`${role} duration is unknown (ffprobe skipped or failed). Writing a ${PLACEHOLDER_AUDIO_SECONDS}s placeholder: ${path}`);
   return PLACEHOLDER_AUDIO_SECONDS;
 }

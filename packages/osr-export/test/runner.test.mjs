@@ -125,7 +125,7 @@ test("dev レイアウトで Electron が無ければ tier 3 の理由に脱出�
   });
   assert.equal(result.tier, 3);
   assert.equal(result.skippedInstalledDesktop, true);
-  assert.match(result.reason, /開発リポジトリ配置/u);
+  assert.match(result.reason, /development checkout/u);
   assert.match(result.reason, /AKARI_EXPORT_ALLOW_DESKTOP=1/u);
   assert.match(result.reason, /AKARI_OSR_ELECTRON=<path>/u);
 });
@@ -372,8 +372,8 @@ test("exit 0 でも出力が無ければ単一インスタンスロックの可�
     await assert.rejects(
       launchElectronExport({ tier: 1, executable: "/electron" }, exportOptions(out), { spawnImpl: spawnMock() }),
       (error) => {
-        assert.match(error.message, /単一インスタンスロック/);
-        assert.match(error.message, /PROGRESS 行 0/);
+        assert.match(error.message, /single-instance lock/);
+        assert.match(error.message, /PROGRESS lines 0/);
         return true;
       },
     );
@@ -393,7 +393,7 @@ test("exit 0 で空の出力なら分割された PROGRESS 行数を含めて失
           beforeClose: () => writeFile(out, ""),
         }),
       }),
-      /PROGRESS 行 2/,
+      /PROGRESS lines 2/,
     );
   } finally {
     await rm(root, { recursive: true, force: true });

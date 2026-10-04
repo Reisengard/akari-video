@@ -14,7 +14,7 @@ test("fetch-models fails closed and removes a sha256-mismatched partial file", a
         vendorRoot,
         download: async (_url, destination) => writeFile(destination, "not an ONNX model"),
       }),
-      /sha256 不一致/,
+      /sha256 mismatch/,
     );
     assert.deepEqual(await readdir(vendorRoot), []);
   } finally {

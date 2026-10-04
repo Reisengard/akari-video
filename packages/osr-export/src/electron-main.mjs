@@ -910,6 +910,6 @@ const invoked = process.argv.slice(1).some((argument) => {
 });
 if (invoked) void runCli();
 else if (process.argv.slice(1).some((argument) => argument.endsWith("electron-main.mjs"))) {
-  process.stderr.write("OSR Electron main の直接起動を判定できませんでした\n");
+  process.stderr.write("could not tell whether this is a direct launch of the OSR Electron main\n");
   app.exit(2);
 }

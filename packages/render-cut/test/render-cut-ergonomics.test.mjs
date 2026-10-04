@@ -192,7 +192,7 @@ test("twelve same-type warnings render as five details and one aggregate line", 
   const lines = formatWarningLines(warnings);
   assert.equal(lines.length, 6);
   assert.deepEqual(lines.slice(0, 5), warnings.slice(0, 5).map((warning) => `render-cut warning: ${warning}`));
-  assert.equal(lines[5], "render-cut warning: 他 7 件（同種）");
+  assert.equal(lines[5], "render-cut warning: 7 more of the same kind");
 });
 
 test("narration ids are ignored for grouping while distinct warning types stay separate", () => {
@@ -207,9 +207,9 @@ test("narration ids are ignored for grouping while distinct warning types stay s
 
   assert.equal(lines.length, 12);
   assert.deepEqual(lines.slice(0, 5), outWarnings.slice(0, 5).map((warning) => `render-cut warning: ${warning}`));
-  assert.equal(lines[5], "render-cut warning: 他 7 件（同種）");
+  assert.equal(lines[5], "render-cut warning: 7 more of the same kind");
   assert.deepEqual(lines.slice(6, 11), gainWarnings.slice(0, 5).map((warning) => `render-cut warning: ${warning}`));
-  assert.equal(lines[11], "render-cut warning: 他 7 件（同種）");
+  assert.equal(lines[11], "render-cut warning: 7 more of the same kind");
 });
 
 test("default output uses the project directory name instead of the first source", () => {

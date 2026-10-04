@@ -142,11 +142,11 @@ function audioJudgement({ declared, maxDb, hasAudioStream = true, ok = true, rea
 }
 
 test("declared digital silence is an audio-level error", () => {
-  const judged = audioJudgement({ declared: true, maxDb: -91, reasons: ["bgm", "素材音声"] });
+  const judged = audioJudgement({ declared: true, maxDb: -91, reasons: ["bgm", "footage audio"] });
   assert.equal(judged.finding.severity, "error");
   assert.equal(judged.record.verdict, "fail");
-  assert.match(judged.finding.message, /bgm\/素材音声/u);
-  assert.match(judged.finding.message, /閾値 -80 dB・1 区間/u);
+  assert.match(judged.finding.message, /bgm\/footage audio/u);
+  assert.match(judged.finding.message, /threshold -80 dB, 1 span\)/u);
 });
 
 test("declared audible output is an audio-level info pass", () => {
@@ -160,14 +160,14 @@ test("an undeclared silent audio track is a warning without failure", () => {
   const judged = audioJudgement({ declared: false, maxDb: -91, reasons: [] });
   assert.equal(judged.finding.severity, "warning");
   assert.equal(judged.record.verdict, "warning");
-  assert.match(judged.finding.message, /無音トラック/u);
+  assert.match(judged.finding.message, /silent track/u);
 });
 
 test("undeclared audible audio is a warning without failure", () => {
   const judged = audioJudgement({ declared: false, maxDb: -20, reasons: [] });
   assert.equal(judged.finding.severity, "warning");
   assert.equal(judged.record.verdict, "warning");
-  assert.match(judged.finding.message, /可聴音声/u);
+  assert.match(judged.finding.message, /audible audio/u);
 });
 
 test("audio-level is recorded as skipped when the output has no audio stream", () => {
@@ -187,7 +187,7 @@ test("audio measurement failure is an error that names threshold and interval co
   const judged = audioJudgement({ declared: true, maxDb: null, ok: false });
   assert.equal(judged.finding.severity, "error");
   assert.equal(judged.record.verdict, "fail");
-  assert.match(judged.finding.message, /閾値 -80 dB・1 区間/u);
+  assert.match(judged.finding.message, /threshold -80 dB, 1 span\)/u);
   assert.match(judged.finding.message, /probe failed/u);
 });
 
@@ -327,7 +327,7 @@ test("judgeMotion warns when declared camera-work frames are highly correlated",
     spawnSyncImpl: fakeMotionSpawn([patterned, Buffer.from(patterned)]),
   });
   assert.equal(judged.findings[0].severity, "warning");
-  assert.match(judged.findings[0].message, /カメラワーク未反映/u);
+  assert.match(judged.findings[0].message, /camera move may be missing/u);
   assert.equal(judged.records[0].verdict, "warning");
   assert.ok(judged.records[0].ncc >= 0.98);
 });
@@ -565,8 +565,8 @@ test("render report shows the verification-only GPU force stamp only when record
     provenance: { rasterizer: { adopted: null, attempts: [] } },
     artifacts: [],
   };
-  assert.doesNotMatch(renderReport(state, "reports/render-report.html", "."), /検証用（GPU 強制）/u);
-  assert.match(renderReport({ ...state, gpu_forced: true }, "reports/render-report.html", "."), /検証用（GPU 強制）/u);
+  assert.doesNotMatch(renderReport(state, "reports/render-report.html", "."), /Verification only \(GPU forced\)/u);
+  assert.match(renderReport({ ...state, gpu_forced: true }, "reports/render-report.html", "."), /Verification only \(GPU forced\)/u);
 });
 
 test("real ffmpeg measures audible and silent ten-second signals", async (t) => {

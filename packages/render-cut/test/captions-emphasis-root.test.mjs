@@ -167,7 +167,7 @@ test("loadCaptions は単語帳保護で不能な分割だけ fallback して警
       const loaded = await loadCaptions(project, EDIT);
       assert.deepEqual(loaded.layout.display_cues.map(cue => cue.text), ["alpha", " beta"]);
       assert.deepEqual(loaded.layout.word_book_fallbacks, [{ caption_id: "c-0001", dropped_terms: ["alpha beta"] }]);
-      assert.deepEqual(errors, ["単語帳: 1 行で行分割保護を外しました"]);
+      assert.deepEqual(errors, ["word book: dropped line-break protection on 1 line(s)"]);
     } finally {
       console.error = original;
     }
